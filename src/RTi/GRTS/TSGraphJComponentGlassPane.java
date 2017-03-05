@@ -7,8 +7,11 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 
-import javax.swing.JComponent;
-
+import RTi.GR.GRDeviceUtil;
+import RTi.GR.GRJComponentDevice;
+import RTi.GR.GRLimits;
+import RTi.GR.GRUnits;
+import RTi.GR.GRUtil;
 import RTi.Util.Message.Message;
 
 /**
@@ -18,128 +21,121 @@ import RTi.Util.Message.Message;
  * @author sam
  *
  */
-public class TSGraphJComponentGlassPane extends JComponent {
-	
+public class TSGraphJComponentGlassPane extends GRJComponentDevice {
+	/**
+	 * The main graph component.
+	 */
+	TSGraphJComponent tsgraphJComponent = null;
+
 	/**
 	 * Point for the mouse (will be drawn).
 	 */
 	private Point point = null;
+
 	/**
 	 * Point for the mouse for previous draw, used to optimize drawing.
 	 */
 	private Point pointPrev = null;
 
 	public TSGraphJComponentGlassPane ( TSGraphJComponent tsgraphJComponent, Container contentPane ) {
-		setName("TSGrapJComponentGlassPane");
+		super("TSGraphJComponentGlassPane");
+		initialize();
+		this.tsgraphJComponent = tsgraphJComponent;
 		// Set the preferred size to the same as the original component
 		setPreferredSize(new Dimension(tsgraphJComponent.getWidth(),tsgraphJComponent.getHeight()));
-		Message.printStatus(2, "", "Constructed TSGraphJComponentGlassPane");
-		System.out.println("Constructed TSGraphJComponentGlassPane");
+		//Message.printStatus(2, "", "Constructed TSGraphJComponentGlassPane");
+		//System.out.println("Constructed TSGraphJComponentGlassPane");
 		// Set the background to transparent
         this.setBackground(new Color(0,0,0,0));
-		TSGraphJComponentGlassMouseListener mouseListener = new TSGraphJComponentGlassMouseListener ( this, tsgraphJComponent, contentPane );
+		TSGraphJComponentGlassPaneMouseListener mouseListener = new TSGraphJComponentGlassPaneMouseListener ( this, tsgraphJComponent, contentPane );
 		addMouseMotionListener(mouseListener);
 		addMouseListener(mouseListener);
 	}
-
-	// Start events for MouseMotionListener
-	/*
-    public void mouseDragged(MouseEvent e) {
-        repaint();
-    }
-    
-    public void mouseMoved(MouseEvent e) {
-    	String routine = getClass().getSimpleName() + ".mouseMoved";
-    	Message.printStatus(2, "", "Mouse move detected in glass pane.");
-    	System.out.println("In " + routine + " x=" + e.getX() + "," + e.getY() );
-    	// Save the point for the mouse motion
-    	this.point = e.getPoint();
-    	// Trigger repaint on glass pane, which will draw a vertical line and label the time series
-        this.repaint();
-    }
-	// End events for MouseMotionListener
-
-	// Start events for MouseListener
-    
-    public void mouseClicked(MouseEvent e) {
-    	String routine = getClass().getSimpleName() + ".mouseClicked";
-    	System.out.println("In " + routine + " x=" + e.getX() + "," + e.getY() );
-    }
-    
-    public void mouseEntered(MouseEvent e) {
-    	String routine = getClass().getSimpleName() + ".mouseEntered";
-    	System.out.println("In " + routine + " x=" + e.getX() + "," + e.getY() );
-    }
-    
-    public void mouseExited(MouseEvent e) {
-    	String routine = getClass().getSimpleName() + ".mouseExited";
-    	System.out.println("In " + routine + " x=" + e.getX() + "," + e.getY() );
-    }
-    
-    public void mousePressed(MouseEvent e) {
-    	String routine = getClass().getSimpleName() + ".mousePressed";
-    	System.out.println("In " + routine + " x=" + e.getX() + "," + e.getY() );
-    }
-    
-    public void mouseReleased(MouseEvent e) {
-    	String routine = getClass().getSimpleName() + ".mouseReleased";
-    	System.out.println("In " + routine + " x=" + e.getX() + "," + e.getY() );
-    }
-    */
-    
-	// End events for MouseListener
 	
 	/**
-	 * This method will cause all events to be disabled on the component.
-	 * Use to allow events to drop through to the main drawing component.
-	 * @return false always
-	 */
-	/*
-	public boolean contains ( int x, int y ) {
-		String routine = getClass().getSimpleName() + ".contains";
-		Message.printStatus(2,routine,"In contains()");
-		return false;
-	}*/
-    
+	Initializes member variables.  This is simpler than the initialization of the associated TSViewGraphJComponent
+	because this class does a lot less work.
+	*/
+	private void initialize ()
+	{	// Drawing always occurs on refresh
+		// If the window happens to be under some other window and needs to be redrawn when
+		// moved to the front... well, that won't happen because this glass pane only
+		// draws when the mouse is interacting with a window that is in the front.
+		setDoubleBuffered ( false );
+
+		// Set the general information...
+
+		_mode = GRUtil.MODE_DRAW;
+		_name = "";
+		_note = "";
+		_orientation = GRDeviceUtil.ORIENTATION_PORTRAIT;
+		_page = 0;
+		_printing = false;
+		_reverse_y = true; // Java uses y going down.  This is handled properly in GRJComponentDrawingArea.scaleYData().
+		_sizedrawn = -1;
+		_sizeout = -1;
+		_status = GRUtil.STATUS_OPEN;
+		_type = 0;
+		_units = GRUnits.PIXEL;	// GRJComponentDevice
+
+		// Fill in later...
+		GRLimits limits = null;
+		if ( limits == null ) {
+			// Use default sizes...
+			_dev0x1 = 0.0;
+			_dev0x2 = 1.0;
+			_dev0y1 = 0.0;
+			_dev0y2 = 1.0;
+
+			_devx1 = 0.0;
+			_devx2 = 1.0;
+			_devy1 = 0.0;
+			_devy2 = 1.0;
+			_limits = new GRLimits ( _devx1, _devy1, _devx2, _devy2 );
+		}
+		else {
+			// Set the limits...
+			setLimits ( limits );
+		}
+
+		// The size of the device will have been set in the constructor, but
+		// the base class only knows how to store the data.  Force a resize here.
+		//resize ( _devx1, _devy1, _devx2, _devy2 );
+
+		// Set to null.  Wait for the derived class to set the graphics for use throughout the drawing event...
+
+		// Set information used by the base class and other code...
+
+		_graphics = null;
+
+		// Set the limits to the JComponent size...
+		setLimits ( getLimits ( true ) );
+	}
+
 	/**
 	 * Paint the component, but not the border or children.
 	 */
 	protected void paintComponent ( Graphics g ) {
-		Graphics2D g2 = (Graphics2D)g;
-		String routine = getClass().getSimpleName() + ".paintComponent";
-		Message.printStatus(2,routine,"In paintComponent()");
-		System.out.println(routine + " In paintComponent()");
+		//String routine = getClass().getSimpleName() + ".paintComponent";
+		Graphics2D g2 = (Graphics2D)g; // Used by Swing/AWT
+		setPaintGraphics(g2); // Used by the GR package
+		setLimits(new GRLimits(0,0,getWidth(),getHeight())); // Ensures consistency with resizing
+		//Message.printStatus(2,routine,"In paintComponent()");
+		//System.out.println(routine + " In paintComponent()");
 		//this.setOpaque(false);
-		g2.setColor(Color.black);
-		g2.drawLine(this.getWidth()/2, 0, this.getWidth()/2, this.getHeight());
-		System.out.println(routine + " In paintComponent - drawing line from "
-			+ this.getWidth()/2 + "," + 0 + " " + this.getWidth()/2 + "," + this.getHeight());
+		//g2.setColor(Color.black);
+		//g2.drawLine(this.getWidth()/2, 0, this.getWidth()/2, this.getHeight());
+		//System.out.println(routine + " In paintComponent - drawing line from "
+		//	+ this.getWidth()/2 + "," + 0 + " " + this.getWidth()/2 + "," + this.getHeight());
 		if ( this.point != null ) {
 			if ( (pointPrev != null) && ((point.x != pointPrev.x) || (point.y != pointPrev.y)) ) {
-				System.out.println(routine + " In paintComponent - drawing line");
-				g2.setColor(Color.black);
-				g2.drawLine(this.point.x, 0, this.point.x, this.getHeight());
-				g2.drawString("("+point.x+","+point.y+")", point.x, point.y);
+				// Try doing the rendering in the main TSGraphJComponent since it has access to all the data.
+				// TODO sam 2017-03-04 may move the method into this class.
+				this.tsgraphJComponent.drawMouseTracker(this,g2,this.point.x, this.point.y);
 			}
 			this.pointPrev = point;
 		}
 	}
-	
-	// TODO sam 207-02-24 remove this since paintComponent is preferred
-	/**
-	 * Paint the component, including the border or children.
-	 *//*
-	public void paint ( Graphics g ) {
-		String routine = getClass().getSimpleName() + ".paint";
-		Message.printStatus(2,routine,"In paint()");
-		System.out.println(routine + " In paint()");
-		g.setColor(Color.magenta);
-		g.fillRect(0, 0, getWidth(), getHeight());
-		if ( this.point != null ) {
-			g.setColor(Color.cyan);
-			g.drawLine(this.point.x, 0, this.point.x, this.getHeight());
-		}
-	}*/
 	
 	/**
 	 * Set the point for the painted line - used during mouse motion event handling.
