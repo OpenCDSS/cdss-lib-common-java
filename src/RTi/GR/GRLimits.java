@@ -236,6 +236,34 @@ public boolean contains ( double xmin, double ymin, double xmax, double ymax, bo
 }
 
 /**
+Indicate whether the limits contain the point in question, considering only the x-axis.
+The orientation of the GRLimits x-axis can be in either direction.
+@param x X-coordinate of interest.
+@return true if the GRLimits x-axis contains the specified point.
+*/
+public boolean containsX ( double x )
+{	if ( ((x >= _left_x) && (x <= _right_x)) ||
+		((x <= _left_x) && (x >= _right_x)) ) {
+		return true;
+	}
+	return false;
+}
+
+/**
+Indicate whether the limits contain the point in question, considering only the y-axis.
+The orientation of the GRLimits y-axis can be in either direction.
+@param y Y-coordinate of interest.
+@return true if the GRLimits y-axis contains the specified point.
+*/
+public boolean containsY ( double y )
+{	if ( ((y >= _bottom_y) && (y <= _top_y)) ||
+		((y <= _bottom_y) && (y >= _top_y)) ) {
+		return true;
+	}
+	return false;
+}
+
+/**
 Returns true if the limits are the same as those passed in.  The corner
 coordinates are checked but if coordinates systems for the limits are not the
 same then the limits will not match.
