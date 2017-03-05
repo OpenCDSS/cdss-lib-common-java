@@ -137,6 +137,17 @@ public GRColor ( int r, int g, int b )
 
 /**
 Constructor.  Builds a GRColor with the given red, green and blue values.
+@param r the red value in the range (0 - 255)
+@param g the green value in the range (0 - 255)
+@param b the blue value in the range (0 - 255)
+@param a the opacity in the range (0-255)
+*/
+public GRColor ( int r, int g, int b, int a )
+{	super ( r, g, b, a );
+}
+
+/**
+Constructor.  Builds a GRColor with the given red, green and blue values.
 @param r the red value in the range (0.0 - 1.0)
 @param g the green value in the range (0.0 - 1.0)
 @param b the blue value in the range (0.0 - 1.0)
