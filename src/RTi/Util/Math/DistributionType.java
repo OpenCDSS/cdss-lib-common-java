@@ -71,6 +71,10 @@ public enum DistributionType
         if ( name == null ) {
             return null;
         }
+        // Convert legacy to new
+        if ( name.equalsIgnoreCase("SampleData") ) {
+        	name = "" + SAMPLE;
+        }
         DistributionType [] values = values();
         for ( DistributionType t : values ) {
             if ( name.equalsIgnoreCase(t.toString()) ) {
