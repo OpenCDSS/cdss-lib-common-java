@@ -34,6 +34,7 @@ import RTi.GR.GRShape;
 import RTi.GR.GRSymbol;
 import RTi.GR.GRText;
 import RTi.GR.GRUnits;
+import RTi.TS.IrregularTS;
 import RTi.TS.TS;
 import RTi.TS.TSData;
 import RTi.TS.TSIterator;
@@ -1523,6 +1524,11 @@ public void drawDrawingAreas ()
  * @param devy device (JComponent) pixel coordinate (0=top edge) of mouse motion
  */
 protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D g, int devx, int devy ) {
+	// Only track if requested to do so
+	TSGraphMouseTrackerType trackerType = glassPane.getMouseTrackerType();
+	if ( trackerType == TSGraphMouseTrackerType.NONE ) {
+		return;
+	}
 	// Recreate drawing areas for the glass pane consistent with this component.
 	// - Only the drawing areas for the graphs are needed
 	// - This is perhaps inefficient but ensures agreement with this class, in particular if the
@@ -1555,220 +1561,262 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 	// Loop through TSGraph and see if the device point fits in the area.
 	// If so, draw it according to rules.
 	int itsgraph = -1;
-	//String trackerMode = "Nearest"; // Can be Nearest, NearestTime, NearestTimeAll, NearestSelected
-	String trackerMode = "NearestTime";
-	boolean trackerModeNearest = false;
-	boolean trackerModeNearestTime = false;
-	if ( trackerMode.equalsIgnoreCase("Nearest") ) {
-		trackerModeNearest = true;
-	}
-	else if ( trackerMode.equalsIgnoreCase("NearestTime") ) {
-		trackerModeNearestTime = true;
-	}
 	TSData tsdata = null; // Data point extracted from time series
 	int devHeight = this.getHeight(); // Device units need to be transformed since graphics uses y=0 at top
-	if ( trackerModeNearest || trackerModeNearestTime ) {
-		// Only highlight the data point nearest the mouse in pixel coordinates
-		// Only draw tracker in drawing area that mouse is in.
-		// The mouse could be in left y-axis and right y-axis graphs at the same time so find
-		// the nearest point.
-		for ( TSGraph tsgraph : _tsgraphs ) {
-			++itsgraph;
-			GRDrawingArea daLeftYAxisGraph = tsgraph.getLeftYAxisGraphDrawingArea();
-			GRDrawingArea daRightYAxisGraph = tsgraph.getRightYAxisGraphDrawingArea();
-			// Loop through a list of the left and/or right y-axis drawing areas, maximum of 2 in the list
-			List<GRDrawingArea> daGraphList = new ArrayList<GRDrawingArea>();
-			if ( daLeftYAxisGraph != null ) {
+	boolean drawTrackerLine = false; // Only draw when in graph type that supports tracker
+	for ( TSGraph tsgraph : _tsgraphs ) {
+		++itsgraph;
+		GRDrawingArea daLeftYAxisGraph = tsgraph.getLeftYAxisGraphDrawingArea();
+		GRDrawingArea daRightYAxisGraph = tsgraph.getRightYAxisGraphDrawingArea();
+		TSGraphType leftYAxisGraphType = tsgraph.getLeftYAxisGraphType();
+		TSGraphType rightYAxisGraphType = tsgraph.getRightYAxisGraphType();
+		// Loop through a list of the left and/or right y-axis drawing areas, maximum of 2 in the list
+		List<GRDrawingArea> daGraphList = new ArrayList<GRDrawingArea>();
+		// Currently can only handle graph types that are one of the following because additional
+		// logic would be needed to handle the plotting positions of other graph types:
+		// - Line
+		// - Area
+		// - Bar
+		// - Point
+		if ( daLeftYAxisGraph != null ) {
+			if ( (leftYAxisGraphType == TSGraphType.AREA) || (leftYAxisGraphType == TSGraphType.BAR)
+				|| (leftYAxisGraphType == TSGraphType.LINE) || (leftYAxisGraphType == TSGraphType.POINT) ) {
 				daGraphList.add(daLeftYAxisGraph);
+				drawTrackerLine = true;
 			}
-			if ( daRightYAxisGraph != null ) {
+		}
+		if ( daRightYAxisGraph != null ) {
+			if ( (rightYAxisGraphType == TSGraphType.AREA) || (rightYAxisGraphType == TSGraphType.BAR)
+				|| (rightYAxisGraphType == TSGraphType.LINE) || (rightYAxisGraphType == TSGraphType.POINT) ) {
 				daGraphList.add(daRightYAxisGraph);
+				drawTrackerLine = true;
 			}
-			// The following are used to indicate the nearest point to the mouse
-			double distNearest = Double.NaN;
-			TSData tsdataNearest = null;
-			TS tsNearest = null;
-			DateTime dtNearest = null;
-			GRDrawingArea daGraphNearest = null;
-			TSGraph graphNearest = null;
-			int itsgraphNearest = -1;
-			for ( GRDrawingArea daGraph : daGraphList ) {
-				List<TS> tsForAxis = new ArrayList<TS>();
-				if ( daGraph == daLeftYAxisGraph ) {
-					// Include left axis
-					boolean includeLeftYAxis = true;
-					boolean includeRightYAxis = false;
-					tsForAxis = tsgraph.getEnabledTSList(includeLeftYAxis, includeRightYAxis);
+		}
+		// The following are used to indicate the nearest point to the mouse
+		List<Double> distNearestList = null;
+		List<TSData> tsdataNearestList = null;
+		List<TS> tsNearestList = null;
+		List<DateTime> dtNearestList = null;
+		List<GRDrawingArea> daGraphNearestList = null;
+		List<TSGraph> graphNearestList = null;
+		List<Integer> itsgraphNearestList = null;
+		for ( GRDrawingArea daGraph : daGraphList ) {
+			List<TS> tsForAxis = new ArrayList<TS>();
+			if ( daGraph == daLeftYAxisGraph ) {
+				// Include left axis
+				boolean includeLeftYAxis = true;
+				boolean includeRightYAxis = false;
+				tsForAxis = tsgraph.getEnabledTSList(includeLeftYAxis, includeRightYAxis);
+			}
+			else if ( daGraph == daRightYAxisGraph ) {
+				// Include right axis
+				boolean includeLeftYAxis = false;
+				boolean includeRightYAxis = true;
+				tsForAxis = tsgraph.getEnabledTSList(includeLeftYAxis, includeRightYAxis);
+			}
+			if ( (trackerType == TSGraphMouseTrackerType.NEAREST_TIME)
+				|| (trackerType == TSGraphMouseTrackerType.NEAREST_TIME_SELECTED) ) {
+				// Reset the lists because time series are tracked on each axis.
+				distNearestList = new ArrayList<Double>(tsForAxis.size());
+				tsdataNearestList = new ArrayList<TSData>(tsForAxis.size());
+				tsNearestList = new ArrayList<TS>(tsForAxis.size());
+				dtNearestList = new ArrayList<DateTime>(tsForAxis.size());
+				daGraphNearestList = new ArrayList<GRDrawingArea>(tsForAxis.size());
+				graphNearestList = new ArrayList<TSGraph>(tsForAxis.size());
+				itsgraphNearestList = new ArrayList<Integer>(tsForAxis.size());
+				for ( int i = 0; i < tsForAxis.size(); i++ ) {
+					distNearestList.add(null);
+					tsdataNearestList.add(null);
+					tsNearestList.add(null);
+					dtNearestList.add(null);
+					daGraphNearestList.add(null);
+					graphNearestList.add(null);
+					itsgraphNearestList.add(null);
+					// Set the instances to null
 				}
-				else if ( daGraph == daRightYAxisGraph ) {
-					// Include right axis
-					boolean includeLeftYAxis = false;
-					boolean includeRightYAxis = true;
-					tsForAxis = tsgraph.getEnabledTSList(includeLeftYAxis, includeRightYAxis);
-				}
-				GRLimits daDrawLimits = daGraph.getDrawingLimits();
-				GRLimits daDataLimits = daGraph.getDataLimits();
-				// Want to evaluate only whether x coordinate is in the graph so pick the middle y
+			}
+			GRLimits daDrawLimits = daGraph.getDrawingLimits();
+			GRLimits daDataLimits = daGraph.getDataLimits();
+			boolean doDraw = false;
+			if ( (trackerType == TSGraphMouseTrackerType.NEAREST)
+				|| (trackerType == TSGraphMouseTrackerType.NEAREST_SELECTED) ) {
 				if ( daDrawLimits.contains(devx, (devHeight - devy)) ) {
-					// Mouse coordinates are in the drawing area so draw a line horizontally at the point
-					g.setColor(Color.gray);
-					g.drawLine(devx,(devHeight-(int)daDrawLimits.getBottomY()),devx,(devHeight-(int)daDrawLimits.getTopY()));
-					// Loop through the time series and get the data closest to the horizontal coordinate
-					// First back-calculate the data x-coordinate (date) so it can be used to look up time series values
-					GRPoint datapt = daGraph.getDataXY( devx, devy, GRDrawingArea.COORD_DEVICE );
-					double xDataMouse = datapt.getX();
-					double yDataMouse = datapt.getY();
-					// The X coordinate is a floating-point representation of the date/time
-					DateTime dt = new DateTime(xDataMouse,true);
-					//System.out.println("Mouse date/time=" + dt);
-					// Loop through the time series and find the point that is nearest to the mouse
-					// To make this behave well, adjust the search period to align with time series interval and bracket the point.
-					int its = -1;
-					for ( TS ts : tsForAxis ) {
-						++its;
-						DateTime searchStart = new DateTime(dt);
-						DateTime searchEnd = null;
-						if ( TimeInterval.isRegularInterval(ts.getDataIntervalBase()) ) {
-							// Regular interval time series
-							searchStart.round(-1, ts.getDataIntervalBase(), ts.getDataIntervalMult() );
-							searchStart.setPrecision ( ts.getDate1().getPrecision() );
-							if ( searchStart.equals(dt) ) {
-								searchStart.addInterval(ts.getDataIntervalBase(), -ts.getDataIntervalMult());
+					doDraw = true;
+				}
+			}
+			else if ( (trackerType == TSGraphMouseTrackerType.NEAREST_TIME)
+				|| (trackerType == TSGraphMouseTrackerType.NEAREST_TIME_SELECTED) ) {
+				if ( daDrawLimits.containsX(devx) ) {
+					doDraw = true;
+				}
+			}
+			if ( drawTrackerLine && doDraw ) {
+				// Mouse coordinates are in the drawing area so draw a line vertically at the point
+				g.setColor(Color.gray);
+				g.drawLine(devx,(devHeight-(int)daDrawLimits.getBottomY()),devx,(devHeight-(int)daDrawLimits.getTopY()));
+				// Loop through the time series and get the data closest to the horizontal coordinate
+				// First back-calculate the data x-coordinate (date) so it can be used to look up time series values
+				GRPoint datapt = daGraph.getDataXY( devx, devy, GRDrawingArea.COORD_DEVICE );
+				// The X coordinate is a floating-point representation of the date/time
+				DateTime dt = new DateTime(datapt.getX(),true);
+				//System.out.println("Mouse date/time=" + dt);
+				// Loop through the time series and find the point that is nearest to the mouse
+				// To make this behave well, adjust the search period to align with time series interval and bracket the point.
+				int its = -1;
+				for ( TS ts : tsForAxis ) {
+					++its; // Always increment because array/list positions are important
+					if ( ((trackerType == TSGraphMouseTrackerType.NEAREST_SELECTED)
+						|| (trackerType == TSGraphMouseTrackerType.NEAREST_TIME_SELECTED))
+						&& !tsgraph.isTimeSeriesSelected(ts) ) {
+						// Only time series that are selected should be considered
+						continue;
+					}
+					DateTime searchStart = new DateTime(dt); // These will be adjusted below to set a search window
+					DateTime searchEnd = new DateTime(dt);
+					if ( TimeInterval.isRegularInterval(ts.getDataIntervalBase()) ) {
+						// Regular interval time series
+						searchStart.round(-1, ts.getDataIntervalBase(), ts.getDataIntervalMult() );
+						searchStart.setPrecision ( ts.getDate1().getPrecision() );
+						// N-hour interval where there is a time zone offset can be problematic,
+						// for example 24-hour data aligned with hour 23 so shift if necessary.
+						// This may result in extra intervals being processed during the search, but that is OK.
+						if ( ts.getDate1().getPrecision() == TimeInterval.HOUR ) {
+							if ( ts.getDate1().getHour()%ts.getDataIntervalMult() != 0 ) {
+								searchStart.addHour(-(ts.getDataIntervalMult() - ts.getDate1().getHour()%ts.getDataIntervalMult()));
 							}
-							searchEnd = new DateTime(dt);
-							searchEnd.round(1, ts.getDataIntervalBase(), ts.getDataIntervalMult() );
-							searchEnd.setPrecision ( ts.getDate1().getPrecision() );
-							if ( searchEnd.equals(dt) ) {
-								searchEnd.addInterval(ts.getDataIntervalBase(), ts.getDataIntervalMult());
+						}
+						if ( searchStart.equals(dt) ) {
+							searchStart.addInterval(ts.getDataIntervalBase(), -ts.getDataIntervalMult());
+						}
+						searchEnd.round(1, ts.getDataIntervalBase(), ts.getDataIntervalMult() );
+						searchEnd.setPrecision ( ts.getDate1().getPrecision() );
+						if ( ts.getDate1().getPrecision() == TimeInterval.HOUR ) {
+							if ( ts.getDate1().getHour()%ts.getDataIntervalMult() != 0 ) {
+								searchEnd.addHour(-(ts.getDataIntervalMult() - ts.getDate1().getHour()%ts.getDataIntervalMult()));
 							}
 						}
-						else {
-							// Irregular interval time series
-							// TODO sam 2017-03-03 should be a way to find points on either side
+						if ( searchEnd.equals(dt) ) {
+							searchEnd.addInterval(ts.getDataIntervalBase(), ts.getDataIntervalMult());
 						}
-						// Calculate the distance between the mouse and search start and end, for non-missing values
-						// Check the starting bounding value
-						//System.out.println("Searching for point xdev=" + devx + " , ydev=" + devy + " in range " + searchStart + " to " + searchEnd );
-						// TODO SAM 2017-03-03 need to change this to an iterator to handle irregular time series
-						TSIterator tsi = null;
-						try {
-							tsi = ts.iterator(searchStart, searchEnd);
+					}
+					else {
+						// Irregular interval time series
+						// Find the nearest DateTime in the irregular time series and then expand the search window around that,
+						// 2 data points on each side.
+						TSData tsdataIrr = ((IrregularTS)ts).findNearestNext ( dt, null, null, true );
+						TSData tsdataIrr2 = tsdataIrr;
+						if ( tsdataIrr.getPrevious() != null ) {
+							tsdataIrr = tsdataIrr.getPrevious();
 						}
-						catch ( Exception e ) {
-							// Skip the time series
-							continue;
+						if ( tsdataIrr.getPrevious() != null ) {
+							tsdataIrr = tsdataIrr.getPrevious();
 						}
-						DateTime searchTime;
-						for ( ; (tsdata = tsi.next()) != null; ) {
-						//for ( DateTime searchTime = new DateTime(searchStart); searchTime.lessThanOrEqualTo(searchEnd);
-							//searchTime.addInterval(ts.getDataIntervalBase(),ts.getDataIntervalMult())) {
-							//tsdata = ts.getDataPoint(searchTime, null);
-							searchTime = tsdata.getDate();
-							double tsvalue = tsdata.getDataValue();
-							double xSearchTime = searchTime.toDouble();
-							// Only consider non-missing points in the graph drawing area
-							if ( !ts.isDataMissing(tsvalue) && daDataLimits.containsX(xSearchTime)) {
-								//double xDiff = xDataMouse - xSearchTime;
-								//double yDiff = yDataMouse - tsdata.getDataValue();
-								// Finding the closest point uses device (pixel) units
-								double xDiff = devx - daGraph.scaleXData(xSearchTime);
-								//double yDiff = devy - (devHeight - daGraph.scaleYData(tsvalue));
-								double yDiff = devy - daGraph.scaleYData(tsvalue);
-								if ( trackerModeNearestTime ) {
-									// Ignore y-axis
-									yDiff = 0.0;
+						if ( tsdataIrr2.getNext() != null ) {
+							tsdataIrr2 = tsdataIrr2.getNext();
+						}
+						if ( tsdataIrr2.getNext() != null ) {
+							tsdataIrr2 = tsdataIrr2.getNext();
+						}
+						searchStart = new DateTime(tsdataIrr.getDate());
+						searchEnd = new DateTime(tsdataIrr2.getDate());
+					}
+					// Calculate the distance between the mouse and search start and end, for non-missing values
+					// Check the starting bounding value
+					//System.out.println("Searching for point xdev=" + devx + " , ydev=" + devy + " in range " + searchStart + " to " + searchEnd );
+					// TODO SAM 2017-03-03 need to change this to an iterator to handle irregular time series
+					TSIterator tsi = null;
+					try {
+						tsi = ts.iterator(searchStart, searchEnd);
+					}
+					catch ( Exception e ) {
+						// Skip the time series
+						continue;
+					}
+					DateTime searchTime;
+					for ( ; (tsdata = tsi.next()) != null; ) {
+					//for ( DateTime searchTime = new DateTime(searchStart); searchTime.lessThanOrEqualTo(searchEnd);
+						//searchTime.addInterval(ts.getDataIntervalBase(),ts.getDataIntervalMult())) {
+						//tsdata = ts.getDataPoint(searchTime, null);
+						searchTime = tsdata.getDate();
+						double tsvalue = tsdata.getDataValue();
+						double xSearchTime = searchTime.toDouble();
+						// Only consider non-missing points in the graph drawing area
+						if ( !ts.isDataMissing(tsvalue) && daDataLimits.containsX(xSearchTime)) {
+							// Finding the closest point uses device (pixel) units
+							double xDiff = devx - daGraph.scaleXData(xSearchTime);
+							double yDiff = devy - daGraph.scaleYData(tsvalue);
+							if ( (trackerType == TSGraphMouseTrackerType.NEAREST_TIME)
+								|| (trackerType == TSGraphMouseTrackerType.NEAREST_TIME_SELECTED) ) {
+								// Ignore y-axis
+								yDiff = 0.0;
+							}
+							double dist = Math.sqrt(xDiff*xDiff + yDiff*yDiff);
+							// Make copies of objects when new nearest is found so original instances won't be used (they are dynamic)
+							if ( (trackerType == TSGraphMouseTrackerType.NEAREST)
+								|| (trackerType == TSGraphMouseTrackerType.NEAREST_SELECTED) ) {
+								// Only the single nearest point is drawn
+								if ( distNearestList == null ) {
+									// First instance and only 0-index instance will be compared.
+									distNearestList = new ArrayList<Double>();
+									distNearestList.add(new Double(dist));
+									tsdataNearestList = new ArrayList<TSData>();
+									tsdataNearestList.add(new TSData(tsdata));
+									tsNearestList = new ArrayList<TS>();
+									tsNearestList.add(ts);
+									dtNearestList = new ArrayList<DateTime>();
+									dtNearestList.add(new DateTime(searchTime));
+									daGraphNearestList = new ArrayList<GRDrawingArea>();
+									daGraphNearestList.add(daGraph);
+									graphNearestList = new ArrayList<TSGraph>();
+									graphNearestList.add(tsgraph);
+									itsgraphNearestList = new ArrayList<Integer>();
+									itsgraphNearestList.add(itsgraph);
 								}
-								double dist = Math.sqrt(xDiff*xDiff + yDiff*yDiff);
-								// Make copies of objects when a nearest is found so original instances won't be used
-								if ( Double.isNaN(distNearest) ) {
-									distNearest = dist;
-									tsdataNearest = new TSData(tsdata);
-									tsNearest = ts;
-									dtNearest = new DateTime(searchTime);
-									daGraphNearest = daGraph;
-									graphNearest = tsgraph;
-									itsgraphNearest = itsgraph;
+								else if ( dist < distNearestList.get(0) ) {
+									// Found a closer point so save its data
+									distNearestList.set(0,new Double(dist));
+									tsdataNearestList.set(0,new TSData(tsdata));
+									tsNearestList.set(0,ts);
+									dtNearestList.set(0,new DateTime(searchTime));
+									daGraphNearestList.set(0,daGraph);
+									graphNearestList.set(0,tsgraph);
+									itsgraphNearestList.set(0,new Integer(itsgraph));
 								}
-								else if ( dist < distNearest ) {
-									distNearest = dist;
-									tsdataNearest = new TSData(tsdata);
-									tsNearest = ts;
-									dtNearest = new DateTime(searchTime);
-									daGraphNearest = daGraph;
-									graphNearest = tsgraph;
-									itsgraphNearest = itsgraph;
+							}
+							else if ( (trackerType == TSGraphMouseTrackerType.NEAREST_TIME)
+								|| (trackerType == TSGraphMouseTrackerType.NEAREST_TIME_SELECTED)) {
+								// Nearest point to time for each time series
+								if ( (distNearestList.get(its) == null) || (dist < (distNearestList.get(its))) ) {
+									// Found a closer point for the specific time series so save its data
+									distNearestList.set(its,new Double(dist));
+									tsdataNearestList.set(its,new TSData(tsdata));
+									tsNearestList.set(its,ts);
+									dtNearestList.set(its,new DateTime(searchTime));
+									daGraphNearestList.set(its,daGraph);
+									graphNearestList.set(its,tsgraph);
+									itsgraphNearestList.set(its,new Integer(itsgraph));
 								}
 							}
 						}
 					}
 				}
 			}
-			// Drawing nearest time series point, which could be a time series in left or right y-axis graph
-			if ( (tsNearest != null) && (tsdataNearest != null) && (dtNearest != null) && (daGraphNearest != null) ) {
-				// Have something to draw
-				//System.out.println("Nearest point is " + dtNearest );
-				String trackerLabel = drawMouseTrackerLabel ( tsNearest, tsdataNearest );
-				// Calculate device coordinates for label
-				int xLabel = (int)daGraphNearest.scaleXData(tsdataNearest.getDate().toDouble());
-				int yLabel = (int)(devHeight - daGraphNearest.scaleYData(tsdataNearest.getDataValue()));
-				// Draw the time series data point as a larger symbol
-				// TODO smalers 2017-03-03 it is tricky to find value of its because sublist of axis time series
-				// is processed rather than full TSProduct list.  For now hard-code size
-				//String symbolSizeProp = graphNearest.getLayeredPropValue("SymbolSize", itsgraph, its, false, null);
-				String symbolSizeProp = null;
-				int symbolSize = 8;
-				if ( (symbolSizeProp == null) || symbolSizeProp.isEmpty() ) {
-					symbolSize = 8;
-				}
-				else {
-					symbolSize = Integer.parseInt(symbolSizeProp);
-					if ( symbolSize == 0 ) {
-						symbolSize = 8;
-					}
-					else {
-						symbolSize = symbolSize + 4;
-					}
-				}
-				// Draw tracker using drawing area since it handles scaling and transform
-				boolean drawUsingDA = true;
-				if ( drawUsingDA ) {
-					// Draw using drawing area (note TSGraph index is 1-offset to match TSProduct conventions)
-					String daName = "" + (itsgraphNearest + 1) + "." + daGraphNearest.getName();
-					GRDrawingArea da = glassPane.getDrawingArea(daName);
-					if ( da == null ) {
-						//System.out.println("Unable to find drawing area \"" + daName + "\"");
-					}
-					else {
-						//System.out.println("Drawing tracker in DA \"" + daName + "\" at " + dtNearest + ", " + tsdataNearest.getDataValue());
-						//System.out.println("DA data limits: " + da.getDataLimits());
-						//System.out.println("DA drawing limits: " + da.getDrawingLimits());
-						GRDrawingAreaUtil.setColor(da, new GRColor(211,211,211,200));
-						GRDrawingAreaUtil.setFont ( da, "Helvetica", "Bold", 12);
-						//GRDrawingAreaUtil.drawText ( da, trackerLabel,
-						//	dtNearest.toDouble(), tsdataNearest.getDataValue(), 0.0, GRText.LEFT | GRText.BOTTOM );
-						if ( tsdataNearest.getDataValue() == da.getDataLimits().getTopY() ) {
-							// Draw the text below the top edge
-							GRDrawingAreaUtil.drawSymbolText(da, GRSymbol.SYM_FCIR, dtNearest.toDouble(), tsdataNearest.getDataValue(),
-								symbolSize, trackerLabel, GRColor.black, 0.0, GRText.LEFT | GRText.TOP,
-								GRUnits.DEVICE, GRSymbol.SYM_CENTER_X|GRSymbol.SYM_CENTER_Y);
-						}
-						else {
-							// Draw the text above-left of the point
-							GRDrawingAreaUtil.drawSymbolText(da, GRSymbol.SYM_FCIR, dtNearest.toDouble(), tsdataNearest.getDataValue(),
-								symbolSize, trackerLabel, GRColor.black, 0.0, GRText.LEFT | GRText.BOTTOM,
-								GRUnits.DEVICE, GRSymbol.SYM_CENTER_X|GRSymbol.SYM_CENTER_Y);
-						}
-						//GRDrawingAreaUtil.setColor(da, GRColor.lightGray);
-						//GRDrawingAreaUtil.drawSymbol (da, GRSymbol.SYM_FCIR, dtNearest.toDouble(), tsdataNearest.getDataValue(),
-						//	symbolSize, GRUnits.DEVICE, GRSymbol.SYM_CENTER_X|GRSymbol.SYM_CENTER_Y );
-					}
-				}
-				else {
-					g.drawString(trackerLabel, (xLabel + symbolSize/2), yLabel);
-					// For now always draw as a circle
-					g.fillOval((xLabel - symbolSize/2), (yLabel - symbolSize/2), symbolSize, symbolSize);
-				}
+			if ( (trackerType == TSGraphMouseTrackerType.NEAREST_TIME)
+				|| (trackerType == TSGraphMouseTrackerType.NEAREST_TIME_SELECTED) ) {
+				// Drawing nearest for all time series so draw for the drawing area
+				// - lists will be sized for the number of time series in the drawing area
+				drawMouseTrackerPoints ( glassPane,
+					distNearestList, tsNearestList, dtNearestList,
+					tsdataNearestList, daGraphNearestList, itsgraphNearestList);
 			}
+		}
+		if ( (trackerType == TSGraphMouseTrackerType.NEAREST)
+			|| (trackerType == TSGraphMouseTrackerType.NEAREST_SELECTED)) {
+			// Drawing nearest time series point(s), which could be a time series in left or right y-axis graph
+			// - lists will only have one item
+			drawMouseTrackerPoints ( glassPane,
+				distNearestList, tsNearestList, dtNearestList,
+				tsdataNearestList, daGraphNearestList, itsgraphNearestList);
 		}
 	}
 }
@@ -1783,16 +1831,95 @@ private String drawMouseTrackerLabel ( TS ts, TSData tsdata ) {
 	String flagString = "";
 	String valueString = "";
 	if ( (flag != null) && !flag.equals("") ) {
-	    flagString = " (" + flag + ")";
+	    flagString = " (" + flag + ") ";
 	}
-	else {
-	    // TODO SAM 2013-07-31 Need to figure out precision from data, but don't look up each
-	    // call to this method because a performance hit?
-	    valueString = StringUtil.formatString(value,"%.2f");
-	}
+    // TODO SAM 2013-07-31 Need to figure out precision from data, but don't look up each
+    // call to this method because a performance hit?
+    valueString = StringUtil.formatString(value,"%.2f");
 	String dateTimeString = " " + dt;
 	String pointLabel = valueString + flagString + dateTimeString;
 	return pointLabel;
+}
+
+private void drawMouseTrackerPoints ( TSGraphJComponentGlassPane glassPane,
+	List<Double> distNearestList, List<TS> tsNearestList, List<DateTime> dtNearestList,
+	List<TSData> tsdataNearestList, List<GRDrawingArea> daGraphNearestList, List<Integer> itsgraphNearestList ) {
+	if ( distNearestList != null ) {
+		// Have something to draw
+		//System.out.println("Have " + distNearestList.size() + " points to draw");
+		for ( int i = 0; i < distNearestList.size(); i++ ) {
+			Double distNearest = distNearestList.get(i);
+			if ( distNearest == null ) {
+				// There was not a value at the time series near the mouse,
+				// perhaps due to missing data, so can't draw anything.
+				// TODO sam 2017-03-04 decide whether the search period should be wider.
+				continue;
+			}
+			TS tsNearest = tsNearestList.get(i);
+			DateTime dtNearest = dtNearestList.get(i);
+			TSData tsdataNearest = tsdataNearestList.get(i);
+			GRDrawingArea daGraphNearest = daGraphNearestList.get(i);
+			Integer itsgraphNearest = itsgraphNearestList.get(i);
+			//System.out.println("Nearest date/time is " + dtNearest + ", value=" + tsdataNearest.getDataValue() );
+			String trackerLabel = drawMouseTrackerLabel ( tsNearest, tsdataNearest );
+			// Draw the time series data point as a larger symbol
+			// TODO smalers 2017-03-03 it is tricky to find value of its because sublist of axis time series
+			// is processed rather than full TSProduct list.  For now hard-code size
+			//String symbolSizeProp = graphNearest.getLayeredPropValue("SymbolSize", itsgraph, its, false, null);
+			String symbolSizeProp = "8";
+			int symbolSize = 8;
+			if ( (symbolSizeProp == null) || symbolSizeProp.isEmpty() ) {
+				symbolSize = 8;
+			}
+			else {
+				symbolSize = Integer.parseInt(symbolSizeProp);
+				if ( symbolSize == 0 ) {
+					symbolSize = 8;
+				}
+				else {
+					// Increase the time series symbol size by 2 pixels on each edge (4 total)
+					symbolSize = symbolSize + 4;
+				}
+			}
+			// Draw using drawing area corresponding to the graph drawing area
+			// - note that TSGraph index is 1-offset to match TSProduct conventions
+			String daName = "" + (itsgraphNearest + 1) + "." + daGraphNearest.getName();
+			GRDrawingArea da = glassPane.getDrawingArea(daName);
+			if ( da == null ) {
+				// Should not happen
+				//System.out.println("Unable to find drawing area \"" + daName + "\"");
+			}
+			else {
+				//System.out.println("Drawing tracker in DA \"" + daName + "\" at " + dtNearest + ", " + tsdataNearest.getDataValue());
+				//System.out.println("DA data limits: " + da.getDataLimits());
+				//System.out.println("DA drawing limits: " + da.getDrawingLimits());
+				GRDrawingAreaUtil.setColor(da, new GRColor(211,211,211,200));
+				GRDrawingAreaUtil.setFont ( da, "Helvetica", "Bold", 12);
+				// Get the text extents
+				GRLimits textExtents = GRDrawingAreaUtil.getTextExtents ( da, trackerLabel, GRUnits.DATA );
+				// It is OK to let the tracker text overflow outside the graph because there is usually enough
+				// boundary due to axis labels.  If through experience this is problematic, add additional
+				// logic below to improve the user experience.
+				int textAlign = GRText.LEFT;
+				if ( (dtNearest.toDouble() + textExtents.getWidth()) > da.getDataLimits().getRightX() ) {
+					textAlign = GRText.RIGHT;
+				}
+				if ( (tsdataNearest.getDataValue() + textExtents.getHeight()) > da.getDataLimits().getTopY() ) {
+					// The text will extend above the graph, which might overlap with legend or titles.
+					// Therefore, draw the tracker text below the top edge.
+					GRDrawingAreaUtil.drawSymbolText(da, GRSymbol.SYM_FCIR, dtNearest.toDouble(), tsdataNearest.getDataValue(),
+						symbolSize, trackerLabel, GRColor.black, 0.0, textAlign | GRText.TOP,
+						GRUnits.DEVICE, GRSymbol.SYM_CENTER_X|GRSymbol.SYM_CENTER_Y);
+				}
+				else {
+					// Draw the text above-left of the point.
+					GRDrawingAreaUtil.drawSymbolText(da, GRSymbol.SYM_FCIR, dtNearest.toDouble(), tsdataNearest.getDataValue(),
+						symbolSize, trackerLabel, GRColor.black, 0.0, textAlign | GRText.BOTTOM,
+						GRUnits.DEVICE, GRSymbol.SYM_CENTER_X|GRSymbol.SYM_CENTER_Y);
+				}
+			}
+		}
+	}
 }
 
 /**

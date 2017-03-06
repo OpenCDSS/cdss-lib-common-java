@@ -129,6 +129,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
@@ -159,6 +161,7 @@ import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.GUI.ReportJFrame;
 import RTi.Util.GUI.ResponseJDialog;
 import RTi.Util.GUI.SimpleJButton;
+import RTi.Util.GUI.SimpleJComboBox;
 import RTi.Util.GUI.SimpleJToggleButton;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
@@ -171,7 +174,7 @@ The TSViewGraphJFrame displays a graph of one or more time series, and is
 managed by the parent TSViewJFrame.  See the constructor documentation for more information.
 */
 public class TSViewGraphJFrame extends JFrame
-implements ActionListener, WindowListener, TSViewListener
+implements ActionListener, ItemListener, TSViewListener, WindowListener
 {
 
 /**
@@ -204,7 +207,7 @@ private ReportJFrame __detail_JFrame = null;
 protected TSGraphJComponent _ts_graph = null;
 protected TSGraphJComponent _ref_graph = null;
 
-private TSGraphJComponentGlassPane _tsGraphGlassPane = null;
+private TSGraphJComponentGlassPane tsgraphGlassPane = null;
 
 private SimpleJButton __close_JButton = null;
 private SimpleJButton __help_JButton = null;
@@ -215,6 +218,8 @@ private SimpleJButton __print_JButton = null;
 private SimpleJButton __table_JButton = null;
 private SimpleJButton __zoom_out_JButton = null;
 private SimpleJButton __mode_JButton = null;
+
+private SimpleJComboBox __trackerModeJComboBox = null;
 
 private SimpleJButton __left_tostart_JButton = null;
 private SimpleJButton __left_page_JButton = null;
@@ -470,42 +475,6 @@ private void closeDetail ()
 }
 
 /**
-Clean up before garbage collection.
-@exception Throwable if there is an error.
-*/
-protected void finalize()
-throws Throwable
-{	__tsview_JFrame = null;
-	__tslist = null;
-	__props = null;
-	__detail_JFrame = null;
-
-	_ts_graph = null;
-	_ref_graph = null;
-
-	__close_JButton = null;
-	__help_JButton = null;
-	__save_JButton = null;
-	__summary_JButton = null;
-	__print_JButton = null;
-	__table_JButton = null;
-	__zoom_out_JButton = null;
-	__mode_JButton = null;
-
-	__left_tostart_JButton = null;
-	__left_page_JButton = null;
-	__left_halfpage_JButton = null;
-	__right_toend_JButton = null;
-	__right_page_JButton = null;
-	__right_halfpage_JButton = null;
-
-	__message_JTextField = null;
-	__tracker_JTextField = null;
-
-	super.finalize();
-}
-
-/**
 Return the main TSGraphJComponent.
 @return the main TSGraphJComponent.
 */
@@ -594,6 +563,19 @@ private void initialize (TSViewJFrame tsview_gui,List<TS> tslist, PropList props
 	//} // includeFullCode
 
 	openGUI ( true );
+}
+
+/**
+ * Handle ItemEvents, for example from comboboxes.
+ */
+public void itemStateChanged ( ItemEvent evt ) {
+	Object o = evt.getItemSelectable();
+	
+	if ( (o == __trackerModeJComboBox) && (evt.getStateChange() == ItemEvent.SELECTED) ) {
+		// Mouse tracker was changed so change in the drawing component
+		this.tsgraphGlassPane.setMouseTrackerType (
+			TSGraphMouseTrackerType.valueOfIgnoreCase(__trackerModeJComboBox.getSelected()));
+	}
 }
 
 /**
@@ -816,11 +798,11 @@ private void openGUI ( boolean mode )
     	//layeredPane.setPreferredSize(new Dimension(_ts_graph.getWidth(),_ts_graph.getHeight()));
     	//layeredPane.add(panelForTSGraphJComponent,1);
     	//_tsGraphGlassPane = new TSGraphJComponentGlassPane(_ts_graph, layeredPane.getRootPane());
-    	_tsGraphGlassPane = new TSGraphJComponentGlassPane(_ts_graph, null);
-    	addLayeredPaneComponent ( layeredPane, _tsGraphGlassPane, new Integer(JLayeredPane.DEFAULT_LAYER) );
+    	this.tsgraphGlassPane = new TSGraphJComponentGlassPane(_ts_graph, null);
+    	addLayeredPaneComponent ( layeredPane, this.tsgraphGlassPane, new Integer(JLayeredPane.DEFAULT_LAYER) );
     	// The above sets the horizontal layout but the following ensures vertical ordering in layer (0=top)
     	//layeredPane.setLayer(_tsGraphGlassPane, JLayeredPane.DEFAULT_LAYER, 0);
-    	layeredPane.setPosition(_tsGraphGlassPane, 0);
+    	layeredPane.setPosition(this.tsgraphGlassPane, 0);
     	// This should automatically resize to fill
     	contentPane.add ( layeredPane, BorderLayout.CENTER );
     	// Don't do a glass pane on the frame because only doing on the LayeredPane
@@ -831,13 +813,13 @@ private void openGUI ( boolean mode )
     // for use in mouse tracking, etc.
     if ( doFrameGlassPane ) {
 		// Add a glass pane over the entire parent JFrame
-    	_tsGraphGlassPane = new TSGraphJComponentGlassPane(_ts_graph,contentPane);
+    	this.tsgraphGlassPane = new TSGraphJComponentGlassPane(_ts_graph,contentPane);
     	//JRootPane root = SwingUtilities.getRootPane(this);
     	//root.setGlassPane(_tsGraphGlassPane);
-    	setGlassPane(_tsGraphGlassPane); // This must be done before setting visible
+    	setGlassPane(this.tsgraphGlassPane); // This must be done before setting visible
     	//glassPane.setOpaque(true);
     	//glassPane.setOpaque(false);
-    	_tsGraphGlassPane.setVisible(true);
+    	this.tsgraphGlassPane.setVisible(true);
     }
 	
 	// Panel to hold the reference graph and buttons (to maintain spatial ordering)...
@@ -979,6 +961,20 @@ private void openGUI ( boolean mode )
 	__zoom_out_JButton.setToolTipText("Zoom to full period");
 	button_top_JPanel.add ( __zoom_out_JButton );
 	__zoom_out_JButton.setEnabled ( true );
+	
+	// Add choices for tracker behavior
+	
+	__trackerModeJComboBox = new SimpleJComboBox(false);
+	__trackerModeJComboBox.setToolTipText("Indicate how the mouse tracker should behave, for graphs that support the tracker");
+	__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NEAREST);
+	__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NEAREST_SELECTED);
+	__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NEAREST_TIME);
+	__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NEAREST_TIME_SELECTED);
+	__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NONE);
+	__trackerModeJComboBox.select("" + TSGraphMouseTrackerType.NONE);
+	__trackerModeJComboBox.addItemListener(this);
+	button_top_JPanel.add ( new JLabel("Tracker:") );
+	button_top_JPanel.add ( __trackerModeJComboBox );
 
 	// Disable zooming if the component has no graphs that can zoom...
 
@@ -1120,13 +1116,13 @@ private void openGUI ( boolean mode )
 	//} // !includeFullCode
 	
 	// Clean up...
-		if ( _tsGraphGlassPane != null ) {
-			Message.printStatus(2,routine,"Glass pane width=" + _tsGraphGlassPane.getWidth() + " height=" + _tsGraphGlassPane.getHeight());
-			if ( _tsGraphGlassPane == getGlassPane() ) {
+		if ( this.tsgraphGlassPane != null ) {
+			Message.printStatus(2,routine,"Glass pane width=" + this.tsgraphGlassPane.getWidth() + " height=" + this.tsgraphGlassPane.getHeight());
+			if ( this.tsgraphGlassPane == getGlassPane() ) {
 				Message.printStatus(2,routine,"Glass pane is set for JFrame");
 			}
-			Message.printStatus(2,routine,"Glass pane visible=" + _tsGraphGlassPane.isVisible());
-			Message.printStatus(2,routine,"Glass pane enabled=" + _tsGraphGlassPane.isEnabled());
+			Message.printStatus(2,routine,"Glass pane visible=" + this.tsgraphGlassPane.isVisible());
+			Message.printStatus(2,routine,"Glass pane enabled=" + this.tsgraphGlassPane.isEnabled());
 			//_tsGraphGlassPane.setPoint(new Point(_tsGraphGlassPane.getWidth()/2,_tsGraphGlassPane.getHeight()/2));
 			//_tsGraphGlassPane.repaint();
 		}

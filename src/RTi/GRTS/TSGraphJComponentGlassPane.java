@@ -12,7 +12,6 @@ import RTi.GR.GRJComponentDevice;
 import RTi.GR.GRLimits;
 import RTi.GR.GRUnits;
 import RTi.GR.GRUtil;
-import RTi.Util.Message.Message;
 
 /**
  * Glass pane to sit on top of the TSGraphJComponent instance in the TSViewGraphJFrame.
@@ -26,6 +25,12 @@ public class TSGraphJComponentGlassPane extends GRJComponentDevice {
 	 * The main graph component.
 	 */
 	TSGraphJComponent tsgraphJComponent = null;
+	
+	/**
+	 * Mouse tracker type, to control behavior of tracker.
+	 * Default is none to mimic legacy behavior.
+	 */
+	TSGraphMouseTrackerType mouseTrackerType = TSGraphMouseTrackerType.NONE;
 
 	/**
 	 * Point for the mouse (will be drawn).
@@ -50,6 +55,14 @@ public class TSGraphJComponentGlassPane extends GRJComponentDevice {
 		TSGraphJComponentGlassPaneMouseListener mouseListener = new TSGraphJComponentGlassPaneMouseListener ( this, tsgraphJComponent, contentPane );
 		addMouseMotionListener(mouseListener);
 		addMouseListener(mouseListener);
+	}
+	
+	/**
+	 * Get the mouse tracker type.
+	 * @return the mouse tracker type.
+	 */
+	public TSGraphMouseTrackerType getMouseTrackerType () {
+		return this.mouseTrackerType;
 	}
 	
 	/**
@@ -135,6 +148,14 @@ public class TSGraphJComponentGlassPane extends GRJComponentDevice {
 			}
 			this.pointPrev = point;
 		}
+	}
+	
+	/**
+	 * Set the mouse tracker type.
+	 * @param type the mouse tracker type.
+	 */
+	public void setMouseTrackerType ( TSGraphMouseTrackerType type ) {
+		this.mouseTrackerType = type;
 	}
 	
 	/**
