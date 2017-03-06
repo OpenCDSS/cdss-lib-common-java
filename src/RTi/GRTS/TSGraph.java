@@ -9503,7 +9503,9 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 	// because if shown on left and right the space will not overlap legends.
 	
 	if ( rightYAxisLegendPosition.toUpperCase().startsWith("BOTTOM") ) {
-		bottom_legend_height = Math.max(leftYAxisLegendHeight,rightYAxisLegendHeight);
+		if ( leftYAxisLegendPosition.toUpperCase().startsWith("BOTTOM") ) {
+			bottom_legend_height = Math.max(leftYAxisLegendHeight,rightYAxisLegendHeight);
+		}
 	}
 	else if ( rightYAxisLegendPosition.equalsIgnoreCase("Left") ) {
 		left_legend_width = Math.max(leftYAxisLegendWidth,rightYAxisLegendWidth);
