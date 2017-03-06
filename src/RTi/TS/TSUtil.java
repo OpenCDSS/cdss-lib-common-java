@@ -6556,7 +6556,7 @@ public static TSData findNearestDataPoint(TS inputTS, DateTime date1, DateTime d
 		return null;
 	}
 	TSData nearestPoint = null;
-	String routine = "FillUsingDiversionComments_Command.getFirstNonMissingDate";
+	String routine = "TSUtil.findNearestDataPoint";
 	TSIterator iter = null;
 	
 	// check date parameters and if null set to TS dates

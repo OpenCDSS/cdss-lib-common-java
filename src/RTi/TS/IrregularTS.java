@@ -309,6 +309,83 @@ throws Throwable
 }
 
 /**
+ * Find nearest data point to the given DateTime.
+ * It is assumed that the precision of the DateTime is consistent with the precision
+ * of DateTime in the time series.
+ * @param dt DateTime that is is of interest to match
+ * @param searchStart a DateTime known to exist in the time series, to start the search
+ * @param searchEnd a DateTime known to exist in the time series, to end the search
+ * @param returnMatch if true and the requested DateTime matches an existing value, return the data for that point
+ * (false will return the next point).
+ * @return a TSData objects containing the nearest future data point to the requested,
+ * or null if not found (goes beyond end of data)
+ */
+public TSData findNearestNext ( DateTime dt, DateTime searchStart, DateTime searchEnd, boolean returnMatch ) {
+	TSData tsdataNext = null;
+	TSData tsdataLeft, tsdataRight;
+	// Currently search the entire time series and use bisection
+	if ( searchStart != null ) {
+		// Verify that it exists in the data
+		tsdataLeft = this.getDataPoint(searchStart, null);
+		if ( tsdataLeft == null ) {
+			return null;
+		}
+	}
+	else {
+		// Search from the start
+		searchStart = new DateTime(getDate1());
+		tsdataLeft = this.getDataPoint(searchStart, null);
+	}
+	if ( searchEnd != null ) {
+		// Verify that it exists in the data
+		tsdataRight = this.getDataPoint(searchEnd, null);
+		if ( tsdataRight == null ) {
+			return null;
+		}
+	}
+	else {
+		// Search from the start
+		searchEnd = new DateTime(getDate2());
+		tsdataRight = this.getDataPoint(searchEnd, null);
+	}
+	// See if the request is outside of the bounds of the search
+	if ( dt.lessThan(searchStart) ) {
+		return null;
+	}
+	if ( dt.greaterThan(searchEnd) ) {
+		return null;
+	}
+	int iLeft = 0, iRight = this.__tsDataList.size() - 1, iMiddle;
+	TSData tsdataMiddle;
+	DateTime dtMiddle;
+	while ( true ) {
+		// Have left and right so bisect in the middle and evaluate
+		iMiddle = (iLeft + iRight)/2;
+		tsdataMiddle = this.__tsDataList.get(iMiddle);
+		dtMiddle = tsdataMiddle.getDate();
+		// TODO sam 2017-03-05 could make the following more efficient
+		if ( dt.equals(dtMiddle) && returnMatch ) {
+			// Found an exact match for the requested DateTime
+			tsdataNext = new TSData(tsdataMiddle);
+			break;
+		}
+		if ( dt.greaterThan(dtMiddle) ) {
+			// Reset the left
+			iLeft = iMiddle;
+		}
+		else {
+			iRight = iMiddle;
+		}
+		if ( (iRight - iLeft) == 1 ) {
+			// Converged, value on right should be returned
+			tsdataNext = new TSData(__tsDataList.get(iRight));
+			break;
+		}
+	}
+	return tsdataNext;
+}
+
+/**
 Format the time series for output.  This is not meant to be used for time
 series conversion but to produce a general summary of the output.  At this time,
 irregular time series are always output in a sequential summary format.
