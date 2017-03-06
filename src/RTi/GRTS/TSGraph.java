@@ -2445,11 +2445,17 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
     else if ( __leftYAxisGraphType == TSGraphType.RASTER ) {
         // Y-labels are whole numbers integer years from data period
         while ( minlabels >= 3 ) {
-            _ylabels_lefty = GRAxis.findNLabels ( _data_lefty_limits.getMinY(), _data_lefty_limits.getMaxY(), true, minlabels, maxlabels );
-            if ( _ylabels_lefty != null ) {
-                break;
-            }
-            --minlabels;
+        	if ( _data_lefty_limits == null ) {
+        		Message.printWarning(3,routine,"Null left y-axis limits computing labels for for raster graph - unsupported time series interval?");
+        		break;
+        	}
+        	else {
+	            _ylabels_lefty = GRAxis.findNLabels ( _data_lefty_limits.getMinY(), _data_lefty_limits.getMaxY(), true, minlabels, maxlabels );
+	            if ( _ylabels_lefty != null ) {
+	                break;
+	            }
+	            --minlabels;
+        	}
         }
     }
 	else {
@@ -4505,17 +4511,30 @@ Draw the time series graph for a "Raster" graph.
 @param run-time overrideProps override properties for the graph
 */
 private void drawGraphRaster ( TSProduct tsproduct, int subproduct, List<TS> tslist )
-{
+{	String routine = getClass().getSimpleName() + ".drawGraphRaster";
     // Raster graph can only draw one time series so get the first non-null time series
+	// - Also, only daily and monthly interval are supported
     TS ts = null;
     int its;
     for ( its = 0; its < tslist.size(); its++ ) {
         ts = tslist.get(its);
+        int dataInterval = ts.getDataIntervalBase();
+        int dataMult = ts.getDataIntervalMult();
+        if ( (dataInterval != TimeInterval.DAY) || (dataInterval != TimeInterval.MONTH) ) {
+        	Message.printWarning(3, routine, "Raster graphs are only supported for 1Day and 1Month intervals.");
+        	continue;
+        }
+        if ( dataMult != 1 ) {
+        	// Not supported
+        	Message.printWarning(3, routine, "Raster graphs are only supported for 1Day and 1Month intervals.");
+        	continue;
+        }
         if ( ts != null ) {
             break;
         }
     }
     if ( ts == null ) {
+    	// Did not find a non-null time series
         return;
     }
     drawTS ( tsproduct, subproduct, its, ts, TSGraphType.RASTER );
@@ -8394,7 +8413,7 @@ public boolean isReferenceGraph ()
  * @param ts time series to evaluate.
  * @return true if the time series is selected, false if not.
  */
-private final boolean isTimeSeriesSelected ( TS ts ) {
+protected final boolean isTimeSeriesSelected ( TS ts ) {
 	for ( TS ts2 : _selectedTimeSeriesList ) {
 		if ( ts2 == ts ) {
 			return true;
