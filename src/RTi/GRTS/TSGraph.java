@@ -3783,17 +3783,17 @@ includes the axes tic marks, titles, and labels.  The tic marks are currently al
 @param subproduct subproduct (graph) number (0+)
 */
 private void drawAxesFront ( TSProduct tsproduct, int subproduct,
-	GRJComponentDrawingArea daMainTitle,
+	GRDrawingArea daMainTitle,
 	boolean drawLeftYAxisLabels, TSGraphType leftYAxisGraphType,
-	GRJComponentDrawingArea daLeftYAxisGraph, GRJComponentDrawingArea daLeftYAxisTitle, GRJComponentDrawingArea daLeftYAxisLabel,
+	GRDrawingArea daLeftYAxisGraph, GRDrawingArea daLeftYAxisTitle, GRDrawingArea daLeftYAxisLabel,
 	GRLimits datalimLeftYAxisGraph, GRLimits datalimLeftYAxisTitle, GRLimits datalimLeftYAxisLabel,
 	double ylabelsLeftYAxis[], int leftYAxisPrecision,
 	boolean drawRightYAxisLabels, TSGraphType rightYAxisGraphType,
-	GRJComponentDrawingArea daRightYAxisGraph, GRJComponentDrawingArea daRightYAxisTitle, GRJComponentDrawingArea daRightYAxisLabel,
+	GRDrawingArea daRightYAxisGraph, GRDrawingArea daRightYAxisTitle, GRDrawingArea daRightYAxisLabel,
 	GRLimits datalimRightYAxisGraph, GRLimits datalimRightYAxisTitle, GRLimits datalimRightYAxisLabel,
 	double ylabelsRightYAxis[], int rightYAxisPrecision,
 	//boolean drawBottomXAxisLabels, // TODO SAM 2016-10-23 Enable in the future
-	GRJComponentDrawingArea daBottomXAxisTitle, GRJComponentDrawingArea daBottomXAxisLabel,
+	GRDrawingArea daBottomXAxisTitle, GRDrawingArea daBottomXAxisLabel,
 	GRLimits datalimBottomXAxisTitle, GRLimits datalimBottomXAxisLabel,
 	double xlabelsBottomXAxis[])
 {	if ( _is_reference_graph ) {
@@ -3982,6 +3982,7 @@ private void drawAxesFront ( TSProduct tsproduct, int subproduct,
 
 	// Label axis after drawing so ticks are on top of data...
 
+	GRDrawingAreaUtil.setLineWidth(daLeftYAxisGraph, 1.0);
 	if ( (leftYAxisGraphType == TSGraphType.XY_SCATTER) || (leftYAxisGraphType == TSGraphType.DURATION) ) {
 		// Label the X axis with formatted numbers...
 		GRAxis.drawLabels ( daBottomXAxisLabel, xlabelsBottomXAxis.length,
