@@ -1665,6 +1665,10 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 				int its = -1;
 				for ( TS ts : tsForAxis ) {
 					++its; // Always increment because array/list positions are important
+					if ( (ts == null) || (ts.getDate1() == null) ) {
+						// Time series has no data.
+						continue;
+					}
 					if ( ((trackerType == TSGraphMouseTrackerType.NEAREST_SELECTED)
 						|| (trackerType == TSGraphMouseTrackerType.NEAREST_TIME_SELECTED))
 						&& !tsgraph.isTimeSeriesSelected(ts) ) {
@@ -1904,7 +1908,7 @@ private void drawMouseTrackerPoints ( TSGraphJComponentGlassPane glassPane,
 				if ( (dtNearest.toDouble() + textExtents.getWidth()) > da.getDataLimits().getRightX() ) {
 					textAlign = GRText.RIGHT;
 				}
-				if ( (tsdataNearest.getDataValue() + textExtents.getHeight()) > da.getDataLimits().getTopY() ) {
+				if ( (tsdataNearest.getDataValue() + textExtents.getHeight()/2) > da.getDataLimits().getTopY() ) {
 					// The text will extend above the graph, which might overlap with legend or titles.
 					// Therefore, draw the tracker text below the top edge.
 					GRDrawingAreaUtil.drawSymbolText(da, GRSymbol.SYM_FCIR, dtNearest.toDouble(), tsdataNearest.getDataValue(),
@@ -1912,9 +1916,9 @@ private void drawMouseTrackerPoints ( TSGraphJComponentGlassPane glassPane,
 						GRUnits.DEVICE, GRSymbol.SYM_CENTER_X|GRSymbol.SYM_CENTER_Y);
 				}
 				else {
-					// Draw the text above-left of the point.
+					// Normally, draw the text center-left of the point.
 					GRDrawingAreaUtil.drawSymbolText(da, GRSymbol.SYM_FCIR, dtNearest.toDouble(), tsdataNearest.getDataValue(),
-						symbolSize, trackerLabel, GRColor.black, 0.0, textAlign | GRText.BOTTOM,
+						symbolSize, trackerLabel, GRColor.black, 0.0, textAlign | GRText.CENTER_Y,
 						GRUnits.DEVICE, GRSymbol.SYM_CENTER_X|GRSymbol.SYM_CENTER_Y);
 				}
 			}
