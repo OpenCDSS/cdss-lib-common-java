@@ -3544,11 +3544,13 @@ private void drawAnnotations( TSProduct tsproduct, int subproduct,
 	//clip = GRDrawingAreaUtil.getClip(daRightYAxisGraph);	
 	//GRDrawingAreaUtil.setClip(daRightYAxisGraph, daRightYAxisGraph.getDataLimits());
 
-	boolean drawLeftYAxis = true; // true=left axis, false=right axis 
+	boolean drawLeftYAxis = true;
+	boolean drawRightYAxis = false; 
 	for (int iatt = 0; iatt < na; iatt++) {
 		annotation = new PropList("Annotation " + iatt);
 		valid = true;
 		drawLeftYAxis = true; // Default is left y-axis
+		drawRightYAxis = false;
 		type = tsproduct.getLayeredPropValue("ShapeType", subproduct, iatt, false, true);
 		if (type == null) {
 			Message.printWarning(2, routine, "Null shapetype");
@@ -3645,7 +3647,15 @@ private void drawAnnotations( TSProduct tsproduct, int subproduct,
 		
 		String annotationTableID = tsproduct.getLayeredPropValue("AnnotationTableID", subproduct, iatt, false, true);
 		
-		if ( (annotationTableID == null) || annotationTableID.isEmpty() ) {
+		if ( (annotationTableID != null) && !annotationTableID.isEmpty() ) {
+			// Annotations specified using an annotation table.
+			// TODO SAM 2016-10-23 need to enable
+			// Lookup annotation table
+			// Loop through records.
+			// Draw each annotation
+			// Optimize to not draw if outside visible graph
+		}
+		else {
 			// Simple annotations - one shape per annotation
 			// Properties for all annotations
 			String yAxis = null;
@@ -3653,11 +3663,12 @@ private void drawAnnotations( TSProduct tsproduct, int subproduct,
 			annotation.set("Order", tsproduct.getLayeredPropValue("Order", subproduct, iatt, false, true));
 			annotation.set("ShapeType", tsproduct.getLayeredPropValue("ShapeType", subproduct, iatt, false, true));
 			annotation.set("XAxisSystem", tsproduct.getLayeredPropValue("XAxisSystem", subproduct, iatt, false, true));
-			annotation.set("YAxis", tsproduct.getLayeredPropValue("YAxis", subproduct, iatt, false, true));
+			annotation.set("YAxisSystem", tsproduct.getLayeredPropValue("YAxisSystem", subproduct, iatt, false, true));
 			// Now check to see which axis annotations should be drawn on
-			yAxis = tsproduct.getLayeredPropValue("YAxisSystem", subproduct, iatt, false, true);
+			yAxis = tsproduct.getLayeredPropValue("YAxis", subproduct, iatt, false, true);
 			if ( (yAxis != null) && !yAxis.isEmpty() && yAxis.equalsIgnoreCase("Right") ) {
 				drawLeftYAxis = false;
+				drawRightYAxis = true;
 			}
 			annotation.set("XFormat", tsproduct.getLayeredPropValue("XFormat", subproduct, iatt, false, true)); // Whether axis is number, DateTime, always defaults?
 			annotation.set("YFormat", tsproduct.getLayeredPropValue("YFormat", subproduct, iatt, false, true));
@@ -3703,24 +3714,16 @@ private void drawAnnotations( TSProduct tsproduct, int subproduct,
 			if ( drawLeftYAxis ) {
 				GRDrawingAreaUtil.drawAnnotation(daLeftYAxisGraph, annotation);
 			}
-			else {
+			else if ( drawRightYAxis ) {
 				GRDrawingAreaUtil.drawAnnotation(daRightYAxisGraph, annotation);
 			}
-		}
-		else {
-			// Annotations specified using an annotation table.
-			// TODO SAM 2016-10-23 need to enable
-			// Lookup annotation table
-			// Loop through records.
-			// Draw each annotation
-			// Optimize to not draw if outside visible graph
 		}
 		
 		if (isSymbol && niceSymbols) {
 			if ( drawLeftYAxis ) {
 				GRDrawingAreaUtil.setDeviceAntiAlias(daLeftYAxisGraph, false);
 			}
-			else {
+			else if ( drawRightYAxis ) {
 				GRDrawingAreaUtil.setDeviceAntiAlias(daRightYAxisGraph, false);
 			}
 		}		
