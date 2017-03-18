@@ -24,6 +24,7 @@ import RTi.DataServices.Adapter.Adapter;
 /**
  * An exception which occurs when an adapter fails to load for any reason.
  */
+@SuppressWarnings("serial")
 public class AdapterLoadingException extends IOException {
 
 /**

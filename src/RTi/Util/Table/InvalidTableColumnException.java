@@ -3,6 +3,7 @@ package RTi.Util.Table;
 /**
 Exception to use when a requested table column does not exist.
 */
+@SuppressWarnings("serial")
 public class InvalidTableColumnException extends RuntimeException
 {
 

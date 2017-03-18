@@ -18,6 +18,7 @@ The RequestParameterNotFoundException should be thrown when running
 CommandProcessor.processRequest() and a needed parameter is not
 provided.
 */
+@SuppressWarnings("serial")
 public class RequestParameterInvalidException extends Exception
 {
 

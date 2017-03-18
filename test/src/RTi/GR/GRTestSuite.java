@@ -2,13 +2,15 @@ package RTi.GR;
 import RTi.Util.Test.TestCollector;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
+
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 public class GRTestSuite extends TestCase {
 
-	private static ArrayList testList;
+	private static List<String> testList;
 	
 	public GRTestSuite(String testname)
 	{
@@ -21,7 +23,7 @@ public class GRTestSuite extends TestCase {
 	
 	public static Test suite()
 	{
-		testList = new ArrayList();
+		testList = new ArrayList<String>();
 	    TestSuite suite = new TestSuite();
 	    TestCollector tests = new TestCollector();
 	    File path = new File("..\\test\\unit\\src");
@@ -44,7 +46,4 @@ public class GRTestSuite extends TestCase {
 		
 	    return suite;
 	}
-	
-	
 }
-

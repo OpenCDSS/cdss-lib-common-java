@@ -100,6 +100,7 @@ a constructor is provided to display text in the panel.  These variations can be
 or to provide information to users.  Often the panels are added in the same layout position and made active
 by setting visible under appropriate conditions.
 */
+@SuppressWarnings("serial")
 public class InputFilter_JPanel extends JPanel implements ItemListener
 {
 
@@ -125,7 +126,7 @@ List of JComponent that display the "where" label for each filter group that is 
 a SimpleJComboBox or a JLabel, depending on how many filters are available.  Each item in the list
 corresponds to a different input filter group.
 */
-private List<JComponent> __whereComponentList = new Vector();
+private List<JComponent> __whereComponentList = new Vector<JComponent>();
 
 /**
 List of the operator components between the where an input components, one SimpleJComboBox per input filter.
@@ -377,14 +378,14 @@ toString() method (e.g., "contains;inputvalue").
 @param delim Delimiter character to use if use_wildcards=false.  See the toString() method.  If null, use ";".
 */
 public List<String> getInput ( String whereLabel, String internalWhere, boolean useWildcards, String delim )
-{	List<String> inputList = new Vector();
+{	List<String> inputList = new Vector<String>();
 	if ( delim == null ) {
 		delim = ";";
 	}
 	InputFilter filter;
 	String input; // Input string selected by user.
 	String where; // Where label for filter selected by user.
-	String internalWhereString; // Where used internall by the filter
+	String internalWhereString; // Where used internally by the filter
 	int inputType; // Input type for the filter.
 	for ( int ifg = 0; ifg < __numFilterGroups; ifg++ ) {
 		filter = getInputFilter ( ifg );
@@ -473,7 +474,7 @@ If the requested where_label is not selected in any of the input filters, a zero
 @param delim Delimiter character to use if use_wildcards=false.  See the toString() method.  If null, use ";".
 */
 public List<InputFilter> getInputFilters ( String whereLabel )
-{   List<InputFilter> inputFilterList = new Vector();
+{   List<InputFilter> inputFilterList = new Vector<InputFilter>();
     InputFilter filter;
     String where; // Where label for filter selected by user.
     for ( int ifg = 0; ifg < __numFilterGroups; ifg++ ) {
@@ -784,7 +785,7 @@ public void setInputFilters ( List<InputFilter> inputFilters, int numFilterGroup
 				x++, y, 1, 1, 0.0, 0.0, insetsNNNN,
 				GridBagConstraints.NONE, GridBagConstraints.EAST);
 			SimpleJComboBox where_JComboBox = new SimpleJComboBox ( false );
-			List<String> whereList = new Vector(numFilters);
+			List<String> whereList = new Vector<String>(numFilters);
 			for ( int ifilter = 0; ifilter < numFilters; ifilter++ ) {
 				filter = __inputFilterListArray[ifg].get(ifilter);
 				whereList.add(filter.getWhereLabel());

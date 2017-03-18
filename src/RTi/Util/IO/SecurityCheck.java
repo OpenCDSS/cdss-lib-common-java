@@ -19,6 +19,7 @@ package	RTi.Util.IO;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 
 import	RTi.Util.Message.Message;
 
@@ -41,8 +42,7 @@ public static boolean canCheckAWTEventQueue()
 	SecurityManager sm = System.getSecurityManager();
 	if ( sm == null ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 2, routine,
-			"Get null SecurityManager - no SecurityManager installed!" );
+			Message.printDebug ( 2, routine, "Get null SecurityManager - no SecurityManager installed!" );
 		}
 		// No security manager so do anything...
 		return true;
@@ -52,8 +52,7 @@ public static boolean canCheckAWTEventQueue()
 	}
 	catch ( SecurityException e ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 2, routine,
-			"Cannot access AWT event queue" );
+			Message.printDebug ( 2, routine, "Cannot access AWT event queue" );
 			Message.printDebug ( 2, routine, e );
 		}
 		return false;
@@ -324,7 +323,9 @@ public static boolean canReadFile ( String file0 )
 	else {	file = file0;
 	}
 
-	try {	new FileInputStream(file);
+	FileInputStream is = null;
+	try {
+		is = new FileInputStream(file);
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine,
 			"Got FileInputStream for \"" + file + "\"" );
@@ -337,6 +338,16 @@ public static boolean canReadFile ( String file0 )
 			Message.printDebug ( 2, routine, e );
 		}
 		return false;
+	}
+	finally {
+		if ( is != null ) {
+			try {
+				is.close();
+			}
+			catch ( IOException e ) {
+				// Should not happen
+			}
+		}
 	}
 
 	// Now try to read...

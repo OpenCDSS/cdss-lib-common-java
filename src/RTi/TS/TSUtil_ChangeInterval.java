@@ -1,7 +1,7 @@
 package RTi.TS;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.Math.MathUtil;
 import RTi.Util.Message.Message;
@@ -2751,7 +2751,7 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
 
         // Initialize the irregular data...
 
-        List alldata = oldts.getData();
+        List<TSData> alldata = oldts.getData();
         if (alldata == null) {
             // No data...
             return newts;
@@ -2774,7 +2774,7 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
             sum = 0.0;
             count = 0;
             for (; i < iend; i++) {
-                data = (TSData) alldata.get(i);
+                data = alldata.get(i);
                 t = data.getDate();
                 if (Message.isDebugOn) {
                     Message.printDebug(dl, routine, "Processing IRRTS date " + t.toString(DateTime.FORMAT_Y2K_LONG));
@@ -3444,7 +3444,7 @@ computed value can be the MAX or MIN or default (new INST).
 */
 public static List<TSStatisticType> getStatisticChoices()
 {
-    List<TSStatisticType> choices = new Vector();
+    List<TSStatisticType> choices = new ArrayList<TSStatisticType>();
     choices.add ( TSStatisticType.MAX );
     choices.add ( TSStatisticType.MIN );
     return choices;
@@ -3458,7 +3458,7 @@ computed value can be the MAX or MIN or default (new INST).
 public static List<String> getStatisticChoicesAsStrings()
 {
     List<TSStatisticType> choices = getStatisticChoices();
-    List<String> stringChoices = new Vector();
+    List<String> stringChoices = new ArrayList<String>();
     for ( TSStatisticType choice : choices ) {
         stringChoices.add ( "" + choice );
     }

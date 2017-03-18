@@ -3,7 +3,6 @@ package RTi.TS;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
@@ -862,7 +861,7 @@ Get the list of check types that can be performed.
 */
 public static List<CheckType> getCheckCriteriaChoices()
 {
-    List<CheckType> choices = new Vector();
+    List<CheckType> choices = new ArrayList<CheckType>();
     choices.add ( CheckType.ABS_CHANGE_GREATER_THAN );
     choices.add ( CheckType.ABS_CHANGE_PERCENT_GREATER_THAN );
     choices.add ( CheckType.CHANGE_GREATER_THAN );

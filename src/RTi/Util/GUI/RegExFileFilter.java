@@ -85,7 +85,7 @@ private String __description = null;
 /**
 A long description of the filter.  This is different from the short 
 description in that if the regular expressions with which files are 
-matched are to be shown in the JFileChooser, this desription will 
+matched are to be shown in the JFileChooser, this description will 
 contain both the short description and the regular expressions.
 See showRegExListInDescription() for more information.
 */
@@ -95,7 +95,7 @@ See showRegExListInDescription() for more information.
 /**
 A list of all the regular expressions in the filter.
 */
-private List __filters = null;
+private List<String> __filters = null;
 
 /**
 Creates a RegExFileFilter that will filter for the given regular expression,
@@ -104,7 +104,7 @@ and which has the given description.
 @param description a concise description of the filter (e.g., "Shockwave Media Files").
 */
 public RegExFileFilter(String regex, String description) {
-	__filters = new Vector();
+	__filters = new Vector<String>();
 	
 	if (regex == null) {
 		return;
@@ -118,16 +118,16 @@ public RegExFileFilter(String regex, String description) {
 
 /**
 Creates a RegExFileFilter that will filter for each regular expression in the
-Vector of Strings, and will use the given description.
-@param filters a Vector of Strings, each of which is a regular 
+list of Strings, and will use the given description.
+@param filters a list of Strings, each of which is a regular 
 expression to be used as a filter.
 @param description a concise description of the filter. (e.g., "Shockwave Media Files").
 */
-public RegExFileFilter(List filters, String description) {
-	__filters = new Vector();
+public RegExFileFilter(List<String> filters, String description) {
+	__filters = new Vector<String>();
 
 	for (int i = 0; i < filters.size(); i++) {
-		__filters.add((String)filters.get(i));
+		__filters.add(filters.get(i));
 	}
 	__description = description;
 	//__fullDescription = getDescription();

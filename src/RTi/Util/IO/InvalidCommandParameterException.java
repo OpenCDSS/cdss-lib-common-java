@@ -18,6 +18,7 @@ The InvalidCommandParameterException should be thrown when a Command parameter
 is invalid (e.g., during checks in an editor dialog or during initialization
 for processing).
 */
+@SuppressWarnings("serial")
 public class InvalidCommandParameterException extends Exception
 {
 

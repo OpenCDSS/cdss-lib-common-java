@@ -24,6 +24,7 @@ import javax.swing.border.EmptyBorder;
 This class is a cell renderer that allows the dragging of data onto a 
 SimpleJComboBox.
 */
+@SuppressWarnings("serial")
 public class DragAndDropDefaultListCellRenderer
 extends DefaultListCellRenderer {
 

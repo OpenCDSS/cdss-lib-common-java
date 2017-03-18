@@ -1,7 +1,7 @@
 package RTi.TS;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 /**
 To be used with the TSUtil_ChangeInterval class, indicating how to handle missing values in input.
@@ -40,7 +40,7 @@ Get the list of enumerations.
 */
 public static List<TSUtil_ChangeInterval_HandleMissingInputHowType> getHandleMissingInputHowChoices()
 {
-    List<TSUtil_ChangeInterval_HandleMissingInputHowType> choices = new Vector();
+    List<TSUtil_ChangeInterval_HandleMissingInputHowType> choices = new ArrayList<TSUtil_ChangeInterval_HandleMissingInputHowType>();
     choices.add ( TSUtil_ChangeInterval_HandleMissingInputHowType.KEEP_MISSING );
     choices.add ( TSUtil_ChangeInterval_HandleMissingInputHowType.REPEAT );
     choices.add ( TSUtil_ChangeInterval_HandleMissingInputHowType.SET_TO_ZERO );
@@ -54,7 +54,7 @@ Get the list of enumerations as strings.
 public static List<String> getHandleMissingInputHowChoicesAsStrings()
 {
     List<TSUtil_ChangeInterval_HandleMissingInputHowType> choices = getHandleMissingInputHowChoices();
-    List<String> stringChoices = new Vector();
+    List<String> stringChoices = new ArrayList<String>();
     for ( int i = 0; i < choices.size(); i++ ) {
         stringChoices.add ( "" + choices.get(i) );
     }

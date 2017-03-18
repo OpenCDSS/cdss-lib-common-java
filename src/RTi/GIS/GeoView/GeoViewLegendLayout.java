@@ -12,6 +12,7 @@
 
 package RTi.GIS.GeoView;
 
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JCheckBox;
@@ -55,26 +56,26 @@ private String __title = null;
 The checkboxes that were added to the legend.  The items in this Vector 
 correspond to the items in the other Vectors at the same position.
 */
-public Vector __checkboxes = new Vector();
+public List<JCheckBox> __checkboxes = new Vector<JCheckBox>();
 
 /**
 The nodes that were added to the legend.  The items in this Vector 
 correspond to the items in the other Vectors at the same position.
 */
-public Vector __nodes = new Vector();
+public List<SimpleJTree_Node> __nodes = new Vector<SimpleJTree_Node>();
 
 /**
 The layers that were added to the legend.  The items in this Vector 
 correspond to the items in the other Vectors at the same position.
 */
-public Vector __layers = new Vector();
+public List<GeoLayerView> __layers = new Vector<GeoLayerView>();
 
 /**
 A Vector of Booleans that specify whether the layer in the layers Vector
 at the same position is visible or not.  The items in this Vector 
 correspond to the items in the other Vectors at the same position.
 */
-public Vector __visibles = new Vector();
+public List<Boolean> __visibles = new Vector<Boolean>();
 
 /**
 Adds an item to the legend.
@@ -99,10 +100,10 @@ JCheckBox checkbox, boolean visible) {
 Clears everything from the legend.
 */
 public void empty() {
-	__nodes = new Vector();
-	__layers = new Vector();
-	__visibles = new Vector();
-	__checkboxes = new Vector();
+	__nodes = new Vector<SimpleJTree_Node>();
+	__layers = new Vector<GeoLayerView>();
+	__visibles = new Vector<Boolean>();
+	__checkboxes = new Vector<JCheckBox>();
 	count = 0;
 }
 
@@ -129,7 +130,7 @@ checkbox cannot be found.
 public int findCheckBox(JCheckBox checkbox) {
 	JCheckBox tempCheckbox = null;
 	for (int i = 0; i < count; i++) {
-		tempCheckbox = (JCheckBox)__checkboxes.elementAt(i);
+		tempCheckbox = __checkboxes.get(i);
 		if (tempCheckbox == checkbox) {
 			return i;
 		}
@@ -140,13 +141,13 @@ public int findCheckBox(JCheckBox checkbox) {
 /**
 Returns the position of the given layer in the legend, or -1 if the 
 layer cannot be found.
-@return the position of the given layer in the legen, or -1 if the 
+@return the position of the given layer in the legend, or -1 if the 
 layer cannot be found.
 */
 public int findLayer(GeoLayerView layer) {
 	GeoLayerView tempLayer = null;
 	for (int i = 0; i < count; i++) {
-		tempLayer = (GeoLayerView)__layers.elementAt(i);
+		tempLayer = __layers.get(i);
 		if (tempLayer == layer) {
 			return i;
 		}
@@ -157,13 +158,13 @@ public int findLayer(GeoLayerView layer) {
 /**
 Returns the position of the given node in the legend, or -1 if the 
 node cannot be found.
-@return the position of the given node in the legen, or -1 if the 
+@return the position of the given node in the legend, or -1 if the 
 node cannot be found.
 */
 public int findNode(SimpleJTree_Node node) {
 	SimpleJTree_Node tempNode = null;
 	for (int i = 0; i < count; i++) {
-		tempNode = (SimpleJTree_Node)__nodes.elementAt(i);
+		tempNode = __nodes.get(i);
 		if (tempNode == node) {
 			return i;
 		}
@@ -210,7 +211,7 @@ public boolean isLayerVisible(GeoLayerView glv) {
 		return false;
 	}
 
-	GeoLayerView layer = (GeoLayerView)__layers.elementAt(num);
+	GeoLayerView layer = __layers.get(num);
 	return layer.isVisible();
 }
 
@@ -230,7 +231,7 @@ public boolean isLayerLegendVisible(GeoLayerView glv) {
 		return false;
 	}
 
-	return ((Boolean)__visibles.elementAt(num)).booleanValue();
+	return __visibles.get(num).booleanValue();
 }
 
 /**
@@ -249,7 +250,7 @@ public boolean isNodeLegendVisible(SimpleJTree_Node node) {
 		return false;
 	}
 
-	return ((Boolean)__visibles.elementAt(num)).booleanValue();
+	return __visibles.get(num).booleanValue();
 }
 
 /**
@@ -261,10 +262,10 @@ public void removeLayer(GeoLayerView layer) {
 	if (num == -1) {
 		return;
 	}
-	__nodes.removeElementAt(num);
-	__layers.removeElementAt(num);
-	__visibles.removeElementAt(num);
-	__checkboxes.removeElementAt(num);
+	__nodes.remove(num);
+	__layers.remove(num);
+	__visibles.remove(num);
+	__checkboxes.remove(num);
 	count--;
 }
 
@@ -277,10 +278,10 @@ public void removeNode(SimpleJTree_Node node) {
 	if (num == -1) {
 		return;
 	}
-	__nodes.removeElementAt(num);
-	__layers.removeElementAt(num);
-	__visibles.removeElementAt(num);
-	__checkboxes.removeElementAt(num);
+	__nodes.remove(num);
+	__layers.remove(num);
+	__visibles.remove(num);
+	__checkboxes.remove(num);
 	count--;
 }
 
@@ -290,7 +291,7 @@ Sets the checkbox at the given legend position.
 @param checkbox the checkbox to set.
 */
 public void setCheckBox(int num, JCheckBox checkbox) {
-	__checkboxes.setElementAt(checkbox, num);
+	__checkboxes.set(num,checkbox);
 }
 
 /**
@@ -299,7 +300,7 @@ Sets the layer legend at the given position visible or not.
 @param visible whether to set the layer visible or invisible.
 */
 public void setLayerLegendVisible(int num, boolean visible) {
-	__visibles.setElementAt(new Boolean(visible), num);
+	__visibles.set(num, new Boolean(visible));
 }
 
 /**

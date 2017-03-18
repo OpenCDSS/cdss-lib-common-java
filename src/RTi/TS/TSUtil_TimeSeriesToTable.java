@@ -279,8 +279,6 @@ public void timeSeriesToTable ()
         DateTime dtFirst = null; // DateTime matching dataRowFirst
         DateTime dtLast = null; // DateTime matching dataRowLast
         int outOfOrderCount = 0;
-        int dataRowFirst = -1; // data data row with corresponding dtFirst
-        int dataRowLast = -1; // last data row with corresponding dtLast
         int dataRowFound = -1; // data row found that matches output start
         DateTime dtWindowFirst = null;
         int intervalBase = __tsList.get(0).getDataIntervalBase();
@@ -319,10 +317,8 @@ public void timeSeriesToTable ()
                     }
                     if ( dtFirst == null ) {
                         dtFirst = dt;
-                        dataRowFirst = irow;
                     }
                     dtLast = dt; // Reset until all data are processed
-                    dataRowLast = irow;
                     dtPrev = dt;
                 }
             }

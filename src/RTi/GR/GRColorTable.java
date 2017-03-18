@@ -23,6 +23,7 @@ colors for a legend for a map layer.  This class uses a Vector of GRColor and
 internal arrays to associate the colors with numbers and data values.
 TODO (JTS - 2006-05-23) Examples of use
 */
+@SuppressWarnings("serial")
 public class GRColorTable 
 extends Vector
 implements Cloneable

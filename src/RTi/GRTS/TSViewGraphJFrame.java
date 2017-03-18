@@ -173,6 +173,7 @@ import RTi.Util.String.StringUtil;
 The TSViewGraphJFrame displays a graph of one or more time series, and is
 managed by the parent TSViewJFrame.  See the constructor documentation for more information.
 */
+@SuppressWarnings("serial")
 public class TSViewGraphJFrame extends JFrame
 implements ActionListener, ItemListener, TSViewListener, WindowListener
 {
@@ -1176,7 +1177,7 @@ private void saveEdits ()
         Message.printWarning ( 1, routine, "DefaultSaveFile property is not specified.  File chooser is not enabled.");
         return;
     }
-    List<TS> editable_tslist = new Vector();
+    List<TS> editable_tslist = new Vector<TS>();
     String DefaultSaveFile_full = DefaultSaveFile;
     try {
         int size = 0;
@@ -1425,7 +1426,7 @@ public void tsViewMouseMotion ( TSGraph g, GRPoint devpt, GRPoint datapt )
 {	__tracker_JTextField.setText ( g.formatMouseTrackerDataPoint(devpt,datapt) );
 }
 
-public void tsViewSelect ( TSGraph g, GRShape devlim, GRShape datalim, List selected )
+public void tsViewSelect ( TSGraph g, GRShape devlim, GRShape datalim, List<Object> selected )
 {
 }
 

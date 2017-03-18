@@ -95,7 +95,7 @@ Empty strings are allowed and result in appropriate defaults.
 */
 public static UTMProjection parse ( String projection_string )
 throws Exception
-{	List tokens = StringUtil.breakStringList ( projection_string, ",", 0);
+{	List<String> tokens = StringUtil.breakStringList ( projection_string, ",", 0);
 	int size = 0;
 	if ( tokens != null ) {
 		size = tokens.size();

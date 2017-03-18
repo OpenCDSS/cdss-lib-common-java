@@ -91,7 +91,7 @@ private String __layerName = null;
 /**
 The app layer types to search through for matches.
 */
-private List __availAppLayerTypes = null;
+private List<String> __availAppLayerTypes = null;
 
 /**
 Constructor.
@@ -120,7 +120,7 @@ null.
 */
 public GeoViewAnimationLayerData(DataTable table, String layerName, 
 int symbolType, String[] idFields, String[] dataFields, 
-List availAppLayerTypes, boolean equalizeMax, PropList props) 
+List<String> availAppLayerTypes, boolean equalizeMax, PropList props) 
 throws Exception {
 	if (table == null || layerName == null || idFields == null
 		|| availAppLayerTypes == null) {
@@ -193,7 +193,7 @@ throws Throwable {
 Returns the available app layer types.
 @return the available app layer types.
 */
-public List getAvailAppLayerTypes() {
+public List<String> getAvailAppLayerTypes() {
 	return __availAppLayerTypes;
 }
 

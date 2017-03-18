@@ -139,6 +139,7 @@ package RTi.GRTS;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.lang.Math;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -1297,7 +1298,7 @@ private List<PropList> __annotationProviderPropLists = null;
 Checks for the annotation providers that were already used on this product,
 so that they can be checked and not used twice.
 */
-private List<TSProductAnnotationProvider> __usedProviders = new Vector();
+private List<TSProductAnnotationProvider> __usedProviders = new Vector<TSProductAnnotationProvider>();
 
 /**
 Construct a blank TSProduct.  It is assumed that properties will be added by
@@ -1367,8 +1368,8 @@ public void addTSProductAnnotationProvider(TSProductAnnotationProvider provider,
 	}
 	else {
 		if (__annotationProviders == null) {
-			__annotationProviders = new Vector();
-			__annotationProviderPropLists = new Vector();
+			__annotationProviders = new Vector<TSProductAnnotationProvider>();
+			__annotationProviderPropLists = new Vector<PropList>();
 		}
 	
 		__annotationProviders.add(provider);
@@ -1559,7 +1560,7 @@ public void checkDataProperties(int isub, int its) {
 	if ( prop_val == null ) {
 		prop_val = getDefaultPropValue("RightYAxisGraphType", isub, -1);
 	}
-	TSGraphType rightYAxisGraphType = TSGraphType.valueOfIgnoreCase(prop_val);
+	//TSGraphType rightYAxisGraphType = TSGraphType.valueOfIgnoreCase(prop_val);
 
 	// "Color"...
 
@@ -2453,10 +2454,10 @@ throws Throwable
 /**
 Returns all the properties in the TSProduct (from both the regular and the
 override proplist) as a sorted List.
-@return a sorted Vector of all the properties in the TSProduct.
+@return a sorted list of all the properties in the TSProduct.
 */
-public List getAllProps() {
-	List v = new Vector();
+public List<Prop> getAllProps() {
+	List<Prop> v = new ArrayList<Prop>();
 	
 	int size = __proplist.size();
 	for (int i = 0; i < size; i++) {
@@ -3792,12 +3793,12 @@ protected void renameAnnotationProps(String origSub, String origAnn, String newS
 	String num1 = "";
 	String num2 = "";
 	String rest = "";
-	List v = new Vector();
+	List<Prop> v = new Vector<Prop>();
 	__dirty = true;
 
 	// loop through the proplist
 	for (int i = 0; i < __proplist.size(); i++) {
-		p = (Prop)__proplist.elementAt(i);
+		p = __proplist.elementAt(i);
 		key = p.getKey();
 
 		// only be concerned with properties starting with 'Annotation '
@@ -3835,7 +3836,7 @@ protected void renameAnnotationProps(String origSub, String origAnn, String newS
 		__proplist.set(p);
 	}
 
-	v = new Vector();
+	v = new Vector<Prop>();
 	if (__override_proplist == null) {
 		return;
 	}
@@ -3892,7 +3893,7 @@ protected void renameDataProps(String origSub, String origD, String newSub, Stri
 	String num1 = "";
 	String num2 = "";
 	String rest = "";
-	List v = new Vector();
+	List<Prop> v = new Vector<Prop>();
 	__dirty = true;
 
 	// loop through the proplist
@@ -3934,7 +3935,7 @@ protected void renameDataProps(String origSub, String origD, String newSub, Stri
 		__proplist.set(p);
 	}
 
-	v = new Vector();
+	v = new Vector<Prop>();
 	if (__override_proplist == null) {
 		return;
 	}

@@ -47,8 +47,8 @@ import java.awt.datatransfer.Transferable;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
@@ -63,6 +63,7 @@ the spring, first 32F in the fall, and first 28F in the fall.  This time series
 is currently used in the CDSS project.  The formatOutput() method currently
 prints a "StateCU" format file.
 */
+@SuppressWarnings("serial")
 public class FrostDatesYearTS 
 extends YearTS
 implements Serializable, Transferable {
@@ -77,10 +78,10 @@ public static DataFlavor frostDatesYearTSFlavor = new DataFlavor(
 // the frost dates.  This class will make sure that there is consistency in the
 // data.  Individual set/gets are required to handle the different data.
 
-protected List _last_28F_spring;	// of DateTime
-protected List _last_32F_spring;	// of DateTime
-protected List _first_32F_fall;	// of DateTime
-protected List _first_28F_fall;	// of DateTime
+protected List<DateTime> _last_28F_spring;
+protected List<DateTime> _last_32F_spring;
+protected List<DateTime> _first_32F_fall;
+protected List<DateTime> _first_28F_fall;
 
 /**
 Constructor.  Use allocateDataSpace() and setDataValue() to set data.
@@ -117,7 +118,7 @@ throws TSException
 	}
 	// Else, set up a vector and call the overload routine...
 	try {
-		List<TS> v = new Vector ( 1, 1 );
+		List<TS> v = new ArrayList<TS>(1);
 		v.add ( ts_to_add );
 		double [] factor = new double[1];
 		factor[0] = 1.0;
@@ -390,16 +391,16 @@ public int allocateDataSpace ()
 	int year1 = _date1.getYear ();
 	int nyears = _date2.getYear() - year1 + 1;
 
-	_last_28F_spring = new Vector ( nyears, 5 );
-	_last_32F_spring = new Vector ( nyears, 5 );
-	_first_32F_fall = new Vector ( nyears, 5 );
-	_first_28F_fall = new Vector ( nyears, 5 );
+	_last_28F_spring = new ArrayList<DateTime> ( nyears );
+	_last_32F_spring = new ArrayList<DateTime> ( nyears );
+	_first_32F_fall = new ArrayList<DateTime> ( nyears );
+	_first_28F_fall = new ArrayList<DateTime> ( nyears );
 
 	for ( int i = 0; i < nyears; i++ ) {
-		_last_28F_spring.add ( (DateTime)null );
-		_last_32F_spring.add ( (DateTime)null );
-		_first_32F_fall.add ( (DateTime)null );
-		_first_28F_fall.add ( (DateTime)null );
+		_last_28F_spring.add ( null );
+		_last_32F_spring.add ( null );
+		_first_32F_fall.add ( null );
+		_first_28F_fall.add ( null );
 	}
 
 	return 0;
@@ -454,12 +455,12 @@ throws TSException
 
 	// To transfer the data (later), we get the old position and then set
 	// in the new position.  To get the right data position, declare new
-	// Vectors and save references to the old data...
+	// lists and save references to the old data...
 
-	List save_last_28F_spring = _last_28F_spring;
-	List save_last_32F_spring = _last_32F_spring;
-	List save_first_32F_fall = _first_32F_fall;
-	List save_first_28F_fall = _first_28F_fall;
+	List<DateTime> save_last_28F_spring = _last_28F_spring;
+	List<DateTime> save_last_32F_spring = _last_32F_spring;
+	List<DateTime> save_first_32F_fall = _first_32F_fall;
+	List<DateTime> save_first_28F_fall = _first_28F_fall;
 	DateTime save_date1 = new DateTime ( _date1 );
 
 	// Optimize the transfer dates to speed performance and so we only
@@ -851,8 +852,8 @@ throws IOException
 {	String cmnt = "#>";	// Non-permanent comment for header.
 	String message = null;
 	String rtn="FrostDatesYearTS.formatOutput";
-	List<String> strings = new Vector ( 50, 50 );
-	List v = new Vector ( 50 );
+	List<String> strings = new ArrayList<String>();
+	List<Object> v = new ArrayList<Object>();
 
 	try {
 
@@ -927,10 +928,11 @@ throws IOException
 	"   Source   Units  Period of Record    Location    Description");
 
 	String empty_string = "-", tmpdesc, tmpid, tmplocation, tmpsource, tmptype, tmpunits;
-	FrostDatesYearTS tsptr = null;
+	TS tsptr = null;
+	FrostDatesYearTS fdtsptr = null;
 	String format;
 	for ( i=0; i < nseries; i++ ) {
-		tsptr = (FrostDatesYearTS)ts_list.get(i);
+		tsptr = ts_list.get(i);
 
 		tmpid = tsptr.getIdentifierString();
 		if (tmpid.length() == 0 ) {
@@ -993,7 +995,7 @@ throws IOException
 	}
 	for (i=0; i<nseries; i++ )
 	{
-		tsptr = (FrostDatesYearTS)ts_list.get(i);
+		tsptr = ts_list.get(i);
 		if ( tsptr.getDataIntervalBase() != TimeInterval.YEAR ) {
 			message = "A TS interval other than year detected:" + tsptr.getDataIntervalBase();		
 			Message.printWarning ( 2, rtn, message );
@@ -1017,7 +1019,7 @@ throws IOException
 	DateTime ts_date32fall = null, ts_date28fall = null, ts_date28spring = null, ts_date32spring = null;
 	
 	num_years = year2 - year1 + 1;
-	List iline_v = new Vector(30);
+	List<Object> iline_v = new ArrayList<Object>();
 	Integer missing_Integer = new Integer ( -999 );
 	for ( i = 0; i < num_years; i++ ) {
 		year = year1 + i;
@@ -1026,7 +1028,8 @@ throws IOException
 			iline = new String();	
 			iline_format = new String();	
 			iline_v.clear();
-			tsptr = (FrostDatesYearTS)ts_list.get(j);
+			// TODO sam 2017-03-13 need to define class so that cast is not needed
+			fdtsptr = (FrostDatesYearTS)ts_list.get(j);
 
 			iline_format = "%4d %-12.12s";
 			iline_v.add ( new Integer (year));
@@ -1034,10 +1037,10 @@ throws IOException
 
 			// Get the data from the time series (null if not found)...
 
-			ts_date32fall = tsptr.getFirst32Fall(year);
-			ts_date28fall = tsptr.getFirst28Fall(year);
-			ts_date28spring = tsptr.getLast28Spring(year);
-			ts_date32spring = tsptr.getLast32Spring(year);
+			ts_date32fall = fdtsptr.getFirst32Fall(year);
+			ts_date28fall = fdtsptr.getFirst28Fall(year);
+			ts_date28spring = fdtsptr.getLast28Spring(year);
+			ts_date32spring = fdtsptr.getLast32Spring(year);
 
 			// Now format for output...
 

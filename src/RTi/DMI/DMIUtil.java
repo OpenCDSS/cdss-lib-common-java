@@ -108,7 +108,6 @@ package RTi.DMI;
 
 import RTi.Util.GUI.InputFilter;
 import RTi.Util.GUI.InputFilter_JPanel;
-import RTi.Util.IO.HTMLWriter;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.ProcessManager;
 import RTi.Util.Message.Message;
@@ -241,8 +240,8 @@ public static void createDataDictionary ( DMI dmi, String filename, String [] re
 	}
 
 	String	s;
-	List table_names = new Vector();
-	List table_remarks = new Vector();
+	List<String> table_names = new ArrayList<String>();
+	List<String> table_remarks = new ArrayList<String>();
 	while ( more ) {
 
 		try {
@@ -384,10 +383,10 @@ public static List<ERDiagram_Relationship> createERDiagramRelationships(DMI dmi,
 		String endField = null;
 	
 		int size = tableNames.size();
-		List rels = new Vector();
+		List<ERDiagram_Relationship> rels = new ArrayList<ERDiagram_Relationship>();
 	
 		for (int i = 0; i < size; i++) {
-			rs = metadata.getExportedKeys(null, null, (String)tableNames.get(i));
+			rs = metadata.getExportedKeys(null, null, tableNames.get(i));
 	
 			while (rs.next()) {		
 				startTable = rs.getString(3);
@@ -395,8 +394,7 @@ public static List<ERDiagram_Relationship> createERDiagramRelationships(DMI dmi,
 				endTable = rs.getString(7);
 				endField = rs.getString(8);
 				
-				ERDiagram_Relationship rel = 
-					new ERDiagram_Relationship( startTable, startField, endTable, endField);
+				ERDiagram_Relationship rel = new ERDiagram_Relationship( startTable, startField, endTable, endField);
 				rels.add(rel);
 			}
 			DMI.closeResultSet(rs);
@@ -423,7 +421,7 @@ ER Diagram.  null is returned if there was an error creating the tables or readi
 */
 public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 	String tablesTableName, String tableField, String erdXField, String erdYField,
-	List notIncluded)
+	List<String> notIncluded)
 {
 	String routine = "DMIUtil.createERDiagramTables";
 	String temp;
@@ -440,7 +438,7 @@ public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 	String tableName = null;
 	Message.printStatus(2, routine, "Determining table details for ER Diagram");
 	
-	List<ERDiagram_Table> tables = new Vector();
+	List<ERDiagram_Table> tables = new ArrayList<ERDiagram_Table>();
 	ERDiagram_Table table = null;
 
 	try {
@@ -462,7 +460,7 @@ public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 			int primaryKeyListSize = 0;
 			try {
 				primaryKeyRS = metadata.getPrimaryKeys( null, null, tableName);
-				primaryKeyList = new ArrayList();
+				primaryKeyList = new ArrayList<String>();
 				while (primaryKeyRS.next()) {
 					primaryKeyList.add(primaryKeyRS.getString(4));	
 				}
@@ -477,7 +475,7 @@ public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 			Message.printStatus(2,routine,"Table \"" + tableName + "\" has " + primaryKeyListSize + " primary keys");
 			
 			boolean key = false;
-			List columns = new ArrayList();
+			List<List<String>> columns = new ArrayList<List<String>>();
 			List<String> columnNames = new ArrayList<String>();
 
 			// Next, get the actual column data for the current table.
@@ -493,7 +491,7 @@ public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 			String columnName = null;
 			while (rs.next()) {
 				key = false;
-				List columnNameList = new ArrayList<String>();
+				List<String> columnNameList = new ArrayList<String>();
 			
 				// Get the 'column name' and store it in list position 0
 				columnName = rs.getString(4);
@@ -556,9 +554,10 @@ public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 			// This will be used to display columns in the right sorting order.
 			int numColumns = columnNames.size();
 			int[] order = new int[numColumns];
-			List[] sortedLists = new List[numColumns];
+			@SuppressWarnings("unchecked")
+			List<String>[] sortedLists = new ArrayList[numColumns];
 			for (int j = 0; j < numColumns; j++) {
-				sortedLists[j] = (List)columns.get(order[j]);
+				sortedLists[j] = columns.get(order[j]);
 			}
 		
 			String[] keyFields = new String[primaryKeyListSize];
@@ -569,20 +568,20 @@ public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 			String[] nonKeyFields = new String[(numColumns - primaryKeyListSize)];
 			int count = 0;
 			for (int j = 0; j < numColumns; j++) {
-				List column = sortedLists[j];
+				List<String> column = sortedLists[j];
 				temp = null;
 
-				temp = (String)column.get(1);
+				temp = column.get(1);
 
 				if (temp.equals("TRUE")) {
 					// display the column name
-					temp = (String)column.get(0);
+					temp = column.get(0);
 					field = temp + ": ";
 
 					// display the column type
-					temp = (String)column.get(2);
+					temp = column.get(2);
 					if (temp.equalsIgnoreCase("real")) {
-						temp = temp + "(" + (String)column.get(3) + ", " + (String)column.get(4);
+						temp = temp + "(" + column.get(3) + ", " + column.get(4);
 					}
 					else if (temp.equalsIgnoreCase("float")||
 						(temp.equalsIgnoreCase("double"))||
@@ -593,7 +592,7 @@ public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 						(temp.equalsIgnoreCase("datetime"))) {
 					}
 					else {
-						temp = temp + "(" + (String)column.get(3) + ")";
+						temp = temp + "(" + column.get(3) + ")";
 					}					
 					field += temp;
 					keyFields[count++] = field;
@@ -603,20 +602,20 @@ public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 			// Now do the same thing for the other fields, the non-primary key fields.  
 			count = 0;
 			for (int j = 0; j < numColumns; j++) {
-				List column = sortedLists[j];
+				List<String> column = sortedLists[j];
 				temp = null;
 
-				temp = (String)column.get(1);
+				temp = column.get(1);
 
 				if (temp.equals("FALSE")) {
 					// display the column name
-					temp = (String)column.get(0);
+					temp = column.get(0);
 					field = temp + ": ";
 
 					// display the column type
-					temp = (String)column.get(2);
+					temp = column.get(2);
 					if (temp.equalsIgnoreCase("real")) {
-						temp = temp + "(" + (String)column.get(3) + ", " + (String)column.get(4);
+						temp = temp + "(" + column.get(3) + ", " + column.get(4);
 					}
 					else if (temp.equalsIgnoreCase("float")||
 						(temp.equalsIgnoreCase("double"))||
@@ -627,7 +626,7 @@ public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 						(temp.equalsIgnoreCase("datetime"))) {
 					}
 					else {
-						temp = temp + "(" + (String)column.get(3) + ")";
+						temp = temp + "(" + column.get(3) + ")";
 					}					
 					field += temp;
 					nonKeyFields[count++] = field;
@@ -810,10 +809,10 @@ throws Exception {
 
 	// get a list of all the table columns that are in the Primary key.
 	ResultSet primaryKeysRS = null;
-	List primaryKeysV = null;
+	List<String> primaryKeysV = null;
 	int primaryKeysSize = 0;
 	primaryKeysRS = metadata.getPrimaryKeys(null, null, origTableName);
-	primaryKeysV = new Vector();
+	primaryKeysV = new ArrayList<String>();
 	while (primaryKeysRS.next()) {
 		primaryKeysV.add(primaryKeysRS.getString(4));	
 	}
@@ -822,13 +821,13 @@ throws Exception {
 
 	boolean key = false;
 	String temp = null;
-	List columns = new Vector();
-	// Loop through each column and move all its important data into a Vector of Vectors.  This data will
+	List<List<String>> columns = new ArrayList<List<String>>();
+	// Loop through each column and move all its important data into a list of list.  This data will
 	// be run through at least twice, and to do that with a ResultSet would require several expensive
 	// opens and closes.
 	while (more) {
 		key = false;
-		List column = new Vector();
+		List<String> column = new ArrayList<String>();
 		
 		// Get the 'column name' and store it in Vector position 0
 		temp = rs.getString(4);
@@ -843,7 +842,7 @@ throws Exception {
 		// Get whether this is a primary key or not and store either "TRUE" (for it being a 
 		// primary key) or "FALSE" in list position 1
 		for (int j = 0; j < primaryKeysSize; j++) {
-			if (temp.trim().equals( ((String)primaryKeysV.get(j)).trim())) {
+			if (temp.trim().equals( primaryKeysV.get(j).trim())) {
 				key = true;		
 			}
 		}				
@@ -908,13 +907,13 @@ throws Exception {
 		if (i == (numFields - 1) && primaryKeysSize == 0) {
 			comma = "\n)";
 		}
-		List column = (List)columns.get(i);
-		String name = (String)column.get(0);
-		String type = (String)column.get(2);
+		List<String> column = columns.get(i);
+		String name = column.get(0);
+		String type = column.get(2);
 		if (type.equalsIgnoreCase("VARCHAR")) {
-			type = type + " (" + (String)column.get(3) + ")";
+			type = type + " (" + column.get(3) + ")";
 		}
-		String isNull = (String)column.get(5);
+		String isNull = column.get(5);
 		if (isNull.equalsIgnoreCase("Unknown") || isNull.equalsIgnoreCase("No")) {
 		    	isNull = "NOT NULL";
 		}
@@ -1092,10 +1091,7 @@ throws Exception {
 	boolean more = rs.next();
 
 	String s;
-	int count = 0;
 	while ( more ) {
-		++count;
-
 		// The table name is field 3...
 
 		//if ( Message.isDebugOn ) {
@@ -1558,7 +1554,7 @@ throws Exception {
 	
 	// check for BETWEEN searches
 	if (isString.startsWith("BETWEEN")) {
-		List v = StringUtil.breakStringList(isString, " ", 0);
+		List<String> v = StringUtil.breakStringList(isString, " ", 0);
 
 		if (((String)v.get(0)).equalsIgnoreCase("BETWEEN")) {
 			// If the query is using BETWEEN searches, then it MUST
@@ -1813,7 +1809,7 @@ Constructs a concatenated String with AND inserted at the appropriate locations.
 @param and Vector of Strings in which to construct an AND clause
 @return returns a String with AND inserted at the appropriate locations, null if "and" is null
 */
-public static String getAndClause(List and) {
+public static String getAndClause(List<String> and) {
         if (and == null) {
                 return null;
         }
@@ -1836,7 +1832,7 @@ public static String getAndClause(List and) {
 Returns all the kinds of databases a DMI can connect to.
 @return a list of all the kinds of databases a DMI can connect to.
 */
-public static List getAllDatabaseTypes() {
+public static List<String> getAllDatabaseTypes() {
 	return DMI.getAllDatabaseTypes();
 }
 
@@ -1864,7 +1860,6 @@ public static List<String> getTableColumns ( DatabaseMetaData metadata, String t
 throws Exception, SQLException {    
     String message, routine = "DMI.getTableColumns";
     ResultSet rs = null;
-    int dl = 5;
 
     // The following can be used to get a full list of columns...
     try {
@@ -1882,7 +1877,7 @@ throws Exception, SQLException {
     }
     
     String columnName;
-    List<String> columnNames = new Vector();
+    List<String> columnNames = new ArrayList<String>();
     while ( rs.next() ) {
         try {   
             // Column name...
@@ -2024,7 +2019,7 @@ throws Exception, SQLException {
     }
     
     String columnName;
-    List<String> columnNames = new Vector();
+    List<String> columnNames = new ArrayList<String>();
     while ( rs.next() ) {
         try {   
             // Column name...
@@ -2142,7 +2137,7 @@ is returned if there was an error reading from the database.
 public static List<String> getDatabaseProcedureNames(DMI dmi, boolean removeSystemProcedures,
     List<String> notIncluded)
 throws SQLException
-{   String routine = "getDatabaseProcedureNames", message;
+{   String routine = "getDatabaseProcedureNames";
     int dl = 25;
     // Get the name of the data.  If the name is null, it's most likely
     // because the connection is going through ODBC, in which case the 
@@ -2384,7 +2379,7 @@ public static List<String> getDatabaseTableNames(DMI dmi, String catalog, String
 	Message.printStatus(2, routine, "Building table name list");	
 	String tableName;
 	String tableType;
-	List<String> tableNames = new ArrayList();
+	List<String> tableNames = new ArrayList<String>();
 	try {
     	while ( rs.next() ) {
     		try {	
@@ -2466,12 +2461,12 @@ Return a list of String containing defined ODBC Data Source Names.
 This method is only applicable on Windows operating systems.  The windows
 registry for "HKEY_CURRENT_USER: Software\ODBC\ODBC.INI\ODBC Data Sources" is
 read using the external shellcon.exe program.  This program must therefore be in the path.
-@return a Vector of String containing defined ODBC Data Source Names.  The
-Vector may be empty.
+@return a list of String containing defined ODBC Data Source Names.  The
+list may be empty.
 @param strip_general If true, strip general ODBC DSNs from the list (e.g., "Excel Files").
 */
-public static List getDefinedOdbcDsn ( boolean strip_general )
-{	List output = null;
+public static List<String> getDefinedOdbcDsn ( boolean strip_general )
+{	List<String> output = null;
 	if (!IOUtil.isUNIXMachine()) {
 		try {
 			String [] command_array = new String[2];
@@ -2494,7 +2489,7 @@ public static List getDefinedOdbcDsn ( boolean strip_general )
 		}
 	}
 
-	List available_OdbcDsn = new Vector();
+	List<String> available_OdbcDsn = new ArrayList<String>();
 	if ((output != null) && (output.size() > 0)) {
 		output = StringUtil.sortStringList (output, StringUtil.SORT_ASCENDING, null, false, true);
 		int size = output.size();
@@ -2601,7 +2596,7 @@ public static String getOrClause(List<String> or) {
 Returns the database types a DMI can connect to that are done via direct server connection.
 @return a list of the database types a DMI can connect to that are done via direct server connection.
 */
-public static List getServerDatabaseTypes() {
+public static List<String> getServerDatabaseTypes() {
 	return DMI.getServerDatabaseTypes();
 }
 
@@ -2831,7 +2826,7 @@ public static List<String> getWhereClausesFromInputFilter (	DMI dmi, InputFilter
 {	// Loop through each filter group.  There will be one where clause per filter group.
 	int nfg = panel.getNumFilterGroups ();
 	InputFilter filter;
-	List<String> where_clauses = new Vector();
+	List<String> where_clauses = new ArrayList<String>();
 	String where_clause="";	// A where clause that is being formed.
 	for ( int ifg = 0; ifg < nfg; ifg++ ) {
 		filter = panel.getInputFilter ( ifg );	
@@ -3156,7 +3151,7 @@ private static boolean isMissingLong(long value) {
 Uses Message.printDebug(1, ...) to print out the results stored in a 
 list of lists (which has been returned from a call to processResultSet)
 */
-public static void printResults(List v) {
+public static void printResults(List<List<Object>> v) {
 	printResults(v, "  ");
 }
 
@@ -3164,10 +3159,10 @@ public static void printResults(List v) {
 Uses Message.printDebug(1, ...) to print out the results stored in a 
 list of lists (which has been returned from a call to processResultSet)
 */
-public static void printResults(List v, String delim) {
+public static void printResults(List<List<Object>> v, String delim) {
 	int size = v.size();
 	for (int i = 0; i < size; i++) {
-		List vv = (List)v.get(i);
+		List<Object> vv = v.get(i);
 		int vsize = vv.size();
 		Message.printDebug(1, "", "  -> ");
 		for (int j = 0; j < vsize; j++) {
@@ -3212,11 +3207,11 @@ in place to transform it into something we can work with in a vector.
 This may cause some odd errors, but there's little that can be done right 
 now.  Fortunately, such occurrences should be very rare.
 @param rs the resultSet whose values will be entered into vector format
-@return a vector containing all the values from the resultset
+@return a list containing all the values from the resultset
 @throws SQLException thrown by ResultSet.getMetaData(), 
 ResultSetMetaData.getColumnCount(), or any of the ResultSet.get[DataType]() methods
 */
-public static List processResultSet(ResultSet rs) throws SQLException {
+public static List<List<Object>> processResultSet(ResultSet rs) throws SQLException {
 	String routine = "DMI.processResultSet";
 	int dl = 25;
 
@@ -3225,10 +3220,10 @@ public static List processResultSet(ResultSet rs) throws SQLException {
 	}
 
 	// Used for storing the type of each column in the resultSet
-	List types = new Vector(0);
+	List<Integer> types = new ArrayList<Integer>();
 
 	// The list which will be built containing the rows from the resultSet
-	List results = new Vector(0);
+	List<List<Object>> results = new ArrayList<List<Object>>();
 
 	// Set up the types list 
 	ResultSetMetaData rsmd = rs.getMetaData();	
@@ -3238,9 +3233,9 @@ public static List processResultSet(ResultSet rs) throws SQLException {
 	}
 
 	while(rs.next()) {
-		List row = new Vector(0);
+		List<Object> row = new ArrayList<Object>(0);
 		for (int i = 0; i < columnCount; i++) {
-			Integer I = (Integer)types.get(i);
+			Integer I = types.get(i);
 			int val = I.intValue();
 	
 			switch(val) {
@@ -3324,7 +3319,7 @@ Queries a resultset's meta data for the names of the columns returned into the r
 @throws SQLException thrown by ResultSet.getMetaData, 
 ResultSetMetaData.getColumnCount or ResultSetMetaData.getColumnName
 */
-public static List processResultSetColumnNames(ResultSet rs) 
+public static List<String> processResultSetColumnNames(ResultSet rs) 
 throws SQLException {
 	String routine = "DMI.processResultSetColumnNames";
 	int dl = 25;
@@ -3332,7 +3327,7 @@ throws SQLException {
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "[method called]");
 	}
-	List names = new Vector(0);
+	List<String> names = new ArrayList<String>();
 	
 	ResultSetMetaData rsmd = rs.getMetaData();
 	int count = rsmd.getColumnCount();
@@ -3513,11 +3508,11 @@ public static void testPrivileges(DMI dmi, String tableName) {
 public static void testKeys(DatabaseMetaData metadata, String tableName) {
 	Message.printStatus(2, "", "" + tableName + " foreign key info:");
 	ResultSet keysRS = null;
-	List keysV = null;
+	List<String> keysV = null;
 	int keysSize = 0;
 	try {
 		keysRS = metadata.getImportedKeys(null, null, tableName);
-		keysV = new Vector();
+		keysV = new ArrayList<String>();
 		while (keysRS.next()) {
 			keysV.add(testKeysString(keysRS));
 		}
@@ -3531,7 +3526,7 @@ public static void testKeys(DatabaseMetaData metadata, String tableName) {
 
 	try {
 		keysRS = metadata.getExportedKeys(null, null, tableName);
-		keysV = new Vector();
+		keysV = new ArrayList<String>();
 		while (keysRS.next()) {
 			keysV.add(testKeysString(keysRS));
 		}
@@ -3568,7 +3563,7 @@ but may be empty.
 */
 public static List<String> toStringList ( ResultSet rs ) 
 throws SQLException {
-    List<String> v = new Vector();
+    List<String> v = new ArrayList<String>();
     int index = 1;
     String s;
     while ( rs.next() ) {

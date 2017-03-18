@@ -43,7 +43,7 @@ public void compileXSD(String XSDFilePath) throws InvalidConfigurationException;
  * file.</p>
  * @return A HashTable of key/value pairs holding the configuration file information.
  */
-public Hashtable getConfiguration();
+public Hashtable<String,String> getConfiguration();
 
 /**
  * <p>This method returns a version string from the XML schema file or null if 
@@ -55,5 +55,4 @@ public Hashtable getConfiguration();
  */
 public String getXSDVersion(String XSDFilePath);
 
-} // End of interface ConfigurationFile
-
+}

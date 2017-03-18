@@ -2,7 +2,6 @@ package riverside.ts.util;
 
 import java.util.HashMap;
 import junit.framework.TestCase;
-import riverside.ts.util.InterpolatedLookup.InterpolationMode;
 
 /**
  *
@@ -25,7 +24,7 @@ public class InterpolatedLookupTest extends TestCase {
     }
     
     private void populateBasis(InterpolatedLookup lookup) {
-        HashMap list = new HashMap();
+        HashMap<Double,Double> list = new HashMap<Double,Double>();
         list.put(1.0, 1.0);
         list.put(2.0, 1.5);
         list.put(3.0, 2.0);
@@ -73,7 +72,7 @@ public class InterpolatedLookupTest extends TestCase {
      */
     public void testSetBasis() {
         System.out.println("setBasis");
-        HashMap list = null;
+        HashMap<Double,Double> list = null;
         InterpolatedLookup instance = new InterpolatedLookup();
         try {
             instance.setBasis(list);

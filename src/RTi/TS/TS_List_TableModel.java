@@ -11,6 +11,7 @@ instances.  By default the sheet will contain row and column numbers.
 The alias can be treated as a hidden column.
 This class may eventually be moved to the RTi.TS package.
 */
+@SuppressWarnings("serial")
 public class TS_List_TableModel extends JWorksheet_AbstractRowTableModel
 {
 

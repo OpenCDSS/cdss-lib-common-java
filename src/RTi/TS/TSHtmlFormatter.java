@@ -1,7 +1,7 @@
 package RTi.TS;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.HTMLWriter;
@@ -278,7 +278,7 @@ throws Exception
     int flagCountTotal = 0;
     String dataFormat = "%." + precision + "f";
     String [] td = new String[1]; // Single cell value
-    List<String> foundFlagsList = new Vector(); // Flags found from the data
+    List<String> foundFlagsList = new ArrayList<String>(); // Flags found from the data
     // Year for iteration is the calendar year for the start of the year (but not necessarily Jan)
     for ( int year = outputStart.getYear(); year <= (outputEnd.getYear() + yearType.getStartYearOffset()); year++ ) {
         int outputYear = year - yearType.getStartYearOffset();
@@ -404,7 +404,7 @@ throws Exception
     int flagCountTotal = 0;
     String dataFormat = "%." + precision + "f";
     String [] td = new String[1]; // Single cell value
-    List<String> foundFlagsList = new Vector(); // Flags found from the data
+    List<String> foundFlagsList = new ArrayList<String>(); // Flags found from the data
     int intervalBase = ts.getDataIntervalBase();
     int intervalMult = ts.getDataIntervalMult();
     for ( ; date.lessThanOrEqualTo(outputEnd); date.addInterval(intervalBase,intervalMult) ) {
@@ -493,7 +493,7 @@ throws Exception
     int flagCountTotal = 0;
     String dataFormat = "%." + precision + "f";
     String [] td = new String[1]; // Single cell value
-    List<String> foundFlagsList = new Vector(); // Flags found from the data
+    List<String> foundFlagsList = new ArrayList<String>(); // Flags found from the data
     TSIterator iter = ts.iterator();
     while ( (data = iter.next()) != null ) {
         html.tableRowStart();
@@ -581,7 +581,7 @@ throws Exception
     int flagCountTotal = 0;
     String dataFormat = "%." + precision + "f";
     String [] td = new String[1]; // Single cell value
-    List<String> foundFlagsList = new Vector(); // Flags found from the data
+    List<String> foundFlagsList = new ArrayList<String>(); // Flags found from the data
     int intervalBase = ts.getDataIntervalBase();
     int intervalMult = ts.getDataIntervalMult();
     for ( ; date.lessThanOrEqualTo(outputEnd); date.addInterval(intervalBase,intervalMult) ) {
@@ -721,7 +721,7 @@ throws Exception
     int flagCountTotal = 0;
     String dataFormat = "%." + precision + "f";
     String [] td = new String[1]; // Single cell value
-    List<String> foundFlagsList = new Vector(); // Flags found from the data
+    List<String> foundFlagsList = new ArrayList<String>(); // Flags found from the data
     for ( ; date.lessThanOrEqualTo(outputEnd); date.addInterval(TimeInterval.MONTH,1) ) {
         ++monthPos;
         if ( monthPos == 0 ) {
@@ -838,7 +838,7 @@ throws Exception
     int flagCountTotal = 0;
     String dataFormat = "%." + precision + "f";
     String [] td = new String[1]; // Single cell value
-    List<String> foundFlagsList = new Vector(); // Flags found from the data
+    List<String> foundFlagsList = new ArrayList<String>(); // Flags found from the data
     for ( ; date.lessThanOrEqualTo(outputEnd); date.addInterval(TimeInterval.YEAR,1) ) {
         html.tableRowStart();
         // Write the year...

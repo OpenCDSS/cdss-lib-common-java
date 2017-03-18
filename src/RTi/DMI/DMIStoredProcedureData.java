@@ -153,7 +153,7 @@ throws Exception {
 	ResultSet rs = dmi.getConnection().getMetaData().getProcedureColumns(
 		dmi.getDatabaseName(), null, procedureName, null);
 	__dmi = dmi;
-	List v = DMIUtil.processResultSet(rs);
+	List<List<Object>> v = DMIUtil.processResultSet(rs);
 	//DMIUtil.printResults(v);
 	rs.close();
 
@@ -202,9 +202,9 @@ private String createStoredProcedureCallString() {
 }
 
 /**
-Pulls out information from the Vector of procedure data and populates the member variables.
+Pulls out information from the list of procedure data and populates the member variables.
 */
-private void fillProcedureData(List v) {
+private void fillProcedureData(List<List<Object>> v) {
 	__hasReturnValue = hasReturnValue(v);
 
 	int size = v.size();
@@ -220,9 +220,9 @@ private void fillProcedureData(List v) {
 
 	Integer I = null;
 	int count = 0;
-	List row = null;
+	List<Object> row = null;
 	for (int i = 0; i < size; i++) {
-		row = (List)v.get(i);
+		row = v.get(i);
 
 		I = (Integer)row.get(4);
 		if (I.intValue() == DatabaseMetaData.procedureColumnReturn) {
@@ -347,13 +347,13 @@ public boolean hasReturnValue() {
 Checks procedure data to see if there are any return values.
 @return true if any return values are present, false otherwise.
 */
-private boolean hasReturnValue(List v) {
+private boolean hasReturnValue(List<List<Object>> v) {
 	int size = v.size();
 
 	Integer I = null;
-	List row = null;
+	List<Object> row = null;
 	for (int i = 0; i < size; i++) {
-		row = (List)v.get(i);
+		row = v.get(i);
 
 		I = (Integer)row.get(4);
 		if (I.intValue() == DatabaseMetaData.procedureColumnReturn) {

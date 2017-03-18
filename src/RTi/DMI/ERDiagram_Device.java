@@ -58,6 +58,7 @@ import RTi.Util.String.StringUtil;
 /**
 This class extends GRJComponentDevice to be the device that manages the ER Diagram drawing area.
 */
+@SuppressWarnings("serial")
 public class ERDiagram_Device extends GRJComponentDevice
 implements ActionListener, MouseListener, MouseMotionListener, Printable, 
 Scrollable {
@@ -344,7 +345,7 @@ public void actionPerformed(ActionEvent event) {
 		repaint();
 	}
 	else if (action.equals(__MENU_DISPLAY_TABLES_TABLE)) {
-		List v = new Vector();
+		List<ERDiagram_Table> v = new Vector<ERDiagram_Table>();
 		for (int i = 0; i < __tables.length; i++) {
 			v.add(__tables[i]);
 		}

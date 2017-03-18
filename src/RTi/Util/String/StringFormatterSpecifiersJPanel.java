@@ -7,6 +7,7 @@ import java.awt.Insets;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyListener;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
@@ -27,6 +28,7 @@ one or more of the individual specifiers and literals.  The control consists of 
 an Insert button, and a JChoice with a list of available specifiers.  Use getText() to get
 the contents of the text field.
 */
+@SuppressWarnings("serial")
 public class StringFormatterSpecifiersJPanel extends JPanel implements ItemListener
 {
 /**
@@ -279,7 +281,7 @@ private void populateFormatSpecifiers()
     // Because the choices get reset there is a chance that this will cause layout problems.  Consequently, it is
     // best to make sure that the hint takes up enough space that the choice width does not change when
     // repopulated
-    choicesList = new Vector();
+    choicesList = new ArrayList<String>();
     if ( (formatterType == null) && (__defaultFormatter != null) ) {
         formatterType = __defaultFormatter;
     }

@@ -1010,18 +1010,9 @@ public MonthTS newStatisticMonthTS ( boolean createData )
     monthts.setDataInterval ( TimeInterval.MONTH, 1 );
 
     // Automatically sets the precision to month for these dates...
-    if ( analysisStart != null ) {
-        monthts.setDate1 ( analysisStart );
-    }
-    else {
-        monthts.setDate1 ( ts.getDate1() );
-    }
-    if ( analysisEnd != null ) {
-        monthts.setDate2 ( analysisEnd );
-    }
-    else {
-        monthts.setDate2 ( ts.getDate2() );
-    }
+    // Dates determined above
+    monthts.setDate1 ( analysisStart );
+    monthts.setDate2 ( analysisEnd );
     
     if ( !createData ) {
         return monthts;

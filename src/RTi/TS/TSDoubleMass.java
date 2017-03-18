@@ -48,10 +48,10 @@ private boolean [][] _accum_missing_flag;
 /**
 Constructor.  This constructs and does the analysis using the maximum
 period available from the data.  Use accessor functions to retrieve the data.
-@param ts Vector of TS to analyze.
+@param ts list of TS to analyze.
 @exception TSException if an error occurs.
 */
-public TSDoubleMass ( List ts )
+public TSDoubleMass ( List<TS> ts )
 throws TSException
 {
 	// Find the maximum period for all the time series involved in the
@@ -75,14 +75,14 @@ throws Throwable
 
 /**
 Perform the double mass analysis.
-@param ts Vector of TS to analyze.
+@param ts list of TS to analyze.
 @param date1 Start of analysis.
 @param date2 End of analysis.
 @exception TSException if an error occurs during the analysis.
 */
-private void initialize ( List ts, DateTime date1, DateTime date2 )
+private void initialize ( List<TS> ts, DateTime date1, DateTime date2 )
 throws TSException
-{	String	message, routine = "TSDoubleMass.initialize";
+{	String message, routine = "TSDoubleMass.initialize";
 	int	i;
 
 	if ( ts == null ) {

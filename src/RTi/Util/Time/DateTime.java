@@ -283,7 +283,8 @@ Specific features of the DateTime class are:
 	date fields can be ignored.</li>
 </ul>
 */
-public class DateTime implements Cloneable, Comparable, Serializable
+@SuppressWarnings("serial")
+public class DateTime implements Cloneable, Comparable<DateTime>, Serializable
 {
 
 /**
@@ -1406,23 +1407,8 @@ public int compareTo ( DateTime t )
 	else if ( lessThan(t) ) {
 		return -1;
 	}
-	else {	return 1;
-	}
-}
-
-/**
-Determine if this DateTime is less than, equal to, or greater than another DateTime.
-@return -1 if this DateTime is less than "t", 0 if this DateTime is the same as
-"t", and 1 if this DateTime is greater than "t".
-@param t Date to compare.
-*/
-public int compareTo ( Object t )
-{	
-	if (t instanceof DateTime) {
-		return compareTo((DateTime)t);
-	}
 	else {
-		return -1;
+		return 1;
 	}
 }
 
@@ -2935,7 +2921,7 @@ private static DateTime parse ( String date_string, int format, int flag )
 			is_minute = false;	// checks
 	DateTime date = null;
 	String routine = "DateTime.parse";
-	List v = null;
+	List<Object> v = null;
 
 	// Note that if the fixedRead routine has problems, it will just return
 	// zeros for the integers.  This allows defaults for the smaller date/time fields...

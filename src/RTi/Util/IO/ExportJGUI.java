@@ -64,7 +64,7 @@ public class ExportJGUI {
 private static JFrame            _parentJFrame;	// Frame class making the call
 						// to HBExportJGUI
 private static JDialog		_parentJDialog;
-private static List _export;	// List containing the formatted data to export
+private static List<String> _export;	// List containing the formatted data to export
 
 /* support later... 
 These are now in IOUtil so take out of here when ready
@@ -96,7 +96,7 @@ Export a list of strings given the parent frame.
 @param parent JFrame that calls this routine.
 @param export list of strings to export.
 */
-public static void export ( JFrame parent, List export )
+public static void export ( JFrame parent, List<String> export )
 {
 	export ( parent, export, "" );
 }
@@ -109,7 +109,7 @@ Export a list of strings given the parent frame and a help key for a help button
 reserved for future use.
 @see RTi.Util.Help.URLHelp
 */
-public static void export( JFrame parent, List export, String helpkey )
+public static void export( JFrame parent, List<String> export, String helpkey )
 {	String	routine="ExportJGUI.export";
 
 	_parentJFrame 	= parent;
@@ -208,7 +208,7 @@ public static void exportJTextAreaObject(	JFrame parent,
 	** So use the following instead...
 	*/
 
-	List export_Vector = StringUtil.breakStringList ( textArea.getText(), "\n", 0 );
+	List<String> export_Vector = StringUtil.breakStringList ( textArea.getText(), "\n", 0 );
 	
 	// export to file/browser page     
 	export( parent, export_Vector );
@@ -340,7 +340,7 @@ Export a vector of strings given the parent frame.
 @param parent JDialog that calls this routine.
 @param export Vector of strings to export.
 */
-public static void export ( JDialog parent, List export )
+public static void export ( JDialog parent, List<String> export )
 {
 	export ( parent, export, "" );
 }
@@ -353,7 +353,7 @@ Export a vector of strings given the parent frame and a help key for a help butt
 reserved for future use.
 @see RTi.Util.Help.URLHelp
 */
-public static void export( JDialog parent, List export, String helpkey )
+public static void export( JDialog parent, List<String> export, String helpkey )
 {	String	routine="ExportJGUI.export";
 
 	_parentJDialog 	= parent;
@@ -452,10 +452,10 @@ public static void exportJTextAreaObject(	JDialog parent,
 	** So use the following instead...
 	*/
 
-	List export_Vector = StringUtil.breakStringList ( textArea.getText(), "\n", 0 );
+	List<String> exportList = StringUtil.breakStringList ( textArea.getText(), "\n", 0 );
 	
 	// export to file/browser page     
-	export( parent, export_Vector );
+	export( parent, exportList );
 
 	// display status
 	statusString = "Finished exporting.";		   

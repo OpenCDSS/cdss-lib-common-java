@@ -2,6 +2,7 @@ package RTi.Util.Time;
 
 import java.util.EventObject;
 
+@SuppressWarnings("serial")
 public class IncrementEvent extends EventObject {
   int elapsed;
 

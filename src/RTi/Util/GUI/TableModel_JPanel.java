@@ -31,6 +31,7 @@ This class is a generic JPanel to contain the JWorksheet that displays
 TableModel data.  It primarily supports the TableModel_JFrame class, although
 it could be used independently.
 */
+@SuppressWarnings("serial")
 public class TableModel_JPanel extends JPanel
 {
 

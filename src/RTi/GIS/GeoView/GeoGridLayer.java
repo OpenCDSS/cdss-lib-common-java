@@ -124,7 +124,7 @@ throws IOException
 	// carry around.  This may change if we allow the attribute table to
 	// be viewed in a GUI, etc.
 
-	List<TableField> fields = new Vector ( 3 );
+	List<TableField> fields = new Vector<TableField> ( 3 );
 	fields.add ( new TableField(TableField.DATA_TYPE_INT, "COLUMN", 10, 0 ) );
 	fields.add ( new TableField(TableField.DATA_TYPE_INT, "ROW", 10, 0 ) );
 	fields.add ( new TableField(TableField.DATA_TYPE_DOUBLE, "VALUE", 10, 4 ) );
@@ -133,10 +133,10 @@ throws IOException
 
 	// Now create the polygons to write to the shapefile.  In the future it
 	// might be possible to let the ESRIShapefile class know more about
-	// the GRID shape but for now create a Vector of GRPolygon that can
+	// the GRID shape but for now create a list of GRPolygon that can
 	// be written in ESRIShapefile.
 
-	List<GRShape> shapes = new Vector ( 100, 100 );	// could optimize more
+	List<GRShape> shapes = new Vector<GRShape>();	// could optimize more
 	int c = 0;
 	double value = 0.0;
 	TableRecord record = null;

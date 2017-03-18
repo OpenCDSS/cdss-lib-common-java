@@ -100,6 +100,7 @@ The command/process count can then be processed and an appropriate
 action taken (e.g., the command can be highlighted).</li> 
 </ol>
 */
+@SuppressWarnings("serial")
 public class MessageLogJPanel
 extends JPanel
 implements ActionListener, MouseListener {
@@ -227,48 +228,48 @@ private String __lastSearch = null;
 This list holds a subset of the values in the __posVector, and is regenerated
 every time a new range of values is selected from the combo boxes at the
 top of the GUI.  The subset of values will be the positions in the __posVector
-Vector of only those messages with warning levels between the selected combo box values.
+List of only those messages with warning levels between the selected combo box values.
 */
-private List __filteredPosVector = null;
+private List<Integer> __filteredPosVector = null;
 
 /**
-This list holds a subset of the values in the __summaryData Vector, and is
+This list holds a subset of the values in the __summaryData list, and is
 generated every time a new range of values is selected from the combo boxes
 at the top of the GUI.  The subset of values will be the messages that are
 currently visible in the summary list.
 */
-private List __filteredSummaryListData = null;
+private List<String> __filteredSummaryListData = null;
 
 /**
 The MessageLogListeners that are registered to be notified from this
 class.  The listeners are redefined from Message every time a new log file is processed.
 */
-private List __listeners = null;
+private List<MessageLogListener> __listeners = null;
 
 /**
-The Vector of values that will be displayed in the worksheet.  Each element
+The list of values that will be displayed in the worksheet.  Each element
 is a single line of log file text.
 */
-private List __logFileText = null;
+private List<String> __logFileText = null;
 
 /**
-This Vector holds the lines that should be put into the summary list, in the
+This list holds the lines that should be put into the summary list, in the
 order they were encountered in the log file.
 */
-private List __messageVector = null;
+private List<String> __messageVector = null;
 
 /**
-The Vector is tied to the __messageVector -- it holds the positions within the
+The list is tied to the __messageVector -- it holds the positions within the
 file at which the corresponding element in the __messageVector were found.  Thus
 if __messageVector.elementAt(10) is "Warning[2]: An error was found.", 
 __posVector.elementAt(10) is the line at which that warning was found.
 */
-private List __posVector = null;
+private List<Integer> __posVector = null;
 
 /**
 The data that should go in the summary list if all warning levels should be visible.
 */
-private List __summaryListData = null;
+private List<String> __summaryListData = null;
 
 /**
 Constructor.  Reads the log file information from the log file written to 
@@ -385,7 +386,7 @@ Builds the combo boxes that hold the warning level range values.  This is a
 helper method called by setupJPanel().
 */
 private void buildLevelNumComboBoxes() {
-	Vector v = new Vector();
+	List<String> v = new Vector<String>();
 	for (int i = 1; i <= 100; i++) {
 		v.add("" + i);
 	}
@@ -445,10 +446,10 @@ private void filterSummaryList() {
 	int num = 0;
 	size = __summaryListData.size();
 	String s = null;
-	__filteredPosVector = new Vector();
-	__filteredSummaryListData = new Vector();
+	__filteredPosVector = new Vector<Integer>();
+	__filteredSummaryListData = new Vector<String>();
 	for (int i = 0; i < size; i++) {
-		s = (String)__summaryListData.get(i);
+		s = __summaryListData.get(i);
 		index1 = s.indexOf("[");
 		index2 = s.indexOf("]");
 		num = StringUtil.atoi(s.substring(index1 + 1, index2));
@@ -651,7 +652,9 @@ private void openLogFile() {
 Prints the log file text.
 */
 private void printLogFile() {
-	ReportPrinter.printText(__worksheet.getAllData(), 
+	@SuppressWarnings("unchecked")
+	List<String> logLines = (List<String>)__worksheet.getAllData();
+	ReportPrinter.printText(logLines, 
 		66, 		// number of lines on the page in portrait mode
 		44,		// number of lines on the page in landscape
 		"" + __filePath, 	// the title on the page
@@ -792,17 +795,17 @@ of the tags within the log file.
 */
 private void readLogFile()
 throws Exception {
-	__messageVector = new Vector();
-	__filteredPosVector = new Vector();
-	__filteredSummaryListData = new Vector();
-	__posVector = new Vector();
+	__messageVector = new Vector<String>();
+	__filteredPosVector = new Vector<Integer>();
+	__filteredSummaryListData = new Vector<String>();
+	__posVector = new Vector<Integer>();
 	StopWatch sw = new StopWatch();
 	sw.clear();
 	sw.start();
 	BufferedReader in = new BufferedReader(new FileReader(__filePath));
 	String line = in.readLine();
 
-	__logFileText = new Vector();
+	__logFileText = new Vector<String>();
 
 	boolean doProcessing = false;
 	if (__style == __STYLE_LOG_AND_SUMMARY) {
@@ -824,6 +827,7 @@ throws Exception {
 		
 		line = in.readLine();
 	}
+	in.close();
 	
 	sw.stop();
 }
@@ -951,7 +955,7 @@ list will be constructed.
 @param initialSetup if true then this is the first time the summary is being 
 set up for a log file.  
 */
-private void setupSummaryJPanel(List data, boolean initialSetup) {
+private void setupSummaryJPanel(List<String> data, boolean initialSetup) {
 	StopWatch sw = new StopWatch();
 	sw.start();
 	if (__summaryJPanel != null) {
@@ -990,7 +994,7 @@ private void setupSummaryJPanel(List data, boolean initialSetup) {
 		__summaryList = new SimpleJList();
 	}
 	else {
-		__summaryList = new SimpleJList(new Vector(data));
+		__summaryList = new SimpleJList(new Vector<String>(data));
 	}
 	__summaryList.setFont(new java.awt.Font("Courier", java.awt.Font.PLAIN,	11));
 

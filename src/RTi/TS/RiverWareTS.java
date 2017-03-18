@@ -1284,7 +1284,8 @@ throws IOException
 	    Object o = props.getContents("OutputComments");
 	    if ( o != null ) {
 	        // Write additional comments that were passed in
-	        List<String> comments = (List<String>)o;
+	        @SuppressWarnings("unchecked")
+			List<String> comments = (List<String>)o;
 	        int commentSize = comments.size();
 	        if ( commentSize > 0 ) {
 	            for ( int iComment = 0; iComment < commentSize; iComment++ ) {

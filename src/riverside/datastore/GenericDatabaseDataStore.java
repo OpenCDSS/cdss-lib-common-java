@@ -262,7 +262,9 @@ public List<String> getTimeSeriesMetaDataTypeList ( boolean includeNotes,
             this.timeSeriesMetaHash.put(key,dataTypeList);
         }
         else {
-            dataTypeList = (List<String>)o;
+        	@SuppressWarnings("unchecked")
+			List<String> dataTypeList0 = (List<String>)o;
+            dataTypeList = dataTypeList0;
             //Message.printStatus(2, "", "Got " + dataTypeList.size() + " data types from hashtable");
         }
         return dataTypeList;
@@ -287,12 +289,12 @@ private List<String> getWhereClausesFromInputFilter ( DMI dmi, InputFilter_JPane
     // Loop through each filter group.  There will be one where clause per filter group.
 
     if (panel == null) {
-        return new Vector();
+        return new ArrayList<String>();
     }
 
     int nfg = panel.getNumFilterGroups ();
     InputFilter filter;
-    List<String> whereClauses = new Vector();
+    List<String> whereClauses = new ArrayList<String>();
     String whereClause = ""; // A where clause that is being formed.
     for ( int ifg = 0; ifg < nfg; ifg++ ) {
         filter = panel.getInputFilter ( ifg );  

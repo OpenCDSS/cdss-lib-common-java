@@ -80,7 +80,7 @@ private String __source;
 /**
 List of internally-maintained available units, make sure to be non-null.
 */
-private static List<DataUnits> __units_Vector = new Vector(20);
+private static List<DataUnits> __units_Vector = new Vector<DataUnits>(20);
 
 /**
 Construct and set all data members to empty strings and zeros.
@@ -211,7 +211,7 @@ conversion necessary).  If true, the units must be the same.  If false, the
 units must only be in the same dimension (e.g., "CFS" and "GPM" would be compatible).
 */
 public static boolean areUnitsStringsCompatible ( String units_string1, String units_string2, boolean require_same )
-{	List<String> units_strings = new Vector(2);
+{	List<String> units_strings = new Vector<String>(2);
 	units_strings.add ( units_string1 );
 	units_strings.add ( units_string2 );
 	boolean result = areUnitsStringsCompatible ( units_strings, require_same);
@@ -709,7 +709,7 @@ Return all the DataUnits objects that have the Dimension abbreviation equal to t
 @return a list of all the DataUnits objects that match the dimension or an empty list if none exist.
 */
 public static List<DataUnits> lookupUnitsForDimension ( String system, String dimension )
-{	List<DataUnits> v = new Vector();
+{	List<DataUnits> v = new Vector<DataUnits>();
 
 	// First see if the units are already in the list...
 

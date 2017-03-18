@@ -228,8 +228,8 @@ public static List<String> addListToStringList ( List<String> v, List<String> ne
 	}
 	List<String> vmain = null;
 	if ( v == null ) {
-		// Create a vector...
-		vmain = new Vector ( 50, 10 );
+		// Create a list...
+		vmain = new ArrayList<String>(50);
 	}
 	else {
 		// Modify the old list
@@ -250,11 +250,11 @@ to the list, even if the String is null.
 @param v list of Strings.
 @param string String to add to the list.
 */
-public static List addToStringList ( List<String> v, String string )
+public static List<String> addToStringList ( List<String> v, String string )
 {	List<String> vmain = null;
 	if ( v == null ) {
-		// Create a vector...
-		vmain = new Vector ( 50, 10 );
+		// Create a list...
+		vmain = new ArrayList<String>();
 	}
 	else {
 		vmain = v;
@@ -274,8 +274,8 @@ added to the list, even if they are null.
 public static List<String> addToStringList ( List<String> v, String [] strings )
 {	List<String> vmain = null;
 	if ( v == null ) {
-		// Create a vector...
-		vmain = new Vector ( 50, 10 );
+		// Create a list...
+		vmain = new ArrayList<String>(50);
 	}
 	else {
 		vmain = v;
@@ -457,7 +457,7 @@ quoted strings the string "xxxx"yy is returned as xxxxyy because no intervening 
 */
 public static List<String> breakStringList( String string, String delim, int flag )
 {	String routine = "StringUtil.breakStringList";
-	List<String> list = new Vector(2,1);
+	List<String> list = new ArrayList<String>();
 	
 	if ( string == null ) {
 	 	return list;
@@ -853,7 +853,7 @@ NO WHITESPACE OR DELIMITERS IN THE FORMAT!
 </tr>
 </table>
 */
-public static final List fixedRead ( String string, String format )
+public static final List<Object> fixedRead ( String string, String format )
 {	// Determine the format types and widths...
 	// THIS CODE INLINED FROM THE METHOD BELOW.  MODIFY THE OTHER METHOD AND THEN MAKE THIS CODE AGREE....
 
@@ -929,7 +929,7 @@ public static final List fixedRead ( String string, String format )
 	width_string = null;
 	// ...END OF INLINED CODE
 	// Now do the read...	
-	List v = fixedRead ( string, field_types, field_widths, null );
+	List<Object> v = fixedRead ( string, field_types, field_widths, null );
 	return v;
 }
 
@@ -944,7 +944,7 @@ Blank TYPE_SPACE fields are not returned.
 results.  This allows a single list to be reused in repetitive reads.
 The list is cleared before reading.
 */
-public static final List fixedRead ( String string, String format, List results )
+public static final List<Object> fixedRead ( String string, String format, List<Object> results )
 {	// First loop through the format string and count the number of valid format specifier characters...
 	int format_length = 0;
 	if ( format != null ) {
@@ -1015,9 +1015,7 @@ public static final List fixedRead ( String string, String format, List results 
 		++field_count;
 	}
 	width_string = null;
-	List v = fixedRead ( string, field_types, field_widths, results );
-	field_types = null;
-	field_widths = null;
+	List<Object> v = fixedRead ( string, field_types, field_widths, results );
 	return v;
 }
 
@@ -1037,7 +1035,7 @@ Blank TYPE_SPACE fields are not returned.
 results.  This allows a single list to be reused in repetitive reads.
 The list is cleared before reading.
 */
-public static final List<Object> fixedRead ( String string, int[] field_types, int [] field_widths, List results )
+public static final List<Object> fixedRead ( String string, int[] field_types, int [] field_widths, List<Object> results )
 {	int	dtype = 0,	// Indicates type of variable (from "format").
 		isize,		// Number of characters in a data value
 				// (as integer).
@@ -1133,7 +1131,7 @@ public static final List<Object> fixedRead ( String string, int[] field_types, i
 // TODO SAM 2014-03-30 Refactor the fixedRead methods to call the following method
 /**
 Parse the format string for fixedRead into lists that can be used for other fixedRead commands.
-The field types and widths WILL INCLUDE "x" formats becuase fixedRead() needs that information.
+The field types and widths WILL INCLUDE "x" formats because fixedRead() needs that information.
 @param format the fixedRead method format (e.g., "d10f8i3x3s15")
 @param fieldTypes a non-null List<Integer> that will be set to the field types for each format part.
 @param fieldWidths a non-null List<Integer> that will be set to the field widths for each format part.
@@ -2286,7 +2284,7 @@ Determine the maximum size of the String in a list.
 to get a String representation of the object for the check.
 @return the maximum size or -1 if it cannot be determined.
 */
-public static int maxSize ( List v )
+public static int maxSize ( List<String> v )
 {	int size = 0;
 	int maxsize = -1;
 	int len = 0;
@@ -3184,10 +3182,10 @@ public static String round ( String string, int precision )
 /**
 This is mainly used for Java debugging and testing.
 @return A list of strings, each of which is the expanded character for a character in the original string.
-@param string String to print cotrol characters for.
+@param string String to print control characters for.
 */
 public static List<String> showControl ( String string )
-{	List<String> v = new Vector ( 10, 5 );
+{	List<String> v = new ArrayList<String>();
 
 	int length = string.length();
 	char c;

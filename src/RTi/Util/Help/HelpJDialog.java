@@ -60,6 +60,7 @@ import RTi.Util.String.StringUtil;
 The HelpJDialog displays a simple message and allows full help to be brought
 up, if the user wants more information.
 */
+@SuppressWarnings("serial")
 public class HelpJDialog extends JDialog
 implements ActionListener, WindowListener
 {
@@ -72,7 +73,7 @@ private String		_help_key = null;
 
 /**
 HelpJDialog constructor
-@param helpInfo Vector of String elements to display
+@param helpInfo list of String elements to display
 @param props PropList object as described in the following table
 <table width = 80% cellpadding=2 cellspace=0 border=2>
 <tr>
@@ -105,7 +106,7 @@ HelpJDialog constructor
 
 </table>
 */
-public HelpJDialog ( JFrame parent, List helpInfo, PropList props )
+public HelpJDialog ( JFrame parent, List<String> helpInfo, PropList props )
 {	super ( parent );
 	_props = props;
 	setGUI ( );

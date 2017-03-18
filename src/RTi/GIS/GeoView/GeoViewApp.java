@@ -21,6 +21,7 @@ import RTi.Util.Message.Message;
 REVISIT (JTS - 2006-05-23)
 I'm not sure this is necessary anymore.
 */
+@SuppressWarnings("serial")
 public class GeoViewApp extends Applet
 {
 

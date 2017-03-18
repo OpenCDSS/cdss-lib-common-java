@@ -28,8 +28,8 @@ displayed in a JTable.
 TODO (JTS - 2006-05-22) I don't think this class is necessary anymore.  It has probably not been used
 in 4 years and should be removed.
 */
-public class DMITableModel 
-extends AbstractTableModel {
+@SuppressWarnings("serial")
+public class DMITableModel extends AbstractTableModel {
 
 /**
 The number of columns in the table
@@ -44,27 +44,27 @@ private int rowCount;
 /**
 List to hold the data to be displayed in the table
 */
-private List data;
+private List<List<Object>> data;
 
 /**
 List to hold the names of the columns in the table
 */
-private List names;
+private List<String> names;
 
 /**
 List to hold the name(s) of the table(s) in the table
 */
-private List tableNames;
+private List<String> tableNames;
 
 /**
 Constructs a new DMITableModel with the given values and columns.  
-@param values A vector of vectors that contains all the values to be
+@param values A list of lists that contains all the values to be
 displayed by the JTable that uses this Table Model.  Each vector contained
 inside this vector should contain objects that can be easily displayed in a JTable. 
 @param colNames A vector of strings containing the names of the columns
 to be shown by this table model
 */
-public DMITableModel(List values, List colNames) {
+public DMITableModel(List<List<Object>> values, List<String> colNames) {
 	data = values;
 	names = colNames;
 
@@ -74,7 +74,7 @@ public DMITableModel(List values, List colNames) {
 	// So a vector of blank values is initialized so that the JTable will
 	// at least show the column names.
 	if (values.size() == 0) {
-		List v = new Vector(names.size());
+		List<Object> v = new Vector<Object>(names.size());
 		for (int i = 0; i < names.size(); i++) {
 			v.add("");
 		}
@@ -82,7 +82,7 @@ public DMITableModel(List values, List colNames) {
 		rowCount = 1;
 		colCount = names.size();
 	} else {			
-		List v = (List)values.get(0);
+		List<Object> v = (List<Object>)values.get(0);
 		rowCount = values.size();
 		colCount = v.size();
 	}
@@ -125,7 +125,7 @@ Returns the kind of field in a specified column
 @param c the column number for which to get the class
 @return the class of the specified column
 */
-public Class getColumnClass(int c) {
+public Class<?> getColumnClass(int c) {
 	return(getValueAt(0, c).getClass());
 }
 
@@ -158,7 +158,7 @@ public int getRowCount() {
 Returns the names of the tables "involved" in the table model
 @return the names of the tables "involved" in the table model
 */
-public List getTableNames() {
+public List<String> getTableNames() {
 	return tableNames;
 }
 
@@ -169,7 +169,7 @@ Returns the object stored at the specified position
 @return the object stored at the specified position
 */
 public Object getValueAt(int row, int col) {
-	List v = (List)data.get(row);
+	List<Object> v = (List<Object>)data.get(row);
 	if (v.get(col) == null) {
 		return "";
 	} else {
@@ -197,7 +197,7 @@ public void removeColumn(String columnName) throws Exception {
 	}
 
 	for (int i = 0; i < rowCount; i++) {
-		((List)data.get(i)).remove(columnNum);
+		((List<Object>)data.get(i)).remove(columnNum);
 	}
 
 	colCount--;
@@ -213,10 +213,10 @@ public void removeColumn(int columnNum) throws Exception {
 }
 
 /**
-Sets the vector containing the names of the tables "involved" in the table model
+Sets the list containing the names of the tables "involved" in the table model
 @param tables a String vector of the names of the tables in the table model
 */
-public void setTableNames(List tables) {
+public void setTableNames(List<String> tables) {
 	tableNames = tables;
 }
 

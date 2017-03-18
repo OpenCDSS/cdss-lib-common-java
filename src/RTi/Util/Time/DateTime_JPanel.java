@@ -30,6 +30,7 @@ the date/time string after editing, it is necessary to include blank indicators 
 Currently the minimum precision allowed is TimeInterval.MINUTE.
 </p>
 */
+@SuppressWarnings("serial")
 public class DateTime_JPanel extends JPanel implements ActionListener
 {
 

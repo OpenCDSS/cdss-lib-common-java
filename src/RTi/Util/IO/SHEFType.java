@@ -65,7 +65,7 @@ private String	__meas_time_scale;	// Measurement time scale, from the
 
 // The following list can be modified  by the static functions...
 
-private static List __types_Vector = new Vector(20);
+private static List<SHEFType> __types_Vector = new Vector<SHEFType>();
 					// Vector of internally-maintained available SHEF data types.
 
 /**
@@ -136,7 +136,7 @@ public static void addSHEFType ( SHEFType type )
 	SHEFType pt = null;
 	for ( int i = 0; i < size; i ++ ) {
 		// Get the type for the loop index...
-		pt = (SHEFType)__types_Vector.get(i);
+		pt = __types_Vector.get(i);
 		// Now compare...
 		if (	type.getSHEFpe().equalsIgnoreCase( pt.getSHEFpe() ) ) {
 			// The requested units match something that is
@@ -147,7 +147,6 @@ public static void addSHEFType ( SHEFType type )
 	}
 	// Need to add the units to the list...
 	__types_Vector.add ( type );
-	pt = null;
 }
 
 /**
@@ -166,11 +165,11 @@ throws Throwable
 }
 
 /**
-Return the Vector of SHEF data types data.
-@return the Vector of SHEF data types (useful for debugging and GUI displays).
+Return the list of SHEF data types data.
+@return the list of SHEF data types (useful for debugging and GUI displays).
 Perhaps later overload to request by dimension, system, etc.
 */
-public static List getSHEFTypesData ()
+public static List<SHEFType> getSHEFTypesData ()
 {	return __types_Vector;
 }
 
@@ -424,8 +423,8 @@ throws IOException
 	}
 	int linecount = 0;
 	SHEFType type = null;
-	List tokens = new Vector(8);
-				// Tokens from data lines - share the Vector
+	List<Object> tokens = new Vector<Object>(8);
+				// Tokens from data lines - share the list
 				// between multiple reads.
 	// Format to read the first data line per data type...
 	int format[] = {	StringUtil.TYPE_STRING,

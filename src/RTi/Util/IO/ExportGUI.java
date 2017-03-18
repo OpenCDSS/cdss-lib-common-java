@@ -55,7 +55,7 @@ public class ExportGUI {
 
 private static Frame            _parent;	// Frame class making the call
 						// to HBExportGUI
-private static List           _export;	// Vector containing the formatted data to export
+private static List<String> _export;	// List containing the formatted data to export
 
 /* support later... 
 These are now in IOUtil so take out of here when ready
@@ -87,7 +87,7 @@ Export a vector of strings given the parent frame.
 @param parent Frame that calls this routine.
 @param export list of strings to export.
 */
-public static void export ( Frame parent, List export )
+public static void export ( Frame parent, List<String> export )
 {
 	export ( parent, export, "" );
 }
@@ -101,7 +101,7 @@ button.
 reserved for future use.
 @see RTi.Util.Help.URLHelp
 */
-public static void export( Frame parent, List export, String helpkey )
+public static void export( Frame parent, List<String> export, String helpkey )
 {	String	routine="ExportGUI.export";
 
 	_parent 	= parent;
@@ -200,10 +200,10 @@ public static void exportTextAreaObject(	Frame parent,
 	** So use the following instead...
 	*/
 
-	List export_Vector = StringUtil.breakStringList ( textArea.getText(), "\n", 0 );
+	List<String> exportList = StringUtil.breakStringList ( textArea.getText(), "\n", 0 );
 	
 	// export to file/browser page     
-	export( parent, export_Vector );
+	export( parent, exportList );
 
 	// display status
 	statusString = "Finished exporting.";		   

@@ -17,6 +17,7 @@ import java.lang.Exception;
 /**
 This class provides an exception class for the time series package.
 */
+@SuppressWarnings("serial")
 public class TSException extends Exception
 {
 

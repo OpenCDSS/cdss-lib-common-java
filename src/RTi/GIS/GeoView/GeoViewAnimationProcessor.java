@@ -70,7 +70,7 @@ private int __pause;
 /**
 List of listeners to be notified during a process.
 */
-private List __listeners;
+private List<ProcessListener> __processListeners;
 
 /**
 Constructor.
@@ -96,10 +96,10 @@ Adds a process listener to be notified during processing.
 @param listener the listener to be added.
 */
 public void addProcessListener(ProcessListener p) {
-	if (__listeners == null) {
-		__listeners = new Vector();
+	if (__processListeners == null) {
+		__processListeners = new Vector<ProcessListener>();
 	}
-	__listeners.add(p);
+	__processListeners.add(p);
 }
 
 /**
@@ -118,7 +118,7 @@ throws Throwable {
 	__endDate = null;
 	__animationJFrame = null;
 	__viewComponent = null;
-	__listeners = null;
+	__processListeners = null;
 }
 
 /**
@@ -143,14 +143,14 @@ Notifies listeners of status messages.
 @param message the text of the status message.
 */
 public void notifyListenersStatus(int code, String message) {
-	if (__listeners == null) {
+	if (__processListeners == null) {
 		return;
 	}
 
-	int size = __listeners.size();
+	int size = __processListeners.size();
 	ProcessListener p = null;
 	for (int i = 0; i < size; i++) {
-		p = (ProcessListener)__listeners.get(i);
+		p = (ProcessListener)__processListeners.get(i);
 		p.processStatus(code, message);
 	}
 }

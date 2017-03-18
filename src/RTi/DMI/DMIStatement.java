@@ -655,15 +655,15 @@ throws SQLException {
 Initializes data members.
 */
 private void initialize() {
-	_autonumber_Vector = new Vector();
-	_field_Vector = new Vector();
-	_join_Vector = new Vector();
-	_join_type_Vector = new Vector();
-	_on_Vector = new Vector();
-	_order_by_Vector = new Vector();
-	_table_Vector = new Vector();
-	_values_Vector = new Vector();
-	_where_Vector = new Vector();
+	_autonumber_Vector = new Vector<String>();
+	_field_Vector = new Vector<String>();
+	_join_Vector = new Vector<String>();
+	_join_type_Vector = new Vector<Integer>();
+	_on_Vector = new Vector<String>();
+	_order_by_Vector = new Vector<String>();
+	_table_Vector = new Vector<String>();
+	_values_Vector = new Vector<Object>();
+	_where_Vector = new Vector<String>();
 }
 
 /**

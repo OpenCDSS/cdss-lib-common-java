@@ -134,8 +134,8 @@ they are both places in the same SimpleFileFilter.  The returned Vector will
 never be null, but it may be empty.
 */
 private List<SimpleFileFilter> createFileFilters(String[] imageTypes) {
-	List<SimpleFileFilter> v = new Vector();
-	List<String> jpeg = new Vector();
+	List<SimpleFileFilter> v = new Vector<SimpleFileFilter>();
+	List<String> jpeg = new Vector<String>();
 	String s = null;
 	SimpleFileFilter sff = null;
 	
@@ -388,7 +388,7 @@ String array and then removing all the ones that have duplicates.
 duplicate elements.  The returned array will never be null, but it may be empty.
 */
 private String[] uniquify(String[] strings) {
-	Set set = new HashSet();
+	Set<String> set = new HashSet();
 	for (int i = 0; i < strings.length; i++) {
 		String name = strings[i].toLowerCase();
 		set.add(name);

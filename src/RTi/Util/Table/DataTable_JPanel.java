@@ -52,6 +52,7 @@ import RTi.Util.String.StringUtil;
 /**
 Panel to contain the JWorksheet that displays DataTable data.
 */
+@SuppressWarnings("serial")
 public class DataTable_JPanel extends JPanel {
 
 /**

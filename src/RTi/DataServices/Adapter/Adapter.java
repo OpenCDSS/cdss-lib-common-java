@@ -14,7 +14,7 @@
 package RTi.DataServices.Adapter;
 
 import java.lang.Exception;
-import java.util.Vector;
+import java.util.List;
 
 import RTi.TS.TS;
 import RTi.TS.TSIdent;
@@ -53,7 +53,7 @@ public interface Adapter {
  * retrieve the data or only return header/identifier information.
  * @return The method returns a Vector of RTi time series objects.
  */
-    public Vector readTimeSeriesList(TSIdent TSIdentifier, DateTime reqDate1, 
+    public List<TS> readTimeSeriesList(TSIdent TSIdentifier, DateTime reqDate1, 
     	DateTime reqDate2, String reqUnits, boolean readData) throws Exception;
 } // End of interface Adapter
 

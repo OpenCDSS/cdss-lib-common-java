@@ -14,6 +14,7 @@ package RTi.Util.GUI;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
@@ -40,7 +41,7 @@ public class SimpleLinkListener implements HyperlinkListener {
 	// a link would take you
 	private JButton back_JButton;	// button that needs to be updated
 	// when user navigates to new page or section
-	private static ArrayList __urls; 
+	private static List<String> __urls; 
 	
 /**
 Constructor to initialize SimpleLinkListener class. 
@@ -55,7 +56,7 @@ JLabel jl, JButton back) {
 		url_TextField = jtf;
 		statusBar_JTextField = jl;
 		back_JButton = back;
-		__urls = new ArrayList();
+		__urls = new ArrayList<String>();
 }
 
 /**

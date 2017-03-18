@@ -27,7 +27,7 @@ public class CheckFile
 	private String __check_file;	// File for data check info
 	private String __commands;		// Command file name
 	
-	private List __header;		// Header text for the check file.
+	private List<String> __header;	// Header text for the check file.
 									// This contains text about the
 									// current program such as version
 									// and other program specific
@@ -37,7 +37,7 @@ public class CheckFile
 									// program and its state.  If empty then the
 									// header section will be blank.
 	
-	private List __run_msgs;		// Vector of runtime messages
+	private List<String> __run_msgs;// List of runtime messages
 									// Runtime messages are problems that
 									// have occurred during processing checks
 									// on the data.
@@ -51,9 +51,9 @@ public class CheckFile
 	private PropList __title_prop = new PropList("html_id");
 	private PropList __td_prop = new PropList("html_td_tag");
 	// stores invalid data for specific data checks	
-	private List __spec_data;	
+	private List<CheckFile_DataModel> __spec_data;	
 	// stores invalid data for general data checks
-	private List __gen_data;
+	private List<CheckFile_DataModel> __gen_data;
 	
 /**
 Constructor that initializes the check file.
@@ -79,10 +79,10 @@ public CheckFile( String command_file, String commands_asString )
 	__title_prop.add( "id=titles" );
 	// add the td attributes to the proplist
 	__td_prop.add("valign=bottom");
-	__run_msgs = new Vector();		// Runtime error messages
-	__header = new Vector();		// Header for check file
-	__gen_data = new Vector();		// general data checks
-	__spec_data = new Vector();		// specific data checks
+	__run_msgs = new Vector<String>();		// Runtime error messages
+	__header = new Vector<String>();		// Header for check file
+	__gen_data = new Vector<CheckFile_DataModel>();		// general data checks
+	__spec_data = new Vector<CheckFile_DataModel>();		// specific data checks
 }
 
 /**
@@ -323,7 +323,7 @@ int index ) throws Exception
 {
 	if ( html != null ) {
 		// grab the data from the model
-		List gen_data = new Vector(); 
+		List gen_data = new Vector();
 		gen_data = gen_data_model.getData();
 		// proplist provides an anchor link for this section used
 		// from the table of contents

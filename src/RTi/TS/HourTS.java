@@ -107,8 +107,8 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.lang.String;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.IOUtil;
@@ -125,6 +125,7 @@ import RTi.Util.Time.YearType;
 The HourTS class is the base class for hourly time series.  Additional hour
 time series can be extended if the allocateDataSpace() and set/get methods are overridden.
 */
+@SuppressWarnings("serial")
 public class HourTS extends TS implements Cloneable, Serializable, Transferable {
 
 /**
@@ -812,10 +813,10 @@ information.  This can be used when the entire header is formatted elsewhere.
 </table>
 @exception RTi.TS.TSException Throws if there is a problem formatting the output.
 */
-public List formatOutput( PropList proplist )
+public List<String> formatOutput( PropList proplist )
 throws TSException
 {	String message = "", routine = "HourTS.formatOutput", year_column = "";
-    List<String> strings = new Vector (20,10);
+    List<String> strings = new ArrayList<String>(20);
 	PropList props = null;
 	String dataFormat = "%9.1f", propValue = null;
 
@@ -951,7 +952,7 @@ throws TSException
 		if ( !useCommentsForHeader.equalsIgnoreCase("true") || (_comments.size() == 0) ){
 			// Format the header from data (not comments)...
 			strings.add ( "" );
-			List strings2 = formatHeader();
+			List<String> strings2 = formatHeader();
 			StringUtil.addListToStringList ( strings, strings2 );
 		}
 	}
@@ -1033,14 +1034,14 @@ throws TSException
 
 /**
 Format the time series for output.
-@return Vector of strings that are written to the file.
+@return list of strings that are written to the file.
 @param fp Writer to receive output.
 @param props Properties to modify output.
 @exception RTi.TS.TSException Throws if there is an error writing the output.
 */
-public List formatOutput ( PrintWriter fp, PropList props )
+public List<String> formatOutput ( PrintWriter fp, PropList props )
 throws TSException
-{	List formattedOutput = null;
+{	List<String> formattedOutput = null;
 	String routine = "HourTS.formatOutput";
 	int	dl = 20;
 	String message;
@@ -1084,15 +1085,15 @@ throws TSException
 
 /**
 Format the time series for output.
-@return Vector of strings that are written to the file.
+@return list of strings that are written to the file.
 @param fname Name of output.
 @param props Property list containing output modifiers.
 @exception RTi.TS.TSException Throws if there is an error writing the output.
 */
-public List formatOutput ( String fname, PropList props )
+public List<String> formatOutput ( String fname, PropList props )
 throws TSException
-{	String message = null, routine = "HourTS.formatOutput";
-List formattedOutput = null;
+{	String message = null;
+	List<String> formattedOutput = null;
 	PrintWriter	stream = null;
 	String full_fname = IOUtil.getPathUsingWorkingDir(fname);
 
@@ -1105,26 +1106,22 @@ List formattedOutput = null;
 		message = "Unable to open file \"" + full_fname + "\"";
 		throw new TSException ( message );
 	}
-	if ( stream == null ){
-		message = "Unable to open file \"" + full_fname + "\"";
-		Message.printWarning( 2, routine, message );
-		throw new TSException ( message );
-	}
 
 	try {
 	    formattedOutput = formatOutput ( stream, props );
-		stream.close();
-		stream = null;
 	}
 	catch ( TSException e ) {
 		// Rethrow...
 		throw e;
 	}
+	finally {
+		if ( stream != null ) {
+			stream.close();
+		}
+	}
 
 	// Also return the list (consistent with C++ single return type.
 
-	message = null;
-	routine = null;
 	return formattedOutput;
 }
 
@@ -1556,8 +1553,8 @@ Format the output statistics row given the data array.
 @param dataFormat Format to use for floating point data.
 @return strings to be added to the output.
 */
-private List formatOutputStats ( double[][] data, String label, String dataFormat )
-{	List strings = new Vector (2,1);
+private List<String> formatOutputStats ( double[][] data, String label, String dataFormat )
+{	List<String> strings = new ArrayList<String>();
 	double stat = 0.0;
 	StringBuffer buffer = null;
 	double [] array = new double[31];

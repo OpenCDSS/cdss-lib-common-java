@@ -2,7 +2,6 @@ package RTi.Util.Time;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 /**
 Date/time formatter types, to allow the DateTime object to be formatted with different format strings.

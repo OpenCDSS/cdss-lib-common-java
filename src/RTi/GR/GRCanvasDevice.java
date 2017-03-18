@@ -39,6 +39,7 @@ GR Device that corresponds to an AWT canvas.  This class is the base class for
 on-screen-related drawing, with secondary printing off-screen or image
 file creation.
 */
+@SuppressWarnings("serial")
 public class GRCanvasDevice 
 extends Canvas 
 implements GRDevice
@@ -169,7 +170,7 @@ protected String	_note;
 /**
 List of GRDrawingArea objects for this device.
 */
-protected List _drawing_area_list;
+protected List<GRDrawingArea> _drawing_area_list;
 
 /**
 Construct using name.
@@ -349,10 +350,10 @@ Initializes member variables.
 private void initialize ( PropList props )
 {	// Set the general information...
 
-	_drawing_area_list = new Vector ( 5, 1 );
+	_drawing_area_list = new Vector<GRDrawingArea>();
 	_mode = GRUtil.MODE_DRAW;
-	_name = new String ();
-	_note = new String ();
+	_name = "";
+	_note = "";
 	_orientation = GRDeviceUtil.ORIENTATION_PORTRAIT;
 	_page = 0;
 	_printing = false;
@@ -372,7 +373,7 @@ private void initialize ( PropList props )
 	String prop_value;
 	prop_value = props.getValue("Name");
 	if ( prop_value != null ) {
-		_name = new String ( prop_value );
+		_name = prop_value;
 	}
 	prop_value = props.getValue("PageSizeDrawn");
 	if ( prop_value != null ) {
@@ -432,7 +433,7 @@ private void initialize ( PropList props )
 	}
 	prop_value = props.getValue("Note");
 	if ( prop_value != null ) {
-		_note = new String ( prop_value );
+		_note = prop_value;
 	}
 
 	// Fill in later...

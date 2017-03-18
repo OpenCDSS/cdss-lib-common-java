@@ -51,6 +51,7 @@ import javax.swing.text.JTextComponent;
 This class implements a SimpleJComboBox that supports dragging and dropping
 text.  Currently only supports drags and drops of DragAndDropTransferPrimitive data.  
 */
+@SuppressWarnings("serial")
 public class DragAndDropSimpleJComboBox extends SimpleJComboBox
 implements DragGestureListener, DragSourceListener, DropTargetListener, 
 DragAndDrop {

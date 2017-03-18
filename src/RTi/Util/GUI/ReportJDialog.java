@@ -55,6 +55,7 @@ import RTi.Util.String.StringUtil;
 /**
 Display a report in a JTextArea.  See the constructor for more information.
 */
+@SuppressWarnings("serial")
 public class ReportJDialog 
 extends JDialog
 implements ActionListener, HyperlinkListener, WindowListener {
@@ -62,7 +63,7 @@ implements ActionListener, HyperlinkListener, WindowListener {
 private JTextField	_status_JTextField;	// status TextField
 private JTextArea	_info_JTextArea;	// Report TextArea
 private JEditorPane	_info_JEditorPane;	// Report TextArea
-private List _info_Vector;		// Contains String elements to display in the _info_TextArea object
+private List<String> _info_Vector;		// Contains String elements to display in the _info_TextArea object
                                                 
 private PropList	_prop;			// PropList object
 private String		_help_key;              // Help Keyword
@@ -176,7 +177,7 @@ but it can display HTML</li>
 
 </table>
 */
-public ReportJDialog (JFrame parent, List info, PropList prop, boolean modal){
+public ReportJDialog (JFrame parent, List<String> info, PropList prop, boolean modal){
 	super(parent, modal);
 	_info_Vector = info;
 	_prop = prop;
@@ -184,7 +185,7 @@ public ReportJDialog (JFrame parent, List info, PropList prop, boolean modal){
 	setGUI();
 }
 
-public ReportJDialog(JDialog parent, List info, PropList prop, boolean modal){
+public ReportJDialog(JDialog parent, List<String> info, PropList prop, boolean modal){
 	super(parent, modal);
 	_info_Vector = info;
 	_prop = prop;

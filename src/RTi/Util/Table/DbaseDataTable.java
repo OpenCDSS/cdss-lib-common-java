@@ -249,7 +249,7 @@ throws IOException
 	_field_type = new char[nfields];
 	int tmp_field_type=0;
 	byte [] buffer14 = new byte[14];
-	List tableFields = new Vector(nfields);
+	List<TableField> tableFields = new Vector<TableField>(nfields);
 
 	// Read the field name...
     int rowSize = 0; // IWS

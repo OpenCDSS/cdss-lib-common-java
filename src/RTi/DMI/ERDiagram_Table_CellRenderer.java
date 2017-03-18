@@ -27,6 +27,7 @@ so for now we keep it ...
 but basically, all your cell renderers will look 100% like this one.  Copy, 
 paste, search and replace (to change the class names).
 */
+@SuppressWarnings("serial")
 public class ERDiagram_Table_CellRenderer
 extends JWorksheet_AbstractExcelCellRenderer {
 

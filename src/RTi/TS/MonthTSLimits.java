@@ -46,6 +46,7 @@ This class stores information about the data and date limits of a monthly time s
 If detailed information is not necessary, use the TSLimits class for overall limits.
 In summary, since this class extends TSLimits, both full period limits and limits by month are computed.
 */
+@SuppressWarnings("serial")
 public class MonthTSLimits extends TSLimits
 {
 

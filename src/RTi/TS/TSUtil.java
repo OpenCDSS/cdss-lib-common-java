@@ -321,8 +321,8 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.lang.String;
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 // TODO SAM 2016-01-31 Need to split out calculation methods into helper classes.
 // Should only retain methods here that extend TS basic functionality.
@@ -481,7 +481,7 @@ throws TSException, Exception
 		throw new TSException ( message );
 	}
 	// Else, set up a vector and call the overload routine...
-	List v = new Vector ( 1, 1 );
+	List<TS> v = new ArrayList<TS>(1);
 	v.add ( ts_to_add );
 	double [] factor = new double[1];
 	factor[0] = 1.0;
@@ -503,7 +503,7 @@ The IGNORE_MISSING flag is used for missing data.
 @param ts_to_add List of time series to add to "ts".
 @exception TSException if an error occurs adding the time series.
 */
-public static TS add ( TS ts, List ts_to_add )
+public static TS add ( TS ts, List<TS> ts_to_add )
 throws Exception
 {	return add ( ts, ts_to_add, IGNORE_MISSING );
 }
@@ -633,7 +633,7 @@ throws TSException, Exception
 	try {
 	if ( !intervalsMatch(tsToAddList, ts.getDataIntervalBase(), ts.getDataIntervalMult()) ) {
 		message = "All time series in the list are not of interval " +
-		TimeInterval.getName(ts.getDataIntervalBase()) + "," + ts.getDataIntervalMult();
+		TimeInterval.getName(ts.getDataIntervalBase(),1) + "," + ts.getDataIntervalMult();
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
@@ -920,7 +920,7 @@ public static void addConstant(	TS ts, DateTime start_date,
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		List alltsdata = irrts.getData();
+		List<TSData> alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -1050,7 +1050,6 @@ throws Exception
 	double average = 0.0; // Average of extreme and surrounding points.
 	int count = 0; // Number of points considered in the average.
 	int nintervals = 0; // Number of intervals on each side.
-	int iint; // Iterator for intervals.
 	double left_value; // Values at left and right points
 	double right_value;
 	boolean do_adjust; // Indicates whether adjustment should be made.
@@ -1071,7 +1070,7 @@ throws Exception
 			count = 1;
 			nintervals = 0;
 			do_adjust = true;	// Assume we can adjust until find out otherwise.
-			for ( iint = 0; ; iint++ ) {
+			while ( true ) {
 				left_date.addInterval ( interval_base, -interval_mult );
 				++nintervals;
 				if ( (maxIntervals != 0) && (nintervals > maxIntervals) ) {
@@ -1319,7 +1318,7 @@ public static boolean areUnitsCompatible ( List<TS> tslist, boolean require_same
 		return true;
 	}
 	// Loop through the time series and get the units...
-	List units = new Vector ( 10, 5 );
+	List<String> units = new ArrayList<String>();
 	TS ts = null;
 	String units_string = null;
 	for ( int i = 0; i < size; i++ ) {
@@ -1368,7 +1367,7 @@ the data but perhaps not the date/time.</b>
 </table>
 @exception Exception if an error occurs (usually null input).
 */
-public static TS average ( List tslist, DateTime start_date, DateTime end_date, PropList props )
+public static TS average ( List<TS> tslist, DateTime start_date, DateTime end_date, PropList props )
 throws Exception
 {	String  message, routine = "TSUtil.average";
 
@@ -1413,7 +1412,7 @@ throws Exception
 
 	// Create a new time series to be returned, using the first time series in the list as a template...
 
-	ts = (TS)tslist.get(0);
+	ts = tslist.get(0);
 	TS newts = newTimeSeries ( ts.getIdentifierString(), true );
 	// Only transfer generic fields, not scenario, etc...
 	TSIdent tsident = new TSIdent();
@@ -1446,7 +1445,7 @@ throws Exception
 	tsarray = new TS[size];
 	// Assign the time series to an array to increase performance...
 	for ( its = 0; its < size; its++ ) {
-		tsarray[its] = (TS)tslist.get(its);
+		tsarray[its] = tslist.get(its);
 	}
 	// Create an iterator for each time series, if needed...
 	if ( !transfer_bydate ) {
@@ -1762,7 +1761,7 @@ public static void convertUnits ( TS ts, String req_units ) throws TSException
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		List alltsdata = irrts.getData();
+		List<TSData> alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -1770,7 +1769,7 @@ public static void convertUnits ( TS ts, String req_units ) throws TSException
 		int nalltsdata = alltsdata.size();
 		TSData tsdata = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.get(i);
+			tsdata = alltsdata.get(i);
 			data_value = tsdata.getDataValue();
 			if ( !ts.isDataMissing(data_value) ) {
 				// Not missing, so do the conversion...
@@ -1898,7 +1897,7 @@ look up the precision.  If that fails, a default of 1 will be used.
 @return a list of String containing the report.
 @exception Exception if there is an error generating the report.
 */
-public static List createMonthSummary ( TS ts, DateTime date1, DateTime date2, PropList props )
+public static List<String> createMonthSummary ( TS ts, DateTime date1, DateTime date2, PropList props )
 throws Exception
 {	// Pull much of the code from the MonthTS.formatOutput() method.  This
 	// method creates a similar report but does not track data as specifically as is needed here.
@@ -1915,7 +1914,7 @@ throws Exception
 		throw new Exception ( message );
 	}
 
-	List strings = new Vector(20,10);
+	List<String> strings = new ArrayList<String>(20);
 	StringUtil.addListToStringList ( strings, ts.formatHeader() );
 
 	// Determine the units to output.  For now use what is in the time series...
@@ -2386,8 +2385,8 @@ Format the output statistics row given for the month summary report for the data
 @param label Label for the statistics row.
 @param data_format Format like "%9.1f" to format values.
 */
-private static List createMonthSummaryStats ( TS ts, double[][] data, int num_years, String label, String data_format )
-{	List strings = new Vector (20,10);
+private static List<String> createMonthSummaryStats ( TS ts, double[][] data, int num_years, String label, String data_format )
+{	List<String> strings = new ArrayList<String>();
 	double stat;
 	StringBuffer buffer = null;
 	double[] array = new double[num_years];
@@ -3030,13 +3029,13 @@ Enforce limits on the entire time series.  Any time series values greater than
 the maximum allowed values will be set to the maximum.
 @return The total number of time steps changed.
 @param ts Time series to check.
-@param dates Vector of dates corresponding to the limiting values.  The
+@param dates list of dates corresponding to the limiting values.  The
 date/limit pairs are in effect from the date until the next date encountered.
 @param max_values Data value to check.
 @param props See the overloaded version for a description.
 @exception RTi.TS.TSException if there is a problem with input.
 */
-public static int enforceLimits ( TS ts, List dates, double [] max_values, PropList props )
+public static int enforceLimits ( TS ts, List<DateTime> dates, double [] max_values, PropList props )
 throws TSException, Exception
 {	String routine = "TSUtil.enforceLimits";
 
@@ -3170,7 +3169,7 @@ throws TSException, Exception
 
 	// Now reset the dates again...
 
-	List limit_dates = new Vector(num_limit_dates);
+	List<DateTime> limit_dates = new ArrayList<DateTime>(num_limit_dates);
 	double [] max_values = new double[num_limit_dates];
 	if ( Message.isDebugOn ) {
 		for ( int i = 0; i < num_limit_dates; i++ ) {
@@ -3199,13 +3198,13 @@ throws TSException, Exception
 	int interval_mult = ts.getDataIntervalMult();
 
 	int	limit_pos = 0;
-	limit_date = (DateTime)limit_dates.get(limit_pos);
+	limit_date = limit_dates.get(limit_pos);
 	DateTime next_limit_date = null;
 
 	// Enhancement:  Need to pick limiting date that is nearest the starting date...
 
 	if ( (limit_pos + 1) != num_limit_dates ) {
-		next_limit_date = (DateTime)limit_dates.get(limit_pos +1);
+		next_limit_date = limit_dates.get(limit_pos +1);
 	}
 	else {
 		next_limit_date = null;
@@ -3221,7 +3220,7 @@ throws TSException, Exception
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		List alltsdata = irrts.getData();
+		List<TSData> alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return 0;
@@ -3229,7 +3228,7 @@ throws TSException, Exception
 		int nalltsdata = alltsdata.size();
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.get(i);
+			tsdata = alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
 				// Past the end of where we want to go so quit...
@@ -4123,7 +4122,7 @@ throws Exception
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		List alltsdata = irrts.getData();
+		List<TSData> alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -4131,7 +4130,7 @@ throws Exception
 		int nalltsdata = alltsdata.size();
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.get(i);
+			tsdata = alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
 				// Past the end of where we want to go so quit...
@@ -4854,7 +4853,7 @@ public static void fillMonthly(	TS ts, DateTime start_date, DateTime end_date, d
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		List alltsdata = irrts.getData();
+		List<TSData> alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -4863,7 +4862,7 @@ public static void fillMonthly(	TS ts, DateTime start_date, DateTime end_date, d
 		TSData tsdata = null;
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.get(i);
+			tsdata = alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
 				// Past the end of where we want to go so quit...
@@ -5107,7 +5106,7 @@ throws Exception
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		List alltsdata = irrts.getData();
+		List<TSData> alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -5115,7 +5114,7 @@ throws Exception
 		int nalltsdata = alltsdata.size();
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.get(i);
+			tsdata = alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
 				// Past the end of where we want to go so quit...
@@ -6724,7 +6723,7 @@ throws TSException
 {
 	// Call the main utility version...
 
-	List<TS> tslist = new Vector ();
+	List<TS> tslist = new ArrayList<TS>();
 	tslist.add ( ts );
 	return formatOutput ( (PrintWriter)null, (String)null, tslist, proplist );
 }
@@ -6753,7 +6752,7 @@ Version to write output to a Writer.
 @param proplist Properties to modify output.
 @exception RTi.TS.TSException Thrown if there is an exception in the low-level code.
 */
-public static List formatOutput ( PrintWriter fp, List<TS> tslist, PropList proplist )
+public static List<String> formatOutput ( PrintWriter fp, List<TS> tslist, PropList proplist )
 throws TSException
 {
 	// Call the main utility version...
@@ -6980,7 +6979,7 @@ protected static TSLimits getDataLimits ( TS ts, DateTime start0, DateTime end0,
 
 		IrregularTS its = (IrregularTS)ts;
 
-		List data_array = its.getData ();
+		List<TSData> data_array = its.getData ();
 		if ( data_array == null ) {
 			Message.printWarning(2,routine,	"Null data for " + ts );
 			return new TSLimits();
@@ -6988,7 +6987,7 @@ protected static TSLimits getDataLimits ( TS ts, DateTime start0, DateTime end0,
 		int size = data_array.size();
 		TSData ptr = null;
 		for ( int i = 0; i < size; i++ ) {
-			ptr = (TSData)data_array.get(i);
+			ptr = data_array.get(i);
 			date = ptr.getDate();
 			if ( date.lessThan( start ) ) {
 				// Still looking for data...
@@ -6999,7 +6998,7 @@ protected static TSLimits getDataLimits ( TS ts, DateTime start0, DateTime end0,
 				break;
 			}
 
-			value 	= ptr.getDataValue();
+			value = ptr.getDataValue();
 			if ( ts.isDataMissing( value ) ) {
 				//The value is missing
 				++missing_count;
@@ -7046,7 +7045,7 @@ protected static TSLimits getDataLimits ( TS ts, DateTime start0, DateTime end0,
 		// Now search backward to find the first non-missing date...
 		if ( found ) {
 			for ( int i = (size - 1); i >= 0; i-- ){
-				ptr = (TSData)data_array.get(i);
+				ptr = data_array.get(i);
 				date = ptr.getDate();
 				value = ptr.getDataValue();
 				if ( date.greaterThan(end) ) {
@@ -7182,9 +7181,9 @@ routine without the flag should be called).  Specifying true will result in slow
 @exception Exception If the data limits cannot be found.
 @see TSLimits
 */
-public static TSLimits getDataLimits ( List tslist, DateTime start, DateTime end, String req_units, boolean refresh_flag )
+public static TSLimits getDataLimits ( List<TS> tslist, DateTime start, DateTime end, String req_units, boolean refresh_flag )
 throws Exception
-{	return getDataLimits (	tslist, start, end, req_units, refresh_flag, false );
+{	return getDataLimits ( tslist, start, end, req_units, refresh_flag, false );
 }
 
 /**
@@ -7377,7 +7376,7 @@ The dates in the limits will be for the data, not the dates that are passed in.
 @exception Exception If null data prevent limits from being computed.
 @see TSLimits
 */
-public static TSLimits getDataLimits ( List tslist, DateTime start, DateTime end, String units )
+public static TSLimits getDataLimits ( List<TS> tslist, DateTime start, DateTime end, String units )
 throws Exception
 {	return getDataLimits ( tslist, start, end, units, false );
 }
@@ -7392,7 +7391,7 @@ routine without the flag should be called).  Specifying true will result in slow
 @exception Exception If null data prevent limits from being computed.
 @see TSLimits
 */
-public static TSLimits getDataLimits ( List tslist, boolean refresh_flag )
+public static TSLimits getDataLimits ( List<TS> tslist, boolean refresh_flag )
 throws Exception
 {	return getDataLimits ( tslist, null, null, null, refresh_flag );
 }
@@ -7404,7 +7403,7 @@ Determine the overall data limits for a list of time series.
 @exception Exception If null data prevent limits from being computed.
 @see TSLimits
 */
-public static TSLimits getDataLimits ( List tslist )
+public static TSLimits getDataLimits ( List<TS> tslist )
 throws Exception
 {	return getDataLimits ( tslist, null, null, null, false );
 }
@@ -7661,7 +7660,7 @@ If false, only include the 5-part information.
 */
 public static List<String> getTimeSeriesIdentifiers ( List<TS>tsList, boolean includeInput )
 {
-    List<String> list = new Vector();
+    List<String> list = new ArrayList<String>();
     if ( tsList != null ) {
         int tssize = tsList.size();
         TS ts;
@@ -7782,7 +7781,7 @@ public static TSPatternStats getPatternStats ( TS ts, StringMonthTS pattern_ts, 
 
 	// The number of indicators will have been determined in the time series...
 
-	List indicators = pattern_ts.getUniqueData ();
+	List<String> indicators = pattern_ts.getUniqueData ();
 
 	// Size the arrays in our statistics...
 
@@ -7798,7 +7797,7 @@ public static TSPatternStats getPatternStats ( TS ts, StringMonthTS pattern_ts, 
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		List alltsdata = irrts.getData();
+		List<TSData> alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return null;
@@ -7806,7 +7805,7 @@ public static TSPatternStats getPatternStats ( TS ts, StringMonthTS pattern_ts, 
 		int nalltsdata = alltsdata.size();
 		TSData tsdata = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.get(i);
+			tsdata = alltsdata.get(i);
 			data_value = tsdata.getDataValue();
 			date = tsdata.getDate();
 			if ( (!ignore_lezero && !ts.isDataMissing(data_value)) ||
@@ -8078,11 +8077,11 @@ public static TSLimits getPeriodFromTS ( TS ts, int por_flag )
 throws TSException
 {	if ( ts == null ) {
 		// Let other routine handle...
-		return getPeriodFromTS ( (List)null, por_flag );
+		return getPeriodFromTS ( (List<TS>)null, por_flag );
 	}
 	else {
         // Put single TS into a vector...
-		List<TS> v = new Vector (1);
+		List<TS> v = new ArrayList<TS>(1);
 		v.add ( ts );
 		return getPeriodFromTS ( v, por_flag );
 	}
@@ -8104,11 +8103,11 @@ public static TSLimits getPeriodFromTS ( TS ts, List<TS> tslist, int por_flag )
 throws TSException
 {	if ( (ts == null) || (tslist == null) ) {
 		// Let other routine handle...
-		return getPeriodFromTS ( (List)null, por_flag );
+		return getPeriodFromTS ( (List<TS>)null, por_flag );
 	}
 	else {
         // Put single TS and other TS into a vector...
-		List<TS> v = new Vector (1);
+		List<TS> v = new ArrayList<TS>(1);
 		v.add ( ts );
 		int size = v.size();
 		for ( int i = 0; i < size; i++ ) {
@@ -8121,7 +8120,7 @@ throws TSException
 /**
 Determine the limits for a list of time series.
 <pre>
-Exaple of POR calculation:
+Example of POR calculation:
    |         ------------------------  	TS1
    |   -------------------    	TS2
    |                --------------  TS3
@@ -8556,7 +8555,7 @@ just be equivalent (i.e., 1Day != 24Hour).
 */
 public static boolean intervalsMatch ( TS ts1, TS ts2 )
 {
-    List<TS> tslist = new Vector(2);
+    List<TS> tslist = new ArrayList<TS>(2);
     tslist.add ( ts1 );
     tslist.add ( ts2 );
     return intervalsMatch ( tslist );
@@ -8634,8 +8633,8 @@ throws TSException
 		Message.printWarning ( 2, "TSUtil.max", message );
 		throw new TSException ( message );
 	}
-	// Else, set up a vector and call the overload routine...
-	List<TS> v = new Vector ( 1, 1 );
+	// Else, set up a list and call the overload routine...
+	List<TS> v = new ArrayList<TS>(1);
 	v.add ( ts_to_check );
 	TS ts2 = max ( ts, v );
 	return ts2;
@@ -8652,7 +8651,7 @@ series description and genesis information are updated to reflect the addition.
 public static TS max (	TS ts, List<TS> ts_to_check )
 throws TSException
 {	String message, routine = "TSUtil.max(TS,Vector)";
-	int	dl = 20, nmissing = 0;
+	int	dl = 20;
 	TS tspt = null;
 	double add = 0.0, mult = 1.0;
 	int set_count = 0;
@@ -8695,7 +8694,6 @@ throws TSException
 	double data_value, data_value_to_check;
 
 	for ( int i = 0; i < ntslist; i++ ) {
-		nmissing = 0;
 		set_count = 0;
 		tspt = ts_to_check.get(i);
 		if ( tspt == null ) {
@@ -8737,7 +8735,6 @@ throws TSException
 				if ( tspt.isDataMissing ( data_value_to_check)){
 					// The value to check is missing so don't do it.  If we are tracking
 					// missing, also set in the array.  This will prevent other time series from processing.
-					++nmissing;
 					continue;
 				}
 				// If here, there is a non-missing data value to check so do it...
@@ -8789,7 +8786,7 @@ throws TSException
 		throw new TSException ( message );
 	}
 	// Else, set up a list and call the overload routine...
-	List<TS> v = new Vector ( 1, 1 );
+	List<TS> v = new ArrayList<TS>(1);
 	v.add ( ts_to_check );
 	TS ts2 = min ( ts, v );
 	return ts2;
@@ -8806,7 +8803,7 @@ series description and genesis information are updated to reflect the processing
 public static TS min ( TS ts, List<TS> ts_to_check )
 throws TSException
 {	String	message, routine = "TSUtil.min(TS,Vector)";
-	int	dl = 20, nmissing = 0;
+	int	dl = 20;
 	TS	tspt = null;
 	double add = 0.0, mult = 1.0;
 	int set_count = 0;
@@ -8849,7 +8846,6 @@ throws TSException
 	double data_value, data_value_to_check;
 
 	for ( int i = 0; i < ntslist; i++ ) {
-		nmissing = 0;
 		set_count = 0;
 		tspt = ts_to_check.get(i);
 		if ( tspt == null ) {
@@ -8890,7 +8886,6 @@ throws TSException
 				if ( tspt.isDataMissing ( data_value_to_check)){
 					// The value to check is missing so don't do it.  If we are tracking
 					// missing, also set in the array.  This will prevent other time series from processing.
-					++nmissing;
 					continue;
 				}
 				// If here, there is a non-missing data value to check so do it...
@@ -9139,18 +9134,11 @@ throws Exception
 		throw new Exception ( message );
 	}
 
-	if ( ts == null ) {
-		String message = "Cannot create new time series for \"" + id + "\"";
-		Message.printWarning ( 3, "TSUtil.newTimeSeries", message );
-		throw new Exception ( message );
-	}
-	else {
-        // Set the multiplier...
-		ts.setDataInterval(intervalBase,intervalMult);
-		ts.setDataIntervalOriginal(intervalBase,intervalMult);
-		// Set the genesis information
-		ts.addToGenesis( "Created new time series with interval determined from TSID \"" + id + "\"" );
-	}
+    // Set the multiplier...
+	ts.setDataInterval(intervalBase,intervalMult);
+	ts.setDataIntervalOriginal(intervalBase,intervalMult);
+	// Set the genesis information
+	ts.addToGenesis( "Created new time series with interval determined from TSID \"" + id + "\"" );
 
 	// Return whatever was created...
 
@@ -9188,7 +9176,7 @@ public static void normalize ( TS ts, boolean minfromdata, double newmin, double
 	if ( ts.getDataIntervalBase() == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
-		List alltsdata = irrts.getData();
+		List<TSData> alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -9879,7 +9867,7 @@ name are checked for a match.  Each matching time series is returned in the list
 @param PropList props Properties to control processing, not currently used.
 */
 public static List<TS> selectTimeSeries ( List<TS> tslist, List<String> tsids, PropList props )
-{	List<TS> v = new Vector();
+{	List<TS> v = new ArrayList<TS>();
 	int tsids_size = 0;
 	if ( tsids != null ) {
 		tsids_size = tsids.size();
@@ -10767,7 +10755,7 @@ public static TS subtract ( TS ts, TS ts_to_subtract )
 		return ts;
 	}
 	// Else, set up a vector and call the overload routine...
-	List<TS> v = new Vector ( 1, 1 );
+	List<TS> v = new ArrayList<TS>(1);
 	v.add ( ts_to_subtract );
 	double [] factor = new double[1];
 	factor[0] = -1.0;

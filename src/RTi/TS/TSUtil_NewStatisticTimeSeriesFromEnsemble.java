@@ -587,7 +587,7 @@ Get the list of distributions that can be calculated.
 public List<String> getDistributionChoicesAsStrings()
 {
     List<DistributionType> choices = getDistributionChoices();
-    List<String> stringChoices = new ArrayList();
+    List<String> stringChoices = new ArrayList<String>();
     for ( int i = 0; i < choices.size(); i++ ) {
         stringChoices.add ( "" + choices.get(i) );
     }

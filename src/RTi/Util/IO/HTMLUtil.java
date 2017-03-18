@@ -271,23 +271,22 @@ public class HTMLUtil {
      * This class also implements the 'Comparable' interface to ease the sorting
      * process in the initialisation bloc.
      */
-    final private static class NumericSymbolicCode implements Comparable {
+    final private static class NumericSymbolicCode implements Comparable<NumericSymbolicCode> {
 
         public NumericSymbolicCode(String symbolicCode, int numericCode) {
             this.symbolicCode = symbolicCode;
             this.numericCode = numericCode;
         }
 
-        public String getSymbolicCode() {
-            return symbolicCode;
-        }
+        //public String getSymbolicCode() {
+        //    return symbolicCode;
+        //}
 
         public int getNumericCode() {
             return numericCode;
         }
 
-        public int compareTo(Object object) {
-            NumericSymbolicCode nsc = (NumericSymbolicCode) object;
+        public int compareTo(NumericSymbolicCode nsc) {
             return symbolicCode.compareTo(nsc.symbolicCode);
         }
 

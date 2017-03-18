@@ -265,6 +265,7 @@ The logic is as follows:
 	updateTSProduct().</li>
 </ol>
 */
+@SuppressWarnings("serial")
 public class TSProductJFrame extends JFrame
 implements ActionListener, ChangeListener, ItemListener, KeyListener,
 WindowListener, DragAndDropListener
@@ -639,8 +640,9 @@ private SimpleJComboBox __graphAnnotationProvider = null;
 
 /**
 The annotation providers that are available to be used in the product.
+Annotation providers are actually names of providers.
 */
-private List __annotationProviders = null;
+private List<String> __annotationProviders = null;
 
 public final static String NO_GRAPHS_DEFINED = "No Graphs Defined";
 
@@ -1777,9 +1779,11 @@ private JPanel createAnnotationJPanel() {
 	
 	__annotation_line_color_JComboBox = new SimpleJComboBox(false);
 	int size = GRColor.COLOR_NAMES.length;
+	List<String> annotatuinLineColorChoices = new ArrayList<String>();
 	for (int i = 0; i < size; i++) {
-		__annotation_line_color_JComboBox.addItem(GRColor.COLOR_NAMES[i]);
+		annotatuinLineColorChoices.add(GRColor.COLOR_NAMES[i]);
 	}
+	__annotation_line_color_JComboBox.setData(annotatuinLineColorChoices);
 	__annotation_line_color_JComboBox.setMaximumRowCount(__annotation_line_color_JComboBox.getItemCount());
 	__annotation_line_color_JComboBox.select(1);
 	__annotation_line_color_JComboBox.addItemListener(this);
@@ -1848,9 +1852,11 @@ private JPanel createAnnotationJPanel() {
 	
 	__annotation_rectangle_color_JComboBox = new SimpleJComboBox(false);
 	int colorSize = GRColor.COLOR_NAMES.length;
+	List<String> annotationRectangleColorChoices = new ArrayList<String>();
 	for (int i = 0; i < colorSize; i++) {
-		__annotation_rectangle_color_JComboBox.addItem(GRColor.COLOR_NAMES[i]);
+		annotationRectangleColorChoices.add(GRColor.COLOR_NAMES[i]);
 	}
+	__annotation_rectangle_color_JComboBox.setData(annotationRectangleColorChoices);
 	__annotation_rectangle_color_JComboBox.setMaximumRowCount(__annotation_rectangle_color_JComboBox.getItemCount());
 	__annotation_rectangle_color_JComboBox.select(1);
 	__annotation_rectangle_color_JComboBox.addItemListener(this);
@@ -1880,9 +1886,11 @@ private JPanel createAnnotationJPanel() {
 	
 	__annotation_symbol_SymbolStyle_JComboBox = new SimpleJComboBox(false);
 	size = GRSymbol.SYMBOL_NAMES.length;
+	List<String> annotationSymbolStyleChoices = new ArrayList<String>();
 	for (int i = 0; i < size; i++) {
-		__annotation_symbol_SymbolStyle_JComboBox.addItem(GRSymbol.SYMBOL_NAMES[i]);
+		annotationSymbolStyleChoices.add(GRSymbol.SYMBOL_NAMES[i]);
 	}
+	__annotation_symbol_SymbolStyle_JComboBox.setData(annotationSymbolStyleChoices);
 	
 	y = 0;
 	JGUIUtil.addComponent(__annotation_symbol_JPanel, new JLabel("Symbol style: " ),
@@ -1936,18 +1944,22 @@ private JPanel createAnnotationJPanel() {
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__annotation_symbol_SymbolSize_JComboBox = new SimpleJComboBox(true);
 	__annotation_symbol_SymbolSize_JComboBox.setToolTipText("Symbol size in pixels (printed size will scale to graph size)");
+	List<String> annotationSymbolSizeChoices = new ArrayList<String>();
 	for ( int i = 0; i <= 20; i++ ) {
-		__annotation_symbol_SymbolSize_JComboBox.addItem("" + i);
-	}		
+		annotationSymbolSizeChoices.add("" + i);
+	}
+	__annotation_symbol_SymbolSize_JComboBox.setData(annotationSymbolSizeChoices);
 	JGUIUtil.addComponent(__annotation_symbol_JPanel, __annotation_symbol_SymbolSize_JComboBox,
 		1, y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 
 	__annotation_symbol_color_JComboBox = new SimpleJComboBox(false);
 	size = GRColor.COLOR_NAMES.length;
+	List<String> annotationSymbolColorChoices = new ArrayList<String>();
 	for (int i = 0; i < size; i++) {
-		__annotation_symbol_color_JComboBox.addItem(GRColor.COLOR_NAMES[i]);
+		annotationSymbolColorChoices.add(GRColor.COLOR_NAMES[i]);
 	}
+	__annotation_symbol_color_JComboBox.setData(annotationSymbolColorChoices);
 	__annotation_symbol_color_JComboBox.setMaximumRowCount(__annotation_symbol_color_JComboBox.getItemCount());
 	__annotation_symbol_color_JComboBox.select(1);
 	__annotation_symbol_color_JComboBox.addItemListener(this);
@@ -2051,9 +2063,11 @@ private JPanel createAnnotationJPanel() {
 
 	__annotation_text_color_JComboBox = new SimpleJComboBox(false);
 	size = GRColor.COLOR_NAMES.length;
+	List<String> annotationTextColorChoices = new ArrayList<String>();
 	for (int i = 0; i < size; i++) {
-		__annotation_text_color_JComboBox.addItem(GRColor.COLOR_NAMES[i]);
+		annotationTextColorChoices.add(GRColor.COLOR_NAMES[i]);
 	}
+	__annotation_text_color_JComboBox.setData(annotationTextColorChoices);
 	__annotation_text_color_JComboBox.setMaximumRowCount(__annotation_text_color_JComboBox.getItemCount());
 	__annotation_text_color_JComboBox.select(1);
 	__annotation_text_color_JComboBox.addItemListener(this);
@@ -2204,8 +2218,10 @@ private JPanel createDataJPanel ()
 			0, ++y, 1, 1, 0, 0, _insetsTLBR,
 			GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_ts_xaxis_JComboBox = new SimpleJComboBox ( false );
-	_ts_xaxis_JComboBox.addItem ( "Bottom" );
-	_ts_xaxis_JComboBox.addItem ( "Top" );
+	List<String> tsXAxisChoices = new ArrayList<String>();
+	tsXAxisChoices.add ( "Bottom" );
+	tsXAxisChoices.add ( "Top" );
+	_ts_xaxis_JComboBox.setData(tsXAxisChoices);
 	_ts_xaxis_JComboBox.setEnabled ( false );
 	JGUIUtil.addComponent ( axes_JPanel, _ts_xaxis_JComboBox,
 			1, y, 1, 1, 0, 0, _insetsTLBR,
@@ -2215,8 +2231,10 @@ private JPanel createDataJPanel ()
 			0, ++y, 1, 1, 0, 0, _insetsTLBR,
 			GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_ts_yaxis_JComboBox = new SimpleJComboBox ( false );
-	_ts_yaxis_JComboBox.addItem ( "Left" );
-	_ts_yaxis_JComboBox.addItem ( "Right" );
+	List<String> tsXYxisChoices = new ArrayList<String>();
+	tsXYxisChoices.add ( "Left" );
+	tsXYxisChoices.add ( "Right" );
+	_ts_yaxis_JComboBox.setData(tsXYxisChoices);
 	//_ts_yaxis_JComboBox.setEnabled ( false );
 	JGUIUtil.addComponent ( axes_JPanel, _ts_yaxis_JComboBox,
 			1, y, 1, 1, 0, 0, _insetsTLBR,
@@ -2235,9 +2253,11 @@ private JPanel createDataJPanel ()
 			GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_ts_linestyle_JComboBox = new SimpleJComboBox ( false );
 	_ts_linestyle_JComboBox.setToolTipText("Line style for line graphs.");
-	_ts_linestyle_JComboBox.addItem("Dashed");
-	_ts_linestyle_JComboBox.addItem("None");
-	_ts_linestyle_JComboBox.addItem("Solid");
+	List<String> tsLineStyleChoices = new ArrayList<String>();
+	tsLineStyleChoices.add("Dashed");
+	tsLineStyleChoices.add("None");
+	tsLineStyleChoices.add("Solid");
+	_ts_linestyle_JComboBox.setData(tsLineStyleChoices);
 	JGUIUtil.addComponent ( symbol_JPanel, _ts_linestyle_JComboBox,
 			1, y, 1, 1, 0, 0, _insetsTLBR,
 			GridBagConstraints.NONE, GridBagConstraints.WEST );
@@ -2247,11 +2267,13 @@ private JPanel createDataJPanel ()
 			GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_ts_linewidth_JComboBox = new SimpleJComboBox ( true );
 	_ts_linewidth_JComboBox.setToolTipText("Line width in pixels on screen.");
-	_ts_linewidth_JComboBox.addItem("1");
-	_ts_linewidth_JComboBox.addItem("2");
-	_ts_linewidth_JComboBox.addItem("3");
-	_ts_linewidth_JComboBox.addItem("4");
-	_ts_linewidth_JComboBox.addItem("5");
+	List<String> tsLineWidthChoices = new ArrayList<String>();
+	tsLineWidthChoices.add("1");
+	tsLineWidthChoices.add("2");
+	tsLineWidthChoices.add("3");
+	tsLineWidthChoices.add("4");
+	tsLineWidthChoices.add("5");
+	_ts_linewidth_JComboBox.setData(tsLineWidthChoices);
 	JGUIUtil.addComponent ( symbol_JPanel, _ts_linewidth_JComboBox,
 			3, y, 1, 1, 0, 0, _insetsTLBR,
 			GridBagConstraints.NONE, GridBagConstraints.WEST );
@@ -2269,9 +2291,11 @@ private JPanel createDataJPanel ()
 	_ts_color_JComboBox.setToolTipText ( "Color choices." );
 	_ts_color_JComboBox.addItemListener(this);
 	int size = GRColor.COLOR_NAMES.length;
+	List<String> tsColorChoices = new ArrayList<String>();
 	for ( int i = 0; i < size; i++ ) {
-		_ts_color_JComboBox.addItem ( GRColor.COLOR_NAMES[i] );
+		tsColorChoices.add ( GRColor.COLOR_NAMES[i] );
 	}
+	_ts_color_JComboBox.setData(tsColorChoices);
 	_ts_color_JComboBox.setMaximumRowCount( _ts_color_JComboBox.getItemCount());
 	JGUIUtil.addComponent ( symbol_JPanel, _ts_color_JComboBox,
 			2, y, 1, 1, 0, 0, _insetsTLBR,
@@ -2289,9 +2313,11 @@ private JPanel createDataJPanel ()
 	_ts_symbolstyle_JComboBox = new SimpleJComboBox ( false );
 	_ts_symbolstyle_JComboBox.setToolTipText ( "Symbol for line and point graphs - see also symbol size.");
 	size = GRSymbol.SYMBOL_NAMES.length;
+	List<String> tsSymbolStyleChoices = new ArrayList<String>();
 	for ( int i = 0; i < size; i++ ) {
-		_ts_symbolstyle_JComboBox.addItem ( GRSymbol.SYMBOL_NAMES[i] );
+		tsSymbolStyleChoices.add ( GRSymbol.SYMBOL_NAMES[i] );
 	}
+	_ts_symbolstyle_JComboBox.setData(tsSymbolStyleChoices);
 	JGUIUtil.addComponent ( symbol_JPanel, _ts_symbolstyle_JComboBox,
 			1, y, 1, 1, 0, 0, _insetsTLBR,
 			GridBagConstraints.NONE, GridBagConstraints.WEST );
@@ -2301,9 +2327,11 @@ private JPanel createDataJPanel ()
 			GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_ts_symbolsize_JComboBox = new SimpleJComboBox ( false );
 	_ts_symbolsize_JComboBox.setToolTipText ( "Symbol size for line and point graphs - see also symbol style.");
+	List<String> tsSymbolSizeChoices = new ArrayList<String>();
 	for ( int i = 0; i <= 20; i++ ) {
-		_ts_symbolsize_JComboBox.addItem ( "" + i );
+		tsSymbolSizeChoices.add ( "" + i );
 	}
+	_ts_symbolsize_JComboBox.setData(tsSymbolSizeChoices);
 	_ts_symbolsize_JComboBox.setMaximumRowCount(_ts_symbolsize_JComboBox.getItemCount());
 	JGUIUtil.addComponent ( symbol_JPanel, _ts_symbolsize_JComboBox,
 			3, y, 1, 1, 0, 0, _insetsTLBR,
@@ -2314,11 +2342,13 @@ private JPanel createDataJPanel ()
         GridBagConstraints.NONE, GridBagConstraints.EAST );
     _ts_flaggedDataSymbolStyle_JComboBox = new SimpleJComboBox ( false );
     _ts_flaggedDataSymbolStyle_JComboBox.setToolTipText ( "Flagged data symbol for line and point graphs - see also symbol size.");
-    _ts_flaggedDataSymbolStyle_JComboBox.addItem ( "" );
     size = GRSymbol.SYMBOL_NAMES.length;
+    List<String> tsFlaggedSymbolStyleChoices = new ArrayList<String>();
+    tsFlaggedSymbolStyleChoices.add ( "" );
     for ( int i = 0; i < size; i++ ) {
-        _ts_flaggedDataSymbolStyle_JComboBox.addItem ( GRSymbol.SYMBOL_NAMES[i] );
+    	tsFlaggedSymbolStyleChoices.add ( GRSymbol.SYMBOL_NAMES[i] );
     }
+    _ts_flaggedDataSymbolStyle_JComboBox.setData(tsFlaggedSymbolStyleChoices);
     JGUIUtil.addComponent ( symbol_JPanel, _ts_flaggedDataSymbolStyle_JComboBox,
         1, y, 1, 1, 0, 0, _insetsTLBR,
         GridBagConstraints.NONE, GridBagConstraints.WEST );
@@ -2347,10 +2377,12 @@ private JPanel createDataJPanel ()
 	_ts_datalabelposition_JComboBox = new SimpleJComboBox( false );
 	String [] positions = GRText.getTextPositions();
 	_ts_datalabelposition_JComboBox.setMaximumRowCount( positions.length + 1);
-	_ts_datalabelposition_JComboBox.addItem ( "Auto" );
+	List<String> tsDataLabelPosChoices = new ArrayList<String>();
+	tsDataLabelPosChoices.add ( "Auto" );
 	for ( int i = 0; i < positions.length; i++ ) {
-		_ts_datalabelposition_JComboBox.addItem ( positions[i] );
+		tsDataLabelPosChoices.add ( positions[i] );
 	}
+	_ts_datalabelposition_JComboBox.setData(tsDataLabelPosChoices);
 	_ts_datalabelposition_JComboBox.select ( "Right" );
 	JGUIUtil.addComponent ( label_JPanel, _ts_datalabelposition_JComboBox,
 			1, y, 1, 1, 0, 0, _insetsTLBR,
@@ -2365,12 +2397,14 @@ private JPanel createDataJPanel ()
 	_ts_datalabelformat_JComboBox = new SimpleJComboBox( false );
 	_ts_datalabelformat_JComboBox.addItemListener ( this );
 	String [] formats = TimeUtil.getDateTimeFormatSpecifiers ( true, true, false );
+	List<String> tsDataLabelFormatChoices = new ArrayList<String>();
 	for ( int i = 0; i < formats.length; i++ ) {
-		_ts_datalabelformat_JComboBox.addItem ( formats[i] );
+		tsDataLabelFormatChoices.add ( formats[i] );
 	}
-	_ts_datalabelformat_JComboBox.addItem ( "%v - Value" );
-	_ts_datalabelformat_JComboBox.addItem ( "%U - Units" );
-	_ts_datalabelformat_JComboBox.addItem ( "%q - Flag" );
+	tsDataLabelFormatChoices.add ( "%v - Value" );
+	tsDataLabelFormatChoices.add ( "%U - Units" );
+	tsDataLabelFormatChoices.add ( "%q - Flag" );
+	_ts_datalabelformat_JComboBox.setData(tsDataLabelFormatChoices);
 	_ts_datalabelformat_JComboBox.setMaximumRowCount(_ts_datalabelformat_JComboBox.getItemCount());
 	JGUIUtil.addComponent ( label_JPanel, _ts_datalabelformat_JComboBox,
 			2, y, 1, 1, 0, 0, _insetsTLBR,
@@ -2398,10 +2432,12 @@ private JPanel createDataJPanel ()
 	_ts_legendformat_JComboBox = new SimpleJComboBox( false );
 	_ts_legendformat_JComboBox.addItemListener ( this );
 	formats = TSUtil.getTSFormatSpecifiers ( true );
-	_ts_legendformat_JComboBox.addItem ( "Auto" );
+	List<String> tsLegendFormatChoices = new ArrayList<String>();
+	tsLegendFormatChoices.add ( "Auto" );
 	for ( int i = 0; i < formats.length; i++ ) {
-		_ts_legendformat_JComboBox.addItem ( formats[i] );
+		tsLegendFormatChoices.add ( formats[i] );
 	}
+	_ts_legendformat_JComboBox.setData(tsLegendFormatChoices);
 	_ts_legendformat_JComboBox.setMaximumRowCount( _ts_legendformat_JComboBox.getItemCount());
 	JGUIUtil.addComponent ( legend_JPanel, _ts_legendformat_JComboBox,
 			2, y, 1, 1, 0, 0, _insetsTLBR,
@@ -2455,9 +2491,11 @@ private JPanel createDataJPanel ()
 			GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_ts_confidenceinterval_JComboBox = new SimpleJComboBox( false );
 	//_ts_confidenceinterval_JComboBox.addItemListener ( this );
-	_ts_confidenceinterval_JComboBox.addItem ( "" );
-	_ts_confidenceinterval_JComboBox.addItem ( "95" );
-	_ts_confidenceinterval_JComboBox.addItem ( "99" );
+	List<String> tsConfIntChoices = new ArrayList<String>();
+	tsConfIntChoices.add ( "" );
+	tsConfIntChoices.add ( "95" );
+	tsConfIntChoices.add ( "99" );
+	_ts_confidenceinterval_JComboBox.setData(tsConfIntChoices);
 	JGUIUtil.addComponent ( _ts_xyscatter_analysis_JPanel, _ts_confidenceinterval_JComboBox,
 			2, y, 1, 1, 0, 0, _insetsTLBR,
 			GridBagConstraints.NONE, GridBagConstraints.WEST );
@@ -2686,8 +2724,9 @@ private JPanel createSubproductJPanel ()
 	_graph_JComboBox = new SimpleJComboBox ( false );
 	_graph_JComboBox.setToolTipText("Graph number in product (and main title of product, if available)");
 	int nsub = _tsproduct.getNumSubProducts();
+	List<String> graphChoices = new ArrayList<String>();
 	if ( nsub == 0 ) {
-		_graph_JComboBox.addItem ( NO_GRAPHS_DEFINED );
+		graphChoices.add ( NO_GRAPHS_DEFINED );
 	}
 	else {
 	    for ( int isub = 0; isub < nsub; isub++ ) {
@@ -2698,9 +2737,10 @@ private JPanel createSubproductJPanel ()
 			if ( prop_val.length() > 60 ) {
 				prop_val = prop_val.substring(0,60);
 			}
-			_graph_JComboBox.addItem ( "" + (isub + 1) + " - " + prop_val );
+			graphChoices.add ( "" + (isub + 1) + " - " + prop_val );
 		}
 	}
+	_graph_JComboBox.setData(graphChoices);
 	_graph_JComboBox.addItemListener ( this );
 
 	JGUIUtil.addComponent ( graph_JPanel, _graph_JComboBox,
@@ -2807,11 +2847,13 @@ private JPanel createSubproductJPanel ()
 	_graph_lefty_graphtype_JComboBox = new SimpleJComboBox( false );
 	_graph_lefty_graphtype_JComboBox.setToolTipText("Graph type used for left y-axis if not overriden with time series property.");
 //	_graph_graphtype_JComboBox.setEnabled ( false );
+	List<String> leftyGraphTypeChoices = new ArrayList<String>();
 	for ( TSGraphType graphType: TSGraphType.values() ) {
 	    if ( graphType != TSGraphType.UNKNOWN ) {
-	        _graph_lefty_graphtype_JComboBox.addItem ( "" + graphType );
+	    	leftyGraphTypeChoices.add ( "" + graphType );
 	    }
 	}
+	_graph_lefty_graphtype_JComboBox.setData(leftyGraphTypeChoices);
 	int size = _graph_lefty_graphtype_JComboBox.getItemCount();
 	_graph_lefty_graphtype_JComboBox.addItemListener(this);
 //	_graph_graphtype_JComboBox.setEnabled(false);
@@ -2828,9 +2870,11 @@ private JPanel createSubproductJPanel ()
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_graph_barposition_JComboBox = new SimpleJComboBox( false );
 	_graph_barposition_JComboBox.setToolTipText("Indicate how to align bar with respect to date/time of time series data value.");
-	_graph_barposition_JComboBox.addItem ( "CenteredOnDate" );
-	_graph_barposition_JComboBox.addItem ( "LeftOfDate" );
-	_graph_barposition_JComboBox.addItem ( "RightOfDate" );
+	List<String> graphBarPosChoices = new ArrayList<String>();
+	graphBarPosChoices.add ( "CenteredOnDate" );
+	graphBarPosChoices.add ( "LeftOfDate" );
+	graphBarPosChoices.add ( "RightOfDate" );
+	_graph_barposition_JComboBox.setData(graphBarPosChoices);
 	JGUIUtil.addComponent ( yAxisLeftGraphType_JPanel, _graph_barposition_JComboBox,
 			1, yYAxisLeftGraphType, 1, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
@@ -2841,8 +2885,10 @@ private JPanel createSubproductJPanel ()
         _insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
     _graph_barOverlap_JComboBox = new SimpleJComboBox( false );
     _graph_barOverlap_JComboBox.setToolTipText("If True, bars will be drawn on top of each other, if False they will be drawn next to each other");
-    _graph_barOverlap_JComboBox.addItem ( "False" );
-    _graph_barOverlap_JComboBox.addItem ( "True" );
+    List<String> graphBarOverlapChoices = new ArrayList<String>();
+    graphBarOverlapChoices.add ( "False" );
+    graphBarOverlapChoices.add ( "True" );
+    _graph_barOverlap_JComboBox.setData(graphBarOverlapChoices);
     _graph_barOverlap_JComboBox.setToolTipText ( "False will display bars next to each other, " +
     	"True will display bars with first time series in back and last in front." );
     JGUIUtil.addComponent ( yAxisLeftGraphType_JPanel, _graph_barOverlap_JComboBox,
@@ -2865,11 +2911,13 @@ private JPanel createSubproductJPanel ()
 	_graph_righty_graphtype_JComboBox = new SimpleJComboBox( false );
 	_graph_righty_graphtype_JComboBox.setToolTipText("Graph type used for right y-axis if not overriden with time series property.");
 //	_graph_graphtype_JComboBox.setEnabled ( false );
+	List<String> graphRightYGraphTypeChoices = new ArrayList<String>();
 	for ( TSGraphType graphType: TSGraphType.values() ) {
 	    if ( graphType != TSGraphType.UNKNOWN ) {
-	        _graph_righty_graphtype_JComboBox.addItem ( "" + graphType );
+	    	graphRightYGraphTypeChoices.add ( "" + graphType );
 	    }
 	}
+	_graph_righty_graphtype_JComboBox.setData(graphRightYGraphTypeChoices);
 	// Make choice wide so the border label does not get cut off (can happen with short names).
 	_graph_righty_graphtype_JComboBox.setPrototypeDisplayValue("AreaStacked");
 	size = _graph_righty_graphtype_JComboBox.getItemCount();
@@ -2888,9 +2936,11 @@ private JPanel createSubproductJPanel ()
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_graph_righty_barposition_JComboBox = new SimpleJComboBox( false );
 	_graph_righty_barposition_JComboBox.setToolTipText("Indicate how to align bar with respect to date/time of time series data value.");
-	_graph_righty_barposition_JComboBox.addItem ( "CenteredOnDate" );
-	_graph_righty_barposition_JComboBox.addItem ( "LeftOfDate" );
-	_graph_righty_barposition_JComboBox.addItem ( "RightOfDate" );
+	List<String> rightYBarPosChoices = new ArrayList<String>();
+	rightYBarPosChoices.add ( "CenteredOnDate" );
+	rightYBarPosChoices.add ( "LeftOfDate" );
+	rightYBarPosChoices.add ( "RightOfDate" );
+	_graph_righty_barposition_JComboBox.setData(rightYBarPosChoices);
 	JGUIUtil.addComponent ( yAxisRightGraphType_JPanel, _graph_righty_barposition_JComboBox,
 			1, yYAxisRightGraphType, 1, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
@@ -2901,8 +2951,10 @@ private JPanel createSubproductJPanel ()
         _insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
     _graph_righty_barOverlap_JComboBox = new SimpleJComboBox( false );
     _graph_righty_barOverlap_JComboBox.setToolTipText("If True, bars will be drawn on top of each other, if False they will be drawn next to each other");
-    _graph_righty_barOverlap_JComboBox.addItem ( "False" );
-    _graph_righty_barOverlap_JComboBox.addItem ( "True" );
+    List<String> rightYBarOverlapChoices = new ArrayList<String>();
+    rightYBarOverlapChoices.add ( "False" );
+    rightYBarOverlapChoices.add ( "True" );
+    _graph_righty_barOverlap_JComboBox.setData(rightYBarOverlapChoices);
     _graph_righty_barOverlap_JComboBox.setToolTipText ( "False will display bars next to each other, " +
     	"True will display bars with first time series in back and last in front." );
     JGUIUtil.addComponent ( yAxisRightGraphType_JPanel, _graph_righty_barOverlap_JComboBox,
@@ -3028,9 +3080,11 @@ private JPanel createSubproductJPanel ()
 	_graph_bottomx_majorgrid_color_JComboBox = new SimpleJComboBox( false );
 	_graph_bottomx_majorgrid_color_JComboBox.addItemListener(this);
 	size = GRColor.COLOR_NAMES.length;
+	List<String> graphBottomGridColorChoices = new ArrayList<String>();
 	for ( int i = 0; i < size; i++ ) {
-		_graph_bottomx_majorgrid_color_JComboBox.addItem ( GRColor.COLOR_NAMES[i]);
+		graphBottomGridColorChoices.add ( GRColor.COLOR_NAMES[i]);
 	}
+	_graph_bottomx_majorgrid_color_JComboBox.setData(graphBottomGridColorChoices);
 	_graph_bottomx_majorgrid_color_JComboBox.setMaximumRowCount(
 		_graph_bottomx_majorgrid_color_JComboBox.getItemCount());
 	JGUIUtil.addComponent ( xaxes_JPanel, _graph_bottomx_majorgrid_color_JComboBox,
@@ -3145,7 +3199,7 @@ private JPanel createSubproductJPanel ()
 	JGUIUtil.addComponent ( yAxisLeftLabel_JPanel, new JLabel ("Minimum value:"),
 			0, ++yAxisLeftLabel, 1, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	List values = getPropertyChoices("LeftYAxisMin");
+	List<String> values = getPropertyChoices("LeftYAxisMin");
 	String value = getPropertyChoiceDefault("LeftYAxisMin");
 	_graph_lefty_min_JComboBox = new SimpleJComboBox(values, true);
 	_graph_lefty_min_JComboBox.select(value);
@@ -3201,8 +3255,10 @@ private JPanel createSubproductJPanel ()
 	_graph_lefty_type_JComboBox = new SimpleJComboBox ( false );
 	_graph_lefty_type_JComboBox.setToolTipText("Left y-axis type, for projecting data");
 	_graph_lefty_type_JComboBox.setEnabled ( false );
-	_graph_lefty_type_JComboBox.addItem ( "Linear" );
-	_graph_lefty_type_JComboBox.addItem ( "Log" );
+	List<String> graphLeftYTypeChoices = new ArrayList<String>();
+	graphLeftYTypeChoices.add ( "Linear" );
+	graphLeftYTypeChoices.add ( "Log" );
+	_graph_lefty_type_JComboBox.setData(graphLeftYTypeChoices);
 	JGUIUtil.addComponent (yAxisLeftType_JPanel,_graph_lefty_type_JComboBox,
 			1, yAxisLeftType, 2, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
@@ -3221,9 +3277,11 @@ private JPanel createSubproductJPanel ()
 	_graph_lefty_majorgrid_color_JComboBox = new SimpleJComboBox( false );
 	_graph_lefty_majorgrid_color_JComboBox.addItemListener(this);
 	size = GRColor.COLOR_NAMES.length;
+	List<String> graphLeftMajorGridColorChoices = new ArrayList<String>();
 	for ( int i = 0; i < size; i++ ) {
-		_graph_lefty_majorgrid_color_JComboBox.addItem ( GRColor.COLOR_NAMES[i]);
+		graphLeftMajorGridColorChoices.add ( GRColor.COLOR_NAMES[i]);
 	}
+	_graph_lefty_majorgrid_color_JComboBox.setData(graphLeftMajorGridColorChoices);
 	_graph_lefty_majorgrid_color_JComboBox.setMaximumRowCount(
 		_graph_lefty_majorgrid_color_JComboBox.getItemCount());
 	JGUIUtil.addComponent ( yAxisLeftType_JPanel, _graph_lefty_majorgrid_color_JComboBox,
@@ -3249,9 +3307,11 @@ private JPanel createSubproductJPanel ()
 	_graph_lefty_majortick_color_JComboBox = new SimpleJComboBox( false );
 	_graph_lefty_majortick_color_JComboBox.addItemListener(this);
 	size = GRColor.COLOR_NAMES.length;
+	List<String> graphLeftMajorTickColorChoices = new ArrayList<String>();
 	for ( int i = 0; i < size; i++ ) {
-		_graph_lefty_majortick_color_JComboBox.addItem ( GRColor.COLOR_NAMES[i]);
+		graphLeftMajorTickColorChoices.add ( GRColor.COLOR_NAMES[i]);
 	}
+	_graph_lefty_majortick_color_JComboBox.setData(graphLeftMajorTickColorChoices);
 	_graph_lefty_majortick_color_JComboBox.setMaximumRowCount(
 		_graph_lefty_majortick_color_JComboBox.getItemCount());
 	JGUIUtil.addComponent ( yAxisLeftType_JPanel, _graph_lefty_majortick_color_JComboBox,
@@ -3435,8 +3495,10 @@ private JPanel createSubproductJPanel ()
 	_graph_righty_type_JComboBox = new SimpleJComboBox ( false );
 	_graph_righty_type_JComboBox.setToolTipText("Right y-axis type, for projecting data");
 	_graph_righty_type_JComboBox.setEnabled ( false );
-	_graph_righty_type_JComboBox.addItem ( "Linear" );
-	_graph_righty_type_JComboBox.addItem ( "Log" );
+	List<String> graphRightYTypeChoices = new ArrayList<String>();
+	graphRightYTypeChoices.add ( "Linear" );
+	graphRightYTypeChoices.add ( "Log" );
+	_graph_righty_type_JComboBox.setData(graphRightYTypeChoices);
 	JGUIUtil.addComponent (yAxisRightType_JPanel,_graph_righty_type_JComboBox,
 			1, yAxisRightType, 2, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
@@ -3455,9 +3517,11 @@ private JPanel createSubproductJPanel ()
 	_graph_righty_majorgrid_color_JComboBox = new SimpleJComboBox( false );
 	_graph_righty_majorgrid_color_JComboBox.addItemListener(this);
 	size = GRColor.COLOR_NAMES.length;
+	List<String> graphRightMajorGridColorChoices = new ArrayList<String>();
 	for ( int i = 0; i < size; i++ ) {
-		_graph_righty_majorgrid_color_JComboBox.addItem ( GRColor.COLOR_NAMES[i]);
+		graphRightMajorGridColorChoices.add ( GRColor.COLOR_NAMES[i]);
 	}
+	_graph_righty_majorgrid_color_JComboBox.setData(graphRightMajorGridColorChoices);
 	_graph_righty_majorgrid_color_JComboBox.setMaximumRowCount(
 		_graph_righty_majorgrid_color_JComboBox.getItemCount());
 	JGUIUtil.addComponent ( yAxisRightType_JPanel, _graph_righty_majorgrid_color_JComboBox,
@@ -3483,9 +3547,11 @@ private JPanel createSubproductJPanel ()
 	_graph_righty_majortick_color_JComboBox = new SimpleJComboBox( false );
 	_graph_righty_majortick_color_JComboBox.addItemListener(this);
 	size = GRColor.COLOR_NAMES.length;
+	List<String> graphRightYMajorTickColorChoices = new ArrayList<String>();
 	for ( int i = 0; i < size; i++ ) {
-		_graph_righty_majortick_color_JComboBox.addItem ( GRColor.COLOR_NAMES[i]);
+		graphRightYMajorTickColorChoices.add ( GRColor.COLOR_NAMES[i]);
 	}
+	_graph_righty_majortick_color_JComboBox.setData(graphRightYMajorTickColorChoices);
 	_graph_righty_majortick_color_JComboBox.setMaximumRowCount(
 		_graph_righty_majortick_color_JComboBox.getItemCount());
 	JGUIUtil.addComponent ( yAxisRightType_JPanel, _graph_righty_majortick_color_JComboBox,
@@ -3531,9 +3597,11 @@ private JPanel createSubproductJPanel ()
 	_graph_datalabelposition_JComboBox.setToolTipText("Specify the label format to annotate each data point");
 	String [] positions = GRText.getTextPositions();
 	_graph_datalabelposition_JComboBox.setMaximumRowCount(positions.length);
+	List<String> graphDataLabelPosChoices = new ArrayList<String>();
 	for ( int i = 0; i < positions.length; i++ ) {
-		_graph_datalabelposition_JComboBox.addItem ( positions[i] );
+		graphDataLabelPosChoices.add ( positions[i] );
 	}
+	_graph_datalabelposition_JComboBox.setData(graphDataLabelPosChoices);
 	_graph_datalabelposition_JComboBox.select ( "Right" );
 	JGUIUtil.addComponent ( label_JPanel,_graph_datalabelposition_JComboBox,
 			1, y, 1, 1, 0, 0,
@@ -3549,12 +3617,14 @@ private JPanel createSubproductJPanel ()
 	_graph_datalabelformat_JComboBox = new SimpleJComboBox( false );
 	_graph_datalabelformat_JComboBox.addItemListener ( this );
 	String [] formats = TimeUtil.getDateTimeFormatSpecifiers ( true, true, false );
+	List<String> graphDataLabelFormatChoices = new ArrayList<String>();
 	for ( int i = 0; i < formats.length; i++ ) {
-		_graph_datalabelformat_JComboBox.addItem ( formats[i] );
+		graphDataLabelFormatChoices.add ( formats[i] );
 	}
-	_graph_datalabelformat_JComboBox.addItem ( "%v - Value" );
-	_graph_datalabelformat_JComboBox.addItem ( "%U - Units" );
-	_graph_datalabelformat_JComboBox.addItem ( "%q - Flag" );
+	graphDataLabelFormatChoices.add ( "%v - Value" );
+	graphDataLabelFormatChoices.add ( "%U - Units" );
+	graphDataLabelFormatChoices.add ( "%q - Flag" );
+	_graph_datalabelformat_JComboBox.setData(graphDataLabelFormatChoices);
 	_graph_datalabelformat_JComboBox.setMaximumRowCount( _graph_datalabelformat_JComboBox.getItemCount());
 	JGUIUtil.addComponent ( label_JPanel, _graph_datalabelformat_JComboBox,
 			2, y, 1, 1, 0, 0,
@@ -3593,16 +3663,18 @@ private JPanel createSubproductJPanel ()
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_graph_lefty_legendposition_JComboBox = new SimpleJComboBox( false );
 	_graph_lefty_legendposition_JComboBox.setToolTipText("Position of graph legend \"box\" for left y-axis data relative to the data view");
-	_graph_lefty_legendposition_JComboBox.addItem ( "Bottom" );
-	_graph_lefty_legendposition_JComboBox.addItem ( "BottomLeft" );
-	_graph_lefty_legendposition_JComboBox.addItem ( "BottomRight" );
-	_graph_lefty_legendposition_JComboBox.addItem ( "InsideLowerLeft");
-	_graph_lefty_legendposition_JComboBox.addItem ( "InsideLowerRight");
-	_graph_lefty_legendposition_JComboBox.addItem ( "InsideUpperLeft");
-	_graph_lefty_legendposition_JComboBox.addItem ( "InsideUpperRight");
-	_graph_lefty_legendposition_JComboBox.addItem ( "Left" );
-	_graph_lefty_legendposition_JComboBox.addItem ( "None" );
-	_graph_lefty_legendposition_JComboBox.addItem ( "Right" );
+	List<String> graphLeftYLegendPosChoices = new ArrayList<String>();
+	graphLeftYLegendPosChoices.add ( "Bottom" );
+	graphLeftYLegendPosChoices.add ( "BottomLeft" );
+	graphLeftYLegendPosChoices.add ( "BottomRight" );
+	graphLeftYLegendPosChoices.add ( "InsideLowerLeft");
+	graphLeftYLegendPosChoices.add ( "InsideLowerRight");
+	graphLeftYLegendPosChoices.add ( "InsideUpperLeft");
+	graphLeftYLegendPosChoices.add ( "InsideUpperRight");
+	graphLeftYLegendPosChoices.add ( "Left" );
+	graphLeftYLegendPosChoices.add ( "None" );
+	graphLeftYLegendPosChoices.add ( "Right" );
+	_graph_lefty_legendposition_JComboBox.setData(graphLeftYLegendPosChoices);
 	_graph_lefty_legendposition_JComboBox.setMaximumRowCount(_graph_lefty_legendposition_JComboBox.getItemCount());
 	// Disable for now - mainly need the option of vertical or horizontal edge for spacing...
 	//_graph_legendposition_Choice.addItem ( "Top" );
@@ -3615,16 +3687,18 @@ private JPanel createSubproductJPanel ()
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_graph_righty_legendposition_JComboBox = new SimpleJComboBox( false );
 	_graph_righty_legendposition_JComboBox.setToolTipText("Position of graph legend \"box\" for right y-axis data relative to the data view");
-	_graph_righty_legendposition_JComboBox.addItem ( "Bottom" );
-	_graph_righty_legendposition_JComboBox.addItem ( "BottomLeft" );
-	_graph_righty_legendposition_JComboBox.addItem ( "BottomRight" );
-	_graph_righty_legendposition_JComboBox.addItem ( "InsideLowerLeft");
-	_graph_righty_legendposition_JComboBox.addItem ( "InsideLowerRight");
-	_graph_righty_legendposition_JComboBox.addItem ( "InsideUpperLeft");
-	_graph_righty_legendposition_JComboBox.addItem ( "InsideUpperRight");
-	_graph_righty_legendposition_JComboBox.addItem ( "Left" );
-	_graph_righty_legendposition_JComboBox.addItem ( "None" );
-	_graph_righty_legendposition_JComboBox.addItem ( "Right" );
+	List<String> graphRightYLegendPosChoices = new ArrayList<String>();
+	graphRightYLegendPosChoices.add ( "Bottom" );
+	graphRightYLegendPosChoices.add ( "BottomLeft" );
+	graphRightYLegendPosChoices.add ( "BottomRight" );
+	graphRightYLegendPosChoices.add ( "InsideLowerLeft");
+	graphRightYLegendPosChoices.add ( "InsideLowerRight");
+	graphRightYLegendPosChoices.add ( "InsideUpperLeft");
+	graphRightYLegendPosChoices.add ( "InsideUpperRight");
+	graphRightYLegendPosChoices.add ( "Left" );
+	graphRightYLegendPosChoices.add ( "None" );
+	graphRightYLegendPosChoices.add ( "Right" );
+	_graph_righty_legendposition_JComboBox.setData(graphRightYLegendPosChoices);
 	_graph_righty_legendposition_JComboBox.setMaximumRowCount(_graph_righty_legendposition_JComboBox.getItemCount());
 	// Disable for now - mainly need the option of vertical or horizontal edge for spacing...
 	//_graph_legendposition_Choice.addItem ( "Top" );
@@ -3644,10 +3718,12 @@ private JPanel createSubproductJPanel ()
 	_graph_legendformat_JComboBox = new SimpleJComboBox( false );
 	_graph_legendformat_JComboBox.addItemListener ( this );
 	formats = TSUtil.getTSFormatSpecifiers ( true );
-	_graph_legendformat_JComboBox.addItem ( "Auto" );
+	List<String> graphLegendFormatChoices = new ArrayList<String>();
+	graphLegendFormatChoices.add ( "Auto" );
 	for ( int i = 0; i < formats.length; i++ ) {
-		_graph_legendformat_JComboBox.addItem ( formats[i] );
+		graphLegendFormatChoices.add ( formats[i] );
 	}
+	_graph_legendformat_JComboBox.setData(graphLegendFormatChoices);
 	_graph_legendformat_JComboBox.setMaximumRowCount(_graph_legendformat_JComboBox.getItemCount());
 	JGUIUtil.addComponent ( legend_JPanel, _graph_legendformat_JComboBox,
 			2, y, 1, 1, 0, 0,
@@ -3735,8 +3811,10 @@ private JPanel createSubproductJPanel ()
 	_xyscatter_analysis_method_JComboBox = new SimpleJComboBox ( false );
 	_xyscatter_analysis_method_JComboBox.setToolTipText("Regression method to develop relationship equations");
 	_xyscatter_analysis_method_JComboBox.addItemListener ( this );
-	_xyscatter_analysis_method_JComboBox.addItem("MOVE2");
-	_xyscatter_analysis_method_JComboBox.addItem("OLSRegression");
+	List<String> xyscatterMethodChoices = new ArrayList<String>();
+	xyscatterMethodChoices.add("MOVE2");
+	xyscatterMethodChoices.add("OLSRegression");
+	_xyscatter_analysis_method_JComboBox.setData(xyscatterMethodChoices);
 	_xyscatter_analysis_method_JComboBox.select("OLSRegression");
 	_xyscatter_analysis_method_JComboBox.setToolTipText(
 		"Indicate the method used to determine the line of best fit.");
@@ -3750,8 +3828,10 @@ private JPanel createSubproductJPanel ()
 	_xyscatter_analysis_transform_JComboBox = new SimpleJComboBox ( false );
 	_xyscatter_analysis_transform_JComboBox.setToolTipText("Transformation on input data before performing regression");
 	_xyscatter_analysis_transform_JComboBox.addItemListener ( this );
-	_xyscatter_analysis_transform_JComboBox.addItem("Log");
-	_xyscatter_analysis_transform_JComboBox.addItem("None");
+	List<String> xyscatterTransformChoices = new ArrayList<String>();
+	xyscatterTransformChoices.add("Log");
+	xyscatterTransformChoices.add("None");
+	_xyscatter_analysis_transform_JComboBox.setData(xyscatterTransformChoices);
 	_xyscatter_analysis_transform_JComboBox.select("None");
 	_xyscatter_analysis_transform_JComboBox.setEnabled(false);
 	_xyscatter_analysis_transform_JComboBox.setToolTipText("Indicate how to transform data before analysis." );
@@ -3766,8 +3846,10 @@ private JPanel createSubproductJPanel ()
 	_xyscatter_analysis_neqn_JComboBox.setToolTipText("Indicate whether one equation or monthly equations should be used for regression "
 		+ " - monthly will show month number on right end of line");
 	_xyscatter_analysis_neqn_JComboBox.addItemListener ( this );
-	_xyscatter_analysis_neqn_JComboBox.addItem("MonthlyEquations");
-	_xyscatter_analysis_neqn_JComboBox.addItem("OneEquation");
+	List<String> xyNeqnTransformChoices = new ArrayList<String>();
+	xyNeqnTransformChoices.add("MonthlyEquations");
+	xyNeqnTransformChoices.add("OneEquation");
+	_xyscatter_analysis_neqn_JComboBox.setData(xyNeqnTransformChoices);
 	_xyscatter_analysis_neqn_JComboBox.select("OneEquation");
 	_xyscatter_analysis_neqn_JComboBox.setToolTipText(
 		"Data can be analyzed with a single or monthly equations." );
@@ -5975,7 +6057,7 @@ private void initialize (TSViewJFrame tsview_gui, TSGraphJComponent tsgraphcanva
 	setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 	__graphJFrame = getTSViewJFrame().getViewGraphJFrame();
 
-	__annotationProviders = new ArrayList();
+	__annotationProviders = new ArrayList<String>();
 	/*
 	String prop_value = tsgraphcanvas.getTSProduct().getPropValue(
 		"Product.AnnotationProviders");
@@ -6466,7 +6548,7 @@ private void limitGraphTypes(int subproduct) {
 	else {
 	    for ( TSGraphType graphType: TSGraphType.values() ) {
 	        if ( graphType != TSGraphType.UNKNOWN ) {
-	            _graph_lefty_graphtype_JComboBox.addItem ( "" + graphType );
+	            _graph_lefty_graphtype_JComboBox.add ( "" + graphType );
 	        }
 	    }
 	}
@@ -6761,7 +6843,7 @@ protected void redisplayProperties() {
 	int nsub = _tsproduct.getNumSubProducts();
 
 	if (nsub == 0) {
-		_graph_JComboBox.addItem(NO_GRAPHS_DEFINED);
+		_graph_JComboBox.add(NO_GRAPHS_DEFINED);
 		_graph_JComboBox.select(0);
 	}
 	else {	
@@ -6774,7 +6856,7 @@ protected void redisplayProperties() {
 			if (prop_val.length() > 60) {
 				prop_val = prop_val.substring(0, 60);
 			}
-			_graph_JComboBox.addItem("" + (isub + 1) + " - " + prop_val);
+			_graph_JComboBox.add("" + (isub + 1) + " - " + prop_val);
 		}
 		_graph_JComboBox.select(_selected_subproduct);	
 	}

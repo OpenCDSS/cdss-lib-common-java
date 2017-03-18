@@ -113,7 +113,7 @@ Use to increase performance rather than hit proplist.
 */
 protected boolean _show_warning_dialog;
 
-protected List _messageLogListeners;
+protected List<MessageLogListener> _messageLogListeners;
 
 /**
 Adds a listener to the list of listeners that can respond to actions from
@@ -181,7 +181,7 @@ Returns the list of listeners that are set to respond to actions from the
 MessageLogJFrame.  The returned Vector will never be null.
 @return the list of listeners for the MessageLogJFrame.
 */
-protected List getMessageLogListeners() {
+protected List<MessageLogListener> getMessageLogListeners() {
 	if (!_initialized) {
 		initialize();
 	}
@@ -246,7 +246,7 @@ protected void initialize()
 	_status_level = new int[MAX_FILES];
 	_suffix = "";
 	_warning_level = new int[MAX_FILES];
-	_messageLogListeners = new Vector();
+	_messageLogListeners = new Vector<MessageLogListener>();
 
 	initStreams();
 
@@ -351,12 +351,6 @@ throws IOException
 			// it will be difficult to troubleshoot other issues.
 			e.printStackTrace ( _out_stream[Message.TERM_OUTPUT] );
 		}
-		throw new IOException ( message );
-	}	
-
-	if ( ofp == null ) {
-		message = "Null log file pointer for \"" + logfile + "\"";
-		Message.printWarning( 2, routine, message );
 		throw new IOException ( message );
 	}
 
@@ -805,9 +799,6 @@ protected void printWarning ( int level, String routine, Throwable e )
 				e.printStackTrace ( _out_stream[Message.LOG_OUTPUT] );
 			}
 		}
-		else {
-			printWarning ( level, routine, "null Throwable" );
-		}
 		printWarning ( level, routine, "... end of exception stack trace." );
 	}
 }
@@ -907,7 +898,7 @@ protected void setDebugLevel ( String debug_level )
 
 	// Split the argument...
 
-	List list = null;
+	List<String> list = null;
 	int nlist = 0;
 	if ( debug_level.length() > 0 ) {
 		list = StringUtil.breakStringList (debug_level, ",", 0);

@@ -147,7 +147,7 @@ throws TSException
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)_ts;
-		List alltsdata = irrts.getData();
+		List<TSData> alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
 			return;
@@ -156,7 +156,7 @@ throws TSException
 		TSData tsdata = null;
 		DateTime date = null;
 		for ( int i = 0; i < nalltsdata; i++ ) {
-			tsdata = (TSData)alltsdata.get(i);
+			tsdata = alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
 				// Past the end of where we want to go so quit...

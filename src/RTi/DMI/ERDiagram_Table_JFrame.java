@@ -28,20 +28,21 @@ ERDiagram information in it.  It was originally written to give Morgan
 information about how to setup a JWorksheet and work with it, so it 
 reads like a tutorial.
 */
+@SuppressWarnings("serial")
 public class ERDiagram_Table_JFrame extends JFrame {
 
 /**
 Constructor.
-@param tables the Vector of tables to display in the worksheet.
+@param tables the list of tables to display in the worksheet.
 */
-public ERDiagram_Table_JFrame(List tables) {
+public ERDiagram_Table_JFrame(List<ERDiagram_Table> tables) {
 	setupGUI(tables);
 }
 
 /**
 Sets up the GUI.
 */
-private void setupGUI(List tables) {
+private void setupGUI(List<ERDiagram_Table> tables) {
 	String routine = "setupGUI";
 
 	// AML:

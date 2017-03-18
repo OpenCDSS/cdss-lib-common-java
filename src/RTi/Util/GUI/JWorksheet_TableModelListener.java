@@ -20,7 +20,8 @@ public interface JWorksheet_TableModelListener {
 Called when a data value is changed.
 @param rowNumber the number of the row in which data were changed
 @param colNumber the number of the column in which data were changed
-@param value the new value.
+@param value the new value of the cell corresponding to the row and column
+(must be cast appropriately based on the table model).
 */
 public void tableModelValueChanged(int rowNumber, int colNumber, Object value);
 

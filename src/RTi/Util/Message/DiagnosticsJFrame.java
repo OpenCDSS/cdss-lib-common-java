@@ -129,6 +129,7 @@ that the log file has been set.
 <b>In the future, greater control of the log file will be added.</b>
 @see Message
 */
+@SuppressWarnings("serial")
 public class DiagnosticsJFrame extends JFrame
 implements ActionListener, ItemListener, WindowListener
 {

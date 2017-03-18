@@ -113,6 +113,7 @@ The following is an example of how to utilize this class.
 <p>
 
 */
+@SuppressWarnings("serial")
 public class ProcessManagerJDialog extends JDialog
 implements ActionListener, ProcessListener
 {

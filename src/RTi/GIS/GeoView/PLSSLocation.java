@@ -260,12 +260,12 @@ returns a PLSSLocation object with the location information filled in.
 @param locationString a concise representation of a plss location.
 @param cdssFormat whether the location representation is in CDSS Format.
 @return a PLSSLocation object with the location information filled in.
-@throws Exception if there is an eror parsing the location string or if there
+@throws Exception if there is an error parsing the location string or if there
 is a problem filling data in the location object.
 */
 public static PLSSLocation parse(String locationString, boolean cdssFormat) 
 throws Exception {
-	List v = StringUtil.breakStringList(locationString, ",", 0);
+	List<String> v = StringUtil.breakStringList(locationString, ",", 0);
 
 	if (cdssFormat) {
 		return parseCDSSLocation(locationString);
@@ -367,7 +367,7 @@ is a problem filling data in the location object.
 */
 public static PLSSLocation parseCDSSLocation(String locationString) 
 throws Exception {
-	List v = StringUtil.breakStringList(locationString, ",", 0);
+	List<String> v = StringUtil.breakStringList(locationString, ",", 0);
 
 	if (v.size() == 7) {
 		return parseOldCDSSLocation(locationString);
@@ -484,7 +484,7 @@ is a problem filling data in the location object.
 */
 public static PLSSLocation parseOldCDSSLocation(String locationString) 
 throws Exception {
-	List v = StringUtil.breakStringList(locationString, ",", 0);
+	List<String> v = StringUtil.breakStringList(locationString, ",", 0);
 	String s = null;
 
 	PLSSLocation location = new PLSSLocation();

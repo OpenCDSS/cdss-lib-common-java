@@ -41,8 +41,8 @@
 package RTi.GIS.GeoView;
 
 import java.lang.Math;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.GR.GRArc;
 import RTi.GR.GRLimits;
@@ -416,9 +416,9 @@ Get the list of available projections or null if no projections have been define
 @param type If 0, lists the available projections known to the GeoView package.
 If 1, lists the defined projections (projections that have been instantiated during processing).
 */
-public static List getProjectionNames ( int type )
+public static List<String> getProjectionNames ( int type )
 {	if ( type == 0 ) {
-		List v = new Vector ( 4 );
+		List<String> v = new ArrayList<String> ( 4 );
 		v.add ( "Geographic" );
 		v.add ( "HRAP" );
 		v.add ( "UTM" );
@@ -428,7 +428,7 @@ public static List getProjectionNames ( int type )
 		if ( _defined_projections == null ) {
 			return null;
 		}
-		List v = new Vector ( _defined_projections.length );
+		List<String> v = new ArrayList<String> ( _defined_projections.length );
 		for ( int i = 0; i < _defined_projections.length; i++ ) {
 			v.add ( _defined_projections[i] );
 		}

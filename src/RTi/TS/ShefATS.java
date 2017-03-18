@@ -26,8 +26,8 @@ package RTi.TS;
 
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.IO.DataType;
 import RTi.Util.IO.DataUnits;
@@ -53,9 +53,9 @@ series, using the time series data types.  These values can be used when calling
 writeTimeSeriesList().  A blank PE code will be assigned if
 it is not found, which will cause the time series to not be written.
 */
-public static List getPEForTimeSeries ( List tslist )
+public static List<String> getPEForTimeSeries ( List<TS> tslist )
 {	String routine = "ShefATS.getPEForTimeSeries";
-	List v = new Vector();
+	List<String> v = new ArrayList<String>();
 	int size = 0;
 	if ( tslist != null ) {
 		size = tslist.size();
@@ -63,7 +63,7 @@ public static List getPEForTimeSeries ( List tslist )
 	TS ts;
 	DataType datatype;
 	for ( int i = 0; i < size; i++ ) {
-		ts = (TS)tslist.get(i);
+		ts = tslist.get(i);
 		if ( ts == null ) {
 			v.add ( "" );
 			continue;
@@ -112,7 +112,7 @@ throws Exception
 		}
 	}
 	// Get time zones with the same characteristics...
-	List matching_tz = TZ.getMatchingDefinedTZ ( ts_tz, false );
+	List<TZ> matching_tz = TZ.getMatchingDefinedTZ ( ts_tz, false );
 	int size = 0;
 	if ( matching_tz != null ) {
 		size = matching_tz.size();
@@ -121,7 +121,7 @@ throws Exception
 	// are know.  If a match occurs, then return the matching SHEF time zone...
 	String tz_abbrev;
 	for ( int j = 0; j < size; j++ ) {
-		tz_abbrev = ((TZ)matching_tz.get(j)).getAbbreviation();
+		tz_abbrev = matching_tz.get(j).getAbbreviation();
 		for ( int i = 0; i < shef_tz.length; i++ ) {
 			if ( tz_abbrev.equalsIgnoreCase(shef_tz[i]) ) {
 				return shef_tz[i];
@@ -155,23 +155,23 @@ public static void writeTimeSeries ( TS ts, String fname, boolean append, DateTi
 	String creationDate, String duration, int hourMax, int precision )
 throws Exception
 {	// Call the fully-loaded method...
-	List v = new Vector(1);
+	List<TS> v = new ArrayList<TS>(1);
 	v.add ( ts );
-	List PEList = null, UnitsList = null, DurationList = null, AltIDList = null;
+	List<String> PEList = null, UnitsList = null, DurationList = null, AltIDList = null;
 	if ( (PE != null) && !PE.equals("") ) {
-		PEList = new Vector ( 1 );
+		PEList = new ArrayList<String>();
 		PEList.add ( PE );
 	}
 	if ( (units != null) && !units.equals("") ) {
-		UnitsList = new Vector ( 1 );
+		UnitsList = new ArrayList<String> ( 1 );
 		UnitsList.add ( units );
 	}
 	if ( (alt_id != null) && !alt_id.equals("") ) {
-		AltIDList = new Vector ( 1 );
+		AltIDList = new ArrayList<String> ( 1 );
 		AltIDList.add ( alt_id );
 	}
 	if ( (duration != null) && !duration.equals("") ) {
-		DurationList = new Vector ( 1 );
+		DurationList = new ArrayList<String> ( 1 );
 		DurationList.add ( duration );
 	}
 

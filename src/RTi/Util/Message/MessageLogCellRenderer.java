@@ -28,6 +28,7 @@ import RTi.Util.GUI.JWorksheet_AbstractExcelCellRenderer;
 /**
 This class is the cell renderer for a worksheet that displays a log file.
 */
+@SuppressWarnings("serial")
 public class MessageLogCellRenderer
 extends JWorksheet_AbstractExcelCellRenderer {
 

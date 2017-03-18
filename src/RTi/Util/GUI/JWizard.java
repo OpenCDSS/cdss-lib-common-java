@@ -85,6 +85,7 @@ be overriden is dispose of the object is not desired.<p>
 
 */
 
+@SuppressWarnings("serial")
 public class JWizard extends JFrame 
 implements ActionListener, WindowListener {
 
@@ -423,7 +424,7 @@ This function sets the information string.
 @param info string to display path icon file path
 */
 protected void setInfoString(String info) {
-	List vec = StringUtil.breakStringList(info, "\n", 0);
+	List<String> vec = StringUtil.breakStringList(info, "\n", 0);
 
         Insets NLNR_Insets = new Insets(0,7,0,7);
 

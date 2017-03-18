@@ -99,7 +99,7 @@ header will be read.
 @return List of time series of appropriate type (e.g., MonthTS, HourTS).
 @exception Exception if an error occurs during the read.
 */
-public abstract List readTimeSeriesList ( String fname,
+public abstract List<TS> readTimeSeriesList ( String fname,
 						DateTime date1, DateTime date2,
 						String req_units,
 						boolean read_data )
@@ -127,7 +127,7 @@ header will be read.
 @return List of time series of appropriate type (e.g., MonthTS, HourTS).
 @exception Exception if an error occurs during the read.
 */
-public abstract List readTimeSeriesList ( TSIdent tsident, String fname,
+public abstract List<TS> readTimeSeriesList ( TSIdent tsident, String fname,
 						DateTime date1, DateTime date2,
 						String req_units,
 						boolean read_data )

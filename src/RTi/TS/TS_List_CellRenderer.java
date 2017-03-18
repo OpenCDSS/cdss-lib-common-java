@@ -18,6 +18,7 @@ import RTi.Util.GUI.JWorksheet_DefaultTableCellRenderer;
 /**
 This class is used to render cells for TS_List_TableModel data.
 */
+@SuppressWarnings("serial")
 public class TS_List_CellRenderer extends JWorksheet_DefaultTableCellRenderer{
 
 TS_List_TableModel __table_model = null;	// Table model to render

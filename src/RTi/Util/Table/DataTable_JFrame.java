@@ -29,6 +29,7 @@ import RTi.Util.GUI.JGUIUtil;
 This class is the frame in which the panel displaying DataTable data in a
 worksheet is displayed.
 */
+@SuppressWarnings("serial")
 public class DataTable_JFrame extends JFrame
 {
 

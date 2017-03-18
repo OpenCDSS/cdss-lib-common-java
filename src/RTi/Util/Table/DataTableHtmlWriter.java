@@ -73,7 +73,7 @@ throws Exception
     HTMLWriter html = new HTMLWriter( null, htmlTitle, false );
     // Start the file and write the head section
     html.htmlStart();
-    if ( htmlTitle == null ) {
+    if ( (htmlTitle == null) || htmlTitle.isEmpty() ) {
         htmlTitle = "Time Series Summary";
     }
     writeHtmlHead(html, htmlTitle, customStyleText);
@@ -98,9 +98,9 @@ throws Exception
         Message.printWarning(3, routine, "Table has 0 columns!  Nothing will be written.");
     }
     else {
-        StringBuffer line = new StringBuffer();
+        //StringBuffer line = new StringBuffer();
     
-        int nonBlank = 0; // Number of nonblank table headings
+        //int nonBlank = 0; // Number of nonblank table headings
         html.tableStart();
         if (writeHeader) {
             // First determine if any headers are non blank
@@ -138,7 +138,7 @@ throws Exception
         for (int row = 0; row < rows; row++) {
             html.tableRowStart();
             for (int col = 0; col < nCols; col++) {
-                tableFieldType = table.getTableFieldType(col);
+                tableFieldType = table.getFieldDataType(col);
                 precision = table.getFieldPrecision(col);
                 cellObject = table.getFieldValue(row,col);
                 // TODO SAM 2010-12-18 Why not get the format from the table?

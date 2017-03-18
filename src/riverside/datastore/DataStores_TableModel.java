@@ -10,6 +10,7 @@ Table model for displaying data store data in a JWorksheet.
 This one table model is used for database and web service data stores because currently
 it is easier to show all than split out and make the user pick different categories for viewing.
 */
+@SuppressWarnings("serial")
 public class DataStores_TableModel extends JWorksheet_AbstractRowTableModel
 {
 
@@ -67,7 +68,7 @@ From AbstractTableModel.  Returns the class of the data stored in a given
 column.  All values are treated as strings.
 @param columnIndex the column for which to return the data class.
 */
-public Class getColumnClass (int columnIndex) {
+public Class<?> getColumnClass (int columnIndex) {
     switch (columnIndex) {
         // All handled as strings
         default: return String.class;

@@ -280,7 +280,7 @@ public String getShortDescription() {
 Initialize values.
 */
 private void initialize() {
-	__filters = new Vector();
+	__filters = new Vector<String>();
 }
 
 /**

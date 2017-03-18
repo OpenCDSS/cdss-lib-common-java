@@ -1,39 +1,12 @@
-// ----------------------------------------------------------------------------
-// JWorksheet_AbstractTableModel - Class from which all the 
-//	Table Models that will be used in a JWorksheet should be built.
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-// 2003-03-20	J. Thomas Sapienza, RTi	Initial version.
-// 2003-06-13	JTS, RTi		Added addRow() and deleteRow()
-// 2003-06-17	JTS, RTi		_results changed to _data
-// 2003-07-07	JTS, RTi		Added code for override cell editable
-//					status.
-// 2003-07-24	JTS, RTi		Added code for doing consecutive row
-//					reads.
-// 2003-08-25	JTS, RTi		Added getData()
-// 2003-10-10	JTS, RTi		Added getColumnToolTips().
-// 2003-10-15	JTS, RTi		Added insertRowAt().
-// 2003-10-20	JTS, RTi		Added setRowData().
-// 2003-10-22	JTS, RTi		Set _data to initially be an empty 
-//					Vector, rather than setting it to null.
-// 2003-10-27	JTS, RTi		* Added addTableModelListener().
-//					* Added removeTableModelListener().
-// 2003-11-18	JTS, RTi		Added finalize().
-// 2003-12-03	JTS, RTi		Added getFormat().
-// 2004-01-27	JTS, RTi		Added valueChanged().
-// 2005-10-20	JTS, RTi		Added shouldDoGetConsecutiveValueAt()
-//					and shouldResetGetConsecutiveValueAt().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package RTi.Util.GUI;
 
 import java.util.List;
 import java.util.Vector;
 
 import javax.swing.table.AbstractTableModel;
+
+// TODO sam 2017-03-15 Need to make the data private and set the data via a constructor,
+// and allow a constructor with no data since that may be managed in a child class.
 
 /**
 This is the class from which all the classes that will be used as 
@@ -44,7 +17,8 @@ TODO (JTS - 2006-05-25) If I could do this over, I would combine this table mode
 AbstractRowTableModel, in order to simplify things.  I don't see a very 
 good reason to require both of these, honestly.
 */
-public abstract class JWorksheet_AbstractTableModel extends AbstractTableModel {
+@SuppressWarnings("serial")
+public abstract class JWorksheet_AbstractTableModel<T> extends AbstractTableModel {
 
 /**
 Holds the sorted order of the records to be displayed.
@@ -63,7 +37,10 @@ protected int _type = -1;
 
 /**
 The worksheet that this table model works with.  This is here so that it 
-can be set by derived classes.
+can be set by derived classes.  This class provides a built-in List<T> data array
+that allows basic table model interaction, such as interacting with rows.
+If a List<T> is not appropriate for the data model, then manage the data
+in the child class and provide appropriate methods.
 TODO (JTS - 2004-11-30) remove?  subclasses may be using this ...
 TODO (JTS - 2005-03-30) no, leave in, and have it called automatically by the worksheet whenever a model
 is set in it.  add a setWorksheet() method.
@@ -71,32 +48,32 @@ is set in it.  add a setWorksheet() method.
 protected JWorksheet _worksheet;
 
 /**
-Vector of integer arrays denoting the cells whose default editability has
+List of integer arrays denoting the cells whose default editability has
 been overridden.  The int[] arrays consist of:<br><pre>
 0 - the row of the cell
 1 - the column of the cell
 2 - a 1 if the cell is editable, 0 if it is not
 </pre>
 */
-protected Vector _cellEditOverride = new Vector();
+protected List<int[]> _cellEditOverride = new Vector<int[]>();
 
 /**
 The data that will be shown in the table.
 */
-protected List _data = new Vector();
+protected List<T> _data = new Vector<T>();
 
 /**
-The Vector of table model listeners.
+The list of table model listeners.
 */
-protected Vector _listeners = new Vector();
+protected List<JWorksheet_TableModelListener> _listeners = new Vector<JWorksheet_TableModelListener>();
 
 /**
 Adds the object to the table model.
-@param o the object to add to the end of the results vector.
+@param o the object to add to the end of the results list.
 */
-public void addRow(Object o) {
+public void addRow(T o) {
 	if (_data == null) {
-		_data = new Vector();
+		_data = new Vector<T>();
 		_data.add(o);
 	}
 	else {
@@ -128,11 +105,11 @@ Removes a row's editability override and lets the normal cell editing rules take
 public void clearOverrideCellEdit(int row) {
 	int size = _cellEditOverride.size();
 
-	Vector removes = new Vector();
+	List<Integer> removes = new Vector<Integer>();
 	if (size > 0) {
 		int[] temp;
 		for (int i = 0; i < size; i++) {
-			temp = (int[])_cellEditOverride.elementAt(i);
+			temp = (int[])_cellEditOverride.get(i);
 			if (temp[0] == row) {
 				removes.add(new Integer(i));
 			}
@@ -203,7 +180,7 @@ public Object getConsecutiveValueAt(int row, int column) {
 Returns the data stored in the table model.
 @return the data stored in the table model.
 */
-public List getData() {
+public List<T> getData() {
 	return _data;
 }
 
@@ -219,9 +196,9 @@ Inserts a row at the specified position.
 @param o the object that stores a row of data.
 @param pos the position at which to insert the row.
 */
-public void insertRowAt(Object o, int pos) {
+public void insertRowAt(T o, int pos) {
 	if (_data == null) {
-		_data = new Vector();
+		_data = new Vector<T>();
 		_data.add(o);
 	}
 	else {
@@ -252,7 +229,7 @@ public void overrideCellEdit(int row, int column, boolean state) {
 	if (size > 0) {
 		int[] temp;
 		for (int i = 0; i < size; i++) {
-			temp = (int[])_cellEditOverride.elementAt(i);
+			temp = (int[])_cellEditOverride.get(i);
 			if (temp[0] == row && temp[1] == column) {
 				if (state) {
 					temp[2] = 1;
@@ -282,14 +259,14 @@ Removes a table model listener from the list of table model listeners.
 @param listener the table model listener to remove.
 */
 public void removeTableModelListener(JWorksheet_TableModelListener listener) {
-	_listeners.removeElement(listener);
+	_listeners.remove(listener);
 }
 
 /**
 Sets new data into the table model (used if many rows change at once or all-new data is to be shown.
 @param data the list of data objects to be displayed in rows of the table.
 */
-public void setNewData(List data) {
+public void setNewData(List<T> data) {
 	_data = data;
 	if (data == null) {
 		_rows = 0;
@@ -304,9 +281,9 @@ Changes a row of data by replacing the old row with the new data.
 @param o the object that stores a row of data.
 @param pos the position at which to set the data row.
 */
-public void setRowData(Object o, int pos) {
+public void setRowData(T o, int pos) {
 	if (_data == null) {
-		_data = new Vector();
+		_data = new Vector<T>();
 		_data.add(o);
 	}
 	else {
@@ -359,15 +336,16 @@ than the row that was read from last time.
 public void startNewConsecutiveRead() {}
 
 /**
-Can be called upon changing values in a table model.  Notifies all listeners
+Can be called upon changing values in a table model.  Notifies all
+JWorksheet_TableModelListener listeners
 of the change.  Will not be called automatically by the table model.
-@param row the row of the changed value
-@param col the col of the changed value
-@param value the new value.
+@param row the row (0+) of the changed value
+@param col the col (0+) of the changed value
+@param value the new value for the cell indicated by row and column.
 */
 protected void valueChanged(int row, int col, Object value) {
 	for (int i = 0; i < _listeners.size(); i++) {
-		((JWorksheet_TableModelListener)_listeners.elementAt(i)).tableModelValueChanged(row, col, value);
+		_listeners.get(i).tableModelValueChanged(row, col, value);
 	}
 }
 

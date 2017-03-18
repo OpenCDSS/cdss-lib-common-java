@@ -36,6 +36,7 @@ import RTi.Util.Message.Message;
 This class implements a JWorksheet that supports dragging data out of and 
 dropping data into.
 */
+@SuppressWarnings("serial")
 public class DragAndDropJWorksheet
 extends JWorksheet
 implements DragGestureListener, DragSourceListener, DropTargetListener, 

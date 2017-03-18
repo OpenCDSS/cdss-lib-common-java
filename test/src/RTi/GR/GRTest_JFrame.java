@@ -24,19 +24,17 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
-import RTi.GR.GRAxis;
 import RTi.GR.GRLimits;
 
 import RTi.Util.GUI.JGUIUtil;
 
 import RTi.Util.IO.PrintUtil;
 
-import RTi.Util.Message.Message;
-
 /**
 This class is a JFrame inside of which is displayed the ER Diagram for a 
 database.
 */
+@SuppressWarnings("serial")
 public class GRTest_JFrame 
 extends JFrame 
 implements WindowListener {
@@ -239,7 +237,7 @@ Does nothing.
 public void windowOpened(WindowEvent event) {}
 
 public static void main(String[] args) {
-	GRTest_JFrame g = new GRTest_JFrame();
+	//GRTest_JFrame g = new GRTest_JFrame();
 }
 
 }

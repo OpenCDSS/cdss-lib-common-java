@@ -17,6 +17,7 @@ This class is used to render cells for a generic worksheet.
 <b>For information on how to build a worksheet that uses
 generic data, see the documentation for Generic_TableModel</b>
 */
+@SuppressWarnings("serial")
 public class Generic_CellRenderer
 extends JWorksheet_AbstractExcelCellRenderer {
 

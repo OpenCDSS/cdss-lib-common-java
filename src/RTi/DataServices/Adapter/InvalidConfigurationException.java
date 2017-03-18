@@ -26,6 +26,7 @@ import RTi.DataServices.Adapter.ConfigurationFile;
  * given XML configuration file.
  * 
  */
+@SuppressWarnings("serial")
 public class InvalidConfigurationException extends Exception {
 
 /**

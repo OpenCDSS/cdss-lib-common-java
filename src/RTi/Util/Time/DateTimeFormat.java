@@ -1,7 +1,7 @@
 package RTi.Util.Time;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -655,10 +655,10 @@ given character position.  This is much more efficient.
 private void createSortedArrays() {
 	// These lists are temporary, and are used to move information from
 	// the __formatSpecifierLocations arrays into the separate ordered arrays.
-	List lengths = new Vector();
-	List locs = new Vector();
-	List regExs = new Vector();
-	List types = new Vector();
+	List<Integer> lengths = new ArrayList<Integer>();
+	List<Integer> locs = new ArrayList<Integer>();
+	List<String> regExs = new ArrayList<String>();
+	List<Integer> types = new ArrayList<Integer>();
 
 	// Move the data from the __formatSpecifierLocations arrays into the above lists.  
 
@@ -990,9 +990,9 @@ public String[] explainParseFailure(String inputString) {
 		Pattern pattern = null;
 		String etc = "";
 		String s = "";
-		List patterns = new Vector();
+		List<Pattern> patterns = new ArrayList<Pattern>();
 			// Holds the Pattern objects that are created
-		List patternStrings = new Vector();
+		List<String> patternStrings = new ArrayList<String>();
 			// Holds the regular expressions used to create the
 			// Patterns in the patterns list.
 
@@ -1395,7 +1395,7 @@ private void findFormatSpecifierOccurrences(int formatSpecifierType, int formatS
 		// The index of where the formatSpecifier was found within the string
 	int length = formatSpecifier.length();
 		// The length of the formatSpecifier
-	List locs = new Vector();
+	List<Integer> locs = new ArrayList<Integer>();
 		// Holds the locations (in Integer format) of the points within
 		// the date/time format String where the formatSpecifier can be found
 
@@ -1613,7 +1613,7 @@ followed by an example date formatted with the given format.
 */
 public static List<String> getFormatChoices(int maxInterval, int minInterval, boolean includeTZ, boolean showExample)
 {
-	List<String> choices = new Vector();
+	List<String> choices = new ArrayList<String>();
 	if (maxInterval == DateTime.PRECISION_YEAR) {	
 		if (minInterval == DateTime.PRECISION_YEAR) {
 			choices.add("yyyy");
@@ -1763,7 +1763,7 @@ public static List<String> getFormatChoices(int maxInterval, int minInterval, bo
 	}
 
 	if (includeTZ) {
-		List<String> v = new Vector();
+		List<String> v = new ArrayList<String>();
 		int size = choices.size();
 		String s = null;
 		for (int i = 0; i < size; i++) {
@@ -1777,7 +1777,7 @@ public static List<String> getFormatChoices(int maxInterval, int minInterval, bo
 	if (showExample) {
 		DateTime dt = new DateTime(DateTime.DATE_CURRENT);
 		DateTimeFormat dtf = null;
-		List<String> v = new Vector();
+		List<String> v = new ArrayList<String>();
 		int size = choices.size();
 		String s = null;
 		for (int i = 0; i < size; i++) {

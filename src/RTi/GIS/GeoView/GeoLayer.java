@@ -230,7 +230,7 @@ List of shape data.  Note that the index in the shape is used to
 cross-reference to the attribute table.  The index starts at 0, unlike the ESRI
 shapefiles, where the record numbers start at 1.
 */
-private List<GRShape> __shapes = new Vector();
+private List<GRShape> __shapes = new Vector<GRShape>();
 
 /**
 Overall limits of the layer (this can be reset using computeLimits() or may be
@@ -325,7 +325,7 @@ public Object clone() {
 	if (__shapes != null) {
 		int size = __shapes.size();
 		GRShape shape = null;
-		l.__shapes = new Vector(size);
+		l.__shapes = new Vector<GRShape>(size);
 		for (int i = 0; i < size; i++) {
 			shape = __shapes.get(i);
 			l.__shapes.add((GRShape)shape.clone());
@@ -721,7 +721,7 @@ private void initialize ( String filename, PropList props )
 {	setFileName ( filename );
 	__limits = null;
 	// Always assign some shapes so we don't have to check for null all the time...
-	__shapes = new Vector ( 100, 100 );
+	__shapes = new Vector<GRShape>();
 	__shapeType = UNKNOWN;
 	__attributeTable = null;
 	__appLayerType = "";
@@ -980,7 +980,7 @@ Set the shapes associated with the layer.  This is most often called
 when bulk manipulation of layers is occurring.
 @param shapes Shape list for the layer.
 */
-public void setShapes ( List shapes )
+public void setShapes ( List<GRShape> shapes )
 {	__shapes = shapes;
 }
 

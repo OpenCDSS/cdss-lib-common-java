@@ -14,8 +14,8 @@
 
 package RTi.GIS.GeoView;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 import RTi.GR.GRLimits;
 
 /**
@@ -42,8 +42,8 @@ Its reference window does not have a zoom history.</b>
 public class GeoViewZoomHistory 
 {
 
-private List _dataLimitsHistory;
-private List _devLimitsHistory;
+private List<GRLimits> _dataLimitsHistory;
+private List<GRLimits> _devLimitsHistory;
 private int _currentIndex;
 
 /**
@@ -51,8 +51,8 @@ Construct a zoom history.
 */
 public GeoViewZoomHistory ()
 {	_currentIndex = -1;
-	_dataLimitsHistory = new Vector (10, 10);
-	_devLimitsHistory = new Vector (10, 10);
+	_dataLimitsHistory = new ArrayList<GRLimits>();
+	_devLimitsHistory = new ArrayList<GRLimits>();
 }
 
 /**

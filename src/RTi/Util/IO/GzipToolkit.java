@@ -12,8 +12,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.zip.GZIPInputStream;
 
-import RTi.Util.Message.Message;
-
 /**
 Toolkit to work with gzip files.
 */

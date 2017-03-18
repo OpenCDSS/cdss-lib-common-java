@@ -49,6 +49,7 @@ Class to display a GeoViewJFrame.  This is a JFrame containing a GeoViewJPanel
 and a menu bar with the main GeoView interaction tools.  The events are directed
 to the GeoViewJPanel.
 */
+@SuppressWarnings("serial")
 public class GeoViewJFrame extends JFrame
 implements ActionListener, WindowListener
 {

@@ -89,6 +89,7 @@ import RTi.Util.String.StringUtil;
 /**
 Display a report in a JTextArea.  See the constructor for more information.
 */
+@SuppressWarnings("serial")
 public class ReportJFrame extends JFrame implements ActionListener, HyperlinkListener, WindowListener
 {
 

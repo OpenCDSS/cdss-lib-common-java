@@ -702,16 +702,16 @@ are split out by the interval of the starting date/time.
 private void createSeparateTimeSeries()
 {   String routine = getClass().getSimpleName() + ".createSeparateTimeSeries";
 	int interval;
-	__minute = new ArrayList();
-	__hour = new ArrayList();
-	__day = new ArrayList();
-	__month = new ArrayList();
-	__year = new ArrayList();
-	__irregularMinute = new ArrayList();
-	__irregularHour = new ArrayList();
-	__irregularDay = new ArrayList();
-	__irregularMonth = new ArrayList();
-	__irregularYear = new ArrayList();
+	__minute = new ArrayList<TS>();
+	__hour = new ArrayList<TS>();
+	__day = new ArrayList<TS>();
+	__month = new ArrayList<TS>();
+	__year = new ArrayList<TS>();
+	__irregularMinute = new ArrayList<TS>();
+	__irregularHour = new ArrayList<TS>();
+	__irregularDay = new ArrayList<TS>();
+	__irregularMonth = new ArrayList<TS>();
+	__irregularYear = new ArrayList<TS>();
 
 	for ( TS ts : __tslist ) {
 		if (ts == null) {
@@ -923,7 +923,7 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist)
 
 	// Loop through all of the different interval multipliers
 	for (int i = 0; i < count; i++) {
-		List<TS> tslistForIntervalMult = new ArrayList();
+		List<TS> tslistForIntervalMult = new ArrayList<TS>();
 		if ( interval == TimeInterval.IRREGULAR ) {
 		    for (int j = 0; j < numts; j++) {
 		        tslistForIntervalMult.add(tslist.get(j));

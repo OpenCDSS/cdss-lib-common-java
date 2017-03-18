@@ -331,7 +331,7 @@ any mouse events on the Input component.
 */
 public void addInputComponentMouseListener(MouseListener listener) {
 	if (__inputComponentMouseListeners == null) {
-		__inputComponentMouseListeners = new Vector();
+		__inputComponentMouseListeners = new Vector<MouseListener>();
 	}
 	__inputComponentMouseListeners.add(listener);
 }
@@ -373,14 +373,14 @@ public Object clone()
 
 		if ( __choiceLabelList != null ) {
 			int size = __choiceLabelList.size();
-			filter.__choiceLabelList = new Vector ( size );
+			filter.__choiceLabelList = new Vector<String>( size );
 			for ( int i = 0; i < size; i++ ) {
 				filter.__choiceLabelList.add ( __choiceLabelList.get(i) );
 			}
 		}
 		if ( __choiceInternalList != null ) {
 			int size = __choiceInternalList.size();
-			filter.__choiceInternalList = new Vector ( size );
+			filter.__choiceInternalList = new Vector<String>( size );
 			for ( int i = 0; i < size; i++ ) {
 				filter.__choiceInternalList.add ( __choiceInternalList.get(i) );
 			}
@@ -742,7 +742,7 @@ does not exist in the combo box, nothing will be done.
 */
 public void removeConstraint(String constraint) {
 	if (__removedConstraints == null) {
-		__removedConstraints = new Vector();
+		__removedConstraints = new Vector<String>();
 	}
 	__removedConstraints.add(constraint);
 }

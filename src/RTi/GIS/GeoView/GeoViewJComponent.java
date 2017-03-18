@@ -150,9 +150,8 @@ import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 
 import java.io.IOException;
-
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -203,6 +202,7 @@ This class also implements GeoViewListener.  This is typically used to allow
 a ReferenceGeoView to be enabled that calls the listener methods in this
 man GeoView.  Therefore, zoom control can occur in both GeoViews.
 */
+@SuppressWarnings("serial")
 public class GeoViewJComponent extends GRJComponentDevice
 implements GeoViewListener, MouseListener, MouseMotionListener, Printable
 {
@@ -242,11 +242,11 @@ private static final double __BORDER = 0.0;	// Border for view.
 /**
 GeoLayerViews that have been added to this GeoView for display, guaranteed to be non-null.
 */
-private List<GeoLayerView> __layerViews = new Vector();
+private List<GeoLayerView> __layerViews = new ArrayList<GeoLayerView>();
 /**
 GeoViewAnnotationRenderers to display extra information as annotations on the map.
 */
-private List<GeoViewAnnotationData> __annotationDataList = new Vector();
+private List<GeoViewAnnotationData> __annotationDataList = new ArrayList<GeoViewAnnotationData>();
 /**
 PropList for storing GeoView properties.
 */
@@ -320,7 +320,7 @@ private int __interactionMode = INTERACTION_NONE;
 /**
 List to process labels.  This is re-used throughout drawing.
 */
-private List<Object> __labelFieldVector = new Vector ( 5 );
+private List<Object> __labelFieldList = new ArrayList<Object> ( 5 );
 
 /**
 Indicates if drawing should wait.  Use this if multiple layers are being
@@ -396,7 +396,7 @@ private boolean __inPrinting = false;
 /**
 The list of other objects that need to know to repaint themselves when this object is repainted.
 */
-private List __remindedRepainters = null;
+private List<GeoViewJComponent> __remindedRepainters = null;
 
 /**
 The number of other objects that must repaint themselves when this object
@@ -733,7 +733,7 @@ drawn.  The limits are also reset to null data.
 public void deleteLayerViews ()
 {
 	__layerViews.clear();
-	__layerViews = new Vector();
+	__layerViews = new ArrayList<GeoLayerView>();
 	__dataLimits = null;
 	__maxDataLimits = null;
 	// __drawLimits are whatever is set for the current window...
@@ -1885,7 +1885,7 @@ throws Throwable
 	__drawLimits = null;
 	__grda = null;
 	_image = null;
-	__labelFieldVector = null;
+	__labelFieldList = null;
 	__layerViews = null;
 	IOUtil.nullArray(__listeners);
 	__prefix = null;
@@ -2000,14 +2000,14 @@ private String getShapeLabel ( GRShape shape, int labelSource, int labelFieldNum
 		// Get the label from the attribute table...
 		try {	
 			if ( fieldFormat != null ) {
-				__labelFieldVector.clear();
+				__labelFieldList.clear();
 				for ( int i = 0; i < labelFieldNumbers.length; i++ ) {
 					//Message.printStatus ( 2, "", "Printing \"" + attribute_table.getFieldValue(
 					//shape.index, field[i]) + "\"" );
-					__labelFieldVector.add (attributeTable.getFieldValue(shape.index, labelFieldNumbers[i]) );
+					__labelFieldList.add (attributeTable.getFieldValue(shape.index, labelFieldNumbers[i]) );
 				}
 				//Message.printStatus ( 2, "", "Formatting using \"" + field_format+"\"");
-				label = StringUtil.formatString ( __labelFieldVector, fieldFormat );
+				label = StringUtil.formatString ( __labelFieldList, fieldFormat );
 			}
 			else {
 				// Need to implement the default format here
@@ -2263,7 +2263,7 @@ private void initialize ( PropList props )
 {	__dataLimits = null;
 	__drawLimits = new GRLimits ();		// Will get set in paint().
 	__grda = null;
-	__layerViews = new Vector ( 10, 5 );	// Non-null to minimize checks.
+	__layerViews = new ArrayList<GeoLayerView>(10);	// Non-null to minimize checks.
 	__listeners = null;
 	__mousetrackerEnabled = true;
 	__selectGeoRecords = true;
@@ -2271,7 +2271,7 @@ private void initialize ( PropList props )
 	__layout.setTitle("LEGEND");
 	_waiting = false;
 
-	__remindedRepainters = new Vector();
+	__remindedRepainters = new ArrayList<GeoViewJComponent>();
 
 	// Make sure we have a non-null PropList...
 
@@ -2538,7 +2538,7 @@ public void mouseReleased ( MouseEvent event )
 				// Assume they want the original point...
 				GRPoint devpt = new GRPoint ( (double)__mouseX1, (double)__mouseY1 );
 				GRPoint datapt = __grda.getDataXY ( __mouseX1, __mouseY1, GRDrawingArea.COORD_DEVICE );
-				List records = null;
+				List<GeoRecord> records = null;
 				if ( __listeners != null ) {
 					if ( __selectGeoRecords ) {
 						records = selectGeoRecords ( datapt, null, __interactionMode, event.isControlDown() );
@@ -2625,7 +2625,7 @@ public void mouseReleased ( MouseEvent event )
 		// Call the listener (or should this happen after the paint?)...
 		if ( (__interactionMode == INTERACTION_SELECT) || (__interactionMode == INTERACTION_INFO) ) {
 			// Just return the select information..
-			List records = null;
+			List<GeoRecord> records = null;
 			if ( __listeners != null ) {
 				try {
 					if ( __selectGeoRecords ) {
@@ -3280,7 +3280,7 @@ previously selected and is now deselecting).
 */
 public List<GeoRecord> selectGeoRecords ( GRShape selectShape, List<String> appLayerTypes,
 	int interaction_mode, boolean append )
-{	List<GeoRecord> records = new Vector ( 10, 10 );
+{	List<GeoRecord> records = new ArrayList<GeoRecord>(10);
 	GeoLayer layer = null;
 	List<GRShape> shapes = null;
 	int nshapes = 0;
@@ -3929,7 +3929,7 @@ public void drawLegend() {
 		__legendDataLimits.getWidth(), __legendDataLimits.getHeight());
 	GRDrawingAreaUtil.setLineWidth(__grda, 1);
 
-	List nodes = __legendJTree.getAllNodes();
+	List<SimpleJTree_Node> nodes = __legendJTree.getAllNodes();
 	int size = nodes.size();
 
 	// keeps track of the nodes that can be skipped in doing the 
@@ -3947,7 +3947,7 @@ public void drawLegend() {
 
 	// first get the size of the largest symbol so the offset for text can be determined
 	for (int i = 0; i < size; i++) {
-		node = (SimpleJTree_Node)nodes.get(i);
+		node = nodes.get(i);
 		if (__layout.findNode(node) > -1) {
 			// if the node is found in the layout, check to see
 			// whether it should be skipped or not.
@@ -3997,10 +3997,10 @@ public void drawLegend() {
 	String[] legendLines = new String[textLines + 1];
 	// a list that holds all the heights of the rows, used to know how
 	// to finally draw the legend
-	List rowHeightsV = new Vector();
+	List<Double> rowHeightsV = new ArrayList<Double>();
 
 	for (int i = 0; i < size; i++) {
-		node = (SimpleJTree_Node)nodes.get(i);
+		node = nodes.get(i);
 		if (node instanceof GeoViewLegendJTree_Node) {
 			keepSkipping = false;
 			if (skippedNodes[i]) {
@@ -4026,7 +4026,7 @@ public void drawLegend() {
 			rowHeightsV.add(new Double(maxRowHeight));
 
 			// determine the width of the line -- the legend
-			// must accomodate the widest text that will appear in it
+			// must accommodate the widest text that will appear in it
 			legendNode = (GeoViewLegendJTree_Node)node;
 			limits = GRDrawingAreaUtil.getTextExtents(__grda, legendNode.getFieldText(), GRUnits.DEVICE);
 			maxRowHeight = limits.getHeight();
@@ -4072,7 +4072,7 @@ public void drawLegend() {
 		}
 	}
 
-	// by this point, maxRowHeight has alreayd been 
+	// by this point, maxRowHeight has already been 
 	// calculated for the last label node and its
 	// children, or is 0.  Increase the legend height by ts value
 	height += maxRowHeight;
@@ -4083,7 +4083,7 @@ public void drawLegend() {
 	int rowHeightsVSize = rowHeightsV.size();
 	double[] rowHeights = new double[rowHeightsVSize];
 	for (int i = 0; i < rowHeightsVSize; i++) {
-		rowHeights[i] =((Double)rowHeightsV.get(i)).doubleValue();
+		rowHeights[i] = rowHeightsV.get(i).doubleValue();
 	}
 
 	// now add spaces.  Spaces go between every line, between the symbols
@@ -4101,7 +4101,7 @@ public void drawLegend() {
 
 	// get the Legend title -- if none has been set up the default is
 	// "LEGEND" -- and determine how much height will need added to the
-	// legend to accomodate it.  Also see if its width means the width 
+	// legend to accommodate it.  Also see if its width means the width 
 	// of the legend will need adjusted
 	String LEGEND_TITLE = __layout.getTitle();
 	limits = GRDrawingAreaUtil.getTextExtents(__grda, LEGEND_TITLE,

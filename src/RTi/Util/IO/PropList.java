@@ -251,9 +251,9 @@ TODO (JTS - 2003-10-27) Later, add in support for cloning of props that have dat
 public PropList(PropList props) {
 	// in the order of the data members above ...
 	
-	setPropListName(new String(props.getPropListName()));
+	setPropListName(props.getPropListName());
 
-	__list = new Vector(100, 10);
+	__list = new Vector<Prop>();
 	// duplicate all the props
 	int size = props.size();
 	Prop prop = null;
@@ -506,7 +506,7 @@ public List<Prop> getPropsMatchingRegExp ( String regExp )
 		return null;
 	}
 	int size = __list.size();
-	List<Prop> props = new Vector ();
+	List<Prop> props = new Vector<Prop>();
 	Prop prop;
 	for ( int i = 0; i < size; i++ ) {
 		prop = __list.get(i);
@@ -677,7 +677,7 @@ private void initialize ( String listName, String persistentName, int persistent
 	    __persistentName = persistentName;
 	}
 	__persistentFormat = persistentFormat;
-	__list = new Vector (20,10);	// A vector of Prop
+	__list = new Vector<Prop>();
 	__lastLineNumberRead = 0;
 }
 
@@ -943,13 +943,13 @@ throws IOException
                 }
         		continue;
         	}
-        	v = new Vector(2);
+        	v = new Vector<String>(2);
         	v.add ( line.substring(0,pos) );
         	v.add ( line.substring(pos + 1) );
         
         	if ( v.size() == 2 ) {
-        		name = prefix + (v.get(0)).trim();
-        		value = (v.get(1)).trim();
+        		name = prefix + v.get(0).trim();
+        		value = v.get(1).trim();
         		length = value.length();
         		if ( (length > 1) && ((value.charAt(0) == '"') || (value.charAt(0) == '\'') &&
         			(value.charAt(0) == value.charAt(length-1))) ) {
@@ -1403,13 +1403,13 @@ throws Exception {
 	String key = null;
 	String msg = null;
 	String val = null;
-	List<String> warnings = new Vector();
+	List<String> warnings = new Vector<String>();
 	
 	// Iterate through all the properties in the PropList and check for
 	// whether they are valid, invalid, or deprecated.
 
-	List<String> invalids = new Vector();
-	List<String> deprecateds = new Vector();
+	List<String> invalids = new Vector<String>();
+	List<String> deprecateds = new Vector<String>();
 	
 	String removeInvalidString = "";
 	if ( removeInvalid ) {

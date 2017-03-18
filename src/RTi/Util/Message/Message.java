@@ -287,10 +287,10 @@ public static String getLogFile ()
 
 /**
 Returns the list of listeners that are set to respond to actions from the
-MessageLogJFrame.  The returned Vector will never be null.
+MessageLogJFrame.  The returned list will never be null.
 @return the list of listeners for the MessageLogJFrame.
 */
-public static List getMessageLogListeners() {
+public static List<MessageLogListener> getMessageLogListeners() {
 	return impl.getMessageLogListeners();
 }
 

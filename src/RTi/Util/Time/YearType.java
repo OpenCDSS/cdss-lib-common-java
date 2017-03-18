@@ -1,7 +1,7 @@
 package RTi.Util.Time;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 /**
 Year types, which indicate the span of months that define a year.  For example "Water Year" is often
@@ -120,7 +120,7 @@ Get the list of year types.
 */
 public static List<YearType> getYearTypeChoices()
 {
-    List<YearType> choices = new Vector();
+    List<YearType> choices = new ArrayList<YearType>();
     choices.add ( YearType.CALENDAR );
     choices.add ( YearType.NOV_TO_OCT );
     choices.add ( YearType.WATER );
@@ -134,7 +134,7 @@ Get the list of year types.
 public static List<String> getYearTypeChoicesAsStrings()
 {
     List<YearType> choices = getYearTypeChoices();
-    List<String> stringChoices = new Vector();
+    List<String> stringChoices = new ArrayList<String>();
     for ( int i = 0; i < choices.size(); i++ ) {
         YearType choice = choices.get(i);
         String choiceString = "" + choice;

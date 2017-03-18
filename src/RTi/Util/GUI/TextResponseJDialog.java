@@ -56,6 +56,7 @@ import java.util.List;
 
 import RTi.Util.String.StringUtil;
 
+@SuppressWarnings("serial")
 public class TextResponseJDialog extends JDialog
 implements ActionListener, KeyListener, WindowListener {
 
@@ -167,7 +168,7 @@ String text ) {
 	// Split the text based on the new-line delimiter (we use \n, not the
 	// platform's separator!
 
-	List vec = StringUtil.breakStringList ( label, "\n", 0 );
+	List<String> vec = StringUtil.breakStringList ( label, "\n", 0 );
 
 	if ( vec != null ) {
 		// Add each string...

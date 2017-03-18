@@ -17,6 +17,7 @@ package RTi.Util.IO;
 The InvalidCommandSyntaxException should be thrown when a Command's syntax
 is invalid (e.g., mismatched parentheses or quotes).
 */
+@SuppressWarnings("serial")
 public class InvalidCommandSyntaxException extends Exception
 {
 

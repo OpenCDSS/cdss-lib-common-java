@@ -1,7 +1,7 @@
 package RTi.TS;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 /**
 Exceedance probability analysis.  The original time series data are processed to
@@ -20,7 +20,7 @@ private TSEnsemble __ensemble = null;
 /**
 The input time series used to compute the exceedance probability time series.
 */
-private List<TS> __tsList = new Vector();
+private List<TS> __tsList = new ArrayList<TS>();
 
 /**
 The exceedance probabilities to calculate output time series.
@@ -30,17 +30,7 @@ private double [] __probabilities = new double[0];
 /**
 The time series that correspond to the exceedance probabilities.
 */
-private List<TS> __probtsList = new Vector();
-
-/**
-The time series containing the minimum values from each sample date/time.
-*/
-private TS __mints = null;
-
-/**
-The time series containing the maximum values from each sample date/time.
-*/
-private TS __maxts = null;
+private List<TS> __probtsList = new ArrayList<TS>();
     
 /**
 Construct an exceedance probability analysis from an ensemble.
@@ -57,10 +47,10 @@ public TSExceedanceProbabilityAnalysis ( TSEnsemble ensemble, double [] probabil
     }
     __probabilities = probabilities;
     if ( __probabilities == null ) {
-        __probtsList = new Vector();
+        __probtsList = new ArrayList<TS>();
     }
     else {
-        __probtsList = new Vector(__probabilities.length);
+        __probtsList = new ArrayList<TS>(__probabilities.length);
     }
     
     analyze();

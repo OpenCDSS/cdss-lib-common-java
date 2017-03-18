@@ -1,15 +1,16 @@
 package RTi.Util.Test;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.io.File;
 
 public class TestCollector
 {
-	private ArrayList tests;
+	private List<String> tests;
 	
 public TestCollector()
 {
-	tests = new ArrayList();
+	tests = new ArrayList<String>();
 }
 	
 public void visitAllFiles(File dir) {
@@ -63,7 +64,7 @@ public String formatFileName(String testCase)
 		return fName;
 }
 
-public ArrayList getTestList()
+public List<String> getTestList()
 {
 	return tests;
 }

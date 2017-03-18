@@ -21,24 +21,24 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
 import RTi.Util.GUI.JGUIUtil;
-import RTi.Util.Message.Message;
 
 /**
 A panel to hold a list of GeoViewAnnotationData, to allow interaction such as clearing the list
 of annotations.
 */
+@SuppressWarnings("serial")
 public class GeoViewAnnotationDataListJPanel extends JPanel implements ActionListener
 {
 
 /**
 The JList that manages the list of annotations (labels).
 */
-private JList __annotationJList = null;
+private JList<String> __annotationJList = null;
 
 /**
 Data for the list.
 */
-private DefaultListModel __annotationJListModel = new DefaultListModel();
+private DefaultListModel<String> __annotationJListModel = new DefaultListModel<String>();
 
 /**
 Indicate whether the component should be set invisible when the list is empty.
@@ -76,7 +76,7 @@ public GeoViewAnnotationDataListJPanel ( List<GeoViewAnnotationData> annotationD
 	this.setBorder(BorderFactory.createTitledBorder("Annotations"));
 	int y = 0;
 	Insets insetsTLBR = new Insets ( 0, 0, 0, 0 );
-	__annotationJList = new JList();
+	__annotationJList = new JList<String>();
 	if ( annotationDataList != null ) {
 		setAnnotationData ( annotationDataList );
 	}
@@ -165,7 +165,7 @@ public void setAnnotationData ( List<GeoViewAnnotationData> annotationDataList )
 	}
 	// Sort the array before adding
 	Collections.sort(annotationLabelList);
-	__annotationJListModel = new DefaultListModel();
+	__annotationJListModel = new DefaultListModel<String>();
 	for ( String annotationLabel: annotationLabelList ) {
 		__annotationJListModel.addElement(annotationLabel);
 	}

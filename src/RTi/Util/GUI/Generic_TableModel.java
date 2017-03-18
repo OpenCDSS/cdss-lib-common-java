@@ -240,7 +240,7 @@ throws Throwable {
 Returns the class of the data stored in a given column.
 @param column the column for which to return the data class.
 */
-public Class getColumnClass (int column) {
+public Class<?> getColumnClass (int column) {
 	return __classes[column];
 }
 

@@ -55,7 +55,6 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 
 import java.io.File;
-
 import java.util.List;
 import java.util.Vector;
 
@@ -122,6 +121,7 @@ topic to help documentation writers.
 
 @see URLHelp
 */
+@SuppressWarnings("serial")
 public class URLHelpJFrame extends JFrame
 implements ActionListener, KeyListener, MouseListener, ListSelectionListener {
 
@@ -141,7 +141,7 @@ private SimpleJButton	__getHelpButton;
 private SimpleJButton	__browser_selectButton;
 private SimpleJButton	__index_selectButton;
 
-private JList		__topicJList;
+private JList<String> __topicJList;
 
 private boolean		__dataRefreshedOnce = false;
 
@@ -401,15 +401,16 @@ private void openGUI ( int mode )
 				0, y, 8, 1, 1, 0, TLNR,
 				GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 	
-	List data = URLHelp.getData();
+	List<URLHelpData> data = URLHelp.getData();
 	// We create the list no matter what here so there is a list to work
 	// with later.  The "refresh" is used to reset the list...
 	if ( (data == null) || (mode != JGUIUtil.GUI_VISIBLE) ) {
 		// There is no help index available.  Add a list with one
 		// item that has "No topics available"...
-		Vector v = new Vector();
+		Vector<String> v = new Vector<String>(1);
 		v.add(__NO_TOPICS);
-		__topicJList = new JList (v);
+		__topicJList = new JList<String>();
+		__topicJList.setListData(v);
 		JGUIUtil.addComponent(	topics_JPanel, 
 			new JScrollPane(__topicJList),
 					0, ++y, 8, 1, 1, 1, NLBR,
@@ -417,9 +418,9 @@ private void openGUI ( int mode )
 	}
 	else {	// Add a list that has all the help topics shown...
 		// Wait until refresh to fill!
-		Vector v = new Vector();
+		Vector<String> v = new Vector<String>();
 		v.add(__NO_TOPICS);		
-		__topicJList = new JList ();
+		__topicJList = new JList<String>();
 		JGUIUtil.addComponent(	topics_JPanel, 
 			new JScrollPane(__topicJList), 0, ++y, 8, 1, 1, 1, 
 			NLBR, GridBagConstraints.BOTH, GridBagConstraints.WEST );
@@ -561,19 +562,19 @@ private void refresh ( boolean flag )
 		}
 		// Now reset the list.  By this point, there will be something
 		// in the list so we just clear all and add again...
-		List data = URLHelp.getData();
+		List<URLHelpData> data = URLHelp.getData();
 		if ( data != null ) {
 			__topicJList.removeAll();
 			__getHelpButton.setEnabled ( false );
 			if ( data.size() < 1 ) {
-				Vector v = new Vector();
+				Vector<String> v = new Vector<String>();
 				v.add(__NO_TOPICS);
 				__topicJList.setListData(v);
 			}
 			else {	URLHelpData idata = null;
-				Vector v = new Vector();
+				Vector<String> v = new Vector<String>();
 				for ( int i = 0; i < data.size(); i++ ) {
-					idata = (URLHelpData)data.get(i);
+					idata = data.get(i);
 					// At some point we may want to allow
 					// display of things other than the
 					// topic, sort the topics, etc.

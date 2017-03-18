@@ -876,7 +876,7 @@ public static double [] findNLabels ( double xmin0, double xmax0,
 	//int nlabels_i = nlabels_mid;
 	int nlabels_i = maxl;
 	// Break out below...
-	for ( int trycount = 0; ; trycount++ ) {
+	while ( true ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, "GRAxis.findNLabels", "Trying to find " + nlabels_i + " labels" );
 		}

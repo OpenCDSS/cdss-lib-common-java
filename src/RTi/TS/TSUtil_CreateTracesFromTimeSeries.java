@@ -1,7 +1,7 @@
 package RTi.TS;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
@@ -154,9 +154,9 @@ throws IrregularTimeSeriesNotSupportedException, Exception
         Message.printStatus ( 2, routine, "Reference date is " + ReferenceDate_DateTime2 );
     //}
 
-    // Allocate the Vector for traces...
+    // Allocate the list for traces...
 
-    List<TS> tslist = new Vector ();
+    List<TS> tslist = new ArrayList<TS>();
     
     // Allocate start dates for the input and output time series by copying the reference date.
     // The precision and position within the year will therefore be correct.  Set the year below

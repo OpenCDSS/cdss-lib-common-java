@@ -307,7 +307,6 @@ public void createTranslationFile ( String encoding,
 	BufferedReader br = new BufferedReader( isr );
 	String string;
 	String unicode_str;
-	int count = 0;
 
 	String eng_word = null;
 	String russ_unicode = null;	// Call it "russ" for Russian but can
@@ -451,7 +450,6 @@ public void createTranslationFile ( String encoding,
 			}
 		}
 		*/
-		++count;
 	}
 	br.close();
 	pw.close();
@@ -500,7 +498,7 @@ throws Exception {
 	String translated_right_str = null;
 	String left_of_equals_str = null;
 	String right_of_equals_str = null;
-	List v=null;
+	List<String> v=null;
 	while ( true ) {
 		s = br.readLine();
 		if ( s == null ) {
@@ -546,9 +544,7 @@ throws Exception {
 	}
 
 	//clean up
-	br = null;
-	isr = null;
-	fis = null;
+	fis.close();
 }
 
 /**

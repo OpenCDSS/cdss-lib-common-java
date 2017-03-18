@@ -20,13 +20,13 @@ import javax.swing.SwingConstants;
 
 import RTi.Util.GUI.JWorksheet;
 import RTi.Util.GUI.JWorksheet_AbstractExcelCellRenderer;
-import RTi.Util.Message.Message;
 
 import RTi.Util.String.StringUtil;
 
 /**
 This class is a cell renderer for cells in DataTable JWorksheets.
 */
+@SuppressWarnings("serial")
 public class DataTable_CellRenderer 
 extends JWorksheet_AbstractExcelCellRenderer {
 

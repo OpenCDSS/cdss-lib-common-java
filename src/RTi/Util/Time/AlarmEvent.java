@@ -4,6 +4,7 @@ package RTi.Util.Time;
 
 import java.util.EventObject;
 
+@SuppressWarnings("serial")
 public class AlarmEvent extends EventObject
 {
 

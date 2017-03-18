@@ -95,6 +95,7 @@ The command/process count can then be processed and an appropriate
 action taken (e.g., the command can be highlighted).</li> 
 </ol>
 */
+@SuppressWarnings("serial")
 public class MessageLogJDialog
 extends JDialog
 implements WindowListener {

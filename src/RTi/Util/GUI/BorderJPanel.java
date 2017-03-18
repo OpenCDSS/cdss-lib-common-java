@@ -25,6 +25,7 @@ Instances of BorderJPanel are useful for use with TabbedPane because the
 TabbedPane itself does not draw a line around the body of the tabs (only the top).<p>
 TODO (JTS - 2003-11-14) this class can probably be eliminated in favor of using Swing's BorderFactory.
 */
+@SuppressWarnings("serial")
 public class BorderJPanel extends JPanel 
 {
 

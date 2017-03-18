@@ -45,10 +45,10 @@ private boolean _dirty = false;		// Indicates if data have been modified.
 Default constructor.  Initialize with missing data for the number of rows
 shown (data are stored with the number of rows being equal to the number of
 patterns and the columns being the number of months (12).
-@param indicators Vector of indicator strings (e.g., "WET", "DRY", "AVG").
+@param indicators list of indicator strings (e.g., "WET", "DRY", "AVG").
 @param ts Time series to analyze.
 */
-public TSPatternStats ( List indicators, TS ts )
+public TSPatternStats ( List<String> indicators, TS ts )
 {	initialize ( indicators, ts, null );
 }
 
@@ -56,11 +56,11 @@ public TSPatternStats ( List indicators, TS ts )
 Initialize with missing data for the number of rows shown (data are stored with
 the number of rows being equal to the number of patterns and the columns being
 the number of months (12).
-@param indicators Vector of indicator strings (e.g., "WET", "DRY", "AVG").
+@param indicators list of indicator strings (e.g., "WET", "DRY", "AVG").
 @param ts Time series to analyze.
 @param pattern_ts Existing pattern time series.
 */
-public TSPatternStats ( List indicators, TS ts, TS pattern_ts )
+public TSPatternStats ( List<String> indicators, TS ts, TS pattern_ts )
 {	initialize ( indicators, ts, pattern_ts );
 }
 
@@ -136,11 +136,11 @@ throws TSException
 
 /**
 Initialize the data.
-@param indicators Vector of indicator strings (e.g., "WET", "DRY", "AVG").
+@param indicators list of indicator strings (e.g., "WET", "DRY", "AVG").
 @param ts Time series to analyze.
 @param pattern_ts Existing pattern time series.
 */
-private void initialize ( List indicators, TS ts, TS pattern_ts )
+private void initialize ( List<String> indicators, TS ts, TS pattern_ts )
 {	_num_indicators = indicators.size();
 	_average = new double[_num_indicators][12];
 	_sum = new double[_num_indicators][12];

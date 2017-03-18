@@ -19,8 +19,8 @@ package RTi.Util.IO;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.Message.Message;
 
@@ -54,7 +54,7 @@ private boolean __saveOutput = false;
 /**
 The list of output returned with getOutputList().
 */
-private List __outputList = new Vector();
+private List<String> __outputList = new ArrayList<String>();
 
 /**
 Label with which to prefix all logged output.
@@ -95,7 +95,7 @@ throws Throwable {
 Return the output list.
 @return the output list.
 */
-public List getOutputList()
+public List<String> getOutputList()
 {
     return __outputList;
 }
@@ -104,7 +104,7 @@ public List getOutputList()
 Start consuming the stream.  Data will be read until a null is read, at which time the thread will expire.
 */
 public void run ()
-{	String routine = "StreamConsumer.run";
+{	//String routine = "StreamConsumer.run";
     try {
         BufferedReader br = new BufferedReader(	new InputStreamReader (__is) );
         String line;

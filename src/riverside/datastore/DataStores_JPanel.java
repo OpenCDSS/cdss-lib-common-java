@@ -17,6 +17,7 @@ import RTi.Util.Message.Message;
 /**
 Panel to contain the JWorksheet that displays data stores data.
 */
+@SuppressWarnings("serial")
 public class DataStores_JPanel extends JPanel
 {
 

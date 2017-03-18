@@ -47,8 +47,9 @@
 package	RTi.Util.Time;
 
 import RTi.Util.Message.Message;
+
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 /**
 TODO SAM 2016-03-11 need to use built-in java.util.TimeZone and Java 8 time API.
@@ -72,7 +73,7 @@ public class TZ
 // Time zone data for common time zones.  If anything more than basic
 // information is needed, will need to add code to read from some type of time
 // zone database.  Use a Vector so that new time zones can be added on the fly.
-private static List TZData = new Vector(66);
+private static List<TZ> TZData = new ArrayList<TZ>(66);
 static {
 	TZData.add ( new TZ( "", "", 0, 0, 0 ) );
 	TZData.add ( new TZ( "GMT", "Greenwich Mean Time", 0, 0, 0 ));
@@ -625,10 +626,10 @@ throws Exception
 }
 
 /**
-Return the Vector of defined time zones as TZ.
-@return The Vector of defined time zone data.
+Return the list of defined time zones as TZ.
+@return The list of defined time zone data.
 */
-public static List getDefinedTimeZones()
+public static List<TZ> getDefinedTimeZones()
 {	return TZData;
 }
 
@@ -732,9 +733,9 @@ recommended to use this value unless specifically looking for generic
 time zones, for example to display as a list of choices).
 @exception Exception if the time zone cannot be determined.
 */
-public static List getMatchingDefinedTZ ( int zulu_offset_minutes, int dsflag )
+public static List<TZ> getMatchingDefinedTZ ( int zulu_offset_minutes, int dsflag )
 throws Exception
-{	List matches = new Vector();
+{	List<TZ> matches = new ArrayList<TZ>();
 	int size = TZData.size();
 	TZ tz2 = null;
 	for ( int i = 0; i < size; i++ ) {
@@ -760,19 +761,17 @@ time zone, not just the string.
 @param include_self If true, include the original time zone.  If false, do not include.
 @exception Exception if the time zone cannot be determined.
 */
-public static List getMatchingDefinedTZ ( String abbr, boolean include_self )
+public static List<TZ> getMatchingDefinedTZ ( String abbr, boolean include_self )
 throws Exception
 {	TZ tz = getDefinedTZ ( abbr );
-	List matches = new Vector();
+	List<TZ> matches = new ArrayList<TZ>();
 	int size = TZData.size();
 	TZ tz2 = null;
 	for ( int i = 0; i < size; i++ ) {
 		tz2 = (TZ)TZData.get(i);
 		// Comparison is done on data, not the abbreviation...
 		if ( tz2.equals(tz) ) {
-			if (	include_self ||
-				!tz.getAbbreviation().equalsIgnoreCase(
-				tz2.getAbbreviation()) ) {
+			if ( include_self || !tz.getAbbreviation().equalsIgnoreCase(tz2.getAbbreviation()) ) {
 				matches.add ( tz2 );
 			}
 		}

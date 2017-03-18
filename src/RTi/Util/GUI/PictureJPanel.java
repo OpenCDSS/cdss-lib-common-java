@@ -26,6 +26,7 @@ import RTi.Util.Message.Message;
 /**
 PictureJPanel is a JPanel that displays an Image.
 */
+@SuppressWarnings("serial")
 public class PictureJPanel extends JPanel {	
 
 /**

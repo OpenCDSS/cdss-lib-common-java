@@ -33,6 +33,7 @@ import javax.swing.JLabel;
 This class implements a JLabel that supports dragging String data from and 
 dropping String data onto.
 */
+@SuppressWarnings("serial")
 public class DragAndDropJLabel
 extends JLabel
 implements DragGestureListener, DragSourceListener, DropTargetListener, 
