@@ -258,9 +258,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Vector;
 
-import RTi.Util.IO.CommandLogRecord;
-import RTi.Util.IO.CommandProcessorRequestResultsBean;
-import RTi.Util.IO.CommandStatusType;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
@@ -270,6 +267,7 @@ import RTi.Util.Time.TimeInterval;
 /**
 This class is the base class for all time series classes.
 */
+@SuppressWarnings("serial")
 public class TS implements Cloneable, Serializable, Transferable
 {
 
@@ -500,10 +498,7 @@ Copy constructor.  Only the header is copied since derived classes should copy t
 @see #copyHeader
 */
 public TS ( TS ts )
-{	if ( this == null ) {
-		return;
-	}
-	copyHeader ( this );
+{	copyHeader ( this );
 }
 
 /**
@@ -1130,7 +1125,7 @@ public String formatLegend ( String format, boolean update_ts )
 			}
 			else if ( c == 'b' ) {
 				// Data interval base...
-				buffer.append ( TimeInterval.getName( _id.getIntervalBase()) );
+				buffer.append ( TimeInterval.getName( _id.getIntervalBase(),1) );
 			}
 			else if ( c == 'D' ) {
 				// Description...

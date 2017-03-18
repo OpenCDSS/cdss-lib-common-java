@@ -28,6 +28,7 @@ import RTi.Util.GUI.SimpleJButton;
  * This may be appropriate when the user is well-versed in the command syntax.
  * @author sam
  */
+@SuppressWarnings("serial")
 public class CommandAsText_JDialog extends JDialog
 implements ActionListener, KeyListener, WindowListener
 {

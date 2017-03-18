@@ -3,6 +3,7 @@ package RTi.TS;
 /**
 This exception should be thrown when a method requires that time intervals be equal for processing.
 */
+@SuppressWarnings("serial")
 public class UnequalTimeIntervalException extends RuntimeException
 {
 

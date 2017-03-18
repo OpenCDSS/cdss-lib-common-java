@@ -966,8 +966,8 @@ throws Exception
 			ts_has_data_flag = new boolean[numts];
 			ts_data_flag_length = new int[numts];
 			for ( int ia = 0; ia < numts; ia++ ) {
-				dataflag = ((String)dataflag_v.get(ia)).trim();
-				List v = StringUtil.breakStringList (	dataflag,",",0);
+				dataflag = dataflag_v.get(ia).trim();
+				List<String> v = StringUtil.breakStringList (	dataflag,",",0);
 				size = 0;
 				if ( v != null ) {
 					size = v.size();
@@ -978,7 +978,7 @@ throws Exception
 					continue;
 				}
 				// If the first value is "true", assume that the data flag is used...
-				if ( ((String)v.get(0)).trim().equalsIgnoreCase("true") ) {
+				if ( v.get(0).trim().equalsIgnoreCase("true") ) {
 					ts_has_data_flag[ia] = true;
 				}
 				else {
@@ -2222,7 +2222,8 @@ throws Exception
 	Object o = props.getContents("OutputComments");
 	if ( o != null ) {
 	    // Write additional comments that were passed in
-	    List<String> comments = (List<String>)o;
+	    @SuppressWarnings("unchecked")
+		List<String> comments = (List<String>)o;
 	    int commentSize = comments.size();
 	    if ( commentSize > 0 ) {
     	    for ( int iComment = 0; iComment < commentSize; iComment++ ) {

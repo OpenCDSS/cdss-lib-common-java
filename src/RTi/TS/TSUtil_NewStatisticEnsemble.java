@@ -1,7 +1,7 @@
 package RTi.TS;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
@@ -338,7 +338,7 @@ These strings are suitable for listing in a user interface.  The statistics are
 listed in ascending alphabetical order.
 */
 public static List<TSStatisticType> getStatisticChoices ()
-{   List<TSStatisticType> statistics = new Vector();
+{   List<TSStatisticType> statistics = new ArrayList<TSStatisticType>();
     // Add in alphabetical order
     statistics.add ( TSStatisticType.GE_COUNT );
     statistics.add ( TSStatisticType.GE_PERCENT );
@@ -360,7 +360,7 @@ listed in ascending alphabetical order.
 public static List<String> getStatisticChoicesAsStrings ()
 {
     List<TSStatisticType> choices = getStatisticChoices();
-    List<String> stringChoices = new Vector();
+    List<String> stringChoices = new ArrayList<String>();
     for ( int i = 0; i < choices.size(); i++ ) {
         stringChoices.add ( "" + choices.get(i) );
     }
@@ -578,7 +578,7 @@ percent greater than a threshold value).
 @return the statistics ensemble
 */
 public TSEnsemble newStatisticEnsemble ( boolean createData )
-{   String message, routine = getClass().getName() + ".newStatisticEnsemble";
+{   String routine = getClass().getName() + ".newStatisticEnsemble";
     int dl = 10;
 
     // Get the data needed for the analysis - originally provided in the constructor
@@ -586,7 +586,6 @@ public TSEnsemble newStatisticEnsemble ( boolean createData )
     List<TS> tslist = getTimeSeriesList();
     String newEnsembleID = getNewEnsembleID();
     String newEnsembleName = getNewEnsembleName();
-    String alias = getAlias();
     String newTSID = getNewTSID();
     TSStatisticType statisticType = getStatisticType();
     double [] testValues = getTestValues();
@@ -624,7 +623,7 @@ public TSEnsemble newStatisticEnsemble ( boolean createData )
     // Create a statistic time series for each value being processed
     // Also create an ensemble and add the individual time series to the ensemble, if requested
 
-    List<TS> stattsList = new Vector();
+    List<TS> stattsList = new ArrayList<TS>();
     for ( int i = 0; i < testValues.length; i++ ) {
         // Create the time series identifier using the newTSID, but may need to expand for the statistic
         String tsid = newTSID;

@@ -111,7 +111,7 @@ private void initialize(TS dependentTS, List<TS> independentTS, DateTime start, 
     _analyze_month = new boolean[12];
     _analyze_month_list = null;
     if ( (analysisMonths != null) && !analysisMonths.equals("*") && !analysisMonths.equals("") ) {
-        List tokens = StringUtil.breakStringList ( analysisMonths, " ,\t", StringUtil.DELIM_SKIP_BLANKS );
+        List<String> tokens = StringUtil.breakStringList ( analysisMonths, " ,\t", StringUtil.DELIM_SKIP_BLANKS );
         int size = 0;
         if ( tokens != null ) {
             size = tokens.size();

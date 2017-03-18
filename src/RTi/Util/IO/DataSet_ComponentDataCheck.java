@@ -11,6 +11,8 @@ package RTi.Util.IO;
 
 import java.util.List;
 
+import RTi.TS.TS;
+
 /**
 * Base class for checking data on components.  Only shared components methods 
 * should be added to this class.  This is envisioned to be inherited by other
@@ -34,9 +36,9 @@ public DataSet_ComponentDataCheck( int component, CheckFile file )
 	
 /**
 Performs checks for Time Series data.
-@param Vector ts - Vector of time series objects.
+@param ts list of time series objects.
  */
-public void checkTSData( List ts ) 
+public void checkTSData( List<TS> ts ) 
 {
 	// TODO KAT 2007-04-02
 	// add ts data checks here

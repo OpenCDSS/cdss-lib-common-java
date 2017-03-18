@@ -1,7 +1,7 @@
 package RTi.TS;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 /**
 To be used with the TSUtil_ChangeInterval class.  Used when converting from INST to MEAN time
@@ -37,7 +37,7 @@ Get the list of time scales.
 */
 public static List<TSUtil_ChangeInterval_OutputFillMethodType> getOutputFillMethodChoices()
 {
-    List<TSUtil_ChangeInterval_OutputFillMethodType> choices = new Vector();
+    List<TSUtil_ChangeInterval_OutputFillMethodType> choices = new ArrayList<TSUtil_ChangeInterval_OutputFillMethodType>();
     choices.add ( TSUtil_ChangeInterval_OutputFillMethodType.INTERPOLATE );
     choices.add ( TSUtil_ChangeInterval_OutputFillMethodType.REPEAT );
     return choices;
@@ -50,7 +50,7 @@ Get the list of output fill methods.
 public static List<String> getOutputFillMethodChoicesAsStrings( )
 {
     List<TSUtil_ChangeInterval_OutputFillMethodType> choices = getOutputFillMethodChoices();
-    List<String> stringChoices = new Vector();
+    List<String> stringChoices = new ArrayList<String>();
     for ( int i = 0; i < choices.size(); i++ ) {
         stringChoices.add ( "" + choices.get(i) );
     }

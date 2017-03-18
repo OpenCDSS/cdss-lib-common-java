@@ -71,12 +71,12 @@ Properties associated with the feature.
 /**
 Upstream features.
 */
-protected List _upstream_feature_Vector;
+protected List<NetworkFeature> _upstream_feature_Vector;
 
 /**
 Downstream features.
 */
-protected List _downstream_feature_Vector;
+protected List<NetworkFeature> _downstream_feature_Vector;
 
 /**
 Object that is associated with the node (e.g., external data object).
@@ -331,8 +331,8 @@ public NetworkFeature getUpstreamFeature ( int index )
 Initialize data members.
 */
 private void initialize ()
-{	_downstream_feature_Vector = new Vector();
-	_upstream_feature_Vector = new Vector();
+{	_downstream_feature_Vector = new Vector<NetworkFeature>();
+	_upstream_feature_Vector = new Vector<NetworkFeature>();
 }
 
 /**

@@ -30,6 +30,7 @@ used for transferring simple data.  More complex objects can be transferred by:
 making the class extend Serializable and Transferable and filling in the 
 required method bodies.
 */
+@SuppressWarnings("serial")
 public class DragAndDropTransferPrimitive
 implements Serializable, Transferable {
 

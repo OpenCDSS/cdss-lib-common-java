@@ -72,8 +72,8 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.ButtonGroup;
 import javax.swing.event.ChangeEvent;
@@ -112,6 +112,7 @@ import RTi.Util.Message.Message;
 The GeoViewPropertiesJFrame displays global properties shared for all
 GeoViewLayers in a GeoViewJComponent, as well as specific properties for a GeoLayerView.
 */
+@SuppressWarnings("serial")
 public class GeoViewPropertiesJFrame extends JFrame implements 
 ActionListener, ChangeListener, WindowListener, ItemListener 
 {
@@ -1619,7 +1620,7 @@ private void setupGUI() {
 			0, y, 1, 1, 0, 0, TLBN,
 			GridBagConstraints.NONE, GridBagConstraints.NORTHEAST);
 			
-		List v = new Vector();
+		List<String> v = new ArrayList<String>();
 		v.add("Default");
 		__legendComboBox = new SimpleJComboBox(v, true);
 		JGUIUtil.addComponent(layoutJPanel, __legendComboBox,
@@ -1642,7 +1643,7 @@ private void setupGUI() {
 			"Location: "),
 			0, y, 1, 1, 0, 0, TNBR,
 			GridBagConstraints.NONE, GridBagConstraints.NORTHEAST);
-		v = new Vector();
+		v = new ArrayList<String>();
 		v.add("NorthWest");
 		v.add("NorthEast");
 		v.add("SouthWest");

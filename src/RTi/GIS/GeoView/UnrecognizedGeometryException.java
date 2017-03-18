@@ -3,6 +3,7 @@ package RTi.GIS.GeoView;
 /**
 Exception to throw when a geometry is not recognized.
 */
+@SuppressWarnings("serial")
 public class UnrecognizedGeometryException extends RuntimeException
 {
 

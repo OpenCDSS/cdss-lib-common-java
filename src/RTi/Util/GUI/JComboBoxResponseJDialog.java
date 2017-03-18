@@ -43,6 +43,7 @@ import RTi.Util.String.StringUtil;
 /**
 Class that provides a dialog from which the user can select a response in a combo box.
 */
+@SuppressWarnings("serial")
 public class JComboBoxResponseJDialog 
 extends JDialog
 implements ActionListener, KeyListener, WindowListener {

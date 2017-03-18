@@ -29,6 +29,7 @@ import RTi.Util.Table.DataTable;
 /**
 This class is a JFrame inside of which is displayed the ER Diagram for a database.
 */
+@SuppressWarnings("serial")
 public //abstract
 class ERDiagram_JFrame 
 extends JFrame {
@@ -84,7 +85,7 @@ tables.
 @param pageFormat the pageFormat with which the page will be printed.
 */
 public ERDiagram_JFrame(DMI dmi, String tablesTableName, String tableNameField,
-String erdXField, String erdYField, List referenceTables, 
+String erdXField, String erdYField, List<String> referenceTables, 
 PageFormat pageFormat) {
 	this (dmi, tablesTableName, tableNameField, erdXField, erdYField, 
 		referenceTables, pageFormat, false);
@@ -128,7 +129,7 @@ Y position of the tables in the ER Diagram.
 @param debug whether to turn on debugging options in the popup menu.  
 */
 public ERDiagram_JFrame(DMI dmi, String tablesTableName, String tableNameField,
-String erdXField, String erdYField, List referenceTables, 
+String erdXField, String erdYField, List<String> referenceTables, 
 PageFormat pageFormat, boolean debug) {
 	super(dmi.getDatabaseName());
 
@@ -156,7 +157,7 @@ Y position of the tables in the ER Diagram.
 @param debug whether to turn on debugging options in the popup menu.  
 */
 public ERDiagram_JFrame(DMI dmi, DataTable tablesTable, String tableNameField,
-String erdXField, String erdYField, List referenceTables, 
+String erdXField, String erdYField, List<String> referenceTables, 
 PageFormat pageFormat, boolean debug)
 {
 	super(dmi.getDatabaseName());

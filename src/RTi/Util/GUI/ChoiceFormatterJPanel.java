@@ -24,6 +24,7 @@ Panel to provide simple editing capabilities to construct a string given a list 
 one or more selections can be made.  The panel exposes the getText() method from the JTextField so that
 the edited contents can be retrieved.
 */
+@SuppressWarnings("serial")
 public class ChoiceFormatterJPanel extends JPanel implements ItemListener
 {
 

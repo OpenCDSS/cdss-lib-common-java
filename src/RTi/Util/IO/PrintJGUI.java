@@ -98,7 +98,7 @@ private static int	TOP_BORDER = 15;	// Top border in points
 //private static int	BOTTOM_BORDER = 15;	// Bottom border in points
 
 private static JDialog		_parentJDialog;
-private static List _export;	// List containing the formatted data to print
+private static List<String> _export;	// List containing the formatted data to print
 private static int		_default_fontsize = 10;
 						// Default font size.
 private static int		_default_lines_per_page = 60;
@@ -132,7 +132,7 @@ print.  The default 10-point font is used.
 @param parent JFrame from which printing occurs.
 @param export list of String's to print.
 */
-public static void print ( JFrame parent, List export )
+public static void print ( JFrame parent, List<String> export )
 {	print ( parent, export, null );
 }
 
@@ -143,7 +143,7 @@ print, and the font size.
 @param export list of String's to print.
 @param fontsize Font size to use (points).
 */
-public static void print ( JFrame parent, List export, int fontsize )
+public static void print ( JFrame parent, List<String> export, int fontsize )
 {	PropList props = new PropList ( "PrintJGUI" );
 	props.set ( "FontSize", "" + fontsize );
 	print ( parent, export, props );
@@ -159,7 +159,7 @@ not supported at this time because the standard print dialog is used).
 @param fontsize Font size for output (font is still fixed-width Courier).
 @see RTi.Util.Help.URLHelp
 */
-public static void print (	JFrame parent, List export, String helpkey, int fontsize )
+public static void print (	JFrame parent, List<String> export, String helpkey, int fontsize )
 {	PropList props = new PropList ( "PrintJGUI" );
 	props.set ( "HelpKey", helpkey );
 	props.set ( "FontSize", "" + fontsize );
@@ -207,7 +207,7 @@ the page height by the number of lines.</b></td>
 
 @see RTi.Util.Help.URLHelp
 */
-public static void print ( JFrame parent, List export, PropList proplist )
+public static void print ( JFrame parent, List<String> export, PropList proplist )
 {	String	routine="PrintJGUI.export";
 
 	_export = export;
@@ -328,10 +328,10 @@ public static void printJTextAreaObject(JFrame parent,
 	** So use the following instead...
 	*/
 
-	List export_Vector = StringUtil.breakStringList ( textArea.getText(), "\n", 0 );
+	List<String> exportList = StringUtil.breakStringList ( textArea.getText(), "\n", 0 );
 	
-	print ( parent, export_Vector, 8 );	// Use small font
-	export_Vector = null;
+	print ( parent, exportList, 8 );	// Use small font
+	exportList = null;
 
 	// display status
 	statusString = "Finished printing.";		   
@@ -399,7 +399,7 @@ private static void printToLocalPrinter ( JFrame parent ) throws IOException
 
 	int pageNum = 1;
 	int linesForThisPage = 0;
-	int linesForThisJob = 0;
+	//int linesForThisJob = 0;
 
 	String nextLine;
 
@@ -462,7 +462,7 @@ private static void printToLocalPrinter ( JFrame parent ) throws IOException
 				pg.drawString (nextLine, LEFT_BORDER, (curHeight - fontDescent));
 			}
 			linesForThisPage++;
-			linesForThisJob++;
+			//linesForThisJob++;
 		}
 	}
 	catch ( Throwable t ) {
@@ -481,7 +481,7 @@ print.  The default 10-point font is used.
 @param parent JDialog from which printing occurs.
 @param export list of String to print.
 */
-public static void print ( JDialog parent, List export )
+public static void print ( JDialog parent, List<String> export )
 {	print ( parent, export, null );
 }
 
@@ -491,7 +491,7 @@ Print to the local printer given the calling Frame, a vector of String's to prin
 @param export list of String to print.
 @param fontsize Font size to use (points).
 */
-public static void print ( JDialog parent, List export, int fontsize )
+public static void print ( JDialog parent, List<String> export, int fontsize )
 {	PropList props = new PropList ( "PrintJGUI" );
 	props.set ( "FontSize", "" + fontsize );
 	print ( parent, export, props );
@@ -507,7 +507,7 @@ not supported at this time because the standard print dialog is used).
 @param fontsize Font size for output (font is still fixed-width Courier).
 @see RTi.Util.Help.URLHelp
 */
-public static void print ( JDialog parent, List export, String helpkey, int fontsize )
+public static void print ( JDialog parent, List<String> export, String helpkey, int fontsize )
 {	PropList props = new PropList ( "PrintJGUI" );
 	props.set ( "HelpKey", helpkey );
 	props.set ( "FontSize", "" + fontsize );
@@ -555,7 +555,7 @@ the page height by the number of lines.</b></td>
 
 @see RTi.Util.Help.URLHelp
 */
-public static void print ( JDialog parent, List export, PropList proplist )
+public static void print ( JDialog parent, List<String> export, PropList proplist )
 {	String	routine="PrintJGUI.export";
 
 	_parentJDialog 	= parent;
@@ -676,10 +676,10 @@ public static void printJTextAreaObject(JDialog parent, JTextField status_TextFi
 	** So use the following instead...
 	*/
 
-	List export_Vector = StringUtil.breakStringList ( textArea.getText(), "\n", 0 );
+	List<String> exportList = StringUtil.breakStringList ( textArea.getText(), "\n", 0 );
 	
-	print ( parent, export_Vector, 8 );	// Use small font
-	export_Vector = null;
+	print ( parent, exportList, 8 );	// Use small font
+	exportList = null;
 
 	// display status
 	statusString = "Finished printing.";		   
@@ -762,7 +762,7 @@ private static void printToLocalPrinter ( JDialog parent ) throws IOException
 
 	int pageNum = 1;
 	int linesForThisPage = 0;
-	int linesForThisJob = 0;
+	//int linesForThisJob = 0;
 
 	String nextLine;
 
@@ -825,7 +825,7 @@ private static void printToLocalPrinter ( JDialog parent ) throws IOException
 				pg.drawString (nextLine, LEFT_BORDER,(curHeight - fontDescent));
 			}
 			linesForThisPage++;
-			linesForThisJob++;
+			//linesForThisJob++;
 		}
 	}
 	catch ( Throwable t ) {

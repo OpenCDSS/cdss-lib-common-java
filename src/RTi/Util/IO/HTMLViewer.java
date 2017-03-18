@@ -33,6 +33,7 @@ import RTi.Util.Message.Message;
  * <p>
  * Scrollbars are automatically displayed as needed
  */
+@SuppressWarnings("serial")
 public class HTMLViewer extends JFrame implements ActionListener
 {
   class HTMLViewerAdapter extends WindowAdapter

@@ -56,6 +56,7 @@ returned via a response() method call.  The following is sample code for using i
 	}
 </pre></code>
 */
+@SuppressWarnings("serial")
 public class TSIdent_JDialog extends JDialog implements ActionListener, KeyListener, WindowListener
 {
 

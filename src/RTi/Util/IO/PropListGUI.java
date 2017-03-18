@@ -12,6 +12,7 @@ import java.awt.event.ActionListener;
 This class implements a GUI for the PropList class.
 <b>This class is under development.</b>
 */
+@SuppressWarnings("serial")
 public class PropListGUI extends Panel implements ActionListener
 {
 

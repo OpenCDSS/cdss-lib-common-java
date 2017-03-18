@@ -14,6 +14,7 @@ import RTi.Util.GUI.JGUIUtil;
 /**
 This class is a frame that displays data units.  Currently units cannot be edited.
 */
+@SuppressWarnings("serial")
 public class DataUnits_JFrame extends JFrame
 {
 

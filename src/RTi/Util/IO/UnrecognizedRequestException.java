@@ -17,6 +17,7 @@ package RTi.Util.IO;
 The UnrecognizedRequestException should be thrown when running 
 CommandProcessor.processRequest() and the request to be performed is not recognized.
 */
+@SuppressWarnings("serial")
 public class UnrecognizedRequestException extends Exception
 {
 

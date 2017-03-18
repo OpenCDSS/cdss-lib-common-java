@@ -222,30 +222,16 @@ throws GRException
 			"Creating new PostScript drawing area" );
 			GRPSDrawingArea ps = null;
 			ps = new GRPSDrawingArea ( (GRPSDevice)grdevice, props);
-			if ( ps == null ) {
-				message=
-				"Unable to create PostScript drawing area";
-				Message.printWarning ( 2, routine, message );
-				throw new GRException ( message );
-			}
-			else {	grdevice.addDrawingArea ( ps );
-				return ps;
-			}
+			grdevice.addDrawingArea ( ps );
+			return ps;
 		}
 		else if (grdevice instanceof GRCanvasDevice) {
 			Message.printDebug (1, routine, 
 				"Creating new canvas drawing area");
 			GRCanvasDrawingArea c = new GRCanvasDrawingArea(
 				(GRCanvasDevice)grdevice, props);
-			if (c == null) {
-				message ="Unable to create canvas drawing area";
-				Message.printWarning(2, routine, message);
-				throw new GRException(message);
-			}
-			else {
-				grdevice.addDrawingArea(c);
-				return c;
-			}
+			grdevice.addDrawingArea(c);
+			return c;
 		}
 		else if (grdevice instanceof GRJComponentDevice) {
 			Message.printDebug(1, routine, 
@@ -253,19 +239,11 @@ throws GRException
 			GRJComponentDrawingArea s = new 
 				GRJComponentDrawingArea(
 				(GRJComponentDevice)grdevice, props);
-			if (s == null) {
-				message = "Unable to create swing drawing area";
-				Message.printWarning(2, routine, message);
-				throw new GRException (message);
-			}
-			else {
-				grdevice.addDrawingArea(s);
-				return s;
-			}
+			grdevice.addDrawingArea(s);
+			return s;
 		}
 		else {
-			throw new GRException ("Unrecognized device type: " 
-				+ grdevice);
+			throw new GRException ("Unrecognized device type: " + grdevice);
 		}
 		//}
 	}

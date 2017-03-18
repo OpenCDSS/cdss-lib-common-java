@@ -28,6 +28,7 @@ import RTi.Util.String.StringUtil;
  * an Insert button, and a JChoice with a list of available specifiers.  Use getText() to get
  * the contents of the text field.
  */
+@SuppressWarnings("serial")
 public class DateTimeFormatterSpecifiersJPanel extends JPanel implements ItemListener
 {
 /**

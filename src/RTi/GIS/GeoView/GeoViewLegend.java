@@ -84,7 +84,7 @@ Draw the symbols on the legend for the appropriate GeoLayerViews.  Symbols for
 Some layers are not drawn (e.g., basins).
 @param layerViews Vector of GeoLayerView that are drawn.
 */
-private void drawSymbols ( List layerViews )
+private void drawSymbols ( List<GeoLayerView> layerViews )
 {	if ( layerViews == null ) {
 		return;
 	}
@@ -146,7 +146,7 @@ private void drawSymbols ( List layerViews )
 			continue;
 		}
 
-		layerView = (GeoLayerView)layerViews.get(i);	
+		layerView = layerViews.get(i);	
 		legend = layerView.getLegend();
 		if ( legend == null )  {
 			continue;
@@ -222,7 +222,7 @@ Determine which layers should have an entry in the legend.
 @return array of flags indicating whether the layer views should be in the
 legend.  Return null if the layer views Vector is null.
 */
-private boolean[] establishDrawLayerIndicator ( List layerViews )
+private boolean[] establishDrawLayerIndicator ( List<GeoLayerView> layerViews )
 {	if ( layerViews == null ) {
 		return null;
 	}
@@ -231,12 +231,12 @@ private boolean[] establishDrawLayerIndicator ( List layerViews )
 	GRSymbol symbol;
 	String description;
 	int num_layers = layerViews.size();
-	int _num_unique_layers = 0;
+	//int _num_unique_layers = 0;
 	boolean layer_indicator [] = new boolean[num_layers];
 	String layer_desc [] = new String[num_layers];
 	GRSymbol layer_symbol [] = new GRSymbol[num_layers]; 
 	for ( int i=0; i<num_layers; i++ ) {
-		layerView = (GeoLayerView)layerViews.get(i);	
+		layerView = layerViews.get(i);	
 		legend = layerView.getLegend();
 		if ( legend == null ) {
 			layer_indicator[i] = false;

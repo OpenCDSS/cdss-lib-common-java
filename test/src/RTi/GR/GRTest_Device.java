@@ -22,32 +22,17 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
-import java.awt.image.BufferedImage;
-
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
-import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 
-import java.io.File;
-
-import java.util.Vector;
-
-import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.Scrollable;
 
-import RTi.GR.*;
-
 import RTi.Util.GUI.*;
 
 import RTi.Util.IO.PrintUtil;
-import RTi.Util.IO.PropList;
-
-import RTi.Util.Message.Message;
 
 import RTi.Util.String.StringUtil;
 
@@ -55,6 +40,7 @@ import RTi.Util.String.StringUtil;
 This class extends GRJComponentDevice to be the device that manages the ER
 Diagram drawing area.
 */
+@SuppressWarnings("serial")
 public class GRTest_Device extends GRJComponentDevice
 implements ActionListener, MouseListener, MouseMotionListener, Printable, 
 Scrollable {
@@ -82,7 +68,7 @@ private boolean __initialize = true;
 /**
 Whether the axes are currently in normal or log/std mode.
 */
-private boolean __normalAxes = true;
+//private boolean __normalAxes = true;
 
 /**
 Used to specify painting commands that will occur only once ever for the entire
@@ -132,12 +118,12 @@ private double __y;
 /**
 The data limits.
 */
-private GRLimits __dataLimits = null;
+//private GRLimits __dataLimits = null;
 
 /**
 The drawing limits.
 */
-private GRLimits __drawingLimits = null;
+//private GRLimits __drawingLimits = null;
 
 /**
 The drawing area on which the ER Diagram is drawn.
@@ -181,7 +167,7 @@ public GRTest_Device(GRTest_JFrame parent, double scale) {
 	mi.addActionListener(this);
 	__popup.add(mi);
 	__popup.addSeparator();
-	JCheckBoxMenuItem jcbmi;
+	//JCheckBoxMenuItem jcbmi;
 	mi = new JMenuItem(__MENU_EXIT);
 	mi.addActionListener(this);
 	__popup.add(mi);
@@ -192,7 +178,7 @@ Responds to action events.
 @param event the ActionEvent that happened.
 */
 public void actionPerformed(ActionEvent event) {
-	String routine = "GRTest_Device.actionPerformed";
+	//String routine = "GRTest_Device.actionPerformed";
 	String action = event.getActionCommand();
 
 	if (action.equals(__MENU_EXIT)) {
@@ -458,7 +444,7 @@ Prints a page.
 Printable.PAGE_EXISTS if a page should be printed.
 */
 public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
-	String routine = "GRTest_Device.print";
+	//String routine = "GRTest_Device.print";
 	if (pageIndex > 0) {
 		return NO_SUCH_PAGE;
 	}
@@ -467,19 +453,19 @@ public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
 	// Set for the GRDevice because we will temporarily use 
 	// that to do the drawing...	
 
-	double transX = 0;
-	double transY = 0;
+	//double transX = 0;
+	//double transY = 0;
 	
 	if (!StringUtil.startsWithIgnoreCase(
 		PrintUtil.pageFormatToString(pageFormat), 
 		"Plotter")) {
 		if (pageFormat.getOrientation() == PageFormat.LANDSCAPE) {
-			transX = pageFormat.getImageableX() * (1 /__printScale);
-			transY = pageFormat.getImageableY() * (1 /__printScale);
+			//transX = pageFormat.getImageableX() * (1 /__printScale);
+			//transY = pageFormat.getImageableY() * (1 /__printScale);
 		}
 		else {
-			transX = pageFormat.getImageableX() * (1 /__printScale);
-			transY = pageFormat.getImageableY() * (1 /__printScale);
+			//transX = pageFormat.getImageableX() * (1 /__printScale);
+			//transY = pageFormat.getImageableY() * (1 /__printScale);
 		}
 	}
 
@@ -495,7 +481,7 @@ Sets the data limits.
 @param dataLimits the data limits.
 */
 public void setDataLimits(GRLimits dataLimits) {
-	__dataLimits = dataLimits;
+	//__dataLimits = dataLimits;
 }
 
 /**
@@ -511,12 +497,12 @@ Sets the drawing limits.
 @param drawingLimits the drawing limits.
 */
 public void setDrawingLimits(GRLimits drawingLimits) {
-	__drawingLimits = drawingLimits;
+	//__drawingLimits = drawingLimits;
 }
 
 private void draw() {
 	double x = 0;
-	double y = 0;
+	double y = 0;/*
 	String paragraph = "1 Lorem ipsum dolor sit amet, consectetuer1\n"
 		+ "2adipiscing elit. Ut gravida. Nam pellentesque2\n"
 		+ "3erat et est condimentum viverra. Nam orci.3\n"
@@ -524,6 +510,7 @@ private void draw() {
 		+ "5Aliquam molestie leo id urna.5\n"
 		+ "6Vestibulum convallis metus6\n"
 		+ "7ac ante.7";
+		*/
 	String paragraph2 = "1 Lorem ipsum dolor sit amet, consectetuer1\n"
 		+ "2adipiscing elit. Ut gravida. Nam pellentesque2\n"
 		+ "3erat et est condimentum viverra. Nam orci.3\n"

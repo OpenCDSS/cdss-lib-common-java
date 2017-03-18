@@ -1041,7 +1041,7 @@ If the value is tied with others, the average of the ranks for the tied values i
 @exception IllegalArgumentException If the number of points is <= 0 or xi does not exactly match a value in the data array
 */
 public static double plottingPosition ( int n, double x[], SortOrderType sortOrderType, DistributionType distributionType,
-    Hashtable distributionParameters, double xi )
+    Hashtable<String,String> distributionParameters, double xi )
 {   String routine = "MathUtil.plottingPosition";
 
     if ( n <= 0 ) {
@@ -1551,11 +1551,6 @@ public static int reverseArray(	double[] data )
 	double tempf;
 	String routine="MathUtil.reverseArray";
 
-	if ( data == null ) {
-		Message.printWarning ( 2, routine, "No array to reverse!" );
-		return ( 1 );
-	}
-
 	half = ndata / 2;
 	j = ndata - 1;
 
@@ -1588,11 +1583,6 @@ public static int reverseArray(	int[] data )
 	int	tempi;
 	String routine="MathUtil.reverseArray";
 
-	if ( data == null ) {
-		Message.printWarning ( 2, routine, "No array to reverse!" );
-		return ( 1 );
-	}
-
 	half = ndata / 2;
 	j = ndata - 1;
 
@@ -1624,11 +1614,6 @@ public static int reverseArray( long[] data )
 {   int i, j, half, ndata = data.length;
     long tempi;
     String routine="MathUtil.reverseArray";
-
-    if ( data == null ) {
-        Message.printWarning ( 2, routine, "No array to reverse!" );
-        return ( 1 );
-    }
 
     half = ndata / 2;
     j = ndata - 1;
@@ -1797,11 +1782,6 @@ public static int sort(double[] data, int method, int order, int[] sort_order, b
 {	String routine="MathUtil.sort(double[]...)";
 	int	i=0, ndata=data.length;
 
-	// TODO SAM 2012-01-017 Evaluate throwing exceptions here
-	if ( data == null ) {
-		Message.printWarning( 2, routine, "Incoming data array is NULL, cannot sort." );
-		return 1;
-	}
 	if ( sflag && (sort_order == null) ) {
 		Message.printWarning( 2, routine, "Incoming sort_order array is NULL, cannot sort." );
 		return 1;
@@ -1869,11 +1849,6 @@ public static int sort (int[] data, int method, int order, int[] sort_order, boo
 {	String routine="MathUtil.sort(int[]...)";
 	int	i=0, ndata=data.length;
 
-	if ( data == null ) {
-		Message.printWarning( 2, routine, "Incoming data array is NULL, cannot sort." );
-		return 1;
-	}
-
 	if ( sflag && (sort_order == null) ) {
 		Message.printWarning( 2, routine, "Incoming sort_order array is NULL, cannot sort." );
 		return 1;
@@ -1940,11 +1915,6 @@ Sort an array of longs.
 public static int sort (long[] data, int method, int order, int[] sort_order, boolean sflag )
 {   String routine="MathUtil.sort(int[]...)";
     int i=0, ndata=data.length;
-
-    if ( data == null ) {
-        Message.printWarning( 2, routine, "Incoming data array is NULL, cannot sort." );
-        return 1;
-    }
 
     if ( sflag && (sort_order == null) ) {
         Message.printWarning( 2, routine, "Incoming sort_order array is NULL, cannot sort." );

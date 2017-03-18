@@ -27,6 +27,7 @@ This class manages and displays data given a TableModel and CellRenderer by
 using a TableModel_JPanel.  The JFrame is suitable for general displays where
 a table model and renderer are available.
 */
+@SuppressWarnings("serial")
 public class TableModel_JFrame extends JFrame
 {
 

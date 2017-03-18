@@ -63,7 +63,7 @@ isLiteral() call will return true.
 @see PropListManager
 */
 public class Prop
-implements Comparable
+implements Comparable<Prop>
 {
 
 /**
@@ -228,10 +228,8 @@ Used to compare this Prop to another Prop in order to sort them.  Inherited from
 @return 0 if the Props' keys and values are the same, or -1 if this Prop sorts
 earlier than the other Prop, or 1 if this Prop sorts higher than the other Prop.
 */
-public int compareTo(Object o)
+public int compareTo(Prop p)
 {
-	Prop p = (Prop)o;
-
 	int result = 0;
 
 	result = __key.compareTo(p.getKey());

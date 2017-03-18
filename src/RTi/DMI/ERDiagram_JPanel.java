@@ -30,7 +30,6 @@ import javax.swing.JTextField;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.GR.GRLimits;
 import RTi.Util.GUI.JGUIUtil;
@@ -42,6 +41,7 @@ import RTi.Util.Table.TableRecord;
 /**
 This class is a JPanel that displays an ER Diagram for a database.  It can be added to any JFrame.
 */
+@SuppressWarnings("serial")
 public class ERDiagram_JPanel extends JPanel
 implements WindowListener {
 
@@ -146,7 +146,7 @@ private String __tableNameField = null;
 /**
 A list of the names of the reference tables in the ER diagram.  Will never be null.
 */
-private List __referenceTables;
+private List<String> __referenceTables;
 
 /**
 Constructor.
@@ -160,7 +160,7 @@ Constructor.
 */
 public ERDiagram_JPanel(ERDiagram_JFrame parent, DMI dmi, DataTable tablesTable,
 String tableNameField, String erdXField, 
-String erdYField, List referenceTables, PageFormat pageFormat, 
+String erdYField, List<String> referenceTables, PageFormat pageFormat, 
 boolean debug)
 {
 	__dmi = dmi;
@@ -175,7 +175,7 @@ boolean debug)
 	__erdXField = erdXField;
 	__erdYField = erdYField;
 	if (referenceTables == null) {
-		__referenceTables = new Vector();
+		__referenceTables = new ArrayList<String>();
 	}
 	else {
 		__referenceTables = referenceTables;
@@ -212,7 +212,7 @@ Y position of the tables in the ER Diagram.
 */
 public ERDiagram_JPanel(ERDiagram_JFrame parent, DMI dmi,
 	String tablesTableName, String tableNameField, String erdXField, 
-	String erdYField, List referenceTables, PageFormat pageFormat, 
+	String erdYField, List<String> referenceTables, PageFormat pageFormat, 
 	boolean debug)
 {
 	__dmi = dmi;
@@ -227,7 +227,7 @@ public ERDiagram_JPanel(ERDiagram_JFrame parent, DMI dmi,
 	__erdXField = erdXField;
 	__erdYField = erdYField;
 	if (referenceTables == null) {
-		__referenceTables = new Vector();
+		__referenceTables = new ArrayList<String>();
 	}
 	else {
 		__referenceTables = referenceTables;
@@ -279,17 +279,17 @@ protected void closeWindow() {
 }
 
 /**
-Converts the Vector of relationships to remove all relationships that point
-to reference tables (see the __referenceTables Vector), so that reference tables
+Converts the list of relationships to remove all relationships that point
+to reference tables (see the __referenceTables list), so that reference tables
 appear to hover independent of all other tables.
-@param rels the Vector of relationships to convert.
-@return the converted relationships Vector.
+@param rels the list of relationships to convert.
+@return the converted relationships list.
 */
-private List convertReferenceRelationships(List rels) {
-	List newRels = new Vector();
+private List<ERDiagram_Relationship> convertReferenceRelationships(List<ERDiagram_Relationship> rels) {
+	List<ERDiagram_Relationship> newRels = new ArrayList<ERDiagram_Relationship>();
 	ERDiagram_Relationship rel;	
 	for (int i = 0; i < rels.size(); i++) {	
-		rel = (ERDiagram_Relationship)rels.get(i);
+		rel = rels.get(i);
 		if (isReferenceTable(rel.getStartTable())
 			&& isReferenceTable(rel.getEndTable())) {
 //Message.printStatus(2, "", "Link from " + rel.getStartTable() + " to " 
@@ -408,24 +408,21 @@ private boolean isTableInTablesArray(String tableName) {
 }
 
 /**
-Takes the Vector of relationship objects and removes all relationships for 
+Takes the list of relationship objects and removes all relationships for 
 which either the start table or the end table is not visible.
-@return the relationships vector, minus all relationships connecting to 
+@return the relationships list, minus all relationships connecting to 
 non-visible tables.
 */
-private List pruneInvisibleRelationships(List rels) {
-	List newRels = new Vector();
+private List<ERDiagram_Relationship> pruneInvisibleRelationships(List<ERDiagram_Relationship> rels) {
+	List<ERDiagram_Relationship> newRels = new ArrayList<ERDiagram_Relationship>();
 	ERDiagram_Relationship rel;
 	
 	for (int i = 0; i < rels.size(); i++) {	
-		rel = (ERDiagram_Relationship)rels.get(i);
-
+		rel = rels.get(i);
 		if (isTableInTablesArray(rel.getStartTable())) {
 			if (isTableInTablesArray(rel.getEndTable())) {
-				if (getTableByName(rel.getStartTable())
-					.isVisible() 
-					&& getTableByName(rel.getEndTable())
-					.isVisible()) {
+				if (getTableByName(rel.getStartTable()).isVisible() 
+					&& getTableByName(rel.getEndTable()).isVisible()) {
 						rel.setVisible(true);
 				}
 				newRels.add(rel);
@@ -442,13 +439,13 @@ database and populate the array of ERDiagram_Relationship objects.
 */
 protected ERDiagram_Relationship[] readRelationships() {
 	setMessageStatus("Creating list of table relationships", "WAIT");
-	List rels = DMIUtil.createERDiagramRelationships(__dmi, null);
+	List<ERDiagram_Relationship> rels = DMIUtil.createERDiagramRelationships(__dmi, null);
 
 	rels = pruneInvisibleRelationships(rels);
 	rels = convertReferenceRelationships(rels);
 	__rels = new ERDiagram_Relationship[rels.size()];
 	for (int i = 0; i < rels.size(); i++) {
-		__rels[i] = (ERDiagram_Relationship)rels.get(i);	
+		__rels[i] = rels.get(i);	
 	}
 
 	setMessageStatus("Done creating list", "READY");

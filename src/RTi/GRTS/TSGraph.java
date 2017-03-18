@@ -220,10 +220,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import javax.swing.JPopupMenu;
 
@@ -1269,7 +1267,7 @@ public void actionPerformed(ActionEvent event)
 				size = _regression_data.size();
 			}
 			TSRegression r = null;
-			List<String> v = new Vector();	
+			List<String> v = new ArrayList<String>();	
 			for (int i = 0; i < size; i++) {
 				r = _regression_data.get(i);
 				if (r == null) {
@@ -1394,7 +1392,7 @@ public void actionPerformed(ActionEvent event)
 		if (__tslist != null) {
 			nreg = __tslist.size() - 1;
 		}
-		List<TS> v = new Vector();
+		List<TS> v = new ArrayList<TS>();
 		TSRegression regressionData = null;
 		for (int i = 0; i < nreg; i++) {
 			if (!isTSEnabled(i + 1)) {
@@ -1882,7 +1880,7 @@ protected void computeDataLimits ( boolean max )
 			}
 			if (_is_reference_graph && (_reference_ts_index >= 0)) {
 				// Reset the coordinates based only on the reference time series but use the full period for dates...
-				List<TS> ref_tslist = new Vector(1,1);
+				List<TS> ref_tslist = new ArrayList<TS>(1);
 				ref_tslist.add(__tslist.get(_reference_ts_index));
 				TSLimits reflimits = TSUtil.getDataLimits (	ref_tslist, _start_date, _end_date, "", false,_ignoreLeftAxisUnits );
 				_max_tslimits_lefty.setMinValue ( reflimits.getMinValue() );
@@ -2124,7 +2122,7 @@ protected void computeDataLimits ( boolean max )
 				List<TS> tempV = null;
 				for (int ir = 0; ir < nregression; ir++) {
 					regressionData = _regression_data.get(ir);
-					tempV = new Vector();
+					tempV = new ArrayList<TS>();
 					tsLimits = null;
 					if (regressionData != null) {
 					    if (residual) { 
@@ -2894,7 +2892,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 			delta = 1;
 		}
 		date = new DateTime ( _start_date );
-		for ( int i = 0; date.lessThanOrEqualTo(_end_date); i++ ) {
+		for ( ; date.lessThanOrEqualTo(_end_date); ) {
 			x_axis_labels_temp.add ( new Double(date.toDouble() ) );
 			date.addYear ( delta );
 		}
@@ -2911,7 +2909,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 			delta = 1;
 		}
 		date = new DateTime ( _start_date );
-		for ( int i = 0; date.lessThanOrEqualTo(_end_date); i++ ) {
+		for ( ; date.lessThanOrEqualTo(_end_date); ) {
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( 1,	routine, _gtype + "Label is for " + date.toString() );
 			}
@@ -2932,7 +2930,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 			delta = 1;
 		}
 		date = new DateTime ( _start_date );
-		for ( int i = 0; date.lessThanOrEqualTo(_end_date); i++ ) {
+		for ( ; date.lessThanOrEqualTo(_end_date); ) {
 			x_axis_labels_temp.add ( new Double(date.toDouble() ) );
 			date.addDay ( delta );
 		}
@@ -2996,7 +2994,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 
 		date = new DateTime(_start_date);
 
-		for (int i = 0; date.lessThanOrEqualTo(_end_date); i++ ) {
+		for (; date.lessThanOrEqualTo(_end_date); ) {
 			x_axis_labels_temp.add( new Double(date.toDouble()));
 			date.addHour(delta);
 		}
@@ -3053,7 +3051,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 		}
 		
 		date = new DateTime(_start_date);
-		for ( int i = 0; date.lessThanOrEqualTo(_end_date); i++) {
+		for ( ; date.lessThanOrEqualTo(_end_date); ) {
 			x_axis_labels_temp.add( new Double(date.toDouble()));
 			date.addMinute(delta);
 		}
@@ -3194,7 +3192,7 @@ private void doAnalysis ( TSGraphType graphType )
 		TS ts = null;
 		int nreg = tslist.size() - 1;
 		if ( nreg > 0 ) {
-			_regression_data = new Vector ( nreg );
+			_regression_data = new ArrayList<TSRegression> ( nreg );
 		}
 		// Set the regression properties.  These may be changed by the properties interface.
 		boolean analyzeForFilling = false;
@@ -3327,7 +3325,7 @@ private void doAnalysis ( TSGraphType graphType )
 	else if ( (graphType == TSGraphType.DURATION) && (tslist.size() != 0) ) {
 		// Generate TSDurationAnalysis for each time series...
 		int size = tslist.size();
-		_duration_data = new Vector ( size );
+		_duration_data = new ArrayList<TSDurationAnalysis> ( size );
 		TSDurationAnalysis da = null;
 		for ( int i = 0; i < size; i++ ) {
 			try {
@@ -3349,7 +3347,7 @@ private void doAnalysis ( TSGraphType graphType )
 		TS ts = null;
 		int nreg = tslist.size() - 1;
 		if (nreg > 0 ) {
-			_regression_data = new Vector(nreg);
+			_regression_data = new ArrayList<TSRegression>(nreg);
 		}
 
 		TSRegression regressionData = null;
@@ -3426,7 +3424,7 @@ private void doAnalysisAreaStacked ()
     // The original time series are considered to be incremental time series and are
     // used to create corresponding total time series, which will be graphed with simple area graphs
     // The first derived time series is a clone of the first actual time series
-    List<TS> derivedTSList = new Vector();
+    List<TS> derivedTSList = new ArrayList<TS>();
     // Get the overall period for the time series - all stacked time series will have the same period
     TSLimits limits = null;
     try {
@@ -4809,9 +4807,12 @@ private void drawLegend ( int axis )
 			regressionData = _regression_data.get(i);
 			ts = regressionData.getResidualTS();
 
-			legend = getLegendString(ts, (i + 1)) + " (Residual)";
+			legend = getLegendString(ts, (i + 1));
 			if (legend == null) {
 				continue;
+			}
+			else {
+				legend += " (Residual)";
 			}
 			
 			// Draw the legend line
@@ -4847,9 +4848,12 @@ private void drawLegend ( int axis )
 				double maxLength = 0.0;
 				for ( int its = 0; its < size; its++ ) {
 					if (isTSEnabled(its)) {
-						String legend2 = " " + getLegendString(ts, i);
+						String legend2 = getLegendString(ts, i);
 						if (legend2 == null) {
 							continue;
+						}
+						else {
+							legend2 = " " + legend2;
 						}
 						GRLimits textLimits = GRDrawingAreaUtil.getTextExtents(da_legend, legend2, GRUnits.DATA);
 						maxLength = Math.max(maxLength, textLimits.getWidth());
@@ -8203,11 +8207,11 @@ public JPopupMenu getJPopupMenu() {
 }
 
 /**
-Return the Vector of TSRegression data that applies to the graph, if available.
+Return the list of TSRegression data that applies to the graph, if available.
 This can be displayed in a details window for the graph.
 @return TSRegression data for graph (use with scatter plot) or null if no analysis has been performed.
 */
-public List getRegressionData ()
+public List<TSRegression> getRegressionData ()
 {	return _regression_data;
 }
 

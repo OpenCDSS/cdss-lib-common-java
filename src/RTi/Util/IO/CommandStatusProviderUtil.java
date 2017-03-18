@@ -61,7 +61,7 @@ public class CommandStatusProviderUtil
 
         if (cs != null)
           {
-            List v = cs.getCommandLog(CommandPhaseType.INITIALIZATION);
+            List<CommandLogRecord> v = cs.getCommandLog(CommandPhaseType.INITIALIZATION);
             int size = v.size();
             for ( int i = 0; i < size; i++ )
               {
@@ -84,7 +84,7 @@ public class CommandStatusProviderUtil
       }
     return markerText;
 
-  } // eof getCommandLogText
+  }
 
   /**
    * Returns the highest status severity of all provided command status providers,
@@ -93,7 +93,7 @@ public class CommandStatusProviderUtil
    * @see CommandStatusType
    * @return The highest severity status from any command status provider in the list.
    */
-  public static CommandStatusType getHighestSeverity(List csp_list)
+  public static CommandStatusType getHighestSeverity(List<CommandStatusProvider> csp_list)
     { if ( csp_list == null ) {
     	return CommandStatusType.UNKNOWN;
       }
@@ -104,7 +104,7 @@ public class CommandStatusProviderUtil
     	CommandStatusType max = CommandStatusType.UNKNOWN;
     	CommandStatusProvider csp;
     	for ( int i = 0; i < size; i++ ) {
-    		csp = (CommandStatusProvider)csp_list.get(i);
+    		csp = csp_list.get(i);
     		max = CommandStatusType.maxSeverity ( max, CommandStatusUtil.getHighestSeverity ( csp ) );
     	}
       return max;

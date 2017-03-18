@@ -43,9 +43,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -67,6 +66,7 @@ import RTi.Util.IO.PropList;
 /**
 This class is a GUI to build and/or edit the time fields of a DateTime object
 */
+@SuppressWarnings("serial")
 public class DateTimeBuilderJDialog extends JDialog implements
 WindowListener, KeyListener, ActionListener
 {
@@ -260,19 +260,19 @@ throws Throwable {
 /**
 Returns a list of the first and last dates in this dialog, which can be
 used to calculate time series limits. 
-@return a Vector with the first element containing the first date, the second
+@return a list with the first element containing the first date, the second
 element containing the second date.
 */
-public List getLimits()
+public List<DateTime> getLimits()
 {
-	List limits = null;
+	List<DateTime> limits = null;
 
 	if (!__isCancel) {
 		if (!checkDates()) {
 			return null;
 		}
 
-		limits = new Vector();
+		limits = new ArrayList<DateTime>();
 		limits.add(__modToDateTime);
 	
 		if (__fromTo) {

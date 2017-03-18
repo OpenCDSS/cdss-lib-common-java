@@ -3,7 +3,6 @@ package RTi.TS;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import junit.framework.Test;
-import RTi.TS.*;
 import RTi.Util.Time.DateTime;
 
 public class TSUtilTest extends TestCase {

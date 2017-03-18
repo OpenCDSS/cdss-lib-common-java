@@ -145,10 +145,10 @@ import java.io.InputStreamReader;
 import java.lang.Runtime;
 import java.lang.Exception;
 import java.lang.StringBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import RTi.Util.GUI.EventTimer;
 import RTi.Util.Message.Message;
@@ -178,7 +178,7 @@ The basic information associated with the process includes:
 	in ProcessManager, only the standard output is available and can be
 	echoed back to the calling code.  For a non-threaded run, output from
 	the process is typically retrieved by calling saveOutput(true) before
-	running the process and then getOutputVector() after the run.  For a
+	running the process and then getOutputList() after the run.  For a
 	threaded process, use the ProcessListener.  See examples below.
 	</li>
 <li>	Exit status from the process.  The exit status is retrieved when the
@@ -202,14 +202,14 @@ Typically, a command will be run in one of the ways illustrated below:
 	// Returns all the output...
 	pm.saveOutput ( true );
 	pm.run();
-	output = pm.getOutputVector ();
+	List<String> output = pm.getOutputList();
 	int status = pm.getExitStatus();
 	// Then display output, status, etc.
 	</pre> 
 	<p>
 
 	In this case the ProcessManager is not run as a new thread.  All of the
-	output from the command is added to a Vector.  The process cannot be
+	output from the command is added to a list.  The process cannot be
 	terminated until it is complete.
 	</li>
 
@@ -227,7 +227,7 @@ Typically, a command will be run in one of the ways illustrated below:
 	<p>
 
 	In this case the ProcessManager is run as a new thread.  All of the
-	output from the command is added to a Vector.
+	output from the command is added to a list.
 	</li>
 
 <li>	Run a command completely (e.g., a fast execution), and retrieve the
@@ -242,7 +242,7 @@ Typically, a command will be run in one of the ways illustrated below:
 	Thread thread = new Thread ( pm );
 	pm.start ();	// This executes the run() method in ProcessManager.
 	// Returns all the output...
-	Vector output = pm.getOutputVector();
+	List<String> output = pm.getOutputList();
 	// Because a thread is running, the following can be done to cancel
 	// the process.  If not already finished, this will set the exit
 	// status to 999 and gracefully terminate the process by exiting out
@@ -317,7 +317,7 @@ private String __commandInterpreter = null;
 /**
 Environment that should be added to the existing environment during runs.
 */
-private Map<String,String> __environmentMap = new HashMap();
+private Map<String,String> __environmentMap = new HashMap<String,String>();
 
 /**
 The above is set to false only if setCommandInterpreter is called with a null array,
@@ -648,7 +648,7 @@ once, the later attempt is ignored.
 @param listener ProcessListener to add.
 */
 public void addProcessListener ( ProcessListener listener )
-{	// Use arrays to make a little simpler than Vectors to use later...
+{	// Use arrays to make a little simpler than lists to use later...
 	if ( listener == null ) {
 		return;
 	}
@@ -1238,8 +1238,8 @@ The default is not to save the output.
 */
 public void saveOutput ( boolean save_output )
 {	__saveOutput = save_output;
-	// Create the Vector for output...
-	__outList = new Vector ();
+	// Create the list for output...
+	__outList = new ArrayList<String>();
 }
 
 /**

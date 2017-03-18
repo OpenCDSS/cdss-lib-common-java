@@ -193,7 +193,7 @@ public static List<String> getSupportedMediaSizeNames ( PrintService printServic
 {
     Media [] supportedMediaArray =
         (Media [])printService.getSupportedAttributeValues(Media.class, null, null);
-    List<String> mediaList = new Vector();
+    List<String> mediaList = new Vector<String>();
     // The list has page sizes (e.g., "na-letter"), trays, and named sizes (e.g., "letterhead")
     // To find only sizes, look up the string in PaperSizeLookup and return matches
     PaperSizeLookup psl = new PaperSizeLookup();

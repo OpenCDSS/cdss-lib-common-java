@@ -2,16 +2,15 @@ package RTi.Util.Table;
 
 import java.util.Date;
 
-import RTi.DMI.DMIUtil;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.Message.Message;
-import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 
 /**
 Table model for displaying data table data in a JWorksheet.
 */
+@SuppressWarnings("serial")
 public class DataTable_TableModel 
 extends JWorksheet_AbstractRowTableModel {
 

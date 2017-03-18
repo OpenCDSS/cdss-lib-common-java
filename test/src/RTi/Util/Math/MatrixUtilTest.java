@@ -5,8 +5,6 @@
 
 package RTi.Util.Math;
 
-import RTi.Util.Math.MatrixUtil.MatrixInverseComputations;
-import java.security.InvalidParameterException;
 import junit.framework.TestCase;
 
 /**

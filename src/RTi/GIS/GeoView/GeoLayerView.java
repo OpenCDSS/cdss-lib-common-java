@@ -45,9 +45,8 @@
 package RTi.GIS.GeoView;
 
 import java.io.File;
-
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.JFrame;
 
@@ -529,9 +528,9 @@ property saved with a GeoLayerView.  One or more values can be specified.
 can be multiple fields separated by commas.
 @param append Indicates whether the selections should be added to previous
 selections.  <b>This feature is under development.</b>
-@return Vector of GeoRecord for the selected features, or null if nothing is selected.
+@return list of GeoRecord for the selected features, or null if nothing is selected.
 */
-public List selectFeatures ( String [][] feature_array, String join_field, boolean append )
+public List<GeoRecord> selectFeatures ( String [][] feature_array, String join_field, boolean append )
 {	String routine = "GeoLayerView.selectFeatures";
 	// First try the old code...
 	StopWatch timer = new StopWatch();
@@ -556,20 +555,20 @@ public List selectFeatures ( String [][] feature_array, String join_field, boole
 //System.out.println("   (nfeature == 0)");	
 		return null;
 	}
-	// Vector of GeoRecord that will be returned...
-	List georecords = null;
+	// List of GeoRecord that will be returned...
+	List<GeoRecord> georecords = null;
 	// Get the fields to search...
 	if ( join_field == null ) {
 //System.out.println("   (join field is null)");		
 		return georecords;
 	}
-	List join_fields_Vector = StringUtil.breakStringList ( join_field, ",", 0 );
-	if ( join_fields_Vector == null ) {
+	List<String> joinFieldList = StringUtil.breakStringList ( join_field, ",", 0 );
+	if ( joinFieldList == null ) {
 //System.out.println("   (join fields vector is null)");
 		return georecords;
 	}
 	// Now figure out what integer fields these are in the attribute data...
-	int join_fields_size = join_fields_Vector.size();
+	int join_fields_size = joinFieldList.size();
 	int [] join_fields = new int[join_fields_size];
 	String [] format_spec = new String[join_fields_size];
 	DataTable table = _layer.getAttributeTable();
@@ -579,18 +578,18 @@ public List selectFeatures ( String [][] feature_array, String join_field, boole
 				// found.
 	for ( ijf = 0; ijf < join_fields_size; ijf++ ) {
 		try {
-			join_fields[ijf] = table.getFieldIndex( (String)join_fields_Vector.get(ijf) );
+			join_fields[ijf] = table.getFieldIndex( (String)joinFieldList.get(ijf) );
 			format_spec[ijf] = table.getFieldFormat( join_fields[ijf] );
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 2, routine, "Join field \"" +
-			(String)join_fields_Vector.get(ijf) + " not found in data layer" );
+			(String)joinFieldList.get(ijf) + " not found in data layer" );
 			return georecords;
 		}
 	}
 	// Loop through all the shapes in the layer to find the ones that have
 	// attributes that match the selected shapes...
-	List shapes = _layer.getShapes();
+	List<GRShape> shapes = _layer.getShapes();
 	int nshapes = 0;
 	if ( shapes != null ) {
 		nshapes = shapes.size();
@@ -616,7 +615,7 @@ public List selectFeatures ( String [][] feature_array, String join_field, boole
 
 //System.out.println("nshapes: " + nshapes);
 	for ( int ishape = 0; ishape < nshapes; ishape++ ) {
-		shape = (GRShape)shapes.get(ishape);
+		shape = shapes.get(ishape);
 		// Skip null shapes, generally due to missing coordinates...
 		if ( shape.type == GeoLayer.UNKNOWN ) {
 			continue;
@@ -726,9 +725,9 @@ public List selectFeatures ( String [][] feature_array, String join_field, boole
 						}
 						Message.printStatus ( 2, "", "Matched shape type=" + shape.type +
 						" index=" + shape.index + " id=" + o.toString() );
-						// Add to the GeoRecord Vector..
+						// Add to the GeoRecord list..
 						if ( georecords == null ) {
-							georecords = new Vector ( 10 );
+							georecords = new ArrayList<GeoRecord>();
 						}
 						try {
 							table_record = table.getRecord( (int)shape.index );

@@ -15,12 +15,12 @@ import java.util.Vector;
 
 /**
 This class is used by the IO.getFileHeader method when processing input/output
-file headers.  The file header consists of a vector of comment strings and
+file headers.  The file header consists of a list of comment strings and
 integers indicating the first and last revisions in the header.
 */
 public class FileHeader {
 
-private List	_header;
+private List<String> _header;
 private int	_header_first;
 private int	_header_last;
 
@@ -29,7 +29,7 @@ Default constructor.
 */
 public FileHeader ()
 {
-	_header = new Vector (10,5);
+	_header = new Vector<String>(10,5);
 	_header_first = 0;
 	_header_last = 0;
 }
@@ -38,9 +38,9 @@ public FileHeader ()
 Add a string to the header.
 @param o String to add to header.
 */
-public int addElement ( Object o )
+public int addElement ( String s )
 {
-	_header.add ( o );
+	_header.add ( s );
 	return 0;
 }
 

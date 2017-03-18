@@ -1,8 +1,8 @@
 package RTi.TS;
 
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
@@ -748,7 +748,7 @@ statistic (e.g., average value for the year).  Pass TimeInterval.UNKNOWN to get 
 expected on accumulated, mean, instantaneous data.  Pass null to get all choices.  CURRENTLY NOT USED.
 */
 public static List<TSStatisticType> getStatisticChoicesForInterval ( int interval, TimeScaleType timescale )
-{   List<TSStatisticType> statistics = new Vector();
+{   List<TSStatisticType> statistics = new ArrayList<TSStatisticType>();
     // Add in alphabetical order, splitting up by interval as appropriate.
     // Daily or finer...
     if ( (interval <= TimeInterval.DAY) || (interval == TimeInterval.UNKNOWN) ) {
@@ -813,7 +813,7 @@ expected on accumulated, mean, instantaneous data.  Pass null to get all choices
 public static List<String> getStatisticChoicesForIntervalAsStrings ( int interval, TimeScaleType timescale )
 {
     List<TSStatisticType> choices = getStatisticChoicesForInterval( interval, timescale);
-    List<String> stringChoices = new Vector();
+    List<String> stringChoices = new ArrayList<String>();
     for ( int i = 0; i < choices.size(); i++ ) {
         stringChoices.add ( "" + choices.get(i) );
     }

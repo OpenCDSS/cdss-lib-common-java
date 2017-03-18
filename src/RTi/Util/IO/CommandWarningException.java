@@ -18,6 +18,7 @@ The CommandWarningException should be thrown when running a Command results
 in non-fatal warnings.  The CommandProcessor can then report that warnings
 occurred and continue.
 */
+@SuppressWarnings("serial")
 public class CommandWarningException extends Exception
 {
 

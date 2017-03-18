@@ -1,7 +1,7 @@
 package RTi.TS;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 /**
 To be used with the TSUtil_ChangeInterval class, indicating how to handle end-points converting from
@@ -37,7 +37,7 @@ Get the list of enumerations.
 */
 public static List<TSUtil_ChangeInterval_HandleEndpointsHowType> getHandleEndpointsHowChoices()
 {
-    List<TSUtil_ChangeInterval_HandleEndpointsHowType> choices = new Vector();
+    List<TSUtil_ChangeInterval_HandleEndpointsHowType> choices = new ArrayList<TSUtil_ChangeInterval_HandleEndpointsHowType>();
     choices.add ( TSUtil_ChangeInterval_HandleEndpointsHowType.AVERAGE_ENDPOINTS );
     choices.add ( TSUtil_ChangeInterval_HandleEndpointsHowType.INCLUDE_FIRST_ONLY );
     return choices;
@@ -50,7 +50,7 @@ Get the list of enumerations as strings.
 public static List<String> getHandleEndpointsHowChoicesAsStrings()
 {
     List<TSUtil_ChangeInterval_HandleEndpointsHowType> choices = getHandleEndpointsHowChoices();
-    List<String> stringChoices = new Vector();
+    List<String> stringChoices = new ArrayList<String>();
     for ( int i = 0; i < choices.size(); i++ ) {
         stringChoices.add ( "" + choices.get(i) );
     }

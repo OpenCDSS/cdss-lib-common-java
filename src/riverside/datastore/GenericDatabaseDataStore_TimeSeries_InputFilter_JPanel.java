@@ -12,6 +12,7 @@ import RTi.Util.String.StringUtil;
 /**
 This class is an input filter for querying GenericDatabaseDataStore database.
 */
+@SuppressWarnings("serial")
 public class GenericDatabaseDataStore_TimeSeries_InputFilter_JPanel extends InputFilter_JPanel //implements ItemListener, KeyListener
 {
     

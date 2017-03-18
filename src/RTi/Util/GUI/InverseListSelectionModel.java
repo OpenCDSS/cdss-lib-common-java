@@ -26,6 +26,7 @@ the following:<p>
 	divisionJList.setInverseListSelection(true);
 </code>
 */
+@SuppressWarnings("serial")
 public class InverseListSelectionModel 
 extends DefaultListSelectionModel {
 

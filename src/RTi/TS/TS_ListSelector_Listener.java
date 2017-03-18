@@ -37,6 +37,6 @@ instantiated with a different value for the NotifyButtonLabel property.</li>
 <li>Table -- when a time series is to be displayed in a tabular format.</li>
 </ul>
 */
-public void timeSeriesSelected(TS_ListSelector_JFrame sender, List tsList, String action);
+public void timeSeriesSelected(TS_ListSelector_JFrame sender, List<TS> tsList, String action);
 
 }

@@ -1,8 +1,9 @@
 package RTi.GRTS;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+
 import RTi.Util.Test.TestCollector;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -10,7 +11,7 @@ import junit.framework.Test;
 
 public class GRTSTestSuite extends TestCase {
 
-	private static ArrayList testList;
+	private static List<String> testList;
 	
 	public GRTSTestSuite(String testname)
 	{
@@ -23,7 +24,7 @@ public class GRTSTestSuite extends TestCase {
 	
 	public static Test suite() throws ClassNotFoundException
 	{
-		testList = new ArrayList();
+		testList = new ArrayList<String>();
 	    TestSuite suite = new TestSuite();
 	    TestCollector tests = new TestCollector();
 	    File path = new File("..\\test\\unit\\src");

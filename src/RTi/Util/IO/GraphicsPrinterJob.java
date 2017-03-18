@@ -1,22 +1,11 @@
 package RTi.Util.IO;
 
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.print.PageFormat;
-import java.awt.print.Pageable;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 
 import java.net.URISyntaxException;
-import java.util.List;
 
 import javax.print.PrintException;
-
-import RTi.Util.Message.Message;
-
-import RTi.Util.String.StringUtil;
 
 /**
 This class provides a way to print graphics-oriented product, with minimal formatting.

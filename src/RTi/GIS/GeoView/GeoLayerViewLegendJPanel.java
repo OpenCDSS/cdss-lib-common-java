@@ -65,6 +65,7 @@ canvas to indicate the symbol classification field.  If the multiple classes are
 used, then multiple canvases and labels are used.
 */
 
+@SuppressWarnings("serial")
 public class GeoLayerViewLegendJPanel extends JPanel
 implements ActionListener, ItemListener, MouseListener
 {

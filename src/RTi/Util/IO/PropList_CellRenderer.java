@@ -15,6 +15,7 @@ import RTi.Util.GUI.JWorksheet_AbstractExcelCellRenderer;
 /**
 This class renders cells for prop list tables.
 */
+@SuppressWarnings("serial")
 public class PropList_CellRenderer
 extends JWorksheet_AbstractExcelCellRenderer {
 
@@ -42,7 +43,7 @@ throws Throwable {
 
 /**
 Returns the format for a given column.
-@param column the colum for which to return the format.
+@param column the column for which to return the format.
 @return the format (as used by StringUtil.format) for a column.
 */
 public String getFormat(int column) {

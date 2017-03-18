@@ -141,7 +141,7 @@ throws TSException, IrregularTimeSeriesNotSupportedException
 
     int intervalBase = ts.getDataIntervalBase();
     int intervalMult = ts.getDataIntervalMult();
-    String newinterval = "" + intervalMult + TimeInterval.getName(intervalBase);
+    String newinterval = "" + intervalMult + TimeInterval.getName(intervalBase,1);
     try {
         newts = TSUtil.newTimeSeries ( newinterval, false );
     }

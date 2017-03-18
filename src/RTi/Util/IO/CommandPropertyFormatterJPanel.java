@@ -25,6 +25,7 @@ import RTi.Util.String.StringUtil;
  * available specifiers.  Use getText() to get the contents of the text field.
  * @author sam
  */
+@SuppressWarnings("serial")
 public class CommandPropertyFormatterJPanel extends JPanel implements ItemListener
 {
     /**

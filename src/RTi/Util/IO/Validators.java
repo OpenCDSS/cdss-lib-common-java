@@ -14,6 +14,7 @@ import java.text.ParseException;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -222,7 +223,7 @@ public class Validators {
         @return Status object.
         */
         public Status validate(Object value) {
-            ArrayList results = new ArrayList();
+            List<Status> results = new ArrayList<Status>();
             Status status = Status.OKAY;
             for (int i = 0; i < rules.length; i++) {
                 status = rules[i].validate(value);

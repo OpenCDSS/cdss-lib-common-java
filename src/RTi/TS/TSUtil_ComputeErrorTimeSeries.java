@@ -1,7 +1,7 @@
 package RTi.TS;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
@@ -62,7 +62,7 @@ throws IrregularTimeSeriesNotSupportedException, Exception
     
     // Time series must have the same interval. Put in a list to get the period also.
 
-    List tslist = new Vector(2);
+    List<TS> tslist = new ArrayList<TS>(2);
     tslist.add ( observed_ts );
     tslist.add ( simulated_ts );
     if ( !TSUtil.intervalsMatch(tslist) ) {

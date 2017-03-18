@@ -700,7 +700,7 @@ private String __user_password;
 List for holding all the statements that were created during a transaction,
 so they can be closed when the transaction is committed or rolled back.
 */
-private List __statementsVector;
+private List<Statement> __statementsVector;
 
 /**
 An empty constructor.  If this constructor is used, initialize() must be called
@@ -901,7 +901,7 @@ throws Exception {
 	    }
 	}
 
-	__statementsVector = new Vector();
+	__statementsVector = new Vector<Statement>();
 }
 
 /**
@@ -970,7 +970,7 @@ private void closeStatements() {
 	int size = __statementsVector.size();
 	Statement s = null;
 	for (int i = 0; i < size; i++) {
-		s = (Statement)__statementsVector.get(i);
+		s = __statementsVector.get(i);
 		try {
 			s.close();
 		}
@@ -1821,7 +1821,7 @@ database properties displays.  Currently there is no standard envisioned for the
 database information, only that it provide the user with useful information
 about the database connection.  The contents returned here depend on whether the
 connection is secure (if not, login and password information are not printed).
-@return a Vector containing database properties as Strings.
+@return a list containing database properties as Strings.
 @param level A numerical value that can be used to control the amount
 of output, to be defined by specific DMI instances.  A general guideline is to
 use 3 for full output, including database version, history of changes, server
@@ -1830,8 +1830,8 @@ including server name (e.g., for use in the header of an output file; 1 for
 very concise output (e.g., the database name and version, for use in a product
 footer).  This arguments defaults to 3 if this base class method is called.
 */
-public List getDatabaseProperties(int level) {
-	List v = new Vector();
+public List<String> getDatabaseProperties(int level) {
+	List<String> v = new ArrayList<String>();
 	if ( __jdbc_odbc )
 	{ 	// Need the server name, database name, etc...
 		v.add( "Database engine: " + __database_engine_String );
@@ -2036,7 +2036,7 @@ ODBC connection is needed).
 @return a list of the database types a DMI can connect to that are done via direct server connection.
 */
 protected static List<String> getServerDatabaseTypes() {
-	List<String> v = new Vector();
+	List<String> v = new ArrayList<String>();
 	// Do not include Access since this requires that an ODBC connection be defined.
 	v.add("H2");
 	v.add("Informix");

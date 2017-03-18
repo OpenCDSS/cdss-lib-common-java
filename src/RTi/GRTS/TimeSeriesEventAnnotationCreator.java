@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Vector;
 
 import RTi.TS.TS;
-import RTi.Util.Message.Message;
 import RTi.Util.Table.DataTable;
 import RTi.Util.Table.TableRecord;
 import RTi.Util.Time.DateTime;

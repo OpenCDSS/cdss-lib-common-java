@@ -26,6 +26,7 @@ import RTi.Util.GUI.JGUIUtil;
 /**
 A JFrame that contains a panel that can be used to display XMRG file contents.
 */
+@SuppressWarnings("serial")
 public class XMRGViewerJFrame
 extends JFrame 
 implements ActionListener {

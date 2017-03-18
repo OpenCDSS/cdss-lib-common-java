@@ -22,7 +22,7 @@ public class PaperSizeLookup
 /**
 Map to convert between MediaSizeName and more readable names.
 */
-private Map<String,String> paperNames = new HashMap();
+private Map<String,String> paperNames = new HashMap<String,String>();
 
 /**
 Constructor.

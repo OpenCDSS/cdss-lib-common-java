@@ -692,9 +692,9 @@ Currently the list is not sorted and duplicates and blanks may be present.
 @param visibleOnly If true only return app layer types that are visible and
 selected.  If false, return selected app layer types, whether visible or not.
 */
-public List getSelectedAppLayerTypes(boolean visibleOnly) {
+public List<String> getSelectedAppLayerTypes(boolean visibleOnly) {
 	List allNodes = getAllLayerNodes();
-	List appLayerTypes = new Vector();
+	List<String> appLayerTypes = new Vector<String>();
 	for (int i = 0; i < allNodes.size(); i++) {
 		GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)allNodes.get(i);
 		if (((visibleOnly && node.isCheckBoxSelected()) 
@@ -712,9 +712,9 @@ Return the list of layer views that are selected in the legend.
 @param visibleOnly If true only return layers that are visible and selected.
 If false, return selected layers, whether visible or not.
 */
-public List getSelectedLayerViews(boolean visibleOnly) {
+public List<GeoLayerView> getSelectedLayerViews(boolean visibleOnly) {
 	List allNodes = getAllLayerNodes();
-	List appLayerTypes = new Vector();
+	List <GeoLayerView>appLayerTypes = new Vector<GeoLayerView>();
 	for (int i = 0; i < allNodes.size(); i++) {
 		GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)allNodes.get(i);
 		if (((visibleOnly && node.isCheckBoxSelected()) || (!visibleOnly)) && node.isTextSelected()) {

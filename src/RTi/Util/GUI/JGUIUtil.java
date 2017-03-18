@@ -89,9 +89,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
@@ -1076,7 +1076,7 @@ Vector with no elements if a null TextArea.
 */
 public static List<String> toList (JTextArea ta) {
 	if ( ta == null ) {
-		return new Vector();
+		return new ArrayList<String>();
 	}
 	List<String> v = StringUtil.breakStringList ( ta.getText(), "\n", 0 );
 	// Just to be sure, remove any trailing carriage-return characters from the end...

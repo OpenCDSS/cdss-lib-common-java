@@ -6,11 +6,12 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Vector;
 
+@SuppressWarnings("serial")
 public class TimerThread implements Runnable, Serializable {
   protected int increment = 1000;
   protected int elapsed = 0;
   protected int alarm;
-  protected List timerListeners = new Vector ();
+  protected List<TimerListener> timerListeners = new Vector<TimerListener> ();
   transient protected Thread runner;
 
   public TimerThread () {
@@ -86,7 +87,7 @@ public class TimerThread implements Runnable, Serializable {
     //Vector timerListeners = (Vector) this.timerListeners.clone ();
     
     for (int i = 0; i < timerListeners.size (); ++ i) {
-      ((TimerListener) timerListeners.get (i)).incrementUpdate (event);
+     timerListeners.get(i).incrementUpdate (event);
     }
   }
 
@@ -95,6 +96,6 @@ public class TimerThread implements Runnable, Serializable {
     //Vector timerListeners = (Vector) this.timerListeners.clone ();
     
     for (int i = 0; i < timerListeners.size (); ++ i)
-      ((TimerListener) timerListeners.get (i)).alarmUpdate (event);
+      timerListeners.get(i).alarmUpdate (event);
   }
 }   

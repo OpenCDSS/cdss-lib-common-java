@@ -34,6 +34,7 @@ character.
 REVISIT (JTS - 2006-05-22)
 Should probably use TextResponseJDialog instead and remove this class.
 */
+@SuppressWarnings("serial")
 public class ERDiagram_FindDialog 
 extends JDialog {
 

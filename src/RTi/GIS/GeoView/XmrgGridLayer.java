@@ -613,17 +613,14 @@ final application.
 the directory is not found.
 @param directory Name of a directory with XMRG files.
 */
-public static List listNonZeroFiles ( String directory )
+public static List<String> listNonZeroFiles ( String directory )
 {	File f = new File ( directory );
-	if ( f == null ) {
-		return null;
-	}
 	String [] list = f.list();
 	if ( list == null ) {
 		return null;
 	}
 	XmrgGridLayer xmrg = null;
-	List nonzero_files = new Vector();
+	List<String> nonzero_files = new Vector<String>();
 	String file = null;
 	for ( int i = 0; i < list.length; i++ ) {
 		if ( !isXmrg ( list[i], false ) ) {

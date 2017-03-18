@@ -52,6 +52,7 @@ consisting of a date, a data value, units and a data flag.  It is used by
 IrregularTS to store data returned by getDataPoint() methods.
 @see IrregularTS
 */
+@SuppressWarnings("serial")
 public class TSData 
 implements Cloneable, Serializable {
 

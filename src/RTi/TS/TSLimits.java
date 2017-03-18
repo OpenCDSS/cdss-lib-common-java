@@ -87,6 +87,7 @@ This TSLimits base class can be used for any time series.  More detailed limits
 like MonthTSLimits can be extended to contain more information.  The
 toString() method should be written to provide output suitable for use in a report.
 */
+@SuppressWarnings("serial")
 public class TSLimits
 implements Cloneable, Serializable
 {
@@ -139,7 +140,7 @@ private DateTime __non_missing_data_date2;
 private double __skew;
 private double __stdDev;
 private double __sum;
-private String __data_units="";// Data units (just copy from TS at the time of creation).
+private String __data_units=""; // Data units (just copy from TS at the time of creation).
 
 private boolean	__found = false;
 

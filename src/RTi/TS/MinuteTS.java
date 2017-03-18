@@ -78,8 +78,8 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.lang.String;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.IOUtil;
@@ -95,6 +95,7 @@ import RTi.Util.Time.YearType;
 The MinuteTS class is the base class for time series used to store minute data.
 Derive classes from this class for specific minute time series data.
 */
+@SuppressWarnings("serial")
 public class MinuteTS extends TS implements Cloneable, Serializable, Transferable {
 
 // Data members...
@@ -772,7 +773,7 @@ information.  This can be used when the entire header is formatted elsewhere.
 public List<String> formatOutput( PropList proplist )
 throws TSException
 {	String message = "", routine = "MinuteTS.formatOutput", year_column = "";
-	List<String> strings = new Vector (20,10);
+	List<String> strings = new ArrayList<String>();
 	PropList props = null;
 	String data_format = "%9.1f", prop_value = null;
 
@@ -910,7 +911,7 @@ throws TSException
 			(_comments.size() == 0) ){
 			// Format the header from data (not comments)...
 			strings.add ( "" );
-			List strings2 = formatHeader();
+			List<String> strings2 = formatHeader();
 			StringUtil.addListToStringList ( strings, strings2 );
 		}
 	}
@@ -1032,7 +1033,7 @@ Format the time series for output.
 */
 public List<String> formatOutput ( String fname, PropList props )
 throws TSException
-{	String message = null, routine = "MinuteTS.formatOutput";
+{	String message = null;
 	List<String> formatted_output = null;
 	PrintWriter	stream = null;
 	String full_fname = IOUtil.getPathUsingWorkingDir(fname);
@@ -1046,20 +1047,18 @@ throws TSException
 		message = "Unable to open file \"" + full_fname + "\"";
 		throw new TSException ( message );
 	}
-	if ( stream == null ){
-		message = "Unable to open file \"" + full_fname + "\"";
-		Message.printWarning( 2, routine, message );
-		throw new TSException ( message );
-	}
 
 	try {
 		formatted_output = formatOutput ( stream, props );
-		stream.close();
-		stream = null;
 	}
 	catch ( TSException e ) {
 		// Rethrow...
 		throw e;
+	}
+	finally {
+		if ( stream != null ) {
+			stream.close();
+		}
 	}
 
 	// Also return the list (consistent with C++ single return type).

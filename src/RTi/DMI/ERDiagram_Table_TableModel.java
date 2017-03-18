@@ -20,6 +20,7 @@ import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 /**
 This class is a table model for displaying data from ERDiagram_Table objects.
 */
+@SuppressWarnings("serial")
 public class ERDiagram_Table_TableModel 
 extends JWorksheet_AbstractRowTableModel {
 
@@ -46,7 +47,7 @@ private final int
 
 /**
 Constructor.  This builds the Model for displaying the given ERDiagram_Table objects' information.
-@param data Vector of ERDiagram_Table objects for which to display data.
+@param data list of ERDiagram_Table objects for which to display data.
 @throws Exception if an invalid data or dmi was passed in.
 */
 public ERDiagram_Table_TableModel(List data) 
@@ -80,7 +81,7 @@ cell renderer base class, so that we know if a cell should be right-justified
 Also, make sure the class type returned from this method matches the kind of
 object you return in the call to getValueAt(), otherwise an exception will get thrown.
 */
-public Class getColumnClass (int columnIndex) {
+public Class<?> getColumnClass (int columnIndex) {
 	switch (columnIndex) {
 		case __COL_NAME: 	return String.class;
 		case __COL_X: 		return Double.class;

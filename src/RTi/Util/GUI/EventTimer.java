@@ -67,9 +67,9 @@ public EventTimer ( long ms, ActionListener al, String s )
 		throw( new NullPointerException( 
 		"EventTimer: ActionListener argument is NULL." ) );
 	}
-	_comp	= new SimpleJButton( s, s, al );
+	_comp = new SimpleJButton( s, s, al );
 
-	_event 	= s;
+	_event = s;
 
 	start();
 }

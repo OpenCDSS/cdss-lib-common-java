@@ -49,6 +49,7 @@ import RTi.Util.Message.Message;
 /**
 Panel to contain the JWorksheet that displays data units data.
 */
+@SuppressWarnings("serial")
 public class DataUnits_JPanel extends JPanel
 {
 

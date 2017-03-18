@@ -82,7 +82,7 @@ Construct a blank data set.  It is expected that other information will be set
 during further processing.  Component groups are not initialized until a data set type is set.
 */
 public DataSet ()
-{	__components = new Vector ();
+{	__components = new Vector<DataSetComponent>();
 }
 
 /**
@@ -106,7 +106,7 @@ to create the list of objects identifiers in the group.
 */
 public DataSet ( int [] component_types, String [] component_names, int [] component_groups,
 	int [] component_group_assignments, int [] component_group_primaries )
-{	__components = new Vector ();
+{	__components = new Vector<DataSetComponent>();
 	_component_types = component_types;
 	_component_names = component_names;
 	_component_groups = component_groups;
@@ -126,7 +126,7 @@ public DataSet ( int type, String dataset_dir, String basename )
 {	__type = type;
 	__dataset_dir = dataset_dir;
 	__basename = basename;
-	__components = new Vector ();
+	__components = new Vector<DataSetComponent>();
 }
 
 /**
@@ -335,7 +335,7 @@ Return the data components list for component that are groups.
 */
 public List<DataSetComponent> getComponentGroups ()
 {	int size = __components.size();
-	List<DataSetComponent> v = new Vector();
+	List<DataSetComponent> v = new Vector<DataSetComponent>();
 	DataSetComponent comp = null;
 	for ( int i = 0; i < size; i++ ) {
 		comp = __components.get(i);
@@ -498,7 +498,9 @@ public boolean isDirty ()
 		}
 		// If the component is a group and it was not dirty (above), check the sub-components...
 		if ( comp.isGroup() ) {
-			v = (List<DataSetComponent>)comp.getData(); // Group data is the list of components in the group
+			@SuppressWarnings("unchecked")
+			List<DataSetComponent> v0 = (List<DataSetComponent>)comp.getData(); // Group data is the list of components in the group
+			v = v0;
 			size2 = 0;
 			if ( v != null ) {
 				size2 = v.size();

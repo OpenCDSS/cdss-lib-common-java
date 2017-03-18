@@ -147,7 +147,7 @@ is needed for drawing versus creating a single DateTimeFormat and caching it.
 Caching is over 500 times faster.  Creating a DateTimeFormat is an expensive
 operation and should be done rarely.  
 */
-private static Hashtable __dateFormatHashtable = new Hashtable();
+private static Hashtable<String,DateTimeFormat> __dateFormatHashtable = new Hashtable<String,DateTimeFormat>();
 
 private final int 
 	__FORMAT_NONE = 0,
@@ -1248,7 +1248,7 @@ boolean yAxisPercent, boolean off) {
         }
     }
 
-	if ((tempX >= _datax1 && tempX <= _datax2 && tempY >= _datay1 && tempY <= _datay2) || off)  {
+	if ( ((tempX >= _datax1) && (tempX <= _datax2) && yInDa) || off )  {
 	    	GRDrawingAreaUtil.drawSymbol(this, symbol, tempX, tempY, size, 
 			size, 0, 0, null, GRUnits.DEVICE, pos, null, outlineColor);
 	}
@@ -2368,7 +2368,7 @@ int totalPoints, int minNumPoints) {
 		// declaration of Hashtable (top of class).
 		
 		// should not be null here, unless some catastrophic error occurred.
-		DateTimeFormat dtf = (DateTimeFormat)__dateFormatHashtable.get(format);
+		DateTimeFormat dtf = __dateFormatHashtable.get(format);
 		int num = 0;
 		boolean isAbsolute = dtf.isAbsolute();
 		if (isAbsolute) {
@@ -2408,7 +2408,7 @@ int totalPoints, int minNumPoints) {
 			}
 
 			boolean done = false;
-			List v = new Vector();
+			List<Double> v = new Vector<Double>();
 			int count = 0;
 			while (!done) {
 				v.add(new Double(dt1.toDouble()));
@@ -2436,7 +2436,7 @@ int totalPoints, int minNumPoints) {
 			int size = v.size();
 			calcPoints = new double[v.size()];
 			for (int i = 0; i < size; i++) {
-				calcPoints[i] = ((Double)v.get(i)).doubleValue();
+				calcPoints[i] = v.get(i).doubleValue();
 			}
 		}
 	}
@@ -2452,7 +2452,7 @@ int totalPoints, int minNumPoints) {
 		double mod = StringUtil.atod(format);
 		
 		boolean done = false;
-		List v = new Vector();
+		List<Double> v = new Vector<Double>();
 		double temp = points[pointNum];
 		if (pos) {
 			double highBound = 0;
@@ -2514,7 +2514,7 @@ int totalPoints, int minNumPoints) {
 		int size = v.size();
 		calcPoints = new double[size];
 		for (int i = 0; i < size; i++) {
-			calcPoints[i] = ((Double)v.get(i)).doubleValue();
+			calcPoints[i] = v.get(i).doubleValue();
 		}
 	}
 	else {
@@ -2544,7 +2544,7 @@ private double determineModifier(boolean isXAxis, int formatType, String format,
 		// declaration of Hashtable (top of class).
 		
 		// should not be null here, unless some catastrophic error occurred.
-		DateTimeFormat dtf = (DateTimeFormat)__dateFormatHashtable.get(format);
+		DateTimeFormat dtf = __dateFormatHashtable.get(format);
 		DateTime dt1 = null;
 		DateTime dt2 = null;
 		try {

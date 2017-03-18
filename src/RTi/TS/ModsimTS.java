@@ -22,8 +22,8 @@ package RTi.TS;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.TS.TSException;
 import RTi.Util.IO.IOUtil;
@@ -109,8 +109,8 @@ the programmer knows what sample is supported.  Perhaps they could be stored in
 sample files in the future.  
 @return Sample file contents.
 */
-public static List getSample ()
-{	List s = new Vector ( 50 );
+public static List<String> getSample ()
+{	List<String> s = new ArrayList<String> ( 50 );
 	s.add ( "#" );
 	s.add ( "# This is a sample of a typical MODSIM output file.");
 	s.add ( "# * Comments shown in this output are for illustration only." );
@@ -528,7 +528,7 @@ public static TS readTimeSeries ( TS req_ts, BufferedReader in, String full_fnam
 					DateTime req_date1, DateTime req_date2,
 					String req_units, boolean read_data )
 throws Exception
-{	List tslist = readTimeSeriesList ( req_ts, in, full_fname,
+{	List<TS> tslist = readTimeSeriesList ( req_ts, in, full_fname,
 						req_date1, req_date2, req_units, read_data );
 	if ( (tslist == null) || (tslist.size() != 1) ) {
 		tslist = null;
@@ -551,10 +551,10 @@ The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
 @param units Units to convert to.
 @param read_data Indicates whether data should be read.
 */
-public static List readTimeSeriesList ( String fname,
+public static List<TS> readTimeSeriesList ( String fname,
 						DateTime date1, DateTime date2, String units, boolean read_data)
 throws Exception
-{	List	tslist = null;
+{	List<TS> tslist = null;
 
 	String input_name = fname;
 	String full_fname = IOUtil.getPathUsingWorkingDir ( fname );
@@ -612,7 +612,7 @@ the entire time series).
 @param read_data Indicates whether data should be read.
 @exception TSException if there is an error reading the time series.
 */
-public static List readTimeSeriesList ( TS req_ts, BufferedReader in, String filename,
+public static List<TS> readTimeSeriesList ( TS req_ts, BufferedReader in, String filename,
 						DateTime req_date1, DateTime req_date2, String req_units, boolean read_data )
 throws Exception
 {	String string = "";
@@ -643,10 +643,10 @@ throws Exception
 	ra = null;
 	// Now break the bytes into records...
 	String bs = new String ( b );
-	List v = StringUtil.breakStringList ( bs, "\n\r", StringUtil.DELIM_SKIP_BLANKS );
+	List<String> v = StringUtil.breakStringList ( bs, "\n\r", StringUtil.DELIM_SKIP_BLANKS );
 	// The last item will contain the last line from the file...
-	List endstrings = StringUtil.breakStringList (
-		(String)v.get(v.size() - 1), " \t,",
+	List<String> endstrings = StringUtil.breakStringList (
+		v.get(v.size() - 1), " \t,",
 		StringUtil.DELIM_SKIP_BLANKS|StringUtil.DELIM_ALLOW_STRINGS );
 
 	// Because of the organization of the file, the entire file needs
@@ -690,8 +690,8 @@ throws Exception
 
 	TS ts = null;
 	TS [] ts_array = null;	// Use to speed time series processing.
-	List tslist = null;
-	List header = null, strings = null;
+	List<TS> tslist = null;
+	List<String> header = null, strings = null;
 	double dvalue = 0.0;	// Data value.
 
 	try {
@@ -751,19 +751,18 @@ throws Exception
 			num_param = nstrings - first_data_col; // Number of parameters in the file for each node.
 			Message.printStatus ( 2, routine, "There are " + num_param + " data columns." );
 			if ( req_ts != null ) {
-				tslist = new Vector(1);
+				tslist = new ArrayList<TS>();
 				String datatype_req_ts = req_ts.getIdentifier().getType();
 				for ( icol = first_data_col; icol < nstrings;
 					icol++ ) {
-					if ( datatype_req_ts.equalsIgnoreCase( (String)strings.get(icol)) ) {
+					if ( datatype_req_ts.equalsIgnoreCase( strings.get(icol)) ) {
 						req_ts_column = icol;
 						break;
 					}
 				}
 			}
 			else {
-			    // Just guess.  The true number will be num_param* the number of nodes.
-				tslist = new Vector ( num_param*100 );
+				tslist = new ArrayList<TS>();
 			}
 
 			// No need to run the code below and can avoid a long indented section so continue...

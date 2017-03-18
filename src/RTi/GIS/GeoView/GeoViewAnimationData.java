@@ -167,7 +167,7 @@ private TS[] __tsArray = null;
 Constructor.  Builds with a selection type of CHECKBOX.
 @param layerData a GeoViewAnimationLayerData object that has information 
 on how to construct the layer on which this data will appear.
-@param tsVector a Vector of time series that correspond to rows in the 
+@param tsList a Vector of time series that correspond to rows in the 
 attribute table of the animation layer view.  Element X in this Vector 
 corresponds to row X in the table.
 @param attributeFieldName the name of the field in the attribute table where
@@ -202,11 +202,11 @@ cannot be found in the layer view's attribute table.
 the size of the TS Vector passed to the constructor.
 */
 public GeoViewAnimationData(GeoViewAnimationLayerData layerData,
-List tsVector, String attributeFieldName, String dateFieldName, 
+List<TS> tsList, String attributeFieldName, String dateFieldName, 
 String guiLabel, String groupName, boolean visible, int selectType,
 double animationFieldMax) 
 throws Exception {
-	if (tsVector == null || attributeFieldName == null 
+	if (tsList == null || attributeFieldName == null 
 		|| dateFieldName == null || guiLabel == null 
 		|| groupName == null || layerData == null) {
 		throw new NullPointerException();
@@ -220,13 +220,13 @@ throws Exception {
 
 	// put into an array for faster access
 
-	int size = tsVector.size();
+	int size = tsList.size();
 	__tsArray = new TS[size];
 	for (int i = 0; i < size; i++) {
-		__tsArray[i] = (TS)tsVector.get(i);
+		__tsArray[i] = (TS)tsList.get(i);
 	}
 
-	tsVector = null;
+	tsList = null;
 	
 	__attributeFieldName = attributeFieldName;
 	__dateFieldName = dateFieldName;

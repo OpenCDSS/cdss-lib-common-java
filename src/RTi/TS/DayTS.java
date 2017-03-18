@@ -110,8 +110,8 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.lang.String;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.IOUtil;
@@ -128,6 +128,7 @@ import RTi.Util.Time.YearType;
 The DayTS class is the base class for daily time series.  The class can be
 extended for variations on daily data.  Override the allocateDataSpace() and set/get methods to do so.
 */
+@SuppressWarnings("serial")
 public class DayTS extends TS implements Cloneable, Serializable, Transferable {
 
 // Data members...
@@ -765,7 +766,7 @@ public List<String> formatOutput( PropList proplist )
 throws TSException
 {	String message = "", routine = "DayTS.formatOutput()";	
 	int column, dl = 20, row;
-	List<String> strings = new Vector (20,10);
+	List<String> strings = new ArrayList<String>();
 	PropList props = null;
 	String data_format = "%9.1f", format = "", prop_value = null;
 
@@ -922,7 +923,7 @@ throws TSException
 			if ( !use_comments_for_header.equalsIgnoreCase("true")){
 				// Format the header...
 				strings.add ( "" );
-				List strings2 = formatHeader();
+				List<String> strings2 = formatHeader();
 				StringUtil.addListToStringList ( strings, strings2 );
 			}
 		}
@@ -1301,9 +1302,9 @@ Format the time series for output.
 @param props Properties to modify output.
 @exception RTi.TS.TSException Throws if there is an error writing the output.
 */
-public List formatOutput ( PrintWriter fp, PropList props )
+public List<String> formatOutput ( PrintWriter fp, PropList props )
 throws TSException
-{	List formatted_output = null;
+{	List<String> formatted_output = null;
 	String routine = "DayTS.formatOutput(Writer,props)";
 	int	dl = 20;
 	String message;
@@ -1352,8 +1353,9 @@ Format the time series for output.
 */
 public List<String> formatOutput ( String fname, PropList props )
 throws TSException
-{	String message = null, routine = "DayTS.formatOutput(char*,int,long)";
-	List formatted_output = null;
+{	String message = null;
+	//String routine = "DayTS.formatOutput";
+	List<String> formatted_output = null;
 	PrintWriter	stream = null;
 	String full_fname = IOUtil.getPathUsingWorkingDir(fname);
 
@@ -1364,11 +1366,6 @@ throws TSException
 	}
 	catch ( Exception e ) {
 		message = "Unable to open file \"" + full_fname + "\"";
-		throw new TSException ( message );
-	}
-	if ( stream == null ){
-		message = "Unable to open file \"" + full_fname + "\"";
-		Message.printWarning( 2, routine, message );
 		throw new TSException ( message );
 	}
 
@@ -1394,7 +1391,7 @@ Format the output statistics row given the data array.
 @param data_format Format for individual floating point values.
 */
 private List<String> formatOutputStats ( double[][] data, String label, String data_format )
-{	List<String> strings = new Vector (2,1);
+{	List<String> strings = new ArrayList<String>();
 	double stat = 0.0;
 	StringBuffer buffer = null;
 	double [] array = new double[31];

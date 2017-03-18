@@ -27,6 +27,7 @@ import RTi.Util.String.StringUtil;
  * @author sam
  * @see TSUtil.getTSFormatSpecifiers
  */
+@SuppressWarnings("serial")
 public class TSFormatSpecifiersJPanel extends JPanel implements ItemListener
 {
     /**

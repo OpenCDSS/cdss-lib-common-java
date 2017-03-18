@@ -12,6 +12,7 @@ import RTi.Util.String.StringUtil;
 /**
 This class is used to render cells for TS view tables.
 */
+@SuppressWarnings("serial")
 public class TSViewTable_CellRenderer
 extends JWorksheet_AbstractExcelCellRenderer {
 

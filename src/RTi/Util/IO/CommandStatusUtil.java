@@ -440,7 +440,7 @@ implement CommandStatusProvider.
 public static List<CommandLogRecord> getLogRecordListFromCommands ( List<Command> commandList,
     CommandPhaseType commandPhase )
 {
-    List<CommandStatusProvider> commandStatusProviderList = new Vector();
+    List<CommandStatusProvider> commandStatusProviderList = new Vector<CommandStatusProvider>();
     for ( Command command: commandList ) {
         if ( command instanceof CommandStatusProvider ) {
             commandStatusProviderList.add((CommandStatusProvider)command);
@@ -530,7 +530,7 @@ number of commands that have at least one log record with the indicated severity
 */
 public static int getSeverityCount ( Command command, CommandStatusType severity, boolean countCommands )
 {
-    List<Command> list = new Vector(1);
+    List<Command> list = new Vector<Command>(1);
     list.add(command);
     return getSeverityCount ( list, severity, countCommands );
 }

@@ -163,9 +163,8 @@ import java.awt.event.ItemListener;
 import java.io.File;
 
 import java.net.URL;
-
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
@@ -259,6 +258,7 @@ This GeoViewJPanel is meant to be used for integrated map and as a stand-alone
 tool when used by GeoViewJFrame.
 TODO (JTS - 2006-05-23) Example of usage?
 */
+@SuppressWarnings("serial")
 public class GeoViewJPanel 
 extends JPanel
 implements ActionListener, ComponentListener, GeoViewListener, ItemListener {
@@ -298,7 +298,7 @@ private JToggleButton __selectJButton = null;
 private JToggleButton __zoomJButton = null;
 private JToggleButton __infoJButton = null;
 
-private JComboBox __modeJComboBox = null;
+private JComboBox<String> __modeJComboBox = null;
 
 private JTextField __statusJTextField = null;
 private JTextField __trackerJTextField = null;
@@ -352,7 +352,7 @@ public final String SET_ATTRIBUTE_KEY = "Set Attribute Key...";
 
 private String __gvpFile = "";
 
-private List<String> __enabledAppLayerTypes = new Vector (5);
+private List<String> __enabledAppLayerTypes = new ArrayList<String>(5);
 
 private PropList __displayProps = null;
 
@@ -804,7 +804,7 @@ be set equal.  If false, the maximum will be determined from the data used for t
 @exception Exception if there is an error processing the summary layer data.
 */
 public GeoLayerView addSummaryLayerView (DataTable attribute_table, String layer_name, int identifier_field,
-	int first_data_field, List avail_app_layer_types, boolean equalize_max ) 
+	int first_data_field, List<String> avail_app_layer_types, boolean equalize_max ) 
 throws Exception {
 	return addSummaryLayerView(attribute_table, layer_name, 
 		identifier_field, first_data_field, avail_app_layer_types, 
@@ -850,7 +850,7 @@ in array position X, the maximum is the field maximum for the field stored in an
 @exception Exception if there is an error processing the summary layer data.
 */
 public GeoLayerView addSummaryLayerView ( DataTable attribute_table, String layer_name, int identifier_field,
-	int first_data_field, List avail_app_layer_types, boolean equalize_max, int[] animationFields,
+	int first_data_field, List<String> avail_app_layer_types, boolean equalize_max, int[] animationFields,
 	double[] animationMaxValues)
 throws Exception
 {	
@@ -910,7 +910,7 @@ in array position X, the maximum is the field maximum for the field stored in an
 @throws Exception if there is an error processing the summary layer data.
 */
 public GeoLayerView addSummaryLayerView (DataTable attribute_table, String layer_name, int[] identifier_fields,
-	int[] data_fields, List avail_app_layer_types, boolean equalize_max,
+	int[] data_fields, List<String> avail_app_layer_types, boolean equalize_max,
 	int[] animationFields, double[] animationMaxValues)
 throws Exception {	
 	return addSummaryLayerView(attribute_table, 
@@ -988,7 +988,7 @@ the maximum capacity of all the teacups being animated together.
 @throws Exception if for teacup symbols the data fields and animation fields do not contain 3 values.
 */
 public GeoLayerView addSummaryLayerView (DataTable attributeTable, int symbolType, String layerName,
-	int[] identifierFields, int[] dataFields, List availAppLayerTypes, boolean equalizeMax,
+	int[] identifierFields, int[] dataFields, List<String> availAppLayerTypes, boolean equalizeMax,
 	int[] animationFields, double[] animationMaxValues, PropList props)
 throws Exception
 {	
@@ -999,7 +999,7 @@ throws Exception
 		numAppLayerTypes = availAppLayerTypes.size();
 	}
 	
-	List layerViews = getGeoView().getLayerViews();			
+	List<GeoLayerView> layerViews = getGeoView().getLayerViews();			
 	int numLayerViews = layerViews.size();
 
 	if (numAppLayerTypes == 0) {
@@ -1007,7 +1007,7 @@ throws Exception
 		numAppLayerTypes = numLayerViews;
 	}
 
-	List dataFieldsVector = new Vector();
+	List<String> dataFieldsVector = new ArrayList<String>();
 
 	if (symbolType == GRSymbol.SYM_TEACUP) {
 		if (dataFields.length != 3) {
@@ -1029,7 +1029,7 @@ throws Exception
 
 	GeoLayer summaryLayer = new GeoLayer(new PropList("SummaryLayer"));
 	summaryLayer.setShapeType(GeoLayer.POINT);
-	List summaryShapes = summaryLayer.getShapes();
+	List<GRShape> summaryShapes = summaryLayer.getShapes();
 	summaryLayer.setAttributeTable(attributeTable);
 	summaryLayer.setAppLayerType("Summary");
 	GRLegend summaryLegend = null;
@@ -1207,8 +1207,8 @@ throws Exception
 	String appJoinField; // The appJoinField property value for a layer that is being searched.	
 	String appLayerType; // Layer type in a layer that is being searched
 	String temp = null;
-	List joinFieldsVector = null;
-	List shapes = null;	// Shapes in a layer that is being searched
+	List<String> joinFieldsList = null;
+	List<GRShape> shapes = null;	// Shapes in a layer that is being searched
 
 	for (int i = 0; i < size; i++) { // Loop on list of feature IDs to match
 		found = false;
@@ -1257,15 +1257,15 @@ throws Exception
 			}
 
 			try {	
-				joinFieldsVector = StringUtil.breakStringList(appJoinField, ",", 0);
-				joinSize = joinFieldsVector.size();
+				joinFieldsList = StringUtil.breakStringList(appJoinField, ",", 0);
+				joinSize = joinFieldsList.size();
 				if (joinSize != identifierFields.length) {
 					continue;
 				}
 
 				layerJoinFields = new int[joinSize];
 				for (ic = 0; ic < joinSize; ic++) {
-					layerJoinFields[ic] = layerAttributeTable.getFieldIndex((String)joinFieldsVector.get(ic));
+					layerJoinFields[ic] = layerAttributeTable.getFieldIndex((String)joinFieldsList.get(ic));
 				}
 			}
 			catch (Exception e) {
@@ -1457,12 +1457,12 @@ public GeoLayerView addSummaryMapLayer ( String filename )
 		avail_app_layer_types.addElement ( "Streamflow" );
 		avail_app_layer_types.addElement ( "Well" );
 		*/
-		List avail_app_layer_types = new Vector();
+		List<String> avail_app_layer_types = new ArrayList<String>();
 		avail_app_layer_types.add ( "BaseLayer" );
 
-		List tableFields = DataTable.parseDelimitedFileHeader ( filename, delimiter);
+		List<TableField> tableFields = DataTable.parseDelimitedFileHeader ( filename, delimiter);
 
-		List appLayers = getLayerViews(null);
+		List<GeoLayerView> appLayers = getLayerViews(null);
 		GeoViewSummaryFileJDialog d = new GeoViewSummaryFileJDialog(
 			__parentJFrame, filename, tableFields, delimiter, appLayers);
 
@@ -1474,7 +1474,7 @@ public GeoLayerView addSummaryMapLayer ( String filename )
 	
 		int[] dataFields = d.getDataFields();
 
-		List v = d.getAppLayerTypes();
+		List<String> v = d.getAppLayerTypes();
 
 		boolean equalizeMax = d.getEqualizeMax();
 
@@ -1482,9 +1482,9 @@ public GeoLayerView addSummaryMapLayer ( String filename )
 
 		int index = -1;
 		String s = null;
-		Vector appLayerTypes = new Vector();
+		List<String> appLayerTypes = new ArrayList<String>();
 		for (int i = 0; i < v.size(); i++) {
-			s = (String)v.get(i);
+			s = v.get(i);
 			index = s.indexOf(" - ");
 			s = s.substring(0, index).trim();
 			appLayerTypes.add(s);
@@ -1702,11 +1702,11 @@ public void enableAppLayerTypes ( List<String> enabled_types, boolean append_typ
 	// For now always do this...
 	__enabledAppLayerTypes = enabled_types;
 	boolean did_something = false;
-	List layerNodes = __legendJTree.getAllLayerNodes();
+	List<GeoViewLegendJTree_Node> layerNodes = __legendJTree.getAllLayerNodes();
 	size = layerNodes.size();
 	GeoViewLegendJTree_Node node = null;	
 	for ( int i = 0; i < size; i++ ) {
-		node = (GeoViewLegendJTree_Node)layerNodes.get(i);
+		node = layerNodes.get(i);
 		layer_view = node.getLayerView();
 		if (layer_view == null) {
 			continue;
@@ -1808,9 +1808,9 @@ public String geoViewGetLabel ( GeoRecord record )
 Handle GeoView info event.  This will show the information for the selected features.
 @param devpt Device coordinates of selection.
 @param datapt Data limits of selection.
-@param selected Vector of GeoRecord selected from GeoView.
+@param selected list of GeoRecord selected from GeoView.
 */
-public void geoViewInfo(GRShape devpt, GRShape datapt, List selected) {
+public void geoViewInfo(GRShape devpt, GRShape datapt, List<GeoRecord> selected) {
 	showFeatureInformation ( selected );
 }
 
@@ -1819,9 +1819,9 @@ Handle GeoView info event.  This will show the information for the selected feat
 @param devlim Device limits (these are actual device limits in native
 device coordinates - Y0 will be at top of window).
 @param datalim Data limits.
-@param selected Vector of GeoRecord selected from GeoView.
+@param selected list of GeoRecord selected from GeoView.
 */
-public void geoViewInfo(GRLimits devlim, GRLimits datalim, List selected) {
+public void geoViewInfo(GRLimits devlim, GRLimits datalim, List<GeoRecord> selected) {
 	showFeatureInformation ( selected );
 }
 
@@ -1831,7 +1831,7 @@ Handle GeoView info event.  This will show the information for the selected feat
 @param datapt Data limits of selection.
 @param selected Vector of GeoRecord selected from GeoView.
 */
-public void geoViewInfo(GRPoint devpt, GRPoint datapt, List selected) {
+public void geoViewInfo(GRPoint devpt, GRPoint datapt, List<GeoRecord> selected) {
 	showFeatureInformation ( selected );
 }
 
@@ -1873,25 +1873,25 @@ Handle GeoView select event.  Do nothing.
 @param datapt Data coordinates.
 @param selected list of GeoRecord selected from GeoView.
 */
-public void geoViewSelect(GRShape devpt, GRShape datapt, List selected, boolean append) {}
+public void geoViewSelect(GRShape devpt, GRShape datapt, List<GeoRecord> selected, boolean append) {}
 
 /**
 Handle GeoView select event; does nothing.
 @param devlim Device limits (these are actual device limits in native
 device coordinates - Y0 will be at top of window).
 @param datalim Data limits.
-@param selected Vector of GeoRecord selected from GeoView.
+@param selected list of GeoRecord selected from GeoView.
 */
-public void geoViewSelect(GRLimits devlim, GRLimits datalim, List selected, boolean append) {}
+public void geoViewSelect(GRLimits devlim, GRLimits datalim, List<GeoRecord> selected, boolean append) {}
 
 /**
 Handle select event; does nothing.
 Handle GeoView select event.  Do nothing.
 @param devpt Device coordinates.
 @param datapt Data coordinates.
-@param selected Vector of GeoRecord selected from GeoView.
+@param selected list of GeoRecord selected from GeoView.
 */
-public void geoViewSelect(GRPoint devpt, GRPoint datapt, List selected, boolean append) {}
+public void geoViewSelect(GRPoint devpt, GRPoint datapt, List<GeoRecord> selected, boolean append) {}
 
 /**
 Handle GeoView zoom event; does nothing.
@@ -1925,7 +1925,7 @@ be non-null.
 public List<String> getEnabledAppLayerTypes() {
 	List<GeoLayerView> layerViews = getGeoView().getLayerViews();			
 	
-	List<String> enabledAppLayerTypeList = new Vector();
+	List<String> enabledAppLayerTypeList = new ArrayList<String>();
 	for ( GeoLayerView layerView: layerViews ) {
 		if (layerView.isVisible()) {
 			GeoLayer layer = layerView.getLayer();
@@ -1956,7 +1956,7 @@ public List<GeoLayerView> getLayerViews ( List<String> appLayerTypesReq )
 		return layerViewList;
 	}
 	String appLayerType = null;
-	List<GeoLayerView> matchingLayerViews = new Vector();
+	List<GeoLayerView> matchingLayerViews = new ArrayList<GeoLayerView>();
 	for ( GeoLayerView layerView: layerViewList) {
 		appLayerType = layerView.getPropList().getValue ( "AppLayerType");
 		if ( appLayerType == null ) {
@@ -2274,9 +2274,9 @@ Remove layer views that match an App Layer Type.
 @param appLayerTypes list of app layer types to remove.
 */
 public void removeAppLayerViews ( List<String> appLayerTypes )
-{	// First get a Vector of matching layer views...
+{	// First get a list of matching layer views...
 	int size = 0;
-	List<GeoLayerView> appLayerViews = new Vector();
+	List<GeoLayerView> appLayerViews = new ArrayList<GeoLayerView>();
 	if ( appLayerTypes != null ) {
 		size = appLayerTypes.size();
 	}
@@ -2315,7 +2315,7 @@ performance reasons this should be specified as false if multiple layer views
 are being removed - then redraw after all have been removed (or specify true for the last remove).
 */
 public void removeLayerView ( GeoLayerView layer_view_to_remove, boolean redraw )
-{	List layer_views = __mainGeoView.getLayerViews();
+{	List<GeoLayerView> layer_views = __mainGeoView.getLayerViews();
 	int size = 0;
 	if ( layer_views != null ) {
 		size = layer_views.size();
@@ -2360,7 +2360,7 @@ private void saveAs ()
 	JGUIUtil.setLastFileDialogDirectory(file.getParent());
 	try {
 		// Write the first selected layer or if nothing is selected the first layer...
-		List layer_views = __mainGeoView.getLayerViews();
+		List<GeoLayerView> layer_views = __mainGeoView.getLayerViews();
 		int pos = -1;
 		GeoLayerView layer_view = null;
 		GeoLayer layer = null;
@@ -2393,7 +2393,7 @@ private void saveAs ()
 			double max_to_draw = 0.0;
 			boolean use_data_limits = false;
 			if ( prop_value != null ) {
-				List v = StringUtil.breakStringList ( prop_value,",",0);
+				List<String> v = StringUtil.breakStringList ( prop_value,",",0);
 				prop_value = null;
 				if ( (v != null) && (v.size() == 2) ) {
 					use_data_limits = true;
@@ -2477,7 +2477,7 @@ public List<GeoRecord> selectAppFeatures (	List<String> appLayerTypes, List<Stri
 	// First loop through all non-baseline layers and set shapes to not selected.
 
 	if ( (feature_ids == null) || (feature_ids.size() == 0) ) {
-		return new Vector();
+		return new ArrayList<GeoRecord>();
 	}
 	int nfeature = feature_ids.size();
 	int napp_layer_types = 0;
@@ -2486,10 +2486,10 @@ public List<GeoRecord> selectAppFeatures (	List<String> appLayerTypes, List<Stri
 	}
 	// Break the features_ids into a 2-D array of strings for examination
 	// below.  It is assumed that the first feature_id has the correct number of fields...
-	List<GeoRecord> selectedGeoRecordList = new Vector();
+	List<GeoRecord> selectedGeoRecordList = new ArrayList<GeoRecord>();
 	List<String> v = StringUtil.breakStringList ( feature_ids.get(0), ",", 0 );
 	if ( (v == null) || (v.size() == 0) ) {
-		return new Vector();
+		return new ArrayList<GeoRecord>();
 	}
 	int nfeature_parts = v.size();
 	String[][] featureArray = new String[nfeature][nfeature_parts];
@@ -2683,12 +2683,12 @@ The value indicates the fraction (0 to 1.0) of the main extents to center on the
 
 </table>
 
-@return Vector of GeoRecord for the selected features, or null if nothing is
+@return list of GeoRecord for the selected features, or null if nothing is
 selected.  At a minimum, the size of this Vector can be used by calling code
-to determine wether the count of input items is less than the number matched.
+to determine whether the count of input items is less than the number matched.
 @exception Exception if there is an error selecting features (e.g., properties are not valid).
 */
-public List selectLayerFeatures ( List layer_list, List attribute_list, List feature_ids, PropList props )
+public List<GeoRecord> selectLayerFeatures ( List<GeoLayer> layer_list, List<String> attribute_list, List<String> feature_ids, PropList props )
 throws Exception
 {	String routine = "GeoViewPanel.selectLayerFeatures";
 
@@ -2743,8 +2743,8 @@ throws Exception
 	// are added to this method at some point.
 	// Break the features_ids into a 2-D array of strings for examination
 	// below.  It is assumed that the first feature_id has the correct number of fields...
-	List georecords = null;
-	List v = StringUtil.breakStringList ( (String)feature_ids.get(0), ",", 0 );
+	List<GeoRecord> georecords = null;
+	List<String> v = StringUtil.breakStringList ( feature_ids.get(0), ",", 0 );
 	if ( (v == null) || (v.size() == 0) ) {
 		return null;
 	}
@@ -2758,7 +2758,7 @@ throws Exception
 	}
 	v = null;
 	
-	List layer_views = __mainGeoView.getLayerViews();
+	List<GeoLayerView> layer_views = __mainGeoView.getLayerViews();
 	int numlayerviews = 0;
 	if ( layer_views != null ) {
 		numlayerviews = layer_views.size();
@@ -2766,18 +2766,18 @@ throws Exception
 	GeoLayerView layer_view = null;
 	GeoLayer layer = null;
 	for ( int i = 0; i < numlayerviews; i++ ) {
-		layer_view = (GeoLayerView)layer_views.get(i);
+		layer_view = layer_views.get(i);
 		//prop_value = layer_view.getPropList().getValue ("AppLayerType");
 		//if ( prop_value.equalsIgnoreCase("BaseLayer") ) {
 			//continue;
 		//}
-		layer = (GeoLayer)layer_view.getLayer();
+		layer = layer_view.getLayer();
 		layer.deselectAllShapes();
 	}
 
 	// Now loop through specified layers and search for the features...
 
-	List lv_records = null;	// Records selected in a layer view.
+	List<GeoRecord> lv_records = null;	// Records selected in a layer view.
 	String join_field; // Fields to join the application data to the spatial data
 
 	boolean layer_match = false; // Used to track layer matches.
@@ -2785,8 +2785,8 @@ throws Exception
 	Object o; // Used to get layer list object, which can be a layer name String or GeoLayer (supported later).
 	String layer_name = null; // Layer name (as displayed), used to lookup layers requested for the search.
 	for ( int i = 0; i < numlayerviews; i++ ) {	
-		layer_view = (GeoLayerView)layer_views.get(i);
-		layer = (GeoLayer)layer_view.getLayer();
+		layer_view = layer_views.get(i);
+		layer = layer_view.getLayer();
 
 		layer_match = false;
 		for ( int j = 0; j < layer_list_size; j++ ) {
@@ -2863,7 +2863,7 @@ throws Exception
 			continue;
 		}
 		*/
-		join_field = (String)attribute_list.get(layer_match_j);
+		join_field = attribute_list.get(layer_match_j);
 		Message.printStatus ( 2, routine, "Selecting from " + layer_view.getName() + " using join field " +
 			join_field );
 
@@ -2956,13 +2956,13 @@ point, then zoom_buffer2 can be applied similar to zoom_buffer but using the
 dimension of the main view as the reference region.
 @param append Indicates whether the selections should be added to previous
 selections.  <b>This feature is under development.</b>
-@return A Vector of GeoRecord for the selected features, or null if nothing is selected.
+@return A list of GeoRecord for the selected features, or null if nothing is selected.
 */
-public List selectAppFeatures (	List app_layer_types, GRShape shape, boolean zoom_to_selected,
+public List<GeoRecord> selectAppFeatures ( List<String> app_layer_types, GRShape shape, boolean zoom_to_selected,
 	double zoom_buffer, double zoom_buffer2, boolean append )
 {	String routine = "GeoViewPanel.selectAppFeatures";
 	// A general method is available in GeoViewCanvas...
-	List georecords = __mainGeoView.selectGeoRecords (
+	List<GeoRecord> georecords = __mainGeoView.selectGeoRecords (
 		shape, app_layer_types, GeoViewJComponent.INTERACTION_SELECT, append );
 	int match_count = 0;
 	if ( georecords != null ) {
@@ -3602,7 +3602,7 @@ private void showFeatureInformation ( List<? extends GeoRecord> selected )
 
 	DataTable table = null;
 	int j = 0;
-	List<String> strings = new Vector();
+	List<String> strings = new ArrayList<String>();
 	int nfields = 0;
 	String string = null;
 	String name = null; // Name of layer.

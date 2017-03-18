@@ -36,6 +36,7 @@ import RTi.Util.String.StringUtil;
 /**
 Dialog to provide useful date/time tools to help understand date/time data.
 */
+@SuppressWarnings("serial")
 public class DateTimeToolsJDialog extends JDialog
 implements ActionListener, ItemListener, KeyListener, WindowListener
 {

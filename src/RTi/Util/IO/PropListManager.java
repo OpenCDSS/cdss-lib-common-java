@@ -175,7 +175,7 @@ public String getValue ( String key )
 // Initialize the object...
 
 private int initialize ( )
-{	_proplists = new Vector ( 2, 2 );
+{	_proplists = new Vector<PropList>();
 	return 0;
 }
 
@@ -206,7 +206,7 @@ static Prop parsePropString ( String prop_string )
 		// For some reason the above is not returning 2 tokens if the
 		// property is like "X=" (set to blank).  Handle here...
 		if ( prop_string.endsWith("=") ) {
-			tokens = new Vector(2);
+			tokens = new Vector<String>(2);
 			tokens.add (prop_string.substring( 0,(prop_string.length() - 1)));
 			tokens.add ( "" );
 		}
@@ -283,7 +283,7 @@ expand the contents to the literal property value.
 public static String resolveContentsValue ( PropList proplist, String contents )
 {	// Use a vector with one item to look up the information...
 
-	List<PropList> v = new Vector();
+	List<PropList> v = new Vector<PropList>();
 	v.add ( proplist );
 	
 	String results = resolveContentsValue ( v, contents );
@@ -389,10 +389,10 @@ public static String resolveContentsValue ( PropList proplist, String contents )
 Given a vector of property lists and a string representation of the property
 contents, expand the contents to the literal property value.
 @return The property value as a string.
-@param proplists The vector of property lists to search for properties.
+@param proplists The list of property lists to search for properties.
 @param contents The string contents to be expanded.
 */
-public static String resolveContentsValue (	List proplists, String contents )
+public static String resolveContentsValue (	List<PropList> proplists, String contents )
 {	char cchar, hard_quote, soft_quote, syscall_quote;
 	String rfr_close, rfr_open, rfr_val, rfr_val_nest, routine = "PropListManager.resolveContentsValue";
 	StringBuffer rfr_var = new StringBuffer(), rfr_var_nest = new StringBuffer ();
@@ -545,7 +545,7 @@ public static String resolveContentsValue (	List proplists, String contents )
 				if ( Message.isDebugOn ) {
 					Message.printDebug ( dl, routine, "Making system call \"" + syscall + "\"" );
 				}
-				List sysout = null;
+				List<String> sysout = null;
 				try {
 					// Run using the full command since we don't know for sure how to tokenize,
 					// but the version that takes a command array is safer...
@@ -725,7 +725,7 @@ single specified property list.
 public static String resolvePropValue ( PropList list, String key )
 {	// Create a vector and call the routine that accepts the vector...
 
-	List v = new Vector();
+	List<PropList> v = new Vector<PropList>();
 	v.add ( list );
 	String result = resolvePropValue ( v, key );
 	return result;
@@ -754,10 +754,10 @@ public static String resolvePropValue ( PropList list, String key )
 Return the string value for a property, given the property key, using the
 specified vector of property lists.
 @return The string property value.
-@param list The vector of property lists to check.
+@param list The list of property lists to check.
 @param key The string key to look up>
 */
-public static String resolvePropValue ( List list, String key )
+public static String resolvePropValue ( List<PropList> list, String key )
 {	int	array_index = 0, dl = 100;
 
 	// Make sure that we have non-null data...
@@ -784,7 +784,7 @@ public static String resolvePropValue ( List list, String key )
 		"Looking up \"" + key + "\" in vector of PropList" );
 	}
 
-	List strings = StringUtil.breakStringList ( key, "[]", StringUtil.DELIM_SKIP_BLANKS );
+	List<String> strings = StringUtil.breakStringList ( key, "[]", StringUtil.DELIM_SKIP_BLANKS );
 	int	nstrings = strings.size();
 	if ( nstrings >= 2 ) {
 		// We have an array.  Break out the variable name and the

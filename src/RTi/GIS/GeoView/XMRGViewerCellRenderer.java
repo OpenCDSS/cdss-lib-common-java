@@ -29,6 +29,7 @@ import RTi.Util.String.StringUtil;
 This class is the class from which other Cell Renderers for HydroBase
 should be built.
 */
+@SuppressWarnings("serial")
 public class XMRGViewerCellRenderer
 extends JWorksheet_AbstractExcelCellRenderer {
 

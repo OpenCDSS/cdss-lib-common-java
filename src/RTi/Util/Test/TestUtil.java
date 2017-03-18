@@ -321,7 +321,7 @@ setTestsToRunFileName())
 See the memo at 
 I:\DEVELOP\doc\ProceduresAndGuidelines\SoftwareDirectoryStandard\ 
 for more information on the format of the file.
-@return the Vector of tests to add to the TestSuite, or null if all tests in the
+@return the list of tests to add to the TestSuite, or null if all tests in the
 package should be added to the suite.  Any error will result in null being
 returned.
 */
@@ -351,7 +351,7 @@ public static Vector readTestList() {
 	try {
 		// Read the file into the table, then iterate through
 		// the records that were read and all them to a
-		// Vector.  The DataTable code does all the work of
+		// list.  The DataTable code does all the work of
 		// trimming fields and skipping comment lines.
 		
 		DataTable table = DataTable.parseFile(testFile.toString(), 
@@ -361,7 +361,7 @@ public static Vector readTestList() {
 		Vector v = new Vector();
 		String s = null;
 		
-		// Create the Vector names of test classes to be added to
+		// Create the list names of test classes to be added to
 		// the TestSuite by reading them from the tests-to-run file.  
 		// This Vector can contain duplicate values if classes are
 		// listed more than once in the file, but that will result

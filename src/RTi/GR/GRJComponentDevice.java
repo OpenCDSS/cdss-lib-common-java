@@ -43,6 +43,7 @@ import RTi.Util.String.StringUtil;
 /**
 TODO (JTS - 2006-05-23) Document example of use (e.g., from ERDiagram_Device)
 */
+@SuppressWarnings("serial")
 public class GRJComponentDevice 
 extends JComponent 
 implements GRDevice

@@ -30,7 +30,8 @@ If I could do this over, I would combine this table model with
 AbstractTableModel, in order to simplify things.  I don't see a very good reason
 to require both of these, honestly.
 */
-public abstract class JWorksheet_AbstractRowTableModel extends JWorksheet_AbstractTableModel {
+@SuppressWarnings("serial")
+public abstract class JWorksheet_AbstractRowTableModel<T> extends JWorksheet_AbstractTableModel<T> {
 
 /**
 Returns the Object stored in the Table Model data at the given position, or
@@ -38,7 +39,7 @@ null if the given row is out of the range of the rows.
 @param row the row for which to return data.
 @return the Object stored in the _data Vector at the given position.
 */
-public Object getRowData(int row) {
+public T getRowData(int row) {
 	if (row > _rows || row < 0) {
 		return null;
 	}

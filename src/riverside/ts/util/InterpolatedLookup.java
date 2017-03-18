@@ -50,12 +50,12 @@ public class InterpolatedLookup {
      *             pairs to be interpolated. You will need to call this method 
      *             before calling lookupValue() or lookupKey().
      */
-    public void setBasis(HashMap list) {
+    public void setBasis(HashMap<Double,Double> list) {
         _table = new Table(list.size());
         int i = 0;
-        for (Iterator iter = list.keySet().iterator(); iter.hasNext(); ) {
-            double key = (Double)iter.next();
-            double value = (Double)list.get(key);
+        for (Iterator<Double> iter = list.keySet().iterator(); iter.hasNext(); ) {
+            double key = iter.next();
+            double value = list.get(key);
             _table.populate(i, Table.GETCOLUMN_1, key);
             _table.populate(i, Table.GETCOLUMN_2, value);
             i++;

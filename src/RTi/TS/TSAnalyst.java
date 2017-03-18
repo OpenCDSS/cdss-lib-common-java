@@ -45,8 +45,8 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.IO.PropList;
 import RTi.Util.Math.MathUtil;
@@ -108,7 +108,7 @@ private TS	_ts;		// Time series of interest.
 //private int	_query_field = QUERY_VALUE;
 				// Data field from TS to query (default is data
 				// value.
-protected List _data_coverage_report_Vector = null;
+protected List<String> _data_coverage_report_Vector = null;
 protected DateTime _data_coverage_report_date1 = null;
 protected DateTime _data_coverage_report_date2 = null;
 protected PropList _data_coverage_report_props = null;
@@ -2081,9 +2081,6 @@ public static void runShell ( TS ts )
 		catch ( IOException e ) {
 			continue;
 		}
-		if ( string == null ) {
-			continue;
-		}
 		string = string.trim();
 		if ( string.charAt ( string.length() - 1 ) == '\\' ) {
 			// line continuation...
@@ -2176,14 +2173,14 @@ public static void runShell ( TS ts )
 			PropList props = new PropList ( "summary" );
 			props.set ( "PrintAllStats=true" );
 			try {
-				List v = TSUtil.formatOutput ( ts, props );
+				List<String> v = TSUtil.formatOutput ( ts, props );
 				if ( v == null ) {
 					continue;
 				}
 				int size = v.size();
 				for ( i = 0; i < size; i++ ) {
 					Message.printStatus ( 2, routine, (String)v.get(i) );
-					out.println ( (String)v.get(i) );
+					out.println ( v.get(i) );
 				}
 			}
 			catch ( Exception e ) {
@@ -2239,7 +2236,7 @@ throws TSException
 
 	_data_coverage_report_date1 = new DateTime ( limits.getDate1() );
 	_data_coverage_report_date2 = new DateTime ( limits.getDate2() );
-	_data_coverage_report_Vector = new Vector ( 100, 100 );
+	_data_coverage_report_Vector = new ArrayList<String>(100);
 	_data_coverage_report_Vector.add ( "" );
 	_data_coverage_report_Vector.add ( "Data Coverage Report" );
 	_data_coverage_report_Vector.add ( "" );

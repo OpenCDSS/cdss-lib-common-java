@@ -8,7 +8,6 @@ import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.IO.IOUtil;
 import RTi.Util.Message.Message;
@@ -110,7 +109,7 @@ programmer knows what sample is supported.
 @return Sample file contents.
 */
 public static List<String> getSample ()
-{	List<String> s = new Vector ( 50 );
+{	List<String> s = new ArrayList<String>();
 	s.add ( "#" );
 	s.add ( "# U.S. Geological Survey" );
 	s.add ( "# National Water Information System" );

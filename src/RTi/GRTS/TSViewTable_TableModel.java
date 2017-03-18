@@ -56,7 +56,7 @@ that they increase the speed of browsing through a table of time series
 dramatically.  Without the caching, scrolling to the end of a long time series
 can take many seconds, whereas it is nearly instant with the steps taken here.
 */
-public class TSViewTable_TableModel extends JWorksheet_AbstractRowTableModel
+public class TSViewTable_TableModel <T> extends JWorksheet_AbstractRowTableModel
 {
 
 /**
@@ -208,7 +208,7 @@ title, or the normal legend.  This is determined by the value of the propvalue
 "Table.UseExtendedLegend" passed into the TSViewJFrame.
 @throws Exception if an invalid data or dmi was passed in.
 */
-public TSViewTable_TableModel(List data, DateTime start, 
+public TSViewTable_TableModel(List<TS> data, DateTime start, 
 int intervalBase, int intervalMult, int dateFormat, String[] dataFormats, 
 boolean useExtendedLegend)
 throws Exception {
@@ -238,7 +238,7 @@ speed is most increased but not too much memory is used.<p>
 JTS recommends that if a table will display at most X rows at once, that the cacheInterval be no less than X*2.
 @throws Exception if an invalid data or dmi was passed in.
 */
-public TSViewTable_TableModel(List data, DateTime start, 
+public TSViewTable_TableModel(List<TS> data, DateTime start, 
 int intervalBase, int intervalMult, int dateFormat, String[] dataFormats, 
 boolean useExtendedLegend, int cacheInterval )
 throws Exception
@@ -368,6 +368,7 @@ throws TSException
     // for the period.  Otherwise it will be difficult to navigate the data.
     int irrPrecision = __irregularDateTimePrecision;
     int tsPrecision;
+    List<Object> dataList = _data;
     List<TS> tslist = _data;
     int size = tslist.size();
     TS ts;

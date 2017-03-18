@@ -15,6 +15,7 @@ import java.lang.Exception;
 /**
 This class provides an exception class for the graphics package.
 */
+@SuppressWarnings("serial")
 public class GRException 
 extends Exception
 {

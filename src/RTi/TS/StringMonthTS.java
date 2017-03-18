@@ -42,8 +42,8 @@ import java.awt.datatransfer.Transferable;
 
 import java.lang.String;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
@@ -70,6 +70,7 @@ that the time series file formats will match those of other time series classes
 (e.g., StateModMonthTS) and the read/write routines should be implemented in those classes.
 @see MonthTS
 */
+@SuppressWarnings("serial")
 public class StringMonthTS 
 extends MonthTS
 implements Cloneable, Serializable, Transferable {
@@ -92,7 +93,7 @@ private String _data[][] = null;
 /**
 Unique strings in data.  Used when processing TSPatternStats.
 */
-private List<String> _unique_data = new Vector ( 10,5);
+private List<String> _unique_data = new ArrayList<String>(10);
 /**
 Default for missing data.
 */

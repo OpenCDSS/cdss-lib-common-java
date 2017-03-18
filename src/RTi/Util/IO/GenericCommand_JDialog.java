@@ -35,6 +35,7 @@ import javax.swing.JTextArea;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJButton;
 
+@SuppressWarnings("serial")
 public class GenericCommand_JDialog extends JDialog
 implements ActionListener, KeyListener, WindowListener
 {

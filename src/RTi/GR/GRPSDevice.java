@@ -170,7 +170,7 @@ protected String _specific_device = "";
 /**
 List of GRDrawingArea objects for this device.
 */
-protected List _drawing_area_list;
+protected List<GRDrawingArea> _drawing_area_list;
 
 /**
 Constructor.
@@ -402,10 +402,10 @@ throws GRException
 	// --- Start from GRDevice ----
 	// Set the general information...
 
-	_drawing_area_list = new Vector ( 5, 1 );
+	_drawing_area_list = new Vector<GRDrawingArea>();
 	_mode = GRUtil.MODE_DRAW;
-	_name = new String ();
-	_note = new String ();
+	_name = "";
+	_note = "";
 	_orientation = GRDeviceUtil.ORIENTATION_PORTRAIT;
 	_page = 0;
 	_printing = false;
@@ -425,7 +425,7 @@ throws GRException
 	String prop_value;
 	prop_value = props.getValue("Name");
 	if ( prop_value != null ) {
-		_name = new String ( prop_value );
+		_name = prop_value;
 	}
 	prop_value = props.getValue("PageSizeDrawn");
 	if ( prop_value != null ) {
@@ -476,16 +476,16 @@ throws GRException
 	}
 	prop_value = props.getValue("Orientation");
 	if ( prop_value != null ) {
-		if (	prop_value.charAt(0) == 'p' ||
-			prop_value.charAt(0) == 'P' ) {
+		if ( prop_value.charAt(0) == 'p' || prop_value.charAt(0) == 'P' ) {
 			_orientation = GRDeviceUtil.ORIENTATION_PORTRAIT;
 		}
-		else {	_orientation = GRDeviceUtil.ORIENTATION_LANDSCAPE;
+		else {
+			_orientation = GRDeviceUtil.ORIENTATION_LANDSCAPE;
 		}
 	}
 	prop_value = props.getValue("Note");
 	if ( prop_value != null ) {
-		_note = new String ( prop_value );
+		_note = prop_value;
 	}
 
 	// Fill in later...
@@ -515,12 +515,9 @@ throws GRException
 
 	// Initialize information from PropList...
 
-	if ( props == null ) {
-		return;
-	}
 	prop_value = props.getValue ( "Name" );
 	if ( prop_value != null ) {
-		_name = new String ( prop_value );
+		_name = prop_value;
 		if ( _name.equalsIgnoreCase("stdout") ) {
 			// Output is to standard out (remember that this file is
 			// included in another file where "stdio.h" has been
@@ -547,15 +544,15 @@ throws GRException
 	}
 	prop_value = props.getValue ( "Caller" );
 	if ( prop_value != null ) {
-		caller = new String ( prop_value );
+		caller = prop_value;
 	}
 	prop_value = props.getValue ( "User" );
 	if ( prop_value != null ) {
-		user = new String ( prop_value );
+		user = prop_value;
 	}
 	prop_value = props.getValue ( "Note" );
 	if ( prop_value != null ) {
-		note = new String ( prop_value );
+		note = prop_value;
 	}
 
 	// Set the device size based on the indicated size and orientation.

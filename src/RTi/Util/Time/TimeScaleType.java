@@ -1,7 +1,7 @@
 package RTi.Util.Time;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 /**
 Time scale types, which are important when making time-based data observations.
@@ -46,7 +46,7 @@ Get the list of time scales.
 */
 public static List<TimeScaleType> getTimeScaleChoices()
 {
-    List<TimeScaleType> choices = new Vector();
+    List<TimeScaleType> choices = new ArrayList<TimeScaleType>();
     choices.add ( TimeScaleType.ACCM );
     choices.add ( TimeScaleType.INST );
     choices.add ( TimeScaleType.MEAN );
@@ -63,7 +63,7 @@ If false, the returned string will be of the form "ACCM", using only the short d
 public static List<String> getTimeScaleChoicesAsStrings( boolean includeNote )
 {
     List<TimeScaleType> choices = getTimeScaleChoices();
-    List<String> stringChoices = new Vector();
+    List<String> stringChoices = new ArrayList<String>();
     for ( int i = 0; i < choices.size(); i++ ) {
         TimeScaleType choice = choices.get(i);
         String choiceString = "" + choice;

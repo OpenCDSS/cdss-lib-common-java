@@ -28,6 +28,7 @@ import java.util.List;
 import RTi.Util.Table.DataTable;
 import RTi.Util.Message.Message;
 import RTi.GR.GRLimits;
+import RTi.GR.GRShape;
 
 /**
 The BigPictureLayer is used with the StateMod GUI to display one or more bars
@@ -127,8 +128,7 @@ private void initialize ( List<GeoLayer> parent_geolayers, List<String> parent_j
 }
 
 public DataTable getAttributeTable(int index) {
-	return ((GeoLayer)_parent_geolayers.get(index)).
-		getAttributeTable();
+	return _parent_geolayers.get(index).getAttributeTable();
 }
 
 public GRLimits getBigPictureLimits ()
@@ -136,15 +136,15 @@ public GRLimits getBigPictureLimits ()
 }
 
 public String getJoinField(int index) {
-	return (String)_parent_join_fields.get(index);
+	return _parent_join_fields.get(index);
 }
 
 public int getNumAssociatedLayers ()
 {	return _parent_geolayers.size();
 }
 
-public List getShapes(int index) {
-	return ((GeoLayer)_parent_geolayers.get(index)).getShapes();
+public List<GRShape> getShapes(int index) {
+	return _parent_geolayers.get(index).getShapes();
 }
 
 }

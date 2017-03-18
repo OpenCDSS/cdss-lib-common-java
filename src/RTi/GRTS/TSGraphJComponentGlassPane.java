@@ -20,6 +20,7 @@ import RTi.GR.GRUtil;
  * @author sam
  *
  */
+@SuppressWarnings("serial")
 public class TSGraphJComponentGlassPane extends GRJComponentDevice {
 	/**
 	 * The main graph component.

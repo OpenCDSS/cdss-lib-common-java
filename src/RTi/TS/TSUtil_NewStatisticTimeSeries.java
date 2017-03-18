@@ -1,8 +1,8 @@
 package RTi.TS;
 
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.Math.MathUtil;
 import RTi.Util.Message.Message;
@@ -619,7 +619,7 @@ Get the list of statistics that can be performed.
 public static List<TSStatisticType> getStatisticChoices()
 {
     // TODO SAM 2009-10-14 Need to enable more statistics
-    List<TSStatisticType> choices = new Vector();
+    List<TSStatisticType> choices = new ArrayList<TSStatisticType>();
     choices.add ( TSStatisticType.GEOMETRIC_MEAN );
     choices.add ( TSStatisticType.MAX );
     choices.add ( TSStatisticType.MEAN );
@@ -638,7 +638,7 @@ Get the list of statistics that can be performed.
 public static List<String> getStatisticChoicesAsStrings()
 {
     List<TSStatisticType> choices = getStatisticChoices();
-    List<String> stringChoices = new Vector();
+    List<String> stringChoices = new ArrayList<String>();
     for ( int i = 0; i < choices.size(); i++ ) {
         stringChoices.add ( "" + choices.get(i) );
     }

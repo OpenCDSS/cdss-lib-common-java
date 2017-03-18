@@ -3466,7 +3466,7 @@ public int getAbsoluteColumnCount() {
 /**
 Returns all the data objects in the table as a single Vector.  Use only 
 if the table model for the worksheet stores each row as a separate data object.
-@return a Vector of all data objects in the table.
+@return a list of all data objects in the table.
 */
 public List getAllData() {
 	if (!(getModel() instanceof JWorksheet_AbstractTableModel)) {	
@@ -3560,10 +3560,10 @@ public JWorksheet_DefaultTableCellRenderer getCellRenderer() {
 }
 
 /**
-Returns the Vector of values stored in a cell-specific JComboBox.
+Returns the list of values stored in a cell-specific JComboBox.
 @param row the row of the cell.
 @param absoluteColumn the <b>absolute</b> column of the cell.
-@return the Vector of values stored in a cell-specific JComboBox, or null
+@return the list of values stored in a cell-specific JComboBox, or null
 if the cell does not use a combo box.
 */
 public List getCellSpecificJComboBoxValues(int row, int absoluteColumn) {
@@ -3656,7 +3656,7 @@ other lines in order to fit the space allotted.
 Strings in pixels.
 */
 private int getColumnNameFitSize(String name, Graphics g) {
-	List v = StringUtil.breakStringList(name, "\n", 0);
+	List<String> v = StringUtil.breakStringList(name, "\n", 0);
 	FontMetrics fh = g.getFontMetrics(
 		new Font(__columnHeaderFontName, __columnHeaderFontStyle, __columnHeaderFontSize));
 
@@ -3967,17 +3967,17 @@ public JWorksheet_RowSelectionModel getRowSelectionModel() {
 }
 
 /**
-Returns a Vector containing two integer arrays, the first of which contains all 
+Returns a list containing two integer arrays, the first of which contains all 
 the rows of the selected cells, and the second of which contains the matching
 columns for the rows in order to determine which cells are selected.
 For a given cell I, the row of the cell is the first array's element at 
 position I and the column of the cell is the second array's element at
 position I.  The arrays are guaranteed to be non-null.  The Vector will never be null.
-@return a Vector containing two integer arrays.
+@return a list containing two integer arrays.
 */
-public List getSelectedCells() {
-	List rows = new Vector();
-	List cols = new Vector();
+public List<int []> getSelectedCells() {
+	List<Integer> rows = new Vector<Integer>();
+	List<Integer> cols = new Vector<Integer>();
 
 	for (int i = 0; i < getRowCount(); i++) {
 		for (int j = 0; j < getColumnCount(); j++) {
@@ -3998,7 +3998,7 @@ public List getSelectedCells() {
 		colCells[i] = ((Integer)cols.get(i)).intValue();
 	}
 	
-	List v = new Vector();
+	List<int []> v = new Vector<int []>();
 	v.add(rowCells);
 	v.add(colCells);
 	return v;
@@ -5462,7 +5462,7 @@ Saves the contents of the worksheet (in all visible columns) to a file.
 public void saveToFile(String filename, String delimiter) {
 	String routine = "saveToFile";
 
-	List lines = new Vector();
+	List<String> lines = new Vector<String>();
 	
 	int numRows = getRowCount();
 	int numCols = getColumnCount();

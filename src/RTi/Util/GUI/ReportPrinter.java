@@ -32,8 +32,8 @@ import java.awt.print.PrinterException;
 
 import javax.swing.JTextArea;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 /**
 A class to print out a report from a text.  Use by calling one of the
@@ -129,7 +129,7 @@ private String __header = null;
 /**
 The list of text to be printed out.
 */
-private List __linesVector;
+private List<String> __linesVector;
 
 /**
 Constructor.  Creates a ReportPrinter that will print the text in the
@@ -167,8 +167,8 @@ String header, boolean testPage, boolean batch) {
 
 /**
 Constructor.  Creates a ReportPrinter that will print the text in the
-given Vector with the given number of lines per page.
-@param text the Vector of text to print.
+given list with the given number of lines per page.
+@param text the list of text to print.
 @param linesPerPageP the number of lines to print on a single page in Portrait orientation.
 @param linesPerPageL the number of lines to print on a single page in Landscape orientation.
 @param header the text that will appear at the top of each page as a header.
@@ -181,7 +181,7 @@ the print, the printer to which the job will go to, and other print job
 information.  If false, the print job will just be sent to the default
 printer, whatever that is.
 */
-private ReportPrinter (List text, int linesPerPageP, int linesPerPageL,
+private ReportPrinter (List<String> text, int linesPerPageP, int linesPerPageL,
 String header, boolean testPage, boolean batch) {
 	__linesVector = text;
 	__printTestPage = testPage;
@@ -709,9 +709,9 @@ public void setPageFormat(PageFormat pf) {
 /**
 Take a JTextArea and turn it into a Vector of Strings, with the default tabstop size of 8.
 @param ta the JTextArea to turn into a Vector of Strings.
-@return a Vector of Strings.
+@return a list of Strings.
 */
-private List taToStringList(JTextArea ta) {
+private List<String> taToStringList(JTextArea ta) {
 	return taToStringList(ta, 8);
 }
 
@@ -721,23 +721,23 @@ tabstop size.  Each Vector element will be a line in the JTextArea, broken
 at a newline. Tabs are translated into spaces based on the size of the tabstop.
 @param ta the JTextArea to turn into a Vector of Strings.
 @param tabStop the number of spaces to replace each tab with.
-@return A Vector of Strings representing the lines in the JTextArea.
+@return A list of Strings representing the lines in the JTextArea.
 */
-private List taToStringList(JTextArea ta, int tabStop) {
+private List<String> taToStringList(JTextArea ta, int tabStop) {
 	if (ta == null) {
 		return null;
 	}
 	char[] arr = ta.getText().toCharArray();
-	Vector v = new Vector();
+	List<String> v = new ArrayList<String>();
 
-	String s = new String("");
+	String s = "";
 	boolean working = false;
 	for (int i = 0; i < arr.length; i++) {
 		char c = arr[i];
 		if (c == '\n') {
 			working = false;
-			v.addElement(s);
-			s = new String("");
+			v.add(s);
+			s = "";
 		}
 		else if (c == '\t') {
 			working = true;
@@ -751,7 +751,7 @@ private List taToStringList(JTextArea ta, int tabStop) {
 		}		
 	}
 	if (working) {
-		v.addElement(s);
+		v.add(s);
 	}
 	return v;
 }

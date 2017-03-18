@@ -1,13 +1,11 @@
 package RTi.Util.IO;
 
-/**
- * This class is the same as in cleanup other than it compiles at jdk1.4
- */
 import java.io.File;
 import java.io.FileFilter;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
+// TODO SAM 2017-03-13 need to decide if this should be removed since used in legacy code.
 /**
  * Collects a list of files from a folder and it's subfolders, given a fileMask.
  * 
@@ -29,8 +27,7 @@ public class FileCollector
   private boolean _debug = false;
   private boolean _recursive = false;
  
-  // TODO jdk1.6 private Vector<String> _files = new Vector<String>();
-  private List _files = new Vector();
+  private List<String> _files = new ArrayList<String>();
   
   /**
    * Constructor
@@ -125,7 +122,7 @@ if (_recursive)
    *  
    * @return
    */
-  public List getFiles()
+  public List<String> getFiles()
   {
     return _files;
   }
@@ -136,9 +133,9 @@ if (_recursive)
    * @param root
    * @return abbreviated file names
    */
-  public static List getAbbrNames(List fileNames, String root, String ext)
+  public static List<String> getAbbrNames(List<String> fileNames, String root, String ext)
   {
-    List _filesAbbr = new Vector(fileNames.size());
+    List<String> _filesAbbr = new ArrayList<String>(fileNames.size());
 
     File f = new File(root);
     int beginIndex = f.getAbsolutePath().length() + 1; // for following sep.
@@ -148,13 +145,11 @@ if (_recursive)
     int len = fileNames.size();
     for (int i = 0; i < len; i++)
       {
-        s = ((String)fileNames.get(i)).substring(beginIndex, ((String)fileNames.get(i)).length()- extLength);
+        s = fileNames.get(i).substring(beginIndex, fileNames.get(i).length()- extLength);
         _filesAbbr.add(s);
       }
     return _filesAbbr;
   }
-  
-  
   
   /**
    * Test harness

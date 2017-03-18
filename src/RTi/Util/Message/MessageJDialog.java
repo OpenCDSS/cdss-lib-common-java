@@ -108,6 +108,7 @@ See also the Message.setPropValue() method to control the handling of warning
 messages.
 @see Message
 */
+@SuppressWarnings("serial")
 public class MessageJDialog extends JDialog implements ActionListener, 
 KeyListener, WindowListener
 {
@@ -148,7 +149,7 @@ public MessageJDialog( JFrame parent, String message )
 
 	message = StringUtil.wrap(message, 100);
 
-	List vec = StringUtil.breakStringList( message, "\n", StringUtil.DELIM_SKIP_BLANKS );
+	List<String> vec = StringUtil.breakStringList( message, "\n", StringUtil.DELIM_SKIP_BLANKS );
 	JPanel pan = new JPanel();
 	int size = vec.size();
 

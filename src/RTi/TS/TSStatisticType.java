@@ -317,7 +317,7 @@ public enum TSStatisticType
     PLOTTING_POSITION_DESCENDING ( "PlotPosDescending", "PlotPosDescending", "Plotting position based on descending sort." ),
     /**
      * Rank (depends on sort order imposed by other code).
-     * @deprecated confusing because sort order is not tied to statistic
+     * @deprecated confusing because sort order is not tied to statistic.  Use RANK_ASCENDING or RANK_DESCENDING.
      */
     RANK ( "Rank", "Rank", "Rank (depends on sort order imposed by other code)." ),
     /**
@@ -434,6 +434,20 @@ public enum TSStatisticType
 // TODO SAM 2005-09-12
 // Need to figure out how to handle irregular data.
 
+    /**
+     * Return the definition.
+     */
+    public String getDefinition() {
+    	return this.definition;
+    }
+
+    /**
+     * Return the statistic long name.
+     */
+    public String getLongName () {
+    	return this.longDisplayName;
+    }
+ 
 // TODO SAM 2009-07-27 evaluate using enumeration, etc. to have properties for statistic or add this method
 // to specific calculation classes.
 /**

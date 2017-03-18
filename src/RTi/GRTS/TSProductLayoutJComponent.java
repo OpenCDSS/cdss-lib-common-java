@@ -67,6 +67,7 @@ corner of the TSProductJFrame.  It also handles all the mouse interaction
 between the user and the layout preview.  An instance is normally only created
 when instantiating a TSProductJFrame.
 */
+@SuppressWarnings("serial")
 public class TSProductLayoutJComponent 
 extends GRJComponentDevice
 implements ActionListener, MouseListener, 
@@ -266,14 +267,14 @@ Builds the list of graphs that are 'down' from the selected graph, for use in th
 @param selectedGraph the graph to be moved down.
 @return a list of the graphs that are 'down' from the selected graph.
 */
-private List buildDownList(int selectedGraph) {
-	List v = new Vector();
-	List graphs = __parent.getGraphList();
+private List<String> buildDownList(int selectedGraph) {
+	List<String> v = new Vector<String>();
+	List<String> graphs = __parent.getGraphList();
 	String s = null;
 	int count = 1;
 	String plural = "";
 	for (int i = selectedGraph + 1; i < graphs.size(); i++) {
-		s = StringUtil.getToken((String)graphs.get(i), "-", 0, 0);
+		s = StringUtil.getToken(graphs.get(i), "-", 0, 0);
 		s = s.trim();
 		v.add("" + count + " step" + plural + ", below graph #" + (i + 1) + " (\"" + s + "\")");		
 		if (count == 1) {
@@ -328,14 +329,14 @@ in the 'move graph' dialog box.
 @param selectedGraph the graph to be moved up.
 @return a list of the graphs that are 'up' from the selected graph.
 */
-private List buildUpList(int selectedGraph) {
-	List v = new Vector();
-	List graphs = __parent.getGraphList();
+private List<String> buildUpList(int selectedGraph) {
+	List<String> v = new Vector<String>();
+	List<String> graphs = __parent.getGraphList();
 	String s = null;
 	int count = 1;
 	String plural = "";
 	for (int i = selectedGraph - 1; i >= 0; i--) {
-		s = StringUtil.getToken((String)graphs.get(i), "-", 0, 0);
+		s = StringUtil.getToken(graphs.get(i), "-", 0, 0);
 		s = s.trim();
 		v.add("" + count + " step" + plural + ", above graph #" 	
 			+ (i + 1) + " ('" + s + "')");
@@ -684,7 +685,7 @@ public boolean handleDropData(Object o, Point p) {
 	}
 	
 	String id = null;
-	List v = null;
+	List<TS> v = null;
 
 	if (o instanceof TS) {
 		if (o instanceof YearTS) {
@@ -867,7 +868,7 @@ to determine how far to move the graph.
 */
 private void moveGraphDownClicked() {
 	int selectedGraph = __parent.getSelectedGraph();
-	List v = buildDownList(selectedGraph);
+	List<String> v = buildDownList(selectedGraph);
 	if (v.size() == 1) {
 		__product.swapSubProducts(selectedGraph, selectedGraph + 1);
 		__parent.redisplayProperties();
@@ -904,7 +905,7 @@ determine how far to move the graph.
 */
 private void moveGraphUpClicked() {
 	int selectedGraph = __parent.getSelectedGraph();
-	List v = buildUpList(selectedGraph);
+	List<String> v = buildUpList(selectedGraph);
 	if (v.size() == 1) {
 		__product.swapSubProducts(selectedGraph, selectedGraph - 1);
 		__parent.redisplayProperties();
@@ -948,7 +949,7 @@ private void removeGraphClicked() {
 	}
 	int selectedGraph = __parent.getSelectedGraph();
 	int origPos = selectedGraph + 1;
-	List graphs = __parent.getGraphList();
+	List<String> graphs = __parent.getGraphList();
 	int count = graphs.size();
 	int shifts = count - (selectedGraph + 1);
 	for (int i = 0; i < shifts; i++) {		

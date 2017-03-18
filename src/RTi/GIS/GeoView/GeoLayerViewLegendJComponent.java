@@ -60,6 +60,7 @@ import RTi.Util.Message.Message;
 JComponent to display the symbol for a GeoLayerView.  The JComponent is a GRJComponentDevice.
 It is a separate class so that the paint() method can accurately capture the correct Graphics object.
 */
+@SuppressWarnings("serial")
 public class GeoLayerViewLegendJComponent extends GRJComponentDevice
 {
 

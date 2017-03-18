@@ -30,6 +30,7 @@ import RTi.Util.String.StringUtil;
 Class to store a color.  This class extends Color and adds features like using
 named colors to simplify use with GUIs.
 */
+@SuppressWarnings("serial")
 public class GRColor 
 extends Color
 implements Cloneable

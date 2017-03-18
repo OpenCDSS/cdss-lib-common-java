@@ -108,8 +108,8 @@ import java.lang.String;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.IOUtil;
@@ -125,6 +125,7 @@ import RTi.Util.Time.YearType;
 The MonthTS class is the base class for monthly time series.  Derive from this
 class for specific monthly time series formats (override allocateDataSpace() to control memory management).
 */
+@SuppressWarnings("serial")
 public class MonthTS extends TS implements Cloneable, Serializable, Transferable
 {
 // Data members...
@@ -812,7 +813,7 @@ throws TSException
 		throw new TSException ( message );
 	}
 	int column, dl = 20, row;
-	List<String> strings = new Vector (20,10);
+	List<String> strings = new ArrayList<String>();
 	PropList props = null;
 	String format = "", prop_value = null, year_column = "";
 	String data_format = "%9.1f";
@@ -1345,7 +1346,7 @@ Format the time series for output.
 */
 public List<String> formatOutput ( String fname, PropList props )
 throws TSException
-{	String message = null, routine = "MonthTS.formatOutput(char*,int,long)";
+{	String message = null;
 	List<String> formatted_output = null;
 	PrintWriter	stream = null;
 	String full_fname = IOUtil.getPathUsingWorkingDir(fname);
@@ -1359,20 +1360,18 @@ throws TSException
 		message = "Unable to open file \"" + full_fname + "\"";
 		throw new TSException ( message );
 	}
-	if ( stream == null ){
-		message = "Unable to open file \"" + full_fname + "\"";
-		Message.printWarning( 2, routine, message );
-		throw new TSException ( message );
-	}
 
 	try {
 		formatted_output = formatOutput ( stream, props );
-		stream.close();
-		stream = null;
 	}
 	catch ( TSException e ) {
 		// Rethrow...
 		throw e;
+	}
+	finally {
+		if ( stream != null ) {
+			stream.close();
+		}
 	}
 
 	// Also return the list (consistent with C++ single return type)...
@@ -1383,8 +1382,8 @@ throws TSException
 /**
 Format the output statistics row given the data array.  May use the TSUtil version in the future.
 */
-private List formatOutputStats ( double[][] data, int num_years, String label, String data_format )
-{	List strings = new Vector (20,10);
+private List<String> formatOutputStats ( double[][] data, int num_years, String label, String data_format )
+{	List<String> strings = new ArrayList<String>();
 	double stat;
 	StringBuffer buffer = null;
 	double[] array = new double[num_years];

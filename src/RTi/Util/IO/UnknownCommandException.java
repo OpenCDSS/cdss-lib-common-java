@@ -17,6 +17,7 @@ package RTi.Util.IO;
 The UnknownCommandException should be thrown processing commands and an
 unknown command is encountered.
 */
+@SuppressWarnings("serial")
 public class UnknownCommandException extends Exception
 {
 

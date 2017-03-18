@@ -29,10 +29,11 @@ public class CheckFile_DataModel
 	/**
 	Initializes a DataModel object for a Check File.
 	@param data The list of data to check.
-	@param header The header to show for this data component
-	when the CheckFile is initialized.
-	@param __table_header The column headers for the data.
-	@param title The title or name of the data being checked.
+	@param table_header The column headers for the data.
+	@param title The title or name of the data being checked (data component).
+	@param info
+	@param num_problems
+	@param total
 	*/
 	public CheckFile_DataModel( List data, String[] table_header,
 	String title, String info, int num_problems, int total )
@@ -42,7 +43,7 @@ public class CheckFile_DataModel
 			__data = data;
 		}
 		else {
-			__data = new Vector();
+			__data = new Vector<String []>();
 		}
 		// store table column headers
 		if ( table_header != null ) {
@@ -72,7 +73,7 @@ public class CheckFile_DataModel
 	
 	/**
 	Returns the data list for this model.
-	@return Vector of invalid data.
+	@return list of invalid data.
 	*/
 	public List getData()
 	{

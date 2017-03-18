@@ -3,6 +3,7 @@ package RTi.TS;
 /**
 This exception should be thrown when a method requires that data units be equal for processing.
 */
+@SuppressWarnings("serial")
 public class UnequalDataUnitsException extends RuntimeException
 {
 

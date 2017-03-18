@@ -21,9 +21,8 @@ import java.awt.GridBagLayout;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -49,6 +48,7 @@ import RTi.Util.String.StringUtil;
 import RTi.Util.Table.DataTable;
 import RTi.Util.Table.DataTable_CellRenderer;
 import RTi.Util.Table.DataTable_TableModel;
+import RTi.Util.Table.TableField;
 
 /**
 This class is a small dialog that provides a preview of the table records plus
@@ -68,6 +68,7 @@ Otherwise, get the values and use them.<p>
 	}
 </pre>
 */
+@SuppressWarnings("serial")
 public class GeoViewSummaryFileJDialog 
 extends JDialog 
 implements ActionListener {
@@ -145,14 +146,14 @@ Name of the layer.
 private String __layerName = null;
 
 /**
-The app layers on the geo view display.
+The app layer views on the geo view display.
 */
-private List __appLayers = null;
+private List<GeoLayerView> __appLayerViews = null;
 
 /**
 The app layer types the user selected.
 */
-private List __appLayerTypes = null;
+private List<String> __appLayerTypes = null;
 
 /**
 Constructor.
@@ -166,7 +167,7 @@ checked for validity.
 @throws NullPointerException if any parameter is null.
 */
 public GeoViewSummaryFileJDialog(JFrame parent, String filename,
-List tableFields, String delimiter, List appLayers) 
+List<TableField> tableFields, String delimiter, List<GeoLayerView> appLayers) 
 throws Exception {
 	super(parent, true);
 	
@@ -177,7 +178,7 @@ throws Exception {
 	
 	__table = DataTable.parseDelimitedFile(filename, delimiter, tableFields, 1, false, 6);
 	__filename = filename;
-	__appLayers = appLayers;
+	__appLayerViews = appLayers;
 
 	String title = "Select Summary Fields";
 	if (JGUIUtil.getAppNameForWindows() == null
@@ -294,7 +295,7 @@ throws Throwable {
 	__idFieldsComboBox = null;
 	__filename = null;
 	__layerName = null;
-	__appLayers = null;
+	__appLayerViews = null;
 	__appLayerTypes = null;
 	super.finalize();
 }
@@ -302,20 +303,20 @@ throws Throwable {
 Returns the app layers the user selected.  If null, the user hit cancel.
 @return the app layers the user selected.
 */
-public List getAppLayerTypes() {
+public List<String> getAppLayerTypes() {
 	return __appLayerTypes;
 }
 
 /**
 Returns the information for all the app layers on the GeoView display, 
 formatted so that it can be placed into a Vector and selected.
-@param layerViews Vector of layer views on the GeoView display.
-@return a Vector of Strings describing the layer views and their join fields,
+@param layerViews list of layer views on the GeoView display.
+@return a list of Strings describing the layer views and their join fields,
 suitable for use in the list from which users select.
 */
-public List getAppLayersInfo(List layerViews) {
+public List<String> getAppLayersInfo(List<GeoLayerView> layerViews) {
 	if (layerViews == null) {
-		return new Vector();
+		return new ArrayList<String>();
 	}
 
 	GeoLayer layer = null;
@@ -323,10 +324,10 @@ public List getAppLayersInfo(List layerViews) {
 	int size = layerViews.size();
 	String joinFields = null;
 	String s = null;
-	List joinFieldsVector = null;
-	List v = new Vector();	
+	List<String> joinFieldsList = null;
+	List<String> v = new ArrayList<String>();	
 	for (int i = 0; i < size; i++) {
-		layerView = (GeoLayerView)layerViews.get(i);
+		layerView = layerViews.get(i);
 		layer = layerView.getLayer();
 		s = layer.getAppLayerType() + " - " 
 			+ layerView.getLegend().getText() + " - ";
@@ -336,13 +337,13 @@ public List getAppLayersInfo(List layerViews) {
 			s += "[No join field]";
 		}
 		else {
-			joinFieldsVector = StringUtil.breakStringList(
+			joinFieldsList = StringUtil.breakStringList(
 				joinFields, ",", 0);
-			for (int j = 0; j < joinFieldsVector.size(); j++) {
+			for (int j = 0; j < joinFieldsList.size(); j++) {
 				if (j != 0) {
 					s += ", ";
 				}
-				s += (String)joinFieldsVector.get(j);
+				s += joinFieldsList.get(j);
 			}
 		}
 		v.add(s);
@@ -407,7 +408,7 @@ throws Exception {
 		fields[i] = false;
 	}
 	
-	List v = StringUtil.breakStringList(dataS, ",", 0);
+	List<String> v = StringUtil.breakStringList(dataS, ",", 0);
 
 	// basically, first parse out all the comma-separated values in
 	// the string.  Then, check each one to see if it's actually a 
@@ -418,21 +419,21 @@ throws Exception {
 
 	int size = v.size();
 	String s = null;
-	List v2 = null;
+	List<String> v2 = null;
 	String ss1 = null;
 	String ss2 = null;
 	int i1 = -1;
 	int i2 = -1;
 	for (int i = 0; i < size; i++) {
-		s = (String)v.get(i);
+		s = v.get(i);
 		s = s.trim();
 		if (s.indexOf("-") > -1) {
 			v2 = StringUtil.breakStringList(s, "-", 0);
 			if (v2.size() != 2) {
 				return null;
 			}
-			ss1 = ((String)v2.get(0)).trim();
-			ss2 = ((String)v2.get(1)).trim();
+			ss1 = v2.get(0).trim();
+			ss2 = v2.get(1).trim();
 
 			i1 = Integer.decode(ss1).intValue();
 			i2 = Integer.decode(ss2).intValue();
@@ -481,7 +482,7 @@ private void setupGUI() {
 	JPanel panel = new JPanel();	
 	panel.setLayout(new GridBagLayout());
 
-	List v = new Vector();
+	List<String> v = new ArrayList<String>();
 	int fieldCount = __table.getNumberOfFields();	
 	String fieldName = null;
 	for (int i = 0; i < fieldCount; i++) {
@@ -645,7 +646,7 @@ private void setupGUI() {
 		0, y++, 10, 1, 1, 1,
 		GridBagConstraints.BOTH, GridBagConstraints.CENTER);
 
-	List layerInfo = getAppLayersInfo(__appLayers);
+	List<String> layerInfo = getAppLayersInfo(__appLayerViews);
 	__list = new SimpleJList(layerInfo);
 	__list.setVisibleRowCount(4);
 

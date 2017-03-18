@@ -18,7 +18,7 @@ package RTi.Util.Net;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.Message.Message;
 
@@ -169,15 +169,15 @@ public void print ( String string )
 
 /**
 Print text to the HTML page.
-@param strings Vector of Strings to print.
+@param strings list of Strings to print.
 */
-public void print ( Vector strings )
+public void print ( List<String> strings )
 {
 	if ( strings != null ) {
 		int size = strings.size();
 		String string = null;
 		for ( int i = 0; i < size; i++ ) {
-			string = (String)strings.elementAt(i);
+			string = strings.get(i);
 			if ( string != null ) {
 				_out.print ( string + _nl );
 			}
@@ -200,9 +200,9 @@ public void printComment ( String string )
 
 /**
 Print a comment to the HTML page.
-@param strings Vector of Strings to print.
+@param strings list of String to print.
 */
-public void printComment ( Vector strings )
+public void printComment ( List<String> strings )
 {
 	_out.print ( "<!--" + _nl );
 	print ( strings );
@@ -324,7 +324,7 @@ Print pre-formatted text.
 @param strings Vector of strings to print.
 @param surround If true, surround with PRE HTML tags.
 */
-public void printPreformattedText ( Vector strings, boolean surround )
+public void printPreformattedText ( List<String> strings, boolean surround )
 {
 	if ( surround ) {
 		_out.print ( "<PRE>" + _nl );

@@ -1,6 +1,5 @@
 package RTi.TS;
 
-import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 

@@ -1,6 +1,6 @@
 package RTi.Util;
 import java.io.File;
-import java.util.ArrayList;
+import java.util.List;
 
 import RTi.Util.Test.TestCollector;
 
@@ -10,7 +10,7 @@ import junit.framework.Test;
 
 public class UtilTestSuite extends TestCase {
 
-	private static ArrayList testList;
+	private static List<String> testList;
 	
 	public UtilTestSuite(String testname)
 	{
@@ -23,7 +23,6 @@ public class UtilTestSuite extends TestCase {
 	
 	public static Test suite()
 	{
-		testList = new ArrayList();
 	    TestSuite suite = new TestSuite();
 	    TestCollector tests = new TestCollector();
 	    File path = new File("..\\test\\src");

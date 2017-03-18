@@ -28,8 +28,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.GIS.GeoView.GeoLayer;
 import RTi.GR.GRPoint;
@@ -277,7 +277,7 @@ throws IOException
 		BufferedReader in = null;
 		in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( geodata_file )) );
 		if ( read_attributes ) {
-			List<TableField> table_fields = new Vector (1);
+			List<TableField> table_fields = new ArrayList<TableField>(1);
 			if ( filetype == COUNTY ) {
 				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"ID",24) );
 				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"COUNTY",24) );
@@ -425,7 +425,7 @@ throws IOException
 		EndianDataInputStream in = new EndianDataInputStream(IOUtil.getInputStream( geodata_file ) );
 		boolean is_big_endian = IOUtil.isBigEndianMachine();
 		if ( read_attributes ) {
-			List<TableField> table_fields = new Vector (1);
+			List<TableField> table_fields = new ArrayList<TableField> (1);
 			if ( filetype == COUNTY ) {
 				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"ID",24) );
 				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"COUNTY",24) );
@@ -570,7 +570,7 @@ throws IOException
 		in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( geodata_file )) );
 		if ( read_attributes ) {
 			// Only attribute is the name of the basin boundary...
-			List<TableField> table_fields = new Vector (3);
+			List<TableField> table_fields = new ArrayList<TableField>(3);
 			table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"Name",30) );
 			table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"State",3) );
 			table_fields.add ( new TableField(TableField.DATA_TYPE_STRING,"FP",12) );
@@ -598,17 +598,17 @@ throws IOException
 			ymax = MathUtil.max ( y, ymax );
 			if ( read_attributes ) {
 				// Get the attributes from the first part of the line...
-				tokens = StringUtil.fixedRead (string.trim(),"s20s7s20");
+				List<Object> oTokens = StringUtil.fixedRead (string.trim(),"s20s7s20");
 				TableRecord record = new TableRecord(3);
-				if ( (tokens == null) || (tokens.size() != 3) ) {
+				if ( (tokens == null) || (oTokens.size() != 3) ) {
 					record.addFieldValue ( "" );
 					record.addFieldValue ( "" );
 					record.addFieldValue ( "" );
 				}
 				else {
-					record.addFieldValue ( tokens.get(0).trim() );
-					record.addFieldValue ( tokens.get(1).trim() );
-					record.addFieldValue ( tokens.get(2).trim() );
+					record.addFieldValue ( ((String)oTokens.get(0)).trim() );
+					record.addFieldValue ( ((String)oTokens.get(1)).trim() );
+					record.addFieldValue ( ((String)oTokens.get(2)).trim() );
 				}
 				try {
 					attributeTable.addRecord ( record );
@@ -667,7 +667,7 @@ throws IOException
 			}
 			if ( (count == 0) && read_attributes ) {
 				// Need to know the units to be able to set the attribute correctly...
-				List<TableField> table_fields = new Vector (4);
+				List<TableField> table_fields = new ArrayList<TableField> (4);
 				table_fields.add ( new TableField(TableField.DATA_TYPE_STRING, "ID",10) );
 				if ( units.length() > 0 ) {
 					table_fields.add (

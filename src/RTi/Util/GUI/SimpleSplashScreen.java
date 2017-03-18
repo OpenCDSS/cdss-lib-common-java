@@ -31,6 +31,7 @@ import java.awt.event.WindowEvent;
 Class to display a simple splash screen window during the initialization of the
 main application.
 */
+@SuppressWarnings("serial")
 public class SimpleSplashScreen extends Window
 {
 

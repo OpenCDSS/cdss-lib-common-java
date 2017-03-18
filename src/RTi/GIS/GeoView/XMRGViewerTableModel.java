@@ -19,8 +19,8 @@ import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 
 import RTi.Util.Message.Message;
 
-public class XMRGViewerTableModel 
-extends JWorksheet_AbstractRowTableModel {
+@SuppressWarnings("serial")
+public class XMRGViewerTableModel extends JWorksheet_AbstractRowTableModel {
 
 /**
 The grid from the XMRG that contains the data values.

@@ -28,6 +28,7 @@ TSID's as TSIdent objects or strings can be used to pass unique time series
 identifiers and are used throughout the time series package.  Some TS object
 data, including data type, are stored only in the TSIdent, to avoid redundant data.
 */
+@SuppressWarnings("serial")
 public class TSIdent
 implements Cloneable, Serializable, Transferable
 {

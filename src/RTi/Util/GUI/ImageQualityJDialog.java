@@ -39,6 +39,7 @@ If the user presses, CANCEL, the value that is returned is -1.
 If the user closes the dialog from the X button in the upper-right-hand 
 corner, the value returned is also -1.
 */
+@SuppressWarnings("serial")
 public class ImageQualityJDialog 
 extends JDialog 
 implements ActionListener, WindowListener {

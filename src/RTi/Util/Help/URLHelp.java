@@ -85,6 +85,7 @@ package RTi.Util.Help;
 
 import  java.applet.AppletContext;
 import  java.io.BufferedReader;
+import java.io.IOException;
 import  java.io.InputStream;
 import  java.io.InputStreamReader;
 import  java.lang.String;
@@ -209,14 +210,14 @@ the index from a remote URL.
 protected static boolean _hasIndexReadBeenTried = false;
 
 /**
-A Vector of String to use with setHelpOverride() instead of trying to display a help topic.
+A list of String to use with setHelpOverride() instead of trying to display a help topic.
 */
-private static List __help_override_Vector = null;
+private static List<String> __help_override_List = null;
 
 /**
-A Vector of URLHelpData containing help index data.
+A list of URLHelpData containing help index data.
 */
-protected static List	_data = null;
+protected static List<URLHelpData> _data = null;
 
 /**
 The path to the browser executable to run when running stand-alone (not as an
@@ -313,10 +314,10 @@ public static synchronized String getBrowser ( )
 }
 
 /**
-Return the URLHelpData data vector.  Used by URLHelpGUI for displays.
-@return The URLHelpData data vector.
+Return the URLHelpData data list.  Used by URLHelpGUI for displays.
+@return The URLHelpData data list.
 */
-protected static synchronized List getData ( )
+protected static synchronized List<URLHelpData> getData ( )
 {	return _data;
 }
 
@@ -347,7 +348,7 @@ path.  The paths should not include the directory separator.
 @param index_file Index file to append to the index_paths, to locate the index
 file.
 */
-public static synchronized void initialize ( String browser, List index_paths, String index_file )
+public static synchronized void initialize ( String browser, List<String> index_paths, String index_file )
 {	// First set the browser...
 	if ( browser != null ) {
 		setBrowser ( browser );
@@ -363,10 +364,10 @@ public static synchronized void initialize ( String browser, List index_paths, S
 				ProcessManager pm = new ProcessManager ( command_array );
 				pm.saveOutput ( true );
 				pm.run();
-				List output = pm.getOutputList ();
+				List<String> output = pm.getOutputList ();
 				pm = null;
 				if ( (output != null) && (output.size() > 0) ) {
-					setBrowser ( (String)output.get(0) );
+					setBrowser ( output.get(0) );
 				}
 				output = null;
 			}
@@ -385,7 +386,7 @@ public static synchronized void initialize ( String browser, List index_paths, S
 	else {	// Loop through and combine the leading path with the file...
 		int size = index_paths.size();
 		for ( int i = 0; i < size; i++ ) {
-			setIndexURL ( (String)index_paths.get(i) + "/" + index_file );
+			setIndexURL ( index_paths.get(i) + "/" + index_file );
 			readIndex ( true );
 			if ( _isHelpAvailable ) {
 				// The index was read successfully so break...
@@ -407,7 +408,7 @@ private static boolean isHelpAvailable()
 }
 
 /**
-Read the help index file and store the results in the data vector.
+Read the help index file and store the results in the data list.
 An internal check is done to see if the read should be consistent with a call
 to initialize().
 */
@@ -417,14 +418,14 @@ protected static synchronized void readIndex()
 
 /**
 Read the help index file and store the results in the data vector.
-This version is typically called by the intialize() method.
+This version is typically called by the initialize() method.
 @param dynamic_home If true, then the DOCHOME location will be set to the path
 of the index file, this allowing configuration at run-time.
 */
 protected static synchronized void readIndex ( boolean dynamic_home )
-{	String		routine="URLHelp.readIndex";
-	int		dl = 10;
-	PropList	proplist = new PropList("URLHelp");
+{	String routine="URLHelp.readIndex";
+	int dl = 10;
+	PropList proplist = new PropList("URLHelp");
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine,
@@ -444,7 +445,7 @@ protected static synchronized void readIndex ( boolean dynamic_home )
 	_hasIndexReadBeenTried = true;
         
 	// Instantiate the _data object...
-	_data = new Vector(20,10);
+	_data = new Vector<URLHelpData>(20,10);
 
 	// Try to get the input stream to the index.  The index may be a URL
 	// or a filename...
@@ -469,14 +470,15 @@ protected static synchronized void readIndex ( boolean dynamic_home )
 
 	// Now read each line and process as necessary...
 
-	try {	String		line = null;
-		String		url = null;
-		String		upline = null;
-		List strings = null;
-		int		size;
+	BufferedReader input = null;
+	try {
+		String line = null;
+		String url = null;
+		String upline = null;
+		List<String> strings = null;
+		int size;
 		URLHelpData	data = null;
-		BufferedReader input = new BufferedReader(
-					new InputStreamReader(inStream) );
+		input = new BufferedReader(new InputStreamReader(inStream) );
 		while ( true ) {
 			// Read a line...
 			line = input.readLine();
@@ -513,7 +515,7 @@ protected static synchronized void readIndex ( boolean dynamic_home )
 				for ( int i = 0; i < size; i++ ) {
 					Message.printDebug ( dl, routine,
 					"Token[" + i + "] = \"" +
-					(String)strings.get(i) + "\"");
+					strings.get(i) + "\"");
 				}
 			}
 			// If the first token has an = sign or the second token
@@ -546,9 +548,9 @@ protected static synchronized void readIndex ( boolean dynamic_home )
 			if ( size > 1 ) {
 				// Have the key and URL so add a new data...
 				data = new URLHelpData();
-				data.setKey ( (String)strings.get(0));
+				data.setKey ( strings.get(0));
 				// Expand the URL using the property list...
-				url = PropListManager.resolveContentsValue ( proplist, (String)strings.get(1));
+				url = PropListManager.resolveContentsValue ( proplist, strings.get(1));
 				if ( url == null ) {
 					continue;
 				}
@@ -558,29 +560,32 @@ protected static synchronized void readIndex ( boolean dynamic_home )
 				data.setURL ( url );
 				if ( size < 3 ) {
 					// Don't have a description, so use the key for the description...
-					data.setTopic ( (String)strings.get(0));
+					data.setTopic ( strings.get(0));
 				}
 				else {
 					// Have a description, so use it...
-					data.setTopic ( (String)strings.get(2));
+					data.setTopic ( strings.get(2));
 				}
 				// Now save the data in the vector...
 				_data.add ( data );
 			}
 		}
-		line = null;
-		url = null;
-		upline = null;
-		strings = null;
-		data = null;
-		input.close();
-		input = null;
 	}
 	catch (Exception e) {
 		Message.printWarning ( 2, routine,
 		"Error reading index file" );
 		Message.printWarning ( 2, routine, e );
-                return;
+        return;
+	}
+	finally {
+		if ( input != null ) {
+			try {
+				input.close();
+			}
+			catch ( IOException e ) {
+				// Should not happen
+			}
+		}
 	}
 
 	// If the index was read correctly then all is fine so help is
@@ -643,12 +648,12 @@ private static void setIsHelpAvailable( boolean state )
 }
 
 /**
-Set a Vector of String to be displayed instead of trying to display a help
+Set a list of String to be displayed instead of trying to display a help
 topic.  For example, call this with a general message directing users to the PDF documentation.
 @param override A Vector of String to be displayed in a dialog as an override of the normal help system.
 */
-public static void setHelpOverride ( List override )
-{	__help_override_Vector = override;
+public static void setHelpOverride ( List<String> override )
+{	__help_override_List = override;
 }
 
 /**
@@ -679,8 +684,7 @@ public static void showHelpForIndex ( int index )
 	int dl = 10;
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Displaying help for index " + index );
+		Message.printDebug ( dl, routine, "Displaying help for index " + index );
 	}
 
 	// Check to see if we need to try to read the index file...
@@ -712,7 +716,7 @@ public static void showHelpForIndex ( int index )
                 return;
         }
 
-	URLHelpData data = (URLHelpData)_data.get(index);
+	URLHelpData data = _data.get(index);
         String URLAddress = data.getURL();
 	
 	// Return if the requested key is not found...
@@ -726,10 +730,6 @@ public static void showHelpForIndex ( int index )
 	// launch the browser with the specified URL
 
 	showURL ( URLAddress );
-	routine = null;
-	data = null;
-	URLAddress = null;
-
 }
 
 /**
@@ -737,13 +737,13 @@ Display the on-line help for the given key.
 @param key Key for help topic.
 */
 public static void showHelpForKey ( String key )
-{	if ( __help_override_Vector != null ) {
+{	if ( __help_override_List != null ) {
 		// The help override is in place so use it...  For now just
 		// Use a standard warning dialog...
 		StringBuffer b = new StringBuffer ();
-		int size = __help_override_Vector.size();
+		int size = __help_override_List.size();
 		for ( int i = 0; i < size; i++ ) {
-			b.append ( (String)__help_override_Vector.get(i));
+			b.append ( (String)__help_override_List.get(i));
 			b.append ( "\n" );
 		}
 		Message.printWarning ( 1, "", b.toString() );

@@ -14,6 +14,7 @@ import RTi.Util.GUI.JGUIUtil;
 /**
 This class is a frame that displays data store information.  Currently data store information cannot be edited.
 */
+@SuppressWarnings("serial")
 public class DataStores_JFrame extends JFrame
 {
 

@@ -56,7 +56,7 @@ are time series selected).</b>
 @param data_shape Mouse limits in data coordinates.
 @param selected list of selected data (TSGraphJComponent uses list of TS).
 */
-public abstract void tsViewSelect (	TSGraph g, GRShape dev_shape, GRShape data_shape, List selected );
+public abstract void tsViewSelect (	TSGraph g, GRShape dev_shape, GRShape data_shape, List<Object> selected );
 
 /**
 TSGraphJComponent will call this method if the TSGraphJComponent is in

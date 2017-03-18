@@ -29,6 +29,7 @@ import RTi.Util.Message.Message;
 This class is a JPanel that can be plugged into a JFrame to display the 
 contents of an XMRG file.
 */
+@SuppressWarnings("serial")
 public class XMRGViewerJPanel 
 extends JPanel {
 

@@ -7,6 +7,7 @@ import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 /**
 This table model displays a list of CommandLogRecord in a worksheet.
 */
+@SuppressWarnings("serial")
 public class CommandLog_TableModel extends JWorksheet_AbstractRowTableModel {
 
 /**
@@ -44,7 +45,7 @@ throws Exception {
 Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
-public Class getColumnClass (int columnIndex) {
+public Class<?> getColumnClass (int columnIndex) {
 	switch (columnIndex) {
 		case COL_SEVERITY:
 			return String.class;//CommandStatusType.class;

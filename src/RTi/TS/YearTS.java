@@ -85,8 +85,8 @@ import java.lang.String;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.IOUtil;
@@ -101,6 +101,7 @@ import RTi.Util.Time.YearType;
 The YearTS class efficiently stores and manipulates time series for yearly data.
 If a class extends YearTS, override methods to allocate memory and access data.
 */
+@SuppressWarnings("serial")
 public class YearTS 
 extends TS
 implements Cloneable, Serializable, Transferable {
@@ -625,7 +626,7 @@ information.  This can be used when the entire header is formatted elsewhere.
 public List<String> formatOutput( PropList proplist )
 throws TSException
 {	String message = "", routine = "YearTS.formatOutput", year_column = "";
-	List<String> strings = new Vector (20,10);
+	List<String> strings = new ArrayList<String>();
 	PropList props = null;
 	String data_format = "%13.1f", prop_value = null;
 
@@ -823,9 +824,9 @@ Format the time series for output.
 @param props Properties to modify output.
 @exception RTi.TS.TSException Throws if there is an error writing the output.
 */
-public List formatOutput ( PrintWriter fp, PropList props )
+public List<String> formatOutput ( PrintWriter fp, PropList props )
 throws TSException
-{	List formatted_output = null;
+{	List<String> formatted_output = null;
 	String	routine = "YearTS.formatOutput";
 	int	dl = 20;
 	String	message;
@@ -874,7 +875,7 @@ Format the time series for output.
 */
 public List<String> formatOutput ( String fname, PropList props )
 throws TSException
-{	String message = null, routine = "YearTS.formatOutput";
+{	String message = null;
 	List<String> formatted_output = null;
 	PrintWriter	stream = null;
 	String full_fname = IOUtil.getPathUsingWorkingDir(fname);
@@ -888,20 +889,14 @@ throws TSException
 		message = "Unable to open file \"" + full_fname + "\"";
 		throw new TSException ( message );
 	}
-	if ( stream == null ){
-		message = "Unable to open file \"" + full_fname + "\"";
-		Message.printWarning( 2, routine, message );
-		throw new TSException ( message );
-	}
 
 	try {
 		formatted_output = formatOutput ( stream, props );
-		stream.close();
-		stream = null;
 	}
-	catch ( TSException e ) {
-		// Rethrow...
-		throw e;
+	finally {
+		if ( stream != null ) {
+			stream.close();
+		}
 	}
 
 	// Also return the list (consistent with C++ single return type.
@@ -913,7 +908,7 @@ throws TSException
 Format the body of the report for an N-Year data.
 The output is a simple format with YYYY on the left and then the values
 filling out the row.  The data values are always a maximum of 13 characters.
-@param strings Vector of strings to be used as output.
+@param strings list of strings to be used as output.
 @param props Properties to control output.
 @param calendar year type to use for output.
 @param data_format Format for data values (C printf style).

@@ -93,7 +93,7 @@ import java.awt.TextArea;
 import java.awt.TextField;
 import java.awt.Toolkit;
 import java.awt.event.ItemEvent;
-import java.util.Vector;
+import java.util.ArrayList;
 
 import RTi.Util.String.StringUtil;
 
@@ -439,12 +439,12 @@ public static void addToChoice ( Choice choice, String[] items )
 
 /**
 Add a list of strings to a list.  This is useful when a standard set of
-choices are available.  The toString() method of each object in the Vector is
+choices are available.  The toString() method of each object in the list is
 called, so even non-String items can be added.
 @param choice Choice to add items to.
 @param items Items to add.
 */
-public static void addToChoice ( Choice choice, java.util.List items )
+public static void addToChoice ( Choice choice, java.util.List<Object> items )
 {	if ( (choice == null) || (items == null) ) {
 		return;
 	}
@@ -1003,7 +1003,7 @@ throws Exception
 	// item is not found so go through the list every time...
 	// Get the list size...
 	int size = c.getItemCount();
-	java.util.List tokens = null;
+	java.util.List<String> tokens = null;
 	int ntokens = 0;
 	String choice_token;
 	for ( int i = 0; i < size; i++ ) {
@@ -1017,14 +1017,14 @@ throws Exception
 		}
 		// Now compare.  Do not use region matches because we want
 		// an exact match on the token...
-		choice_token = (String)tokens.get(token);
+		choice_token = tokens.get(token);
 		if ( ignore_case ) {
-			if (	choice_token.equalsIgnoreCase(item) ) {
+			if ( choice_token.equalsIgnoreCase(item) ) {
 				c.select ( i );
 				return;
 			}
 		}
-		else {	if (	choice_token.equals(item) ) {
+		else {	if ( choice_token.equals(item) ) {
 				c.select ( i );
 				return;
 			}
@@ -1167,19 +1167,19 @@ the newline removed.  This is useful for exporting the text to a file or for
 printing.  At some point Sun may change the delimiter returned but we can
 isolate to this routine.
 @param a TextArea of interest.
-@return A list of strings containing the text from the text area or a Vector
+@return A list of strings containing the text from the text area or a list
 with no elements if a null TextArea.
 */
-public static java.util.List toList ( TextArea a )
+public static java.util.List<String> toList ( TextArea a )
 {	if ( a == null ) {
-		return new Vector();
+		return new ArrayList<String>();
 	}
-	java.util.List v = StringUtil.breakStringList ( a.getText(), "\n", 0 );
+	java.util.List<String> v = StringUtil.breakStringList ( a.getText(), "\n", 0 );
 	// Just to be sure, remove any trailing carriage-return characters from
 	// the end...
 	String string;
 	for ( int i = 0; i < v.size(); i++ ) {
-		string = (String)v.get(i);
+		string = v.get(i);
 		v.set(i,StringUtil.removeNewline(string));
 	}
 	string = null;

@@ -5,8 +5,8 @@ import java.awt.datatransfer.Transferable;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.PropList;
@@ -23,6 +23,7 @@ TimeInterval.IRREGULAR.  Use the IrregularTSIterator class to get data or
 retrieve the data array and process as a list.
 @see #getData
 */
+@SuppressWarnings("serial")
 public class IrregularTS extends TS
 implements Cloneable, Serializable, Transferable {
 
@@ -530,7 +531,7 @@ public List<String> formatOutput( PropList proplist )
 throws TSException
 {	String message = "", routine = "Irregular.formatOutput";	
 	int dl = 20;
-	List<String> strings = new Vector (20,10);
+	List<String> strings = new ArrayList<String>();
 	PropList props = null;
 	String format = "", prop_value = null;
 	String data_format = "%9.1f";
@@ -806,7 +807,7 @@ Format the time series for output.
 */
 public List<String> formatOutput ( String fname, PropList props )
 throws TSException
-{	String message = null, routine = "IrregularTS.formatOutput";
+{	String message = null;
 	List<String> formatted_output = null;
 	PrintWriter	stream = null;
 
@@ -819,20 +820,18 @@ throws TSException
 		message = "Unable to open file \"" + fname + "\"";
 		throw new TSException ( message );
 	}
-	if ( stream == null ){
-		message = "Unable to open file \"" + fname + "\"";
-		Message.printWarning( 2, routine, message );
-		throw new TSException ( message );
-	}
 
 	try {
 	    formatted_output = formatOutput ( stream, props );
-		stream.close();
-		stream = null;
 	}
 	catch ( TSException e ) {
 		// Rethrow...
 		throw e;
+	}
+	finally {
+		if ( stream != null ) {
+			stream.close();
+		}
 	}
 
 	// Also return the list (consistent with C++ single return type.
@@ -1408,7 +1407,7 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 		
 		tsdata.setValues( dateLocal, value, _data_units, data_flag, duration );
 
-		__tsDataList = new Vector();
+		__tsDataList = new ArrayList<TSData>();
 
 		__tsDataList.add( tsdata );
 

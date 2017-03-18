@@ -33,6 +33,7 @@ import RTi.Util.GUI.JGUIUtil;
 /**
 This class is the frame in which a tabbed pane displays multiple DataTable data, each in a JWorksheet is displayed.
 */
+@SuppressWarnings("serial")
 public class DataTableList_JFrame extends JFrame implements ChangeListener
 {
 

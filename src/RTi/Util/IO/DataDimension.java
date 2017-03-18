@@ -61,7 +61,7 @@ public class DataDimension
 
 // Private static data members for object house-keeping...
 
-private static List __dimension_Vector = new Vector(20);
+private static List<DataDimension> __dimensionList = new Vector<DataDimension>(20);
 
 // Data members...
 
@@ -96,22 +96,22 @@ dimensions can be used throughout the application.
 public static void addDimension ( DataDimension dim )
 {	// First see if the dimension is already in the list...
 
-	int size = __dimension_Vector.size();
+	int size = __dimensionList.size();
 	DataDimension pt = null;
 	for ( int i = 0; i < size; i++ ) {
 		// Get the dimension for the loop index...
-		pt = (DataDimension)__dimension_Vector.get(i);
+		pt = (DataDimension)__dimensionList.get(i);
 		// Now compare...
 		if (	dim.getAbbreviation().equalsIgnoreCase(
 			pt.getAbbreviation() ) ) {
 			// The requested dimension matches something that is
 			// already in the list.  Reset the list...
-			__dimension_Vector.set ( i, new DataDimension (dim) );
+			__dimensionList.set ( i, new DataDimension (dim) );
 			return;
 		}
 	}
 	// Need to add the units to the list...
-	__dimension_Vector.add ( new DataDimension(dim) );
+	__dimensionList.add ( new DataDimension(dim) );
 	pt = null;
 }
 
@@ -138,8 +138,8 @@ public String getAbbreviation ( )
 Return a list of DataDimension containing the static shared dimension data.
 @return a list of DataDimension containing the static shared dimension data.
 */
-public static List getDimensionData ()
-{	return __dimension_Vector;
+public static List<DataDimension> getDimensionData ()
+{	return __dimensionList;
 }
 
 /**
@@ -177,10 +177,10 @@ throws Exception
 		throw new Exception ( "Empty dimension string" );
 	}
 		
-	int size = __dimension_Vector.size();
+	int size = __dimensionList.size();
 	DataDimension dim = null;
 	for ( int i = 0; i < size; i++ ) {
-		dim = (DataDimension)__dimension_Vector.get(i);
+		dim = (DataDimension)__dimensionList.get(i);
 		if ( dimension_string.equalsIgnoreCase( dim.getAbbreviation())){
 			// Have a match...
 			return dim;

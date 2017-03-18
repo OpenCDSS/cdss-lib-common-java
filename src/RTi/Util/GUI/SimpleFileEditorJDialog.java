@@ -76,6 +76,7 @@ import RTi.Util.Message.Message;
  * Provides a dialog to display and edit a file.
  * 
  */
+@SuppressWarnings("serial")
 public class SimpleFileEditorJDialog extends JDialog implements ActionListener,
 	WindowListener, ComponentListener {
 

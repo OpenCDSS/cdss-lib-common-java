@@ -21,8 +21,7 @@ package RTi.Util.Test;
 
 import java.io.File;
 import java.io.PrintWriter;
-
-import java.util.Vector;
+import java.util.List;
 
 import RTi.Util.Message.Message;
 
@@ -227,7 +226,7 @@ same values in the same order.
 @param v2 the second Vector to check.
 @throws Exception if there are any errors reading through the Vector data.
 */
-public static void assertEquals(Vector v1, Vector v2) 
+public static void assertEquals(List<Object> v1, List<Object> v2) 
 throws Exception {
 	if (v1 != null && v2 != null) {
 		Message.printStatus(4, "", "  Comparing vectors of " + v1.size()
@@ -264,8 +263,8 @@ throws Exception {
 	Object o1 = null;
 	Object o2 = null;
 	for (int i = 0; i < size1; i++) {
-		o1 = v1.elementAt(i);
-		o2 = v2.elementAt(i);
+		o1 = v1.get(i);
+		o2 = v2.get(i);
 
 		Message.printStatus(4, "", "O1: '" + o1 + "'   O2: '" + o2
 			+ "'");
@@ -308,7 +307,7 @@ throws Exception {
 }
 
 /**
-Checks to see whether the TestCase was run successfuly.
+Checks to see whether the TestCase was run successfully.
 */
 public void checkTestStatus() {
 Message.printStatus(1, "", "EC: " + __errorCount);

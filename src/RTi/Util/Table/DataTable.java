@@ -460,14 +460,14 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
     // Get filter columns and glob-style regular expressions
     int [] columnNumbersToFilter = new int[columnFilters.size()];
     String [] columnFilterGlobs = new String[columnFilters.size()];
-    Enumeration keys = columnFilters.keys();
+    Enumeration<String> keys = columnFilters.keys();
     int ikey = -1;
     String key = null;
     while ( keys.hasMoreElements() ) {
         ++ikey;
         columnNumbersToFilter[ikey] = -1;
         try {
-            key = (String)keys.nextElement();
+            key = keys.nextElement();
             columnNumbersToFilter[ikey] = appendTable.getFieldIndex(key);
             columnFilterGlobs[ikey] = columnFilters.get(key);
             // Turn default globbing notation into internal Java regex notation
@@ -584,7 +584,8 @@ specify null to not check for distinct values
 @return copy of original table
 */
 public DataTable createCopy ( DataTable table, String newTableID, String [] reqIncludeColumns,
-    String [] distinctColumns, Hashtable columnMap, Hashtable columnFilters, StringDictionary columnExcludeFilters )
+    String [] distinctColumns, Hashtable<String,String> columnMap,
+    Hashtable<String,String> columnFilters, StringDictionary columnExcludeFilters )
 {   String routine = getClass().getName() + ".createCopy";
     // List of columns that will be copied
     String [] columnNamesToCopy = null;
@@ -654,16 +655,16 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
     }
     int [] columnNumbersToFilter = new int[columnFilters.size()];
     String [] columnFilterGlobs = new String[columnFilters.size()];
-    Enumeration keys = columnFilters.keys();
+    Enumeration<String> keys = columnFilters.keys();
     int ikey = -1;
     String key = null;
     while ( keys.hasMoreElements() ) {
         ++ikey;
         columnNumbersToFilter[ikey] = -1;
         try {
-            key = (String)keys.nextElement();
+            key = keys.nextElement();
             columnNumbersToFilter[ikey] = table.getFieldIndex(key);
-            columnFilterGlobs[ikey] = (String)columnFilters.get(key);
+            columnFilterGlobs[ikey] = columnFilters.get(key);
             // Turn default globbing notation into internal Java regex notation
             columnFilterGlobs[ikey] = columnFilterGlobs[ikey].replace("*", ".*").toUpperCase();
         }
@@ -2006,9 +2007,9 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
     // Make sure that the columns to copy do not include the join columns, which should already by in the tables.
     // Just set to blank so they can be ignored in following logic
     for ( int icol = 0; icol < columnNamesToCopy.length; icol++ ) {
-        Enumeration keys = joinColumnsMap.keys();
+        Enumeration<String> keys = joinColumnsMap.keys();
         while ( keys.hasMoreElements() ) {
-            String key = (String)keys.nextElement();
+            String key = keys.nextElement();
             if ( columnNamesToCopy[icol].equalsIgnoreCase(key) ) {
                 Message.printStatus(2,routine,"Table 2 column to copy \"" + columnNamesToCopy[icol] +
                     "\" is same as join column.  Will not copy from table2.");
@@ -2124,7 +2125,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
     String [] table2JoinColumnNames = new String[joinColumnsMap.size()];
     int [] table2JoinColumnNumbers = new int[joinColumnsMap.size()];
     int [] table2JoinColumnTypes = new int[joinColumnsMap.size()];
-    Enumeration keys = joinColumnsMap.keys();
+    Enumeration<String> keys = joinColumnsMap.keys();
     String key;
     int ikey = -1;
     while ( keys.hasMoreElements() ) {
@@ -2133,7 +2134,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
         table1JoinColumnNumbers[ikey] = -1;
         table2JoinColumnNames[ikey] = "";
         table2JoinColumnNumbers[ikey] = -1;
-        key = (String)keys.nextElement();
+        key = keys.nextElement();
         Message.printStatus(2, routine, "Determining join columns for table1 join column \"" + key + "\"");
         try {
             table1JoinColumnNames[ikey] = key;
@@ -2143,7 +2144,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                 table1JoinColumnNumbers[ikey]);
             try {
             	// Look up the column to use in table2 by using a key from table1
-                table2JoinColumnNames[ikey] = (String)joinColumnsMap.get(table1JoinColumnNames[ikey]);
+                table2JoinColumnNames[ikey] = joinColumnsMap.get(table1JoinColumnNames[ikey]);
                 table2JoinColumnNumbers[ikey] = tableToJoin.getFieldIndex(table2JoinColumnNames[ikey]);
                 table2JoinColumnTypes[ikey] = tableToJoin.getFieldDataType(table2JoinColumnNumbers[ikey]);
                 Message.printStatus(2,routine,"Table2 join column \"" + table2JoinColumnNames[ikey] + "\" has table2 column number=" +
@@ -3791,16 +3792,16 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
     // Get filter columns and glob-style regular expressions
     int [] columnNumbersToFilter = new int[columnFilters.size()];
     String [] columnFilterGlobs = new String[columnFilters.size()];
-    Enumeration keys = columnFilters.keys();
+    Enumeration<String> keys = columnFilters.keys();
     int ikey = -1;
     String key = null;
     while ( keys.hasMoreElements() ) {
         ++ikey;
         columnNumbersToFilter[ikey] = -1;
         try {
-            key = (String)keys.nextElement();
+            key = keys.nextElement();
             columnNumbersToFilter[ikey] = getFieldIndex(key);
-            columnFilterGlobs[ikey] = (String)columnFilters.get(key);
+            columnFilterGlobs[ikey] = columnFilters.get(key);
             // Turn default globbing notation into internal Java regex notation
             columnFilterGlobs[ikey] = columnFilterGlobs[ikey].replace("*", ".*").toUpperCase();
         }

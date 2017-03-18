@@ -18,7 +18,7 @@ package RTi.Util.IO;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
-
+import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.List;
@@ -88,12 +88,12 @@ public final class JarResources {
 /**
 Hashtable for holding the contents of the jar file
 */
-private Hashtable __jarResources_Hashtable = new Hashtable();
+private Hashtable<String,byte[]> __jarResources_Hashtable = new Hashtable<String,byte[]>();
 
 /**
 Hashtable for holding the sizes of the files in the jar file
 */
-private Hashtable __sizes_Hashtable = new Hashtable();  
+private Hashtable<String,Integer> __sizes_Hashtable = new Hashtable<String,Integer>();  
 
 /**
 The name of the jar file being worked with
@@ -254,19 +254,19 @@ Returns a list of all the resources in the jar file in hashtable form.
 @return a hashtable of all the resources and their file sizes.  The name
 of the resource is the key, and the size of the resource is the value
 */
-public Hashtable getResourcesHashtable() {
+public Hashtable<String,Integer> getResourcesHashtable() {
 	return(__sizes_Hashtable);
 }
 
 /**
-Returns a String Vector of the names of all the resources in the jar file 
-@return a String Vector of the names of all the resources in the jar file
+Returns a String list of the names of all the resources in the jar file 
+@return a String list of the names of all the resources in the jar file
 */
-public List getResourcesList() {
-	Enumeration e = __sizes_Hashtable.keys();
-	List v = new Vector(__sizes_Hashtable.size());
+public List<String> getResourcesList() {
+	Enumeration<String> e = __sizes_Hashtable.keys();
+	List<String> v = new Vector<String>(__sizes_Hashtable.size());
 	while (e.hasMoreElements()) {
-		String key = (String)e.nextElement();
+		String key = e.nextElement();
 		v.add(key);
 	}
 
@@ -292,9 +292,10 @@ are many resources being retrieved.
 @return a resource in a byte array
 */
 public byte[] getResourceFromJar(String resourceName) {
+	ZipInputStream zis = null;
 	try {
 		// extract resources and put them into the hashtable.
-		ZipInputStream zis = new ZipInputStream(
+		zis = new ZipInputStream(
 			new BufferedInputStream(
 			new FileInputStream(__jarFileName)));
 		ZipEntry ze = null;
@@ -307,8 +308,7 @@ public byte[] getResourceFromJar(String resourceName) {
 			int size=(int)ze.getSize();
 			// -1 means unknown size. 
 			if (size == -1) {			
-				size = ((Integer) __sizes_Hashtable.get(
-					ze.getName())).intValue();
+				size = __sizes_Hashtable.get(ze.getName()).intValue();
 			}
 	
 			if (ze.getName().equalsIgnoreCase(resourceName)) {
@@ -327,6 +327,7 @@ public byte[] getResourceFromJar(String resourceName) {
 					
 					rb += chunk;
 				}
+				zis.close();
 				return b;
 			}
 		}
@@ -336,9 +337,18 @@ public byte[] getResourceFromJar(String resourceName) {
 	}
 	catch (Exception e) {
 		Message.printWarning(2, "getResourceFromJar",
-			"An error occured while getting the resource from "
-			+ "the jar.");
+			"An error occured while getting the resource from the jar.");
 		Message.printWarning(2, "getResourceFromJar", e);
+	}
+	finally {
+		if ( zis != null ) {
+			try {
+				zis.close();
+			}
+			catch ( IOException e ) {
+				// Should not happen
+			}
+		}
 	}
 	return null;
 }
@@ -357,12 +367,13 @@ Reads the jar file and creates a hashtable of all the resources in the
 hashtable and their filesizes.
 */
 private void init() {
+	ZipFile zf = null;
 	try {
 		// extracts just sizes only. 
-		ZipFile zf = new ZipFile(__jarFileName);
-		Enumeration e = zf.entries();
+		zf = new ZipFile(__jarFileName);
+		Enumeration<? extends ZipEntry> e = zf.entries();
 		while (e.hasMoreElements()) {
-			ZipEntry ze = (ZipEntry) e.nextElement();
+			ZipEntry ze = e.nextElement();
 			if (!ze.isDirectory()) {
 				__sizes_Hashtable.put(
 					  ze.getName(),
@@ -374,7 +385,17 @@ private void init() {
 		Message.printWarning(2, "init", "An error occured while "
 			+ "initializing the JarResources.");
 		Message.printWarning(2, "init", e);
-	}	 
+	}
+	finally {
+		if ( zf != null ) {
+			try {
+				zf.close();
+			}
+			catch ( IOException e ) {
+				// Should not happen
+			}
+		}
+	}
 }
 
-} // End of JarResources class.
+}

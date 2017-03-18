@@ -79,7 +79,7 @@ private String __list_source = "";
 
 /**
 Data for component type (often a list of objects).  If the component is a group, the
-data will be a Vector of the components in the group.
+data will be a list of the components in the group.
 */
 private Object __data = null;
 
@@ -270,10 +270,10 @@ public Object getData ()
 }
 
 /**
-Return the data check results, as a Vector of String.
+Return the data check results, as a list of String.
 @return the data check results.
 */
-public List getDataCheckResults ()
+public List<String> getDataCheckResults ()
 {	return __data_check_results;
 }
 
@@ -311,7 +311,7 @@ public String getListSource ()
 
 /**
 Indicates whether there is data contained in the object.  If the data is null,
-false is returned.  If the data is a Vector and is has 0 elements, false is returned.
+false is returned.  If the data is a list and is has 0 elements, false is returned.
 Otherwise, true is returned.
 @return whether there is data.
 */
@@ -320,7 +320,9 @@ public boolean hasData() {
 		return false;
 	}
 	if (__data instanceof List) {
-		if (((List)__data).size() == 0) {
+		@SuppressWarnings("rawtypes")
+		List list = (List)__data;
+		if (list.size() == 0) {
 			return false;
 		}
 	}
@@ -386,10 +388,10 @@ public void setData ( Object data )
 }
 
 /**
-Set the data check results, as a Vector of String.
+Set the data check results, as a list of String.
 @param data_check_results The data check results.
 */
-public void setDataCheckResults ( List data_check_results )
+public void setDataCheckResults ( List<String> data_check_results )
 {	__data_check_results = data_check_results;
 }
 

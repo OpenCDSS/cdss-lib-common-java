@@ -29,6 +29,7 @@ import RTi.Util.Time.DateTime;
 The FrostDatesYearTSLimits class stores information about the data and date
 limits of a FrostDatesYearTS time series.
 */
+@SuppressWarnings("serial")
 public class FrostDatesYearTSLimits extends TSLimits
 {
 

@@ -41,7 +41,7 @@ public class OverviewGutter extends JComponent
   /** Height of gutter used for marker positioning (it is MARKER_HEIGHT shorter*/
   int _gutterHeight;
   /** Maintains the list of markers */
-  private List _markerInstances = new Vector();
+  private List<MarkerInstance> _markerInstances = new Vector<MarkerInstance>();
   /** JList associated with OverviewGutter */
   private final JList        _list;
 

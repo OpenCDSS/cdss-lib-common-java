@@ -92,11 +92,11 @@ the time series, not the time series identifier, will be what is dragged and dro
 private Transferable __alternateTransferable;
 
 /**
-The Vector of DragAndDropListeners registered for this drag and drop 
+The list of DragAndDropListeners registered for this drag and drop 
 component.  This is used so that other classes can be informed of events 
 occurring during the drag and drop process.
 */
-private List __listeners = null;
+private List<DragAndDropListener> __listeners = null;
 
 /**
 Constructor.  Sets up whether drags and drops are possible as well as the 
@@ -107,7 +107,7 @@ when data is dragged from the component.
 when data is dropped on the component.
 */
 public DragAndDropControl(int dragAction, int dropAction) {
-	__listeners = new Vector();
+	__listeners = new Vector<DragAndDropListener>();
 	setDragAction(dragAction);
 	setDropAction(dropAction);
 }
