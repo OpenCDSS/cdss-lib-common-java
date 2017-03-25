@@ -1,9 +1,9 @@
 package RTi.TS;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Vector;
 
 /**
 A collection for time series, to be represented as an ensemble.  At this time, it
@@ -18,7 +18,7 @@ public class TSEnsemble implements Cloneable
 /**
 Ensemble of time series data, guaranteed to exist but may be empty.
 */
-private List<TS> __tslist = new ArrayList<TS>();
+private List<TS> __tslist = new Vector<TS>(); // Use Vector to be thread-safe
 
 /**
 Identifier for the ensemble.
@@ -66,7 +66,7 @@ public TSEnsemble ( String id, String name, List<TS> tslist )
     setEnsembleID ( id );
     setEnsembleName ( name );
     if ( tslist == null ) {
-        tslist = new ArrayList<TS>();
+        tslist = new Vector<TS>();
     }
     __tslist = tslist;
 }
@@ -90,7 +90,7 @@ public Object clone ()
         // Now clone mutable objects...
         int size = size();
         // Need a new list...
-        ensemble.__tslist = new ArrayList<TS>(size);
+        ensemble.__tslist = new Vector<TS>(size);
         TS ts;
         for ( int i = 0; i < size; i++ ) {
             ts = get(i);
@@ -147,11 +147,38 @@ public HashMap<String,Object> getProperties()
 
 /**
 Get a time series ensemble property's contents (case-specific).
+This will return built-in properties as well as dynamic properties.  Built-in properties include:
+<ul>
+<li> FirstSequenceID - sequence ID of first time series (no additional sorting is performed)
+<li> LastSequenceID - sequence ID of last time series (no additional sorting is performed)
+</ul>
 @param propertyName name of property being retrieved.
 @return property object corresponding to the property name.
 */
 public Object getProperty ( String propertyName )
 {
+	// Built in properties first
+	if ( propertyName.equalsIgnoreCase("FirstSequenceID") ) {
+		// Return the first time series sequence ID
+		List<TS> tslist = getTimeSeriesList(false);
+		if ( tslist.size() > 0 ) {
+			TS ts = tslist.get(0);
+			if ( ts != null ) {
+				return ts.getSequenceID();
+			}
+		}
+	}
+	if ( propertyName.equalsIgnoreCase("LastSequenceID") ) {
+		// Return the last time series sequence ID
+		List<TS> tslist = getTimeSeriesList(false);
+		if ( tslist.size() > 0 ) {
+			TS ts = tslist.get(tslist.size() - 1);
+			if ( ts != null ) {
+				return ts.getSequenceID();
+			}
+		}
+	}
+	// Then dynamic properties
     if ( __property_HashMap == null ) {
         return null;
     }
@@ -169,7 +196,7 @@ public List<TS> getTimeSeriesList ( boolean copyList )
         return __tslist;
     }
     else {
-        List<TS> tslist = new ArrayList<TS>(__tslist.size());
+        List<TS> tslist = new Vector<TS>(__tslist.size());
         int size = __tslist.size();
         for ( int i = 0; i < size; i++ ) {
             tslist.add( __tslist.get(i));

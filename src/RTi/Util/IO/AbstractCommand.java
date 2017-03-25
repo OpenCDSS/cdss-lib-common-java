@@ -500,12 +500,63 @@ public String toString()
 }
 
 /**
+Return the command string, formed from the properties.
+This is a helper method. This version can be relied on to satisfy
+that requirement but in most cases should be overruled.  An attempt is made to
+determine the property type and double quote only those that need quoting
+(Java Number and Boolean classes are not quoted).
+The order of the properties is as added to the property list.
+Only properties that are non-null and non-blank are added.
+@param props properties to output, such from a command editor.
+@param propOrder The list of parameters for the command, in requested order.
+@return the command string.
+*/
+public String toString ( PropList props, String[] propOrder ) {
+	if ( (propOrder == null) || (propOrder.length == 0) ) {
+		// Order is not specified
+		return toString(props);
+	}
+	StringBuilder b = new StringBuilder ();
+	String stringValue;
+	Object contents;
+	boolean doQuote;
+	Prop prop;
+	for ( int i = 0; i < propOrder.length; i++ ) {
+		doQuote = true; // Default is to quote
+		prop = props.getProp(propOrder[i]);
+		if ( prop == null ) {
+			continue;
+		}
+		stringValue = prop.getValue();
+		contents = prop.getContents();
+		if ( (contents == null) || (stringValue == null) ) {
+			continue;
+		}
+		if ( (contents instanceof Number) || (contents instanceof Boolean) ) {
+			doQuote = false;
+		}
+		if ( stringValue.length() > 0 ) {
+			if ( b.length() > 0 ) {
+				b.append ( "," );
+			}
+			if ( doQuote ) {
+				b.append ( propOrder[i] + "=\"" + stringValue + "\"" );
+			}
+			else {
+				b.append ( propOrder[i] + "=" + stringValue );
+			}
+		}
+	}
+	return (__commandName + "(" + b + ")" );
+}
+
+/**
 Return the command string, formed from the properties.  Note that this method
 is required by the Command interface.  This version can be relied on to satisfy
 that requirement but in most cases should be overruled.  An attempt is made to
 determine the property type and double quote only those that need quoting
 (Java Number and Boolean classes are not quoted).
-The order of the properties is as added to the property list.
+The order of the properties is as added to the property list, which may not be desirable if standard order is expected.
 Only properties that are non-null and non-blank are added.
 @param parameters The list of parameters for the command.
 @return the command string.
@@ -515,25 +566,28 @@ public String toString ( PropList parameters )
 		return __commandName + "()";
 	}
 	StringBuffer b = new StringBuffer ();
-	String value;
+	String stringValue;
 	Object contents;
 	boolean doQuote;
 	for ( Prop prop: parameters.getList() ) {
 		doQuote = true; // Default is to quote
-		value = prop.getValue();
+		stringValue = prop.getValue();
 		contents = prop.getContents();
-		if ( (contents != null) && (contents instanceof Number) || (contents instanceof Boolean) ) {
+		if ( contents == null ) {
+			continue;
+		}
+		if ( (contents instanceof Number) || (contents instanceof Boolean) ) {
 			doQuote = false;
 		}
-		if ( (value != null) && (value.length() > 0) ) {
+		if ( (stringValue != null) && (stringValue.length() > 0) ) {
 			if ( b.length() > 0 ) {
 				b.append ( "," );
 			}
 			if ( doQuote ) {
-				b.append ( prop.getKey() + "=\"" + value + "\"" );
+				b.append ( prop.getKey() + "=\"" + stringValue + "\"" );
 			}
 			else {
-				b.append ( prop.getKey() + "=" + value );
+				b.append ( prop.getKey() + "=" + stringValue );
 			}
 		}
 	}

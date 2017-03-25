@@ -3466,16 +3466,19 @@ throws Exception
 			    // Set the data as an object of the column type.
 			    if ( tableFieldType[icol] == TableField.DATA_TYPE_INT ) {
 			    	cell = cell.trim();
-			    	if ( cell.length() != 0 ) {
-			    		tablerec.addFieldValue( Integer.valueOf(cell) );
+			    	if ( parseFile_CellContentsNull(cell) ) {
+			    		tablerec.addFieldValue ( null );
 			    	}
 			    	else {
-			    		tablerec.addFieldValue ( null );
+			    		tablerec.addFieldValue( Integer.valueOf(cell) );
 			    	}
 			    }
 			    else if ( tableFieldType[icol] == TableField.DATA_TYPE_DATETIME ) {
 			    	cell = cell.trim();
-			    	if ( cell.length() != 0 ) {
+			    	if ( parseFile_CellContentsNull(cell) ) {
+			    		tablerec.addFieldValue ( null );
+			    	}
+			    	else {
 			    		try {
 			    			tablerec.addFieldValue( DateTime.parse(cell.replace("\"", "")) );
 			    		}
@@ -3483,20 +3486,17 @@ throws Exception
 			    			tablerec.addFieldValue ( null );
 			    		}
 			    	}
-			    	else {
-			    		tablerec.addFieldValue ( null );
-			    	}
 	            }
 			    else if ( tableFieldType[icol] == TableField.DATA_TYPE_DOUBLE ) {
 			    	cell = cell.trim();
-			    	if ( cell.length() != 0 ) {
-			    		tablerec.addFieldValue( Double.valueOf(cell) );
-			    	}
-			    	else {
+			    	if ( parseFile_CellContentsNull(cell) ) {
 			    		tablerec.addFieldValue ( null );
 			    	}
+			    	else {
+			    		tablerec.addFieldValue( Double.valueOf(cell) );
+			    	}
 	            }
-			    else if ( tableFieldType[icol] == TableField.DATA_TYPE_DOUBLE ) {
+			    else if ( tableFieldType[icol] == TableField.DATA_TYPE_STRING ) {
 			    	// Know that it is a string.
 			    	// Could contain embedded "" that need to be replaced with single "
 			    	tablerec.addFieldValue( parseFile_ProcessString(cell) );
@@ -3550,6 +3550,20 @@ throws Exception
 	}
 
 	return table;		
+}
+
+/**
+ * Determine whether a cell's string contents are null.
+ * This will be the case if the cell is empty, "null" (upper or lower case).
+ * Call this when processing non-text cells that need to store a value (double, integer, boolean, date/time, etc.).
+ */
+private static boolean parseFile_CellContentsNull ( String cell ) {
+	if ( (cell == null) || cell.isEmpty() || cell.toUpperCase().equals("NULL") ) {
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 /**
