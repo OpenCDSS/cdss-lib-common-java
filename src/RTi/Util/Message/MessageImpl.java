@@ -401,7 +401,12 @@ protected void printDebug( int level, String routine, String message )
 	String routine_string = null;
 	if ( routine != null ) {
 		if( (_flag & Message.SHOW_ROUTINE) != 0 ){
-			routine_string = "(" + routine + ")";
+			if ( routine.isEmpty() ) {
+				routine_string = "";
+			}
+			else {
+				routine_string = "(" + routine + ")";
+			}
 		}
 		else {
 			routine_string = "";
@@ -594,9 +599,14 @@ protected void printStatus ( int level, String routine, String message )
 	if ( routine != null ) {
 		// We only show the routine if we have requested it and the
 		// status level is greater than 1.
-		if( (_flag & Message.SHOW_ROUTINE) != 0 ){
+		if( ( _flag & Message.SHOW_ROUTINE) != 0 ){
 			if ( level > 1 ) {
-				routine_string = "(" + routine + ")";
+				if ( routine.isEmpty() ) {
+					routine_string = "";
+				}
+				else {
+					routine_string = "(" + routine + ")";
+				}
 			}
 		}
 	}
@@ -710,7 +720,12 @@ protected void printWarning ( int level, String tag, String routine, String mess
 	String routine_string = null;
 	if ( routine != null ) {
 		if( ((_flag & Message.SHOW_ROUTINE) != 0) && (level > 1) ){
-			routine_string = "(" + routine + ")";
+			if ( routine.isEmpty() ) {
+				routine_string = "";
+			}
+			else {
+				routine_string = "(" + routine + ")";
+			}
 		}
 		else {
 			routine_string = "";
