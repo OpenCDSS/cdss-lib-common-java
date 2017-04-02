@@ -1,311 +1,3 @@
-// ----------------------------------------------------------------------------
-// JWorksheet - Class that transforms a JTable into a real worksheet.
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-// 2002-12-XX	J. Thomas Sapienza, RTi	Initial version.
-// 2003-03-04	JTS, RTi		Javadoc'd, revised.  
-// 2003-03-07	JTS, RTi		Added sorting routines.
-// 2003-03-10	JTS, RTi		Added font size and table width code.
-// 2003-03-11	JTS, RTi		Added support for PropList-provided
-//					information on how the SpreadSheet 
-//					should look.
-// 2003-03-12	JTS, RTi		Added clear() method.
-// 2003-03-13	JTS, RTi		* Corrected fatal error in clear method.
-//					* Added getData() methods.
-// 2003-03-20	JTS, RTI		Many revisions following SAM's review.
-// 2003-04-07	JTS, RTi		Overrode the getSelectedRowCount method
-//					because JTable's was returning the wrong
-//					number of rows.
-// 2003-04-14	JTS, RTi		Overrode the getSelectedColumns and 
-//					getSelectedColumnCount because the 
-//					others were returning the wrong number
-//					of columns.
-// 2003-05-22	JTS, RTi		Added code so that the table can set
-//					itself to have one click row selection
-//					if the first row is clicked on.  
-//					By default this is on.
-// 2003-06-02	JTS, RTi		Added the __hourglassJFrame so that
-//					an hourglass can be displayed when 
-//					sorting.
-// 2003-06-09	JTS, RTi		* Added the code to scroll to a specific
-//					  row or column.
-//					* Added hideColumn()
-// 2003-06-11	JTS, RTi		* Added the createColumnList() code
-//					* Added the first draft of the find()
-//					  code for ints, doubles, Dates and
-//					  Strings.
-//					* Added code to do selection models 
-//					  like the old JTable.
-// 2003-06-13	JTS, RTi		* Added addRow() and deleteRow()
-//					* Added setNewData()
-//					* Added stopEditing() and 
-//					  cancelEditing()
-// 2003-06-17	JTS, RTi		* Deprecated setRenderer() to 
-//					  setCellRenderer()
-//					* Deprecated setWidths() to 
-//					  setColumnWidths()
-//					* Deprecated setNewData() to
-//					  setData()
-// 2003-06-18	JTS, RTi		Corrected bug caused by calling
-//					setRowSelectionAllowed(false) in 
-//					the JWorksheet's selection model.
-// 2003-06-19	JTS, RTi		Added FIND_WRAPAROUND capability to 
-//					the searches.
-// 2003-06-25	JTS, RTi		* Added setColumnComboBoxValues()
-//					* Added removeColumnComboBox()
-// 2003-06-30	JTS, RTi		* Added code to set specific JComboBox
-//					  editors on individual cells.
-//					* Added code to support 
-//					  JWorksheet_Listeners.
-// 2003-07-01	JTS, RTi		* Added code for setting cell 
-//					  attributes.
-//					* Added code to set tooltips on column
-//					  headers.
-//					* Added code to allow multiple-line
-//					  column headers.
-// 2003-07-07	JTS, RTi		Added code to recalculate the 
-//					necessary sizes for the col and row
-//					selection models after a row is 
-//					added or removed.
-// 2003-07-10	JTS, RTi		Eliminated use of 
-//					JWorksheet_RowCountCellRenderer in 
-//					favor of simply using cell attributes.
-// 2003-07-21	JTS, RTi		Documented properties in constructors
-//					now, and put the property definitions
-//					in an html table with more information
-//					than was previously provided.
-// 2003-07-22	JTS, RTi		Updated Javadocs following SAM's review.
-// 2003-08-14	JTS, RTi		Javadoc'd several methods that had
-//					been added recently.
-// 2003-08-26	JTS, RTi		Added support for removing cell
-//					attributes in the setCellAttributes()
-//					method.
-// 2003-09-03	JTS, RTi		* Corrected bug in getSelectedRows()
-//					  and getSelectedColumns() that was 
-//					  resulting in the incorrect number
-//					  of selected rows being returned in
-//					  non-excel selection mode.
-//					* Added cellHasAttributes().
-// 2003-09-10	JTS, RTi		Added MultipleDiscontinuousRowSelection
-//					for selecting multiple discontinuous
-//					rows using the old JTable selection 
-//					mode.
-// 2003-09-12	JTS, RTi		* Added refresh().
-//					* Added getTableModel().
-//					* Added getCellRenderer().
-// 2003-09-16	JTS, RTi		* Added contains().
-//					* Added new find() which looks for an
-//					  object in a row.
-// 2003-09-19	JTS, RTi		* Overrode isCellSelected() in order
-//					  to javadoc it.
-//					* RowSelectionModel and 
-//					  ColSelectionModel are now recreated
-//					  when a column is removed (in order
-//					  to keep the selection arrays 
-//					  properly sized).
-//					* Added showHeader().
-// 2003-09-23	JTS, RTi		* Added deselectAll().
-//					* Overrode and deprecated 
-//					  clearSelection().
-// 2003-09-30	JTS, RTi		Overrode getValueAt() in order to 
-//					javadoc it.
-// 2003-10-07	JTS, RTi		Renamed setMultiLineHeader() to
-//					setMultipleLineHeaderEnabled().
-// 2003-10-13	JTS, RTi		* Added setColumnAlignment().
-//					* Added getColumnAlignment().
-// 2003-10-15	JTS, RTi		* Added selectAllRows().
-//					* Added insertRowAt().
-// 2003-10-20	JTS, RTi		* Added setRowData().
-//					* Added isEmpty().
-// 2003-10-21	JTS, RTi		Revised the code for adding and deleting
-//					cell attributes.
-// 2003-10-22	JTS, RTi		* Corrected getCellAttributes() so that
-//					  it takes an absolute column.
-//					* Corrected error in setCellAttributes()
-//					  that was causing attributes for the
-//					  cell at 0,0 to not be set properly.
-//					* Added alternate text support, for use
-//					  in places where predetermined String 
-//					  text might need placed in a single
-//					  cell in a numeric column.
-//					* Added check in getRowData() for 
-//					  null data returned internally, so that
-//					  null is returned from the method 
-//					  instead of throwing a null pointer
-//					  exception.
-//					* Removed an old constructor as it has
-//					  been deprecated for a few months.
-//					* Removed haveColumnsBeenHidden() as it
-//					  has been deprecated for a few months.
-//					* Removed hideColumn() as it has been
-//					  deprecated for a few months.
-//					* Removed overrideCellEdit() as it has 
-//					  been deprecated for a few months.
-//					* Removed setNewData() as it has been
-//					  deprecated for a few months.
-//					* Removed setNewModel() as it has been
-//					  deprecated for a few months.
-//					* Removed setRenderer() as it has been
-//					  deprecated for a few months.
-//					* Removed setWidths() as it has been
-//					  deprecated for a few months.
-//					* Added getColumnClass().
-// 2003-10-23	JTS, RTI		Added getColumnName() methods.
-// 2003-10-24	JTS, RTi		* Made JWorksheet a KeyListener for
-//					  itself in order to trap events in
-//					  the future.
-//					* Overrode and deprecated JTable's
-//					  selectAll() method.
-//					* Overrode JTable's isEditing() method.
-//					* Added 
-//					  getCellSpecificJComboBoxValues().
-//					* Added support for one-click column
-//					  selection.
-// 2003-11-04	JTS, RTi		* Added addHeaderMouseListener().
-//					* Popup menu commands are now in
-//					  private Strings.
-// 2003-11-06	JTS, RTi		* Added warning messages to routines
-//					  that can fail but which don't return
-//					  failure values (are void).
-// 2003-11-11	JTS, RTi		* Because of how __hourglassJFrame is 
-//					  used in some other classes, it is now 
-//					  initialized to a new JFrame() in the
-//					  constructor, so that even if it is 
-//					  never set, getHourglassJFrame() will 
-//					  never return null.
-//					* Worksheet can now be set dirty and
-//					  checked for dirty.
-//					* Added getAbsoluteColumnCount().
-// 2003-11-12	JTS, RTi		All columns now use the 
-//					JWorksheet_DefaultTableCellEditor class.
-// 2003-11-18	JTS, RTi		* Added setEditCell().
-//					* Added getEditRow().
-//					* Added getEditColumn().
-//					* Added finalize().
-//					* Added selectColumn().
-//					* Added code to shift the rows and 
-//					  columns of cell alternate text and
-//					  cell attributes as rows and columns 
-//					  are added and deleted.
-// 2003-11-19	JTS, RTi		Added getCellAtClick().
-// 2003-11-26	JTS, RTi		Corrected a bug caused when compacting
-//					the arrays storing alt text and 
-//					attribute information.
-// 2003-12-03	JTS, RTi		Added code to write the table out 
-//					as an HTML file, and also to 
-//					copy the table to the clipboard in
-//					HTML form.
-// 2003-12-09	JTS, RTi		Removed all references to a local 
-//					private variable __header.  The table
-//					header can now only be operated on
-//					by calling getTableHeader().  This
-//					corrected a bug that would cause 
-//					columns to be non-resizable if a new
-//					table model was set in the worksheet.
-// 2003-12-10	JTS, RTi		Column tool tips are now re-set in
-//					the worksheet after a call to 
-//					setModel().
-// 2004-01-07	JTS, RTi		Overrode isRowSelected() in order to
-//					accomodate JWorksheet row selection.
-// 2004-01-20	JTS, RTi		* Moved to use the new JWorksheet column
-//					  headers as the default mode. 
-//					* Began renaming variables to mark 
-//					  whether they are associated with
-//					  column or row headers.
-//					* Deprecated some properties and
-//					  removed some old properties that had
-//					  been deprecated for months.
-// 					* Revised javadocs.
-// 2004-01-22	JTS, RTi		Corrected bug in which the popup 
-//					column was treated as the absolute 
-//					instead of the visible column.
-// 2004-01-26	JTS, RTi		Changed getColumn() calls to allow 
-//					multiple columns with the same name.
-// 2004-01-27	JTS, RTi		Added deleteRows().
-// 2004-01-30	JTS, RTi		Added AllowCopy and AllowPaste 
-//					properties.
-// 2004-02-10	JTS, RTi		Added getValueAtAsString().
-// 2004-03-02	JTS, RTi		Added calculateColumnWidths() and 
-//					related code.
-// 2004-03-03	JTS, RTi		Added deselectRow().
-// 2004-05-10	JTS, RTi		Removed long-deprecated methods.
-// 2004-06-01	JTS, RTi		Improved the behavior of one-click
-//					row selection.  Now responds properly
-//					to holding down the control, shift, 
-//					or control and shift keys.
-// 2004-07-27	JTS, RTi		Added "Copy with Header" to popup 
-//					menu.
-// 2004-08-06	JTS, RTi		Added the ability to specify column
-//					prefixes by the ColumnNumbering 
-//					property.
-// 2004-09-15	JTS, RTi		The popup trigger checking being done
-//					when the worksheet or its header were
-//					right-clicked on was not working in 
-//					Linux.  Stopped using:
-//					   MouseEvent.isPopupTrigger()
-//					and changed to using:
-//					   JPopupMenu.isPopupTrigger(MouseEvent)
-//					and the popup menus are working now on
-//					Linux.
-// 2004-10-21	JTS, RTi		Added the right-click menu item for 
-//					saving table data directly from the 
-//					worksheet.
-// 2004-11-01	JTS, RTi		Boolean columns can now be sorted.
-// 2004-11-15	JTS, RTi		Added new property that allows row 
-//					numbers to decrement the further down
-//					the worksheet they go 
-//					("IncrementRowNumbers=false").
-// 2005-01-25	JTS, RTi		Correct bug caused by a null pointer
-//					exception when reading properties.
-// 2005-03-22	JTS, RTi		* Found some bugs caused by 1-column
-//					  worksheets that were resolved.
-//					* Trying to turn off the header 
-//					  was causing lots of null pointer 
-//					  exceptions.  Resolved.
-// 2005-03-30	JTS, RTi		Changed how enableRowHeader() populates
-//					its list, resulting in a huge 
-//					performance increase on lists over 1000
-//					elements.
-// 2005-04-05	JTS, RTi		Added setHourglassJDialog().
-// 2005-04-26	JTS, RTi		Added all data members to finalize().
-// 2005-06-07	JTS, RTi		Converted MutableJLists to 
-//					SimpleJLists.
-// 2005-06-16	JTS, RTi		Corrected bug in find() where wrapped
-//					searches were not going to the next
-//					to last row in the wrap.
-// 2005-10-31	JTS, RTi		Changed saveToFile() so that it 
-//					correctly quotes fields containing the
-//					delimiter string and also so that any
-//					newlines in the strings are removed 
-//					(this was an issue with data in the
-//					RTiAdminAssistant).
-// 2005-11-18	JTS, RTi		Changed saveToFile() so that it quotes
-//					header lines, enforces a file extension,
-//					and offers more output formats in the
-//					file chooser.
-// 2006-01-16	JTS, RTi		* Added getVisibleColumnCount().
-//					* Added getColumnNumber().
-// 2006-01-20	JTS, RTi		* Added "Copy All" to popup menu.
-//					* Added "Copy All With Header" to popup
-//					  menu.
-// 2006-01-31	JTS, RTi		* Deprecated setHourglass() for
-//					  setWaitCursor().
-//					* Deprecated setNoHeader() for
-//					  removeColumnHeader().
-//					* Updated Javadocs.
-//					* Renamed notifyAllListeners() to
-//					  notifyAllWorksheetListeners().
-//					* Renamed __listeners to
-//					  __worksheetListeners.
-//					* Worksheet is now an adjustment 
-//					  listener for scrollpane adjustments.
-// 2006-03-02	JTS, RTi		Added deselect/select options to the 
-//					default popup menu.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package RTi.Util.GUI;
 
 import java.awt.Color;
@@ -344,6 +36,7 @@ import javax.swing.JTable;
 import javax.swing.JViewport;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.LineBorder;
 import javax.swing.table.JTableHeader;
@@ -360,6 +53,11 @@ import RTi.Util.IO.PropList;
 import RTi.Util.Math.MathUtil;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
+import RTi.Util.Table.DataTable;
+import RTi.Util.Table.DataTable_CellRenderer;
+import RTi.Util.Table.DataTable_TableModel;
+import RTi.Util.Table.TableField;
+import RTi.Util.Table.TableRecord;
 import RTi.Util.Time.StopWatch;
 
 // TODO (2004-01-20) need to add main javadocs for dealing with the new row headers.
@@ -480,7 +178,7 @@ to have different attributes:<p><pre>
 The JWorksheet offers support for using JComboBoxes for data entry.  The 
 following code demonstrates setting a JComboBox on all cells in a column:<p>
 <pre>
-	Vector v = new Vector();
+	List<String> v = new Vector<String>();
 	v.add("Red");
 	v.add("Green");
 	v.add("Blue");
@@ -501,15 +199,15 @@ normal data entry cells.  The following code demonstrates
 placing different combo boxes on cells within a column:<p><pre>
 	__worksheet.setCellSpecificJComboBoxColumn(3, true);
 
-	Vector diversions = new Vector();
+	List<String> diversions = new ArrayList<String>();
 	diversions.add("Diversion 1");
 	diversions.add("Diversion 2");
 
-	Vector reservoirs = new Vector();
+	List<String> reservoirs = new ArrayList<String>();
 	reservoirs.add("Reservoir 1");
 	reservoirs.add("Reservoir 2");
 
-	Vector wells = new Vector();
+	List<String> wells = new ArrayList<String>();
 	wells.add("Well 1");
 	wells.add("Well 2");
 	
@@ -523,7 +221,7 @@ The above code first sets up the 3rd column to allow cell-specific placement
 of combo boxes.  The 'true' parameter means that users will be able to type in
 other values to the JComboBoxes if they value they want does not appear.<p>
 
-The code then sets up a few Vectors of example entry values and applies 
+The code then sets up a few lists of example entry values and applies 
 combo boxes to rows 3, 4 and 5 in the worksheet.<p>
 
 The last part of the code sets up what the worksheet column's behavior should be
@@ -575,8 +273,8 @@ adding or removing rows.</li>
 for the optional first column of worksheet cells that display the number of the row.</li>
 </ul>
 */
-public class JWorksheet 
-extends JTable 
+@SuppressWarnings("serial")
+public class JWorksheet extends JTable 
 implements ActionListener, KeyListener, MouseListener, AdjustmentListener {
 
 // TODO TODO add setColumnEditable()
@@ -747,17 +445,24 @@ private final int __COL_DELETED = 3;
 Popup menu labels.
 */
 private final String
-	__MENU_ORIGINAL_ORDER = 	"Original Order",
-	__MENU_SORT_ASCENDING = 	"Sort Ascending",
-	__MENU_SORT_DESCENDING = 	"Sort Descending",
-	__MENU_COPY = 			"Copy",
-	__MENU_COPY_HEADER = 		"Copy with Header",
-	__MENU_COPY_ALL = 		"Copy All",
-	__MENU_COPY_ALL_HEADER = 	"Copy All with Header",
-	__MENU_DESELECT_ALL = 		"Deselect All",
-	__MENU_PASTE = 			"Paste",
-	__MENU_SAVE_TO_FILE = 		"Save to file ...",
-	__MENU_SELECT_ALL = 		"Select All";
+	__MENU_ORIGINAL_ORDER = "Original Order",
+	__MENU_SORT_ASCENDING = "Sort Ascending",
+	__MENU_SORT_DESCENDING = "Sort Descending",
+	__MENU_COPY = "Copy",
+	__MENU_COPY_HEADER = "Copy with Header",
+	__MENU_COPY_ALL = "Copy All",
+	__MENU_COPY_ALL_HEADER = "Copy All with Header",
+	__MENU_DESELECT_ALL = "Deselect All",
+	__MENU_PASTE = "Paste",
+	__MENU_CALCULATE_STATISTICS = "Calculate Statistics",
+	__MENU_SAVE_TO_FILE = "Save to file ...",
+	__MENU_SELECT_ALL = "Select All";
+
+/**
+ * Action listeners that listing to the popup menu events.
+ * These are called from the actionPerformed() method.
+ */
+private List<ActionListener> popupMenuActionListeners = new ArrayList<ActionListener>();
 
 /**
 The initial size of and size by which the cell attribute arrays grow.
@@ -801,9 +506,23 @@ Whether the shift key is depressed.
 private boolean __isShiftDown = false;
 
 /**
-Whether pasting from the table has been enabled or not.
+Whether pasting from the table has been enabled or not (default=false).
 */
 private boolean __pasteEnabled = false;
+
+/**
+ * Whether calculate statistics for the table has been enabled or not (default=false).
+ * If true, a pop-up menu item "Calculate Statistics" will be shown.
+ * If the DelegateCalculateStatistics=true is set, then the action event in this
+ * class will ignore the event, assuming that another action listener is registered on the sheet to handle.
+ */
+private boolean __calculateStatisticsEnabled = false;
+
+/**
+ * Whether the "Calculate Statistics" menu item should be handled in this class (false)
+ * or delegated to another class that has registered an ActionListener (true).
+ */
+private boolean __delegateCalculateStatistics = false;
 
 /**
 Whether to select an entire column (with the Excel selection mode only) when the column header is clicked on.
@@ -1006,6 +725,12 @@ The item in the popup menu that allows a user to paste into cells.
 private JMenuItem __pasteMenuItem = null;
 
 /**
+The item in the popup menu that allows a user to calculate statistics.
+*/
+private JMenuItem __calculateStatisticsMenuItem = null;
+
+
+/**
 The popup menu that can be set to open when the table is right-clicked on.
 */
 private JPopupMenu __mainPopup = null;
@@ -1090,12 +815,12 @@ private String __rowHeaderFontName = null;
 /**
 A list of registered sort listeners.
 */
-private List __sortListeners = null;
+private List<JWorksheet_SortListener> __sortListeners = null;
 
 /**
 A Vector of registered JWorksheet_Listeners.
 */
-private List __worksheetListeners = null;
+private List<JWorksheet_Listener> __worksheetListeners = null;
 
 /**
 In testing -- will probably be moved into a property, but maybe not, so it can be turned on and off.
@@ -1294,7 +1019,7 @@ JWorksheet_AbstractTableModel tableModel, PropList props) {
 	// one can be removed -- make sure it doesn't break existing worksheets!
 	readPropList(props);
 	tableModel._worksheet = this;
-	__worksheetListeners = new Vector();
+	__worksheetListeners = new Vector<JWorksheet_Listener>();
 
 	// if one is not defined, do the following to avoid null checks
 	__hourglassJFrame = new JFrame();
@@ -1374,7 +1099,7 @@ public JWorksheet(int rows, int cols, PropList props) {
 		__altText[i] = null;
 	}
 
-	__worksheetListeners = new Vector();
+	__worksheetListeners = new Vector<JWorksheet_Listener>();
 
 	__columnHeaderColor = null;
 	// TODO 2007-05-09 Evaluate whether used
@@ -1397,6 +1122,9 @@ Responds to actions, in this case popup menu actions.
 */
 public void actionPerformed(ActionEvent event) {
 	String command = event.getActionCommand();
+	// Set to true below - used to call external listeners
+	// -for now it is only used for Calculate Statistics
+	boolean popupMenuEvent = false;
 
 	if (command.equals(__MENU_SORT_ASCENDING)) {
 		setWaitCursor(true);
@@ -1407,8 +1135,7 @@ public void actionPerformed(ActionEvent event) {
 	} 
 	else if (command.equals(__MENU_SORT_DESCENDING)) {
 		setWaitCursor(true);
-		notifySortListenersSortAboutToChange(
-			StringUtil.SORT_DESCENDING);
+		notifySortListenersSortAboutToChange(StringUtil.SORT_DESCENDING);
 		sortColumn (StringUtil.SORT_DESCENDING);
 		notifySortListenersSortChanged(StringUtil.SORT_DESCENDING);
 		setWaitCursor(false);
@@ -1433,18 +1160,39 @@ public void actionPerformed(ActionEvent event) {
 	}
 	else if (command.equals(__MENU_COPY_ALL_HEADER)) {
 		copyAllToClipboard(true);
-	}	
+	}
 	else if (command.equals(__MENU_DESELECT_ALL)) {
 		deselectAll();
 	}
 	else if (command.equals(__MENU_PASTE)) {
 		pasteFromClipboard();
 	}
+	else if (command.equals(__MENU_CALCULATE_STATISTICS)) {
+		try {
+			if ( !__delegateCalculateStatistics ) {
+				// Calculate the statistics in this class
+				calculateStatistics();
+			}
+			else {
+				popupMenuEvent = true;
+				// Event will be handled below calling ActionListeners
+			}
+		}
+		catch ( Exception e ) {
+			Message.printWarning(1, "", "Error calculating statistics");
+		}
+	}
 	else if (command.equals(__MENU_SAVE_TO_FILE)) {
 		saveToFile();
 	}
 	else if (command.equals(__MENU_SELECT_ALL)) {
 		selectAllRows();
+	}
+	if ( popupMenuEvent ) {
+		// Call the ActionListener that have been registered
+		for ( ActionListener l : popupMenuActionListeners ) {
+			l.actionPerformed(event);
+		}
 	}
 }
 
@@ -1454,6 +1202,14 @@ Adds a JWorksheet_Listener to the list of registered listeners.
 */
 public void addJWorksheetListener(JWorksheet_Listener l) {
 	__worksheetListeners.add(l);
+}
+
+/**
+Adds an action listener for the popup menu.
+@param l the MouseListener to add.
+*/
+public void addPopupMenuActionListener(ActionListener l) {
+	this.popupMenuActionListeners.add(l);
 }
 
 /**
@@ -1516,7 +1272,7 @@ Adds a sort listener.
 */
 public void addSortListener(JWorksheet_SortListener listener) {
 	if (__sortListeners == null) {
-		__sortListeners = new Vector();
+		__sortListeners = new Vector<JWorksheet_SortListener>();
 	}
 	__sortListeners.add(listener);
 }
@@ -1627,7 +1383,7 @@ private void adjustListRowHeaderSize(int adjustment) {
 		__listRowHeader.removeAll();
 		int rows = getRowCount();
 		// Simple row header is just the number of the row
-		List v = new Vector();
+		List<String> v = new Vector<String>();
 		for (int i = 0; i < rows; i++) {
 			v.add("" + (i + 1));
 		}
@@ -1939,6 +1695,400 @@ public void calculateColumnWidths(int minWidth, int rows, int[] skipCols, Graphi
 	((JWorksheet_AbstractTableModel)getModel()).shouldResetGetConsecutiveValueAt(true);		
 }
 
+// TODO sam 2017-04-01 evaluate whether to use something other than DataTable
+// in order to be more generic.
+// TODO sam 2017-04-01 need to figure out how to get precision from the table model.
+/**
+ * Copy the selected cells (or all none are selected) to a new worksheet,
+ * add a column for the statistic type, calculate the statistics,
+ * and display in a new worksheet.
+ * This method handles generic JWorksheets.
+ * If more specific behavior is needed (for example time series data with potentially
+ * inconsistent missing data values), then create a JWorksheet and set the properties
+ * <pre>
+ * JWorksheet.AllowCalculateStatistics=true
+ * JWorksheet.DelegateCalculateStatistics=true
+ * </pre>
+ * The latter property will tell this class to not process the "Calculate Statistics"
+ * action event and let another registered ActionListener handle.
+ * If the Calculate Statistics functionality is enabled and not delegated,
+ * then this method is called.
+ * This code is substantially copied from JWorksheet_CopyPasteAdapter.
+ */
+private void calculateStatistics () throws Exception {
+	ProgressJDialog progressDialog = null;
+	try {
+		int numSelectedCols = getSelectedColumnCount();
+		int numSelectedRows = getSelectedRowCount();
+		int[] selectedRows = getSelectedRows();
+		int[] selectedCols = getSelectedColumns();
+		int[] visibleCols = new int[selectedCols.length];
+		for (int icol = 0; icol < selectedCols.length; icol++) {
+			visibleCols[icol] = getVisibleColumn(selectedCols[icol]);
+		}
+	
+		// No data to process
+		if (numSelectedCols == 0 || numSelectedRows == 0) {
+			JGUIUtil.setWaitCursor(getHourglassJFrame(), false);
+			return;
+		}
+
+		/** TODO sam 2017-04-01 the following may or may not be helpful.
+		 *  - the statistics code implemented below processes the bounding block rather than specific selections
+		if (numSelectedRows == 1 && numSelectedCols == 1) {
+			// Trivial case -- this will always be a successful copy.  This case is just a placeholder.
+		}
+		else if (numSelectedRows == 1) {
+			// The rows are valid; the only thing left to check is whether the columns are contiguous.
+			if (!areCellsContiguous(numSelectedRows, selectedRows, numSelectedCols, visibleCols)) {
+				showCopyErrorDialog("You must select a contiguous block of columns.");
+				return;
+			}
+		}
+		else if (numSelectedCols == 1) {
+			// The cols are valid; the only thing left to check is whether the rows are contiguous.
+			if (!areCellsContiguous(numSelectedRows, selectedRows, numSelectedCols, visibleCols)) {
+				showCopyErrorDialog("You must select a contiguous block of rows.");
+				return;
+			}
+		}
+		else {
+			// There are multiple rows selected and multiple columns selected.  Make sure both are contiguous.
+			if (!areCellsContiguous(numSelectedRows, selectedRows, numSelectedCols, visibleCols)) {
+				showCopyErrorDialog("You must select a contiguous block\nof rows and columns.");
+				return;
+			}			
+		}
+		*/
+	
+		int numColumns = getColumnCount();
+		@SuppressWarnings("rawtypes")
+		Class[] classes = new Class[numColumns];
+		boolean [] canCalcStats = new boolean[numColumns];
+		// Arrays for statistics
+		int count [] = new int[numColumns];
+		// Allocate arrays for all columns, but only some will be used
+		// Use highest precision types and then cast to lower if needed
+		// For floating point results...
+		double min [] = new double[numColumns];
+		double max [] = new double[numColumns];
+		double sum [] = new double[numColumns];
+		// For integer results...
+		long imin [] = new long[numColumns];
+		long imax [] = new long[numColumns];
+		long isum [] = new long[numColumns];
+		for (int icol = 0; icol < numSelectedCols; icol++) {
+			classes[icol] = getColumnClass(getAbsoluteColumn(selectedCols[icol]));
+			//classes[icol] = getColumnClass(getAbsoluteColumn(icol));
+			canCalcStats[icol] = false;
+			count[icol] = 0;
+			sum[icol] = Double.NaN;
+			min[icol] = Double.NaN;
+			max[icol] = Double.NaN;
+			isum[icol] = 0;
+			imin[icol] = Long.MAX_VALUE;
+			imax[icol] = Long.MIN_VALUE;
+		}
+	
+		// Progress dialog to show how cells are processed - cellCount is used to increment
+		progressDialog = new ProgressJDialog(
+			getHourglassJFrame(), "Copy progress", 0, (numSelectedRows * numSelectedCols));
+	
+		int cellCount = 1;
+	
+		progressDialog.setVisible(true);
+	
+		// Initialize the list of table fields that contains a leftmost column "Statistic".
+		List<TableField> tableFieldList = new Vector<TableField>();
+		tableFieldList.add(new TableField(TableField.DATA_TYPE_STRING, "Statistic", -1, -1));
+		// Add columns for the selected columns
+		boolean copyHeader = true;
+		if (copyHeader) {
+			for (int icol = 0; icol < numSelectedCols; icol++) {
+				if ( classes[icol] == Double.class) {
+					tableFieldList.add(new TableField(TableField.DATA_TYPE_DOUBLE, getColumnName(selectedCols[icol], true), -1, -1));
+					canCalcStats[icol] = true;
+				}
+				else if ( classes[icol] == Float.class) {
+					tableFieldList.add(new TableField(TableField.DATA_TYPE_FLOAT, getColumnName(selectedCols[icol], true), -1, -1));
+					canCalcStats[icol] = true;
+				}
+				else if ( classes[icol] == Integer.class) {
+					tableFieldList.add(new TableField(TableField.DATA_TYPE_INT, getColumnName(selectedCols[icol], true), -1, -1));
+					canCalcStats[icol] = true;
+				}
+				else if ( classes[icol] == Long.class) {
+					tableFieldList.add(new TableField(TableField.DATA_TYPE_LONG, getColumnName(selectedCols[icol], true), -1, -1));
+					canCalcStats[icol] = true;
+				}
+				else {
+					// Add a string class
+					tableFieldList.add(new TableField(TableField.DATA_TYPE_STRING, getColumnName(selectedCols[icol], true), -1, -1));
+					canCalcStats[icol] = false;
+				}
+			}
+		}
+		
+		// Create the table
+		DataTable table = new DataTable(tableFieldList);
+	
+		JWorksheet_AbstractTableModel tableModel = getTableModel();
+		// Transfer the data from the worksheet to the subset table
+		Object cellContents;
+		for (int irow = 0; irow < numSelectedRows; irow++) {
+			TableRecord rec = table.emptyRecord();
+			rec.setFieldValue(0, ""); // Blanks for most rows until the statistics added at the end
+			for (int icol = 0; icol < numSelectedCols; icol++) {
+				progressDialog.setProgressBarValue(cellCount++);
+				cellContents = tableModel.getValueAt(selectedRows[irow],selectedCols[icol]);
+				rec.setFieldValue((icol + 1), cellContents);
+				// Calculate the statistics
+				if ( canCalcStats[icol] ) {
+					// Column type allows calculating statistics so do some basic math
+					if ( cellContents != null ) {
+						if ( (classes[icol] == Double.class) ) {
+							Double d = (Double)cellContents;
+							if ( !d.isNaN() ) {
+								++count[icol];
+								// Sum, used directly and for mean
+								if ( Double.isNaN(sum[icol]) ) {
+									sum[icol] = d;
+								}
+								else {
+									sum[icol] += d;
+								}
+								// Min statistic
+								if ( Double.isNaN(min[icol]) ) {
+									min[icol] = d;
+								}
+								else if ( d < min[icol] ){
+									min[icol] = d;
+								}
+								// Max statistic
+								if ( Double.isNaN(max[icol]) ) {
+									max[icol] = d;
+								}
+								else if ( d > max[icol] ){
+									max[icol] = d;
+								}
+							}
+						}
+						else if ( (classes[icol] == Float.class) ) {
+							Float f = (Float)cellContents;
+							if ( !f.isNaN() ) {
+								++count[icol];
+								// Sum, used directly and for mean
+								if ( Double.isNaN(sum[icol]) ) {
+									sum[icol] = f;
+								}
+								else {
+									sum[icol] += f;
+								}
+								// Min statistic
+								if ( Double.isNaN(min[icol]) ) {
+									min[icol] = f;
+								}
+								else if ( f < min[icol] ){
+									min[icol] = f;
+								}
+								// Max statistic
+								if ( Double.isNaN(max[icol]) ) {
+									max[icol] = f;
+								}
+								else if ( f > max[icol] ){
+									max[icol] = f;
+								}
+							}
+						}
+						else if ( (classes[icol] == Integer.class) ) {
+							Integer i = (Integer)cellContents;
+							// No concept of NaN so previous null check is
+							// main check for missing
+							++count[icol];
+							// Sum, used directly and for mean
+							sum[icol] += i;
+							// Min statistic
+							if ( imin[icol] == Long.MAX_VALUE ) {
+								imin[icol] = i;
+							}
+							else if ( i < imin[icol] ){
+								imin[icol] = i;
+							}
+							// Max statistic
+							if ( imax[icol] == Long.MIN_VALUE ) {
+								imax[icol] = i;
+							}
+							else if ( i > imax[icol] ){
+								imax[icol] = i;
+							}
+						}
+						else if ( (classes[icol] == Long.class) ) {
+							Long i = (Long)cellContents;
+							// No concept of NaN so previous null check is
+							// main check for missing
+							++count[icol];
+							// Sum, used directly and for mean
+							sum[icol] += i;
+							// Min statistic
+							if ( imin[icol] == Long.MAX_VALUE ) {
+								imin[icol] = i;
+							}
+							else if ( i < imin[icol] ){
+								imin[icol] = i;
+							}
+							// Max statistic
+							if ( imax[icol] == Long.MIN_VALUE ) {
+								imax[icol] = i;
+							}
+							else if ( i > imax[icol] ){
+								imax[icol] = i;
+							}
+						}
+					}
+				}
+			}
+			table.addRecord(rec);
+		}
+		// Add statistics at the bottom
+		TableRecord rec = table.emptyRecord();
+		rec.setFieldValue(0, "Count");
+		for ( int icol = 0; icol < numSelectedCols; icol++ ) {
+			// TODO sam 2017-04-01 Worksheet should handle case even when object
+			// is a different type than the column, but this is generally not done in tables
+			if ( canCalcStats[icol]) {
+				rec.setFieldValue((icol+1), new Integer(count[icol]));
+			}
+		}
+		table.addRecord(rec);
+		rec = table.emptyRecord();
+		rec.setFieldValue(0, "Mean");
+		for ( int icol = 0; icol < numSelectedCols; icol++ ) {
+			if ( canCalcStats[icol]) {
+				if ( classes[icol] == Double.class) {
+					if ( (count[icol] > 0) && !Double.isNaN(sum[icol]) ) { 
+						rec.setFieldValue((icol+1), new Double(sum[icol])/count[icol]);
+					}
+				}
+				else if ( classes[icol] == Float.class) {
+					if ( (count[icol] > 0) && !Double.isNaN(sum[icol]) ) { 
+						rec.setFieldValue((icol+1), new Float(sum[icol])/count[icol]);
+					}
+				}
+				else if ( classes[icol] == Long.class) {
+					if ( count[icol] > 0 ) { 
+						rec.setFieldValue((icol+1), new Long(isum[icol])/count[icol]);
+					}
+				}
+				else if ( classes[icol] == Integer.class) {
+					if ( count[icol] > 0 ) { 
+						rec.setFieldValue((icol+1), new Integer((int)isum[icol])/count[icol]);
+					}
+				}
+			}
+		}
+		table.addRecord(rec);
+		rec = table.emptyRecord();
+		rec.setFieldValue(0, "Min");
+		for ( int icol = 0; icol < numSelectedCols; icol++ ) {
+			if ( canCalcStats[icol]) {
+				if ( classes[icol] == Double.class) {
+					if ( !Double.isNaN(min[icol]) ) { 
+						rec.setFieldValue((icol+1), new Double(min[icol]));
+					}
+				}
+				else if ( classes[icol] == Float.class) {
+					if ( !Double.isNaN(min[icol]) ) { 
+						rec.setFieldValue((icol+1), new Float(min[icol]));
+					}
+				}
+				else if ( classes[icol] == Long.class) {
+					if ( imin[icol] != Long.MAX_VALUE ) { 
+						rec.setFieldValue((icol+1), new Long(imin[icol]));
+					}
+				}
+				else if ( classes[icol] == Integer.class) {
+					if ( imin[icol] != Long.MAX_VALUE ) { 
+						rec.setFieldValue((icol+1), new Integer((int)imin[icol]));
+					}
+				}
+			}
+		}
+		table.addRecord(rec);
+		rec = table.emptyRecord();
+		rec.setFieldValue(0, "Max");
+		for ( int icol = 0; icol < numSelectedCols; icol++ ) {
+			if ( canCalcStats[icol]) {
+				if ( classes[icol] == Double.class) {
+					if ( !Double.isNaN(max[icol]) ) { 
+						rec.setFieldValue((icol+1), new Double(max[icol]));
+					}
+				}
+				else if ( classes[icol] == Float.class) {
+					if ( !Double.isNaN(max[icol]) ) { 
+						rec.setFieldValue((icol+1), new Float(max[icol]));
+					}
+				}
+				else if ( classes[icol] == Long.class) {
+					if ( imax[icol] != Long.MIN_VALUE ) { 
+						rec.setFieldValue((icol+1), new Long(imax[icol]));
+					}
+				}
+				else if ( classes[icol] == Integer.class) {
+					if ( imax[icol] != Long.MIN_VALUE ) { 
+						rec.setFieldValue((icol+1), new Long(imax[icol]));
+					}
+				}
+			}
+		}
+		table.addRecord(rec);
+		rec = table.emptyRecord();
+		rec.setFieldValue(0, "Sum");
+		for ( int icol = 0; icol < numSelectedCols; icol++ ) {
+			if ( canCalcStats[icol]) {
+				if ( classes[icol] == Double.class) {
+					if ( !Double.isNaN(sum[icol]) ) { 
+						rec.setFieldValue((icol+1), new Double(sum[icol]));
+					}
+				}
+				else if ( classes[icol] == Float.class) {
+					if ( !Double.isNaN(sum[icol]) ) { 
+						rec.setFieldValue((icol+1), new Float(sum[icol]));
+					}
+				}
+				else if ( classes[icol] == Long.class) {
+					rec.setFieldValue((icol+1), new Long(isum[icol]));
+				}
+				else if ( classes[icol] == Integer.class) {
+					rec.setFieldValue((icol+1), new Integer((int)isum[icol]));
+				}
+			}
+		}
+		table.addRecord(rec);
+	
+		DataTable_TableModel dttm = new DataTable_TableModel ( table );
+		DataTable_CellRenderer scr = new DataTable_CellRenderer ( dttm );
+		PropList frameProps = new PropList("");
+		frameProps.set("Title","Table Statistics");
+		PropList worksheetProps = new PropList("");
+		// The following will be default center on its parent and be shown in front
+		TableModel_JFrame f = new TableModel_JFrame(dttm, scr, frameProps, worksheetProps);
+		Component parent = SwingUtilities.getWindowAncestor(this);
+		JGUIUtil.center(f,parent);
+		f.toFront(); // This does not seem to always work
+		f.setAlwaysOnTop(true); // TODO sam 2017-04-01 don't like to do this but seems necessary
+	}
+	catch ( Exception e ) {
+		new ResponseJDialog(getHourglassJFrame(),
+			"Error", "Error calculating statistics.", ResponseJDialog.OK).response();
+		Message.printWarning(2, "", e);
+	}
+	finally {
+		if ( progressDialog != null ) {
+			progressDialog.dispose();
+		}
+	}
+}
+
 /**
 Programmatically stops any cell editing that is taking place.  Cell editing
 happens when a user double-clicks in a cell or begins typing in a cell.  
@@ -2167,10 +2317,10 @@ public void copyToClipboard(boolean includeHeader) {
 /**
 Used by calculateColumnWidths as a utility method for counting the number of lines in a String.
 @param name a column name.
-@return the number of lines high the name is (ie, how many lines it will occupy in the header).
+@return the number of lines high the name is (i.e., how many lines it will occupy in the header).
 */
 private int countLines(String name) {
-	List v = StringUtil.breakStringList(name, "\n", 0);
+	List<String> v = StringUtil.breakStringList(name, "\n", 0);
 	return v.size();
 }
 
@@ -2630,7 +2780,7 @@ private String determineNameHelper(String name, int maxWidth, Graphics g) {
 	// them out to all be "comma-space" ...
 	String temp = StringUtil.replaceString(name, ",", ", ");
 	// ... and then split the string based on newlines and spaces.
-	List v = StringUtil.breakStringList(temp, " \n", StringUtil.DELIM_SKIP_BLANKS);
+	List<String> v = StringUtil.breakStringList(temp, " \n", StringUtil.DELIM_SKIP_BLANKS);
 	FontMetrics fh = g.getFontMetrics(
 		new Font(__columnHeaderFontName, __columnHeaderFontStyle, __columnHeaderFontSize));
 
@@ -2638,11 +2788,11 @@ private String determineNameHelper(String name, int maxWidth, Graphics g) {
 	int[] sizes = new int[v.size()];
 	String[] strings = new String[sizes.length];
 	for (int i = 0; i < sizes.length; i++) {
-		strings[i] = ((String)v.get(i)).trim();
+		strings[i] = v.get(i).trim();
 		sizes[i] = fh.stringWidth(strings[i]);
 	}
 
-	List lines = new Vector();
+	List<String> lines = new Vector<String>();
 	boolean done = false;
 	boolean invalid = false;
 	int curr = 0;
@@ -2694,9 +2844,9 @@ private String determineNameHelper(String name, int maxWidth, Graphics g) {
 	s = "";
 	size = lines.size();
 	for (int i = 0; i < size - 1; i++) {
-		s += ((String)lines.get(i)).trim() + "\n";
+		s += lines.get(i).trim() + "\n";
 	}
-	s += ((String)lines.get(size - 1)).trim();
+	s += lines.get(size - 1).trim();
 
 	return s;
 }
@@ -2711,7 +2861,7 @@ protected void enableRowHeader() {
 	if (p instanceof JViewport) {
 		Container gp = p.getParent();
 		if (gp instanceof JScrollPane) {			
-			List v = new Vector();
+			List<String> v = new Vector<String>();
 			JScrollPane jsp = (JScrollPane)gp;
 			int rows = getRowCount();
 			if (__incrementRowNumbers) {
@@ -3898,7 +4048,7 @@ public Object getRowData(int row) {
 		return null;
 	}
 
-	List v = getRowData(row, row);
+	List<Object> v = getRowData(row, row);
 	if (v != null && v.size() > 0) {
 		return (getRowData(row, row)).get(0);
 	}
@@ -3912,17 +4062,17 @@ goes less than 0, a null value will be returned for each row for which the row n
 This only works with JWorksheet_AbstractRowTableModels.
 @param row1 the first row for which to return data.  Rows are numbered starting at 0.
 @param row2 the last row for which to return data.  Rows are numbered starting at 0.
-@return a Vector of the objects stored in the given rows.
+@return a list of the objects stored in the given rows.
 Returns null if the table model is not derived from 
 JWorksheet_AbstractRowTableModel, or if the range of row numbers was invalid.
 */
-public List getRowData(int row1, int row2) {
+public List<Object> getRowData(int row1, int row2) {
 	if (!(getModel() instanceof JWorksheet_AbstractRowTableModel)) {
 		return null;
 	}
 	if (row1 == 0 && row2 == -1) {
 		// special case -- getAllData called on an empty worksheet
-		return new Vector();
+		return new Vector<Object>();
 	}
 
 	if (row1 > row2) {
@@ -3938,7 +4088,7 @@ public List getRowData(int row1, int row2) {
 		return null;
 	}
 		
-	List v = new Vector();
+	List<Object> v = new Vector<Object>();
 	for (int i = row1; i <= row2; i++) {
 		v.add(((JWorksheet_AbstractRowTableModel)getModel()).getRowData(i));
 	}	
@@ -3950,8 +4100,8 @@ Returns the row data for the rows specified in the parameter array.
 @param rows the integer array containing the row numbers for which to return
 data.  Cannot be null.  Data will be returned in the order of the row numbers in this array.
 */
-public List getRowData(int[] rows) {
-	List v = new Vector();
+public List<Object> getRowData(int[] rows) {
+	List<Object> v = new Vector<Object>();
 	for (int i = 0; i < rows.length; i++) {
 		v.add(getRowData(rows[i]));
 	}
@@ -3972,7 +4122,7 @@ the rows of the selected cells, and the second of which contains the matching
 columns for the rows in order to determine which cells are selected.
 For a given cell I, the row of the cell is the first array's element at 
 position I and the column of the cell is the second array's element at
-position I.  The arrays are guaranteed to be non-null.  The Vector will never be null.
+position I.  The arrays are guaranteed to be non-null.  The list will never be null.
 @return a list containing two integer arrays.
 */
 public List<int []> getSelectedCells() {
@@ -4783,7 +4933,7 @@ public void notifyAllWorksheetListeners(int message, int row) {
 		return;
 	}
 	for (int i = 0; i < __worksheetListeners.size(); i++) {
-		JWorksheet_Listener l = (JWorksheet_Listener)__worksheetListeners.get(i);
+		JWorksheet_Listener l = __worksheetListeners.get(i);
 		switch(message) {
 			case __ROW_ADDED:
 				l.worksheetRowAdded(row);
@@ -4818,7 +4968,7 @@ private void notifySortListenersSortAboutToChange(int sort) {
 	JWorksheet_SortListener listener = null;
 	int size = __sortListeners.size();
 	for (int i = 0; i < size; i++) {
-		listener= (JWorksheet_SortListener)__sortListeners.get(i);
+		listener = __sortListeners.get(i);
 		listener.worksheetSortAboutToChange(this, sort);
 	}
 }
@@ -4836,7 +4986,7 @@ private void notifySortListenersSortChanged(int sort) {
 	JWorksheet_SortListener listener = null;
 	int size = __sortListeners.size();
 	for (int i = 0; i < size; i++) {
-		listener= (JWorksheet_SortListener)__sortListeners.get(i);
+		listener = __sortListeners.get(i);
 		listener.worksheetSortChanged(this, sort);
 	}
 }
@@ -5077,8 +5227,7 @@ private void readPropList(PropList p) {
 		
 	s = p.getValue("JWorksheet.RowColumnBackground");
 	if (s != null) {
-		__rowCountColumnAttributes.backgroundColor = 
-			(Color)GRColor.parseColor(s);
+		__rowCountColumnAttributes.backgroundColor = GRColor.parseColor(s);
 	}
 	
 	s = p.getValue("JWorksheet.ShowPopupMenu");
@@ -5171,6 +5320,19 @@ private void readPropList(PropList p) {
 		if (s.equalsIgnoreCase("true")) {
 			paste = true;
 			__pasteEnabled = true;
+		}
+	}
+	
+	s = p.getValue("JWorksheet.AllowCalculateStatistics");
+	if (s != null) {
+		if (s.equalsIgnoreCase("true")) {
+			__calculateStatisticsEnabled = true;
+		}
+	}
+	s = p.getValue("JWorksheet.DelegateCalculateStatistics");
+	if (s != null) {
+		if (s.equalsIgnoreCase("true")) {
+			__delegateCalculateStatistics = true;
 		}
 	}
 
@@ -5345,7 +5507,7 @@ Removes a JWorksheet_Listener from the list of registered listeners.
 */
 public void removeJWorksheetListener(JWorksheet_Listener l) {
 	for (int i = 0; i < __worksheetListeners.size(); i++) {
-		if (l == (JWorksheet_Listener)__worksheetListeners.get(i)) {
+		if (l == __worksheetListeners.get(i)) {
 			__worksheetListeners.remove(i);
 		}
 	}	
@@ -5363,7 +5525,7 @@ public void removeMouseListener(MouseListener l) {
 }
 
 /**
-Removes a sort listener from the Vector of registered sort listeners.
+Removes a sort listener from the list of registered sort listeners.
 @param listener the listener to remove.
 */
 public void removeSortListener(JWorksheet_SortListener listener) {
@@ -5520,7 +5682,7 @@ public void saveToFile(String filename, String delimiter) {
 	try {
 		PrintWriter oStream = new PrintWriter( new FileWriter(filename));
 
-		// Write each element of the lines Vector to a file.
+		// Write each element of the lines list to a file.
 		// For some reason, when just using println in an
 		// applet, the cr-nl pair is not output like it should be on Windows95.  Java Bug???
 		String linesep = System.getProperty("line.separator");
@@ -5972,7 +6134,7 @@ Sets the values to be used in a JComboBox cell editor for a specific cell.
 A call must have already been made to 
 setCellSpecificJComboBoxColumn(absoluteColumn) for this to work.
 Columns are numbered starting at 0, though column 0 is usually the row count column.
-@param v a Vector of values to populate the JComboBox editor with.
+@param v a list of values to populate the JComboBox editor with.
 */
 public void setCellSpecificJComboBoxValues(int row, int absoluteColumn, List v) {
 	String routine = CLASS + ".setCellSpecificJComboBoxValues";
@@ -6030,7 +6192,7 @@ public void setColumnAlignment(int absoluteColumn, int alignment) {
 
 /**
 Sets a column to use a SimpleJComboBox as an editor (for all cells in the
-column).  The SimpleJComboBox will contain the values in the passed-in Vector.
+column).  The SimpleJComboBox will contain the values in the passed-in list.
 <p>
 <b>Note:</b> If all the cells in a particular column with use a combo box that
 has the same possible values (e.g., a boolean field in which the user can 
@@ -6039,7 +6201,7 @@ rather than using the setCellSpecific*ComboBox*() methods.
 @param absoluteColumn the <b>absolute</b> column number of the column for 
 which to use a SimpleJComboBo as the editor.  Columns are numbered starting at
 0, though column 0 is usually the row count column.
-@param v a Vector of Strings with which to populate the 
+@param v a list of Strings with which to populate the 
 SimpleJComboBox.  If null, then the Combo box will be removed from the column.
 */
 public void setColumnJComboBoxValues(int absoluteColumn, List v) {
@@ -6048,7 +6210,7 @@ public void setColumnJComboBoxValues(int absoluteColumn, List v) {
 
 /**
 Sets a column to use a SimpleJComboBox as an editor (for all the cells in the
-column).  The SimpleJComboBox will contain the values in the passed-in Vector.
+column).  The SimpleJComboBox will contain the values in the passed-in list.
 <p>
 <b>Note:</b> If all the cells in a particular column with use a combo box that
 has the same possible values (e.g., a boolean field in which the user can 
@@ -6057,7 +6219,7 @@ rather than using the setCellSpecific*ComboBox*() methods.
 @param absoluteColumn the <b>absolute</b> column number of the column for 
 which to use a SimpleJComboBo as the editor.  Columns are numbered starting at
 0, though column 0 is usually the row count column.
-@param v a Vector of Strings with which to populate the SimpleJComboBox.  If 
+@param v a list of Strings with which to populate the SimpleJComboBox.  If 
 null, then the combo box will be removed from the column.
 @param editable if true, the SimpleJComboBox values can be selected and also edited by the user.
 */
@@ -6452,6 +6614,12 @@ private void setupPopupMenu(JPopupMenu menu, boolean worksheetHandlePopup) {
 		__pasteMenuItem.addActionListener(this);
 		menu.add(__pasteMenuItem);
 	}
+	if ( __calculateStatisticsEnabled ) {
+		menu.addSeparator();
+		__calculateStatisticsMenuItem = new JMenuItem(__MENU_CALCULATE_STATISTICS);
+		__calculateStatisticsMenuItem.addActionListener(this);
+		menu.add(__calculateStatisticsMenuItem);
+	}
 	if (1 == 1) {	
 		// TODO (JTS - 2004-10-21) activate with a property later.
 		menu.addSeparator();
@@ -6609,7 +6777,7 @@ private void sortColumn(int order) {
 	// Sort Dates by turning them into Strings first and sorting with StringUtil.sort()
 	else if (getColumnClass(absColumn) == Date.class) {
 	    // Since sorting by dates, handle the dates generically.  This allows Date and DateTime to be used
-		List v = new Vector(size);
+		List<String> v = new Vector<String>(size);
 		Object o = null;
 		for (int i = 0; i < size; i++) {
 			//d = (Date)
@@ -6623,7 +6791,7 @@ private void sortColumn(int order) {
 		}
 		StringUtil.sortStringList(v, order, sortOrder, true, true);
 	}
-	// sort booleans by converting to numbers and sorting with quick sort.
+	// Sort booleans by converting to numbers and sorting with quick sort.
 	// trues are turned into -1s and falses into 0s so that trues sort
 	// to the top when doing sort ascending, like in Microsoft Access.
 	else if (getColumnClass(absColumn) == Boolean.class) {
@@ -6652,7 +6820,7 @@ private void sortColumn(int order) {
 	}		
 	// Sort Strings with StringUtil.sort()
 	else {
-		List v = new ArrayList(size);
+		List<String> v = new ArrayList<String>(size);
 		Object o = null;	
 		for (int i = 0; i < size; i++) {
 			o = getValueAt(i, __popupColumn);
@@ -6661,7 +6829,7 @@ private void sortColumn(int order) {
 			} 
 			else {
 				if ( o instanceof String ) {
-					v.add(o);
+					v.add((String)o);
 				}
 				else {
 					v.add("" + o);
@@ -6683,7 +6851,7 @@ Sets up the table model to be prepared to do a consecutive row read.<p>
 Some table models may store data (e.g., time series dates), in which 
 data values are calculated based on the previous row's data.  In this case,
 this method can be used to let them know that a consecutive read of the table
-data will be done, and that everytime a call is made to getValueAt() in the 
+data will be done, and that every time a call is made to getValueAt() in the 
 table model, the row parameter is guaranteed to be the same row as the last 
 time getValueAt() was called (if the column is different), or 1 more than the previous row.
 */

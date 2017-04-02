@@ -1,16 +1,3 @@
-// ----------------------------------------------------------------------------
-// TableModel_JPanel - generic panel for displaying a worksheet containing a
-//			table model
-// ----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2004-10-27	Steven A. Malers, RTi	Initial version.  Copy DataTable_JPanel
-//					and modify.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package RTi.Util.GUI;
 
 import java.awt.GridBagConstraints;
@@ -35,11 +22,10 @@ it could be used independently.
 public class TableModel_JPanel extends JPanel
 {
 
-private JWorksheet_AbstractRowTableModel __tm = null;	// Table model to
-							// display
-private JWorksheet_DefaultTableCellRenderer __cr = null;// Cell renderer for
+private JWorksheet_AbstractRowTableModel __tm = null; // Table model to display
+private JWorksheet_DefaultTableCellRenderer __cr = null; // Cell renderer for table model
 
-private TableModel_JFrame __parent = null;		// Parent JFrame
+private TableModel_JFrame __parent = null; // Parent JFrame
 
 /**
 Column widths for the worksheet's fields.
@@ -69,7 +55,7 @@ To display with other properties, use the other constructor.
 @param cr the cell renderer to use for displays.
 @throws Exception if any error occurs.
 */
-public TableModel_JPanel (	TableModel_JFrame parent,
+public TableModel_JPanel ( TableModel_JFrame parent,
 				JWorksheet_AbstractRowTableModel tm,
 				JWorksheet_DefaultTableCellRenderer cr )
 throws Exception
@@ -99,7 +85,7 @@ Constructor.
 @param props the Properties to use to define the worksheet's characteristics.
 @throws Exception if an error occurs.
 */
-public TableModel_JPanel (	TableModel_JFrame parent,
+public TableModel_JPanel ( TableModel_JFrame parent,
 				JWorksheet_AbstractRowTableModel tm,
 				JWorksheet_DefaultTableCellRenderer cr,
 				PropList props )
@@ -114,7 +100,8 @@ throws Exception
 	if ( props == null ) {
 		__props = new PropList ( "" );
 	}
-	else {	__props = props;
+	else {
+		__props = props;
 	}
 
 	setupGUI();

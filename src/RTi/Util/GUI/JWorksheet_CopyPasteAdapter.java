@@ -1,53 +1,3 @@
-// ----------------------------------------------------------------------------
-// JWorksheet_CopyPasteAdapter - Class that copies data from selected JWorksheet
-//	rows and columns into a format that can be pasted into Excel.
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-// 2003-04-14	J. Thomas Sapienza, RTi	Initial version.
-// 2003-07-24	JTS, RTi		* Renamed from JWorksheet_ExcelAdapter
-//					* Copying and pasting can be selectively
-//					  enabled or disabled.
-//					* Hourglass now appears for the
-//					  worksheet for long copy/pastes
-// 2003-08-14	JTS, RTi		Added copy(), paste()
-// 2003-09-03	JTS, RTi		* Changed the logic for checking for
-//					  contiguous rows to work correctly!
-//					* Added areCellsContiguous() and
-//					  showCopyErrorDialog().
-// 2003-11-04	JTS, RTi		* Added code to paste a single value 
-//					  into multiple selected cells.
-//					* Now uses a ResponseJDialog for
-//					  error messages.
-// 2003-11-11	JTS, RTi		* Corrected paste errors related to the
-//					  worksheet having hidden columns.
-//					* The dialog boxes warning of errors
-//					  now appear on the frame set as the
-//					  worksheet's hourglass JFrame.
-//					* Removed the StringTokenizer in favor
-//					  of StringUtil.breakStringList().
-// 2003-11-18	JTS, RTi		Added finalize().
-// 2004-05-17	JTS, RTi		Added the method getValue() which is
-//					used in copying.  It ensures values
-//					are formatted correctly and that
-//					missing data aren't shown.
-// 2004-07-27	JTS, RTi		Added parameter so that copy operations
-//					can copy header information, too.
-// 2005-04-26	JTS, RTi		Added all data members to finalize().
-// 2005-11-15	JTS, RTi		Corrected an error where in worksheets
-//					that have had columns removed from the 
-//					middle # of columns the contiguity 
-//					check would fail.
-// 2005-11-30	JTS, RTi		The fix on 2005-11-15 was causing errors
-//					when copying from the 0th column in
-//					a single-column JWorksheet.  Fixed.
-// 2006-01-20	JTS, RTi		Added copyAll().
-// 2006-04-11	JTS, RTi		Added try{} block to getValue() to
-//					gracefully handle errors while copying.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package RTi.Util.GUI;
 
 import java.awt.Toolkit;
@@ -110,6 +60,7 @@ private boolean __pasteEnabled = false;
 /**
 Cache of the classes for all the columns.
 */
+@SuppressWarnings("rawtypes")
 private Class[] __classes = null;
 
 /**
@@ -263,8 +214,7 @@ public void actionPerformed(ActionEvent e) {
 		}
 		else if (numRows == 1) {
 			// The rows are valid; the only thing left to check is whether the columns are contiguous.
-			if (!areCellsContiguous(numRows, selectedRows,
-				numCols, visibleCols)) {
+			if (!areCellsContiguous(numRows, selectedRows, numCols, visibleCols)) {
 				showCopyErrorDialog("You must select a contiguous block of columns.");
 				return;
 			}

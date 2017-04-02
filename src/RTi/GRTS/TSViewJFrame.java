@@ -124,6 +124,7 @@ different views can be enabled or disabled, as appropriate, for the data that
 are being displayed.  See the documentation for the constructor for a list of
 properties that can be used to control output.
 */
+@SuppressWarnings("serial")
 public class TSViewJFrame extends JFrame
 implements ActionListener
 {
@@ -699,10 +700,10 @@ throws Exception
 	}
 	
 	if (__tsProductDMIs == null) {
-		__tsProductDMIs = new Vector();
+		__tsProductDMIs = new Vector<TSProductDMI>();
 	}
 	if (__tsProductAnnotationProviders == null) {
-		__tsProductAnnotationProviders = new Vector();
+		__tsProductAnnotationProviders = new Vector<TSProductAnnotationProvider>();
 	}
 }
 

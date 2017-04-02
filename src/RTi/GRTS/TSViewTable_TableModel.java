@@ -56,7 +56,7 @@ that they increase the speed of browsing through a table of time series
 dramatically.  Without the caching, scrolling to the end of a long time series
 can take many seconds, whereas it is nearly instant with the steps taken here.
 */
-public class TSViewTable_TableModel <T> extends JWorksheet_AbstractRowTableModel
+public class TSViewTable_TableModel extends JWorksheet_AbstractRowTableModel
 {
 
 /**

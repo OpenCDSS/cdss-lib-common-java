@@ -39,16 +39,24 @@ import RTi.TS.TSUtil;
 import RTi.Util.GUI.JFileChooserFactory;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.JWorksheet;
+import RTi.Util.GUI.JWorksheet_AbstractTableModel;
 import RTi.Util.GUI.JWorksheet_Header;
+import RTi.Util.GUI.ResponseJDialog;
 import RTi.Util.GUI.SimpleFileFilter;
 import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.GUI.SimpleJComboBox;
+import RTi.Util.GUI.TableModel_JFrame;
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
 import RTi.Util.Help.URLHelp;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
+import RTi.Util.Table.DataTable;
+import RTi.Util.Table.DataTable_CellRenderer;
+import RTi.Util.Table.DataTable_TableModel;
+import RTi.Util.Table.TableField;
+import RTi.Util.Table.TableRecord;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.StopWatch;
 import RTi.Util.Time.TimeInterval;
@@ -68,8 +76,8 @@ displayed on the same form, a JCheckbox will appear for each interval base
 so that it can be turned on or off.  If only one interval base appears on 
 the form, no such Checkbox will appear.
 */
-public class TSViewTableJFrame 
-extends JFrame
+@SuppressWarnings("serial")
+public class TSViewTableJFrame extends JFrame
 implements ActionListener, ItemListener, MouseListener, PropertyChangeListener, WindowListener {
 
 /**
@@ -86,6 +94,8 @@ private final String
 	__BUTTON_HELP = "Help",
 	__BUTTON_SAVE = "Save",
 	__BUTTON_SUMMARY = "Summary",
+	// Below are popup menu events delegated to here from main JWorksheet
+	__MENU_CALCULATE_STATISTICS = "Calculate Statistics",
 	__MENU_COPY = "Copy",
 	__MENU_PASTE = "Paste";
 
@@ -158,7 +168,7 @@ private JPanel
 
 /**
 JScrollPanes for each of the associated ts worksheets, in order to highlight
-the proper JScrollPane border after a worksheet was clicked on and selected.
+the proper JScrollPane border after a worksheet is clicked on and selected.
 */
 private JScrollPane[] 
 	__dayScrollPanes,
@@ -243,7 +253,7 @@ Lists of the mouse listeners that have been set up for all of the different
 kinds of worksheets.  These are used in order to find which worksheet was 
 clicked on after a mouse press on the JScrollPane associated with a worksheet.
 */
-private List<MouseListener>[]
+private List<List<MouseListener>>
 	__dayMouseListeners,
 	__hourMouseListeners,
 	__minuteMouseListeners,
@@ -335,11 +345,33 @@ public void actionPerformed(ActionEvent event) {
 	else if (command.equals(__BUTTON_SAVE)) {
 		saveClicked();
 	}
+	else if (command.equals(__MENU_CALCULATE_STATISTICS) ) {
+		// An event was generated in a JWorksheet requesting that statistics be calculated
+		// -assume that the event originated from the last selected worksheet
+		//  (not sure otherwise how to get the worksheet)
+		try {
+			calculateAndDisplayStatistics(__lastSelectedWorksheet);
+		}
+		catch ( Exception e ) {
+			Message.printWarning(1,"","Error calculating statistics (" + e + ").");
+			Message.printWarning(2, "", e);
+		}
+	}
 	else if (command.equals(__MENU_COPY)) {
-		__lastSelectedWorksheet.copyToClipboard();
+		// TODO sam 2017-04-01 why is this event handled here?
+		// - a Copy popup menu is provided in the JWorksheet by default
+		// - does this ever get called?
+		// - maybe this was in place for much earlier code when Copy/Paste were buttons like the above
+		// - comment out for now since worksheet will handle the event
+		Message.printStatus(2, "", "Copy action event disabled in TSViewTableJFrame");
+		//__lastSelectedWorksheet.copyToClipboard();
 	}
 	else if (command.equals(__MENU_PASTE)) {
-		__lastSelectedWorksheet.pasteFromClipboard();
+		// TODO sam 2017-04-01 why is this event handled here?
+		// - a Paste popup menu is provided in the JWorksheet by default
+		// - does this ever get called?
+		Message.printStatus(2, "", "Paste action event disabled in TSViewTableJFrame");
+		//__lastSelectedWorksheet.pasteFromClipboard();
 	}
 }
 
@@ -352,12 +384,12 @@ the appropriate check box, as long as more than one kid of interval base will be
 @param checkBox the check box to (possibly) add to the panel.
 @param worksheets the worksheets to add to the panel.
 @param scrollpanes the scrollpanes for each worksheet
-@param mouseListeners an array of lists used to store mouse listeners for the
+@param mouseListeners a list of lists used to store mouse listeners for the
 worksheets' scrollpanes so that the last selected worksheet can be tracked.
 */
 private void addWorksheetsToPanel(JPanel panel, String intervalDescription, 
 JPanel subPanel, JCheckBox checkBox, JWorksheet[] worksheets, 
-JWorksheet[] headers, JScrollPane[] scrollPanes, List[] mouseListeners)
+JWorksheet[] headers, JScrollPane[] scrollPanes, List<List<MouseListener>> mouseListeners)
 {
     if ( Message.isDebugOn ) {
         Message.printDebug(1,"TSViewTableJFrame.addWorksheetsToPanel","panel="+panel+" intervalDescription="+intervalDescription+
@@ -380,7 +412,7 @@ JWorksheet[] headers, JScrollPane[] scrollPanes, List[] mouseListeners)
 	// to the panel.  Also add mouse listeners to the scrollpane and its
 	// scrollbars so that it can be determined after a mouse click which
 	// worksheet (or worksheet's scrollpane components) was clicked on.
-	// Put the registered mouse listeners into an array of vectors for this purpose.
+	// Put the registered mouse listeners into a list for this purpose.
 	for (int i = 0; i < numWorksheets; i++) {
 		scrollPanes[i] = new JScrollPane(worksheets[i]);
 
@@ -401,17 +433,28 @@ JWorksheet[] headers, JScrollPane[] scrollPanes, List[] mouseListeners)
 
 		worksheets[i].addHeaderMouseListener(this);
 
-		List v = new ArrayList();
-		v.add(scrollPanes[i]);
+		List<MouseListener> worksheetMouseListeners = new ArrayList<MouseListener>();
+		if ( scrollPanes[i] instanceof MouseListener ) {
+			// TODO sam 2017-04-01 The following will throw a ClassCastException if now wrapped in the "if"
+			// Similar checks below for the scrollbars behave the same.
+			// Maybe this is old code that is ineffective and can be removed.
+			// The underlying UI components check for whether the object implements MouseListener
+			// and apparently these objects do not... so no listener code would be called anyway.
+			worksheetMouseListeners.add((MouseListener)scrollPanes[i]);
+		}
 
 		scrollPanes[i].addMouseListener(worksheets[i]);
-		v.add(scrollPanes[i].getVerticalScrollBar());
+		if (scrollPanes[i].getVerticalScrollBar() instanceof MouseListener ) {
+			worksheetMouseListeners.add((MouseListener)scrollPanes[i].getVerticalScrollBar());
+		}
 
 		scrollPanes[i].getVerticalScrollBar().addMouseListener(worksheets[i]);
-		v.add(scrollPanes[i].getHorizontalScrollBar());
+		if (scrollPanes[i].getHorizontalScrollBar() instanceof MouseListener ) {
+			worksheetMouseListeners.add((MouseListener)scrollPanes[i].getHorizontalScrollBar());
+		}
 
 		scrollPanes[i].getHorizontalScrollBar().addMouseListener(worksheets[i]);
-        	JGUIUtil.addComponent(subPanel, scrollPanes[i],
+        JGUIUtil.addComponent(subPanel, scrollPanes[i],
 			i, 0, 1, 1, 1, 1, 
 			GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST); 
 
@@ -419,7 +462,7 @@ JWorksheet[] headers, JScrollPane[] scrollPanes, List[] mouseListeners)
 		// the pointer to the worksheet that the models have is getting
 		// mis-pointed.  This makes sure the models know their worksheet.
 		((TSViewTable_TableModel)worksheets[i].getModel()).setWorksheet(worksheets[i]);
-		mouseListeners[i] = v;
+		mouseListeners.set(i, worksheetMouseListeners);
 	}
 	
 	// If only one panel of worksheet data will appear on the GUI
@@ -439,18 +482,457 @@ JWorksheet[] headers, JScrollPane[] scrollPanes, List[] mouseListeners)
 }
 
 /**
-Builds the mouse listener array for the given worksheet array.  The array data is not populated.
+Builds the mouse listener list for the given worksheet array.  The list data is not populated.
 @param worksheets the array for which to build the mouse listener array
-@return the mouse listener array.
+@return the mouse listener list.
 */
-private List[] buildMouseListeners(JWorksheet[] worksheets) {
+private List<List<MouseListener>> buildMouseListeners(JWorksheet[] worksheets) {
 	if (worksheets == null) {
 		return null;
 	}
 	
 	int numWorksheets = worksheets.length;
-	List[] v = new List[numWorksheets];
-	return v;
+	List<List<MouseListener>> mouseListenerList = new ArrayList<List<MouseListener>>(numWorksheets);
+	// Fill in the listeners with null so there is at least a slot.
+	// - this was the behavior in legacy code that used an array of List
+	for ( int i = 0; i < numWorksheets; i++ ) {
+		mouseListenerList.add(null); // Other code will set the list at this position
+	}
+	return mouseListenerList;
+}
+
+/**
+ * Copy the selected cells (or all none are selected) to a new worksheet,
+ * add a column for the statistic type, calculate the statistics,
+ * and display in a new worksheet.
+ * This method handles generic JWorksheets.
+ * If more specific behavior is needed (for example time series data with potentially
+ * inconsistent missing data values), then create a JWorksheet and set the properties
+ * <pre>
+ * JWorksheet.AllowCalculateStatistics=true
+ * JWorksheet.DelegateCalculateStatistics=true
+ * </pre>
+ * The latter property will tell this class to not process the "Calculate Statistics"
+ * action event and let another registered ActionListener handle.
+ * If the Calculate Statistics functionality is enabled and not delegated,
+ * then this method is called.
+ * This code is substantially copied from JWorksheet, which was substantially guided by JWorksheet_CopyPasteAdapter.
+ */
+private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Exception {
+	String routine = "calculateAndDisplayStatistics";
+	try {
+		int numSelectedCols = worksheet.getSelectedColumnCount();
+		int numSelectedRows = worksheet.getSelectedRowCount();
+		int[] selectedRows = worksheet.getSelectedRows();
+		int[] selectedCols = worksheet.getSelectedColumns();
+		int[] visibleCols = new int[selectedCols.length];
+		for (int icol = 0; icol < selectedCols.length; icol++) {
+			visibleCols[icol] = worksheet.getVisibleColumn(selectedCols[icol]);
+		}
+	
+		// No data to process
+		if (numSelectedCols == 0 || numSelectedRows == 0) {
+			JGUIUtil.setWaitCursor(worksheet.getHourglassJFrame(), false);
+			return;
+		}
+
+		/** TODO sam 2017-04-01 the following may or may not be helpful.
+		 *  - the statistics code implemented below processes the bounding block rather than specific selections
+		if (numSelectedRows == 1 && numSelectedCols == 1) {
+			// Trivial case -- this will always be a successful copy.  This case is just a placeholder.
+		}
+		else if (numSelectedRows == 1) {
+			// The rows are valid; the only thing left to check is whether the columns are contiguous.
+			if (!areCellsContiguous(numSelectedRows, selectedRows, numSelectedCols, visibleCols)) {
+				showCopyErrorDialog("You must select a contiguous block of columns.");
+				return;
+			}
+		}
+		else if (numSelectedCols == 1) {
+			// The cols are valid; the only thing left to check is whether the rows are contiguous.
+			if (!areCellsContiguous(numSelectedRows, selectedRows, numSelectedCols, visibleCols)) {
+				showCopyErrorDialog("You must select a contiguous block of rows.");
+				return;
+			}
+		}
+		else {
+			// There are multiple rows selected and multiple columns selected.  Make sure both are contiguous.
+			if (!areCellsContiguous(numSelectedRows, selectedRows, numSelectedCols, visibleCols)) {
+				showCopyErrorDialog("You must select a contiguous block\nof rows and columns.");
+				return;
+			}			
+		}
+		*/
+	
+		int numColumns = worksheet.getColumnCount();
+		@SuppressWarnings("rawtypes")
+		Class[] classes = new Class[numColumns];
+		boolean [] canCalcStats = new boolean[numColumns];
+		// Arrays for statistics
+		int count [] = new int[numColumns];
+		// Allocate arrays for all columns, but only some will be used
+		// Use highest precision types and then cast to lower if needed
+		// For floating point results...
+		// Time series will generally only have double values but leave other
+		// cases in order to handle separate columns for flags, etc. that may be added to table.
+		double min [] = new double[numColumns];
+		double max [] = new double[numColumns];
+		double sum [] = new double[numColumns];
+		// For integer results...
+		long imin [] = new long[numColumns];
+		long imax [] = new long[numColumns];
+		long isum [] = new long[numColumns];
+		// Time series are needed to determine the missing data value
+		TS[] ts = new TS[numColumns];
+		int [] tsPrec = new int[numColumns];
+		@SuppressWarnings("unchecked")
+		List<TS> tslist = (List<TS>)((TSViewTable_TableModel)worksheet.getTableModel()).getData();
+		String precisionProp = __props.getValue("OutputPrecision");
+		for (int icol = 0; icol < numSelectedCols; icol++) {
+			classes[icol] = worksheet.getColumnClass(worksheet.getAbsoluteColumn(selectedCols[icol]));
+			canCalcStats[icol] = false;
+			count[icol] = 0;
+			sum[icol] = Double.NaN;
+			min[icol] = Double.NaN;
+			max[icol] = Double.NaN;
+			isum[icol] = 0;
+			imin[icol] = Long.MAX_VALUE;
+			imax[icol] = Long.MIN_VALUE;
+			// There are no hidden columns but need to align the time series with selected columns
+			// - First column is date/time
+			// - Therefore time series 0 is actually in column 1
+			int absCol = worksheet.getAbsoluteColumn(selectedCols[icol]);
+			ts[icol] = null;
+			if ( absCol != 0 ) {
+				// If 0 need to skip the date/time column
+				ts[icol] = tslist.get(absCol - 1);
+				if ( ts[icol] != null ) {
+					// Calculate the output precision of the current TS's data
+					tsPrec[icol] = 2;
+					if (precisionProp != null) {
+						tsPrec[icol] = StringUtil.atoi(precisionProp);
+					}
+					else {	
+						try {	
+							DataUnits units = DataUnits.lookupUnits(ts[icol].getDataUnits());
+							tsPrec[icol] = units.getOutputPrecision();
+						}
+						catch (Exception e) {
+							// Use the default...
+							tsPrec[icol] = 2;
+						}
+					}
+				}
+			}
+		}
+	
+		// Initialize the list of table fields that contains a leftmost column "Statistic".
+		List<TableField> tableFieldList = new Vector<TableField>();
+		tableFieldList.add(new TableField(TableField.DATA_TYPE_STRING, "Statistic", -1, -1));
+		// Add columns for the selected columns
+		boolean copyHeader = true;
+		if (copyHeader) {
+			int width = -1;
+			// Determine the precision from the time series
+			for (int icol = 0; icol < numSelectedCols; icol++) {
+				if ( classes[icol] == Double.class) {
+					tableFieldList.add(new TableField(TableField.DATA_TYPE_DOUBLE,
+						worksheet.getColumnName(selectedCols[icol], true), width, tsPrec[icol]));
+					canCalcStats[icol] = true;
+				}
+				else if ( classes[icol] == Float.class) {
+					tableFieldList.add(new TableField(TableField.DATA_TYPE_FLOAT,
+						worksheet.getColumnName(selectedCols[icol], true), width, tsPrec[icol]));
+					canCalcStats[icol] = true;
+				}
+				else if ( classes[icol] == Integer.class) {
+					tableFieldList.add(new TableField(TableField.DATA_TYPE_INT,
+							worksheet.getColumnName(selectedCols[icol], true), width, -1));
+					canCalcStats[icol] = true;
+				}
+				else if ( classes[icol] == Long.class) {
+					tableFieldList.add(new TableField(TableField.DATA_TYPE_LONG,
+						worksheet.getColumnName(selectedCols[icol], true), width, -1));
+					canCalcStats[icol] = true;
+				}
+				else {
+					// Add a string class
+					tableFieldList.add(new TableField(TableField.DATA_TYPE_STRING,
+						worksheet.getColumnName(selectedCols[icol], true), width, -1));
+					canCalcStats[icol] = false;
+				}
+			}
+		}
+		
+		// Create the table
+		DataTable table = new DataTable(tableFieldList);
+	
+		JWorksheet_AbstractTableModel tableModel = worksheet.getTableModel();
+		// Transfer the data from the worksheet to the subset table
+		Object cellContents;
+		for (int irow = 0; irow < numSelectedRows; irow++) {
+			TableRecord rec = table.emptyRecord();
+			rec.setFieldValue(0, ""); // Blanks for most rows until the statistics added at the end
+			for (int icol = 0; icol < numSelectedCols; icol++) {
+				cellContents = tableModel.getValueAt(selectedRows[irow],selectedCols[icol]);
+				if ( cellContents instanceof Double ) {
+					Double d = (Double)cellContents;
+					if ( (ts[icol] != null) && ts[icol].isDataMissing(d) ) {
+						// Set to null to let the worksheet handle generically - NaN displays as NaN
+						//rec.setFieldValue((icol + 1), Double.NaN);
+						rec.setFieldValue((icol + 1), null);
+					}
+					else {
+						rec.setFieldValue((icol + 1), cellContents);
+					}
+				}
+				else {
+					rec.setFieldValue((icol + 1), cellContents);
+				}
+				// Transfer values to the output cells and calculate the statistics
+				if ( cellContents != null ) {
+					// Column type allows calculating statistics so do some basic math
+					if ( canCalcStats[icol] ) {
+						if ( (classes[icol] == Double.class) ) {
+							Double d = (Double)cellContents;
+							if ( !d.isNaN() && (ts[icol] != null) && !ts[icol].isDataMissing(d) ) {
+								++count[icol];
+								// Sum, used directly and for mean
+								if ( Double.isNaN(sum[icol]) ) {
+									sum[icol] = d;
+								}
+								else {
+									sum[icol] += d;
+								}
+								// Min statistic
+								if ( Double.isNaN(min[icol]) ) {
+									min[icol] = d;
+								}
+								else if ( d < min[icol] ){
+									min[icol] = d;
+								}
+								// Max statistic
+								if ( Double.isNaN(max[icol]) ) {
+									max[icol] = d;
+								}
+								else if ( d > max[icol] ){
+									max[icol] = d;
+								}
+							}
+						}
+						else if ( (classes[icol] == Float.class) ) {
+							Float f = (Float)cellContents;
+							if ( !f.isNaN() ) {
+								++count[icol];
+								// Sum, used directly and for mean
+								if ( Double.isNaN(sum[icol]) ) {
+									sum[icol] = f;
+								}
+								else {
+									sum[icol] += f;
+								}
+								// Min statistic
+								if ( Double.isNaN(min[icol]) ) {
+									min[icol] = f;
+								}
+								else if ( f < min[icol] ){
+									min[icol] = f;
+								}
+								// Max statistic
+								if ( Double.isNaN(max[icol]) ) {
+									max[icol] = f;
+								}
+								else if ( f > max[icol] ){
+									max[icol] = f;
+								}
+							}
+						}
+						else if ( (classes[icol] == Integer.class) ) {
+							Integer i = (Integer)cellContents;
+							// No concept of NaN so previous null check is
+							// main check for missing
+							++count[icol];
+							// Sum, used directly and for mean
+							sum[icol] += i;
+							// Min statistic
+							if ( imin[icol] == Long.MAX_VALUE ) {
+								imin[icol] = i;
+							}
+							else if ( i < imin[icol] ){
+								imin[icol] = i;
+							}
+							// Max statistic
+							if ( imax[icol] == Long.MIN_VALUE ) {
+								imax[icol] = i;
+							}
+							else if ( i > imax[icol] ){
+								imax[icol] = i;
+							}
+						}
+						else if ( (classes[icol] == Long.class) ) {
+							Long i = (Long)cellContents;
+							// No concept of NaN so previous null check is
+							// main check for missing
+							++count[icol];
+							// Sum, used directly and for mean
+							sum[icol] += i;
+							// Min statistic
+							if ( imin[icol] == Long.MAX_VALUE ) {
+								imin[icol] = i;
+							}
+							else if ( i < imin[icol] ){
+								imin[icol] = i;
+							}
+							// Max statistic
+							if ( imax[icol] == Long.MIN_VALUE ) {
+								imax[icol] = i;
+							}
+							else if ( i > imax[icol] ){
+								imax[icol] = i;
+							}
+						}
+					}
+				}
+			}
+			table.addRecord(rec);
+		}
+		// Add statistics at the bottom
+		TableRecord rec = table.emptyRecord();
+		rec.setFieldValue(0, "Count");
+		for ( int icol = 0; icol < numSelectedCols; icol++ ) {
+			// TODO sam 2017-04-01 Worksheet should handle case even when object
+			// is a different type than the column, but this is generally not done in tables
+			if ( canCalcStats[icol]) {
+				rec.setFieldValue((icol+1), new Integer(count[icol]));
+			}
+		}
+		table.addRecord(rec);
+		rec = table.emptyRecord();
+		rec.setFieldValue(0, "Mean");
+		for ( int icol = 0; icol < numSelectedCols; icol++ ) {
+			if ( canCalcStats[icol]) {
+				if ( classes[icol] == Double.class) {
+					if ( (count[icol] > 0) && !Double.isNaN(sum[icol]) ) { 
+						rec.setFieldValue((icol+1), new Double(sum[icol])/count[icol]);
+					}
+				}
+				else if ( classes[icol] == Float.class) {
+					if ( (count[icol] > 0) && !Double.isNaN(sum[icol]) ) { 
+						rec.setFieldValue((icol+1), new Float(sum[icol])/count[icol]);
+					}
+				}
+				else if ( classes[icol] == Long.class) {
+					if ( count[icol] > 0 ) { 
+						rec.setFieldValue((icol+1), new Long(isum[icol])/count[icol]);
+					}
+				}
+				else if ( classes[icol] == Integer.class) {
+					if ( count[icol] > 0 ) { 
+						rec.setFieldValue((icol+1), new Integer((int)isum[icol])/count[icol]);
+					}
+				}
+			}
+		}
+		table.addRecord(rec);
+		rec = table.emptyRecord();
+		rec.setFieldValue(0, "Min");
+		for ( int icol = 0; icol < numSelectedCols; icol++ ) {
+			if ( canCalcStats[icol]) {
+				if ( classes[icol] == Double.class) {
+					if ( !Double.isNaN(min[icol]) ) { 
+						rec.setFieldValue((icol+1), new Double(min[icol]));
+					}
+				}
+				else if ( classes[icol] == Float.class) {
+					if ( !Double.isNaN(min[icol]) ) { 
+						rec.setFieldValue((icol+1), new Float(min[icol]));
+					}
+				}
+				else if ( classes[icol] == Long.class) {
+					if ( imin[icol] != Long.MAX_VALUE ) { 
+						rec.setFieldValue((icol+1), new Long(imin[icol]));
+					}
+				}
+				else if ( classes[icol] == Integer.class) {
+					if ( imin[icol] != Long.MAX_VALUE ) { 
+						rec.setFieldValue((icol+1), new Integer((int)imin[icol]));
+					}
+				}
+			}
+		}
+		table.addRecord(rec);
+		rec = table.emptyRecord();
+		rec.setFieldValue(0, "Max");
+		for ( int icol = 0; icol < numSelectedCols; icol++ ) {
+			if ( canCalcStats[icol]) {
+				if ( classes[icol] == Double.class) {
+					if ( !Double.isNaN(max[icol]) ) { 
+						rec.setFieldValue((icol+1), new Double(max[icol]));
+					}
+				}
+				else if ( classes[icol] == Float.class) {
+					if ( !Double.isNaN(max[icol]) ) { 
+						rec.setFieldValue((icol+1), new Float(max[icol]));
+					}
+				}
+				else if ( classes[icol] == Long.class) {
+					if ( imax[icol] != Long.MIN_VALUE ) { 
+						rec.setFieldValue((icol+1), new Long(imax[icol]));
+					}
+				}
+				else if ( classes[icol] == Integer.class) {
+					if ( imax[icol] != Long.MIN_VALUE ) { 
+						rec.setFieldValue((icol+1), new Long(imax[icol]));
+					}
+				}
+			}
+		}
+		table.addRecord(rec);
+		rec = table.emptyRecord();
+		rec.setFieldValue(0, "Sum");
+		for ( int icol = 0; icol < numSelectedCols; icol++ ) {
+			if ( canCalcStats[icol]) {
+				if ( classes[icol] == Double.class) {
+					if ( !Double.isNaN(sum[icol]) ) { 
+						rec.setFieldValue((icol+1), new Double(sum[icol]));
+					}
+				}
+				else if ( classes[icol] == Float.class) {
+					if ( !Double.isNaN(sum[icol]) ) { 
+						rec.setFieldValue((icol+1), new Float(sum[icol]));
+					}
+				}
+				else if ( classes[icol] == Long.class) {
+					rec.setFieldValue((icol+1), new Long(isum[icol]));
+				}
+				else if ( classes[icol] == Integer.class) {
+					rec.setFieldValue((icol+1), new Integer((int)isum[icol]));
+				}
+			}
+		}
+		table.addRecord(rec);
+	
+		DataTable_TableModel dttm = new DataTable_TableModel ( table );
+		DataTable_CellRenderer scr = new DataTable_CellRenderer ( dttm );
+		PropList frameProps = new PropList("");
+		frameProps.set("Title","Time Series Table Statistics");
+		PropList worksheetProps = new PropList("");
+		worksheetProps.add("JWorksheet.OneClickColumnSelection=true");
+		worksheetProps.add("JWorksheet.RowColumnPresent=true");
+		worksheetProps.add("JWorksheet.ShowPopupMenu=true");
+		worksheetProps.add("JWorksheet.SelectionMode=ExcelSelection");
+		worksheetProps.add("JWorksheet.AllowCopy=true");
+		// The following will be default center on its parent and be shown in front
+		TableModel_JFrame f = new TableModel_JFrame(dttm, scr, frameProps, worksheetProps);
+		JGUIUtil.center(f,this);
+		f.toFront(); // This does not seem to always work
+		f.setAlwaysOnTop(true); // TODO sam 2017-04-01 don't like to do this but seems necessary
+	}
+	catch ( Exception e ) {
+		new ResponseJDialog(worksheet.getHourglassJFrame(),
+			"Error", "Error calculating statistics.", ResponseJDialog.OK).response();
+		Message.printWarning(2, "", e);
+	}
 }
 
 /**
@@ -785,7 +1267,7 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist)
 {
 	String routine = "createTableModels";
 
-	// If there is no data in the ts vector, there is no need to create the table models
+	// If there is no data in the tslist list, there is no need to create the table models
 	if ((tslist == null)|| tslist.size() == 0) {
 		return new TSViewTable_TableModel[0];
 	}
@@ -850,7 +1332,7 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist)
     }
 
 	try {
-	int tsPrecision = 2;	// default.
+	int tsPrecision = 2; // default.
 	DataUnits units = null;
 	String propValue = __props.getValue("OutputPrecision");
 	int multi = 0;
@@ -984,7 +1466,7 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist)
 	return models;
 	}
 	catch (Exception e) {
-		Message.printWarning(2, routine, "Error generating worksheets (" + e + ").");
+		Message.printWarning(2, routine, "Error generating table models (" + e + ").");
 		Message.printWarning(2, routine, e);
 		return null;
 	}
@@ -1014,6 +1496,10 @@ private JWorksheet[] createWorksheets(TSViewTable_TableModel[] models, PropList 
 		worksheet.setHourglassJFrame(this);
 		worksheets[i] = worksheet;
 		model.setWorksheet(worksheets[i]);
+		// Add this class as an action listener on the worksheet so that
+		// "Calculate Statistics" can be handled here.
+		// Otherwise the generic handling won't be able to handle the time series missing value
+		worksheet.addPopupMenuActionListener(this);
 	}
 	return worksheets;
 }
@@ -1058,11 +1544,6 @@ throws Throwable {
 	IOUtil.nullArray(__minuteModels);
 	IOUtil.nullArray(__monthModels);
 	IOUtil.nullArray(__yearModels);
-	IOUtil.nullArray(__dayMouseListeners);
-	IOUtil.nullArray(__hourMouseListeners);
-	IOUtil.nullArray(__minuteMouseListeners);
-	IOUtil.nullArray(__monthMouseListeners);
-	IOUtil.nullArray(__yearMouseListeners);
 	__day = null;
 	__hour = null;
 	__minute = null;
@@ -1481,7 +1962,8 @@ Responds to mouse exited events; does nothing.
 public void mouseExited(MouseEvent e) {}
 
 /**
-Responds to mouse pressed events; does nothing.
+Responds to mouse pressed events, currently only selects the worksheet that was clicked on,
+which allows other behavior to be focused on the proper worksheet.
 @param e the MouseEvent that happened.
 */
 public void mousePressed(MouseEvent e) {
@@ -1568,21 +2050,21 @@ private void saveClicked() {
 Searches through the listener array associated with worksheets to locate
 the JWorksheet for which the JScrollPane area was clicked on.
 @param worksheets the worksheets associated with a certain data interval
-@param listeners an array of Vectors containing JScrollPane and JScrollPane
-scrollbars used to scroll around the worksheets in the above array
+@param mouseListeners a list of lists containing JScrollPane and JScrollPane
+scrollbars (as MouseListeners) used to scroll around the worksheets in the above array
 @param source the object on which a MouseEvent was triggered.
 @return the JWorksheet that was clicked on, or null if it could not be found
 */
-private JWorksheet searchListeners(JWorksheet[] worksheets, List<MouseListener>[] listeners, Object source)
+private JWorksheet searchListeners(JWorksheet[] worksheets, List<List<MouseListener>> mouseListeners, Object source)
 {
-	if (listeners == null || source == null) {
+	if (mouseListeners == null || source == null) {
 		return null;
 	}
 
-	int size = listeners.length;
+	int size = mouseListeners.size();
 
 	for (int i = 0; i < size; i++) {
-		List<MouseListener> v = listeners[i];
+		List<MouseListener> v = mouseListeners.get(i);
 
 		for (int j = 0; j < v.size(); j++) {
 			if (v.get(j) == source) {
@@ -1647,9 +2129,8 @@ private void selectWorksheet(JWorksheet selectWorksheet, JWorksheet lastWorkshee
 
     String s = "";
 	if ( model.getIntervalBase() == TimeInterval.IRREGULAR ) {
-	    // Returns all uppercase so change to be consistent with displays
-	    String prec = TimeInterval.getName(model.getIrregularDateTimePrecision());
-	    prec = prec.charAt(0) + prec.substring(1).toLowerCase();
+	    // Returns all upper case so change to be consistent with displays
+	    String prec = TimeInterval.getName(model.getIrregularDateTimePrecision(),0);
 	    s = base + " (" + prec + ")";
 	}
 	else {
@@ -1780,7 +2261,7 @@ private void setupGUI(boolean mode) {
     __irregularYearJCheckBox = new JCheckBox("Irregular Time Series (Year)", true);
     __irregularYearJCheckBox.addItemListener(this);
 
-	// Create the proplist for the JWorksheets
+	// Create the PropList for the JWorksheets
 	PropList p = new PropList("TSViewTableJFrame.JWorksheet");
 	p.add("JWorksheet.OneClickColumnSelection=true");
 	p.add("JWorksheet.RowColumnPresent=true");
@@ -1788,6 +2269,9 @@ private void setupGUI(boolean mode) {
 	p.add("JWorksheet.SelectionMode=ExcelSelection");
 	p.add("JWorksheet.AllowCopy=true");
 	p.add("JWorksheet.AllowPaste=true");
+	p.add("JWorksheet.AllowCalculateStatistics=true");
+	// Handling of "Calculate Statistics" action event will be delegated in JWorksheet to ActionPerformed here
+	p.add("JWorksheet.DelegateCalculateStatistics=true");
 
 	PropList p2 = new PropList("TSViewTableJFrame.JWorksheet");
 	p2.add("JWorksheet.RowColumnPresent=true");
@@ -1993,7 +2477,7 @@ private void setupGUI(boolean mode) {
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
 
 	__flagJComboBox = new SimpleJComboBox(false);
-	List<String> flagChoices = new Vector();
+	List<String> flagChoices = new Vector<String>();
 	flagChoices.add("" + TSDataFlagVisualizationType.NOT_SHOWN);
 	flagChoices.add("" + TSDataFlagVisualizationType.SUPERSCRIPT);
 	//flagChoices.add("" + TSDataFlagVisualizationType.SEPARATE_COLUMN);
