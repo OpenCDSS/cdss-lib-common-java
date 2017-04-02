@@ -31,14 +31,10 @@ a table model and renderer are available.
 public class TableModel_JFrame extends JFrame
 {
 
-private JWorksheet_AbstractRowTableModel __tm = null;	// Table model to
-							// display
-private JWorksheet_DefaultTableCellRenderer __cr = null;// Cell renderer for
-							// the table model.
-private TableModel_JPanel __tm_JPanel = null;		// The panel to hold
-							// the worksheet.
-private PropList __worksheet_props = null;		// Properties to control
-							// the worksheet.
+private JWorksheet_AbstractRowTableModel __tm = null;	// Table model to display
+private JWorksheet_DefaultTableCellRenderer __cr = null;// Cell renderer for the table model.
+private TableModel_JPanel __tm_JPanel = null;		// The panel to hold the worksheet.
+private PropList __worksheet_props = null;		// Properties to control the worksheet.
 
 private JTextField					// Message and status
 	__message_JTextField,				// bars.
@@ -50,11 +46,10 @@ Constructor.
 @param cr The cell renderer for the table model.
 @param frame_props Properties to control the frame.
 Currently only "Title" can be set.
-@param worksheet_props Properties to control the worksheet.  Pass null for
-defaults.
+@param worksheet_props Properties to control the worksheet.  Pass null for defaults.
 @throws Exception if table is null.
 */
-public TableModel_JFrame (	JWorksheet_AbstractRowTableModel tm,
+public TableModel_JFrame ( JWorksheet_AbstractRowTableModel tm,
 				JWorksheet_DefaultTableCellRenderer cr,
 				PropList frame_props, PropList worksheet_props )
 throws Exception
@@ -64,20 +59,19 @@ throws Exception
 	}
 	String title = frame_props.getValue ( "Title" );
 	if ( title == null ) {
-		if (	(JGUIUtil.getAppNameForWindows() == null) ||
-			JGUIUtil.getAppNameForWindows().equals("") ) {
+		if ( (JGUIUtil.getAppNameForWindows() == null) || JGUIUtil.getAppNameForWindows().equals("") ) {
 			setTitle ( "Table" );
 		}
-		else {	setTitle( JGUIUtil.getAppNameForWindows() +
-			" - Table" );
+		else {
+			setTitle( JGUIUtil.getAppNameForWindows() + " - Table" );
 		}
 	}
-	else {	if (	(JGUIUtil.getAppNameForWindows() == null) ||
-			JGUIUtil.getAppNameForWindows().equals("") ) {
+	else {
+		if ( (JGUIUtil.getAppNameForWindows() == null) || JGUIUtil.getAppNameForWindows().equals("") ) {
 			setTitle ( title );
 		}
-		else {	setTitle( JGUIUtil.getAppNameForWindows() +
-			" - " + title );
+		else {
+			setTitle( JGUIUtil.getAppNameForWindows() + " - " + title );
 		}
 	}
 	__tm = tm;
@@ -122,10 +116,10 @@ Sets up the GUI.
 private void setupGUI() 
 throws Exception
 {	if ( __worksheet_props != null ) {
-		__tm_JPanel = new TableModel_JPanel ( this, __tm, __cr,
-						__worksheet_props );
+		__tm_JPanel = new TableModel_JPanel ( this, __tm, __cr, __worksheet_props );
 	}
-	else {	// Use defaults...
+	else {
+		// Use defaults...
 		__tm_JPanel = new TableModel_JPanel ( this, __tm, __cr );
 	}
 
@@ -159,6 +153,7 @@ throws Exception
 	setMessageStatus("Displaying " + count + " record" + plural + ".", "Ready");
 
 	setVisible(true);
+	toFront(); // Needed because sometimes gets hidden
 
 	__tm_JPanel.setWorksheetColumnWidths();
 }
