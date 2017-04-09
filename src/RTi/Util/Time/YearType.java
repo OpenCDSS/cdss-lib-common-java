@@ -65,7 +65,7 @@ Construct an enumeration value.
 @param startYearOffset the offset to the calendar year for the start of the year.  For example, does the
 output year start in the same year as the calendar year (0), previous calendar year (-1), or next calendar year (1)?
 @param startMonth the first calendar month (1-12) for the year type.
-@param endYearOffset the offset to the calendar year for the end of the year.    For example, does the
+@param endYearOffset the offset to the calendar year for the end of the year.  For example, does the
 output year end in the same year as the calendar year (0), previous calendar year (-1), or next calendar year (1)?
 @param endMonth the last calendar month (1-12) for the year type.
 */
@@ -93,6 +93,28 @@ Return the end year offset.
 public int getEndYearOffset ()
 {
     return __endYearOffset;
+}
+
+/**
+ * Return the year start (calendar notation for the current year and year type).
+ * For example, if Water year (Oct 1 of previous calendar year to Sep 30 of ending calendar year),
+ * return Oct 1 of the previous year.
+ * @return
+ */
+public DateTime getStartDateTimeForCurrentYear () {
+	DateTime now = new DateTime(DateTime.DATE_CURRENT);
+	now.setDay(1);
+	now.setHour(0);
+	now.setMinute(0);
+	now.setSecond(0);
+	if ( getStartYearOffset() < 0 ) {
+		if ( now.getMonth() < getStartMonth() ) {
+			// The start date/time needs to be adjusted (generally to previous year)
+			now.addYear(getStartYearOffset());
+		}
+	}
+	now.setMonth(getStartMonth());
+	return now;
 }
 
 /**
@@ -159,14 +181,16 @@ Return the enumeration value given a string name (case-independent).
 @exception IllegalArgumentException if the name does not match a valid year type.
 */
 public static YearType valueOfIgnoreCase (String name)
-{
+{	if ( name == null ) {
+		return null;
+	}
     YearType [] values = values();
     for ( YearType t : values ) {
         if ( name.equalsIgnoreCase(t.toString())) {
             return t;
         }
     }
-    throw new IllegalArgumentException ( "The following does not match a valid year type: \"" + name + "\"");
+    return null;
 }
 
 /**

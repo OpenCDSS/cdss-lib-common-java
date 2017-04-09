@@ -873,13 +873,21 @@ throws IOException
         	}
         	continuation = false;
         	lineSave = null;
-        	if ( (line.length() > 0) && (line.charAt(0) == '#') ) {
-        	    // Comment line
-                if ( includeLiterals ) {
-                    ++literalCount;
-                    append ( "Literal" + literalCount, line, true );
-                }
-        	    continue;
+        	if ( line.length() > 0 ) {
+        		if ( line.charAt(0) == '#' ) {
+	        	    // Comment line
+	                if ( includeLiterals ) {
+	                    ++literalCount;
+	                    append ( "Literal" + literalCount, line, true );
+	                }
+	        	    continue;
+        		}
+        		else if ( line.startsWith("<#") || line.startsWith("</#") ) {
+        			// Freemarker template syntax
+        			// TODO sam 2017-04-08 evaluate whether to handle here by default
+        			// or pass in parameters to ignore line patterns
+        			continue;
+        		}
         	}
         	if ( (idx = line.indexOf( '#' )) != -1 ) {
         	    // Remove # comments from the ends of lines
@@ -920,6 +928,11 @@ throws IOException
         	}
         	if ( line.charAt( 0 ) == '[') {
         	    // Block indicator - contents of [] will be prepended to property names
+        		if ( line.indexOf("${") >= 0 ) {
+        			// Likely a Freemarker template syntax so skip
+        			// TODO sam 2017-04-08 may need to be more specific about this
+        			continue;
+        		}
         		if ( line.indexOf(']') == -1 ) {
         			Message.printWarning ( 2, routine, "Missing ] on line " + __lastLineNumberRead + " of " +
         			     __persistentName );

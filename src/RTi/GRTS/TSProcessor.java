@@ -1,79 +1,3 @@
-// ----------------------------------------------------------------------------
-// TSProcessor - process time series for output products (graphs, reports, etc.)
-// ----------------------------------------------------------------------------
-// REVISIT SAM 2005-11-04
-// This class should probably be named TSProductProcessor, in particular since
-// there are now TSCommandsProcessor and TSAnalyst classes.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2001-11-07	Steven A. Malers, RTi	Initial version.  Exploring concept of
-//					a generic TSEngine like that used in
-//					TSTool.
-// 2002-01-17	SAM, RTi		Rename TSProcessor to TSProcessorNoSwing
-//					to allow support of Swing and AWT,
-//					consistent with other RTi packages.
-//					When time allows, a new TSProcessor
-//					class will be implemented that uses
-//					Swing.
-// 2002-04-25	SAM, RTi		Update due to TSSupplier changes.
-// 2002-06-01	SAM, RTi		Add ability to add a WindowListener to
-//					the TSViewFrame that is created.
-// ==================================
-// 2002-11-12	SAM, RTi		Copy AWT version and update to Swing.
-// 2002-11-18	J. Thomas Sapienza, RTi	Add stub so that BufferedImage code
-//					can be compiled under 1.1.8 and 1.4.0.
-// 2003-06-04	SAM, RTi		* Final updates to Swing using latest
-//					  GR and TS.
-//					* Change "Enabled" property to
-//					  "IsEnabled" - consistent with
-//					  RiversideDB conventions.  Include
-//					  support for Enabled also.
-//					* Remove batch image kludge for 1.1.8
-//					  since 1.4.0 or greater will be
-//					  supported.
-//					* Add support for templates.
-// 2004-10-11	JTS, RTi		Added the ability to retrieve the last
-//					TSViewJFrame that was created when
-//					a graph is opened.
-// 2005-04-27	JTS, RTi		Added all data members to finalize().
-// 2005-10-09	JTS, RTi		Added beginProcessProduct() and
-//					finishProcessProduct() to use when
-//					applying alert annotations to a product.
-// 2005-10-27	SAM, RTi		* An exception creating the graph was
-//					  being absorbed.  Now throw a new
-//					  exception so that application code
-//					  knows that there was a problem.
-//					* Change level 1 status messages to
-//					  level 2.
-// 2005-10-28	SAM, RTi		After opening the graph window call
-//					needToCloseGraph() and if true throw
-//					an exception.  This indicates that the
-//					data were bad.
-// 2005-11-07	JTS, RTi		Removed beginProcessProduct() and 
-//					endProcessProduct().
-//
-// 2006-09-11	Kurt Tometich, RTi	Added functionality for writing
-//					ProductType=Report, with subproducts
-// 					written to an output file.  Added
-//					function processReportProduct() to
-//					handle this.  The only report format
-//					that is supported at this time is
-//					DateValue; however, it has been 
-// 					built to support other types in the
-//					future.  An example product file would
-//					have a property in the product section
-//					with ProductType=Report.  Each
-//					subproduct's data time series must have
-//					the same interval and must have
-//					ReportType and OutputFile property set.
-// 2006-09-28	SAM, RTi		Review KAT work.
-//					Change the default OutputFile extension
-//					to png to produce higher quality files.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-// EndHeader
-
 package RTi.GRTS;
 
 import java.awt.event.WindowListener;
@@ -137,14 +61,15 @@ time series identifier.
 @param supplier TSSupplier to use with the TSProcessor.
 */
 public void addTSSupplier ( TSSupplier supplier )
-{	// Use arrays to make a little simpler than Vectors to use later...
+{	// Use arrays to make a little simpler than lists to use later...
 	if ( supplier != null ) {
 		// Resize the supplier array...
 		if ( _suppliers == null ) {
 			_suppliers = new TSSupplier[1];
 			_suppliers[0] = supplier;
 		}
-		else {	// Need to resize and transfer the list...
+		else {
+			// Need to resize and transfer the list...
 			int size = _suppliers.length;
 			TSSupplier [] newsuppliers = new TSSupplier[size + 1];
 			for ( int i = 0; i < size; i++ ) {
@@ -225,7 +150,7 @@ throws Exception
 			}
 			if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
 				// Add a null time series...
-				tslist.add ( (TS)null );
+				tslist.add ( null );
 				continue;
 			}
 			prop_value = tsproduct.getLayeredPropValue ( "PeriodStart", isub, i );
@@ -433,7 +358,7 @@ throws Exception
 		// Determine if a graph or report product is being generated...
 		prop_value = tsproduct.getLayeredPropValue ( "ProductType", -1, -1 );
 
-		if ( prop_value.equalsIgnoreCase ( "Report" ) ) {
+		if ( (prop_value != null) && prop_value.equalsIgnoreCase ( "Report" ) ) {
 			processReportProduct ( tsproduct );
 		}
 		else if ( (prop_value == null) || prop_value.equalsIgnoreCase("Graph") ) { // Default if no product type
@@ -590,15 +515,6 @@ public void processReportProduct( TSProduct tsproduct ) throws Exception
 
 			DateValueTS.writeTimeSeriesList(tslist, fname);
  		}
-
-		// TODO KAT 2006-09-11
-		// May want to revisit this in the future to add
-		// capability for other reports, such as Jasper Reports,
-		// JFreeReports, HTML, delimited file, etc.
-		// Right now only DateValue is supported.  Also might want to
-		// add the ability to output time series with different
-		// intervals to one file.  Right now the code complains if all
-		// of a subproduct's time series don't have the same interval.
 	}
 }
 

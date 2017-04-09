@@ -15,17 +15,19 @@ import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import RTi.TS.TS;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.IO.Prop;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 
+@SuppressWarnings("serial")
 public class TSGraphJPanel extends JPanel
 {
 
 TSGraphJComponent _graph = null;
 
-public TSGraphJPanel ( JFrame parent, List tslist, PropList props )
+public TSGraphJPanel ( JFrame parent, List<TS> tslist, PropList props )
 {
        	GridBagLayout gbl = new GridBagLayout();
 	setLayout ( gbl );

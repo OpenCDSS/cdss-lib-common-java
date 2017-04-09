@@ -2629,8 +2629,8 @@ public List<GeoRecord> selectAppFeatures (	List<String> appLayerTypes, List<Stri
 /**
 Select features on the map based on a check of an attribute value (e.g., a
 string identifier).  A list of layers, and corresponding attribute to check must be provided.
-@param layer_list If specified, this contains a list of layers or layer names
-(must be consistent in the list).
+@param layer_list If specified, this contains a list of layer names
+(can add other types by overloading this class in the future).
 @param attribute_list The list of attributes, one per layer, to match in the
 searched layers.  For example, the "ID" column may be used for one layer and
 the "Name" column may be used for an other layer.
@@ -2684,11 +2684,11 @@ The value indicates the fraction (0 to 1.0) of the main extents to center on the
 </table>
 
 @return list of GeoRecord for the selected features, or null if nothing is
-selected.  At a minimum, the size of this Vector can be used by calling code
+selected.  At a minimum, the size of this list can be used by calling code
 to determine whether the count of input items is less than the number matched.
 @exception Exception if there is an error selecting features (e.g., properties are not valid).
 */
-public List<GeoRecord> selectLayerFeatures ( List<GeoLayer> layer_list, List<String> attribute_list, List<String> feature_ids, PropList props )
+public List<GeoRecord> selectLayerFeatures ( List<String> layer_list, List<String> attribute_list, List<String> feature_ids, PropList props )
 throws Exception
 {	String routine = "GeoViewPanel.selectLayerFeatures";
 

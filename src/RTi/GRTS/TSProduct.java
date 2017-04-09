@@ -2675,10 +2675,14 @@ boolean isAnnotation, TSGraphType graphType) {
 			return "";
 		}
 		else if ( param.equalsIgnoreCase("TotalHeight") ) {
-			return "400";
+			//return "400";
+			// 2017-04-08 Make larger
+			return "600";
 		}
 		else if ( param.equalsIgnoreCase("TotalWidth") ) {
-			return "400";
+			//return "400";
+			// 2017-04-08 Make larger
+			return "500";
 		}
 	}
 
