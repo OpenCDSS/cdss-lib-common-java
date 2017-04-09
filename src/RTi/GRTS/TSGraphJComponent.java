@@ -1834,6 +1834,7 @@ private String drawMouseTrackerLabel ( TS ts, TSData tsdata ) {
 	String flag = tsdata.getDataFlag();
 	String flagString = "";
 	String valueString = "";
+	String traceString = "";
 	if ( (flag != null) && !flag.equals("") ) {
 	    flagString = " (" + flag + ") ";
 	}
@@ -1841,7 +1842,10 @@ private String drawMouseTrackerLabel ( TS ts, TSData tsdata ) {
     // call to this method because a performance hit?
     valueString = StringUtil.formatString(value,"%.2f");
 	String dateTimeString = " " + dt;
-	String pointLabel = valueString + flagString + dateTimeString;
+	if ( !ts.getSequenceID().isEmpty() ) {
+		traceString = " [" + ts.getSequenceID() + "]";
+	}
+	String pointLabel = valueString + flagString + dateTimeString + traceString;
 	return pointLabel;
 }
 
