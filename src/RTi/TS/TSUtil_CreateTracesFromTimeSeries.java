@@ -77,15 +77,17 @@ series is shifted to the reference date.  Consequently, when plotted, the time s
 @param InputStart_DateTime First allowed date (use to constrain how many years of the time series are processed).
 @param InputEnd_DateTime Last allowed date (use to constrain how many years of the time series are processed).
 @param alias alias format string
+@param descriptionFormat format to use to format the description using % specifiers
+(default is "%z trace: %D").
 @param createData if true fill the data values; if false, only set the metadata
 @exception Exception if there is an error processing the time series
 @exception IrregularTimeSeriesNotSupportedException if the method is called with an irregular time series.
 */
 public List<TS> getTracesFromTS ( TS ts, String TraceLength, DateTime ReferenceDate_DateTime,
     YearType outputYearType, String ShiftDataHow, DateTime InputStart_DateTime, DateTime InputEnd_DateTime,
-    String alias, boolean createData )
+    String alias, String descriptionFormat, boolean createData )
 throws IrregularTimeSeriesNotSupportedException, Exception
-{   String routine = getClass().getName() + ".getTracesFromTS";
+{   String routine = getClass().getSimpleName() + ".getTracesFromTS";
     if ( ts == null ) {
         return null;
     }
@@ -105,8 +107,13 @@ throws IrregularTimeSeriesNotSupportedException, Exception
 
     // Alias for each trace...
     String aliasDefault = "%L_%z";
-    if ( (alias == null) || alias.equals("") ) {
+    if ( (alias == null) || alias.isEmpty() ) {
         alias = aliasDefault;
+    }
+    
+    // Description for each trace
+    if ( (descriptionFormat == null) || descriptionFormat.isEmpty() ) {
+    	descriptionFormat = "%z trace: %D";
     }
     
     // Get the trace length as an interval...
@@ -209,7 +216,7 @@ throws IrregularTimeSeriesNotSupportedException, Exception
             seqNum -= outputYearType.getStartYearOffset();
         }
         tracets.setSequenceID ( "" + seqNum );
-        tracets.setDescription ( date1_in.getYear() + " trace: " + tracets.getDescription() );
+        tracets.setDescription ( tracets.formatLegend(descriptionFormat) );
         // Set alias after other information is set
         tracets.setAlias( tracets.formatLegend(alias) );
         tracets.addToGenesis ( "Split trace out of time series for input: " + date1_in + " to " + date2_in +
