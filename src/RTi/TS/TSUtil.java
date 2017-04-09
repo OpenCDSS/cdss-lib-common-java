@@ -9059,12 +9059,17 @@ be determined from the time series.
 initialize the returned date, to the appropriate precision.
 */
 public static DateTime newPrecisionDateTime ( TS ts, DateTime date )
-{	DateTime d1 = ts.getDate1();
+{	if ( date == null ) {
+		return null;
+	}
+	DateTime d1 = ts.getDate1();
 	if ( d1 == null ) {
 		return null;
 	}
-	DateTime d = new DateTime ( d1 );
-	d.setDate ( date );
+	//DateTime d = new DateTime ( d1 );
+	//d.setDate ( date );
+	DateTime d = new DateTime ( date );
+	d.setPrecision(d1.getPrecision());
 	return d;
 }
 
