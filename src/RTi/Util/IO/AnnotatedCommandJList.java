@@ -36,7 +36,14 @@ public class AnnotatedCommandJList extends JPanel
   /** JScrollPane containing JList */
   private JScrollPane _jScrollPane; 
   
-  ListModel _dataModel;
+  private ListModel _dataModel;
+  
+  /**
+   * The last command phase type that applies.
+   * This is used so that if there are discovery issues they are only shown during discovery, and not after running.
+   * Dynamic command files often have discovery issues that are cleared up after running.
+   */
+  private CommandPhaseType lastCommandPhaseType = null;
   
   /**
    * Creates a component for viewing a list with line numbers &
@@ -163,7 +170,16 @@ public class AnnotatedCommandJList extends JPanel
        _jList.setFont(font);
      }
  }
+ 
+ /**
+  * Set the last command phase that for the component.
+  */
+ public void setLastCommandPhase ( CommandPhaseType lastCommandPhaseType ) {
+	 this.lastCommandPhaseType = lastCommandPhaseType;
+	 this._problemGutter.setLastCommandPhase(lastCommandPhaseType);
+ }
 } // AnnotatedList
+
 /**
  * Provides a ListCellRenderer for JList, enabling a functional 
  * JScrollPane horizontal scroll bar.

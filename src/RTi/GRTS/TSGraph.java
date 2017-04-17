@@ -5171,8 +5171,8 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 		    " global period is: " + _start_date + " to " + _end_date + " yaxis=" + yAxis);
 	}
 	// TODO sam 2017-02-05 remove and use debug when confident things are working
-	Message.printStatus(2, routine, _gtype + "Drawing time series " + start + " to " + end +
-		" global period is: " + _start_date + " to " + _end_date + " yaxis=" + yAxis);
+	//Message.printStatus(2, routine, _gtype + "Drawing time series " + start + " to " + end +
+	//	" global period is: " + _start_date + " to " + _end_date + " yaxis=" + yAxis);
 
 	// Only draw the time series if the units are being ignored or can be
 	// converted.  The left axis units are determined at construction.
@@ -5181,8 +5181,8 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 		if ( (yAxisGraphType != TSGraphType.DURATION) && (yAxisGraphType != TSGraphType.XY_SCATTER) ) {
 		   	String yAxisUnits = getLayeredPropValue( yAxisUnitsProperty, subproduct, -1, false, overrideProps);
 
-			Message.printStatus(2, routine, _gtype + "Checking time series units \""
-				+ ts.getDataUnits() + "\" against y axis units \"" + yAxisUnits + "\"");
+			//Message.printStatus(2, routine, _gtype + "Checking time series units \""
+			//	+ ts.getDataUnits() + "\" against y axis units \"" + yAxisUnits + "\"");
 			if (!DataUnits.areUnitsStringsCompatible(ts.getDataUnits(),yAxisUnits,true)) {
 				if (yAxisUnits.equals("")) {
 					// new graph -- set units to whatever ts 1's units are
@@ -8274,9 +8274,9 @@ private TSGraphType getTimeSeriesGraphType ( TSGraphType mainGraphType, int its 
     	// Time series did not have a graph type so return the graph type for the graph
         tsGraphType = mainGraphType;
     }
-    Message.printStatus(2, routine,
-    	"Time series graph type [" + its + "] is " + graphTypeProp + ", main graph type is " + mainGraphType
-    	+ ", returned type is " + tsGraphType);
+    //Message.printStatus(2, routine,
+    //	"Time series graph type [" + its + "] is " + graphTypeProp + ", main graph type is " + mainGraphType
+    //	+ ", returned type is " + tsGraphType);
     return tsGraphType;
 }
 

@@ -158,7 +158,13 @@ This will return built-in properties as well as dynamic properties.  Built-in pr
 public Object getProperty ( String propertyName )
 {
 	// Built in properties first
-	if ( propertyName.equalsIgnoreCase("FirstSequenceID") ) {
+	if ( propertyName.equalsIgnoreCase("EnsembleID") ) {
+		return getEnsembleID();
+	}
+	else if ( propertyName.equalsIgnoreCase("EnsembleName") ) {
+		return getEnsembleName();
+	}
+	else if ( propertyName.equalsIgnoreCase("FirstSequenceID") ) {
 		// Return the first time series sequence ID
 		List<TS> tslist = getTimeSeriesList(false);
 		if ( tslist.size() > 0 ) {
@@ -168,7 +174,7 @@ public Object getProperty ( String propertyName )
 			}
 		}
 	}
-	if ( propertyName.equalsIgnoreCase("LastSequenceID") ) {
+	else if ( propertyName.equalsIgnoreCase("LastSequenceID") ) {
 		// Return the last time series sequence ID
 		List<TS> tslist = getTimeSeriesList(false);
 		if ( tslist.size() > 0 ) {
@@ -255,6 +261,18 @@ public void setProperty ( String propertyName, Object property )
     if ( propertyName.equals("EnsembleID") ) {
     	return;
     }
+    else if ( propertyName.equals("EnsembleName") ) {
+    	// Do not call setEnsembleName() because it calls this method and would have infinite recursion
+    	this.__name = "" + property;
+    }
+    // Remainder are built-in properties that should not be set
+    else if ( propertyName.equals("FirstSequenceID") ) {
+    	return;
+    }
+    else if ( propertyName.equals("LastSequenceID") ) {
+    	return;
+    }
+    
     __property_HashMap.put ( propertyName, property );
 }
 

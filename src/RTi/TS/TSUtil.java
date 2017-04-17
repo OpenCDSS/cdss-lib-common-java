@@ -9052,24 +9052,25 @@ throws Exception
 Create a new DateTime of a precision that matches the given time series.  Converting
 from a low precision to high precision DateTime is typically handled by using first of
 interval data (month=1, day=1, hour=0, minute=0, second=0).
+If a non-null date is not provided, then the returned date/time should typically be
+further manipulated to set its data values.
 @return new DateTime of requested precision or null if the precision cannot
 be determined from the time series.
 @param ts Time series to check for date precision (date1 is checked).
-@param date If null, ignore.  If not null, use the date information to
-initialize the returned date, to the appropriate precision.
+@param date If null, the start date/time from the time series is used to initialize the date/time.
+If not null, use the date information to initialize the returned date, to the appropriate precision.
 */
 public static DateTime newPrecisionDateTime ( TS ts, DateTime date )
-{	if ( date == null ) {
-		return null;
-	}
-	DateTime d1 = ts.getDate1();
+{	DateTime d1 = ts.getDate1();
 	if ( d1 == null ) {
 		return null;
 	}
-	//DateTime d = new DateTime ( d1 );
-	//d.setDate ( date );
-	DateTime d = new DateTime ( date );
-	d.setPrecision(d1.getPrecision());
+	DateTime d = new DateTime ( d1 );
+	d.setDate ( date );
+	// TODO sam 2017-04-09 thought the following was better but this method often gets called with date=null
+	// so have to rely on d1 to provide something to return
+	//DateTime d = new DateTime ( date );
+	//d.setPrecision(d1.getPrecision());
 	return d;
 }
 
