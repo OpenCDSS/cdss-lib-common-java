@@ -365,6 +365,10 @@ public static String getCommandLogRecordDisplayName ( CommandLogRecord log )
               status = phaseStatus;
             }
           phaseStatus = cs.getCommandStatus(CommandPhaseType.RUN);
+          // TODO sam 2017-04-13 This can be problematic if the discovery mode had a warning or failure
+          // and run mode was success.  This may occur due to dynamic files being created, etc.
+          // The overall status in this case should be success.
+          // Need to evaluate how this method gets called and what intelligence is used.
           if ( phaseStatus.getSeverity()> status.getSeverity())
             {
               status = phaseStatus;
@@ -372,8 +376,68 @@ public static String getCommandLogRecordDisplayName ( CommandLogRecord log )
  
       return status;
   }
- 
+  
   /**
+   * Returns the highest status severity of the specified phases, to indicate the most severe problem with a command.
+   * @param cs command status
+   * @param commandPhaseTypes the command phases types to consider when evaluating the highest severity status.
+   * If null or empty consider all.
+   * @see CommandStatusType
+   * @return The highest severity status from a command, considering the requested phases.
+   * @see CommandStatusType
+   */
+  public static CommandStatusType getHighestSeverity( CommandStatus cs, CommandPhaseType [] commandPhaseTypes ) {
+	  CommandStatusType status = CommandStatusType.UNKNOWN;
+	  if ( cs == null ) {
+		  return status; // Default UNKNOWN
+	  }
+      
+	  boolean includeInit = false;
+	  boolean includeDiscovery = false;
+	  boolean includeRun = false;
+	  
+	  if ( (commandPhaseTypes == null) || (commandPhaseTypes.length == 0) ) {
+		  includeInit = true;
+		  includeDiscovery = true;
+		  includeRun = true;
+	  }
+	  else {
+		  for ( int i = 0; i < commandPhaseTypes.length; i++ ) {
+			  if ( commandPhaseTypes[i] == CommandPhaseType.INITIALIZATION ) {
+				  includeInit = true;
+			  }
+			  else if ( commandPhaseTypes[i] == CommandPhaseType.DISCOVERY ) {
+				  includeDiscovery = true;
+			  }
+			  else if ( commandPhaseTypes[i] == CommandPhaseType.RUN ) {
+				  includeRun = true;
+			  }
+		  }
+	  }
+          CommandStatusType phaseStatus = null;
+          if ( includeInit ) {
+	          phaseStatus = cs.getCommandStatus(CommandPhaseType.INITIALIZATION);
+	          if ( phaseStatus.getSeverity() > status.getSeverity()) {
+	              status = phaseStatus;
+	          }
+          }
+          if ( includeDiscovery ) {
+	          phaseStatus = cs.getCommandStatus(CommandPhaseType.DISCOVERY);
+	          if ( phaseStatus.getSeverity() > status.getSeverity()) {
+	              status = phaseStatus;
+	          }
+          }
+          if ( includeRun ) {
+	          phaseStatus = cs.getCommandStatus(CommandPhaseType.RUN);
+	          if ( phaseStatus.getSeverity()> status.getSeverity()) {
+	              status = phaseStatus;
+	          }
+          }
+ 
+      return status;
+  }
+  
+   /**
    * Returns the highest status severity of all phases, to indicate the most
    * severe problem with a command.
    * 
@@ -389,6 +453,23 @@ public static String getCommandLogRecordDisplayName ( CommandLogRecord log )
       }
     
       return getHighestSeverity ( csp.getCommandStatus() );
+    }
+  
+  /**
+   * Returns the highest status severity for the indicated phases.
+   * 
+   * @param csp command status provider
+   * @see CommandStatusType
+   * @return The highest severity status from a command.
+   * @see CommandStatusType
+   */
+  public static CommandStatusType getHighestSeverity(CommandStatusProvider csp, CommandPhaseType [] commandPhaseTypes )
+    { 
+      if ( csp == null ) {
+    	return CommandStatusType.UNKNOWN;
+      }
+    
+      return getHighestSeverity ( csp.getCommandStatus(), commandPhaseTypes );
     }
 
   /**

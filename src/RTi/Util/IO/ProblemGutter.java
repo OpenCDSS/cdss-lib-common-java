@@ -42,6 +42,7 @@ import RTi.Util.Message.Message;
  * 
  */
 
+@SuppressWarnings("serial")
 public class ProblemGutter extends JComponent
 implements AdjustmentListener
 {
@@ -80,8 +81,6 @@ implements AdjustmentListener
 
   private static ImageIcon errorIcon = null;
  
-  private static final long serialVersionUID = 1L;
-
   private static ImageIcon warningIcon = null;
   private static ImageIcon unknownIcon = null;
   private int              _iconOffset;
@@ -95,6 +94,12 @@ implements AdjustmentListener
   private Dimension   _dimn         = new Dimension();
   /** Flag for whether ProblemGutter component expanded */
   private boolean _isComponentExpanded   = true;
+  
+  /**
+   * Use to make decisions about what marker to show.
+   * For example if the last phase is RUN, then don't need to choose the marker because of a discovery issue.
+   */
+  private CommandPhaseType lastCommandPhaseType = null;
 
   /** 
    * Creates a JComponent displaying line numbers and problem markers.
@@ -103,7 +108,7 @@ implements AdjustmentListener
    * @param scroller <code> JScrollPane component </code>
    */
   public ProblemGutter(JList jList, JScrollPane scroller)
-    {	String routine = getClass().getName() + ".ProblemGutter";
+    {	String routine = getClass().getSimpleName() + ".ProblemGutter";
       _jList = jList;
       _jScrollPane = scroller;
       
@@ -283,11 +288,33 @@ implements AdjustmentListener
         csp = (CommandStatusProvider)o;
         CommandStatus cs = csp.getCommandStatus();
         markerIcon = null;
-        if (cs != null)
-          {
-            // FIXME SAM 2007-08-15 Remove if tests out
-        	//int severity = CommandStatusProviderUtil.getHighestSeverity(csp);
-        	CommandStatusType severity = CommandStatusUtil.getHighestSeverity(csp);
+        if (cs != null) {
+        	CommandStatusType severity = CommandStatusType.UNKNOWN;
+            // Get the highest severity considering the command phase
+        	// TODO sam 2017-04-13 need to get this worked out
+        	boolean legacyLogic = true;
+        	if ( legacyLogic ) {
+        		// Severity is the max on the command.
+        		// - can be an issue if discovery severity is higher than the run severity,
+        		//   for example dynamic data not found at discovery but created later
+        		// - in this case the run severity (SUCCESS) should be used.
+        		severity = CommandStatusUtil.getHighestSeverity(csp);
+        	}
+        	else {
+	        	if ( this.lastCommandPhaseType == CommandPhaseType.INITIALIZATION ) {
+	        		// Show all issues
+	        		severity = CommandStatusUtil.getHighestSeverity(csp);
+	        	}
+	        	else if ( this.lastCommandPhaseType == CommandPhaseType.DISCOVERY ) {
+	        		// Show all issues
+	        		severity = CommandStatusUtil.getHighestSeverity(csp);
+	        	}
+	        	else if ( this.lastCommandPhaseType == CommandPhaseType.RUN ) {
+	        		// Just ran and have not done more editing so show only run issues
+	        		CommandPhaseType [] commandPhaseTypes = { CommandPhaseType.RUN };
+	        		severity = CommandStatusUtil.getHighestSeverity(csp, commandPhaseTypes );
+	        	}
+        	}
         	
             // Determine icon for marker
            if (severity.equals(CommandStatusType.WARNING))
@@ -521,6 +548,13 @@ implements AdjustmentListener
           g.drawString(i + "", xx, y + ascent);
           y += cellHeight;
         }
+    }
+    
+    /**
+     * Set the last command phase that for the component.
+     */
+    public void setLastCommandPhase ( CommandPhaseType lastCommandPhaseType ) {
+   	 this.lastCommandPhaseType = lastCommandPhaseType;
     }
   
     /** 
