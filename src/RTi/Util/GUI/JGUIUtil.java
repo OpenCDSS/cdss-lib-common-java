@@ -452,7 +452,8 @@ Determine if the specified compare String exists within a SimpleJComboBox - CASE
 </ul>
 @param comboBox SimpleJComboBox object.
 @param compare String to compare comboBox items against.  If null, false is returned.
-@param flag compare criteria (CHECK_SUBSTRINGS or NONE); currently any substring that matches will return true
+@param flag compare criteria (CHECK_SUBSTRINGS or NONE);
+currently any trimmed substring that matches will return true
 @param delimiter String containing delimiter to parse for flag=CHECK_SUBSTRINGS;
 @param compareIndex if >= 0, the substring part to compare (e.g., 
 may be null if using flag=NONE; specify -1 to compare all parts
@@ -483,13 +484,15 @@ public static boolean isSimpleJComboBoxItem ( SimpleJComboBox comboBox,
             // Split the combo box item using the delimiter and check the parts
             choiceParts = StringUtil.breakStringList(curItem, delimiter, 0);
             if ( choiceParts != null ) {
+            	String subTrimmed;
                 for ( String sub : choiceParts ) {
                     ++tokenPos;
+                    subTrimmed = sub.trim(); // Trim substring (generally what is needed to compare core content value)
                     // If a match occurs, return true and the index in the list in which the match was found.
                     // If a requested compare string index was specified, only compare that part
                     if ( (compareIndex < 0) || (compareIndex == tokenPos) ) {
-                        if ( (ignoreCase && sub.equalsIgnoreCase(compare)) ||
-                            (!ignoreCase && sub.equals(compare)) ) {
+                        if ( (ignoreCase && subTrimmed.equalsIgnoreCase(compare)) ||
+                            (!ignoreCase && subTrimmed.equals(compare)) ) {
                             if ( index != null ) {
                                 index[0] = i;
                             }
