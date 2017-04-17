@@ -109,6 +109,7 @@ throws SQLException
         for ( int iCol = 1; iCol <= columnCount; iCol++ ) {
             int i0 = iCol - 1;
             try {
+            	// If null is encountered, it is added at the end.
                 isNull = false;
                 if ( columnTypes[i0] == TableField.DATA_TYPE_DATE ) {
                     date = rs.getTimestamp(iCol);
@@ -304,6 +305,7 @@ throws SQLException
         }
         ++recordCountAdded;
     }
+    Message.printStatus(2, routine, "Processed " + recordCount + " records from resultset into table rows.");
     // If some records were not processed, through an exception so that it does not seem like all is OK
     if ( recordCountAdded != recordCount ) {
     	throw new SQLException ( "Number of records in resultset=" + recordCount + " but " + recordCountAdded + " were processed.  Check log." );
