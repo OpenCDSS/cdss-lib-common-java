@@ -732,8 +732,10 @@ private void openGUI ( boolean mode )
     	// - adding the JLayeredPane to a panel that uses GridBagLayout to fill the space
     	// - adding the above to content pane BorderLayout CENTER
     	// This does not work - panel is zero size at initialization and does not force graph to resize
-        Message.printStatus(2,routine,"TSGraphJComponent size before laying out in window, width="
-            + _ts_graph.getWidth() + ", height=" + _ts_graph.getHeight() );
+    	if ( Message.isDebugOn ) {
+	        Message.printStatus(2,routine,"TSGraphJComponent size before laying out in window, width="
+	            + _ts_graph.getWidth() + ", height=" + _ts_graph.getHeight() );
+    	}
     	layeredPane = new JLayeredPane ();
     	// Set the preferred size of the JLayeredPane to be the same as the TSGraphJComponent (since it sets its own preferred size)
     	layeredPane.setPreferredSize(new Dimension(_ts_graph.getWidth(),_ts_graph.getHeight()));
@@ -744,8 +746,10 @@ private void openGUI ( boolean mode )
         panelForTSGraphJComponent.setLayout(gbl);
     	JGUIUtil.addComponent ( panelForTSGraphJComponent, _ts_graph,
         	0, 0, 1, 1, 1.0, 1.0, insetsNone, GridBagConstraints.BOTH, GridBagConstraints.CENTER );
-    	Message.printStatus(2,routine,"TSGraphJComponent size after adding to panel, width="
-            + _ts_graph.getWidth() + ", height=" + _ts_graph.getHeight() );
+    	if ( Message.isDebugOn ) {
+	    	Message.printStatus(2,routine,"TSGraphJComponent size after adding to panel, width="
+	            + _ts_graph.getWidth() + ", height=" + _ts_graph.getHeight() );
+    	}
     	layeredPane.add(panelForTSGraphJComponent,1); // TSGraphJComponent calls setPreferredSize()
         // Fill the whole panel and allow resize in both directions
     	panelForJLayeredPane = new JPanel();
@@ -753,12 +757,16 @@ private void openGUI ( boolean mode )
     	panelForJLayeredPane.setLayout(gbl);
     	JGUIUtil.addComponent ( panelForJLayeredPane, layeredPane,
     		0, 0, 1, 1, 1.0, 1.0, insetsNone, GridBagConstraints.BOTH, GridBagConstraints.CENTER );
-    	Message.printStatus(2,routine,"TSGraphJComponent size after JLayeredPane added to panel, width="
-            + _ts_graph.getWidth() + ", height=" + _ts_graph.getHeight() );
+    	if ( Message.isDebugOn ) {
+	    	Message.printStatus(2,routine,"TSGraphJComponent size after JLayeredPane added to panel, width="
+	            + _ts_graph.getWidth() + ", height=" + _ts_graph.getHeight() );
+    	}
     	// This should automatically resize to fill
     	contentPane.add ( panelForJLayeredPane, BorderLayout.CENTER );
-    	Message.printStatus(2,routine,"TSGraphJComponent size after JLayeredPane added to contentPane, width="
-            + _ts_graph.getWidth() + ", height=" + _ts_graph.getHeight() );
+    	if ( Message.isDebugOn ) {
+	    	Message.printStatus(2,routine,"TSGraphJComponent size after JLayeredPane added to contentPane, width="
+	            + _ts_graph.getWidth() + ", height=" + _ts_graph.getHeight() );
+    	}
     	doFrameGlassPane = false;
     }
     else if ( layoutType == 2 ) {
@@ -851,8 +859,7 @@ private void openGUI ( boolean mode )
 		ref_props.set ( "GraphType", "Line" );
 		ref_props.set ( "MaximizeGraphSpace", "true" );
 		ref_props.set ( "ReferenceGraph", "true" );
-		// TODO sam 2017-02-23 need to enable this when glass pane is figured out
-		//ref_props.set ( "ReferenceTSIndex=" + max_period_index );
+		ref_props.set ( "ReferenceTSIndex=" + max_period_index );
 		if ( __tsproduct == null ) {
 			// Old style...
 			_ref_graph = new TSGraphJComponent ( this, __tslist, ref_props );
@@ -1079,13 +1086,19 @@ private void openGUI ( boolean mode )
     //} // includeFullCode
 
 	if ( panelForTSGraphJComponent != null ) {
-		Message.printStatus(2,routine,"Graph panel size before calling pack() is width=" + panelForTSGraphJComponent.getWidth() + ", height=" + panelForTSGraphJComponent.getHeight() );
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2,routine,"Graph panel size before calling pack() is width=" + panelForTSGraphJComponent.getWidth() + ", height=" + panelForTSGraphJComponent.getHeight() );
+		}
 	}
-	Message.printStatus(2,routine,"TSGraphJComponent size before calling pack(), width="
+	if ( Message.isDebugOn ) {
+		Message.printStatus(2,routine,"TSGraphJComponent size before calling pack(), width="
             + _ts_graph.getWidth() + ", height=" + _ts_graph.getHeight() );
+	}
 	pack ();
-	Message.printStatus(2,routine,"TSGraphJComponent size after calling pack(), width="
+	if ( Message.isDebugOn ) {
+		Message.printStatus(2,routine,"TSGraphJComponent size after calling pack(), width="
             + _ts_graph.getWidth() + ", height=" + _ts_graph.getHeight() );
+	}
 	//if ( includeFullCode ) {
 	// TODO SAM 2016-04-01 Need to set property in calling code so center works properly
 	// Get the UI component to determine screen to display on - needed for multiple monitors
@@ -1117,35 +1130,37 @@ private void openGUI ( boolean mode )
 	//} // !includeFullCode
 	
 	// Clean up...
-		if ( this.tsgraphGlassPane != null ) {
-			Message.printStatus(2,routine,"Glass pane width=" + this.tsgraphGlassPane.getWidth() + " height=" + this.tsgraphGlassPane.getHeight());
-			if ( this.tsgraphGlassPane == getGlassPane() ) {
-				Message.printStatus(2,routine,"Glass pane is set for JFrame");
+		if ( Message.isDebugOn ) {
+			if ( this.tsgraphGlassPane != null ) {
+				Message.printStatus(2,routine,"Glass pane width=" + this.tsgraphGlassPane.getWidth() + " height=" + this.tsgraphGlassPane.getHeight());
+				if ( this.tsgraphGlassPane == getGlassPane() ) {
+					Message.printStatus(2,routine,"Glass pane is set for JFrame");
+				}
+				Message.printStatus(2,routine,"Glass pane visible=" + this.tsgraphGlassPane.isVisible());
+				Message.printStatus(2,routine,"Glass pane enabled=" + this.tsgraphGlassPane.isEnabled());
+				//_tsGraphGlassPane.setPoint(new Point(_tsGraphGlassPane.getWidth()/2,_tsGraphGlassPane.getHeight()/2));
+				//_tsGraphGlassPane.repaint();
+				if ( panelForJLayeredPane != null ) {
+					Message.printStatus(2,routine,"Layered pane panel size is width=" + panelForJLayeredPane.getWidth() + ", height=" + panelForJLayeredPane.getHeight() );
+				}
+				if ( layeredPane != null ) {
+					Message.printStatus(2,routine,"Layered pane size is width=" + layeredPane.getWidth() + ", height=" + layeredPane.getHeight() );
+				}
+				if ( panelForTSGraphJComponent != null ) {
+					Message.printStatus(2,routine,"Graph panel size is width=" + panelForTSGraphJComponent.getWidth() + ", height=" + panelForTSGraphJComponent.getHeight() );
+				}
+				if ( _ts_graph != null ) {
+					Message.printStatus(2,routine,"TSGraphJComponent width=" + _ts_graph.getWidth() + ", height=" + _ts_graph.getHeight() );
+				}
 			}
-			Message.printStatus(2,routine,"Glass pane visible=" + this.tsgraphGlassPane.isVisible());
-			Message.printStatus(2,routine,"Glass pane enabled=" + this.tsgraphGlassPane.isEnabled());
-			//_tsGraphGlassPane.setPoint(new Point(_tsGraphGlassPane.getWidth()/2,_tsGraphGlassPane.getHeight()/2));
-			//_tsGraphGlassPane.repaint();
-		}
-		if ( panelForJLayeredPane != null ) {
-			Message.printStatus(2,routine,"Layered pane panel size is width=" + panelForJLayeredPane.getWidth() + ", height=" + panelForJLayeredPane.getHeight() );
-		}
-		if ( layeredPane != null ) {
-			Message.printStatus(2,routine,"Layered pane size is width=" + layeredPane.getWidth() + ", height=" + layeredPane.getHeight() );
-		}
-		if ( panelForTSGraphJComponent != null ) {
-			Message.printStatus(2,routine,"Graph panel size is width=" + panelForTSGraphJComponent.getWidth() + ", height=" + panelForTSGraphJComponent.getHeight() );
-		}
-		if ( _ts_graph != null ) {
-			Message.printStatus(2,routine,"TSGraphJComponent width=" + _ts_graph.getWidth() + ", height=" + _ts_graph.getHeight() );
 		}
 
-	if ( __tsproduct == null ) {
-		// Should now have a TSProduct generated in TSGraphJComponent...
-		if ( _ts_graph != null ) {
-			__tsproduct = _ts_graph.getTSProduct();
+		if ( __tsproduct == null ) {
+			// Should now have a TSProduct generated in TSGraphJComponent...
+			if ( _ts_graph != null ) {
+				__tsproduct = _ts_graph.getTSProduct();
+			}
 		}
-	}
 	} // end of try
 	catch ( Exception e ) {
 		Message.printWarning ( 2, routine, e );
@@ -1164,7 +1179,7 @@ public void refresh ()
 }
 
 /**
-Save the editable time series.  This is generally configured programatically
+Save the editable time series.  This is generally configured programmatically
 to allow users access to time series that can actually be edited (default is nothing
 editable).  The button will only be available if time series are editable.
 */

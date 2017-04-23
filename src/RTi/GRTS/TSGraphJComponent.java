@@ -1003,8 +1003,7 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 		nts = tsproduct_tslist.size();
 	}
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, routine, _gtype + "There are " + nts +
-		" time series associated with the TSProduct" );
+		Message.printDebug ( 1, routine, _gtype + "There are " + nts + " time series associated with the TSProduct" );
 	}
 	TS ts, tsfound;
 	String prop_val;
@@ -1028,11 +1027,11 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 
 	// Reset nsubs to all the products (even disabled, so that the product indexes work out)...
 	nsubs = tsproduct.getNumSubProducts();
-	String TSID_prop_val;		// To hold value of TSID
-	boolean check_input;		// Indicates whether to check the input
+	String TSID_prop_val; // To hold value of TSID
+	boolean check_input; // Indicates whether to check the input
 					// fields of the TSID against available
 					// time series.
-	String TSAlias_prop_val;	// To hold value of TSAlias
+	String TSAlias_prop_val; // To hold value of TSAlias
 
 	for ( int isub = 0; isub < nsubs; isub++ ) {
 		// Set the drawing limits for the graph on the page as an even
@@ -1057,12 +1056,12 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 		// passed in the constructor, it is possible that a "TS"
 		// property was set to a time series, but this functionality is
 		// not being used yet (NEED TO SUPPORT LATER).
-		tslist = new Vector();	// Need new list for every graph
-		reference_ts_index = -1;	// If we cannot match a TSID for
+		tslist = new Vector<TS>(); // Need new list for every graph
+		reference_ts_index = -1; // If we cannot match a TSID for
 						// the current graph, then the
 						// graph is NOT used for a
 						// reference graph.
-		for ( int jtsid = 0; ; jtsid++ ) {// Loop for TSIDs in graph
+		for ( int jtsid = 0; ; jtsid++ ) { // Loop for TSIDs in graph
 			// First get the TSID...
 			TSID_prop_val = tsproduct.getLayeredPropValue (	"TSID", isub, jtsid, false );
 			TSAlias_prop_val = tsproduct.getLayeredPropValue ( "TSAlias", isub, jtsid, false );
@@ -1087,8 +1086,8 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
                 check_input = false;
 			}
 			if ( Message.isDebugOn ) {
-			    Message.printDebug ( 2, routine, "Looking for time series needed for graph:  TSID_prop_val=\"" + TSID_prop_val +
-                    "\" TSAlias_prop_val = \"" +TSAlias_prop_val + "\"." );
+			    Message.printDebug ( 2, routine, _gtype + "Looking for time series needed for graph:  TSID_prop_val=\"" + TSID_prop_val +
+                    "\" TSAlias_prop_val = \"" + TSAlias_prop_val + "\"." );
 			}
 			// Now find a matching time series in the available data.  If a match is not found, set the time series
 			// to null so the properties line up.
@@ -1099,7 +1098,7 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 					continue;
 				}
 				if ( Message.isDebugOn ) {
-				    Message.printDebug ( 2, routine, "Comparing to TS in available data: " +
+				    Message.printDebug ( 2, routine, _gtype + "Comparing to TS in available data: " +
 				            "TSID=\"" + ts.getIdentifier().toString(true) + "\" Alias=\"" + ts.getAlias() + "\"" );
 				}
 				//if ( Message.isDebugOn ) {
@@ -1113,7 +1112,7 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 				    // If an alias is specified, just match the alias...
 				    if ( ts.getAlias().equalsIgnoreCase( TSAlias_prop_val) ) {
 				        if ( Message.isDebugOn ) {
-				            Message.printStatus ( 2, routine, "Time series aliases match.");
+				            Message.printStatus ( 2, routine, _gtype + "Time series aliases match.");
 				        }
 					    tsfound = ts;         
                     }
@@ -1122,12 +1121,15 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 					// No alias so use the full TSID with input type...
 					if ( ts.getIdentifier().equals( TSID_prop_val,check_input) ) {
 					    if ( Message.isDebugOn ) {
-					        Message.printDebug ( 2, routine, "Time series identifiers match.");
+					        Message.printDebug ( 2, routine, _gtype + "Time series identifiers match.");
 					    }
                         tsfound = ts;
                     }
                 }
-                if ( tsfound != null ) {        
+                if ( tsfound != null ) {
+                	if ( Message.isDebugOn ) {
+                		Message.printDebug ( 1, routine, _gtype + "Found a time series, display_props_reference_ts_index=" + display_props_reference_ts_index);
+                	}
 					if(	display_props_reference_ts_index == kts ) {
 						// Set the TSID index within the graph's TS indicating which main graph TS is in the
 						// the reference graph.  If a main graph, the reference graph is indicated in the legend...
@@ -1138,7 +1140,7 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 				}
 				else {
 				    if ( Message.isDebugOn ) {
-				        Message.printDebug ( 2, routine, "TSIDs and TSAliases are not equal");
+				        Message.printDebug ( 2, routine, _gtype + "TSIDs and TSAliases are not equal");
 				    }
 				}
 			}
@@ -1180,7 +1182,7 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 		tsgraph = new TSGraph ( this, drawlim, tsproduct, display_props, isub, tslist, reference_ts_index );
 		tsgraphs.add ( tsgraph );
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine, _gtype + "Added graph " + isub + " reference_ts_index = " + reference_ts_index);
+			Message.printDebug ( 1, routine, _gtype + "Added graph [" + isub + "] reference_ts_index = " + reference_ts_index);
 		}
 		tsgraph.setShowDrawingAreaOutline(showDrawingAreaOutline);
 	}
@@ -2947,7 +2949,7 @@ public void paint ( Graphics g )
 		}
 		_graphics = (Graphics2D)g;
 		// Base class...
-	}
+	} // done _printing
 	else {
 	    // Drawing to screen or SVG file.
 	    // Gets the component size...
@@ -2995,7 +2997,7 @@ public void paint ( Graphics g )
 			if ( _external_Image != null ) {
 				// Image was created external to this class...
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( 1, routine, "Using external Image from properties." );
+					Message.printDebug ( 1, routine, _gtype + "Using external Image from properties." );
 				}
 				System.out.flush();
 				_buffer = _external_Image;
@@ -3032,6 +3034,7 @@ public void paint ( Graphics g )
 	// Do the following the first time so that the drawing can use the
 	// graphics for font-based sizing.
 
+	boolean didClearView = false;
 	if ( _first_paint || resizing ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, routine, _gtype + "Device size has changed." );
@@ -3044,8 +3047,9 @@ public void paint ( Graphics g )
 		}
 		// Now clear the view so that drawing occurs on a clean background...
 		clearView ();
+		didClearView = true;
 	}
-	if ( _force_redraw_clean ) {
+	if ( _force_redraw_clean && !didClearView ) {
 		// Another case where a clear background is needed.
 		clearView ();
 	}
@@ -3093,25 +3097,36 @@ public void paint ( Graphics g )
 				// Comment out unless we are reworking something drawDrawingAreas();
 			}
 			// Now loop through and draw each graph on the page.
-			// Only graph enabled subproducts and if a reference
-			// graph only graph the corresponding subproduct.
+			// Only graph enabled subproducts and if a reference graph only graph the corresponding subproduct.
 			int size = _tsgraphs.size();
+			if ( Message.isDebugOn ) {
+				Message.printDebug(1, routine, _gtype + "Have " + size + " time series to graph.");
+			}
 			TSGraph tsgraph;
 			String prop_val;
 			for ( int isub = 0; isub < size; isub++ ) {
 				// If the graph is disabled, do not even draw...
 				prop_val = _tsproduct.getLayeredPropValue ( "Enabled", isub, -1, false );
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( 1, "", _gtype + "Graph ["+ isub + "] is " + prop_val );
+					Message.printDebug ( 1, routine, _gtype + "Graph["+ isub + "].Enabled is " + prop_val );
 				}
 				if ( prop_val.equalsIgnoreCase("false") ) {
+					if ( Message.isDebugOn ) {
+						Message.printDebug ( 1, routine, _gtype + "Graph is not enabled so skipping." );
+					}
 					continue;
 				}
 				if ( _is_reference_graph &&	(isub != _reference_sub) ) {
+					if ( Message.isDebugOn ) {
+						Message.printDebug ( 1, routine, _gtype + "Graph[" + isub + "] is not the same as reference graph (" + _reference_sub + ") - skipping." );
+					}
 					continue;
 				}
 				tsgraph = _tsgraphs.get(isub);
 				if ( tsgraph == null ) {
+					if ( Message.isDebugOn ) {
+						Message.printDebug ( 1, routine, _gtype + "TSGraph is null - skipping." );
+					}
 					continue;
 				}
 				// Debug whether graphs are enabled...

@@ -1047,9 +1047,11 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 	// Might need to use this when we try to process all null time series...
 	int ssize = __tslist.size();
 	if ( !_is_reference_graph ) {
-	    Message.printStatus(2, routine, _gtype + "Have " + ssize + " time series for all graphs." );
-	    Message.printStatus(2, routine, _gtype + "Have " + lefttsCount + " time series for left y-axis graphs." );
-	    Message.printStatus(2, routine, _gtype + "Have " + righttsCount + " time series for right y-axis graphs." );
+		if ( Message.isDebugOn ) {
+		    Message.printStatus(2, routine, _gtype + "Have " + ssize + " time series for all graphs." );
+		    Message.printStatus(2, routine, _gtype + "Have " + lefttsCount + " time series for left y-axis graphs." );
+		    Message.printStatus(2, routine, _gtype + "Have " + righttsCount + " time series for right y-axis graphs." );
+		}
 	}
 	TS sts;
 	for (int ii = 0; ii < ssize; ii++) {
@@ -1069,7 +1071,9 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 
 	// TODO SAM 2013-02-06 maybe should put some of the other code in the following call?
 	if ( !_is_reference_graph ) {
-	    Message.printStatus(2, routine, _gtype + "Calling checkInternalProperties()..." );
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2, routine, _gtype + "Calling checkInternalProperties()..." );
+		}
 	}
 	checkInternalProperties ();
 
@@ -1080,7 +1084,9 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 	_drawlim_page = new GRLimits ( drawlim_page );
 
 	if ( !_is_reference_graph ) {
-	    Message.printStatus(2, routine, _gtype + "Calling openDrawingAreas()..." );
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2, routine, _gtype + "Calling openDrawingAreas()..." );
+		}
 	}
 	openDrawingAreas ();
 
@@ -1089,7 +1095,9 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 	// This is also checked in the paint() method in case any analysis settings change...
 
 	if ( !_is_reference_graph ) {
-	    Message.printStatus(2, routine, _gtype + "Calling doAnalysis()..." );
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2, routine, _gtype + "Calling doAnalysis()..." );
+		}
 	}
 	doAnalysis(__leftYAxisGraphType);
 	__lastLeftYAxisGraphType = __leftYAxisGraphType;
@@ -1097,7 +1105,9 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 	// Initialize the data limits...
 
 	if ( !_is_reference_graph ) {
-	    Message.printStatus(2, routine, _gtype + "Calling setDataLimits()..." );
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2, routine, _gtype + "Calling setDataLimits()..." );
+		}
 	}
 	if ( _is_reference_graph ) {
 	    if ( __leftyDirection == GRAxisDirectionType.REVERSE ) {
@@ -1131,7 +1141,9 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 	// Because the x-axis is shared with left and right y-axis, use all time series.
 
 	if ( !_is_reference_graph ) {
-	    Message.printStatus(2, routine, _gtype + "Determining limits to time series data interval..." );
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2, routine, _gtype + "Determining limits to time series data interval..." );
+		}
 	}
 	int size = 0;
 	if ( __tslist != null ) {
@@ -1157,7 +1169,9 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 	}
 	
 	if ( !_is_reference_graph ) {
-	    Message.printStatus(2, routine, _gtype + "Calling computeXAxisDatePrecision()..." );
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2, routine, _gtype + "Calling computeXAxisDatePrecision()..." );
+		}
 	}
 	computeXAxisDatePrecision ();	
 }
@@ -1779,11 +1793,15 @@ protected void computeDataLimits ( boolean max )
 				    boolean enabledOnly = true; // Want enabled time series only
 				    List<TS> tslistToRender = getTSListToRender(enabledOnly,includeLeftYAxis,includeRightYAxis);
 				    if (!_is_reference_graph) {
-				    	Message.printStatus(2, routine, "Calling areUnitsCompatible for left y-axis, have " + tslistToRender.size() + " time series");
+				    	if ( Message.isDebugOn ) {
+				    		Message.printStatus(2, routine, "Calling areUnitsCompatible for left y-axis, have " + tslistToRender.size() + " time series");
+				    	}
 				    }
 					if (!TSUtil.areUnitsCompatible(tslistToRender, true)) {
 					    if (!_is_reference_graph) {
-					    	Message.printStatus(2, routine, "Time series to render for left y-axis have incompatible units");
+					    	if ( Message.isDebugOn ) {
+					    		Message.printStatus(2, routine, "Time series to render for left y-axis have incompatible units");
+					    	}
 					    }
 						if (_is_reference_graph) {
 							// Rely on the main graph to set the _ignore_units flag and determine whether the graph
@@ -4437,20 +4455,35 @@ private void drawGraph ( TSGraphType graphType, GRDrawingArea daGraph, TSProduct
 	}
 	else {	
 		// "Normal" graph that can be handled in general code...
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2, routine, _gtype + "In drawGraph _is_reference_graph="+_is_reference_graph  + " tslist.size()=" + tslist.size() );
+		}
 		for (int its = 0; its < size; its++) {
 			ts = tslist.get(its);
-			if ((ts == null) || (!_is_reference_graph && !ts.getEnabled())
-			    || (!_is_reference_graph && !isTSEnabled(its))) {
+			if ( ts == null ) {
 				continue;
 			}
-
-			if (_is_reference_graph && (its != _reference_ts_index)) {
-				// A reference graph but we have not found the reference time series yet.  We want the
-				// reference time series drawn in the same color as it occurs in the main graph.
-				if (Message.isDebugOn) {
-					Message.printDebug(1, routine, _gtype + "Skipping time series " + its);
+			else if ( !_is_reference_graph ) {
+				// Not a reference graph
+				if ( !ts.getEnabled() ) {
+					// Time series is not enabled at the data level so don't draw
+					continue;
 				}
-				continue;
+				if ( !isTSEnabled(its) ) {
+					// Time series is not enabled in the product so don't draw
+					continue;
+				}
+			}
+			else if (_is_reference_graph ) {
+				// Is a reference graph
+				if ( its != _reference_ts_index ) {
+					// Is a reference graph but we have not found the reference time series yet.  We want the
+					// reference time series drawn in the same color as it occurs in the main graph.
+					if (Message.isDebugOn) {
+						Message.printDebug(1, routine, _gtype + "Skipping time series " + its);
+					}
+					continue;
+				}
 			}
 
 			// Draw each time series using the requested graph type.
@@ -5100,7 +5133,9 @@ graph type, but can be different if overlaying lines on area graph, for example.
 */
 private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraphType tsGraphType, PropList overrideProps )
 {   String routine = "TSGraph.drawTS";
-
+	if ( Message.isDebugOn ) {
+		Message.printStatus(2, routine, _gtype + "Enter drawTS");
+	}
 	if ((ts == null) || !ts.hasData() || (!_is_reference_graph && !ts.getEnabled())) {
 	    // No need or unable to draw
 		return;
@@ -5889,6 +5924,7 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 				}
 
 				if (_is_reference_graph) {
+					// Don't draw labels or symbols
 				}
 				else if (labelPointWithFlag && ((symbol == GRSymbol.SYM_NONE) || (symbol_size <= 0))) {
 					// Text only
@@ -8323,8 +8359,10 @@ private List<TS> getTSListToRender ( boolean enabledOnly, boolean includeLeftYAx
     if ( enabledOnly ) {
         // Render only the enabled time series
         tslist = getEnabledTSList(includeLeftYAxis, includeRightYAxis);
-        Message.printStatus(2, "getTSListToRender", "Got " + tslist.size() +
-        	" time series that were enabled, includeLeftYAxis="+includeLeftYAxis + ", includeRightYAxis="+includeRightYAxis);
+        if ( Message.isDebugOn ) {
+	        Message.printStatus(2, "getTSListToRender", "Got " + tslist.size() +
+	        	" time series that are enabled, includeLeftYAxis="+includeLeftYAxis + ", includeRightYAxis="+includeRightYAxis);
+        }
     }
     else {
         // Render all time series whether enabled or not, but do check for requested axis
@@ -8679,7 +8717,9 @@ public void paint ( Graphics g )
 {	String routine = "TSGraph.paint";
 
 	if (g == null) {
-		Message.printStatus(1, routine, "Null Graphics in paint()");
+		if ( Message.isDebugOn ) {
+			Message.printStatus(1, routine, _gtype + "Null Graphics in paint()");
+		}
 		return;
 	}
 	
@@ -8706,6 +8746,9 @@ public void paint ( Graphics g )
 	
 		// Now set the drawing limits based on the current size of the device.
 	
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( 1, routine, _gtype + "Calling setDrawingLimits..." );
+		}
 		setDrawingLimits ( _drawlim_page );
 	
 		// If the graph type has changed, redo the data analysis.
@@ -8852,7 +8895,7 @@ limits are the data limits from the second time series.
 The data limits are either the initial values or the values from a zoom.
 */
 public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph )
-{	String routine = "setDataLimitsForDrawing";
+{	String routine = "TSGraph.setDataLimitsForDrawing";
     if ( datalim_lefty_graph == null ) {
 		return;
 	}
@@ -9020,7 +9063,7 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph )
 		// TODO SAM 2016-10-24 need to enable
 	}
 	if ( Message.isDebugOn ) {
-		Message.printDebug(1, routine, _gtype + " After reset, [" +_subproduct + "] _datalim_lefty_graph are " + datalim_lefty_graph );
+		Message.printDebug(1, routine, _gtype + "After reset, [" +_subproduct + "] _datalim_lefty_graph are " + datalim_lefty_graph );
 	}
 }
 
