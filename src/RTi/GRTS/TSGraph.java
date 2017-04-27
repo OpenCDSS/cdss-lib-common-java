@@ -213,6 +213,7 @@
 
 package RTi.GRTS;
 
+import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import java.awt.Shape;
@@ -223,7 +224,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JFrame;
 import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
 
 import RTi.GR.GRAspect;
 import RTi.GR.GRAxis;
@@ -334,6 +337,21 @@ of all the legends, although only one will be used.
 public class TSGraph	// extends GRGraph //Future development??
 implements ActionListener
 {
+	
+	/**
+	 * Choices for leftYAxisViewYMin and similar, to allow dynamic y-axis scaling separate from product.
+	 * Use product properties, Auto or specific value.
+	 */
+	protected static String YAXIS_LIMITS_USE_PRODUCT_PROPERTIES = "UseProductProperties";
+	/**
+	 * Automatically fill Y using data in current view and adjust every window.
+	 */
+	// TODO sam 2017-04-23 evaluate whether to enable
+	//protected final String YAXIS_LIMITS_AUTOFILL_EACH_VIEW = "AutoFillEachView";
+	/**
+	 * Automatically fill Y using data in current view and keep for other views.
+	 */
+	protected static String YAXIS_LIMITS_AUTOFILL_AND_KEEP = "AutoFillAndKeep";
 
 /**
 Popup menu options.
@@ -342,10 +360,11 @@ private final String
 	__MENU_ANALYSIS_DETAILS = "Analysis Details",
 	__MENU_PROPERTIES = "Properties",
 	__MENU_REFRESH = "Refresh",
-	__MENU_Y_MAXIMUM_AUTO = "Set Y Maximum to Auto",
-	__MENU_Y_MINIMUM_AUTO = "Set Y Minimum to Auto",
-	__MENU_Y_MAXIMUM_VISIBLE = "Set Y Maximum to Visible Maximum",
-	__MENU_Y_MINIMUM_VISIBLE = "Set Y Minimum to Visible Minimum";
+	__MENU_Y_SET_Y_LIMITS = "Set Y Limits",
+	__MENU_Y_MAXIMUM_AUTO = "Set Y Maximum to Auto (round maximum data value for full period)",
+	__MENU_Y_MINIMUM_AUTO = "Set Y Minimum to Auto (round minimum data value for full period)",
+	__MENU_Y_MAXIMUM_FILL_WINDOW = "Set Y Maximum to Fill Window",
+	__MENU_Y_MINIMUM_FILL_WINDOW = "Set Y Minimum to Fill Window";
 
 /**
 If the graph type is Duration, this holds the results of the duration data for each time series.
@@ -453,6 +472,42 @@ private List<TS> __left_tslist = null;
 Precision for left y-axis labels.
 */
 private int _lefty_precision = 2;
+
+/**
+ * Left y-axis minimum y for viewing (separate from TS product), used with TSGrapyYAxisLimits_JDialog.
+ */
+private String leftYAxisViewMinY = YAXIS_LIMITS_USE_PRODUCT_PROPERTIES;
+/**
+ * Value computed from data at user's request, to be used for limit.
+ */
+private double leftYAxisViewMinYFromData = Double.NaN;
+
+/**
+ * Left y-axis maximum y for viewing (separate from TS product), used with TSGrapyYAxisLimits_JDialog.
+ */
+private String leftYAxisViewMaxY = YAXIS_LIMITS_USE_PRODUCT_PROPERTIES;
+/**
+ * Value computed from data at user's request, to be used for limit.
+ */
+private double leftYAxisViewMaxYFromData = Double.NaN;
+
+/**
+ * Right y-axis minimum y for viewing (separate from TS product), used with TSGrapyYAxisLimits_JDialog.
+ */
+private String rightYAxisViewMinY = YAXIS_LIMITS_USE_PRODUCT_PROPERTIES;
+/**
+ * Value computed from data at user's request, to be used for limit.
+ */
+private double rightYAxisViewMinYFromData = Double.NaN;
+
+/**
+ * Right y-axis maximum y for viewing (separate from TS product), used with TSGrapyYAxisLimits_JDialog.
+ */
+private String rightYAxisViewMaxY = YAXIS_LIMITS_USE_PRODUCT_PROPERTIES;
+/**
+ * Value computed from data at user's request, to be used for limit.
+ */
+private double rightYAxisViewMaxYFromData = Double.NaN;
 
 /**
 List of time series to plot using right y-axis.
@@ -863,12 +918,15 @@ private int _reference_ts_index = -1;
 Used for messages so can tell whether in a main or reference (overview) graph.
 */
 private String _gtype = "Main:";
+
+//TODO sam 2017-04-23 when is this ever changed to true (seems to not be)?
 /**
 When zooming, keep the Y axis limits the same as for full period computed initially.
 False indicates to recompute from data in the zoom window.
 False also indicates that users can change the min and max values in the properties JFrame.
 */
-private boolean _zoom_keep_y_limits = false;
+private boolean _zoomKeepFullPeriodYLimits = false;
+
 /**
 Regression data used by scatter plot.
 */
@@ -958,7 +1016,7 @@ series with the longest overall period).  This value must be set for the local
 tslist list that is passed in.
 @param subproduct The sub-product from the main product.  This is used to look
 up properties specific to this graph product.  The first product is 1.
-@param tslist Vector of time series to graph.  Only the time series for this
+@param tslist list of time series to graph.  Only the time series for this
 graph are expected but time series for other graphs can be shared (access them in the TSProduct).
 @param reference_ts_index Index in the "tslist" for the reference time series.
 This may be different from the "ReferenceTSIndex" property in display_props,
@@ -1318,7 +1376,95 @@ public void actionPerformed(ActionEvent event)
 		// because the refresh does not occur automatically.
 		_dev.refresh ();
 	}
-	else if (command.equals(__MENU_Y_MAXIMUM_VISIBLE)) {
+	else if (command.equals(__MENU_Y_SET_Y_LIMITS)) {
+		// Show dialog to set Y-axis limits for viewing.
+		// - limits are separate from product but may default to the product.
+		// Get the frame that manages this component
+		Component c = SwingUtilities.getRoot(_dev);
+		if ( c instanceof JFrame ) {
+			// TSGraph is only used in the TSViewGraphJFrame
+			new TSGraphYAxisLimits_JDialog ( (TSViewGraphJFrame)c, this._dev, this );
+			// Pressing OK in the dialog will set the properties in the TSGraph for viewing y-axis properties.
+			// Next reset the data used for drawing
+			// - use the existing data limits to ensure x-limits and starting y-limits,
+			//   but the y-limits will be reset by the values set from above action (user-specified) or calculated
+			//   from a view of the time series (below)
+			if ( this.leftYAxisViewMinY.equalsIgnoreCase(YAXIS_LIMITS_AUTOFILL_AND_KEEP) ||
+				this.leftYAxisViewMaxY.equalsIgnoreCase(YAXIS_LIMITS_AUTOFILL_AND_KEEP) ) {
+				// Request to use current view of data to calculate limits for graph
+				TSLimits limits = null;
+				List<TS> tslist = null;
+				if (__leftYAxisGraphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+			    	int nreg = 0;
+					if (__tslist != null) {
+						nreg = __tslist.size() - 1;
+					}
+					List<TS> v = new ArrayList<TS>();
+					TSRegression regressionData = null;
+					for (int i = 0; i < nreg; i++) {
+						if (!isTSEnabled(i + 1)) {
+							continue;
+						}
+						regressionData = _regression_data.get(i);
+						v.add(regressionData.getResidualTS());
+					}
+					tslist = v;
+				}
+				else if (__leftYAxisGraphType == TSGraphType.PREDICTED_VALUE) {
+			    	int nreg = 0;
+					if (__tslist != null) {
+						nreg = __tslist.size() - 1;
+					}
+					List<TS> v = new ArrayList<TS>();
+					TSRegression regressionData = null;
+					if (isTSEnabled(0)) {
+						v.add(__tslist.get(0));
+					}
+					for (int i = 0; i < nreg; i++) {
+						if (!isTSEnabled(i + 1)) {
+							continue;
+						}
+						regressionData = _regression_data.get(i);
+						if (isTSEnabled(i + 1)) {
+							v.add(regressionData.getDependentTS());
+							v.add(regressionData.getPredictedTS());
+						}
+					}
+					tslist = v;
+				}		
+				else {
+					boolean includeLeftYAxis = true;
+					boolean includeRightYAxis = false;
+					tslist = getEnabledTSList(includeLeftYAxis,includeRightYAxis);
+				}
+				
+				try {
+					limits = TSUtil.getDataLimits(tslist, _start_date, _end_date, "", false, _ignoreLeftAxisUnits);
+					if ( limits.areLimitsFound() ) {
+						if ( this.leftYAxisViewMinY.equalsIgnoreCase(YAXIS_LIMITS_AUTOFILL_AND_KEEP) ) {
+							setLeftYAxisViewMinYFromData(limits.getMinValue());
+						}
+						if ( this.leftYAxisViewMaxY.equalsIgnoreCase(YAXIS_LIMITS_AUTOFILL_AND_KEEP) ) {
+							setLeftYAxisViewMaxYFromData(limits.getMaxValue());
+						}
+					}
+				}
+				catch (Exception e) {
+					String routine = "TSGraph.actionPerformed";
+					Message.printWarning(2, routine, "There was an error getting the limits for "
+						+ "the period.  The zoom will not be changed.");
+					Message.printWarning(2, routine, e);
+					return;
+				}
+			}
+			// Set the limits in the graph
+			// - this will trigger use of user-specified input
+			setDataLimitsForDrawing(this._da_lefty_graph.getDataLimits());
+			_dev.setForceRedraw(true,true);
+			_dev.repaint();
+		}
+	}
+	else if (command.equals(__MENU_Y_MAXIMUM_FILL_WINDOW)) {
 		TSViewGraphJFrame frame = (TSViewGraphJFrame)_dev.getJFrame();
 		frame.getTSViewJFrame().openGUI(TSViewType.PROPERTIES_HIDDEN);
 		
@@ -1392,8 +1538,7 @@ public void actionPerformed(ActionEvent event)
 
 		pframe.setMaximumYValue("" + limits.getMaxValue(), true);
 	}
-	else if (command.equals(__MENU_Y_MINIMUM_VISIBLE)) {
-		// currently only supported for residual graphs
+	else if (command.equals(__MENU_Y_MINIMUM_FILL_WINDOW)) {
 		TSViewGraphJFrame frame = (TSViewGraphJFrame)_dev.getJFrame();
 		frame.getTSViewJFrame().openGUI(TSViewType.PROPERTIES_HIDDEN);
 		
@@ -1437,6 +1582,7 @@ public void actionPerformed(ActionEvent event)
 		pframe.setMinimumYValue("" + limits.getMinValue(),true);
 	}	
 	else if (command.equals(__MENU_Y_MAXIMUM_AUTO)) {
+		// TODO sam 2017-04-23 has been replaced by __MENU_Y_SET_Y_LIMITS above - phase out after production use
 		TSViewGraphJFrame frame = (TSViewGraphJFrame)_dev.getJFrame();
 		frame.getTSViewJFrame().openGUI(TSViewType.PROPERTIES_HIDDEN);
 		
@@ -1446,6 +1592,7 @@ public void actionPerformed(ActionEvent event)
 		pframe.setMaximumYValue("Auto");
 	}
 	else if (command.equals(__MENU_Y_MINIMUM_AUTO)) {
+		// TODO sam 2017-04-23 has been replaced by __MENU_Y_SET_Y_LIMITS above - phase out after production use
 		TSViewGraphJFrame frame = (TSViewGraphJFrame)_dev.getJFrame();
 		frame.getTSViewJFrame().openGUI(TSViewType.PROPERTIES_HIDDEN);
 		
@@ -1453,7 +1600,7 @@ public void actionPerformed(ActionEvent event)
 		TSProductJFrame pframe = frame.getTSViewJFrame().getTSProductJFrame();
 		pframe.setSubproduct(_subproduct);
 		pframe.setMinimumYValue("Auto", true);
-	}	
+	}
 }
 
 /**
@@ -1613,13 +1760,13 @@ values and the current data limits are set to the limits, which serve as the
 initial data limits until zooming occurs.
 The x-axis limits (time) for left and right y-axes must be set to the same so that time will be accurate.
 @param graphType the type of graph being produced.
-@param max whether to compute data limits from the max dates or not.
+@param computeFromMaxPeriod whether to compute data limits from the max dates or not.
 Currently, is only called from doAnalysis() when initializing the graphs at creation.
 The method is also called by reinitializeGraphs() when recreating graphs after property edits,
 using current limits (not max).
 For other graphs, see setComputeWithSetDates().
 */
-protected void computeDataLimits ( boolean max )
+protected void computeDataLimits ( boolean computeFromMaxPeriod )
 {	String routine = "TSGraph.computeDataLimits";
     TSGraphType graphType = getLeftYAxisGraphType();
 	// Exceptions are thrown when trying to draw empty graph (no data)
@@ -1643,7 +1790,7 @@ protected void computeDataLimits ( boolean max )
 		if (enabledLeftYAxisTSList.size() == 0) {
 			// All this is for left y-axis
 			__useSetDates = false;
-			if (max) {
+			if (computeFromMaxPeriod) {
 				if (_max_start_date == null) {
 					// No data so set limits to empty
 					_data_lefty_limits = new GRLimits(0, 0, 0, 0);
@@ -1673,7 +1820,7 @@ protected void computeDataLimits ( boolean max )
 		
 		if (enabledRightYAxisTSList.size() == 0) {
 			// All this is for right y-axis
-			if (max) {
+			if (computeFromMaxPeriod) {
 				if (_max_start_date == null) {
 					_data_righty_limits = new GRLimits(0, 0, 0, 0);
 					_max_righty_data_limits = new GRLimits(_data_righty_limits);
@@ -1916,12 +2063,12 @@ protected void computeDataLimits ( boolean max )
 				// If the properties are given, set the limits to the given properties,
 	            // but only if they are outside the range of the data that was determined...
 				//
-				// TODO SAM 2006-09-28
-				// Still need to evaluate how switching between Auto and hard limits can be handled better.
+				// TODO SAM 2006-09-28 Still need to evaluate how switching between Auto and hard limits can be handled better.
+	            // TODO SAM 2017-04-24 think this is working now but see how things go in production first
 				String prop_value = _tsproduct.getLayeredPropValue ( "LeftYAxisMax", _subproduct, -1, false);
 				if ( (prop_value != null) && StringUtil.isDouble(prop_value) ) {
 					double ymax = StringUtil.atod(prop_value);
-					if (!_zoom_keep_y_limits && ymax > _max_tslimits_lefty.getMaxValue()) {
+					if (!_zoomKeepFullPeriodYLimits && ymax > _max_tslimits_lefty.getMaxValue()) {
 						_max_tslimits_lefty.setMaxValue(ymax);
 					}
 				}
@@ -1960,13 +2107,13 @@ protected void computeDataLimits ( boolean max )
 	            			_max_start_date, _max_end_date, "", false, _ignoreLeftAxisUnits);
 	            		_max_tslimits_lefty.setMaxValue(tempLimits.getMaxValue());
 	            	}
-				// TODO SAM 2006-09-28
-				// Still need to evaluate how switching between Auto and hard limits can be handled better.
+	            	// TODO SAM 2006-09-28 Still need to evaluate how switching between Auto and hard limits can be handled better.
+	            	// TODO SAM 2017-04-24 think this is working now but see how things go in production first
 				}
 				prop_value = _tsproduct.getLayeredPropValue ("LeftYAxisMin", _subproduct, -1, false);
 				if ( (prop_value != null) && StringUtil.isDouble(prop_value) ) {
 					double ymin = StringUtil.atod(prop_value);
-					if (!_zoom_keep_y_limits && ymin < _max_tslimits_lefty.getMinValue()) {
+					if (!_zoomKeepFullPeriodYLimits && ymin < _max_tslimits_lefty.getMinValue()) {
 						_max_tslimits_lefty.setMinValue(ymin);
 					}
 				}
@@ -2193,7 +2340,7 @@ protected void computeDataLimits ( boolean max )
 			}
 	
 			if ( _data_lefty_limits != null ) {
-				if (max) {
+				if (computeFromMaxPeriod) {
 					_max_lefty_data_limits = new GRLimits(_data_lefty_limits);
 				}
 				else {
@@ -2275,14 +2422,14 @@ protected void computeDataLimits ( boolean max )
 				String prop_value = _tsproduct.getLayeredPropValue ( "RightYAxisMax", _subproduct, -1, false);
 				if ( (prop_value != null) && StringUtil.isDouble(prop_value) ) {
 					double ymax = Double.parseDouble(prop_value);
-					if (!_zoom_keep_y_limits && ymax > _max_tslimits_righty.getMaxValue()) {
+					if (!_zoomKeepFullPeriodYLimits && ymax > _max_tslimits_righty.getMaxValue()) {
 						_max_tslimits_righty.setMaxValue(ymax);
 					}
 				}
 				prop_value = _tsproduct.getLayeredPropValue ("RightYAxisMin", _subproduct, -1, false);
 				if ( (prop_value != null) && StringUtil.isDouble(prop_value) ) {
 					double ymin = Double.parseDouble(prop_value);
-					if (!_zoom_keep_y_limits && ymin < _max_tslimits_righty.getMinValue()) {
+					if (!_zoomKeepFullPeriodYLimits && ymin < _max_tslimits_righty.getMinValue()) {
 						_max_tslimits_righty.setMinValue(ymin);
 					}
 				}
@@ -2302,7 +2449,7 @@ protected void computeDataLimits ( boolean max )
 			}
 
 			if ( _data_righty_limits != null ) {
-				if (max) {
+				if (computeFromMaxPeriod) {
 					_max_righty_data_limits = new GRLimits(_data_righty_limits);
 				}
 				else {
@@ -2538,7 +2685,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 		}
 		else if (__leftYAxisGraphType == TSGraphType.XY_SCATTER ) {
 			_data_lefty_limits = new GRLimits ( _max_lefty_data_limits.getMinX(), _ylabels_lefty[0],
-				_max_lefty_data_limits.getMaxX(),	_ylabels_lefty[_ylabels_lefty.length - 1]);
+				_max_lefty_data_limits.getMaxX(), _ylabels_lefty[_ylabels_lefty.length - 1]);
 		}
 		else {	
 			_data_lefty_limits = new GRLimits ( _start_date.toDouble(), _ylabels_lefty[0],
@@ -8059,6 +8206,34 @@ public GRJComponentDrawingArea getLeftYAxisGraphDrawingArea()
 }
 
 /**
+ * Return the left y-axis maximum y value for interactive viewing.
+ */
+protected String getLeftYAxisViewMaxY () {
+	return this.leftYAxisViewMaxY;
+}
+
+/**
+ * Return the left y-axis minimum y value for interactive viewing.
+ */
+protected String getLeftYAxisViewMinY () {
+	return this.leftYAxisViewMinY;
+}
+
+/**
+ * Return the right y-axis maximum y value for interactive viewing.
+ */
+protected String getRightYAxisViewMaxY () {
+	return this.rightYAxisViewMaxY;
+}
+
+/**
+ * Return the right y-axis minimum y value for interactive viewing.
+ */
+protected String getRightYAxisViewMinY () {
+	return this.rightYAxisViewMinY;
+}
+
+/**
 Return the legend string for a time series.
 @return a legend string.  If null is returned, the legend should not be drawn.
 @param ts Time series to get legend.
@@ -8224,17 +8399,25 @@ public JPopupMenu getJPopupMenu() {
 	_graph_JPopupMenu.addSeparator();
 
 	if (__leftYAxisGraphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
-		_graph_JPopupMenu.add(new SimpleJMenuItem( __MENU_Y_MAXIMUM_VISIBLE, __MENU_Y_MAXIMUM_VISIBLE, this));
-		_graph_JPopupMenu.add(new SimpleJMenuItem( __MENU_Y_MINIMUM_VISIBLE, __MENU_Y_MINIMUM_VISIBLE, this));
+		_graph_JPopupMenu.add(new SimpleJMenuItem( __MENU_Y_MAXIMUM_FILL_WINDOW, __MENU_Y_MAXIMUM_FILL_WINDOW, this));
+		_graph_JPopupMenu.add(new SimpleJMenuItem( __MENU_Y_MINIMUM_FILL_WINDOW, __MENU_Y_MINIMUM_FILL_WINDOW, this));
 		_graph_JPopupMenu.add(new SimpleJMenuItem( __MENU_Y_MAXIMUM_AUTO, __MENU_Y_MAXIMUM_AUTO, this));
 		_graph_JPopupMenu.add(new SimpleJMenuItem( __MENU_Y_MINIMUM_AUTO, __MENU_Y_MINIMUM_AUTO, this));
 	}
 	else {
-		_graph_JPopupMenu.add(new SimpleJMenuItem( __MENU_Y_MAXIMUM_VISIBLE, __MENU_Y_MAXIMUM_VISIBLE, this));
-		_graph_JPopupMenu.add(new SimpleJMenuItem( __MENU_Y_MAXIMUM_AUTO, __MENU_Y_MAXIMUM_AUTO, this));
+		_graph_JPopupMenu.add(new SimpleJMenuItem( __MENU_Y_SET_Y_LIMITS, __MENU_Y_SET_Y_LIMITS, this));
+		// TODO sam 2017-04-23 change from separate menu choices to a dialog that provides more clear control
+		// - figure out what to do with predicted value residual
+		//_graph_JPopupMenu.addSeparator();
+		//_graph_JPopupMenu.add(new SimpleJMenuItem( __MENU_Y_MAXIMUM_AUTO, __MENU_Y_MAXIMUM_AUTO, this));
+		//_graph_JPopupMenu.add(new SimpleJMenuItem( __MENU_Y_MINIMUM_AUTO, __MENU_Y_MINIMUM_AUTO, this));
+		//_graph_JPopupMenu.addSeparator();
+		//_graph_JPopupMenu.add(new SimpleJMenuItem( __MENU_Y_MAXIMUM_FILL_WINDOW, __MENU_Y_MAXIMUM_FILL_WINDOW, this));
+		//_graph_JPopupMenu.add(new SimpleJMenuItem( __MENU_Y_MINIMUM_FILL_WINDOW, __MENU_Y_MINIMUM_FILL_WINDOW, this));
 	}
 	
 	// If UNIX, add a refresh option to help with X server differences
+	// TODO sam 2017-04-23 need to evaluate if this is still needed.
 	if (IOUtil.isUNIXMachine()) {
 		_graph_JPopupMenu.addSeparator();
 		_graph_JPopupMenu.add(new SimpleJMenuItem(__MENU_REFRESH, __MENU_REFRESH, this));
@@ -8755,9 +8938,9 @@ public void paint ( Graphics g )
 		// Currently the Properties interface does not allow the graph type to
 		// be changed.  However, XY Scatter parameters can be changed.
 	
-		boolean need_to_analyze = false;
+		boolean needToAnalyze = false;
 		if ( __leftYAxisGraphType != __lastLeftYAxisGraphType ) {
-			need_to_analyze = true;
+			needToAnalyze = true;
 		}
 		if ( __leftYAxisGraphType == TSGraphType.XY_SCATTER ) {
 			// Check the properties in the old regression results and see
@@ -8774,12 +8957,13 @@ public void paint ( Graphics g )
 			  	      ""+_regression_data.get(0).getNumberOfEquations()) 
 				  || !_tsproduct.getLayeredPropValue ( "XYScatterTransformation", _subproduct, -1, false ).equalsIgnoreCase(
 			          ""+_regression_data.get(0).getTransformation()) ) {
-					need_to_analyze = true;
+					needToAnalyze = true;
 				}
 			}
 		}
-		if ( need_to_analyze ) {
-			// Redo the analysis...
+		if ( needToAnalyze ) {
+			// Redo the analysis, which calls computeDataLimits() at the end.
+			// - problem, if analysis does not need to be redone then computeDataLimits() is not called.
 			doAnalysis(getLeftYAxisGraphType());
 			// This is the place where the reference graph has its data set.
 		}
@@ -8965,10 +9149,38 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph )
 	                _tslimits_lefty.setMinValue(_max_tslimits_lefty.getDate1().getYear());
 	                _tslimits_lefty.setMaxValue(_max_tslimits_lefty.getDate2().getYear() + 1);
 				}
-				if (!_zoom_keep_y_limits) {
-					// Keep the y limits to the maximum...
-					_tslimits_lefty.setMinValue ( _max_tslimits_lefty.getMinValue() );
-					_tslimits_lefty.setMaxValue ( _max_tslimits_lefty.getMaxValue() );
+				else {
+					// All other graphs
+					if (!_zoomKeepFullPeriodYLimits) {
+						// False so allow user-specified y-axis limits to be used if specified
+						// Default to values set in the property
+						_tslimits_lefty.setMinValue ( _max_tslimits_lefty.getMinValue() );
+						_tslimits_lefty.setMaxValue ( _max_tslimits_lefty.getMaxValue() );
+						// If use has indicated overriding, use specified values
+						String leftYAxisViewMinY = getLeftYAxisViewMinY();
+						if ( StringUtil.isDouble(leftYAxisViewMinY) ) {
+							_tslimits_lefty.setMinValue(Double.parseDouble(leftYAxisViewMinY));
+							Message.printStatus(2, routine, "Setting min time series value to user minimum " + leftYAxisViewMinY);
+						}
+						String leftYAxisViewMaxY = getLeftYAxisViewMaxY();
+						if ( StringUtil.isDouble(leftYAxisViewMaxY) ) {
+							_tslimits_lefty.setMaxValue(Double.parseDouble(leftYAxisViewMaxY));
+							Message.printStatus(2, routine, "Setting max time series value to user maximum " + leftYAxisViewMaxY);
+						}
+						// Also check whether the value should have been taken from a data view
+						if ( leftYAxisViewMinY.equalsIgnoreCase(YAXIS_LIMITS_AUTOFILL_AND_KEEP) ) {
+							if ( !Double.isNaN(this.leftYAxisViewMinYFromData) ) {
+								_tslimits_lefty.setMinValue(this.leftYAxisViewMinYFromData);
+								Message.printStatus(2, routine, "Setting min time series value to data view minimum " + this.leftYAxisViewMinYFromData);
+							}
+						}
+						if ( leftYAxisViewMaxY.equalsIgnoreCase(YAXIS_LIMITS_AUTOFILL_AND_KEEP) ) {
+							if ( !Double.isNaN(this.leftYAxisViewMaxYFromData) ) {
+								_tslimits_lefty.setMaxValue(this.leftYAxisViewMaxYFromData);
+								Message.printStatus(2, routine, "Setting max time series value to data view maximum " + this.leftYAxisViewMaxYFromData);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -9005,11 +9217,35 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph )
 	                _tslimits_righty.setMinValue(_max_tslimits_righty.getDate1().getYear());
 	                _tslimits_righty.setMaxValue(_max_tslimits_righty.getDate2().getYear() + 1);
 				}
-				if (!_zoom_keep_y_limits) {
-					// Keep the y limits to the maximum...
+				if (!_zoomKeepFullPeriodYLimits) {
+					// False so allow user-specified y-axis limits to be used if specified
 					//Message.printStatus(2,routine,"_tslimits_righty="+_tslimits_righty + ", _max_tslimits_righty=" + _max_tslimits_righty);
 					_tslimits_righty.setMinValue ( _max_tslimits_righty.getMinValue() );
 					_tslimits_righty.setMaxValue ( _max_tslimits_righty.getMaxValue() );
+					// If use has indicated overriding, use specified values
+					String rightYAxisViewMinY = getRightYAxisViewMinY();
+					if ( StringUtil.isDouble(rightYAxisViewMinY) ) {
+						_tslimits_righty.setMinValue(Double.parseDouble(rightYAxisViewMinY));
+						Message.printStatus(2, routine, "Setting min time series value to user minimum " + rightYAxisViewMinY);
+					}
+					String rightYAxisViewMaxY = getRightYAxisViewMaxY();
+					if ( StringUtil.isDouble(rightYAxisViewMaxY) ) {
+						_tslimits_righty.setMaxValue(Double.parseDouble(rightYAxisViewMaxY));
+						Message.printStatus(2, routine, "Setting max time series value to user maximum " + rightYAxisViewMaxY);
+					}
+					// Also check whether the value should have been taken from a data view
+					if ( rightYAxisViewMinY.equalsIgnoreCase(YAXIS_LIMITS_AUTOFILL_AND_KEEP) ) {
+						if ( !Double.isNaN(this.rightYAxisViewMinYFromData) ) {
+							_tslimits_righty.setMinValue(this.rightYAxisViewMinYFromData);
+							Message.printStatus(2, routine, "Setting min time series value to data view minimum " + this.rightYAxisViewMinYFromData);
+						}
+					}
+					if ( rightYAxisViewMaxY.equalsIgnoreCase(YAXIS_LIMITS_AUTOFILL_AND_KEEP) ) {
+						if ( !Double.isNaN(this.rightYAxisViewMaxYFromData) ) {
+							_tslimits_righty.setMaxValue(this.rightYAxisViewMaxYFromData);
+							Message.printStatus(2, routine, "Setting max time series value to data view maximum " + this.rightYAxisViewMaxYFromData);
+						}
+					}
 				}
 			}
 		}
@@ -10086,6 +10322,94 @@ protected void setEndDate(DateTime endDate) {
 private void setErrorMessage ( String error ) {
 	this.__errorMessageList.clear();
 	this.__errorMessageList.add(error);	
+}
+
+/**
+ * Set the left y-axis maximum y value for interactive viewing.
+ */
+protected void setLeftYAxisViewMaxY ( String leftYAxisViewMaxY ) {
+	this.leftYAxisViewMaxY = leftYAxisViewMaxY;
+	if ( leftYAxisViewMaxY.equalsIgnoreCase(YAXIS_LIMITS_USE_PRODUCT_PROPERTIES) ) {
+		// Clear so it is not used
+		this.leftYAxisViewMaxYFromData = Double.NaN;
+	}
+	else if ( StringUtil.isDouble(leftYAxisViewMaxY) ) {
+		// Clear so it is not used
+		this.leftYAxisViewMaxYFromData = Double.NaN;
+	}
+}
+
+/**
+ * Set the left y-axis maximum y value from a data page view.
+ */
+protected void setLeftYAxisViewMaxYFromData ( double leftYAxisViewMaxYFromData ) {
+	this.leftYAxisViewMaxYFromData = leftYAxisViewMaxYFromData;
+}
+
+/**
+ * Set the left y-axis minimum y value for interactive viewing.
+ */
+protected void setLeftYAxisViewMinY ( String leftYAxisViewMinY ) {
+	this.leftYAxisViewMinY = leftYAxisViewMinY;
+	if ( leftYAxisViewMinY.equalsIgnoreCase(YAXIS_LIMITS_USE_PRODUCT_PROPERTIES) ) {
+		// Clear so it is not used
+		this.leftYAxisViewMinYFromData = Double.NaN;
+	}
+	else if ( StringUtil.isDouble(leftYAxisViewMinY) ) {
+		// Clear so it is not used
+		this.leftYAxisViewMinYFromData = Double.NaN;
+	}
+}
+
+/**
+ * Set the left y-axis minimum y value from a data page view.
+ */
+protected void setLeftYAxisViewMinYFromData ( double leftYAxisViewMinYFromData ) {
+	this.leftYAxisViewMinYFromData = leftYAxisViewMinYFromData;
+}
+
+/**
+ * Set the right y-axis maximum y value for interactive viewing.
+ */
+protected void setRightYAxisViewMaxY ( String rightYAxisViewMaxY ) {
+	this.rightYAxisViewMaxY = rightYAxisViewMaxY;
+	if ( rightYAxisViewMaxY.equalsIgnoreCase(YAXIS_LIMITS_USE_PRODUCT_PROPERTIES) ) {
+		// Clear so it is not used
+		this.rightYAxisViewMaxYFromData = Double.NaN;
+	}
+	else if ( StringUtil.isDouble(rightYAxisViewMaxY) ) {
+		// Clear so it is not used
+		this.rightYAxisViewMaxYFromData = Double.NaN;
+	}
+}
+
+/**
+ * Set the right y-axis maximum y value from a data page view.
+ */
+protected void setRightYAxisViewMaxYFromData ( double rightYAxisViewMaxYFromData ) {
+	this.rightYAxisViewMaxYFromData = rightYAxisViewMaxYFromData;
+}
+
+/**
+ * Set the right y-axis minimum y value for interactive viewing.
+ */
+protected void setRightYAxisViewMinY ( String rightYAxisViewMinY ) {
+	this.rightYAxisViewMinY = rightYAxisViewMinY;
+	if ( rightYAxisViewMinY.equalsIgnoreCase(YAXIS_LIMITS_USE_PRODUCT_PROPERTIES) ) {
+		// Clear so it is not used
+		this.rightYAxisViewMinYFromData = Double.NaN;
+	}
+	else if ( StringUtil.isDouble(rightYAxisViewMinY) ) {
+		// Clear so it is not used
+		this.rightYAxisViewMinYFromData = Double.NaN;
+	}
+}
+
+/**
+ * Set the right y-axis minimum y value from a data page view.
+ */
+protected void setRightYAxisViewMinYFromData ( double rightYAxisViewMinYFromData ) {
+	this.rightYAxisViewMinYFromData = rightYAxisViewMinYFromData;
 }
 
 /**

@@ -95,6 +95,7 @@ The layout of the component is as follows:
 The positioning of the graphs is by default top to bottom but features will be
 added to allow row/cell positioning.
 */
+@SuppressWarnings("serial")
 public class TSGraphJComponent extends GRJComponentDevice
 implements KeyListener, MouseListener, MouseMotionListener, Printable, TSViewListener
 {
@@ -154,6 +155,11 @@ Flag indicating whether the component is a reference canvas, in which case only
 one graph will be shown.
 */
 private boolean _is_reference_graph = false;
+
+/**
+ * History of x-axis zooms maintained with the reference graph (not used if not a reference graph).
+ */
+private TSViewZoomHistory zoomHistory = new TSViewZoomHistory();
 
 /**
 The subproduct (graph) that should be used for reference graph information.
@@ -274,7 +280,7 @@ Parent JFrame.
 */
 private JFrame _parent = null;
 /**
-List of TSGraph being drawn.
+List of TSGraph being drawn, guaranteed to be non-null.
 */
 private List<TSGraph> _tsgraphs = new ArrayList<TSGraph>();
 /**
@@ -2109,6 +2115,21 @@ protected JFrame getJFrame()
 }
 
 /**
+ * Return the reference graph X axis zoom history.
+ */
+protected TSViewZoomHistory getReferenceGraphZoomHistory () {
+	return this.zoomHistory;
+}
+
+/**
+ * Return the list of graphs being drawn.
+ * Use of the returned object should generally be for information given that painting will be done in the graph code.
+ */
+public List<TSGraph> getTSGraphs () {
+	return _tsgraphs;
+}
+
+/**
 Return the TSProduct that corresponds to the TSGraphJComponent.  A TSProduct is
 either passed in during construction (new convention) or is created from a
 PropList (old convention) during construction.
@@ -2663,24 +2684,24 @@ public void mouseReleased ( MouseEvent event )
 			ymax = y;
 		}
 		
-		GRLimits mouse_limits = new GRLimits ( xmin, ymin, xmax, ymax );
+		GRLimits mouseLimits = new GRLimits ( xmin, ymin, xmax, ymax );
 		// Reverse Y so we get the right values in GR...
 		GRPoint pt1 = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY ( xmin, ymax, GRDrawingArea.COORD_DEVICE );
 		GRPoint pt2 = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY ( xmax, ymin, GRDrawingArea.COORD_DEVICE );
 
-		GRLimits newdata_limits = new GRLimits ( pt1, pt2 );
+		GRLimits newDataLimits = new GRLimits ( pt1, pt2 );
 
 		if ( _interaction_mode == INTERACTION_ZOOM ) {
 			// Reset the limits to more appropriate values...
 			if ( _zoom_keep_y_limits ) {
 				// Set the Y limits to the maximum values...
-				newdata_limits.setTopY ( tsgraph.getMaxDataLimits().getTopY() );
-				newdata_limits.setBottomY( tsgraph.getMaxDataLimits().getBottomY() );
+				newDataLimits.setTopY ( tsgraph.getMaxDataLimits().getTopY() );
+				newDataLimits.setBottomY( tsgraph.getMaxDataLimits().getBottomY() );
 			}
 		}
 
-		tsgraph.setDataLimitsForDrawing ( newdata_limits );
-/* Do later...
+		tsgraph.setDataLimitsForDrawing ( newDataLimits );
+/* TODO sam 2017-04-23 old comment - need to evaluate 
 		// Adjust the limits slightly if monthly or annual data since
 		// the data values are plotted in the middle of the interval...
 		if ( _interval_max >= TimeInterval.MONTH ) {
@@ -2700,7 +2721,7 @@ public void mouseReleased ( MouseEvent event )
 			if ( _listeners != null ) {
 				int size = _listeners.length;
 				for ( int i = 0; i < size; i++ ) {
-					_listeners[i].tsViewSelect ( tsgraph, mouse_limits, newdata_limits, (List)null );
+					_listeners[i].tsViewSelect ( tsgraph, mouseLimits, newDataLimits, (List<Object>)null );
 				}
 			}
 		}
@@ -2708,18 +2729,18 @@ public void mouseReleased ( MouseEvent event )
 			// Actually reset the data limits...
 			// Only set new drawing area data limits for the main graph...
 			if ( !_is_reference_graph ) {
-				tsgraph.setDataLimitsForDrawing ( newdata_limits );
+				tsgraph.setDataLimitsForDrawing ( newDataLimits );
 				//_grda.setDataLimits ( _data_limits );
 			}
 			// Call external listeners to let them know that a graph has been zoomed...
 			if ( _listeners != null ) {
 				int size = _listeners.length;
 				for ( int i = 0; i < size; i++ ) {
-					_listeners[i].tsViewZoom ( tsgraph, mouse_limits, newdata_limits );
+					_listeners[i].tsViewZoom ( tsgraph, mouseLimits, newDataLimits );
 				}
 			}
 			// Apply the zoom to other graphs that need to be zoomed...
-			zoom ( tsgraph, mouse_limits, newdata_limits );
+			zoom ( tsgraph, mouseLimits, newDataLimits );
 			// Repaint...
 			// Fill in the background color.  Need this because
 			// update() does not do (because of zooming)...
@@ -3693,9 +3714,9 @@ throws FileNotFoundException, IOException
 /**
 Scroll the current zoom group a multiple of the visible page.
 @param pages Number of pages to scroll (-1.0 is one page left, 1.0 is one page right).
-@param notify_listeners If true, the tsViewZoom() method is called for the new data limits.
+@param notifyListeners If true, the tsViewZoom() method is called for the new data limits.
 */
-public void scroll ( double pages, boolean notify_listeners )
+public void scroll ( double pages, boolean notifyListeners )
 {	// Loop through the zoom levels and zoom each group of graphs to the
 	// maximum data extent within the zoom group.  Need a concept of an
 	// active zoom group...
@@ -3706,82 +3727,82 @@ public void scroll ( double pages, boolean notify_listeners )
 	}
 
 	TSGraph tsgraph;
-	GRLimits max_data_limits = null;
-	String prop_value;
-	int zoom_group = 0;
-	int num_zoom_groups = _tsproduct.getNumZoomGroups();
-	GRLimits current_data_limits = null;
-	GRLimits new_data_limits = null;
+	GRLimits maxDataLimits = null;
+	String propValue;
+	int zoomGroup = 0;
+	int numZoomGroups = _tsproduct.getNumZoomGroups();
+	GRLimits currentDataLimits = null;
+	GRLimits newDataLimits = null;
 	int size = _tsgraphs.size();
-	for ( int iz = 0; iz < num_zoom_groups; iz++ ) {
+	for ( int iz = 0; iz < numZoomGroups; iz++ ) {
 		// Loop through and determine the maximum and current limits for
 		// the zoom group (zoom groups are 1...N)...
 		for ( int isub = 0; isub < size; isub++ ) {
-			zoom_group = StringUtil.atoi(_tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
-			if ( zoom_group != (iz + 1) ) {
+			zoomGroup = StringUtil.atoi(_tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
+			if ( zoomGroup != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = (TSGraph)_tsgraphs.get(isub);
-			if ( max_data_limits == null ) {
-				max_data_limits = new GRLimits(tsgraph.getMaxDataLimits() );
+			tsgraph = _tsgraphs.get(isub);
+			if ( maxDataLimits == null ) {
+				maxDataLimits = new GRLimits(tsgraph.getMaxDataLimits() );
 			}
 			else {
-			    max_data_limits = max_data_limits.max(tsgraph.getMaxDataLimits());
+			    maxDataLimits = maxDataLimits.max(tsgraph.getMaxDataLimits());
 			}
 		}
 		//Message.printStatus ( 1, "",
 		//"Maximum limits for zoom group [" + iz + "] are " + max_data_limits );
 		// Now loop through again and set the data limits for graph in the zoom group...
 		for ( int isub = 0; isub < size; isub++ ) {
-			zoom_group = StringUtil.atoi(_tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
-			if ( zoom_group != (iz + 1) ) {
+			zoomGroup = StringUtil.atoi(_tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
+			if ( zoomGroup != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = (TSGraph)_tsgraphs.get(isub);
-			prop_value = _tsproduct.getLayeredPropValue ("ZoomEnabled", isub, -1, false );
-			if ( !prop_value.equalsIgnoreCase("true") ) {
+			tsgraph = _tsgraphs.get(isub);
+			propValue = _tsproduct.getLayeredPropValue ("ZoomEnabled", isub, -1, false );
+			if ( !propValue.equalsIgnoreCase("true") ) {
 				continue;
 			}
 			// If the maximum limits and the current limits are the same, don't do anything...
-			current_data_limits = tsgraph.getDataLimits();
-			if ( max_data_limits.equals( current_data_limits) ) {
+			currentDataLimits = tsgraph.getDataLimits();
+			if ( maxDataLimits.equals( currentDataLimits) ) {
 				continue;
 			}
 			// Else, reset the visible window to the end of the
 			// period with a data width equal to the current
 			// limits.  Start by copying the current limits...
-			new_data_limits = new GRLimits ( current_data_limits );
+			newDataLimits = new GRLimits ( currentDataLimits );
 			if ( pages > 0.0 ) {
 				// First reset the right X value...
-				new_data_limits.setRightX ( current_data_limits.getRightX() + pages*current_data_limits.getWidth() );
+				newDataLimits.setRightX ( currentDataLimits.getRightX() + pages*currentDataLimits.getWidth() );
 				// If the right X is past the end, set it to the
 				// end...
-				if ( new_data_limits.getRightX() > max_data_limits.getRightX() ) {
-					new_data_limits.setRightX ( max_data_limits.getRightX() );
+				if ( newDataLimits.getRightX() > maxDataLimits.getRightX() ) {
+					newDataLimits.setRightX ( maxDataLimits.getRightX() );
 				}
 				// Now set the left edge relative to the right..
-				new_data_limits.setLeftX ( new_data_limits.getRightX() - current_data_limits.getWidth() );
+				newDataLimits.setLeftX ( newDataLimits.getRightX() - currentDataLimits.getWidth() );
 				// Do a final check against the overall limits..
-				if ( new_data_limits.getLeftX() < max_data_limits.getLeftX() ) {
-					new_data_limits.setLeftX ( max_data_limits.getLeftX() );
+				if ( newDataLimits.getLeftX() < maxDataLimits.getLeftX() ) {
+					newDataLimits.setLeftX ( maxDataLimits.getLeftX() );
 				}
 			}
 			else {
 			    // First reset the left X value (pages is negative so add the second term)...
-				new_data_limits.setLeftX ( current_data_limits.getLeftX() + pages*current_data_limits.getWidth() );
+				newDataLimits.setLeftX ( currentDataLimits.getLeftX() + pages*currentDataLimits.getWidth() );
 				// If the left X is past the end, set it to the end...
-				if ( new_data_limits.getLeftX() < max_data_limits.getLeftX() ) {
-					new_data_limits.setLeftX ( max_data_limits.getLeftX() );
+				if ( newDataLimits.getLeftX() < maxDataLimits.getLeftX() ) {
+					newDataLimits.setLeftX ( maxDataLimits.getLeftX() );
 				}
 				// Now set the right edge relative to the left..
-				new_data_limits.setRightX ( new_data_limits.getLeftX() + current_data_limits.getWidth() );
+				newDataLimits.setRightX ( newDataLimits.getLeftX() + currentDataLimits.getWidth() );
 				// Do a final check against the overall limits..
-				if ( new_data_limits.getRightX() > max_data_limits.getRightX() ) {
-					new_data_limits.setRightX ( max_data_limits.getRightX() );
+				if ( newDataLimits.getRightX() > maxDataLimits.getRightX() ) {
+					newDataLimits.setRightX ( maxDataLimits.getRightX() );
 				}
 			}
-			tsgraph.setDataLimitsForDrawing ( new_data_limits );
-			if ( notify_listeners ) {
+			tsgraph.setDataLimitsForDrawing ( newDataLimits );
+			if ( notifyListeners ) {
 				//if (	!_is_reference_graph ||
 					//(_is_reference_graph &&
 					//() {
@@ -3809,7 +3830,7 @@ public void scroll ( double pages, boolean notify_listeners )
 				}
 				for ( int il = 0; il < nl; il++ ) {
 					// The device limits are not used but a cast is done later so don't pass null...
-					_listeners[il].tsViewZoom ( tsgraph, new GRLimits(), new_data_limits );
+					_listeners[il].tsViewZoom ( tsgraph, new GRLimits(), newDataLimits );
 				}
 			}
 		}
@@ -3820,62 +3841,62 @@ public void scroll ( double pages, boolean notify_listeners )
 
 /**
 Scroll the current zoom group to the end of the available data.  If zoomed out, no action is taken.
-@param notify_listeners If true, the tsViewZoom() method is called for the new data limits.
+@param notifyListeners If true, the tsViewZoom() method is called for the new data limits.
 */
-public void scrollToEnd ( boolean notify_listeners )
+public void scrollToEnd ( boolean notifyListeners )
 {	// Loop through the zoom levels and zoom each group of graphs to the
 	// maximum data extent within the zoom group.  Need a concept of an active zoom group...
 
 	TSGraph tsgraph;
-	GRLimits max_data_limits = null;
-	String prop_value;
-	int zoom_group = 0;
-	int num_zoom_groups = _tsproduct.getNumZoomGroups();
-	GRLimits current_data_limits = null;
-	GRLimits new_data_limits = null;
+	GRLimits maxDataLimits = null;
+	String propValue;
+	int zoomGroup = 0;
+	int numZoomGroups = _tsproduct.getNumZoomGroups();
+	GRLimits currentDataLimits = null;
+	GRLimits newDataLimits = null;
 	int size = _tsgraphs.size();
-	for ( int iz = 0; iz < num_zoom_groups; iz++ ) {
+	for ( int iz = 0; iz < numZoomGroups; iz++ ) {
 		// Loop through and determine the maximum and current limits for
 		// the zoom group (zoom groups are 1...N)...
 		for ( int isub = 0; isub < size; isub++ ) {
-			zoom_group = StringUtil.atoi(_tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
-			if ( zoom_group != (iz + 1) ) {
+			zoomGroup = StringUtil.atoi(_tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
+			if ( zoomGroup != (iz + 1) ) {
 				continue;
 			}
 			tsgraph = _tsgraphs.get(isub);
-			if ( max_data_limits == null ) {
-				max_data_limits = new GRLimits(tsgraph.getMaxDataLimits() );
+			if ( maxDataLimits == null ) {
+				maxDataLimits = new GRLimits(tsgraph.getMaxDataLimits() );
 			}
 			else {
-			    max_data_limits = max_data_limits.max(tsgraph.getMaxDataLimits());
+			    maxDataLimits = maxDataLimits.max(tsgraph.getMaxDataLimits());
 			}
 		}
 		//Message.printStatus ( 1, "",
 		//"Maximum limits for zoom group [" + iz + "] are " + max_data_limits );
 		// Now loop through again and set the data limits for graph in the zoom group...
 		for ( int isub = 0; isub < size; isub++ ) {
-			zoom_group = StringUtil.atoi( _tsproduct.getLayeredPropValue ( "ZoomGroup", isub, -1, false) );
-			if ( zoom_group != (iz + 1) ) {
+			zoomGroup = StringUtil.atoi( _tsproduct.getLayeredPropValue ( "ZoomGroup", isub, -1, false) );
+			if ( zoomGroup != (iz + 1) ) {
 				continue;
 			}
 			tsgraph = _tsgraphs.get(isub);
-			prop_value = _tsproduct.getLayeredPropValue ("ZoomEnabled", isub, -1, false );
-			if ( !prop_value.equalsIgnoreCase("true") ) {
+			propValue = _tsproduct.getLayeredPropValue ("ZoomEnabled", isub, -1, false );
+			if ( !propValue.equalsIgnoreCase("true") ) {
 				continue;
 			}
 			// If the maximum limits and the current limits are the same, don't do anything...
-			current_data_limits = tsgraph.getDataLimits();
-			if ( max_data_limits.equals( current_data_limits) ) {
+			currentDataLimits = tsgraph.getDataLimits();
+			if ( maxDataLimits.equals( currentDataLimits) ) {
 				continue;
 			}
 			// Else, reset the visible window to the end of the
 			// period with a data width equal to the current
 			// limits.  Start by copying the maximum limits...
-			new_data_limits = new GRLimits ( max_data_limits );
+			newDataLimits = new GRLimits ( maxDataLimits );
 			// Now reset the end X value...
-			new_data_limits.setLeftX ( max_data_limits.getRightX() - current_data_limits.getWidth() );
-			tsgraph.setDataLimitsForDrawing ( new_data_limits );
-			if ( notify_listeners ) {
+			newDataLimits.setLeftX ( maxDataLimits.getRightX() - currentDataLimits.getWidth() );
+			tsgraph.setDataLimitsForDrawing ( newDataLimits );
+			if ( notifyListeners ) {
 				//if (	!_is_reference_graph ||
 					//(_is_reference_graph &&
 					//() {
@@ -3903,7 +3924,7 @@ public void scrollToEnd ( boolean notify_listeners )
 				}
 				for ( int il = 0; il < nl; il++ ) {
 					// The device limits are not used but a cast is done later so don't pass null...
-					_listeners[il].tsViewZoom ( tsgraph, new GRLimits(), new_data_limits );
+					_listeners[il].tsViewZoom ( tsgraph, new GRLimits(), newDataLimits );
 				}
 			}
 		}
@@ -3914,61 +3935,61 @@ public void scrollToEnd ( boolean notify_listeners )
 
 /**
 Scroll the current zoom group to the start of the available data.  If zoomed out, no action is taken.
-@param notify_listeners If true, the tsViewZoom() method is called for the new data limits.
+@param notifyListeners If true, the tsViewZoom() method is called for the new data limits.
 */
-public void scrollToStart ( boolean notify_listeners )
+public void scrollToStart ( boolean notifyListeners )
 {	// Loop through the zoom levels and zoom each group of graphs to the
 	// maximum data extent within the zoom group.  Need a concept of an active zoom group...
 
 	TSGraph tsgraph;
-	GRLimits max_data_limits = null;
-	String prop_value;
-	int zoom_group = 0;
-	int num_zoom_groups = _tsproduct.getNumZoomGroups();
-	GRLimits current_data_limits = null;
-	GRLimits new_data_limits = null;
+	GRLimits maxDataLimits = null;
+	String propValue;
+	int zoomGroup = 0;
+	int numZoomGroups = _tsproduct.getNumZoomGroups();
+	GRLimits currentDataLimits = null;
+	GRLimits newDataLimits = null;
 	int size = _tsgraphs.size();
-	for ( int iz = 0; iz < num_zoom_groups; iz++ ) {
+	for ( int iz = 0; iz < numZoomGroups; iz++ ) {
 		// Loop through and determine the maximum and current limits for
 		// the zoom group (zoom groups are 1...N)...
 		for ( int isub = 0; isub < size; isub++ ) {
-			zoom_group = StringUtil.atoi(_tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
-			if ( zoom_group != (iz + 1) ) {
+			zoomGroup = StringUtil.atoi(_tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
+			if ( zoomGroup != (iz + 1) ) {
 				continue;
 			}
 			tsgraph = _tsgraphs.get(isub);
-			if ( max_data_limits == null ) {
-				max_data_limits = new GRLimits( tsgraph.getMaxDataLimits() );
+			if ( maxDataLimits == null ) {
+				maxDataLimits = new GRLimits( tsgraph.getMaxDataLimits() );
 			}
 			else {
-			    max_data_limits = max_data_limits.max(tsgraph.getMaxDataLimits());
+			    maxDataLimits = maxDataLimits.max(tsgraph.getMaxDataLimits());
 			}
 		}
 		//Message.printStatus ( 1, "",
 		//"Maximum limits for zoom group [" + iz + "] are " + max_data_limits );
 		// Now loop through again and set the data limits for graph in the zoom group...
 		for ( int isub = 0; isub < size; isub++ ) {
-			zoom_group = StringUtil.atoi(_tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
-			if ( zoom_group != (iz + 1) ) {
+			zoomGroup = StringUtil.atoi(_tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
+			if ( zoomGroup != (iz + 1) ) {
 				continue;
 			}
 			tsgraph = _tsgraphs.get(isub);
-			prop_value = _tsproduct.getLayeredPropValue ( "ZoomEnabled", isub, -1, false );
-			if ( !prop_value.equalsIgnoreCase("true") ) {
+			propValue = _tsproduct.getLayeredPropValue ( "ZoomEnabled", isub, -1, false );
+			if ( !propValue.equalsIgnoreCase("true") ) {
 				continue;
 			}
 			// If the maximum limits and the current limits are the same, don't do anything...
-			current_data_limits = tsgraph.getDataLimits();
-			if ( max_data_limits.equals( current_data_limits) ) {
+			currentDataLimits = tsgraph.getDataLimits();
+			if ( maxDataLimits.equals( currentDataLimits) ) {
 				continue;
 			}
 			// Else, reset the visible window to the start of the
 			// period with a data width equal to the current limits.  Start by copying the maximum limits...
-			new_data_limits = new GRLimits ( max_data_limits );
+			newDataLimits = new GRLimits ( maxDataLimits );
 			// Now reset the end X value...
-			new_data_limits.setRightX ( max_data_limits.getLeftX() + current_data_limits.getWidth() );
-			tsgraph.setDataLimitsForDrawing ( new_data_limits );
-			if ( notify_listeners ) {
+			newDataLimits.setRightX ( maxDataLimits.getLeftX() + currentDataLimits.getWidth() );
+			tsgraph.setDataLimitsForDrawing ( newDataLimits );
+			if ( notifyListeners ) {
 				//if (	!_is_reference_graph ||
 					//(_is_reference_graph &&
 					//() {
@@ -3996,7 +4017,7 @@ public void scrollToStart ( boolean notify_listeners )
 				}
 				for ( int il = 0; il < nl; il++ ) {
 					// The device limits are not used but a cast is done later so don't pass null...
-					_listeners[il].tsViewZoom ( tsgraph, new GRLimits(), new_data_limits );
+					_listeners[il].tsViewZoom ( tsgraph, new GRLimits(), newDataLimits );
 				}
 			}
 		}
@@ -4451,17 +4472,33 @@ public void update(Graphics g)
 }
 
 /**
+ * Apply a zoom, such as the reference graph zoom history from "previous" and "next" actions.
+ * Currently this method has only been enabled for the reference graph, to enable responding
+ * to previous/next zoom actions in the TSViewGraphJFrame interface.
+ * @param newdataLimits new zoom limits, in data units
+ */
+public void zoom ( GRLimits newdataLimits ) {
+	// Call the other method with necessary data
+	GRLimits mouseLimits = null;
+	if ( _is_reference_graph ) {
+		if ( _tsgraphs.size() > 0 ) {
+			TSGraph tsgraph = _tsgraphs.get(0);
+			zoom ( tsgraph, mouseLimits, newdataLimits );
+		}
+	}
+}
+
+/**
 Apply a zoom that has occurred in one graph to other graphs.  This is done by
 setting the data limits in the related graphs.  Only graphs in the same
 zoom group are updated and it assumed that each graph will interpret the
 limits appropriately (e.g., use the new X axis date limits but handle its own Y axis limits).
 @param tsgraph TSGraph that generated the zoom event.
-@param mouse_limits Component limits for zoom extent.
+@param mouse_limits Component limits for zoom extent (currently not used).
 @param newdata_limits Data limits for zoom extent in the original graph.
 */
 public void zoom ( TSGraph tsgraph, GRLimits mouse_limits, GRLimits newdata_limits )
-{	String zoom_group = _tsproduct.getLayeredPropValue ( "ZoomGroup",
-			tsgraph.getSubProductNumber(), -1, false );
+{	String zoom_group = _tsproduct.getLayeredPropValue ( "ZoomGroup", tsgraph.getSubProductNumber(), -1, false );
 	//Message.printStatus ( 1, "", _gtype + "zoom() data limits are" + newdata_limits.toString() );
 	int size = _tsgraphs.size();
 	TSGraph tsgraph2;
