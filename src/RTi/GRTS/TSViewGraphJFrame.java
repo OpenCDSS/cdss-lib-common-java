@@ -149,6 +149,7 @@ import javax.swing.JTextField;
 import javax.swing.JToolBar;
 
 import RTi.DMI.DMI;
+import RTi.GR.GRLimits;
 import RTi.GR.GRPoint;
 import RTi.GR.GRShape;
 import RTi.TS.DateValueTS;
@@ -218,6 +219,8 @@ private SimpleJButton __summary_JButton = null;
 private SimpleJButton __print_JButton = null;
 private SimpleJButton __table_JButton = null;
 private SimpleJButton __zoom_out_JButton = null;
+private SimpleJButton zoomXPrevious_JButton = null;
+private SimpleJButton zoomXNext_JButton = null;
 private SimpleJButton __mode_JButton = null;
 
 private SimpleJComboBox __trackerModeJComboBox = null;
@@ -296,8 +299,7 @@ Handle action events.
 */
 public void actionPerformed ( ActionEvent event )
 {	Object o = event.getSource();
-    if (o == _edit_JToogleButton)
-    {
+    if (o == _edit_JToogleButton) {
       _ts_graph.setDisplayCursor(true);
       _ts_graph.setInteractionMode(TSGraphJComponent.INTERACTION_EDIT);
       _fillInterpolation_JButton.setEnabled(true);
@@ -305,19 +307,16 @@ public void actionPerformed ( ActionEvent event )
       _autoConnect_JCheckBox.setSelected(true);
       _tsGraphEditor.setAutoConnect(true);
     }
-    else if (o == _zoom_JToogleButton)
-    {
+    else if (o == _zoom_JToogleButton) {
       _ts_graph.setDisplayCursor(false);
       _ts_graph.setInteractionMode(TSGraphJComponent.INTERACTION_ZOOM);
       _fillInterpolation_JButton.setEnabled(false);
       _autoConnect_JCheckBox.setEnabled(false);
     }
-    else if (o == _autoConnect_JCheckBox)
-    {
+    else if (o == _autoConnect_JCheckBox) {
       _tsGraphEditor.setAutoConnect(((JCheckBox)o).isSelected());
     }
-    else if (o == _fillInterpolation_JButton)
-    {
+    else if (o == _fillInterpolation_JButton) {
       _tsGraphEditor.doFillWithInterpolation();
       _ts_graph.refresh(false);
     }
@@ -410,6 +409,29 @@ public void actionPerformed ( ActionEvent event )
 		if ( _ref_graph != null ) {
 			_ref_graph.zoomOut ();
 		}
+		// Also save an entry in the zoom history
+		List<TSGraph> tsgraphs = _ref_graph.getTSGraphs();
+		// Reference graph should be first and only in list
+		if ( tsgraphs.size() >= 1 ) {
+			TSGraph graph = tsgraphs.get(0);
+			_ref_graph.getReferenceGraphZoomHistory().add(graph.getDataLimits());
+		}
+	}
+	else if ( o == zoomXNext_JButton ) {
+		// Zoom to next X zoom
+		GRLimits newZoom = _ref_graph.getReferenceGraphZoomHistory().next();
+		if ( newZoom != null ) {
+			_ref_graph.zoom(newZoom);
+		}
+		checkGUIState();
+	}
+	else if ( o == zoomXPrevious_JButton ) {
+		// Zoom to previous X zoom
+		GRLimits newZoom = _ref_graph.getReferenceGraphZoomHistory().previous();
+		if ( newZoom != null ) {
+			_ref_graph.zoom(newZoom);
+		}
+		checkGUIState();
 	}
 }
 
@@ -454,6 +476,28 @@ private void addLayeredPaneComponent ( JLayeredPane container, Component compone
     //((GridBagLayout)lm).setConstraints(component, gbc);
     //container.add (component, z);
     container.add (component, gbc, z);
+}
+
+/**
+ * Check the GUI state, to enable disable buttons and other features.
+ */
+private void checkGUIState () {
+	// Main buttons on interface such as zooming
+	if ( this._ref_graph != null ) {
+		// If there is anything in the zoom history, enable buttons accordingly
+		if ( this._ref_graph.getReferenceGraphZoomHistory().getNextZoom() == null ) {
+			this.zoomXNext_JButton.setEnabled(false);
+		}
+		else {
+			this.zoomXNext_JButton.setEnabled(true);
+		}
+		if ( this._ref_graph.getReferenceGraphZoomHistory().getPreviousZoom() == null ) {
+			this.zoomXPrevious_JButton.setEnabled(false);
+		}
+		else {
+			this.zoomXPrevious_JButton.setEnabled(true);
+		}
+	}
 }
 
 /**
@@ -897,6 +941,13 @@ private void openGUI ( boolean mode )
 		// Let the reference graph listen to itself so it can redraw its reference box...
 		// TODO SAM 2010-09-07 not needed anymore?
 		//_ref_graph.addTSViewListener ( _ref_graph );
+		// Add the initial graph data limits to the zoom history
+		List<TSGraph> tsgraphs = _ref_graph.getTSGraphs();
+		// Reference graph should be first and only in list
+		if ( tsgraphs.size() >= 1 ) {
+			TSGraph graph = tsgraphs.get(0);
+			_ref_graph.getReferenceGraphZoomHistory().add(graph.getDataLimits());
+		}
 	}
 
 	// Listeners...
@@ -970,6 +1021,20 @@ private void openGUI ( boolean mode )
 	button_top_JPanel.add ( __zoom_out_JButton );
 	__zoom_out_JButton.setEnabled ( true );
 	
+	zoomXPrevious_JButton = new SimpleJButton("<x", "TSViewGraphJFrame.ZoomXPrevious", this);
+	zoomXPrevious_JButton.setToolTipText("Zoom to previous X-axis extent");
+	button_top_JPanel.add ( zoomXPrevious_JButton );
+	zoomXPrevious_JButton.setEnabled ( false );
+	// TODO SAM 2017-04-24 need to fully enable
+	zoomXPrevious_JButton.setVisible ( false );
+	
+	zoomXNext_JButton = new SimpleJButton("x>", "TSViewGraphJFrame.ZoomXNext", this);
+	zoomXNext_JButton.setToolTipText("Zoom to next X-axis extent");
+	button_top_JPanel.add ( zoomXNext_JButton );
+	zoomXNext_JButton.setEnabled ( false );
+	// TODO SAM 2017-04-24 need to fully enable
+	zoomXNext_JButton.setVisible ( false );
+	
 	// Add choices for tracker behavior
 	
 	__trackerModeJComboBox = new SimpleJComboBox(false);
@@ -987,13 +1052,15 @@ private void openGUI ( boolean mode )
 	// Disable zooming if the component has no graphs that can zoom...
 
 	if ( !_ts_graph.canUseZoom() ) {
-		__zoom_out_JButton.setEnabled(false);
 		__left_tostart_JButton.setEnabled(false);
 		__left_page_JButton.setEnabled(false);
 		__left_halfpage_JButton.setEnabled(false);
 		__right_halfpage_JButton.setEnabled(false);
 		__right_page_JButton.setEnabled(false);
 		__right_toend_JButton.setEnabled(false);
+		__zoom_out_JButton.setEnabled(false);
+		zoomXPrevious_JButton.setEnabled(false);
+		zoomXNext_JButton.setEnabled(false);
 	}
 
 	// Default the mode to select initially (so user can change to zoom mode if they want)...
@@ -1443,10 +1510,18 @@ public void tsViewMouseMotion ( TSGraph g, GRPoint devpt, GRPoint datapt )
 
 public void tsViewSelect ( TSGraph g, GRShape devlim, GRShape datalim, List<Object> selected )
 {
+	checkGUIState();
 }
 
 public void tsViewZoom ( TSGraph g, GRShape devlim, GRShape datalim )
 {
+	Message.printStatus(2, "tsViewZoom", "zooming to provided limits" + datalim );
+	if ( datalim instanceof GRLimits ) {
+		GRLimits newLimits = new GRLimits((GRLimits)datalim);
+		Message.printStatus(2, "tsViewZoom", "Adding new limits to reference graph" );
+		_ref_graph.getReferenceGraphZoomHistory().add(newLimits);
+	}
+	checkGUIState();
 }
 
 // WindowListener functions...
