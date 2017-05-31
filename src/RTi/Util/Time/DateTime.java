@@ -244,6 +244,7 @@
 package RTi.Util.Time;
 
 import java.io.Serializable;
+import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -1025,6 +1026,58 @@ public DateTime ( double double_date, boolean use_month )
 
 	reset ();
 	__iszero = false;
+}
+
+/**
+Construct using an OffsetDateTime and a time zone to convert to at construction.
+@param t DateTime to copy.
+@param behaviorFlag control behavior (see bitmasks) - if <= 0 do not change from default.
+Typically the behaviorFlag is used to indicate the precision of the DateTime.
+@param newtz Time zone to use in the resulting DateTime.
+If null or blank then it is assumed that the application is aware of time zones and is making consistent
+(or that time zone is not relevant because precision is for date).
+If a time zone string is specified, it is expected to be a valid Java 8 time zone appropriate for the OffsetDateTime.
+For example, if a series of OffsetDateTime are being processed from a database for Mountain time zone, they will likely
+be returned with time zone -07:00 for Mountain standard time part of the year and -06:00 for Mountain daylight time
+part of the year.  The zone shift specified should either be a named zone such as "America/Denver" indicating
+that all the date/times are local time, or specify an offset such as -07:00.
+The main issue is when used over a period where time zone changes, the time zone should be appropriate for that
+when output.
+*/
+public DateTime ( OffsetDateTime t, int behaviorFlag, String newtz )
+{	if ( t != null ) {
+		// First copy...
+
+		__hsecond = t.getNano()*10000000; // 1x10^9 to get to seconds / 100 for hundredths of a second so 1x10^7
+		__second = t.getSecond();
+		__minute = t.getMinute();
+		__hour = t.getHour();
+		__day = t.getDayOfMonth();
+		__month = t.getMonthValue();
+		__year = t.getYear();
+		// The following are calculated with reset() call below
+		//__isleap
+		//__iszero
+		//__weekday
+		//__yearday
+		//__abs_month
+		
+		// The following just saves the time zone string.
+		setTimeZone( newtz );
+		// Reset internal data like leap year, etc.
+		reset();
+	}
+	else {
+        // Constructing from null usually means that there is a code
+		// logic problem with exception handling...
+		Message.printWarning ( 2, "DateTime", "Constructing DateTime from null - will have zero date!" );
+		setToZero ();
+	}
+	if ( behaviorFlag > 0 ) {
+		__behavior_flag = behaviorFlag;
+		setPrecision(behaviorFlag);
+	}
+	reset();
 }
 
 /**
