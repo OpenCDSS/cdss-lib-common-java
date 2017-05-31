@@ -777,24 +777,25 @@ Parse an interval string like "6Day" into its parts and return as a
 TimeInterval.  If the multiplier is not specified, the value returned from
 getMultiplierString() will be "", even if the getMultiplier() is 1.
 @return The TimeInterval that is parsed from the string.
-@param interval_string Time series interval as a string, containing an
+@param intervalString Time series interval as a string, containing an
 interval string and an optional multiplier.
 @exception InvalidTimeIntervalException if the interval string cannot be parsed.
 */
-public static TimeInterval parseInterval ( String interval_string )
+public static TimeInterval parseInterval ( String intervalString )
 throws InvalidTimeIntervalException
-{	String	routine = "TimeInterval.parseInterval";
-	int	digit_count=0, dl = 50, i=0, length;
+{	String routine = "TimeInterval.parseInterval";
+	int	digitCount = 0; // Count of digits at start of the interval string
+	int dl = 50;
+	int i = 0;
+	int length = intervalString.length();
 
 	TimeInterval interval = new TimeInterval ();
-
-	length = interval_string.length();
 
 	// Need to strip of any leading digits.
 
 	while( i < length ){
-		if( Character.isDigit(interval_string.charAt(i)) ){
-			digit_count++;
+		if( Character.isDigit(intervalString.charAt(i)) ){
+			digitCount++;
 			i++;
 		}
 		else {
@@ -803,27 +804,27 @@ throws InvalidTimeIntervalException
 		}
 	}
 
-	if( digit_count == 0 ){
+	if( digitCount == 0 ){
 		//
 		// The string had no leading digits, interpret as one.
 		//
 		interval.setMultiplier ( 1 );
 	}
-	else if( digit_count == length ){
+	else if( digitCount == length ){
 		//
-		// The whole string is a digit.
+		// The whole string is a digit, default to hourly (legacy behavior)
 		//
 		interval.setBase ( HOUR );
-		interval.setMultiplier ( Integer.parseInt( interval_string ));
+		interval.setMultiplier ( Integer.parseInt( intervalString ));
 		if ( Message.isDebugOn ) {
 			Message.printDebug( dl, routine, interval.getMultiplier() + " Hourly" );
 		}
 		return interval;
 	}
 	else {
-	    String interval_mult_string = interval_string.substring(0,digit_count);
-		interval.setMultiplier ( Integer.parseInt((interval_mult_string)) );
-		interval.setMultiplierString ( interval_mult_string );
+	    String intervalMultString = intervalString.substring(0,digitCount);
+		interval.setMultiplier ( Integer.parseInt((intervalMultString)) );
+		interval.setMultiplierString ( intervalMultString );
 	}
 
 	if ( Message.isDebugOn ) {
@@ -832,77 +833,49 @@ throws InvalidTimeIntervalException
 
 	// Now parse out the Base interval
 
-	if(	interval_string.regionMatches(true,digit_count,"minute",0,6) ) {
-		interval.setBaseString ( interval_string.substring(digit_count,(digit_count + 6)));
+	String intervalBaseString = intervalString.substring(digitCount).trim();
+	String intervalBaseStringUpper = intervalBaseString.toUpperCase();
+	if (intervalBaseStringUpper.startsWith("MIN")) {
+		interval.setBaseString ( intervalBaseString );
 		interval.setBase ( MINUTE );
 	}
-	else if(interval_string.regionMatches(true,digit_count,"min",0,3) ) {
-		interval.setBaseString ( interval_string.substring(digit_count,(digit_count + 3)));
-		interval.setBase ( MINUTE );
-	}
-	else if(interval_string.regionMatches(true,digit_count,"hour",0,4) ) {
-		interval.setBaseString ( interval_string.substring(digit_count,(digit_count + 4)));
+	else if(intervalBaseStringUpper.startsWith("HOUR") || intervalBaseStringUpper.startsWith("HR")) {
+		interval.setBaseString ( intervalBaseString );
 		interval.setBase ( HOUR );
 	}
-	else if(interval_string.regionMatches(true,digit_count,"hr",0,2) ) {
-		interval.setBaseString ( interval_string.substring(digit_count,(digit_count + 2)));
-		interval.setBase ( HOUR );
-	}
-	else if(interval_string.regionMatches(true,digit_count,"day",0,3) ||
-		interval_string.regionMatches(true,digit_count,"dai",0,3) ) {
-		interval.setBaseString ( interval_string.substring(digit_count,(digit_count + 3)));
+	else if(intervalBaseStringUpper.startsWith("DAY") || intervalBaseStringUpper.startsWith("DAI")) {
+		interval.setBaseString ( intervalBaseString );
 		interval.setBase ( DAY );
 	}
-	else if(interval_string.regionMatches(true,digit_count,"sec",0,2) ) {
-		interval.setBaseString ( interval_string.substring(digit_count,(digit_count + 2)));
+	else if(intervalBaseStringUpper.startsWith("SEC")) {
+		interval.setBaseString ( intervalBaseString );
 		interval.setBase ( SECOND );
 	}
-	else if(interval_string.regionMatches(true,digit_count,"week",0,4) ) {
-		interval.setBaseString ( interval_string.substring(digit_count,(digit_count + 4)));
+	else if(intervalBaseStringUpper.startsWith("WEEK") || intervalBaseStringUpper.startsWith("WK")) {
+		interval.setBaseString ( intervalBaseString );
 		interval.setBase ( WEEK );
 	}
-	else if(interval_string.regionMatches(true,digit_count,"wk",0,2) ) {
-		interval.setBaseString ( interval_string.substring(digit_count,(digit_count + 2)));
-		interval.setBase ( WEEK );
-	}
-	else if(interval_string.regionMatches(true,digit_count,"month",0,5) ) {
-		interval.setBaseString ( interval_string.substring(digit_count,(digit_count + 5)));
+	else if(intervalBaseStringUpper.startsWith("MON")) {
+		interval.setBaseString ( intervalBaseString );
 		interval.setBase ( MONTH );
 	}
-	else if(interval_string.regionMatches(true,digit_count,"mon",0,3) ) {
-		interval.setBaseString (interval_string.substring(digit_count,(digit_count + 3)));
-		interval.setBase ( MONTH );
-	}
-	else if(interval_string.regionMatches(true,digit_count,"year",0,4) ) {
-		interval.setBaseString (interval_string.substring(digit_count,(digit_count + 4)));
+	else if(intervalBaseStringUpper.startsWith("YEAR") || intervalBaseStringUpper.startsWith("YR")) {
+		interval.setBaseString ( intervalBaseString );
 		interval.setBase ( YEAR );
 	}
-	else if(interval_string.regionMatches(true,digit_count,"yr",0,2) ) {
-		interval.setBaseString (interval_string.substring(digit_count,(digit_count + 2)));
-		interval.setBase ( YEAR );
-	}
-	else if(interval_string.regionMatches(true,digit_count,"irregular",0,9)) {
-		interval.setBaseString (interval_string.substring(digit_count,(digit_count + 9)));
-		interval.setBase ( IRREGULAR );
-	}
-	else if(interval_string.regionMatches(true,digit_count,"irreg",0,5)) {
-		interval.setBaseString (interval_string.substring(digit_count,(digit_count + 5)));
-		interval.setBase ( IRREGULAR );
-	}
-	else if(interval_string.regionMatches(true,digit_count,"irr",0,3) ) {
-		interval.setBaseString (interval_string.substring(digit_count,(digit_count + 3)));
+	else if(intervalBaseStringUpper.startsWith("IRR")) {
+		interval.setBaseString ( intervalBaseString );
 		interval.setBase ( IRREGULAR );
 	}
 	else {
-	    if ( interval_string.length() == 0 ) {
+	    if ( intervalString.length() == 0 ) {
 			Message.printWarning( 2, routine, "No interval specified." );
 		}
 		else {
 		    Message.printWarning( 2, routine, "Unrecognized interval \"" +
-			interval_string.substring(digit_count) + "\"" );
+			intervalString.substring(digitCount) + "\"" );
 		}
-		routine = null;
-		throw new InvalidTimeIntervalException ( "Unrecognized time interval \"" + interval_string + "\"" );
+		throw new InvalidTimeIntervalException ( "Unrecognized time interval \"" + intervalString + "\"" );
 	}
 
 	if ( Message.isDebugOn ) {
@@ -910,7 +883,6 @@ throws InvalidTimeIntervalException
 		interval.getBase() + " (" + interval.getBaseString() + "), Mult: " + interval.getMultiplier() );
 	}
 
-	routine = null;
 	return interval;
 }
 
