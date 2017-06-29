@@ -2584,7 +2584,7 @@ public static String toAbsolutePath ( String dir, String path )
 	if ( f.isAbsolute() ) {
 		return path;
 	}
-	// Loop through the "path".  For each occurance of "..", knock a directory off the end of the "dir"...
+	// Loop through the "path".  For each occurrence of "..", knock a directory off the end of the "dir"...
 
 	// Always trim any trailing directory separators off the directory paths
 	while (dir.length() > 1 && dir.endsWith(File.separator)) {
