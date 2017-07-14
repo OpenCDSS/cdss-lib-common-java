@@ -10643,7 +10643,7 @@ throws TSException
 }
 
 /**
-Shift the time series from its current time zone to the specfied time zone.
+Shift the time series from its current time zone to the specified time zone.
 Currently, only shifts for HourTS are supported.
 The shift is accomplished as follows:
 <ul>

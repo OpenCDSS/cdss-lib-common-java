@@ -245,6 +245,8 @@ package RTi.Util.Time;
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -505,6 +507,7 @@ The following formats a date as follows:  "YYYY-MM-DD HH:mm:SS:hh".
 public static final int FORMAT_YYYY_MM_DD_HH_mm_SS_hh = 24;
 /**
 The following formats a date as follows:  "YYYY-MM-DD HH:mm:SS:hh ZZZ".
+This is nearly ISO 8601 but it does not include the T before time and the time zone has a space.
 */
 public static final int FORMAT_YYYY_MM_DD_HH_mm_SS_hh_ZZZ = 25;
 /**
@@ -519,6 +522,11 @@ public static final int FORMAT_MM_SLASH_DD_SLASH_YYYY_HH_mm_SS = 28;
 The following formats a date as follows:  "YYYYMMDD".
 */
 public static final int FORMAT_YYYYMMDD = 29;
+/**
+The following formats a date/time according to ISO 8601, for example for longest form:
+2017-06-30T23:03:33.123+06:00
+*/
+public static final int FORMAT_ISO_8601 = 30;
 /**
 The following formats a date as follows, for debugging:  year=YYYY, month=MM, etc..
 */
@@ -604,7 +612,9 @@ behavior flags but for the most part it is only used for ZERO/CURRENT and FAST/S
 private int __behavior_flag;
 
 /**
-Indicates whether the time zone should be used when processing the DateTime
+Indicates whether the time zone should be used when processing the DateTime.
+SetTimeZone() will set to true if the time zone is not empty, false if empty.
+Setting the precision can override this if time zone flag is set.
 */
 private boolean __use_time_zone = false;
 
@@ -3268,14 +3278,173 @@ private static DateTime parse ( String date_string, int format, int flag )
 		date.__hsecond = ((Integer)v.get(6)).intValue();
 		date.setTimeZone ( (String)v.get(7) );
 	}
+	else if ( format == FORMAT_ISO_8601 ) {
+		// ISO 8601 formats.  See:  https://en.wikipedia.org/wiki/ISO_8601
+		// - do not support decimal parts other than seconds
+		// - do not support weeks
+		// - cannot rely on something like OffsetDateTime to parse because don't know if time zone is included, etc.
+		// Could have a variety of formats:
+		// Date: 2017-06-30
+		// Various date/time:
+		// 2017-06-30T23:03:33Z
+		// 2017-06-30T23:03:33+01:00
+		// 2017-06-30T23:03:33-01:00
+		// 20170630T230333Z
+		// 20170630T230333+0100
+		// 20170630T230333+01
+		// Ordinal date:  2017-181 (not yet supported below)
+		// Date without year:  -06-30 (not yet supported below)
+		//Message.printStatus(2, routine, "Processing date/time string \"" + date_string + "\"");
+		int posT = date_string.indexOf("T");
+		String d = null;
+		String t = null;
+		if ( posT > 0 ) {
+			// Date and time
+			d = date_string.substring(0, posT); // Before T
+			t = date_string.substring(posT + 1); // After T
+		}
+		else {
+			// Only date so no need to deal with time zone
+			d = date_string;
+		}
+		int dateLen = d.length();
+		// Instantiate date/time to full precision, but will set precision more specifically below as it is determined
+		if ( (d != null) && (t != null) ) {
+			// Full date/time
+			date = new DateTime ( PRECISION_HSECOND );
+		}
+		else if ( (d != null) && (t == null) ) {
+			// Only Date
+			date = new DateTime ( PRECISION_DAY );
+		}
+		if ( d != null ) {
+			String yearFormat = "i4";
+			String monthFormat = null;
+			String dayFormat = null;
+			// Assume have delimiter for lengths and if not reset lengths below
+			int yearLen = 4;
+			int monthLen = 7;
+			int dayLen = 10;
+			if ( d.indexOf("-") >= 0 ) {
+				monthFormat = "i4x1i2";
+				dayFormat = "i4x1i2x1i2";
+			}
+			else {
+				monthFormat = "i4i2";
+				monthLen = 6;
+				dayFormat = "i4i2i2";
+				dayLen = 8;
+			}
+			// Date fields are delimited by dash and may be truncated
+			if ( dateLen == yearLen ) {
+				v = StringUtil.fixedRead ( d, yearFormat );
+				date.__year = ((Integer)v.get(0)).intValue();
+				date.setPrecision(DateTime.PRECISION_YEAR);				
+			}
+			else if ( dateLen == monthLen ) {
+				v = StringUtil.fixedRead ( d, monthFormat );
+				date.__year = ((Integer)v.get(0)).intValue();
+				date.__month = ((Integer)v.get(1)).intValue();
+				date.setPrecision(DateTime.PRECISION_MONTH);
+			}
+			else if ( dateLen == dayLen ) {
+				v = StringUtil.fixedRead ( d, dayFormat );
+				date.__year = ((Integer)v.get(0)).intValue();
+				date.__month = ((Integer)v.get(1)).intValue();
+				date.__day = ((Integer)v.get(2)).intValue();
+				date.setPrecision(DateTime.PRECISION_DAY);
+			}
+			else {
+				throw new IllegalArgumentException ( "Don't know how to parse \"" + date_string + "\" date \"" + d + "\" using ISO 8601." );
+			}
+		}
+		if ( t != null ) {
+			int timeLen = t.length();
+			String hourFormat = "i2";
+			String minuteFormat = null;
+			// Assume have delimiter for lengths and if not reset lengths below
+			int hourLen = 2;
+			int minuteLen = 5;
+			int colonOffset = 1; // Used when processing seconds below
+			if ( t.indexOf(":") >= 0 ) {
+				minuteFormat = "i2x1i2";
+			}
+			else {
+				minuteFormat = "i4i2";
+				minuteLen = 4;
+				colonOffset = 0;
+			}
+			// Time fields are delimited by colon and may be truncated
+			// - read hour and minute using fixed read and then read second and time zone handling variable length
+			date.__tz = ""; // Time zone unknown
+			if ( timeLen >= minuteLen ) {
+				v = StringUtil.fixedRead ( t, minuteFormat );
+				date.__hour = ((Integer)v.get(0)).intValue();
+				date.__minute = ((Integer)v.get(1)).intValue();
+				date.setPrecision(DateTime.PRECISION_MINUTE);
+			}
+			else if ( timeLen >= hourLen ) {
+				v = StringUtil.fixedRead ( t, hourFormat );
+				date.__hour = ((Integer)v.get(0)).intValue();
+				date.setPrecision(DateTime.PRECISION_HOUR);				
+			}
+			else {
+				throw new IllegalArgumentException ( "Don't know how to parse \"" + date_string + "\" time \"" + t + "\" using ISO 8601." );
+			}
+			if ( timeLen > minuteLen ) {
+				// Have to parse seconds and/or time zone
+				String secAndTz = t.substring(minuteLen + colonOffset); // +1 is to skip :
+				//Message.printStatus(2, routine, "processing seconds and/or time zone in \"" + secAndTz + "\"");
+				// See if time zone is specified, which will start with +, -, or Z
+				String secString = "";
+				int posZ = secAndTz.indexOf("Z");
+				if ( posZ < 0 ) {
+					posZ = secAndTz.indexOf("+");
+				}
+				if ( posZ < 0 ) {
+					posZ = secAndTz.indexOf("-");
+				}
+				if ( posZ < 0 ) {
+					// Default will be blank
+					date.setTimeZone("");
+					secString = secAndTz;
+				}
+				else {
+					// Have time zone, use as is
+					date.setTimeZone(secAndTz.substring(posZ));
+					date.setPrecision(DateTime.PRECISION_TIME_ZONE);
+					date.__use_time_zone = true;
+					secString = secAndTz.substring(0,posZ);
+				}
+				// Figure out the seconds, which will be between the minute and time zone
+				//Message.printStatus(2, routine, "processing seconds in \"" + secString + "\"");
+				if ( !secString.isEmpty() ) {
+					// Have seconds
+					int posPeriod = secString.indexOf(".");
+					if ( posPeriod > 0 ) { // Not >= because expect seconds in front of decimal so 0 is not allowed
+						date.setPrecision(DateTime.PRECISION_HSECOND);
+						date.setSecond(Integer.parseInt(secString.substring(0,posPeriod)));
+						// DateTime class recognizes hundreds so want only the first two digits
+						String hsecString = secString.substring(posPeriod + 1);
+						if ( hsecString.length() > 2 ) {
+							hsecString = hsecString.substring(0, 2);
+						}
+						//Message.printStatus(2, routine, "Setting hseconds to \"" + hsecString + "\"");
+						date.setHSecond(Integer.parseInt(hsecString));
+					}
+					else {
+						date.setPrecision(DateTime.PRECISION_SECOND);
+						int sec = Integer.parseInt(secString);
+						date.setSecond(sec);
+					}
+				}
+			}
+		}
+		//Message.printStatus(2, routine, "After parsing ISO 8601, date/time is: \"" + date + "\"");
+	}
 	else {
-        v = null;
-		routine = null;
 		throw new IllegalArgumentException ( "Date format " + format +	" is not recognized." );
 	}
-	// Cleanup...
-	v = null;
-	routine = null;
 	// Check for hour 24...
 	if ( date.__hour == 24 ) {
 		// Assume the date that was parsed uses a 1-24 hour system. Change to hour 0 of the next day...
@@ -3339,11 +3508,6 @@ private static DateTime parse ( String date_string, int format, int flag )
 	date.reset();
 	return date;
 }
-
-/**
-Parse an ISO standard string with no year.  Recognized formats are therefore 
-"MM", "MM-DD", "MM-DD HH", and "MMDD HH:mm".
-*/
 
 /**
 Reset the derived data (year day, absolute month, and leap year).  This is
@@ -3642,12 +3806,18 @@ public void setHSecond( int hs)
 {	
 	if( (__behavior_flag & DATE_STRICT) != 0 ){
         if( hs > 99 || hs < 0 ) {
-            String message = "Trying to set invalid hsecond (" + hs + ") in DateTime.";
+            String message = "Trying to set invalid hsecond (" + hs + ") in DateTime, must be between 0 and 99.";
             Message.printWarning( 2, "DateTime.setHSecond", message );
             throw new IllegalArgumentException ( message );
         }
 	}
-    __hsecond = hs;
+	if ( hs >= 100 ) {
+		// Truncate to first two digits
+		String s = "" + hs;
+		s = s.substring(0, 2);
+		hs = Integer.parseInt(s);
+	}
+	__hsecond = hs;
 	// This has the flaw of not changing the flag when the value is set to 0!
 	if ( hs != 0 ) {
 		__iszero = false;
@@ -3793,6 +3963,9 @@ public DateTime setPrecision ( int behavior_flag, boolean cumulative )
 	}
 	else if ( precision == PRECISION_SECOND ) {
 		__hsecond = 0;
+		__precision = precision;
+	}
+	else if ( precision == PRECISION_HSECOND ) {
 		__precision = precision;
 	}
 	// Else do not set _precision - assume that it was set previously (e.g., in a copy constructor).
@@ -4042,14 +4215,48 @@ then sets the time zone for the instance to the requested time zone.
 @exception Exception if the time zone cannot be shifted (unknown time zone).
 */
 public void shiftTimeZone ( String zone )
-{	try {
-        int offset = TZ.calculateOffsetMinutes ( __tz, zone, this );
-		addMinute ( offset );
-		setTimeZone ( zone );
-		// TODO SAM 2016-03-11 See getDate(String tz) treatment of time zone - could add check here
+{	Message.printStatus(2, "", "Shifting to time zone \"" + zone + "\"");
+	if ( zone.isEmpty() ) {
+		// Just set the time zone to blank to make times timezone-agnostic
+		setTimeZone ( "" );
 	}
-	catch ( Exception e ) {
-		// Nothing for now - should not happen if system is set up correctly
+	else if ( zone.equalsIgnoreCase(this.__tz) ) {
+		// The requested time zone is the same as original.  Do nothing.
+	}
+	else if ( zone.startsWith("+") || zone.startsWith("-") ) {
+		// Special case - expect an ISO 8601 offset timezone such as -07 or -07:00
+		Message.printStatus(2, "", "Assume ISO 8601 time zone \"" + zone + "\"");
+		// Get the offset from the existing time zone
+		ZoneOffset offsetOrig = TimeUtil.getTimeZoneOffset(this.__tz);
+		if ( offsetOrig == null ) {
+			throw new RuntimeException ( "Trying to shift time zone from unrecognized existing time zone \"" + this.__tz + "\".");
+		}
+		// Calculate the time zone offset from the requested zone
+		ZoneOffset offsetNew = TimeUtil.getTimeZoneOffset(zone);
+		if ( offsetNew == null ) {
+			throw new RuntimeException ( "Trying to shift time zone to unrecognized time zone \"" + zone + "\".");
+		}
+		// Shift the time
+		// - for example if original is -07:00 and new is -06:00, time to add (using hours for example) is: -6 -(-7) = 1
+		// - for example if original is -06:00 and new is -07:00, time to add is:  -7 -(-6) = -1
+		addSecond(offsetNew.getTotalSeconds() - offsetOrig.getTotalSeconds());
+		// Set the time zone to the requested
+		setTimeZone ( zone );
+	}
+	else {
+		// All other time zones
+		// TODO smalers 2017-07-13 need to phase in java.time
+		// Want to change the time zone so compute an offset and apply
+		try {
+	        int offset = TZ.calculateOffsetMinutes ( __tz, zone, this );
+			addMinute ( offset );
+			setTimeZone ( zone );
+			// TODO SAM 2016-03-11 See getDate(String tz) treatment of time zone - could add check here
+		}
+		catch ( Exception e ) {
+			// For now rethrow as RuntimeException because legacy code would need to be updated to handle Exception
+			throw new RuntimeException ( e );
+		}
 	}
 }
 
@@ -4133,7 +4340,13 @@ public String toString ()
 	}
 	else if ( __precision == PRECISION_HOUR ) {
 		if ( __use_time_zone && (__tz.length() > 0) ) {
-			return toString ( FORMAT_YYYY_MM_DD_HH_ZZZ );
+			char prefix = __tz.charAt(0);
+			if ( (prefix == '-') || (prefix == '+') || __tz.equals("Z") ) {
+				return toString ( FORMAT_ISO_8601 );
+			}
+			else {
+				return toString ( FORMAT_YYYY_MM_DD_HH_ZZZ );
+			}
 		}
 		else {
             return toString ( FORMAT_YYYY_MM_DD_HH );
@@ -4148,7 +4361,13 @@ public String toString ()
 		}
 		else {
             if ( __use_time_zone && (__tz.length() > 0) ) {
-				return toString ( FORMAT_YYYY_MM_DD_HH_mm_ZZZ );
+    			char prefix = __tz.charAt(0);
+    			if ( (prefix == '-') || (prefix == '+') || __tz.equals("Z") ) {
+    				return toString ( FORMAT_ISO_8601 );
+    			}
+    			else {
+    				return toString ( FORMAT_YYYY_MM_DD_HH_mm_ZZZ );
+    			}
 			}
 			else {
                 return toString ( FORMAT_YYYY_MM_DD_HH_mm );
@@ -4157,7 +4376,13 @@ public String toString ()
 	}
 	else if ( __precision == PRECISION_SECOND ) {
 		if ( __use_time_zone && (__tz.length() > 0) ) {
-			return toString ( FORMAT_YYYY_MM_DD_HH_mm_SS_ZZZ );
+			char prefix = __tz.charAt(0);
+			if ( (prefix == '-') || (prefix == '+') || __tz.equals("Z") ) {
+				return toString ( FORMAT_ISO_8601 );
+			}
+			else {
+				return toString ( FORMAT_YYYY_MM_DD_HH_mm_SS_ZZZ );
+			}
 		}
 		else {
             return toString ( FORMAT_YYYY_MM_DD_HH_mm_SS );
@@ -4165,7 +4390,13 @@ public String toString ()
 	}
 	else if ( __precision == PRECISION_HSECOND ) {
 		if ( __use_time_zone && (__tz.length() > 0) ) {
-			return toString ( FORMAT_YYYY_MM_DD_HH_mm_SS_hh_ZZZ );
+			char prefix = __tz.charAt(0);
+			if ( (prefix == '-') || (prefix == '+') || __tz.equals("Z") ) {
+				return toString ( FORMAT_ISO_8601 );
+			}
+			else {
+				return toString ( FORMAT_YYYY_MM_DD_HH_mm_SS_hh_ZZZ );
+			}
 		}
 		else {
             return toString ( FORMAT_YYYY_MM_DD_HH_mm_SS_hh );
@@ -4174,7 +4405,13 @@ public String toString ()
 	else {
         // Assume that hours and minutes but NOT time zone are desired...
 		if ( __use_time_zone && (__tz.length() > 0) ) {
-			return toString ( FORMAT_YYYY_MM_DD_HH_mm_ZZZ );
+			char prefix = __tz.charAt(0);
+			if ( (prefix == '-') || (prefix == '+') || __tz.equals("Z") ) {
+				return toString ( FORMAT_ISO_8601 );
+			}
+			else {
+				return toString ( FORMAT_YYYY_MM_DD_HH_mm_ZZZ );
+			}
 		}
 		else {
             return toString ( FORMAT_YYYY_MM_DD_HH_mm );
@@ -4379,7 +4616,65 @@ public String toString ( int format )
 			+ ", hour=" + __hour + ", min=" + __minute + ", second=" + __second + ", hsecond=" + __hsecond
 			+ ", tz=\"" + __tz + ", useTimeZone=" + __use_time_zone + ", isLeap=" + __isleap;
 	}
+	else if ( format == FORMAT_ISO_8601 ) {
+		// Output is sensitive to the precision, and use more verbose version for readability:
+		// - use dash for date delimiter, colon for time delimiter
+		// Precision values sort with Year as largest
+		StringBuilder b = new StringBuilder(); // TODO smalers 2017-07-01 Is this efficient or should there be a shared formatter?
+		String dDelim = "-";
+		String tDelim = ":";
+		if ( __precision <= PRECISION_YEAR ) {
+			b.append(StringUtil.formatString(__year, "%04d") );
+		}
+		if ( __precision <= PRECISION_MONTH ) {
+			b.append(dDelim);
+			b.append(StringUtil.formatString(__month, "%02d") );
+		}
+		if ( __precision <= PRECISION_DAY ) {
+			b.append(dDelim);
+			b.append(StringUtil.formatString(__day, "%02d") );
+		}
+		if ( __precision <= PRECISION_HOUR ) {
+			b.append("T");
+			b.append(StringUtil.formatString(__hour, "%02d") );
+		}
+		if ( __precision <= PRECISION_MINUTE ) {
+			b.append(tDelim);
+			b.append(StringUtil.formatString(__minute, "%02d") );
+		}
+		if ( __precision <= PRECISION_SECOND ) {
+			b.append(tDelim);
+			b.append(StringUtil.formatString(__second, "%02d") );
+		}
+		if ( __precision <= PRECISION_HSECOND ) {
+			b.append(".");
+			b.append(StringUtil.formatString(__hsecond, "%02d") );
+		}
+		// TODO smalers 2017-07-01 need to evaluate fractional seconds (milli or nano seconds)
+		// According to ISO-8601 a missing time zone is ambiguous and will be interpreted as local time zone.
+		// TSTool, for example, allows no time zone because often it is not relevant; however, to comply
+		// with the standard include the time zone as best as possible
+		if ( __precision <= PRECISION_HOUR ) { // TODO smalers 2017-07-01 should this check for __use_time_zone?
+			if ( !__tz.isEmpty() ) {
+				// Only output if the time zone is Z, or starts with + or -
+				char prefix = __tz.charAt(0);
+				if ( (prefix == '+') || (prefix == '-') || __tz.equals("Z") ) {
+					b.append(__tz);
+				}
+				else {
+					// Invalid time zone for ISO 8601 formatting
+					// - throw an exception since this format is being phased in and want to be compliant
+					// - this format should not be used by default yet as of 2017-07-01 so hopefully is not an issue
+					// - may need another variant on this format, for example to not output delimiter
+					throw new RuntimeException ( "Time zone \"" + __tz + "\" is incompatile with ISO 8601 format.  Should be Z or +NN:NN, etc.");
+				}
+			}
+		}
+		return b.toString();
+	}
 	else {
+		// Use this as default for historical reasons
+		// TODO smalers 2017-07-01 Need to evaluate switching to ISO
 	    return toString( FORMAT_YYYY_MM_DD_HH_mm_SS_hh_ZZZ );
 	}
 }
