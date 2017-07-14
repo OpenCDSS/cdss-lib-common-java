@@ -90,6 +90,11 @@ import RTi.Util.IO.IOUtil;
 import java.lang.Long;
 import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
+import java.time.DateTimeException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.TimeZone;
 import java.util.Calendar;
 import java.util.Date;
@@ -1930,6 +1935,24 @@ Return the current system time using the specified format.
 */
 public static String getSystemTimeString ( String format )
 {	return formatDateTime ( null, format );
+}
+
+/**
+ * Get the time zone offset for a time zone, for use with OffsetDateTime.of().
+ * @param timeZone time zone string like "-07:00", "MST" or "America/Denver".
+ * @return the zone offset, or null if it can't be found.
+ */
+public static ZoneOffset getTimeZoneOffset(String timeZone) {
+	try {
+		LocalDateTime dt = LocalDateTime.now();
+		ZoneId zone = ZoneId.of(timeZone,ZoneId.SHORT_IDS);
+		ZonedDateTime zdt = dt.atZone(zone);
+		return zdt.getOffset();
+	}
+	catch ( DateTimeException e1 ) {
+		// Time zone abbreviation is not recognized
+		return null;
+	}
 }
 
 /**
