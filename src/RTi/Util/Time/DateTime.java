@@ -2922,8 +2922,13 @@ public static DateTime parse ( String dateString )
         //
         dateTime = parse( dateStringNoTimeZone, FORMAT_YYYY_MM_DD_HH_mm_SS_hh_ZZZ, 0 );
     }
+    else if ( (lengthNoTimeZone > 10) && (dateString.charAt(11) == 'T') ) {
+    	// Assume ISO 8601 if string contains time and a T (ISO 8601 date-only should have been handled above)
+    	// - this is a bit tricky given T could be in time zone
+    	dateTime = parse( dateStringNoTimeZone, FORMAT_ISO_8601, 0 );
+    }
 	else {
-	    // Unknown length so throw an exception...
+	    // Unknown format so throw an exception...
 		throw new IllegalArgumentException ( "Date/time string \"" + dateString +
 			"\" format is not auto-recognized - may need to specify format." );
 	}
