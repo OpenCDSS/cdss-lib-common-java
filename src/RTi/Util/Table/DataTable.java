@@ -295,6 +295,20 @@ The added fields are initialized with blank strings or NaN, as appropriate.
 @return the field index (0+).
 */
 public int addField ( int insertPos, TableField tableField, Object initValue )
+{
+	return addField ( -1, tableField, initValue, null );
+}
+
+/**
+Add a field to the table and each entry in TableRecord.  The field is added at the specified insert position.
+The added fields are initialized with blank strings or NaN, as appropriate.
+@param insertPos the column (0+) at which to add the column (-1 or >= the number of existing columns to insert at the end).
+@param tableField information about field to add.
+@param initValue the initial value to set for all the existing rows in the table (can be null).
+@param initFunction the initial function used to set initial values for all the existing rows in the table (can be null).
+@return the field index (0+).
+*/
+public int addField ( int insertPos, TableField tableField, Object initValue, DataTableFunctionType initFunction )
 {	boolean addAtEnd = false;
     if ( (insertPos < 0) || (insertPos >= _table_fields.size()) ) {
         // Add at the end
@@ -310,12 +324,20 @@ public int addField ( int insertPos, TableField tableField, Object initValue )
 	TableRecord tableRecord;
 	for ( int i=0; i<num; i++ ) {
 		tableRecord = _table_records.get(i);
-
-		// Add element and set default to 0 or ""
+		// Calculate the initial value if a function
+		// Add element and set to specified initial value
 		// These are ordered in the most likely types to optimize
 		// TODO SAM 2014-05-04 Why are these broken out separately?
 		int dataType = tableField.getDataType();
 		if ( dataType == TableField.DATA_TYPE_STRING ) {
+			if ( initFunction != null ) {
+				if ( initFunction == DataTableFunctionType.ROW ) {
+					initValue = "" + (i + 1);
+				}
+				else if ( initFunction == DataTableFunctionType.ROW0 ) {
+					initValue = "" + i;
+				}
+			}
 		    if ( addAtEnd ) {
 		        tableRecord.addFieldValue( initValue );
 		    }
@@ -324,6 +346,14 @@ public int addField ( int insertPos, TableField tableField, Object initValue )
 		    }
 		}
 		else if ( dataType == TableField.DATA_TYPE_INT ) {
+			if ( initFunction != null ) {
+				if ( initFunction == DataTableFunctionType.ROW ) {
+					initValue = new Integer(i + 1);
+				}
+				else if ( initFunction == DataTableFunctionType.ROW0 ) {
+					initValue = new Integer(i);
+				}
+			}
 		    if ( addAtEnd ) {
 		        tableRecord.addFieldValue( initValue );
 		    }
@@ -332,6 +362,14 @@ public int addField ( int insertPos, TableField tableField, Object initValue )
             }
 		}
 		else if ( dataType == TableField.DATA_TYPE_DOUBLE ) {
+			if ( initFunction != null ) {
+				if ( initFunction == DataTableFunctionType.ROW ) {
+					initValue = new Double(i + 1);
+				}
+				else if ( initFunction == DataTableFunctionType.ROW0 ) {
+					initValue = new Double(i);
+				}
+			}
 		    if ( addAtEnd ) {
 		        tableRecord.addFieldValue( initValue );
 		    }
@@ -340,6 +378,14 @@ public int addField ( int insertPos, TableField tableField, Object initValue )
             }
 		}
 		else if ( dataType == TableField.DATA_TYPE_SHORT ) {
+			if ( initFunction != null ) {
+				if ( initFunction == DataTableFunctionType.ROW ) {
+					initValue = new Short((short)(i + 1));
+				}
+				else if ( initFunction == DataTableFunctionType.ROW0 ) {
+					initValue = new Short((short)(i));
+				}
+			}
 		    if ( addAtEnd ) {
 		        tableRecord.addFieldValue( initValue );
 		    }
@@ -348,6 +394,14 @@ public int addField ( int insertPos, TableField tableField, Object initValue )
             }
 		}
 		else if ( dataType == TableField.DATA_TYPE_FLOAT ) {
+			if ( initFunction != null ) {
+				if ( initFunction == DataTableFunctionType.ROW ) {
+					initValue = new Float(i + 1);
+				}
+				else if ( initFunction == DataTableFunctionType.ROW0 ) {
+					initValue = new Float(i);
+				}
+			}
 		    if ( addAtEnd ) {
 		        tableRecord.addFieldValue( initValue );
 		    }
@@ -356,6 +410,14 @@ public int addField ( int insertPos, TableField tableField, Object initValue )
             }
 		}
         else if ( dataType == TableField.DATA_TYPE_LONG ) {
+			if ( initFunction != null ) {
+				if ( initFunction == DataTableFunctionType.ROW ) {
+					initValue = new Long(i + 1);
+				}
+				else if ( initFunction == DataTableFunctionType.ROW0 ) {
+					initValue = new Long(i);
+				}
+			}
             if ( addAtEnd ) {
                 tableRecord.addFieldValue( initValue );
             }
@@ -364,6 +426,7 @@ public int addField ( int insertPos, TableField tableField, Object initValue )
             }
         }
         else if ( dataType == TableField.DATA_TYPE_DATE ) {
+        	// Function not relevant
             if ( addAtEnd ) {
                 tableRecord.addFieldValue( initValue );
             }
@@ -372,6 +435,7 @@ public int addField ( int insertPos, TableField tableField, Object initValue )
             }
         }
         else if ( dataType == TableField.DATA_TYPE_DATETIME ) {
+        	// Function not relevant
             if ( addAtEnd ) {
                 tableRecord.addFieldValue( initValue );
             }
@@ -3787,9 +3851,113 @@ throws Exception
 }
 
 /**
+Set values in the list of table records and setting values for specific columns in each record.
+The records might exist in a table or may not yet have been added to the table.
+The table records are modified directly, rather than trying to find the row in the table to modify.
+@param tableRecords list of TableRecord to set values in
+@param columnValues map for columns values that will be set, where rows to be modified will be the result of the filters;
+values are strings and need to be converged before setting, based on column type
+@param getter a DataTableValueStringProvider implementation, which is called prior to setting values if not null,
+used to provide ability to dynamically format the values being set in the table
+@param createColumns indicates whether new columns should be created if necessary
+(currently ignored due to need to synchronize the table records and full table)
+*/
+public void setTableRecordValues ( List<TableRecord> tableRecords, HashMap<String,String> columnValues,
+	DataTableValueStringProvider getter, boolean createColumns ) {
+	String routine = getClass().getSimpleName() + ".setTableRecordValues";
+	if ( tableRecords == null ) {
+		return;
+	}
+    // List of columns that will be set, taken from keys in the column values
+    int errorCount = 0;
+    StringBuffer errorMessage = new StringBuffer();
+    // Get the column numbers and values to to set
+    String [] columnNamesToSet = new String[columnValues.size()];
+    String [] columnValuesToSet = new String[columnValues.size()];
+    int [] columnNumbersToSet = new int[columnValues.size()];
+    int [] columnTypesToSet = new int[columnValues.size()];
+    int ikey = -1;
+    for ( Map.Entry<String,String> pairs: columnValues.entrySet() ) {
+        columnNumbersToSet[++ikey] = -1;
+        try {
+            columnNamesToSet[ikey] = pairs.getKey();
+            columnValuesToSet[ikey] = pairs.getValue();
+            columnNumbersToSet[ikey] = getFieldIndex(columnNamesToSet[ikey]);
+            columnTypesToSet[ikey] = getFieldDataType(columnNumbersToSet[ikey]);
+            //Message.printStatus(2,routine,"Setting column \"" + columnNamesToSet[ikey] + " " + columnNumbersToSet[ikey] + "\"");
+        }
+        catch ( Exception e ) {
+            // OK, will add the column below
+        }
+    }
+    // If necessary, add columns to the table and records.  For now, always treat as strings
+    // TODO SAM 2013-08-06 Evaluate how to handle other data types in set
+    //TableField newTableField;
+    // Create requested columns in the output table
+    for ( int icol = 0; icol < columnNumbersToSet.length; icol++ ) {
+        if ( (columnNumbersToSet[icol] < 0) && createColumns ) {
+        	errorMessage.append("  createColumns=true is not yet supported.");
+        	/*
+            // Did not find the column in the table so add a String column for null values
+            newTableField = new TableField(TableField.DATA_TYPE_STRING, columnNamesToSet[icol], -1, -1);
+            // Add to the full table
+            columnNumbersToSet[icol] = addField(newTableField, null );
+            columnTypesToSet[icol] = getFieldDataType(columnNumbersToSet[icol]);
+            */
+        }
+    }
+    // Now loop through all the provided data records and set values
+    int icol;
+    for ( TableRecord rec : tableRecords ) {
+        String columnValueToSet = null; // A single value to set, may contain formatting such as ${Property} when used with TSTool
+        for ( icol = 0; icol < columnNumbersToSet.length; icol++ ) {
+            try {
+                // OK if setting to null value, but hopefully should not happen
+                // TODO SAM 2013-08-06 Handle all column types
+                //Message.printStatus(2,routine,"Setting ColNum=" + columnNumbersToSet[icol] + " RowNum=" + irow + " value=" +
+                //    columnValues.get(columnNamesToSet[icol]));
+                if ( columnNumbersToSet[icol] >= 0 ) {
+                	columnValueToSet = columnValuesToSet[icol];
+                	if ( getter != null ) {
+                		// columnValueToSet will initially have formatting information like ${Property}
+                		columnValueToSet = getter.getTableCellValueAsString(columnValueToSet);
+                	}
+                    if ( columnTypesToSet[icol] == TableField.DATA_TYPE_INT ) {
+                        // TODO SAM 2013-08-26 Should parse the values once rather than each time set to improve error handling and performance
+                        rec.setFieldValue(columnNumbersToSet[icol], Integer.parseInt(columnValueToSet) );
+                    }
+                    else if ( columnTypesToSet[icol] == TableField.DATA_TYPE_DOUBLE ) {
+                        // TODO SAM 2013-08-26 Should parse the values once rather than each time set to improve error handling and performance
+                        rec.setFieldValue(columnNumbersToSet[icol], Double.parseDouble(columnValueToSet) );
+                    }
+                    else if ( columnTypesToSet[icol] == TableField.DATA_TYPE_STRING ) {
+                        rec.setFieldValue(columnNumbersToSet[icol], columnValueToSet);
+                    }
+                    else {
+                        errorMessage.append("Do not know how to set data type (" + TableColumnType.valueOf(columnTypesToSet[icol]) +
+                            ") for column \"" + columnNamesToSet[icol] + "].");
+                        ++errorCount;
+                    }
+                }
+            }
+            catch ( Exception e ) {
+                // Should not happen
+                errorMessage.append("Error setting table record [" + columnNumbersToSet[icol] + "] (" + e + ").");
+                Message.printWarning(3, routine, "Error setting new table data for [" + columnNumbersToSet[icol] + "] (" + e + ")." );
+                Message.printWarning(3, routine, e);
+                ++errorCount;
+            }
+        }
+    }
+    if ( errorCount > 0 ) {
+        throw new RuntimeException ( "There were + " + errorCount + " errors setting table values: " + errorMessage );
+    }
+}
+
+/**
 Set values in the table by first matching rows using column filters (default is match all) and
 then setting values for specific columns.
-@param table table to modify
+This method is called by overloaded versions that specify either column filters or lists of records.
 @param columnFilters map to filter rows to set values in
 @param columnValues map for columns values that will be set, where rows to be modified will be the result of the filters;
 values are strings and need to be converged before setting, based on column type
