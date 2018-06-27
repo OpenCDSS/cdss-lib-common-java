@@ -201,6 +201,11 @@ the token position (relative to 0) for the data in the choices.
 private int __choiceToken = 0;
 
 /**
+Used with __choiceToken to indicate the type of the token for comparison purposes.
+*/
+private int __choiceTokenType = StringUtil.TYPE_STRING;
+
+/**
 The component used to enter input, typically assigned by external code like InputFilter_JPanel
 */
 private JComponent __inputComponent = null;
@@ -444,6 +449,13 @@ Return the token position used in choices, which is the position of actual data,
 */
 public int getChoiceToken ()
 {	return __choiceToken;
+}
+
+/**
+Return the type of the choice token, which is used to evaluate the criteria.
+*/
+public int getChoiceTokenType ()
+{	return __choiceTokenType;
 }
 
 /**
@@ -824,14 +836,31 @@ public void setNumberInputJComboBoxRows(int num) {
 /**
 Set the information needed to parse an expanded input choice (e.g.,
 "data - note") into tokens so that only the data value can be retrieved.
+It is assumed that the extracted token is a string.
 @param delimiter The characters to be used as delimiters.  Multiple adjacent
 delimiters are treated as one delimiter when parsing.
 @param token After parsing the input choice using the given delimiter, indicate
 the token position for the data value.
 */
 public void setTokenInfo ( String delimiter, int token ) {
+	setTokenInfo ( delimiter, token, StringUtil.TYPE_STRING );
+}
+
+/**
+Set the information needed to parse an expanded input choice (e.g.,
+"data - note") into tokens so that only the data value can be retrieved.
+@param delimiter The characters to be used as delimiters.  Multiple adjacent
+delimiters are treated as one delimiter when parsing.
+@param token After parsing the input choice using the given delimiter, indicate
+the token position for the data value.
+@param tokenType the type of the token for comparison, StringUtil.TYPE_*.
+For example, a string choice can be "Value - Note", where the initial filter type is string.
+However, the choices should actually be appropriate for the token type, for example integer.
+*/
+public void setTokenInfo ( String delimiter, int token, int tokenType ) {
 	__choiceDelimiter = delimiter;
 	__choiceToken = token;
+	__choiceTokenType = tokenType;
 }
 
 }

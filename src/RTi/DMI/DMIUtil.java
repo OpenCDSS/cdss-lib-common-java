@@ -2873,6 +2873,9 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
 	}
 	// Get the input type...
 	int input_type = filter.getInputType();
+	if ( filter.getChoiceTokenType() > 0 ) {
+		input_type = filter.getChoiceTokenType();
+	}
 	// Get the internal where...
 	String whereSubject = filter.getWhereInternal();
 	if ( (whereSubject == null) || whereSubject.equals("") ) {

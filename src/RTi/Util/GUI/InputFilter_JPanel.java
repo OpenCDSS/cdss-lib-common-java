@@ -258,7 +258,12 @@ public boolean checkInput ( boolean displayWarning )
 			continue;
 		}
 		input = filter.getInput(false).trim();
-		inputType = filter.getInputType();
+		if ( filter.getChoiceTokenType() > 0 ) {
+			inputType = filter.getChoiceTokenType();
+		}
+		else {
+			inputType = filter.getInputType();
+		}
 		if ( inputType == StringUtil.TYPE_STRING ) {
 			// Any limitations?  For now assume not.
 		}
@@ -404,7 +409,12 @@ public List<String> getInput ( String whereLabel, String internalWhere, boolean 
 	            }
 		}
 		input = filter.getInput(false).trim();
-		inputType = filter.getInputType();
+		if ( filter.getChoiceTokenType() > 0 ) {
+			inputType = filter.getChoiceTokenType();
+		}
+		else {
+			inputType = filter.getInputType();
+		}
 		if ( inputType == StringUtil.TYPE_STRING ) {
 			if ( useWildcards ) {
 			    // Insert the wildcard character around the input, as appropriate
@@ -575,8 +585,16 @@ public void itemStateChanged ( ItemEvent event )
 			filterPos = where_JComboBox.getSelectedIndex();
 			filter = __inputFilterListArray[ifg].get( filterPos);
 			//Message.printStatus ( 2, "", "Where changed." );
-			fillOperatorJComboBox ( (SimpleJComboBox)__operatorComponentList.get(ifg), filter.getInputType(),
+			if ( filter.getChoiceTokenType() > 0 ) {
+				// The input type is a string that has its token parsed out
+				fillOperatorJComboBox ( (SimpleJComboBox)__operatorComponentList.get(ifg), filter.getChoiceTokenType(),
 				filter.getConstraintsToRemove());
+			}
+			else {
+				// The input type is a basic value, not a string that gets a token split out
+				fillOperatorJComboBox ( (SimpleJComboBox)__operatorComponentList.get(ifg), filter.getInputType(),
+				filter.getConstraintsToRemove());
+			}
 			// Set the appropriate component visible and all others not visible.
 			// There is an input component for each filter for this filter group...
 			operatorPos = 0;
@@ -807,7 +825,14 @@ public void setInputFilters ( List<InputFilter> inputFilters, int numFilterGroup
 		// Initialize operators to the first filter.
 		// This is reused because it is a simple list based on the current input type.
 		SimpleJComboBox operator_JComboBox = new SimpleJComboBox(false);
-		fillOperatorJComboBox(operator_JComboBox, filter.getInputType(), filter.getConstraintsToRemove());
+		if ( filter.getChoiceTokenType() > 0 ) {
+			// The input type is a string that has its token parsed out
+			fillOperatorJComboBox(operator_JComboBox, filter.getChoiceTokenType(), filter.getConstraintsToRemove());
+		}
+		else {
+			// The input type is a basic value, not a string that gets a token split out
+			fillOperatorJComboBox(operator_JComboBox, filter.getInputType(), filter.getConstraintsToRemove());
+		}
 		operator_JComboBox.addItemListener ( this );
 		__operatorComponentList.add ( operator_JComboBox );
 		JGUIUtil.addComponent(this, operator_JComboBox,
