@@ -202,8 +202,9 @@ private int __choiceToken = 0;
 
 /**
 Used with __choiceToken to indicate the type of the token for comparison purposes.
+Default to unknown, meaning use the primary input type.
 */
-private int __choiceTokenType = StringUtil.TYPE_STRING;
+private int __choiceTokenType = -1;
 
 /**
 The component used to enter input, typically assigned by external code like InputFilter_JPanel
@@ -843,7 +844,8 @@ delimiters are treated as one delimiter when parsing.
 the token position for the data value.
 */
 public void setTokenInfo ( String delimiter, int token ) {
-	setTokenInfo ( delimiter, token, StringUtil.TYPE_STRING );
+	// Token type defaults to 0, meaning use the primary input type.
+	setTokenInfo ( delimiter, token, -1 );
 }
 
 /**
