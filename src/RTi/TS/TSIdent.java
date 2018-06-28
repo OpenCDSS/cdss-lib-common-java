@@ -6,7 +6,7 @@ import java.awt.datatransfer.Transferable;
 import java.io.Serializable;
 
 import java.lang.StringBuffer;
-
+import java.util.ArrayList;
 import java.util.List;
 
 import RTi.Util.Message.Message;
@@ -1144,7 +1144,16 @@ throws Exception
 	// check to see if the number of fields is small.  Then check to see if
 	// the data type and interval are combined.
 
-	list = StringUtil.breakStringList ( identifier, ".", 0 );
+	int posQuote = identifier.indexOf("'");
+	if ( posQuote >= 0 ) {
+		// Have at least one quote so assume TSID something like:
+		// LocaId.Source.'DataType-some.parts.with.periods'.Interval
+		list = parseIdentifier_SplitWithQuotes(identifier);
+	}
+	else {
+		// No quote in TSID so do simple parse
+		list = StringUtil.breakStringList ( identifier, ".", 0 );
+	}
 	nlist1 = list.size();
 	for ( i = 0; i < nlist1; i++ ) {
 		if ( Message.isDebugOn ) {
@@ -1189,7 +1198,7 @@ throws Exception
 		nlist1 = list.size();
 	}
 	else {
-        list =	StringUtil.breakStringList ( identifier, ".", 0 );
+        list = StringUtil.breakStringList ( identifier, ".", 0 );
 		nlist1 = list.size();
 		if ( nlist1 >= 1 ) {
 			full_location = list.get(0);
@@ -1274,6 +1283,118 @@ throws Exception
 		Message.printDebug ( dl, routine, "Returning local TSIdent..." );
 	}
 	return tsident;
+}
+
+/**
+Parse a TSID that has quoted part with periods in one or more parts.
+@param identifier TSID main part (no ~).
+@return list of parts for TSID
+ */
+private static List<String> parseIdentifier_SplitWithQuotes(String identifier) {
+	// Process by getting one token at a time.
+	// -tokens are between periods
+	// -if first character of part is single quote, get to the next single quote
+	List<String> parts = new ArrayList<String>();
+	boolean inPart = true; // should always have a part at the front
+	boolean inQuote = false;
+	char c;
+	StringBuilder b = new StringBuilder();
+	int ilen = identifier.length();
+	// Use debug messages for now but code seems to be OK
+	// - remove debug messages later.
+	for ( int i = 0; i < ilen; i++ ) {
+		c = identifier.charAt(i);
+		if ( Message.isDebugOn ) {
+			Message.printDebug(1, "", "Character is: " + c);
+		}
+		if ( c == '.' ) {
+			if ( Message.isDebugOn ) {
+				Message.printDebug(1, "", "Found period" );
+			}
+			if ( inQuote ) {
+				// In a quote so just keep adding characters
+				if ( Message.isDebugOn ) {
+					Message.printDebug(1, "", "In quote" );
+				}
+				b.append(c);
+			}
+			else {
+				// Not in quote
+				if ( Message.isDebugOn ) {
+					Message.printDebug(1, "", "Not in quote" );
+				}
+				if ( inPart ) {
+					// Between periods.  Already in part so end it without adding period
+					if ( Message.isDebugOn ) {
+						Message.printDebug(1, "", "In part, ending part" );
+					}
+					parts.add(b.toString());
+					b.setLength(0);
+					// Will be in part at top of loop because current period will be skipped
+					// - but if last period treat the following part as empty string
+					if ( i == (ilen - 1) ) {
+						// Add an empty string
+						parts.add("");
+					}
+					else {
+						// Keep processing
+						// Set to not be in part
+						inPart = false;
+						--i; // Re-process period to trigger in a part in next iteration
+					}
+				}
+				else {
+					// Was not in a part so start it
+					if ( Message.isDebugOn ) {
+						Message.printDebug(1, "", "Not in part, starting part" );
+					}
+					inPart = true;
+					// Don't add period to part.
+				}
+			}
+		}
+		else if ( c == '\'' ) {
+			// Found a quote, which will surround a point, as in:  .'some.part'.
+			if ( Message.isDebugOn ) {
+				Message.printDebug(1, "", "Found quote" );
+			}
+			if ( inQuote ) {
+				// At the end of the quoted part.
+				// Always include the quote in the part
+				if ( Message.isDebugOn ) {
+					Message.printDebug(1, "", "In quote, ending quote" );
+				}
+				b.append(c);
+				parts.add(b.toString());
+				b.setLength(0);
+				// Next period immediately following will cause next part to be added, even if period at end of string
+				inQuote = false;
+				inPart = false;
+			}
+			else {
+				// Need to start a part
+				if ( Message.isDebugOn ) {
+					Message.printDebug(1, "", "Not in quote, starting quote" );
+				}
+				b.append(c); // Keep the quote
+				inQuote = true;
+			}
+		}
+		else {
+			// Character to add to part
+			b.append(c);
+			if ( i == (ilen - 1) ) {
+				// Last part
+				parts.add(b.toString());
+			}
+		}
+	}
+	if ( Message.isDebugOn ) {
+		for ( String s : parts ) {
+			Message.printDebug(1, "xxx", "TSID part is \"" + s + "\"");
+		}
+	}
+	return parts;
 }
 
 /**
