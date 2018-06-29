@@ -1194,11 +1194,27 @@ throws Exception
 	if ( (identifier.charAt(0) == '\'') || (identifier.charAt(0) == '\"')) {
 		full_location = StringUtil.readToDelim ( identifier.substring(1), identifier.charAt(0) );
 		// Get the 2nd+ fields...
-		list =	StringUtil.breakStringList ( identifier.substring(full_location.length()+1), ".", 0 );
+		int posQuote2 = identifier.indexOf("'");
+		if ( posQuote2 >= 0 ) {
+			// Have at least one quote so assume TSID something like:
+			// LocaId.Source.'DataType-some.parts.with.periods'.Interval
+			list = parseIdentifier_SplitWithQuotes(identifier.substring(full_location.length()+1));
+		}
+		else {
+			list =	StringUtil.breakStringList ( identifier.substring(full_location.length()+1), ".", 0 );
+		}
 		nlist1 = list.size();
 	}
 	else {
-        list = StringUtil.breakStringList ( identifier, ".", 0 );
+		int posQuote2 = identifier.indexOf("'");
+		if ( posQuote2 >= 0 ) {
+			// Have at least one quote so assume TSID something like:
+			// LocaId.Source.'DataType-some.parts.with.periods'.Interval
+			list = parseIdentifier_SplitWithQuotes(identifier);
+		}
+		else {
+			list = StringUtil.breakStringList ( identifier, ".", 0 );
+		}
 		nlist1 = list.size();
 		if ( nlist1 >= 1 ) {
 			full_location = list.get(0);
