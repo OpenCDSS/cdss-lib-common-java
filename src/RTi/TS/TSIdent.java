@@ -95,6 +95,11 @@ Separator string for input type and datastore at end of TSID.
 public static final String INPUT_SEPARATOR = "~";
 
 /**
+The quote can be used to surround TSID parts that have periods, so as to protect the part.
+*/
+public static final String PERIOD_QUOTE = "'";
+
+/**
 The DataFlavor for transferring this specific class.
 */
 public static DataFlavor tsIdentFlavor = new DataFlavor(TSIdent.class, "TSIdent");
@@ -105,6 +110,11 @@ public static DataFlavor tsIdentFlavor = new DataFlavor(TSIdent.class, "TSIdent"
 The whole identifier, including the input type.
 */
 private String __identifier;
+
+/**
+A comment that can be used to describe the TSID, for example one-line TSTool software comment.
+*/
+private String __comment = "";
 
 /**
 A short alias for the time series identifier.
@@ -451,6 +461,14 @@ Return the behavior mask.
 */
 public int getBehaviorMask( )
 {	return __behavior_mask;
+}
+
+/**
+Return the TSID comment.
+@return The TSID comment.
+*/
+public String getComment()
+{	return __comment;
 }
 
 /**
@@ -1430,6 +1448,16 @@ joined into the full identifier.   Currently this routine does a full reset (not
 */
 public void setBehaviorMask( int behavior_mask )
 {	__behavior_mask = behavior_mask;
+}
+
+/**
+Set the comment.
+@param comment Comment for the identifier.
+*/
+public void setComment ( String comment )
+{	if ( comment != null ) {
+		__comment = comment;
+	}
 }
 
 /**

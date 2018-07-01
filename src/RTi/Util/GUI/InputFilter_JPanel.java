@@ -972,15 +972,35 @@ private void showInputFilterComponent ( int ifg, int filterPos, int operatorPos 
 /**
 Return a string representation of an input filter group.  This can be used, for
 example, with software that may place a filter in a command.
+The displayed label is used.
 @param ifg the Input filter group
 @param delim Delimiter for the returned filter information.  If null, use ";".
 */
 public String toString ( int ifg, String delim )
+{	return toString( ifg, delim, 0);
+}
+
+/**
+Return a string representation of an input filter group.  This can be used, for
+example, with software that may place a filter in a command.
+@param ifg the Input filter group
+@param delim Delimiter for the returned filter information.  If null, use ";".
+@param valuePos if 0, return the where label; if 1, return the internal value; if 2, return the alternate internal value
+*/
+public String toString ( int ifg, String delim, int valuePos )
 {	InputFilter filter = getInputFilter ( ifg );
 	if ( delim == null ) {
 		delim = ";";
 	}
-	return filter.getWhereLabel() + delim + getOperator(ifg) + delim + filter.getInput(false);
+	if ( valuePos < 1 ) {
+		return filter.getWhereLabel() + delim + getOperator(ifg) + delim + filter.getInput(false);
+	}
+	else if ( valuePos == 1 ) {
+		return filter.getWhereInternal() + delim + getOperator(ifg) + delim + filter.getInput(false);
+	}
+	else {
+		return filter.getWhereInternal2() + delim + getOperator(ifg) + delim + filter.getInput(false);
+	}
 }
 
 }
