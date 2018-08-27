@@ -8,11 +8,6 @@ Abstract implementation of DataStore, to handle management of common configurati
 */
 abstract public class AbstractDataStore implements DataStore
 {
-    
-/**
-The apiKey for retrieving web services
- */
-private String __apiKey = "";
 
 /**
 The description for the datastore (usually a short sentence).
@@ -38,14 +33,6 @@ private int __status = 0;
 Message corresponding to the status (e.g., error message).
 */
 private String __statusMessage = "";
-
-/**
-Return the apiKey for the datastore.
-@return the apiKey for the datastore.
- */
-public String getApiKey(){
-	return __apiKey;
-}
     
 /**
 Return the description for the datastore.
@@ -101,14 +88,6 @@ Return the status message for the datastore.
 public String getStatusMessage()
 {
     return __statusMessage;
-}
-
-/**
-Set the string for the apiKey.
-@param string for the apiKey.
- */
-public void setApiKey(String apiKey){
-	__apiKey = apiKey;
 }
 
 
