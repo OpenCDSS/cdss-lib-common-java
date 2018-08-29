@@ -57,9 +57,7 @@ public class HelpViewer {
 	 */
 	public void showHelp ( String group, String item ) {
 		String routine = "showHelp";
-		/**
-		 * Use the default web browser application to display help.
-		 */
+		// Use the default web browser application to display help.
 		if ( this.urlFormatter == null ) {
 	    	Message.printWarning(1, "",
 		    	"Unable to display documentation for group \"" + group + "\" and item \"" + item + "\" - no URL formatter defined." );
@@ -67,18 +65,27 @@ public class HelpViewer {
 		else {
 			// Format the URL for the item
 			String docUri = this.urlFormatter.formatHelpViewerUrl(group, item);
+			if ( docUri == null ) {
+				Message.printWarning(1, "", "Unable to determine documentation URL for group=\"" + group + "\", item=\"" + item + "\"." );
+			}
 	        // Now display using the default application for the file extension
 	        Message.printStatus(2, routine, "Opening documentation \"" + docUri + "\"" );
-	        // The Desktop.browse() method will always open, even if the page does not exist,
-	        // and it won't return the HTTP error code in this case.
-	        // Therefore, do a check to see if the URI is available before opening in a browser
-	        try {
-	            Desktop desktop = Desktop.getDesktop();
-	            desktop.browse ( new URI(docUri) );
-	        }
-	        catch ( Exception e ) {
-	            Message.printWarning(2, "", "Unable to display documentation at \"" + docUri + "\" (" + e + ")." );
-	        }
+			// If 
+			if ( !Desktop.isDesktopSupported() ) {
+				Message.printWarning(1, "", "Opening browser from software not supported.  View the following in a browser: " + docUri );
+			}
+			else {
+		        // The Desktop.browse() method will always open, even if the page does not exist,
+		        // and it won't return the HTTP error code in this case.
+		        // Therefore, do a check to see if the URI is available before opening in a browser
+		        try {
+		            Desktop desktop = Desktop.getDesktop();
+		            desktop.browse ( new URI(docUri) );
+		        }
+		        catch ( Exception e ) {
+		            Message.printWarning(2, "", "Unable to display documentation at \"" + docUri + "\" (" + e + ")." );
+		        }
+			}
 	    }
 	}
 
