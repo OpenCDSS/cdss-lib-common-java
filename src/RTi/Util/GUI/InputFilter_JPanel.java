@@ -479,9 +479,8 @@ public InputFilter getInputFilter ( int ifg )
 /**
 Return the input filters that have been entered in the panel, for a requested parameter.
 If the requested where_label is not selected in any of the input filters, a zero length vector will be returned.
-@return the input that has been entered in the panel, for a requested parameter.
 @param whereLabel The visible label for the input filter.
-@param delim Delimiter character to use if use_wildcards=false.  See the toString() method.  If null, use ";".
+@return the input filters that match the requested persistent where label.
 */
 public List<InputFilter> getInputFilters ( String whereLabel )
 {   List<InputFilter> inputFilterList = new Vector<InputFilter>();
@@ -496,6 +495,29 @@ public List<InputFilter> getInputFilters ( String whereLabel )
         }
     }
     return inputFilterList;
+}
+
+/**
+Return the input filter for an input filter group, for a requested whereLabelPersistent.
+If the requested whereLabelPersistent does not match any input filters for the input filter group,
+null will be returned.
+@param ifg input filter group of interest.
+@param whereLabelPersistent The persistent label for the input filter.
+@return the input filter that matches the requested whereLabelPersistent.
+*/
+public InputFilter getInputFilterForWhereLabelPersistent ( int ifg, String whereLabelPersistent )
+{   String where; // whereLabelPersistent for filter selected by user.
+    // First get the list of input filter for the group 
+    List<InputFilter> inputFilters = (List<InputFilter>)__inputFilterListArray[ifg];
+    // Loop through the filters and match the whereLabelPersistent
+    for ( InputFilter inputFilter : inputFilters ) {
+        where = inputFilter.getWhereLabelPersistent();
+        if ( where.equalsIgnoreCase(whereLabelPersistent) && !where.equals("") ) {
+            // Requested input name matches so return the filter
+        	return inputFilter;
+        }
+    }
+    return null;
 }
 
 /**
@@ -693,7 +715,37 @@ throws Exception
 	JLabel label = null;
 	if ( component instanceof SimpleJComboBox ) {
 		cb = (SimpleJComboBox)component;
-		JGUIUtil.selectIgnoreCase ( cb, where );
+		// The Where could match the displayed label or an internal label that is more convenient to save,
+		// such as in a command string.  At this point don't know which so try multiple.
+		// First try exact match of the displayed where clause
+		boolean selectOk = false;
+		try {
+			JGUIUtil.selectIgnoreCase ( cb, where );
+			selectOk = true;
+		}
+		catch ( Exception e ) {
+			// Handle through selectOk
+		}
+		if ( !selectOk ) {
+			// Look up the choice assuming where is "whereLabelPersistent"
+			// First go through the input filters in the group and search for a whereLabelPersistent that matches the given where
+			InputFilter inputFilter2 = getInputFilterForWhereLabelPersistent(ifg,where);
+			String visibleWhereLabelToUse = null;
+			if ( inputFilter2 != null ) {
+				visibleWhereLabelToUse = inputFilter2.getWhereLabel();
+				try {
+					JGUIUtil.selectIgnoreCase ( cb, visibleWhereLabelToUse );
+					selectOk = true;
+				}
+				catch ( Exception e2 ) {
+					// Handle through selectOk
+				}
+			}
+		}
+		if ( !selectOk ) {
+			// Throw an exception
+			throw new RuntimeException("Invalid choice \"" + where + "\" - did not match available choices or persistent label value.");
+		}
 	}
 	else if ( component instanceof JLabel ) {
 		label = (JLabel)component;
@@ -707,12 +759,12 @@ throws Exception
 
 	// Set the input...
 
-	InputFilter input_filter = getInputFilter ( ifg );
-	component = input_filter.getInputComponent();
+	InputFilter selectedInputFilter = getInputFilter ( ifg );
+	component = selectedInputFilter.getInputComponent();
 	if ( component instanceof SimpleJComboBox ) {
 		cb = (SimpleJComboBox)component;
-		JGUIUtil.selectTokenMatches ( cb, true, input_filter.getChoiceDelimiter(),
-			0, input_filter.getChoiceToken(), input, null, true );
+		JGUIUtil.selectTokenMatches ( cb, true, selectedInputFilter.getChoiceDelimiter(),
+			0, selectedInputFilter.getChoiceToken(), input, null, true );
 	}
 	else if ( component instanceof JTextField ) {
 		tf = (JTextField)component;
@@ -757,10 +809,13 @@ public void setInputFilters ( List<InputFilter> inputFilters, int numFilterGroup
 		}
 		else {
 			// Copy the original...
+			// TODO smalers 2018-09-04 is it necessary to clone the data arrays or can they be reused.
+			// - maybe need a shallower clone?
 			__inputFilterListArray[ifg] = new Vector(numFilters);
 			for ( int ifilter = 0; ifilter < numFilters; ifilter++ ) {
 				filter = inputFilters.get(ifilter);
-				__inputFilterListArray[ifg].add ( (InputFilter)filter.clone() );
+				InputFilter newFilter = (InputFilter)filter.clone();
+				__inputFilterListArray[ifg].add ( newFilter );
 			}
 		}
 	}
@@ -985,21 +1040,29 @@ Return a string representation of an input filter group.  This can be used, for
 example, with software that may place a filter in a command.
 @param ifg the Input filter group
 @param delim Delimiter for the returned filter information.  If null, use ";".
-@param valuePos if 0, return the where label; if 1, return the internal value; if 2, return the alternate internal value
+@param valuePos if <= 0, return the where label; if 1, return the internal value; if 2, return the alternate internal value;
+if 3 return the persistent label
 */
 public String toString ( int ifg, String delim, int valuePos )
 {	InputFilter filter = getInputFilter ( ifg );
 	if ( delim == null ) {
 		delim = ";";
 	}
-	if ( valuePos < 1 ) {
-		return filter.getWhereLabel() + delim + getOperator(ifg) + delim + filter.getInput(false);
-	}
-	else if ( valuePos == 1 ) {
+	if ( valuePos == 1 ) {
+		// Internal where
 		return filter.getWhereInternal() + delim + getOperator(ifg) + delim + filter.getInput(false);
 	}
-	else {
+	else if ( valuePos == 2 ) {
+		// Second internal where
 		return filter.getWhereInternal2() + delim + getOperator(ifg) + delim + filter.getInput(false);
+	}
+	else if ( valuePos == 3 ) {
+		// Persistent label, intended to represent the where criteria in persistent form such as commands
+		return filter.getWhereLabelPersistent() + delim + getOperator(ifg) + delim + filter.getInput(false);
+	}
+	else {
+		// Default behavior for (valuePos < 1) || (valuePos > 3) )
+		return filter.getWhereLabel() + delim + getOperator(ifg) + delim + filter.getInput(false);
 	}
 }
 
