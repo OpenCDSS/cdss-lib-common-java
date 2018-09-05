@@ -65,7 +65,8 @@ matched against (see the INPUT_* data members).  [input] is the value to
 constrain the field against.<p>
 
 In most cases, a list of these objects is created as appropriate by 
-specific software and is then managed by a InputFilter_JPanel object.
+specific software and is then managed by a InputFilter_JPanel object,
+typically a class derived from InputFilter_JPanel.
 */
 public class InputFilter implements Cloneable
 {
@@ -172,6 +173,12 @@ The string label to be visible to the user (e.g., "Station Name").
 private String __whereLabel="";
 
 /**
+The string label used in persistent forms such as command parameters,
+often with minimal formatting (e.g., "StationName").
+*/
+private String __whereLabelPersistent ="";
+
+/**
 A value from RTi.Util.String.StringUtil.TYPE_*, indicating the expected input value.  The type is used
 to check the validity of the input with checkInput().
 */
@@ -268,7 +275,7 @@ the choices will also be editable (an editable JTextField part of the JComboBox 
 public InputFilter ( String whereLabel, String whereInternal,
 	int inputType, List<String> choiceLabels, List<String> choicesInternal, boolean areChoicesEditable )
 {
-	this(whereLabel, whereInternal, "", inputType, choiceLabels, choicesInternal, areChoicesEditable, null);
+	this(whereLabel, whereInternal, "", "", inputType, choiceLabels, choicesInternal, areChoicesEditable, null);
 }
 
 /**
@@ -293,7 +300,37 @@ the choices will also be editable (an editable JTextField part of the JComboBox 
 public InputFilter ( String whereLabel, String whereInternal, String whereInternal2, int inputType, 
     List<String> choiceLabels, List<String> choicesInternal, boolean areChoicesEditable )
 {   
-    this(whereLabel, whereInternal, whereInternal2, inputType, choiceLabels, choicesInternal,
+    this(whereLabel, whereInternal, whereInternal2, "", inputType, choiceLabels, choicesInternal,
+        areChoicesEditable, null);
+}
+
+/**
+Construct an input filter.
+@param whereLabel A string to be listed in a choice to tell the user what input parameter is being filtered.
+A blank string can be specified to indicate that the filter can be disabled.
+@param whereInternal The internal value that can be used to perform a query.
+For example, set to a database table and column ("table.column").  This can be
+set to null or empty if not used by other software.
+@param whereInternal2 the internal value that can be used if in certain 
+cases a different field must be used for performing a query.  For instance, if
+a database can be used to query with SQL or to query against a database view.
+It can be set to null or an empty string if it won't be used by software.
+@param whereLabelPersistent the where label to use for persistent forms such
+as command parameter, useful when the displayed where label is too verbose
+or has punctuation that is prone to errors,
+and when the internal labels may be redundant or confusing to users.
+@param inputType The input filter data type, see RTi.Util.String.StringUtil.TYPE_*.
+@param choiceLabels A list of String containing choice values to be
+displayed to the user.  If null, the user will not be shown a list of choices.
+@param choicesInternal A list of String containing choice values (e.g., database column values).  Always
+provide strings even if the database column is integer, etc.
+@param areChoicesEditable If true, and a non-null list of choices is provided,
+the choices will also be editable (an editable JTextField part of the JComboBox will be shown).
+*/
+public InputFilter ( String whereLabel, String whereInternal, String whereInternal2, String whereLabelPersistent, int inputType, 
+    List<String> choiceLabels, List<String> choicesInternal, boolean areChoicesEditable )
+{   
+    this(whereLabel, whereInternal, whereInternal2, whereLabelPersistent, inputType, choiceLabels, choicesInternal,
         areChoicesEditable, null);
 }
 
@@ -318,10 +355,41 @@ the choices will also be editable (an editable JTextField part of the JComboBox 
 */
 public InputFilter ( String whereLabel, String whereInternal, String whereInternal2, int inputType, 
 	List<String> choiceLabels, List<String> choicesInternal, boolean areChoicesEditable,
+	String inputComponentToolTipText ) {
+    this(whereLabel, whereInternal, whereInternal2, "", inputType, choiceLabels, choicesInternal,
+            areChoicesEditable, null);
+}
+
+/**
+Construct an input filter.
+@param whereLabel A string to be listed in a choice to tell the user what input parameter is being filtered.
+A blank string can be specified to indicate that the filter can be disabled.
+@param whereInternal The internal value that can be used to perform a query.
+For example, set to a database table and column ("table.column").  This can be
+set to null or empty if not used by other software.
+@param whereInternal2 the internal value that can be used if in certain 
+cases a different field must be used for performing a query.  For instance, if
+a database can be used to query with SQL or to query against a database view.
+It can be set to null or an empty string if it won't be used by software.
+@param whereLabelPersistent the where label to use for persistent forms such
+as command parameter, useful when the displayed where label is too verbose
+or has punctuation that is prone to errors,
+and when the internal labels may be redundant or confusing to users.
+@param inputType The input filter data type, see RTi.Util.String.StringUtil.TYPE_*.
+@param choiceLabels A list of String containing choice values to be
+displayed to the user.  If null, the user will not be shown a list of choices.
+@param choicesInternal A list of String containing choice values (e.g., database column values).
+@param areChoicesEditable If true, and a non-null list of choices is provided,
+the choices will also be editable (an editable JTextField part of the JComboBox will be shown).
+@param inputComponentToolTipText tool tip text for the input component.
+*/
+public InputFilter ( String whereLabel, String whereInternal, String whereInternal2, String whereLabelPersistent,
+	int inputType, List<String> choiceLabels, List<String> choicesInternal, boolean areChoicesEditable,
 	String inputComponentToolTipText )
 {	__whereLabel = whereLabel;
 	__whereInternal = whereInternal;
 	__whereInternal2 = whereInternal2;
+	__whereLabelPersistent = whereLabelPersistent;
 	__inputType = inputType;
 	__choiceLabelList = choiceLabels;
 	__choiceInternalList = choicesInternal;
@@ -367,7 +435,7 @@ public Object clone()
 		// __whereInternal
 		// __whereLabel
 		// __inputType
-		// __areCchoicesEditable
+		// __areChoicesEditable
 		// __choiceDelimiter
 		// __choiceTtoken
 
@@ -597,11 +665,19 @@ public String getWhereInternal2() {
 }
 
 /**
-Return the Where field label that is visible to the user. 
-@return the Where field label that is visible to the user. 
+Return the Where field label that is visible to the user, such as user interfaces. 
+@return the Where field label that is visible to the user, such as user interfaces. 
 */
 public String getWhereLabel()
 {	return __whereLabel;
+}
+
+/**
+Return the Where field label that is used in persistent forms, such as command parameter. 
+@return the Where field label that is used in persistent forms, such as command parameter. 
+*/
+public String getWhereLabelPersistent()
+{	return __whereLabelPersistent;
 }
 
 /**
