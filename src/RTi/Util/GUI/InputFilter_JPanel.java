@@ -239,8 +239,67 @@ public void addEventListeners ( Component component )
 Check the input for the current input filter selections.  For example, if an
 input filter is for a text field, verify that the contents of the field are
 appropriate for the type of input.
+This version is similar to checkInput except that it returns the warning string
+so that it can be handled in calling code.
+@param displayWarning If true, display a warning dialog if there are errors in the input.
+If false, do not display a warning, in which case
+the calling code should generally display a warning and optionally
+also perform other checks by overriding this method.
+@return empty string if no errors occur or the warning string if there are errors,
+with newline at front and newlines delimiting each warning.
+*/
+public String checkInputFilters ( boolean displayWarning )
+{	String warning = "";
+	// Loop through the filter groups...
+	InputFilter filter;
+	String input; // Input string selected by user.
+	String where; // Where label for filter selected by user.
+	int inputType; // Input type for the filter.
+	for ( int ifg = 0; ifg < __numFilterGroups; ifg++ ) {
+		filter = getInputFilter ( ifg );
+		where = filter.getWhereLabel();
+		if ( where.equals("") ) {
+			// Blank where indicates that filter is disabled...
+			continue;
+		}
+		input = filter.getInput(false).trim();
+		if ( filter.getChoiceTokenType() > 0 ) {
+			inputType = filter.getChoiceTokenType();
+		}
+		else {
+			inputType = filter.getInputType();
+		}
+		if ( inputType == StringUtil.TYPE_STRING ) {
+			// Any limitations?  For now assume not.
+		}
+		else if ( (inputType == StringUtil.TYPE_DOUBLE) || (inputType == StringUtil.TYPE_FLOAT) ) {
+			if ( !StringUtil.isDouble(input) ) {
+				warning += "\nInput filter \"" + filter.getWhereLabel() +
+				"\", input is not a number:  \"" + input + "\"" + "\n";
+			}
+		}
+		else if	( inputType == StringUtil.TYPE_INTEGER ) {
+			if ( !StringUtil.isInteger(input) ) {
+				warning += "\nInput filter \"" + filter.getWhereLabel() +
+				"\", input is not an integer:  \""+input + "\"" + "\n";
+			}
+		}
+	}
+	if ( !warning.isEmpty() && displayWarning ) {
+		// Requested to display the warnings
+		Message.printWarning ( 1, "InputFilter_JPanel.checkInputFilters", warning );
+	}
+	// Always return the warning string
+	return warning;
+}
+
+/**
+Check the input for the current input filter selections.  For example, if an
+input filter is for a text field, verify that the contents of the field are
+appropriate for the type of input.  This is the legacy version.
+See also checkInputFilters(), which returns a string with warnings.
 @param displayWarning If true, display a warning if there are errors in the
-input.  If false, do not display a warning (the calling code should generally display a warning.
+input.  If false, do not display a warning (the calling code should generally display a warning).
 @return true if no errors occur or false if there are input errors.
 */
 public boolean checkInput ( boolean displayWarning )
@@ -521,6 +580,33 @@ public InputFilter getInputFilterForWhereLabelPersistent ( int ifg, String where
 }
 
 /**
+ * Get the input filter value corresponding to the "where" string.
+ * The InputFilter whereLabel and whereLabelPersistent are checked and the first matching filter value is returned.
+ * This is useful for checking whether filters have been specified in appropriate combination.
+ * @param where the where value to match as displayed or the internal persistent label
+ * @param returnEmpty if true, it is OK to return empty values for a where label,
+ * or if false, only return values that are non-empty.
+ */
+public String getInputValue ( String where, boolean returnEmpty ) {
+	// Loop through the input filter groups and find a matching label
+	for ( int ifg = 0; ifg < __inputFilterListArray.length; ifg++ ) {
+	    InputFilter inputFilter = getInputFilter(ifg);
+    	String input = inputFilter.getInput(false).trim();
+    	// Check the displayed where label
+        String whereFromFilter = inputFilter.getWhereLabel();
+        // and the persistent where label
+        String whereFromFilter2 = inputFilter.getWhereLabelPersistent();
+        if ( whereFromFilter.equalsIgnoreCase(where) || whereFromFilter2.equalsIgnoreCase(where)) {
+        	if ( !input.isEmpty() || (input.equals("") && returnEmpty) ) {
+        		return input;
+        	}
+        }
+	}
+	// Fall through is no value
+	return null;
+}
+
+/**
 Return the number of filter groups.
 @return the number of filter groups.
 */
@@ -677,7 +763,7 @@ Set the contents of an input filter.
 </pre>
 the operator is a string like "=".  Legacy "Equals" is updated to new conventions at construction.
 The input string is trimmed before attempting to set.
-@param delim The delimiter used for the above information, or a semi-colon if null.
+@param delim The delimiter used for the above information, or a semicolon if null.
 @exception Exception if there is an error setting the filter data.
 */
 public void setInputFilter ( int ifg, String inputFilterString, String delim )
