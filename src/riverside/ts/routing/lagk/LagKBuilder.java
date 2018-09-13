@@ -19,6 +19,9 @@ public class LagKBuilder {
     private double valueOfK = 0;
     private static final int MAXISEGS = 20;
     
+    // This value needs to be the same as VariableLagK_Command.__BIG_DATA_VALUE;
+    public static double BIG_DATA_VALUE = 1.0e20;
+    
     public LagKBuilder(TS inflows) {
         lk._t_mult = inflows.getDataIntervalMult();
         lk._t_int = inflows.getDataIntervalBase();
@@ -269,7 +272,7 @@ public class LagKBuilder {
     public void setKOut(Table outKTable) {
         // @todo check sorting
         // This next section adds to the K table if the table either
-        // starts with non-zero flow or ends with a small flow < 1e6.
+        // starts with non-zero flow or ends with a large flow.
         int flagNeedZero = 0 ;
         int flagNeedInf = 0 ;
         double zeroValue = 0.0 ;
@@ -281,8 +284,8 @@ public class LagKBuilder {
             flagNeedZero = 1 ;
             zeroValue = outKTable.lookup( 0, LagK.KCOLUMN ) ;
         }
-        // Detect if the last value is below 1e6, keeping last value
-        if ( outKTable.lookup( 0, LagK.FLOWCOLUMN ) < 1000000.0 ) {
+        // Detect if the last value is below a large value, keeping last value
+        if ( outKTable.lookup( 0, LagK.FLOWCOLUMN ) < BIG_DATA_VALUE ) {
             flagNeedInf = 1 ;
             infValue = outKTable.lookup( outKTable.getNRows( ) - 1,
                 LagK.KCOLUMN ) ;
@@ -308,7 +311,7 @@ public class LagKBuilder {
         if ( flagNeedInf > 0 ) {
             int tablePosition = outKTable.getNRows( ) + flagNeedZero ;
             tmpTable.populate( tablePosition, LagK.KCOLUMN , infValue ) ;
-            tmpTable.populate( tablePosition, LagK.FLOWCOLUMN, 1000000.0 ) ;
+            tmpTable.populate( tablePosition, LagK.FLOWCOLUMN, BIG_DATA_VALUE ) ;
         }
         
         lk._out_k_tbl = tmpTable;
@@ -318,7 +321,7 @@ public class LagKBuilder {
     private LagK createDefault() {
         LagK lk = new LagK();
 //        lk._out_k_tbl.allocateDataSpace(1);
-//        lk._out_k_tbl.populate( 0, 0, 1000000.0f );
+//        lk._out_k_tbl.populate( 0, 0, __BIG_DATA_VALUE );
 //        lk._out_k_tbl.populate( 0, 1, 0 );
 //        lk._transLossCoef = 0;
 //        lk._transLossLevel = 0;
@@ -440,7 +443,8 @@ public class LagKBuilder {
             }
         
 //            Line200:
-        q2 = 1.0e+6 ;
+        //q2 = 1.0e+6 ;
+        q2 = BIG_DATA_VALUE;
         result_table.populate( nPos, LagK.STOR_OUTFLOWCOLUMN, q2 ) ;
         qbar = ( q2 + q1 ) / 2 ;
         storage = lk._out_k_tbl.lookup( qbar, LagK.KCOLUMN, true ) * ( q2 - q1 ) +
