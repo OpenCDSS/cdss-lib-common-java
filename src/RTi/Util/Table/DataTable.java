@@ -296,7 +296,7 @@ The added fields are initialized with blank strings or NaN, as appropriate.
 */
 public int addField ( int insertPos, TableField tableField, Object initValue )
 {
-	return addField ( -1, tableField, initValue, null );
+	return addField ( insertPos, tableField, initValue, null );
 }
 
 /**
