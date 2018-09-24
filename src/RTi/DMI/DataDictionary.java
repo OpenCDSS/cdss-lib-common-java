@@ -4,21 +4,27 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.IO.HTMLWriter;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 
+// TODO smalers 2018-09-12 with advances in the JDBC API, this code could be rewritten to be more readable.
+// For example, call the column metadata resultset getString("COLUMN_NAME") instead of dealing with resultset
+// integer positions.  There are some limitations, such as not being able to cleanly detect array columns
+// and dimensions of the array.
 /**
 This class creates a data dictionary.
 */
 public class DataDictionary
 {
 
+	// TODO smalers 2018-09-21 why is this using integer positions rather than column name lookup,
+	// which would be more readable?
 /**
 Field numbers used in determining field values when generating data dictionaries.
+Equivalent is databaseMetaData.getColumns() and then getString("COLUMN_NAME"), etc.
 */
 private final int 
 	__POS_NUM = 11,
@@ -674,7 +680,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 			}
 			List[] sortedVectors = new List[numColumns];
 			for (int j = 0; j < numColumns; j++) {
-				sortedVectors[j] = (List)tableColumnsMetadataList.get(order[j]);
+				sortedVectors[j] = (List<String>)tableColumnsMetadataList.get(order[j]);
 			}
 			
 			// Now that the sorted order of the column names (and the lists of data) is known,
@@ -713,6 +719,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 
 					// display the column type
 					temp = columnData.get(__POS_COLUMN_TYPE);
+					Message.printStatus(2, routine, "Table \"" + tableName + "\" column \"" + columnName + "\" type is " + temp );
 					if (temp.equalsIgnoreCase("real")) {
 						temp = temp + "(" + columnData.get(__POS_COLUMN_SIZE) + ", " + columnData.get(__POS_NUM_DIGITS) + ")";
 					}
@@ -726,7 +733,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 					}
 					else {
 						temp = temp + "(" + columnData.get(__POS_COLUMN_SIZE) + ")";
-					}					
+					}
 					html.tableCellStart();
 					html.boldStart();
 					html.addText(temp);
@@ -763,13 +770,11 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 			// Now do the same thing for the other fields, the non-primary key fields.  
 			for (int j = 0; j < numColumns; j++) {
 				List<String> column = sortedVectors[j];
-				temp = null;
+				String isPrimaryKey = column.get(__POS_IS_PRIMARY_KEY);
 
-				temp = column.get(__POS_IS_PRIMARY_KEY);
-
-				if (temp.equals("FALSE")) {
-					temp = column.get(__POS_FOREIGN);
-					if (temp.equals("TRUE")) {
+				if (isPrimaryKey.equals("FALSE")) {
+					String isForeignKey = column.get(__POS_FOREIGN);
+					if (isForeignKey.equals("TRUE")) {
 						html.tableRowStart( "valign=top bgcolor=orange");
 					}
 					else {
@@ -777,46 +782,51 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 					}
 					
 					// display the column name
-					temp = column.get(__POS_COLUMN_NAME);
+					String columnName2 = column.get(__POS_COLUMN_NAME);
 					html.tableCellStart();
-					html.addText(temp);
+					html.addText(columnName2);
 					html.tableCellEnd();
 
 					// display the remarks
-					temp = column.get(__POS_REMARKS);
+					String remarks = column.get(__POS_REMARKS);
 					html.tableCellStart();
-					writeRemarks(html,temp,newline,surroundWithPre,encodeHtmlChars);
+					writeRemarks(html,remarks,newline,surroundWithPre,encodeHtmlChars);
 					html.tableCellEnd();
 
 					// display the column type
-					temp = column.get(__POS_COLUMN_TYPE);
-					if (temp.equalsIgnoreCase("real")) {
-						temp = temp + "(" + column.get(__POS_COLUMN_SIZE)
+					String columnType = column.get(__POS_COLUMN_TYPE);
+					Message.printStatus(2, routine, "Table \"" + tableName + "\" column \"" + columnName + "\" type is " + columnType );
+					if (columnType.equalsIgnoreCase("real")) {
+						columnType = columnType + "(" + column.get(__POS_COLUMN_SIZE)
 						+ ", " + column.get(__POS_NUM_DIGITS) + ")";
 					}
-					else if (temp.equalsIgnoreCase("float")||
-						(temp.equalsIgnoreCase("double"))||
-						(temp.equalsIgnoreCase("smallint"))||
-						(temp.equalsIgnoreCase("int"))||
-						(temp.equalsIgnoreCase("integer"))||
-						(temp.equalsIgnoreCase("counter"))||
-						(temp.equalsIgnoreCase("datetime"))) {
+					else if (columnType.equalsIgnoreCase("float")||
+						(columnType.equalsIgnoreCase("double"))||
+						(columnType.equalsIgnoreCase("smallint"))||
+						(columnType.equalsIgnoreCase("int"))||
+						(columnType.equalsIgnoreCase("integer"))||
+						(columnType.equalsIgnoreCase("counter"))||
+						(columnType.equalsIgnoreCase("datetime"))) {
+						// TODO smalers 2018-09-21 not sure why not just print the column size always as below
 					}
 					else {
-						temp = temp + "(" + column.get(__POS_COLUMN_SIZE) + ")";
-					}					
+						columnType = columnType + "(" + column.get(__POS_COLUMN_SIZE) + ")";
+					}
+					if ( columnType.startsWith("_") ) {
+						// Used for arrays in PostgreSQL and maybe others
+						columnType = columnType + "[...]"; // TODO smalers 2018-09-21 need to get actual dimension
+					}
 					html.tableCellStart();
-					html.addText(temp);
+					html.addText(columnType);
 					html.tableCellEnd();
 
 					// display whether it's nullable
-					temp = column.get(__POS_NULLABLE);
+					String isNullable = column.get(__POS_NULLABLE);
 					html.tableCellStart();
-					html.addText(temp);
+					html.addText(isNullable);
 					html.tableCellEnd();
 
-					temp = column.get(__POS_FOREIGN);
-					if (temp.equals("TRUE")) {
+					if (isForeignKey.equals("TRUE")) {
 						html.tableCellStart();
 						primaryKeyTable = column.get(__POS_PRIMARY_TABLE);
 						primaryKeyField = column.get(__POS_PRIMARY_FIELD);
@@ -889,7 +899,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 			html.headingEnd(3);
 			//html.blockquoteStart();
 
-			List columnNames = new Vector();
+			List<String> columnNames = new ArrayList<String>();
 			while (rs.next()) {
 			    columnNames.add(rs.getString(4).trim());
 			}
@@ -904,7 +914,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 				if (j > 0) {
 					sql += ", ";
 				}
-				sql += ldelim + (String)columnNames.get(j) + rdelim;
+				sql += ldelim + columnNames.get(j) + rdelim;
 			}
 			sql += " FROM " + ldelim + refTableName + rdelim + " ORDER BY ";
 
@@ -912,7 +922,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 				if (j > 0) {
 					sql += ", ";
 				}
-				sql += ldelim + (String)columnNames.get(j) + rdelim;
+				sql += ldelim + columnNames.get(j) + rdelim;
 			}
 
 			// j will be greater than 0 if there were any columns in the list of columnNames for the table.
@@ -925,21 +935,21 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 				html.tableRowStart( "valign=top bgcolor=#CCCCCC");
 				
 				for (j = 0; j < columnNames.size(); j++) {
-					html.tableHeader((String)columnNames.get(j));
+					html.tableHeader(columnNames.get(j));
 				}
 				html.tableRowEnd();
 
 				// Start dumping out all the data in the reference table.  The data is retrieved as
 				// Strings, which seems to work fine.
-				temp = null;
+				String tableCellValue;
 				while (rs.next()) {
 					html.tableRowStart("valign=top");
 					for (j = 0; j < columnNames.size();j++){
-						temp = rs.getString(j+1);
-						if (temp == null) {
-							temp = "NULL";
+						tableCellValue = rs.getString(j+1);
+						if (tableCellValue == null) {
+							tableCellValue = "NULL";
 						}
-						html.tableCell(temp);
+						html.tableCell(tableCellValue);
 					}
 					html.tableRowEnd();
 				}

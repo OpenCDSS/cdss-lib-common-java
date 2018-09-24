@@ -855,8 +855,11 @@ throws Exception {
 		}
 	}
 	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("PostgreSQL")) {
-		__fieldLeftEscape = "\"";
-		__fieldRightEscape = "\"";	
+		// The following caused issues
+		//__fieldLeftEscape = "\"";
+		//__fieldRightEscape = "\"";
+		__fieldLeftEscape = "";
+		__fieldRightEscape = "";
 		__stringDelim = "'";
 		_database_engine = DBENGINE_POSTGRESQL;
 		if ( port <= 0 ) {

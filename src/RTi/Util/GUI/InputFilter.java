@@ -357,7 +357,7 @@ public InputFilter ( String whereLabel, String whereInternal, String whereIntern
 	List<String> choiceLabels, List<String> choicesInternal, boolean areChoicesEditable,
 	String inputComponentToolTipText ) {
     this(whereLabel, whereInternal, whereInternal2, "", inputType, choiceLabels, choicesInternal,
-            areChoicesEditable, null);
+            areChoicesEditable, inputComponentToolTipText);
 }
 
 /**
