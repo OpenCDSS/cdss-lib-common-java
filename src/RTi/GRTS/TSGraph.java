@@ -2503,8 +2503,8 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod )
 
 /**
  * Check the data limits using properties.
- * Check each time series in the list for properties DataValueDisplayMinValue and
- * DataValueDisplayMaxValue.  If the existing limits, which will have been
+ * Check each time series in the list for properties DataValueDisplayMin and
+ * DataValueDisplayMax.  If the existing limits, which will have been
  * computed from data, are outside of the limits, reset the computed limits to
  * those bounded by the properties.
  * Any errors in processing will result in the properties not being used.
