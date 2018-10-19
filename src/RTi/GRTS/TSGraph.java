@@ -2512,12 +2512,13 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod )
  * @param limits the limits of the graph based on time series.
  */
 private void computeDataLimits_CheckDisplayLimitProperties(List<TS> tslist, TSLimits limits ) {
-	Message.printWarning(2,"","Before checking display limit properties, tslimits="+limits);
+	//Message.printWarning(2,"","Before checking display limit properties, tslimits="+limits);
 	for ( TS ts : tslist ) {
+		Double propMinValue = null;
+		Double propMaxValue = null;
 		Object propMinValueO = ts.getProperty("DataValueDisplayMin");
 		if ( propMinValueO != null ) {
 			// The property can be a string or a Double
-			Double propMinValue = null;
 			if ( propMinValueO instanceof Double ) {
 				propMinValue = (Double)propMinValueO;
 			}
@@ -2530,22 +2531,10 @@ private void computeDataLimits_CheckDisplayLimitProperties(List<TS> tslist, TSLi
 						"\" property DataValueDisplayMin \"" + propMinValueO + "\" is invalid number.");
 				}
 			}
-			if ( propMinValue != null ) {
-				// Check
-				if ( limits.areLimitsFound() ) {
-					// Limits are found so can check
-					if ( limits.getMinValue() < propMinValue ) {
-						// The value computed from the time series is out of range
-						limits.setMinValue(propMinValue);
-						limits.setMinValueDate(null);
-					}
-				}
-			}
 		}
 		Object propMaxValueO = ts.getProperty("DataValueDisplayMax");
 		if ( propMaxValueO != null ) {
 			// The property can be a string or a Double
-			Double propMaxValue = null;
 			if ( propMaxValueO instanceof Double ) {
 				propMaxValue = (Double)propMaxValueO;
 			}
@@ -2556,6 +2545,23 @@ private void computeDataLimits_CheckDisplayLimitProperties(List<TS> tslist, TSLi
 				catch ( NumberFormatException e ) {
 					Message.printWarning(3, "", "Time series \"" + ts.getIdentifierString() +
 						"\" property DataValueDisplayMax \"" + propMaxValueO + "\" is invalid number.");
+				}
+			}
+		}
+		// If have the display limit values, set the limits from the properties
+		// - ensure that the max and min values are not the same
+		if ( (propMinValue != null) && (propMaxValue != null) &&
+			!propMinValue.equals(propMaxValue) && (propMinValue < propMaxValue)) {
+			// Values are not the same so allow setting each individually
+			if ( propMinValue != null ) {
+				// Check
+				if ( limits.areLimitsFound() ) {
+					// Limits are found so can check
+					if ( limits.getMinValue() < propMinValue ) {
+						// The value computed from the time series is out of range
+						limits.setMinValue(propMinValue);
+						limits.setMinValueDate(null);
+					}
 				}
 			}
 			if ( propMaxValue != null ) {
@@ -2571,7 +2577,7 @@ private void computeDataLimits_CheckDisplayLimitProperties(List<TS> tslist, TSLi
 			}
 		}
 	}
-	Message.printWarning(2,"","After checking display limit properties, tslimits="+limits);
+	//Message.printWarning(2,"","After checking display limit properties, tslimits="+limits);
 }
 
 /**
