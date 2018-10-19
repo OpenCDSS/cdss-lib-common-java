@@ -1440,6 +1440,7 @@ public void actionPerformed(ActionEvent event)
 				
 				try {
 					limits = TSUtil.getDataLimits(tslist, _start_date, _end_date, "", false, _ignoreLeftAxisUnits);
+					computeDataLimits_CheckDisplayLimitProperties(tslist, limits);
 					if ( limits.areLimitsFound() ) {
 						if ( this.leftYAxisViewMinY.equalsIgnoreCase(YAXIS_LIMITS_AUTOFILL_AND_KEEP) ) {
 							setLeftYAxisViewMinYFromData(limits.getMinValue());
@@ -1520,6 +1521,7 @@ public void actionPerformed(ActionEvent event)
 		
 		try {
 			limits = TSUtil.getDataLimits(tslist, _start_date, _end_date, "", false, _ignoreLeftAxisUnits);
+			computeDataLimits_CheckDisplayLimitProperties(tslist, limits);
 		}
 		catch (Exception e) {
 			String routine = "TSGraph.actionPerformed";
@@ -1563,6 +1565,7 @@ public void actionPerformed(ActionEvent event)
 		
 		try {
 			limits = TSUtil.getDataLimits(v,_start_date, _end_date, "", false,_ignoreLeftAxisUnits);
+			computeDataLimits_CheckDisplayLimitProperties(v, limits);
 		}
 		catch (Exception e) {
 			String routine = "TSGraph.actionPerformed";
@@ -1864,13 +1867,16 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod )
 					v.add(regressionData.getResidualTS());
 				}
 				limits = TSUtil.getPeriodFromTS(v, TSUtil.MAX_POR);
+				computeDataLimits_CheckDisplayLimitProperties(v, limits);
 			}
 			else if ( graphType == TSGraphType.AREA_STACKED ) {
 			    limits = TSUtil.getPeriodFromTS(getTSListToRender(true,includeLeftYAxis,includeRightYAxis), TSUtil.MAX_POR);
+			    computeDataLimits_CheckDisplayLimitProperties(getTSListToRender(true,includeLeftYAxis,includeRightYAxis), limits);
 			}
 			else {
 			    // Get the limits from the enabled time series
 				limits = TSUtil.getPeriodFromTS(getTSListToRender(true,includeLeftYAxis,includeRightYAxis), TSUtil.MAX_POR);
+				computeDataLimits_CheckDisplayLimitProperties(getTSListToRender(true,includeLeftYAxis,includeRightYAxis), limits);
 			}
 			// Extend x-axis limits for the right y-axis
 			if ( (rightYLimits0 != null) && (rightYLimits0.getDate1() != null) && (rightYLimits0.getDate1().lessThan(limits.getDate1())) ) {
@@ -1928,6 +1934,7 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod )
 				if (_ignoreLeftAxisUnits) {
 					// Can ignore units...
 					_max_tslimits_lefty = TSUtil.getDataLimits( getTSListToRender(true,includeLeftYAxis,includeRightYAxis), _start_date, _end_date, "", false, _ignoreLeftAxisUnits);
+					computeDataLimits_CheckDisplayLimitProperties(getTSListToRender(true,includeLeftYAxis,includeRightYAxis), _max_tslimits_lefty);
 				}
 				else {
 	                // Need to have consistent units.  For now require them to be the same because we don't
@@ -1956,10 +1963,12 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod )
 							// the reference graph only displays one graph.
 							_ignoreLeftAxisUnits = true;
 							_max_tslimits_lefty = TSUtil.getDataLimits( tslistToRender, _start_date, _end_date, "", false, _ignoreLeftAxisUnits);
+							computeDataLimits_CheckDisplayLimitProperties(tslistToRender, _max_tslimits_lefty);
 						}
 						else if (ignoreLeftAxisUnits) {
 							_max_tslimits_lefty = TSUtil.getDataLimits( tslistToRender, 
 								_start_date, _end_date, "", false, _ignoreLeftAxisUnits);
+							computeDataLimits_CheckDisplayLimitProperties(tslistToRender, _max_tslimits_lefty);
 						}
 						else {	
 							// Let the user interactively indicate whether to continue.
@@ -1983,6 +1992,7 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod )
 								_ignoreLeftAxisUnits = true;
 								_max_tslimits_lefty = TSUtil.getDataLimits( tslistToRender, _start_date,
 								        _end_date, "", false, _ignoreLeftAxisUnits);
+								computeDataLimits_CheckDisplayLimitProperties(tslistToRender, _max_tslimits_lefty);
 							}
 						}
 					}
@@ -2005,6 +2015,7 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod )
 	                			regressionData = _regression_data.get(i);
 	                			v.add(regressionData.getResidualTS());
 	                			tempLimits = TSUtil.getDataLimits(v, _start_date, _end_date, "", false, _ignoreLeftAxisUnits );
+	                			computeDataLimits_CheckDisplayLimitProperties(v, tempLimits);
 	                			if (tempLimits.getMaxValue() > maxValue) {
 	                				maxValue = tempLimits.getMaxValue();
 	                			}
@@ -2014,12 +2025,14 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod )
 	                		}
 	                		_max_tslimits_lefty = TSUtil.getDataLimits(tslistToRender, 
 	                			_start_date, _end_date, "", false, _ignoreLeftAxisUnits);
+	                		computeDataLimits_CheckDisplayLimitProperties(tslistToRender, _max_tslimits_lefty);
 	                		_max_tslimits_lefty.setMaxValue(maxValue);
 	                		_max_tslimits_lefty.setMinValue(minValue);
 	                	}
 	                	else {
 	                		_max_tslimits_lefty = TSUtil.getDataLimits(tslistToRender, 
 	                			_start_date, _end_date, "", false, _ignoreLeftAxisUnits);
+	                		computeDataLimits_CheckDisplayLimitProperties(tslistToRender, _max_tslimits_lefty);
 	                	}
 					}
 				}
@@ -2048,6 +2061,7 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod )
 				List<TS> ref_tslist = new ArrayList<TS>(1);
 				ref_tslist.add(__tslist.get(_reference_ts_index));
 				TSLimits reflimits = TSUtil.getDataLimits (	ref_tslist, _start_date, _end_date, "", false,_ignoreLeftAxisUnits );
+				computeDataLimits_CheckDisplayLimitProperties(ref_tslist, reflimits);
 				_max_tslimits_lefty.setMinValue ( reflimits.getMinValue() );
 				_max_tslimits_lefty.setMaxValue ( reflimits.getMaxValue() );
 				reflimits = null;	// clean up
@@ -2091,6 +2105,7 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod )
 	            			regressionData = _regression_data.get(i);
 	            			v.add(regressionData.getResidualTS());
 	            			tempLimits = TSUtil.getDataLimits(v, _max_start_date,_max_end_date, "", false, _ignoreLeftAxisUnits );
+	            			computeDataLimits_CheckDisplayLimitProperties(v, tempLimits);
 	            			if (tempLimits.getMaxValue() > maxValue) {
 	            				maxValue = tempLimits.getMaxValue();
 	            			}
@@ -2105,6 +2120,7 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod )
 	            	else {
 	            		TSLimits tempLimits = TSUtil.getDataLimits(getTSListToRender(true,includeLeftYAxis,includeRightYAxis), 
 	            			_max_start_date, _max_end_date, "", false, _ignoreLeftAxisUnits);
+	            		computeDataLimits_CheckDisplayLimitProperties(getTSListToRender(true,includeLeftYAxis,includeRightYAxis), tempLimits);
 	            		_max_tslimits_lefty.setMaxValue(tempLimits.getMaxValue());
 	            	}
 	            	// TODO SAM 2006-09-28 Still need to evaluate how switching between Auto and hard limits can be handled better.
@@ -2299,6 +2315,7 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod )
 							tempV.add(regressionData.getPredictedTS());
 						}
 						tsLimits = TSUtil.getDataLimits( tempV, _max_start_date, _max_end_date, "", false, _ignoreLeftAxisUnits);
+						computeDataLimits_CheckDisplayLimitProperties(tempV, tsLimits);
 					}
 					else {
 						// ignore -- null regression data
@@ -2370,6 +2387,7 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod )
 				if (_ignoreRightAxisUnits) {
 					// Can ignore units...
 					_max_tslimits_righty = TSUtil.getDataLimits( enabledRightYAxisTSList, _start_date, _end_date, "", false, _ignoreRightAxisUnits);
+					computeDataLimits_CheckDisplayLimitProperties(enabledRightYAxisTSList, _max_tslimits_righty);
 					Message.printStatus(2, routine, "Setting _max_tslimits_righty...units are ignored");
 				}
 				else {
@@ -2384,6 +2402,8 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod )
 						if (_ignoreRightAxisUnits) {
 							_max_tslimits_righty = TSUtil.getDataLimits( enabledRightYAxisTSList, 
 								_start_date, _end_date, "", false, _ignoreRightAxisUnits);
+							computeDataLimits_CheckDisplayLimitProperties(enabledRightYAxisTSList, _max_tslimits_righty);
+							
 							Message.printStatus(2, routine, "Setting _max_tslimits_righty...units are ignored because property says to do so");
 						}
 						else {	
@@ -2408,6 +2428,7 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod )
 								_ignoreRightAxisUnits = true;
 								_max_tslimits_righty = TSUtil.getDataLimits( enabledRightYAxisTSList, _start_date,
 								    _end_date, "", false, _ignoreRightAxisUnits);
+								computeDataLimits_CheckDisplayLimitProperties(enabledRightYAxisTSList, _max_tslimits_righty);
 								Message.printStatus(2, routine, "Setting _max_tslimits_righty...units are ignored because user said so or not visible so do so");
 							}
 						}
@@ -2416,6 +2437,7 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod )
 						// Units are compatible so compute the maximum.
 						_max_tslimits_righty = TSUtil.getDataLimits( enabledRightYAxisTSList, _start_date,
 							_end_date, "", false, _ignoreRightAxisUnits);
+						computeDataLimits_CheckDisplayLimitProperties(enabledRightYAxisTSList, _max_tslimits_righty);
 					}
 				}
 				// Property overrides for right y-axis limits
@@ -2477,6 +2499,79 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod )
 		Message.printWarning(3, _gtype + "TSGraph", e);
 		_dev.needToClose(true);
 	}
+}
+
+/**
+ * Check the data limits using properties.
+ * Check each time series in the list for properties DataValueDisplayMinValue and
+ * DataValueDisplayMaxValue.  If the existing limits, which will have been
+ * computed from data, are outside of the limits, reset the computed limits to
+ * those bounded by the properties.
+ * Any errors in processing will result in the properties not being used.
+ * @param tslist list of time series to process.
+ * @param limits the limits of the graph based on time series.
+ */
+private void computeDataLimits_CheckDisplayLimitProperties(List<TS> tslist, TSLimits limits ) {
+	Message.printWarning(2,"","Before checking display limit properties, tslimits="+limits);
+	for ( TS ts : tslist ) {
+		Object propMinValueO = ts.getProperty("DataValueDisplayMin");
+		if ( propMinValueO != null ) {
+			// The property can be a string or a Double
+			Double propMinValue = null;
+			if ( propMinValueO instanceof Double ) {
+				propMinValue = (Double)propMinValueO;
+			}
+			else if ( propMinValueO instanceof String ) {
+				try {
+					propMinValue = Double.parseDouble((String)propMinValueO);
+				}
+				catch ( NumberFormatException e ) {
+					Message.printWarning(3, "", "Time series \"" + ts.getIdentifierString() +
+						"\" property DataValueDisplayMin \"" + propMinValueO + "\" is invalid number.");
+				}
+			}
+			if ( propMinValue != null ) {
+				// Check
+				if ( limits.areLimitsFound() ) {
+					// Limits are found so can check
+					if ( limits.getMinValue() < propMinValue ) {
+						// The value computed from the time series is out of range
+						limits.setMinValue(propMinValue);
+						limits.setMinValueDate(null);
+					}
+				}
+			}
+		}
+		Object propMaxValueO = ts.getProperty("DataValueDisplayMax");
+		if ( propMaxValueO != null ) {
+			// The property can be a string or a Double
+			Double propMaxValue = null;
+			if ( propMaxValueO instanceof Double ) {
+				propMaxValue = (Double)propMaxValueO;
+			}
+			else if ( propMaxValueO instanceof String ) {
+				try {
+					propMaxValue = Double.parseDouble((String)propMaxValueO);
+				}
+				catch ( NumberFormatException e ) {
+					Message.printWarning(3, "", "Time series \"" + ts.getIdentifierString() +
+						"\" property DataValueDisplayMax \"" + propMaxValueO + "\" is invalid number.");
+				}
+			}
+			if ( propMaxValue != null ) {
+				// Check
+				if ( limits.areLimitsFound() ) {
+					// Limits are found so can check
+					if ( limits.getMaxValue() > propMaxValue ) {
+						// The value computed from the time series is out of range
+						limits.setMaxValue(propMaxValue);
+						limits.setMaxValueDate(null);
+					}
+				}
+			}
+		}
+	}
+	Message.printWarning(2,"","After checking display limit properties, tslimits="+limits);
 }
 
 /**
@@ -9138,6 +9233,7 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph )
 			else {
 				//_tslimits = TSUtil.getDataLimits( getEnabledTSList(), _start_date, _end_date, "", false, _ignore_units);
 			    _tslimits_lefty = TSUtil.getDataLimits( tslistToRender, _start_date, _end_date, "", false, _ignoreLeftAxisUnits);
+			    computeDataLimits_CheckDisplayLimitProperties(tslistToRender, _tslimits_lefty);
 				if (__leftYAxisGraphType == TSGraphType.PERIOD){
 					// Set the minimum value to 0 and the maximum value to one more than 
 					// the number of time series.  Reverse the limits to number the same as the legend...
@@ -9156,7 +9252,7 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph )
 						// Default to values set in the property
 						_tslimits_lefty.setMinValue ( _max_tslimits_lefty.getMinValue() );
 						_tslimits_lefty.setMaxValue ( _max_tslimits_lefty.getMaxValue() );
-						// If use has indicated overriding, use specified values
+						// If user has indicated overriding axis limits, use specified values
 						String leftYAxisViewMinY = getLeftYAxisViewMinY();
 						if ( StringUtil.isDouble(leftYAxisViewMinY) ) {
 							_tslimits_lefty.setMinValue(Double.parseDouble(leftYAxisViewMinY));
@@ -9206,6 +9302,7 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph )
 			else {
 				//_tslimits = TSUtil.getDataLimits( getEnabledTSList(), _start_date, _end_date, "", false, _ignore_units);
 			    _tslimits_righty = TSUtil.getDataLimits( tslistToRender, _start_date, _end_date, "", false, _ignoreRightAxisUnits);
+			    computeDataLimits_CheckDisplayLimitProperties(tslistToRender, _tslimits_righty);
 				if (__rightYAxisGraphType == TSGraphType.PERIOD){
 					// Set the minimum value to 0 and the maximum value to one more than 
 					// the number of time series.  Reverse the limits to number the same as the legend...
