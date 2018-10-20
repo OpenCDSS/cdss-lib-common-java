@@ -1649,6 +1649,21 @@ public boolean hasData ()
 }
 
 /**
+Indicate whether the time series has data flags, determined by checking to see whether
+the data flag space has been allocated and data flags are enabled for the time series.
+@return true if data flags are available (the data flag space has been allocated).
+Note that true will be returned even if all the data flag values are set to the missing data flag value.
+*/
+public boolean hasDataFlags ()
+{	if ( _dataFlags != null ) {
+		return super.hasDataFlags();
+	}
+	else {
+	    return false;
+	}
+}
+
+/**
 Initialize data members.
 */
 private void init()
