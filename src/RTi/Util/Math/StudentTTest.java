@@ -1,3 +1,5 @@
+// StudentTTest - compute student T quantile for single tail probability level and number of degrees of freedom.
+
 package RTi.Util.Math;
 
 import RTi.Util.Message.Message;

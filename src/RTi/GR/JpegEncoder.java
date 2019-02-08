@@ -1,3 +1,5 @@
+// JpegEncoder - the JPEG main program that performs a jpeg compression of an image
+
 // ----------------------------------------------------------------------------
 // History:
 //
