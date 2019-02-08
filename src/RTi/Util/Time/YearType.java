@@ -1,3 +1,5 @@
+// YearType - Year types, which indicate the span of months that define a year
+
 package RTi.Util.Time;
 
 import java.util.ArrayList;
