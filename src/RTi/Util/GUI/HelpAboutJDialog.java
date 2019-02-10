@@ -21,33 +21,9 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
 
 NoticeEnd */
 
-//-----------------------------------------------------------------------------
-// HelpAboutJDialog - provides a Help About JDialog with general features
-//-----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// History: 
-//
-// 2002-10-03	J. Thomas Sapienza, RTi	Initial version from HelpAboutJDialog
-// 2002-11-03	Steven A. Malers, RTi	Update to extend ResponseJDialog instead
-//					of ResponseDialog.  Update the Javadoc
-//					to be consistent with Swing usage.
-// 2005-11-16	JTS, RTi		Moved the majority of the guts of 
-//					ResponseJDialog into this class.  The
-//					classes are diverging because the help
-//					dialog is being tasked with showing 
-//					Jar manifest information when debug is
-//					on.  This class still extends 
-//					ResponseJDialog in order to be backward
-//					compatible with applications that
-//					may cast it.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
-
 package RTi.Util.GUI;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -66,7 +42,6 @@ import java.util.Vector;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
@@ -76,16 +51,10 @@ import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
 /**
-This class provides a simple "Help About" JDialog that appears as follows.
-<p>
-
-<img src="HelpAboutJDialog.gif"><p>
-
-The events for the JDialog are handled according to the ResponseJDialog base
-class.
+This class provides a simple "Help About" JDialog.
+The events for the JDialog are handled according to the ResponseJDialog base class.
 Construct the JDialog using code as in the following example:
 <p>
-
 <pre>
 	// Tie to a GUI's action listener and create in the
 	// actionPerformed routine...
@@ -94,33 +63,22 @@ Construct the JDialog using code as in the following example:
 		String help_string = new String (
 		IO.getProgramName() + " (TM) - Internet Edition\n" +
 		"Version " + IO.getProgramVersion() + "\n" +
-		"Copyright 1997\n" +
-		"\n" +
-		"Riverside Technology, inc.\n" +
-		"2290 East Prospect Road, Suite 1\n" +
-		"Fort Collins, CO 80525 U.S.A.\n" +
-		"(970) 484-7573\n" +
-		"(970) 484-7593 FAX\n" +
-		"info@riverside.com\n" +
-		"http://www.riverside.com");
+		"Copyright 1997...\n");
 
 		HelpAboutJDialog help_about_gui = new HelpAboutJDialog (this,
 			"About " + IO.getProgramName(), help_string );
 	}
 </pre>
+</p>
 <p>
-
 The text for the help JDialog can contain newline characters (\n) to cause
 line breaks.  Additional formatting options may be added.
+</p>
 <p>
-
-At this time, it is best to handle the menus from the parent GUI, but the
-attachMainMenu approach is being studied.  Future updates of this JDialog may
-support a graphic image and other buttons used in other applications.<br>
-TODO SAM Support graphic<br>
-See last paragraph
 @see ResponseDialog
+</p>
 */
+@SuppressWarnings("serial")
 public class HelpAboutJDialog 
 extends ResponseJDialog 
 implements ActionListener, KeyListener, WindowListener {
@@ -153,23 +111,6 @@ public HelpAboutJDialog (JFrame parent, String title, String text, boolean showS
 }
 
 /**
-Attach this GUI's menu to the calling code.  This approach is being studied.
-Not sure yet whether this sophistication is needed for this simple JDialog!
-TODO (SAM)
-*/
-public void attachMainMenu (JMenu menu) {
-	attachMainMenu(menu, "About...");
-}
-
-/**
-Attach a "Help About..." menu item given a menu and the string label to be
-used for the menu label.
-*/
-public void attachMainMenu (JMenu menu, String menu_label) {
-	menu.add(new SimpleJMenuItem(menu_label,"Help.About",this));
-}
-
-/**
 Responds to ActionEvents.
 @param event ActionEvent object
 */
@@ -197,16 +138,6 @@ public void actionPerformed(ActionEvent event) {
 }
 
 /**
-Clean up for garbage collection.
-@exception Throwable if an error.
-*/
-protected void finalize()
-throws Throwable {
-	__okJButton = null;
-	super.finalize();
-}
-
-/**
 Instantiate the dialog components
 @param parent JFrame class instantiating this class.
 @param title Dialog title
@@ -221,44 +152,39 @@ private void initialize(String title, String label, boolean showSystemDetails) {
 	List<String> vec = StringUtil.breakStringList(label, "\n", 0);
 	int size = vec.size();
 	
-    // North Panel
-	JPanel north_JPanel = new JPanel();
+    // Main panel
+	JPanel main_JPanel = new JPanel();
 	
 	if (vec != null) {
 		Insets insets = new Insets( 1, 5, 1, 5);
 		// New approach where alignment can be CENTER (because
 		// used by the HelpAboutDialog)...
-       	north_JPanel.setLayout(new GridBagLayout());
+       	main_JPanel.setLayout(new GridBagLayout());
 		if (size > 20) {
-			//add message String to a JListthat is within a JScrollPane
-			JList list = null;
-			if ( vec instanceof Vector ) {
-				list = new JList((Vector)vec);
-			}
-			else {
-				list = new JList(new Vector(vec));
-			}
-			list.setBackground(Color.LIGHT_GRAY);
+			//add message String to a JList that is within a JScrollPane
+			JList<String> list = null;
+     		list = new JList<String>(new Vector<String>(vec));
+			//list.setBackground(Color.LIGHT_GRAY);
 			JScrollPane pane = new JScrollPane(list);
-			Dimension d = new Dimension(400, 200);
+			Dimension d = new Dimension(500, 500);
 			pane.setPreferredSize(d);
 			pane.setMinimumSize(d);
-			pane.setMaximumSize(d);
+			//pane.setMaximumSize(d);
 
 			//add JScrollPane to JPanel
-       		JGUIUtil.addComponent(north_JPanel,
-				pane, 0,0,1,1,0,0,insets, GridBagConstraints.NONE, GridBagConstraints.CENTER);
+       		JGUIUtil.addComponent(main_JPanel,
+				pane, 0,0,1,1,1,1,insets, GridBagConstraints.BOTH, GridBagConstraints.CENTER);
 		}
 		else {
 			// Add each string as a JLabel...
 			for (int i = 0; i < size; i++) {
-       			JGUIUtil.addComponent(north_JPanel, new JLabel((String)vec.get(i)),
+       			JGUIUtil.addComponent(main_JPanel, new JLabel((String)vec.get(i)),
 					0, i, 1, 1, 0, 0, insets, GridBagConstraints.NONE, GridBagConstraints.CENTER);
 			}
 		}
 	}
 
-    getContentPane().add("North", north_JPanel);
+    getContentPane().add("Center", main_JPanel);
 
 	// Now add the buttons...
 
@@ -285,8 +211,7 @@ private void initialize(String title, String label, boolean showSystemDetails) {
 		setTitle(title);
 	}
 
-	// Dialogs do not need to be resizable...
-	setResizable(false);
+	setResizable(true);
     pack();
     JGUIUtil.center(this);
     super.setVisible(true);
