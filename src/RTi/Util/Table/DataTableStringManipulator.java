@@ -190,20 +190,24 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
 	    		replaceStart = true;
 	    		inputValue2 = inputValue2.substring(1,inputValue2.length());
     		}
-    		else if ( inputValue2.endsWith("$") ) {
+    		else if ( inputValue2.endsWith("$") && !inputValue2.endsWith("\\$") ) {
+    			// Input value indicates line ending
 	    		replaceEnd = true;
+	    		// Remove the dollar sign
 	    		inputValue2 = inputValue2.substring(0,inputValue2.length()-1);
     		}
-    		// Also replace "\s" with single space
+    		// Replace "\s" with single space
     		inputValue2 = inputValue2.replace("\\s"," ");
+    		// Replace "\$" with dollar sign since not a line ending
+    		inputValue2 = inputValue2.replace("\\$","$");
     	}
     	if ( operator == DataTableStringOperatorType.REMOVE ) {
-    		// Same as substring but second string is a space
+    		// Same as substring but second string is blank
     		inputValue3 = "";
     	}
     	else {
 	    	if ( inputValue3 != null ) {
-	    		// Also replace "\ " with single space, anywhere in the output
+	    		// Replace "\ " with single space, anywhere in the output
 	    		inputValue3 = inputValue3.replace("\\s"," ");
 	    	}
     	}
