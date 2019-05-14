@@ -40,15 +40,55 @@ Number of spaces for indent levels, for nice formatting.
 private String indent = "";
 
 /**
+ * Precision for coordinates.
+ */
+private int coordinatePrecision = 6;
+
+/**
+ * Format for coordinates, determined from coordinatePrecision value >= 0.
+ */
+private String coordinateFormat = null;
+
+/**
+ * Precision for elevation.
+ */
+//private int elevationPrecision = 2;
+
+/**
+ * Format for elevation, determined from elevationPrecision value >= 0.
+ */
+//private String elevationFormat = null;
+
+/**
 Construct a GeoJSONGeometryFormatter.
 @param indent number of spaces to indent for nice formatting
 */
 public GeoJSONGeometryFormatter(int indent)
+{	this(indent,-1,-1);
+}
+
+/**
+Construct a GeoJSONGeometryFormatter.
+@param indent number of spaces to indent for nice formatting
+@param coordinatePrecision number of digits after decimal point for coordinates
+@param elevationPrecision number of digits after decimal point for elevation
+*/
+public GeoJSONGeometryFormatter(int indent, int coordinatePrecision, int elevationPrecision)
 {	StringBuilder sb = new StringBuilder();
 	for ( int i = 0; i < indent; i++ ) {
 		sb.append(" ");
 	}
 	this.indent = sb.toString();
+	this.coordinatePrecision = coordinatePrecision;
+	//this.elevationPrecision = elevationPrecision;
+	if ( this.coordinatePrecision >= 0 ) {
+		// Format will be something like "%.6f"
+		this.coordinateFormat = "%." + this.coordinatePrecision + "f";
+	}
+	//if ( this.elevationPrecision >= 0 ) {
+	//	// Format will be something like "%.6f"
+	//	this.elevationFormat = "%." + this.elevationPrecision + "f";
+	//}
 }
 
 /**
@@ -74,9 +114,23 @@ private String formatPoint ( GRPoint point, boolean niceFormat, String lineStart
     b.append ( "\"type\": \"Point\"," + nl );
     b.append ( prefix1 );
     b.append ( "\"coordinates\": [" );
-    b.append ( point.x );
+    if ( this.coordinatePrecision < 0 ) {
+    	// Format based on data value precision
+    	b.append ( point.x );
+    }
+    else {
+    	// Format to specific precision
+    	b.append ( String.format(this.coordinateFormat, point.x) );
+    }
     b.append ( ", " );
-    b.append ( point.y );
+    if ( this.coordinatePrecision < 0 ) {
+    	// Format based on data value precision
+    	b.append ( point.y );
+    }
+    else {
+    	// Format to specific precision
+    	b.append ( String.format(this.coordinateFormat, point.y) );
+    }
     b.append ( "]" + nl );
     b.append ( prefix0 );
     b.append ( "}" + nl );
