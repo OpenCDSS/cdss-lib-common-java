@@ -132,8 +132,9 @@ have it build an empty data object:<p>
 	__worksheet.addRow(newRow);
 </pre>
 */
+@SuppressWarnings("serial")
 public class Generic_TableModel 
-extends JWorksheet_AbstractRowTableModel {
+extends JWorksheet_AbstractRowTableModel<GenericWorksheetData> {
 
 /**
 Array of whether each column is editable or not.
@@ -148,7 +149,7 @@ private boolean __tipsSet = false;
 /**
 Array storing the kind of data class for each column.
 */
-private Class[] __classes = null;
+private Class<?>[] __classes = null;
 
 /**
 Array of the column widths for each column.
@@ -205,7 +206,7 @@ any null values.
 @throws Exception if a null or 0-size data Vector is passed in, or if the
 first element of the Vector has any null values.
 */
-public Generic_TableModel(List data) 
+public Generic_TableModel(List<GenericWorksheetData> data) 
 throws Exception {
 	if (data == null || data.size() == 0) {
 		throw new Exception ("Cannot determine number of columns.");
@@ -380,11 +381,10 @@ public boolean isCellEditable(int row, int col) {
 
 /**
 Sets the column class for the specified column.
-@param column the column for which to set the class.  Cannot change the class
-of column 0.
+@param column the column for which to set the class.  Cannot change the class of column 0.
 @param c the Class to set for the column.
 */
-public void setColumnClass(int column, Class c) {
+public void setColumnClass(int column, Class<?> c) {
 	__classes[column] = c;
 }
 
@@ -514,10 +514,10 @@ public void setValueAt(Object value, int row, int col) {
 		row = _sortOrder[row];
 	}
 
-	GenericWorksheetData d = (GenericWorksheetData)_data.get(row);
+	GenericWorksheetData d = _data.get(row);
 	
 	if (value == null) {
-		Class c = __classes[col];
+		Class<?> c = __classes[col];
 		if (c == String.class) {
 			value = DMIUtil.MISSING_STRING;
 		}

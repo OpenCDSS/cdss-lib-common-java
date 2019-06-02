@@ -169,17 +169,17 @@ REVISIT JAVADOC: see removeStringFromSelected
 @param list JList to modify.
 @param prefix String to add.
 */
-public static void addStringToSelected ( JList list, String prefix )
+public static <I> void addStringToSelected ( JList<String> list, String prefix )
 {	if ( (list == null) || (prefix == null) ) {
 		return;
 	}
 	int selected_indices[] = list.getSelectedIndices();
 	int selected_size = selectedSize ( list );
 	int len = prefix.length();
-	DefaultListModel model = (DefaultListModel)list.getModel();
+	DefaultListModel<String> model = (DefaultListModel<String>)list.getModel();
 	String item;
 	for ( int i = 0; i < selected_size; i++ ) {
-		item = (String)model.getElementAt(selected_indices[i]);
+		item = model.getElementAt(selected_indices[i]);
 		if ( item.trim().regionMatches(true,0,prefix,0,len) ) {
 			model.setElementAt ( prefix + item, selected_indices[i] );
 		}
@@ -194,7 +194,7 @@ Add an array of strings to a JList.  This is useful when a standard set of choic
 @param comboBox Choice to add items to.
 @param items Items to add.
 */
-public static void addToJComboBox ( JComboBox comboBox, String[] items )
+public static void addToJComboBox ( JComboBox<String> comboBox, String[] items )
 {	if ( (comboBox == null) || (items == null) ) {
 		return;
 	}
@@ -210,7 +210,7 @@ called, so even non-String items can be added.
 @param comboBox Choice to add items to.
 @param items Items to add.
 */
-public static void addToJComboBox ( JComboBox comboBox, List<Object> items )
+public static void addToJComboBox ( JComboBox<String> comboBox, List<Object> items )
 {	if ( (comboBox == null) || (items == null) ) {
 		return;
 	}
@@ -410,18 +410,18 @@ The JList must use a DefaultListModel or object derived from this class.
 @param ignore_case Indicates whether to ignore case (true) or not (false).
 @return The index of the first match, or -1 if no match.
 */
-public static int indexOf (	JList list, String item, boolean selected_only, boolean ignore_case )
+public static int indexOf (	JList<String> list, String item, boolean selected_only, boolean ignore_case )
 {	if ( (list == null) || (item == null) || (item.length() == 0) ) {
 		return -1;
 	}
 	int size = 0;
 	String list_item = null;
-	DefaultListModel model = (DefaultListModel)list.getModel();
+	DefaultListModel<String> model = (DefaultListModel<String>)list.getModel();
 	if ( selected_only ) {
 		size = selectedSize ( list );
 		int [] selected_indices = list.getSelectedIndices();
 		for ( int i = 0; i < size; i++ ) {
-			list_item = (String)model.elementAt( selected_indices[i]);
+			list_item = model.elementAt( selected_indices[i]);
 			if ( ignore_case ) {
 				if ( list_item.equalsIgnoreCase(item) ) {
 					return i;
@@ -435,7 +435,7 @@ public static int indexOf (	JList list, String item, boolean selected_only, bool
 	else {
 	    size = model.size();
 		for ( int i = 0; i < size; i++ ) {
-			list_item = (String)model.elementAt(i);
+			list_item = model.elementAt(i);
 			if ( ignore_case ) {
 				if ( list_item.equalsIgnoreCase(item) ) {
 					return i;
@@ -626,17 +626,17 @@ TODO JAVADOC: see addStringToSelected
 @param list JList to modify.
 @param prefix String to add.
 */
-public static void removeStringFromSelected ( JList list, String prefix )
+public static void removeStringFromSelected ( JList<String> list, String prefix )
 {	if ( (list == null) || (prefix == null) ) {
 		return;
 	}
 	int selected_indices[] = list.getSelectedIndices();
 	int selected_size = selectedSize ( list );
 	int len = prefix.length();
-	DefaultListModel model = (DefaultListModel)list.getModel();
+	DefaultListModel<String> model = (DefaultListModel<String>)list.getModel();
 	String item;
 	for ( int i = 0; i < selected_size; i++ ) {
-		item = (String)model.getElementAt( selected_indices[i]);
+		item = model.getElementAt( selected_indices[i]);
 		if ( item.trim().regionMatches(true,0,prefix,0,len) &&
 			StringUtil.tokenCount( item," \t", StringUtil.DELIM_SKIP_BLANKS) > 1 ) {
 			model.setElementAt (  item.substring(len).trim(), selected_indices[i] );
@@ -654,15 +654,15 @@ The DefaultListModel or an extended class should be used for the list model.
 @param item Item to select.
 @param ignore_case Indicates whether case should be ignored when searching the list for a match.
 */
-public static void select ( JList list, String item, boolean ignore_case )
+public static void select ( JList<String> list, String item, boolean ignore_case )
 {	if ( (list == null) || (item == null) ) {
 		return;
 	}
-	DefaultListModel model = (DefaultListModel)list.getModel();
+	DefaultListModel<String> model = (DefaultListModel<String>)list.getModel();
 	int size = model.size();
 	String list_item = null;
 	for ( int i = 0; i < size; i++ ) {
-		list_item = (String)model.getElementAt(i);
+		list_item = model.getElementAt(i);
 		if ( ignore_case ) {
 			if ( list_item.equalsIgnoreCase(item) ) {
 				list.setSelectedIndex(i);
@@ -680,7 +680,7 @@ public static void select ( JList list, String item, boolean ignore_case )
 Select all items in a JList.
 @param list JList to select all items.
 */
-public static void selectAll ( JList list )
+public static <I> void selectAll ( JList<I> list )
 {	if ( list == null ) {
 		return;
 	}
@@ -706,7 +706,7 @@ the first or last selected item in a list.
 @return the position in the original data for the requested selected index or
 -1 if unable to determine.
 */
-public static int selectedIndex ( JList list, int selected_index )
+public static <I> int selectedIndex ( JList<I> list, int selected_index )
 {	if ( list == null ) {
 		return -1;
 	}
@@ -729,7 +729,7 @@ Return the number of items selected in a JList.
 @param list JList to check.
 @return the number items selected in the JList, or 0 if a null List.
 */
-public static int selectedSize ( JList list )
+public static <I> int selectedSize ( JList<I> list )
 {	if ( list == null ) {
 		return 0;
 	}
@@ -782,7 +782,7 @@ found, an Exception is thrown.  This parameter is useful when defaulting a
 combo box to a value for a new instance of an object.
 @exception Exception if the string is not found in the JComboBox.
 */
-public static void selectTokenMatches (	JComboBox c, boolean ignore_case, String delimiter, int flags,
+public static <I> void selectTokenMatches (	JComboBox<I> c, boolean ignore_case, String delimiter, int flags,
 	int token, String item, String default_item )
 throws Exception
 {	selectTokenMatches ( c, ignore_case, delimiter, flags, token, item,	default_item, false );
@@ -806,7 +806,7 @@ combo box to a value for a new instance of an object.
 match - the default is not to trim.
 @exception Exception if the string is not found in the JComboBox.
 */
-public static void selectTokenMatches (	JComboBox c, boolean ignore_case, String delimiter, int flags,
+public static <I> void selectTokenMatches (	JComboBox<I> c, boolean ignore_case, String delimiter, int flags,
 	int token, String item, String default_item, boolean trim_tokens )
 throws Exception
 {	// Does not look like Choice.select(String) throws an exception if the

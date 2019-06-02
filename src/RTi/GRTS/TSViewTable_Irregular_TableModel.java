@@ -26,6 +26,7 @@ package RTi.GRTS;
 import java.util.List;
 
 import RTi.TS.IrregularTS;
+import RTi.TS.TS;
 import RTi.TS.TSData;
 import RTi.TS.TSException;
 import RTi.Util.Message.Message;
@@ -36,14 +37,17 @@ import RTi.Util.Time.DateTime;
  *  
  *  @see TSViewTable_TableModel for displaying regular TS. 
  */
-public class TSViewTable_Irregular_TableModel extends
-        TSViewTable_TableModel
+public class TSViewTable_Irregular_TableModel extends TSViewTable_TableModel
 {
 
-  List dataPoints;
+  /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+  List<TSData> dataPoints;
   IrregularTS irrTS = null;
   
-  public TSViewTable_Irregular_TableModel(List data, DateTime start,
+  public TSViewTable_Irregular_TableModel(List<TS> data, DateTime start,
           int intervalBase, int intervalMult, int dateFormat,
           String[] dataFormats, boolean useExtendedLegend)
           throws Exception
@@ -53,7 +57,7 @@ public class TSViewTable_Irregular_TableModel extends
       // TODO Auto-generated constructor stub
     }
 
-  public TSViewTable_Irregular_TableModel(List data, DateTime start,
+  public TSViewTable_Irregular_TableModel(List<TS> data, DateTime start,
           int intervalBase, int intervalMult, int dateFormat,
           String[] dataFormats, boolean useExtendedLegend,
           int cacheInterval) throws Exception
@@ -68,12 +72,12 @@ public class TSViewTable_Irregular_TableModel extends
    * @param data 
    * @throws TSException
    */
-  protected void calcRowCount(List data) throws TSException
+  protected void calcRowCount(List<IrregularTS> data) throws TSException
   {
     String routine = "calcRowCount";
     if (data.get(0) instanceof IrregularTS)
       {
-        irrTS = (IrregularTS)data.get(0);
+        irrTS = data.get(0);
       }
     else
       {       

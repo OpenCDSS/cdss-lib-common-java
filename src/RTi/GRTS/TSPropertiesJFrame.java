@@ -70,6 +70,7 @@ The TSPropertiesJFrame displays properties for a time series, including
 information from the TSIdent and also basic statistics from TSLimits.  The
 properties are typically shown from a parent JFrame window.
 */
+@SuppressWarnings("serial")
 public class TSPropertiesJFrame extends JFrame
 implements ActionListener, ChangeListener, WindowListener
 {
@@ -180,9 +181,6 @@ private DataTable createPropertyTable ( TS ts )
     tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Property Name",nameLength) );
     tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Property Value",valueLength) );
     DataTable table = new DataTable ( tableFields );
-    if ( properties == null ) {
-        properties = new HashMap();
-    }
     TableRecord rec;
     for ( String key : keyList ) {
         rec = new TableRecord();

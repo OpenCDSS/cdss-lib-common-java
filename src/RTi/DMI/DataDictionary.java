@@ -701,7 +701,8 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 			for ( int j = 0; j < numColumns; j++ ) {
 			    order[j] = j;
 			}
-			List[] sortedVectors = new List[numColumns];
+			@SuppressWarnings("unchecked")
+			List<String>[] sortedVectors = new List[numColumns];
 			for (int j = 0; j < numColumns; j++) {
 				sortedVectors[j] = (List<String>)tableColumnsMetadataList.get(order[j]);
 			}

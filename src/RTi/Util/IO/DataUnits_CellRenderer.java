@@ -38,6 +38,7 @@ import RTi.Util.String.StringUtil;
 /**
 This class is a cell renderer for cells in DataUnits JWorksheets.
 */
+@SuppressWarnings("serial")
 public class DataUnits_CellRenderer extends JWorksheet_AbstractExcelCellRenderer
 {
 

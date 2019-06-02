@@ -336,7 +336,7 @@ are used.
 TODO - maybe something to set in future to limit the number of instance 
 windows that can be open at one time?
 */
-protected List[] _windowInstanceInformation;
+protected List<WindowManagerData>[] _windowInstanceInformation;
 
 /**
 Constructor.
@@ -367,7 +367,7 @@ public boolean areWindowsOpen() {
 		}
 	}
 
-	List v;
+	List<WindowManagerData> v;
 	WindowManagerData data;
 	int size = 0;
 	for (int i = 0; i < _windowInstanceInformation.length; i++) {
@@ -396,7 +396,7 @@ public void closeAllWindows() {
 		}
 	}
 
-	List v;
+	List<WindowManagerData> v;
 	WindowManagerData data;
 	int size = 0;
 	for (int i = 0; i < _windowInstanceInformation.length; i++) {
@@ -404,7 +404,7 @@ public void closeAllWindows() {
 			v = _windowInstanceInformation[i];
 			size = v.size();
 			for (int j = 0; j < size; j++) {
-				data = (WindowManagerData)v.get(j);
+				data = v.get(j);
 				if (data.getStatus() == STATUS_OPEN) {
 					closeWindowInstance(i, data.getID());
 				}
@@ -572,6 +572,7 @@ public int getWindowStatus(int windowType) {
 Initializes arrays.
 @param numWindows the number of windows the window manager will manage.
 */
+@SuppressWarnings("unchecked")
 private void initialize(int numWindows) {
 	_windowStatus = new int[numWindows];
 	_windows = new JFrame[numWindows];
@@ -638,7 +639,7 @@ for.
 public void setAllowMultipleWindowInstances(int windowType, boolean allow) {
 	_allowMultipleWindowInstances[windowType] = allow;
 	if (allow = true) {
-		_windowInstanceInformation[windowType] = new Vector();
+		_windowInstanceInformation[windowType] = new Vector<WindowManagerData>();
 	}
 	else {
 		_windowInstanceInformation[windowType] = null;

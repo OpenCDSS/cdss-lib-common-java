@@ -219,7 +219,7 @@ private JWorksheet __worksheet = null;
 /**
 The list in which the log file summary information is displayed.
 */
-private SimpleJList __summaryList = null;
+private SimpleJList<String> __summaryList = null;
 
 /**
 Combo boxes for selecting the range of warning and status levels to filter the 
@@ -1014,10 +1014,10 @@ private void setupSummaryJPanel(List<String> data, boolean initialSetup) {
 	y++;
 
 	if (data == null) { 
-		__summaryList = new SimpleJList();
+		__summaryList = new SimpleJList<String>();
 	}
 	else {
-		__summaryList = new SimpleJList(new Vector<String>(data));
+		__summaryList = new SimpleJList<String>(new Vector<String>(data));
 	}
 	__summaryList.setFont(new java.awt.Font("Courier", java.awt.Font.PLAIN,	11));
 

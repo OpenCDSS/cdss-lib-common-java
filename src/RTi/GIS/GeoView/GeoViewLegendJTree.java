@@ -613,12 +613,12 @@ Utility method used by getAllLayerNodes()
 @param node the node to check to see if to add to the Vector
 @param v the Vector to which to add the nodes.
 */
-private void getAllLayerNodes(SimpleJTree_Node node, List v) {
+private void getAllLayerNodes(SimpleJTree_Node node, List<SimpleJTree_Node> v) {
 	if (node instanceof GeoViewLegendJTree_Node) {
 		v.add(node);
 	}
 	if (node.getChildCount() >= 0) {
-		for (Enumeration e = node.children(); e.hasMoreElements();) {
+		for (Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
 			SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 			getAllLayerNodes(n, v);
 		}
@@ -630,8 +630,8 @@ Returns a lsit of all the nodes that contain layer information (i.e.,
 are GeoViewLegendJTree_Nodes), but not the project node.
 @return a list of the nodes with layer information.
 */
-public List getAllNodes() {
-	List v = new Vector();
+public List<SimpleJTree_Node> getAllNodes() {
+	List<SimpleJTree_Node> v = new Vector<SimpleJTree_Node>();
 
 	if (__projectNode == null || __projectNode.getChildCount() <= 0) {
 		return v;
@@ -639,10 +639,10 @@ public List getAllNodes() {
 
 	SimpleJTree_Node node = null;
 
-	for (Enumeration e = __projectNode.children(); e.hasMoreElements();) {
-		node = (SimpleJTree_Node)e.nextElement();	
+	for (Enumeration<SimpleJTree_Node> e = __projectNode.children(); e.hasMoreElements();) {
+		node = e.nextElement();	
 		v.add(node);
-		for (Enumeration e2 = node.children(); e2.hasMoreElements();) {
+		for (Enumeration<SimpleJTree_Node> e2 = node.children(); e2.hasMoreElements();) {
 			v.add(e2.nextElement());
 		}
 	}
@@ -686,7 +686,7 @@ Returns the names of all the layers in the JTree.
 */
 public List getLayerNames(boolean visibleOnly) {
 	List allNodes = getAllLayerNodes();
-	List names = new Vector();
+	List<String> names = new Vector<String>();
 	for (int i = 0; i < allNodes.size(); i++) {
 		GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)allNodes.get(i);
 		if (((visibleOnly && node.isCheckBoxSelected()) || (!visibleOnly))) {

@@ -147,20 +147,18 @@ the JTree to determine if it can expand or not).
 public void treeWillExpand(TreeExpansionEvent event) 
 throws ExpandVetoException {
 	if (!__expandAllowed) {
-		throw new ExpandVetoException(event, 
-			"Cannot expand this tree");
+		throw new ExpandVetoException(event, "Cannot expand this tree");
 	}		
-	List v = __tree.getListeners();
+	List<SimpleJTree_Listener> v = __tree.getListeners();
 	if (v == null) {
 		return;
 	}
 
-	SimpleJTree_Node node = (SimpleJTree_Node)
-		((event.getPath()).getLastPathComponent());
+	SimpleJTree_Node node = (SimpleJTree_Node)((event.getPath()).getLastPathComponent());
 	
 	int size = v.size();
 	for (int i = 0; i < size; i++) {
-		((SimpleJTree_Listener)v.get(i)).nodeExpanding(node);
+		v.get(i).nodeExpanding(node);
 	}
 }
 

@@ -291,7 +291,7 @@ throws Exception
 		}
 	}
 	// Remove the trailing separator, but only if not the root directory..
-	if ( (buffer.charAt(buffer.length() - 1) == filesep) && !buffer.equals("" + filesep) ) {
+	if ( (buffer.charAt(buffer.length() - 1) == filesep) && !buffer.toString().equals("" + filesep) ) {
 		// Remove the trailing file separator...
 		buffer.setLength(buffer.length() - 1);
 	}

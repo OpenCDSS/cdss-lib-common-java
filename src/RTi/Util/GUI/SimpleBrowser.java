@@ -237,6 +237,7 @@ public SimpleBrowser(String startingUrl ) throws IOException
 	this.setVisible(true);
 }
 
+// TODO smalers 2019-05-28 figure out deprecated method
 /**
 Checks if the given URL is valid and adds protocol if needed.
 <p>
@@ -245,6 +246,7 @@ Protocol is either file: or http://.
 @return Newly formed URL with protocol.
 @throws MalformedURLException if the URL given is invalid.
  */
+@SuppressWarnings("deprecation")
 private String checkURL(String url) throws MalformedURLException
 {
 	if (!(url.startsWith("http:") || url.startsWith("file:"))) {
@@ -262,10 +264,12 @@ private String checkURL(String url) throws MalformedURLException
 	return url;
 }
 
+// TODO smalers 2019-05-28 need to udpate to remove deprecation
 /**
  * Handles actions events for the back, top, and print buttons.
  * @param event User triggered event.  
 */
+@SuppressWarnings("deprecation")
 public void actionPerformed( ActionEvent event ) 
 {
 	// back button was clicked by user
@@ -307,6 +311,7 @@ public void actionPerformed( ActionEvent event )
 		IOUtil.openURL( __top_url );
 	}
 }
+
 //public static void main(String args[]) 
 //{
 //  try

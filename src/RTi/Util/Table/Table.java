@@ -99,21 +99,21 @@ try {
 */
 public class Table {
 
-private List _table_fields;	// vector of data types - DATA_TYPE_*
-private List _table_records;	// vector of records 
+private List<TableField> _table_fields;	// vector of data types - DATA_TYPE_*
+private List<TableRecord> _table_records;	// vector of records 
 
 /**
 Construct a new table.
-@param tableFieldsVector a vector of TableField objects defining table contents
+@param tableFieldsVector a list of TableField objects defining table contents
 */
-public Table ( List tableFieldsVector) {
+public Table ( List<TableField> tableFieldsVector) {
 	initialize ( tableFieldsVector );
 }
 
-private void initialize ( List tableFieldsVector )
+private void initialize ( List<TableField> tableFieldsVector )
 {
 	_table_fields = tableFieldsVector;
-	_table_records = new Vector ( 10, 10 );
+	_table_records = new Vector<TableRecord>( 10, 10 );
 }
 
 /**
@@ -295,7 +295,7 @@ throws Exception
 Returns all the table records.
 @return vector of TableRecord
 */
-public List getTableRecords ( )
+public List<TableRecord> getTableRecords ( )
 {
 	return _table_records;
 }
@@ -353,13 +353,13 @@ Given a clear definition of what data to expect, reads and stores data in table
 @param num_lines_header number of lines in header (typically 1)
 */
 public static Table parseDelimitedFile ( String filename, String delimiter,
-	List tableFields, int num_lines_header )
+	List<TableField> tableFields, int num_lines_header )
 throws Exception
 {
 	String rtn = "Table.parseDelimitedFile";	
 	String iline;
 	boolean processed_header = false;
-	List columns;
+	List<String> columns;
 	int num_fields=0, type, num_lines_header_read=0;
 	Table table;
 
@@ -395,11 +395,9 @@ throws Exception
 			TableRecord contents = new TableRecord(num_fields);
 			try {
 			for ( int i=0; i<num_fields; i++ ) {
-				type = ((TableField)tableFields.get(i)).
-					getDataType();
+				type = tableFields.get(i).getDataType();
 				if ( type == TableField.DATA_TYPE_STRING ) {
-					contents.addFieldValue ( 
-						(String)columns.get(i));
+					contents.addFieldValue ( columns.get(i) );
 					/*
 					currentString = 
 						(String)columns.elementAt(i);
@@ -410,17 +408,13 @@ throws Exception
 					*/
 				}
 				else if ( type == TableField.DATA_TYPE_DOUBLE )
-					contents.addFieldValue ( new Double (
-					(String)columns.get(i)));
+					contents.addFieldValue ( new Double ( columns.get(i)));
 				else if ( type == TableField.DATA_TYPE_INT )
-					contents.addFieldValue( new Integer ( 
-					(String)columns.get(i)));
+					contents.addFieldValue( new Integer ( columns.get(i)));
 				else if ( type == TableField.DATA_TYPE_SHORT )
-					contents.addFieldValue( new Short (
-					(String)columns.get(i)));
+					contents.addFieldValue( new Short ( columns.get(i)));
 				else if ( type == TableField.DATA_TYPE_FLOAT )
-					contents.addFieldValue( new Float ( 
-					(String)columns.get(i)));
+					contents.addFieldValue( new Float ( columns.get(i)));
 			}
 			table.addRecord ( contents );
 			} catch ( Exception e ) {
@@ -428,6 +422,8 @@ throws Exception
 			}
 		}
 	}
+	
+	in.close();
 	return table;
 }
 
@@ -436,7 +432,7 @@ Reads header of delimited file and return vector of TableField objects
 @return vector of TableField objects (only header titles will be set)
 @param filename name of file containing delimited data
 */
-public static List parseDelimitedFileHeader ( String filename )
+public static List<TableField> parseDelimitedFileHeader ( String filename )
 throws Exception
 {
 	return parseDelimitedFileHeader ( filename, "," );
@@ -450,10 +446,11 @@ to TableField.DATA_TYPE_STRING.  This should be changed if not appropriate.
 @param filename name of file containing delimited data
 @param delimiter string representing delimiter in data file 
 */
-public static List parseDelimitedFileHeader ( String filename, String delimiter )
+public static List<TableField> parseDelimitedFileHeader ( String filename, String delimiter )
 throws Exception
 {	String iline;
-	List columns, tableFields = null;
+	List<String> columns;
+	List<TableField> tableFields = null;
 	int num_fields=0;
 	TableField newTableField = null;
 
@@ -469,7 +466,7 @@ throws Exception
 			delimiter, StringUtil.DELIM_SKIP_BLANKS );
 
 		num_fields = columns.size();
-		tableFields = new Vector ( num_fields, 1 );
+		tableFields = new Vector<TableField>( num_fields, 1 );
 		for ( int i=0; i<num_fields; i++ ) {
 			newTableField = new TableField ( );
 			newTableField.setName((String)columns.get(i));
@@ -478,7 +475,9 @@ throws Exception
 		}
 		return tableFields;
 	}
+	
+	in.close();
 	return tableFields;
 }
 
-} // End of Table class
+}

@@ -126,8 +126,9 @@ the index of the currently-selected value.  In an editable combox box, it will
 do the same, unless the user has typed in a value.  In that case, it will return -1.</li>
 </ul>
 */
-public class SimpleJComboBox 
-extends JComboBox {
+@SuppressWarnings("serial")
+public class SimpleJComboBox
+extends JComboBox <String> {
 
 /**
 Refers to the very last position in the combo box, for use with setSelectionFailureFallback.
@@ -160,7 +161,7 @@ public SimpleJComboBox() {
 /**
  * Creates a JComboBox that takes it's items from an existing ComboBoxModel.
  */
-public SimpleJComboBox(ComboBoxModel aModel)
+public SimpleJComboBox(ComboBoxModel<String> aModel)
 	{
 		super(aModel);
 		initialize(-1, false);
@@ -184,8 +185,8 @@ The default width of the SimpleJComboBox will be the width of the widest String 
 <tt>getSelected()</tt> should be used instead of <tt>getSelectedItem()</tt>.
 @param v a list of Strings to be placed in the SimpleJComboBox.
 */
-public SimpleJComboBox(List v) {
-	super(new Vector(v));
+public SimpleJComboBox(List<String> v) {
+	super(new Vector<String>(v));
 	initialize(-1, false);
 }
 
@@ -197,8 +198,8 @@ The default width of the SimpleJComboBox will be the width of the widest String 
 @param v a list of Strings to be placed in the SimpleJComboBox.
 @param editable if true, then the values in the combo box can be edited.
 */
-public SimpleJComboBox(List v, boolean editable) {
-	super(new Vector(v));
+public SimpleJComboBox(List<String> v, boolean editable) {
+	super(new Vector<String>(v));
 	initialize(-1, editable);
 }
 
@@ -224,18 +225,9 @@ sets the default field width, and whether the combo box is editable.
 @param defaultSize the default field width of the SimpleJComboBox.
 @param editable whether the SimpleJComboBox should be editable (true) or not.
 */
-public SimpleJComboBox(List v, int defaultSize, boolean editable) {
-	super(new Vector(v));
+public SimpleJComboBox(List<String> v, int defaultSize, boolean editable) {
+	super(new Vector<String>(v));
 	initialize(defaultSize, editable);
-}
-
-/**
-Finalize method.
-*/
-public void finalize() 
-throws Throwable {
-	__fallbackString = null;
-	super.finalize();
 }
 
 /**
@@ -358,7 +350,7 @@ If the location is out of bounds, null is returned.
 @param index an integer indicating the list position, where the first item starts at zero.
 @return the Object at that list position, or null if out of range.
 */
-public Object getItemAt(int index) {
+public String getItemAt(int index) {
 	return super.getItemAt(index);
 }
 
@@ -476,7 +468,7 @@ work if the Object to be inserted is not a String.
 @param anObject the Object to add to the list.
 @param index an integer specifying the position at which to add the item.
 */
-public void insertItemAt(Object anObject, int index) {
+public void insertItemAt(String anObject, int index) {
 	if (anObject == null || anObject instanceof String) {
 		super.insertItemAt(anObject, index);
 	}
@@ -573,9 +565,9 @@ public void selectIgnoreCase(String str) {
 Sets the data stored in the combo box all at once.
 @param v a list of Strings, each of which will be an item in the combo box.
 */
-public void setData(List v)
+public void setData(List<String> v)
 {
-	setModel(new DefaultComboBoxModel(new Vector(v)));
+	setModel(new DefaultComboBoxModel<String>(new Vector<String>(v)));
 	repaint();
 }
 

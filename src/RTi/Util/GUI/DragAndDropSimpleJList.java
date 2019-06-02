@@ -57,8 +57,9 @@ import java.util.List;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+@SuppressWarnings("serial")
 public class DragAndDropSimpleJList
-extends SimpleJList 
+extends SimpleJList<String>
 implements DragGestureListener, DragSourceListener, DropTargetListener, 
 DragAndDrop, ListSelectionListener {
 
@@ -80,23 +81,23 @@ public DragAndDropSimpleJList(int dragAction, int dropAction) {
 
 /**
 Constructor.
-@param array an array of objects that will be used to populate the list.
+@param array an array of strings that will be used to populate the list.
 @param dragAction the action to be taken when something is dragged from the list
 @param dropAction the action to be taken when something is dropped on the list
 */
-public DragAndDropSimpleJList(Object array[], int dragAction, int dropAction) {
+public DragAndDropSimpleJList(String array[], int dragAction, int dropAction) {
 	super(array);
 	initialize(dragAction, dropAction);
 }
 
 /**
 Constructor.
-@param vector a list of objects that will be used to populate the list.
+@param list a list of strings that will be used to populate the list.
 @param dragAction the action to be taken when something is dragged from the list
 @param dropAction the action to be taken when something is dropped on the list
 */
-public DragAndDropSimpleJList(List vector, int dragAction, int dropAction) {
-	super(vector);
+public DragAndDropSimpleJList(List<String> list, int dragAction, int dropAction) {
+	super(list);
 	initialize(dragAction, dropAction);
 }
 

@@ -32,7 +32,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import RTi.Util.Message.Message;
+//import RTi.Util.Message.Message;
 
 // TODO smalers 2017-07-12 the methods in this class need to be renamed/refactored.
 // Code was consolidated from several places and the methods are redundant with different naming conventions.

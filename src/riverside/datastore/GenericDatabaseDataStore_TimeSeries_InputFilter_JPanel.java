@@ -78,7 +78,9 @@ public void setFilters ( int numFilterGroups )
     	locTypes = ds.readTimeSeriesMetaLocationTypeList(null, null, null, null, null);
     }
     List<String> locIds = new ArrayList<String>();
-    if ( (locIds != null) && !locIds.equals("") ) {
+    // TODO smalers, 2019-05-27 need to confirm the logic
+    //if ( (locIds != null) && !locIds.equals("") ) {
+    if ( (locIdColumn != null) && !locIdColumn.equals("") ) {
     	locIds = ds.readTimeSeriesMetaLocationIDList(null, null, null, null, null);
     }
     List<String> dataSources = new ArrayList<String>();

@@ -542,7 +542,7 @@ private List<List<MouseListener>> buildMouseListeners(JWorksheet[] worksheets) {
  * This code is substantially copied from JWorksheet, which was substantially guided by JWorksheet_CopyPasteAdapter.
  */
 private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Exception {
-	String routine = "calculateAndDisplayStatistics";
+	//String routine = "calculateAndDisplayStatistics";
 	try {
 		int numSelectedCols = worksheet.getSelectedColumnCount();
 		int numSelectedRows = worksheet.getSelectedRowCount();
@@ -608,7 +608,6 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 		// Time series are needed to determine the missing data value
 		TS[] ts = new TS[numColumns];
 		int [] tsPrec = new int[numColumns];
-		@SuppressWarnings("unchecked")
 		List<TS> tslist = (List<TS>)((TSViewTable_TableModel)worksheet.getTableModel()).getData();
 		String precisionProp = __props.getValue("OutputPrecision");
 		for (int icol = 0; icol < numSelectedCols; icol++) {
@@ -689,7 +688,7 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 		
 		// Create the table
 		DataTable table = new DataTable(tableFieldList);
-	
+
 		JWorksheet_AbstractTableModel tableModel = worksheet.getTableModel();
 		// Transfer the data from the worksheet to the subset table
 		Object cellContents;

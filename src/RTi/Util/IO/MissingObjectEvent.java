@@ -40,7 +40,7 @@ String __id = "";
 /**
  * Class of object that was missing.
  */
-Class __missingObjectClass = null;
+Class<?> __missingObjectClass = null;
 
 /**
  * Human readable name for class of object that was missing.
@@ -60,7 +60,7 @@ Object __resource = null;
  * @param missingObjectClassName the human-readable name of the class (e.g., "Time Series" as
  * opposed to "RTi.TS.TS".
  */
-public MissingObjectEvent ( String missingObjectID, Class missingObjectClass, String missingObjectClassName, Object resource )
+public MissingObjectEvent ( String missingObjectID, Class<?> missingObjectClass, String missingObjectClassName, Object resource )
 {
     __id = missingObjectID;
     __resource = resource;
@@ -68,7 +68,7 @@ public MissingObjectEvent ( String missingObjectID, Class missingObjectClass, St
     __missingObjectClassName = missingObjectClassName;
 }
 
-public Class getMissingObjectClass ()
+public Class<?> getMissingObjectClass ()
 {
     return __missingObjectClass;
 }

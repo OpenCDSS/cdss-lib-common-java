@@ -52,6 +52,7 @@ select a DIADvisor host and ODBC connection.  Currently it is assumed that
 DIADvisor always uses Microsoft Acccess.  Two connections are made, one for
 the operational database and one for the archive database.
 */
+@SuppressWarnings("serial")
 public class SelectDIADvisorDialog extends Dialog
 implements ActionListener, KeyListener, ItemListener, WindowListener {
 
@@ -92,7 +93,7 @@ private String	__user_login = null,	// User login
 private boolean __validate_login=false;	// Indicates whether the user
 					// login/password should be entered and
 					// validated
-private List __available_OdbcDsn=null;// List of available ODBC DSN.
+private List<String> __available_OdbcDsn=null;// List of available ODBC DSN.
 
 /**
 Construct and display a SelectDIADvisorDialog.
@@ -308,7 +309,7 @@ private void initialize (	Frame parent, DIADvisorDMI DIADvisor_dmi,
 	// Run a process to get the Available ODBC DSN.  Rely on the timeout
 	// rather than a STOP code so that the shellcon program does not need to
 	// print a stop code.
-	List output = null;
+	List<String> output = null;
 	if (!IOUtil.isUNIXMachine()) {
 		try {	String [] command_array = new String[2];
 			command_array[0] = "shellcon";
@@ -328,14 +329,14 @@ private void initialize (	Frame parent, DIADvisorDMI DIADvisor_dmi,
 		}
 	}
 
-	__available_OdbcDsn = new Vector();
+	__available_OdbcDsn = new Vector<String>();
 	if ((output != null) && (output.size() > 0)) {
 		output = StringUtil.sortStringList (output, StringUtil.SORT_ASCENDING, null, false, true);
 		int size = output.size();
 		String dsn = "";
 		// Only add DSN that have "DIAD" in the name...
 		for (int i = 0; i < size; i++) {
-			dsn = ((String)output.get(i)).trim();
+			dsn = output.get(i).trim();
 			if ( (StringUtil.indexOfIgnoreCase(dsn,"DIAD",0) >= 0)
 				&& !dsn.regionMatches(true,0,"STOP ",0,5) ) {
 				__available_OdbcDsn.add(dsn);
@@ -354,8 +355,7 @@ private void initialize (	Frame parent, DIADvisorDMI DIADvisor_dmi,
 	}
 	else {	int size = __available_OdbcDsn.size();
 		for ( int i = 0; i < size; i++ ) {
-			__OdbcDsn_Choice.addItem(
-				(String)__available_OdbcDsn.get(i) );
+			__OdbcDsn_Choice.addItem( __available_OdbcDsn.get(i) );
 		}
 	}
        	GUIUtil.addComponent(northW_Panel, __OdbcDsn_Choice,

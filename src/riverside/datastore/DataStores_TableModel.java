@@ -34,7 +34,7 @@ This one table model is used for database and web service data stores because cu
 it is easier to show all than split out and make the user pick different categories for viewing.
 */
 @SuppressWarnings("serial")
-public class DataStores_TableModel extends JWorksheet_AbstractRowTableModel
+public class DataStores_TableModel extends JWorksheet_AbstractRowTableModel<DataStore>
 {
 
 /**

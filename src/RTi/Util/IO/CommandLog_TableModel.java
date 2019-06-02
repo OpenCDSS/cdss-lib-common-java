@@ -31,7 +31,7 @@ import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 This table model displays a list of CommandLogRecord in a worksheet.
 */
 @SuppressWarnings("serial")
-public class CommandLog_TableModel extends JWorksheet_AbstractRowTableModel {
+public class CommandLog_TableModel extends JWorksheet_AbstractRowTableModel<CommandLogRecord> {
 
 /**
 Number of columns in the table model.
@@ -55,7 +55,7 @@ Constructor.
 @param data the data that will be displayed in the table.
 @throws Exception if an invalid data was passed in.
 */
-public CommandLog_TableModel(List data)
+public CommandLog_TableModel(List<CommandLogRecord> data)
 throws Exception {
 	if (data == null) {
 		throw new Exception ("Invalid data list passed to " + getClass().getName() + " constructor.");
@@ -187,7 +187,7 @@ public Object getValueAt(int row, int col) {
 		row = _sortOrder[row];
 	}
 
-	CommandLogRecord log = (CommandLogRecord)_data.get(row);
+	CommandLogRecord log = _data.get(row);
 
 	switch (col) {
 		case COL_SEVERITY:

@@ -66,8 +66,9 @@ development.
 REVISIT (JTS - 2006-05-23)
 Remove this class!
 */
+@SuppressWarnings("serial")
 public class SimpleJChoice 
-extends JComboBox {
+extends JComboBox<String> {
 
 /**
 Constructor.  The Constructor initializes the SimpleJChoice's editable 

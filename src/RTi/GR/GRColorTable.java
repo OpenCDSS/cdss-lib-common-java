@@ -48,7 +48,7 @@ TODO (JTS - 2006-05-23) Examples of use
 */
 @SuppressWarnings("serial")
 public class GRColorTable 
-extends Vector
+extends Vector<GRColor>
 implements Cloneable
 {
 

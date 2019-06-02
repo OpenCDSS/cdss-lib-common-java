@@ -93,12 +93,13 @@ import RTi.Util.GUI.SimpleJButton;
 The FindInJListJDialog is a dialog containing a list through which users can 
 search to find desired information.
 */
+@SuppressWarnings("serial")
 public class FindInJListJDialog extends JDialog
 implements ActionListener, KeyListener, MouseListener, WindowListener
 {
 private JTextField	__find_JTextField;	// text response from user
-private JList		__original_JList;	// Original List to search
-private SimpleJList	__find_JList;		// List containing found items
+private JList<String>		__original_JList;	// Original List to search
+private SimpleJList<String>	__find_JList;		// List containing found items
 						// in the original list.
 /* SAMX not needed??
 private ListSelectionListener	__selection_listener;
@@ -107,16 +108,10 @@ private ListSelectionListener	__selection_listener;
 */
 private JPopupMenu	__find_JPopupMenu;	// Popup to edit list.
 
-private String		__GO_TO_ITEM = "Go To First (Selected) Found Item in " +
-					"Original List";
-private String		__SELECT_FIRST_ITEM = "Select First (Selected) Found " +
-				"Item in Original List (deselect others)";
-private String		__SELECT_ALL_FOUND_ITEMS =
-					"Select All Found Items in Original"+
-					" List (deselect others)";
-private String		__SELECT_ALL_NOT_FOUND_ITEMS =
-					"Select All NOT Found Items in Original"
-					+ " List (deselect found items)";
+private String		__GO_TO_ITEM = "Go To First (Selected) Found Item in Original List";
+private String		__SELECT_FIRST_ITEM = "Select First (Selected) Found Item in Original List (deselect others)";
+private String		__SELECT_ALL_FOUND_ITEMS = "Select All Found Items in Original List (deselect others)";
+private String		__SELECT_ALL_NOT_FOUND_ITEMS = "Select All NOT Found Items in Original List (deselect found items)";
 private int[]		__find_index = null;	// Positions in original List
 						// that are found.
 
@@ -126,7 +121,7 @@ FindInJListJDialog Constructor.
 @param list JList to operate on.
 @param title JDialog title.
 */
-public FindInJListJDialog ( JFrame parent, JList list, String title )
+public FindInJListJDialog ( JFrame parent, JList<String> list, String title )
 {	this ( parent, true, list, title );
 }
 
@@ -137,7 +132,7 @@ FindInJListJDialog Constructor.
 @param list JList to operate on.
 @param title JDialog title.
 */
-public FindInJListJDialog ( JFrame parent, boolean modal, JList list, String title )
+public FindInJListJDialog ( JFrame parent, boolean modal, JList<String> list, String title )
 {	super ( parent, modal );
 	initialize ( parent, list, title );//, null );
 }
@@ -266,22 +261,6 @@ public void actionPerformed ( ActionEvent event )
 }
 
 /**
-Clean up before garbage collection.
-*/
-protected void finalize()
-throws Throwable
-{	__find_JTextField = null;
-	__find_JList = null;
-	__original_JList = null;
-	__GO_TO_ITEM = null;
-	__SELECT_FIRST_ITEM = null;
-	__SELECT_ALL_FOUND_ITEMS = null;
-	__SELECT_ALL_NOT_FOUND_ITEMS = null;
-	__find_index = null;
-	super.finalize();
-}
-
-/**
 Instantiates the components.
 @param parent JFrame class instantiating this class.
 @param list JList that is being operated on.
@@ -289,7 +268,7 @@ Instantiates the components.
 */
 //@param selection_listener ListSelectionListener to pass ListSelectionEvents to
 //for the list.
-private void initialize (	JFrame parent, JList list, String title )//,
+private void initialize ( JFrame parent, JList<String> list, String title )//,
 				//ListSelectionListener selection_listener )
 {	__original_JList = list;
 	//__selection_listener = selection_listener;
@@ -327,7 +306,7 @@ private void initialize (	JFrame parent, JList list, String title )//,
 		"Search Results (found items):" ), 
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 	
-	__find_JList = new SimpleJList ();
+	__find_JList = new SimpleJList<String>();
 	__find_JList.setToolTipText(
 		"Right click to see actions to perform on the original list.");
 	__find_JList.setVisibleRowCount ( 10 );
@@ -465,7 +444,7 @@ private void refresh()
 		item = "" + __original_JList.getModel().getElementAt(i);
 		item_up = item.toUpperCase();
 		if ( item_up.indexOf(find_text) >= 0 ) {
-			((DefaultListModel)
+			((DefaultListModel<String>)
 			__find_JList.getModel()).addElement(item);
 			find_index[find_count] = i;
 			// Set selection to match original list...
@@ -481,10 +460,6 @@ private void refresh()
 		__find_index[i] = find_index[i];
 	}
 	JGUIUtil.setWaitCursor ( this, false );
-	find_index = null;
-	item = null;
-	item_up = null;
-	find_text = null;
 }
 
 /**

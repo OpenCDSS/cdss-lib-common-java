@@ -59,7 +59,7 @@ private List<String>__compareColumns1;
 /**
 The table positions for the columns being compared from the first table.
 */
-private int [] __columnNumbers1;
+//private int [] __columnNumbers1;
 
 /**
 The list of column names to compare from the second table.
@@ -69,7 +69,7 @@ private List<String>__compareColumns2;
 /**
 The table positions for the columns being compared from the second table.
 */
-private int [] __columnNumbers2;
+//private int [] __columnNumbers2;
 
 /**
 The name of the new table to be created.
@@ -253,8 +253,8 @@ throws Exception
             columnNumbers2 = columnNumbersTemp;
         }
     }
-    setColumnNumbers1 ( columnNumbers1 );
-    setColumnNumbers2 ( columnNumbers2 );
+    //setColumnNumbers1 ( columnNumbers1 );
+    //setColumnNumbers2 ( columnNumbers2 );
     String[] fieldFormats1 = table1.getFieldFormats(); // C-style formats to convert data to strings for comparison
     String[] fieldFormats2 = table2.getFieldFormats(); // These are in the position of the original table
     // If necessary, extend the array
@@ -429,20 +429,20 @@ throws Exception
 }
 
 /**
-Get the column numbers to compared from the first table.
+Get the column numbers to compare from the first table.
 */
-private int [] getColumnNumbers1 ()
-{
-    return __columnNumbers1;
-}
+//private int [] getColumnNumbers1 ()
+//{
+    //return __columnNumbers1;
+//}
 
 /**
-Get the column numbers to compared from the second table.
+Get the column numbers to compare from the second table.
 */
-private int [] getColumnNumbers2 ()
-{
-    return __columnNumbers2;
-}
+//private int [] getColumnNumbers2 ()
+//{
+    //return __columnNumbers2;
+//}
 
 /**
 Get the list of columns to be compared from the first table.
@@ -557,19 +557,19 @@ private Double getTolerance ()
 Set the column numbers being compared from the first table.
 @param columnNumbers1 column numbers being compared from the first table
 */
-private void setColumnNumbers1 ( int [] columnNumbers1 )
-{
-    __columnNumbers1 = columnNumbers1;
-}
+//private void setColumnNumbers1 ( int [] columnNumbers1 )
+//{
+//    __columnNumbers1 = columnNumbers1;
+//}
 
 /**
 Set the column numbers being compared from the second table.
 @param columnNumbers2 column numbers being compared from the second table
 */
-private void setColumnNumbers2 ( int [] columnNumbers2 )
-{
-    __columnNumbers2 = columnNumbers2;
-}
+//private void setColumnNumbers2 ( int [] columnNumbers2 )
+//{
+//    __columnNumbers2 = columnNumbers2;
+//}
 
 /**
 Set the list of columns being compared from the first table.

@@ -78,6 +78,7 @@ public void valueChanged(ListSelectionEvent e) {
 }
 </pre>
 */
+@SuppressWarnings("serial")
 public class SimpleJList_SelectionModel
 extends DefaultListSelectionModel 
 implements MouseListener {

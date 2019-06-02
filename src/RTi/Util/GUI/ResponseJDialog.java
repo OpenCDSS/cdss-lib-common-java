@@ -64,6 +64,7 @@ int x = new ResponseJDialog( JFrame parent,
 where processing is halted until a response occurs (the dialog is modal).
 The user response is returned through the response() method.
 */
+@SuppressWarnings("serial")
 public class ResponseJDialog extends JDialog 
 implements ActionListener, KeyListener, WindowListener {
 
@@ -317,12 +318,12 @@ private void initialize ( String title, String label, int mode, int alignment )
     	north_JPanel.setLayout(new GridBagLayout () );
 		if ( size > 20 ) {
 			//add message String to a JList that is within a JScrollPane
-			JList list = null;
+			JList<String> list = null;
 			if ( vec instanceof Vector ) {
-				list = new JList( (Vector)vec );
+				list = new JList<String>( (Vector<String>)vec );
 			}
 			else {
-				list = new JList(new Vector(vec) );
+				list = new JList<String>(new Vector<String>(vec) );
 			}
 			list.setBackground(Color.LIGHT_GRAY);
 			JScrollPane pane = new JScrollPane( list );
@@ -353,12 +354,12 @@ private void initialize ( String title, String label, int mode, int alignment )
 		if (size > 20 ) {
     		north_JPanel.setLayout(new GridLayout( 1, 1));
 			//add message String to a JList that is within a JScrollPane
-			JList list = null;
+			JList<String> list = null;
 			if ( vec instanceof Vector ) {
-				list = new JList( (Vector)vec );
+				list = new JList<String>( (Vector<String>)vec );
 			}
 			else {
-				list = new JList(new Vector(vec) );
+				list = new JList<String>(new Vector<String>(vec) );
 			}
 			list.setBackground(Color.LIGHT_GRAY);
 			JScrollPane pane = new JScrollPane( list );

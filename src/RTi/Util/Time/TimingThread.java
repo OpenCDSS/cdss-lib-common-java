@@ -175,7 +175,7 @@ majority of the work of this class: sleeping for desired time, suspending the
 secondary thread if desired, and performing the <B>performTimedAction</B>
 function.
 */
-
+@SuppressWarnings("deprecation")
 public void run()
 {
 	String	routine="TimingThread.run";

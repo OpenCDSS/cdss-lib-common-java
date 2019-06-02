@@ -70,6 +70,7 @@ the same class.  At this point there's little chance of going back and
 eliminating them, but if I could I would.  Use a default cell renderer for all
 those classes and eliminate a lot of maintenance woes.
 */
+@SuppressWarnings("serial")
 public class JWorksheet_DefaultTableCellRenderer 
 extends JWorksheet_AbstractTableCellRenderer {
 

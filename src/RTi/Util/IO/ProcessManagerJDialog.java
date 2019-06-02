@@ -142,7 +142,7 @@ implements ActionListener, ProcessListener
 {
 
 private ProcessManager 	__process_manager;// manager to run process (see doc)
-private JList 		__output_JList;	// List to display process output
+private JList<String> 		__output_JList;	// List to display process output
 private int __historyMaxSize = 500;	// # lines of process output to display
 private SimpleJButton 	__cancel_JButton;
 private SimpleJButton 	__close_JButton;
@@ -174,7 +174,7 @@ private boolean __logAllOutput = false;
  */
 private StopWatch __stopWatch = new StopWatch();
 
-private DefaultListModel __output_ListModel; // This holds the Vector of strings from the process output.
+private DefaultListModel<String> __output_ListModel; // This holds the list of strings from the process output.
 private int __exit_status = -1; // The exit status from the process.
 /**
  * Filter to control how much output is displayed or ignored.
@@ -377,8 +377,8 @@ private void initialize ( ProcessManager process_manager )
 	// initialize members
 	__process_manager = process_manager;
 	__status_JLabel = new JLabel ( "Active (there may be a delay in displaying program output)" );
-	__output_ListModel = new DefaultListModel ();  // Basically a Vector
-	__output_JList = new JList ( __output_ListModel );
+	__output_ListModel = new DefaultListModel<String>();  // Basically a Vector
+	__output_JList = new JList<String>( __output_ListModel );
 	__output_JList.setVisibleRowCount ( 10 );
 	// The following will return the DefaultListModel which is OK to use...
 	__help_JButton = new SimpleJButton ( "Help", "Help", this );

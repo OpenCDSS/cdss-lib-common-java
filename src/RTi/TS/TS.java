@@ -1659,7 +1659,7 @@ public DateTime getNonMissingDataDate2( )
 
 /**
 Get the hashtable of properties, for example to allow display.
-@return the hashtable of properties, for example to allow display, may be null.
+@return the hashtable of properties, for example to allow display, guaranteed to not be null.
 */
 public HashMap<String,Object> getProperties()
 {   if ( __property_HashMap == null ) {

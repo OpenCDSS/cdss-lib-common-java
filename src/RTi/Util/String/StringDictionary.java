@@ -27,7 +27,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
 Dictionary string that handles the format "Key1:value1, Key2:value2, ..."
@@ -93,12 +92,11 @@ Return the string representation of the dictionary in form "key1:value1,key2:val
 */
 public String toString()
 {
-    Set set = this.dict.entrySet();
-    Iterator i = set.iterator();
+    Iterator<Map.Entry<String,String>> i = this.dict.entrySet().iterator();
     StringBuilder b = new StringBuilder();
-    Map.Entry item;
+    Map.Entry<String,String> item;
     while ( i.hasNext() ) {
-        item = (Map.Entry)i.next();
+        item = (Map.Entry<String,String>)i.next();
         if ( b.length() > 0 ) {
             b.append(itemSep);
         }

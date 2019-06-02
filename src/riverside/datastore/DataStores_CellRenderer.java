@@ -38,6 +38,7 @@ import RTi.Util.String.StringUtil;
 /**
 This class is a cell renderer for cells in DataStores JWorksheets.
 */
+@SuppressWarnings("serial")
 public class DataStores_CellRenderer extends JWorksheet_AbstractExcelCellRenderer
 {
 

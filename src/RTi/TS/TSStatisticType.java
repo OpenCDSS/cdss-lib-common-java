@@ -479,7 +479,7 @@ Return the statistic data type as double, integer, etc., to facilitate handling 
 @param statistic name of statistic
 @return the statistic data type.
 */
-public static Class getStatisticDataType ( String statistic )
+public static Class<?> getStatisticDataType ( String statistic )
 {
     if ( (StringUtil.indexOfIgnoreCase(statistic, "Count", 0) >= 0) ||
         StringUtil.startsWithIgnoreCase(statistic,"Day") ) {

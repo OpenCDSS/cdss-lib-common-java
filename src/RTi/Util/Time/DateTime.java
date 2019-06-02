@@ -268,7 +268,7 @@ package RTi.Util.Time;
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
+//import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -277,6 +277,7 @@ import java.util.List;
 import RTi.Util.IO.Prop;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
+
 import RTi.Util.Time.TimeUtil;
 import RTi.Util.String.StringUtil;
 
@@ -289,7 +290,8 @@ Specific features of the DateTime class are:
 <ul>
 <li>	An optional bitmask flag can be used at construction to indicate the
 	precision (which matches the TimeInterval values), initialization
-	(to zero or current date/time), and performance (fast or strict).
+	(to zero or current date/time), and performance (fast or strict).:w
+	
 	TimeInterval.YEAR is equal to DateTime.PRECISION_YEAR, etc.</li>
 <li>	The precision values are mutually exclusive; therefore, they can be
 	compared as binary mask values or with ==.</li>
@@ -677,6 +679,7 @@ public DateTime ( int flag )
 Construct from a Java Date.  The time zone is not set - use the overloaded method if necessary.
 @param d Java Date.
 */
+@SuppressWarnings("deprecation")
 public DateTime ( Date d )
 {	// If a null date is passed in, behave like the default DateTime() constructor.
 	if (d == null) {
@@ -761,6 +764,7 @@ Construct from a Java Date.  The time zone is not set unless the behavior flag i
 @param behavior_flag Flag indicating the behavior of the instance - see the
 defined bit mask values.
 */
+@SuppressWarnings("deprecation")
 public DateTime ( Date d, int behavior_flag )
 {	boolean	use_deprecated = true;
 
@@ -769,7 +773,8 @@ public DateTime ( Date d, int behavior_flag )
 		int year = d.getYear();
 		setYear ( year + 1900 );
 		// Returned month is 0 to 11!
-		setMonth ( d.getMonth() + 1 );
+		int month0 = d.getMonth();
+		setMonth ( month0 + 1 );
 		// Returned day is 1 to 31
 		setDay ( d.getDate() );
 		// Sometimes Dates are instantiated from data where hours, etc.
@@ -884,6 +889,7 @@ Construct using another DateTime and a time zone to convert to at construction.
 @param t DateTime to copy.
 @param newtz Time zone to use in the resulting DateTime.
 */
+@SuppressWarnings("deprecation")
 public DateTime ( DateTime t, String newtz )
 {	if ( t != null ) {
 		// First copy...
@@ -1832,6 +1838,7 @@ public String getTimeZoneAbbreviation ( )
 Return the week day by returning getDate(TimeZoneDefaultType.GMT).getDay().
 @return The week day (Sunday is 0).
 */
+@SuppressWarnings("deprecation")
 public int getWeekDay ( )
 {	// Always recompute because don't know if DateTime was copied and modified.
 	// Does not matter what timezone because internal date/time values are used in absolute sense.
@@ -3752,6 +3759,7 @@ Only fields appropriate for the DateTime precision are set (year through second)
 Currently time zone is NOT set.
 @param d A Date to assign from.
 */
+@SuppressWarnings("deprecation")
 public void setDate ( Date d )
 {	if ( d == null ) {
 		return;
@@ -3927,30 +3935,30 @@ public DateTime setPrecision ( int behavior_flag, boolean cumulative )
 	// values > 100 (the maximum precision value is 70).
 	//_precision = behavior_flag - ((behavior_flag/100)*100);
 	// Need to remove the effects of the higher order masks...
-	int behavior_flag_no_precision = behavior_flag;
+	//int behavior_flag_no_precision = behavior_flag;
 	int precision = behavior_flag;
 	if ( (behavior_flag & DATE_STRICT) != 0 ) {
-		behavior_flag_no_precision |= DATE_STRICT;
+		//behavior_flag_no_precision |= DATE_STRICT;
 		precision ^= DATE_STRICT;
 	}
 	if ( (behavior_flag & DATE_FAST) != 0 ) {
-		behavior_flag_no_precision |= DATE_FAST;
+		//behavior_flag_no_precision |= DATE_FAST;
 		precision ^= DATE_FAST;
 	}
 	if ( (behavior_flag & DATE_ZERO) != 0 ) {
-		behavior_flag_no_precision |= DATE_ZERO;
+		//behavior_flag_no_precision |= DATE_ZERO;
 		precision ^= DATE_ZERO;
 	}
 	if ( (behavior_flag & DATE_CURRENT) != 0 ) {
-		behavior_flag_no_precision |= DATE_CURRENT;
+		//behavior_flag_no_precision |= DATE_CURRENT;
 		precision ^= DATE_CURRENT;
 	}
 	if ( (behavior_flag & TIME_ONLY) != 0 ) {
-		behavior_flag_no_precision |= TIME_ONLY;
+		//behavior_flag_no_precision |= TIME_ONLY;
 		precision ^= TIME_ONLY;
 	}
 	if ( (behavior_flag & PRECISION_TIME_ZONE) != 0 ) {
-		behavior_flag_no_precision |= PRECISION_TIME_ZONE;
+		//behavior_flag_no_precision |= PRECISION_TIME_ZONE;
 		precision ^= PRECISION_TIME_ZONE;
 	}
 	// Now the precision should be what is left...
@@ -4276,7 +4284,8 @@ public void shiftTimeZone ( String zone )
 		// TODO smalers 2017-07-13 need to phase in java.time
 		// Want to change the time zone so compute an offset and apply
 		try {
-	        int offset = TZ.calculateOffsetMinutes ( __tz, zone, this );
+	        @SuppressWarnings("deprecation")
+			int offset = TZ.calculateOffsetMinutes ( __tz, zone, this );
 			addMinute ( offset );
 			setTimeZone ( zone );
 			// TODO SAM 2016-03-11 See getDate(String tz) treatment of time zone - could add check here

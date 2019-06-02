@@ -1342,6 +1342,9 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
         boolean incrementDate = false;
         double sum = 0;
         int pointsInInterval = 0;
+        if ( pointsInInterval < 0 ) {
+        	// TODO pointsInInterval is unused
+        }
 
         // TODO [LT] 2005-03-02 - Pending documentation.
         boolean first = true;

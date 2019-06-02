@@ -67,6 +67,7 @@ import javax.swing.table.JTableHeader;
 Class to use as cell renderer for the header of the JWorksheet, in order to
 be able to set the header fonts.
 */
+@SuppressWarnings("serial")
 public class JWorksheet_HeaderCellRenderer 
 extends DefaultTableCellRenderer {
 
@@ -203,9 +204,9 @@ boolean isSelected, boolean hasFocus, int row, int column) {
 	}
 	else {
 	
-		JList list = new JList();
+		JList<String> list = new JList<String>();
 		BufferedReader br = new BufferedReader(new StringReader(str));
-		Vector v = new Vector();
+		Vector<String> v = new Vector<String>();
 		String line;
 		try {	
 			line = br.readLine();

@@ -6578,7 +6578,7 @@ private void limitGraphTypes(int subproduct) {
 	
 	// Right y-axis (can only use basic graph types)
 	
-	String originalRightYAxisGraphType = _tsproduct.getLayeredPropValue( "RightYAxisOriginalGraphType", subproduct, -1, false);
+	//String originalRightYAxisGraphType = _tsproduct.getLayeredPropValue( "RightYAxisOriginalGraphType", subproduct, -1, false);
 
 	//if ( originalRightYAxisGraphType.equals("Area") || originalRightYAxisGraphType.equals("AreaStacked") ||
 	//	originalRightYAxisGraphType.equals("Bar") || originalRightYAxisGraphType.equals("Line")

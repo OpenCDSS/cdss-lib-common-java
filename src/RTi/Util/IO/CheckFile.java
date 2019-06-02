@@ -126,7 +126,7 @@ public void addData( CheckFile_DataModel data, CheckFile_DataModel gen_data )
 		}
 		// if no general data exists create a blank object for it
 		else {
-			__gen_data.add(new CheckFile_DataModel(new Vector(), new String[]{}, "", "", 0, 0 ) );
+			__gen_data.add(new CheckFile_DataModel(new Vector<String []>(), new String[]{}, "", "", 0, 0 ) );
 		}
 	}
 }
@@ -346,7 +346,7 @@ int index ) throws Exception
 {
 	if ( html != null ) {
 		// grab the data from the model
-		List gen_data = new Vector();
+		List<String []> gen_data = new Vector<String []>();
 		gen_data = gen_data_model.getData();
 		// proplist provides an anchor link for this section used
 		// from the table of contents
@@ -407,7 +407,7 @@ CheckFile_DataModel data_model, int index ) throws Exception
 {
 	if ( html != null ) {
 		// Get the data from the model
-		List data = data_model.getData();
+		List<String []> data = data_model.getData();
 		// proplist provides an anchor link for this section used
 		// from the table of contents
 		PropList data_prop = new PropList( "Data " + index );

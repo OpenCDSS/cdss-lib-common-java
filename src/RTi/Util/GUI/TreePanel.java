@@ -121,9 +121,9 @@ import java.util.Vector;
 import java.lang.reflect.Method;
 
 /**
-The TreePanel class displays a tree data structures like heirarchical
-file systems.
+The TreePanel class displays a tree data structures like hierarchical file systems.
 */
+@SuppressWarnings("serial")
 public class TreePanel extends Panel
     implements MouseListener, AdjustmentListener
 {
@@ -142,10 +142,10 @@ public class TreePanel extends Panel
     public static final int TRIGGERSIZE = CELLSIZE-(2 *TRIGGERMARGIN);
 
     /** the list to store the whole tree node */
-    List treeVector;
+    List<TreeNode> treeVector;
 
     /** the list to hold the displayed tree node */
-    public List displayedVector;
+    public List<TreeNode> displayedVector;
 
     /** the current selected tree node */
     public TreeNode selectedNode;
@@ -174,8 +174,8 @@ public class TreePanel extends Panel
     /** initialize some of variables related to the HDF Tree */
     public void  init()
     {
-        treeVector = new Vector();
-        displayedVector = new Vector();
+        treeVector = new Vector<TreeNode>();
+        displayedVector = new Vector<TreeNode>();
         selectedNode = null;
 
         // add vertical & horizontal scroll bar
@@ -338,9 +338,8 @@ public class TreePanel extends Panel
         displayedVector.clear();
 
         lCount = treeVector.size();
-        for (int i = 0; i < lCount; i++)
-        {
-            lNode = (TreeNode) treeVector.get(i);
+        for (int i = 0; i < lCount; i++) {
+            lNode = treeVector.get(i);
             lLevel = lNode.getLevel();
 
             // get the displayed node

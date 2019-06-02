@@ -362,7 +362,7 @@ private boolean _waiting = false;
 /**
 Indicate whether to display cross-hairs on the graph to the edges
 */
-private boolean _displayCrossHairCursor = false;
+//private boolean _displayCrossHairCursor = false;
 
 /**
 Indicate whether the paint is to an SVG file.  See the saveAsSVG() method.
@@ -1497,14 +1497,14 @@ in resetGraphDataLimits().
 */
 private List<TSGraphDataLimits> determineDataLimits()
 {
-	List<TSGraphDataLimits> dataLimits = new Vector();
+	List<TSGraphDataLimits> dataLimits = new Vector<TSGraphDataLimits>();
 	List<String> ids = null;
 	List<TS> tslist = null;
 
 	for (int i = 0; i < _tsgraphs.size(); i++) {
 		tslist = _tsgraphs.get(i).getTSList();
 
-		ids = new Vector();
+		ids = new Vector<String>();
 		for ( TS ts : tslist ) {
 			if (ts == null) {
 				ids.add("null");
@@ -2066,7 +2066,7 @@ throws Throwable {
 	_bounds = null;		
 	_printBounds = null;		
 	_parent = null;			
-	_tsgraphs = new Vector();	
+	_tsgraphs = new Vector<TSGraph>();	
 	_gtype = null;
 	IOUtil.nullArray(_listeners);
 	_mouse_tsgraph1 = null;
@@ -2551,7 +2551,7 @@ public void mousePressed ( MouseEvent event )
 			//Message.printStatus(2,"","Mouse click - found legend time series " + eventTS.getIdentifierString());
 			// Indicate that the time series is selected for the graph, so special treatment occurs during rendering
 			// The TSGraph instance should be the same whether graph or page because it contains both
-			boolean isSelected = tsgraphForPage.toggleTimeSeriesSelection ( eventTS );
+			//boolean isSelected = tsgraphForPage.toggleTimeSeriesSelection ( eventTS );
 			//Message.printStatus(2,"","Mouse click - legend time series selected=" + isSelected + " " + eventTS.getIdentifierString());
 			// Indicate to force a repaint so (un)selected time series will draw with proper style
 			forceRepaint = true;
@@ -2662,7 +2662,7 @@ public void mouseReleased ( MouseEvent event )
 					int size = _listeners.length;
 					// Need to figure out which time series was selected...
 					for ( int i = 0; i < size; i++ ) {
-						_listeners[i].tsViewSelect ( tsgraph, devpt, datapt, (List)null );
+						_listeners[i].tsViewSelect ( tsgraph, devpt, datapt, (List<Object>)null );
 					}
 				}
 				_rubber_banding = false;
@@ -3580,7 +3580,7 @@ the internal numbering changes, or axis labels and legend properties are changed
 most likely be the product that's already resident in memory, but not necessarily. 
 */
 public void reinitializeGraphs(TSProduct product)
-{   String routine = getClass().getSimpleName() + ".reinitializeGraphs";
+{   //String routine = getClass().getSimpleName() + ".reinitializeGraphs";
 	// If any graphs lack start and end dates (i.e., they're brand new
 	// and lack any time series), pull out a start and end date from any
 	// of the other graphs and use it, so that zoom outs work correctly.
@@ -4460,7 +4460,7 @@ Currently this does nothing.
 @param data_shape Coordinates of mouse in data coordinates.
 @param selected list of selected TS.  Currently ignored.
 */
-public void tsViewSelect ( TSGraph g, GRShape dev_shape, GRShape data_shape, List selected )
+public void tsViewSelect ( TSGraph g, GRShape dev_shape, GRShape data_shape, List<Object> selected )
 {
 }
 
@@ -4646,7 +4646,7 @@ public void zoomToVisiblePeriod ( DateTime visibleStart, DateTime visibleEnd, bo
  */
 public void setDisplayCursor(boolean display)
 {
-    _displayCrossHairCursor = display;
+    //_displayCrossHairCursor = display;
 }
 
 public void setEditor(TSGraphEditor tsGraphEditor)

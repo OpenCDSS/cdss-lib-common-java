@@ -83,6 +83,7 @@ the button is pressed, the timeSeriesSelected() method will be called with the
 list of selected time series.  The button label will be passed to the calling
 code and can be interpreted as appropriate.
 */
+@SuppressWarnings("serial")
 public class TS_ListSelector_JFrame 
 extends JFrame 
 implements ActionListener, MouseListener {
@@ -93,10 +94,10 @@ on the GUI.  "OK" is only added if no ActionButtons are specified in the
 constructor PropList.
 */
 private String
-	__BUTTON_CANCEL = 	"Cancel",
-	__BUTTON_OK = 		"OK",
-	__BUTTON_DESELECT_ALL =	"Deselect All",
-	__BUTTON_SELECT_ALL =	"Select All";
+	__BUTTON_CANCEL = "Cancel",
+	__BUTTON_OK = "OK",
+	__BUTTON_DESELECT_ALL = "Deselect All",
+	__BUTTON_SELECT_ALL = "Select All";
 
 /**
 The worksheet that appears in the GUI.
@@ -109,20 +110,25 @@ The PropList passed to the constructor to control GUI behavior.
 private PropList __props = null;
 
 /**
-After a proplist is processed this contains the order of the buttons that
-should appear on the GUI.  Once the GUI is set up, this contains the 
-instantiated buttons so that they can be enabled or disable as appropriate.
+After a PropList is processed this contains the order of the buttons that
+should appear on the GUI.
 */
-private List __buttons = null;
+private List<String> __buttonLabels = null;
 
 /**
-The TS_ListSelector_Listeners that have been registered to be informed when OK is pressed.
+Once the GUI is set up, this contains the 
+instantiated buttons so that they can be enabled or disabled as appropriate.
 */
-private List __listeners = null;
+private List<SimpleJButton> __buttons = null;
+
+/**
+The TS_ListSelector_Listener that have been registered to be informed when OK is pressed.
+*/
+private List<TS_ListSelector_Listener> __listeners = null;
 
 /**
 Constructor.  
-@param data the Vector of time series to display in the worksheet.
+@param data the list of time series to display in the worksheet.
 @param props a PropList to control the behavior of the GUI.  Recognized 
 properties are:
 <table width=100% cellpadding=10 cellspacing=0 border=2>
@@ -154,15 +160,15 @@ REVISIT (JTS - 2005-04-05)
 Perhaps later add a "CloseButtons=OK" property that specifies the button that, 
 when pressed, will cause the GUI to be closed.
 */
-public TS_ListSelector_JFrame(List data, PropList props) {
+public TS_ListSelector_JFrame(List<? extends TS> data, PropList props) {
 	super();
 	
 	processPropList(props);
 	
-	__listeners = new Vector();
+	__listeners = new Vector<TS_ListSelector_Listener>();
 	
 	if (data == null) {
-		setupGUI(new Vector());
+		setupGUI(new Vector<TS>());
 	}
 	else {
 		setupGUI(data);	
@@ -203,30 +209,25 @@ public void addTSListSelectorListener(TS_ListSelector_Listener listener) {
 }
 
 /**
-Enables or disables the buttons on the form that are dependent on rows being
-selected.
-@param enabled if true, the buttons will be enabled.  If false, they will 
-be disabled.
+Enables or disables the buttons on the form that are dependent on rows being selected.
+@param enabled if true, the buttons will be enabled.  If false, they will be disabled.
 */
 private void enableButtons(boolean enabled) {
-	int size = __buttons.size();
-	SimpleJButton button = null;
-	for (int i = 0; i < size; i++) {
-		button = (SimpleJButton)__buttons.get(i);
+	for ( SimpleJButton button: __buttons ) {
 		button.setEnabled(enabled);
 	}
 }
 
 /**
 Gets the rows that are currently selected in the worksheet and returns them as
-a non-null Vector.  If 0 rows are selected, an empty Vector will be returned.
+a non-null list of TS.  If 0 rows are selected, an empty list will be returned.
 @return the rows selected in the worksheet.
 */
-private List getSelectedRows() {
-	List v = new Vector();
+private List<TS> getSelectedRows() {
+	List<TS> v = new Vector<TS>();
 	int[] rows = __worksheet.getSelectedRows();
 	for (int i = 0; i < rows.length; i++) {
-		v.add(__worksheet.getRowData(rows[i]));
+		v.add((TS)__worksheet.getRowData(rows[i]));
 	}
 
 	return v;
@@ -236,7 +237,7 @@ private List getSelectedRows() {
 Returns the Vector of registered TS_ListSelector_Listeners.
 @return the Vector of registered TS_ListSelector_Listeners.
 */
-public List getTSListSelectorListeners() {
+public List<TS_ListSelector_Listener> getTSListSelectorListeners() {
 	return __listeners;
 }
 
@@ -278,11 +279,11 @@ public void mouseReleased(MouseEvent event) {
 Notifies listeners that data have been selected.  
 @param data the Vector of time series that were selected from the worksheet.
 */
-private void notifyListeners(List data, String action) {
+private void notifyListeners(List<TS> data, String action) {
 	int size = __listeners.size();
 	TS_ListSelector_Listener l = null;
 	for (int i = 0; i < size; i++) {
-		l = (TS_ListSelector_Listener)__listeners.get(i);
+		l = __listeners.get(i);
 		l.timeSeriesSelected(this, data, action);
 	}
 }
@@ -295,17 +296,17 @@ private void processPropList(PropList props) {
 	__props = props;
 
 	String s = __props.getValue("ActionButtons");
-	__buttons = new Vector();
+	__buttonLabels = new Vector<String>();
 	if (s != null) {
-		List v = StringUtil.breakStringList(s, ",", 0);
+		List<String> v = StringUtil.breakStringList(s, ",", 0);
 		int size = v.size();
 		for (int i = 0; i < size; i++) {
-			s = (String)v.get(i);
-			__buttons.add(s.trim());
+			s = v.get(i);
+			__buttonLabels.add(s.trim());
 		}
 	}
 	else {
-		__buttons.add(__BUTTON_OK);
+		__buttonLabels.add(__BUTTON_OK);
 	}
 	
 }
@@ -320,7 +321,7 @@ public void removeTSListSelectorListener(TS_ListSelector_Listener listener) {
 	int size = __listeners.size();
 	TS_ListSelector_Listener l = null;
 	for (int i = (size - 1); i >= 0; i--) {
-		l = (TS_ListSelector_Listener)__listeners.get(i);
+		l = __listeners.get(i);
 		if (l == listener) {
 			__listeners.remove(i);
 		}
@@ -331,8 +332,8 @@ public void removeTSListSelectorListener(TS_ListSelector_Listener listener) {
 Sets up the GUI.
 @param data the Vector of TS to display in the worksheet.
 */
-private void setupGUI(List data) {
-	TS_List_TableModel tableModel = new TS_List_TableModel(data);
+private void setupGUI(List<? extends TS> data) {
+	TS_List_TableModel tableModel = new TS_List_TableModel((List<TS>)data);
 	TS_List_CellRenderer cr = new TS_List_CellRenderer(tableModel);
 
 	JPanel worksheetPanel = new JPanel();
@@ -354,10 +355,8 @@ private void setupGUI(List data) {
 
 	JPanel buttonPanel = new JPanel();
 	buttonPanel.setLayout(new GridBagLayout());
-	SimpleJButton deselectAll = new SimpleJButton(__BUTTON_DESELECT_ALL,
-	 	this);
-	SimpleJButton selectAll = new SimpleJButton(__BUTTON_SELECT_ALL,
-		this);
+	SimpleJButton deselectAll = new SimpleJButton(__BUTTON_DESELECT_ALL, this);
+	SimpleJButton selectAll = new SimpleJButton(__BUTTON_SELECT_ALL, this);
 
 	JGUIUtil.addComponent(buttonPanel, deselectAll,
 		0, 0, 1, 1, 1, 0,
@@ -368,12 +367,12 @@ private void setupGUI(List data) {
 		2, 5, 2, 5,
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
 
-	int size = __buttons.size();
+	int size = __buttonLabels.size();
 	SimpleJButton button = null;
 	String s = null;
-	List v = new Vector();
+	List<SimpleJButton> v = new Vector<SimpleJButton>();
 	for (int i = 0; i < size; i++) {
-		s = (String)__buttons.get(i);
+		s = __buttonLabels.get(i);
 		button = new SimpleJButton(s, this);
 		button.setEnabled(false);
 		v.add(button);

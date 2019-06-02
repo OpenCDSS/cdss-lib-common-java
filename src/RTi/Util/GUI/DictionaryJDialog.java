@@ -70,6 +70,7 @@ returned via a response() method call as per the following sample code:
 The dictionary is displayed as scrollable pairs of key and value pairs.
 </p>
 */
+@SuppressWarnings("serial")
 public class DictionaryJDialog extends JDialog implements ActionListener, KeyListener, MouseListener, WindowListener
 {
 

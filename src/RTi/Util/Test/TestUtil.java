@@ -348,7 +348,7 @@ for more information on the format of the file.
 package should be added to the suite.  Any error will result in null being
 returned.
 */
-public static Vector readTestList() {
+public static Vector<String> readTestList() {
 	// Try to read the TestsToRun file. 
 	File testFile = new File(__TESTS_TO_RUN_FILE_DIRECTORY_NAME 
 		+ __TESTS_TO_RUN_FILE_NAME);
@@ -381,7 +381,7 @@ public static Vector readTestList() {
 			props);
 			
 		int num = table.getNumberOfRecords();
-		Vector v = new Vector();
+		Vector<String> v = new Vector<String>();
 		String s = null;
 		
 		// Create the list names of test classes to be added to
@@ -408,7 +408,7 @@ public static Vector readTestList() {
 				return null;
 			}
 
-			v.add(table.getFieldValue(i, 0));
+			v.add((String)table.getFieldValue(i, 0));
 		}
 
 		// Sort the list of test classes into alphabetical order.  
@@ -491,7 +491,7 @@ public static Test suite(String packageName) {
 	TestSuite suite = new TestSuite();
 
 	// Read the list of tests to execute from the TestsToRun file.
-	Vector tests = readTestList();
+	Vector<String> tests = readTestList();
 
 	Class c = null;
 	Method m = null;
@@ -546,7 +546,7 @@ public static Test suite(String packageName) {
 			File dir = new File(__BUILD_DIRECTORY_NAME + packageDir);
 	    	String[] children = dir.list();
 			
-			Vector v = new Vector();
+			Vector<String> v = new Vector<String>();
 			if (children == null) {
 				// Either the directory does not exist or is not a directory.  Neither should occur.
 				throw new Exception(dir.toString() + " is not a valid directory.");

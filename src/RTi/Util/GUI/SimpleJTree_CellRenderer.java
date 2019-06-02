@@ -54,6 +54,7 @@ This is the cell renderer used by the SimpleJTree to allow Components to be
 shown and clicked on but at the same time to allow the standard JTree 
 functionality whereby text can be shown and edited.
 */
+@SuppressWarnings("serial")
 public class SimpleJTree_CellRenderer 
 extends DefaultTreeCellRenderer
 implements TreeCellRenderer {

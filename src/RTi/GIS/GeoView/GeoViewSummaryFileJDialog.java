@@ -149,7 +149,7 @@ private JTextField __layerNameTextField = null;
 /**
 A list for selecting the app layer types to include.
 */
-private SimpleJList __list;
+private SimpleJList<String> __list;
 
 /**
 Combo boxes for choosing fields.
@@ -302,26 +302,6 @@ private boolean determineFieldValues() {
 	return true;
 }
 
-/**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__table = null;
-	__dataFields = null;
-	__idFields = null;
-	__equalizeCheckBox = null;
-	__parent = null;
-	__layerNameTextField = null;
-	__list = null;
-	__dataFieldsComboBox = null;
-	__idFieldsComboBox = null;
-	__filename = null;
-	__layerName = null;
-	__appLayerViews = null;
-	__appLayerTypes = null;
-	super.finalize();
-}
 /**
 Returns the app layers the user selected.  If null, the user hit cancel.
 @return the app layers the user selected.
@@ -670,7 +650,7 @@ private void setupGUI() {
 		GridBagConstraints.BOTH, GridBagConstraints.CENTER);
 
 	List<String> layerInfo = getAppLayersInfo(__appLayerViews);
-	__list = new SimpleJList(layerInfo);
+	__list = new SimpleJList<String>(layerInfo);
 	__list.setVisibleRowCount(4);
 
 	JLabel label2 = new JLabel("Available layer types, names, "

@@ -296,9 +296,11 @@ throws Exception
     double value;
     String flag = null;
     double yearTotal = ts.getMissing();
-    int nonMissingInRow = 0;
+    // TODO smalers 2019-06-01 evaluate whether needed
+    //int nonMissingInRow = 0;
     int missingCountTotal = 0;
-    int flagCountTotal = 0;
+    // TODO smalers 2019-06-01 evaluate whether needed
+    //int flagCountTotal = 0;
     String dataFormat = "%." + precision + "f";
     String [] td = new String[1]; // Single cell value
     List<String> foundFlagsList = new ArrayList<String>(); // Flags found from the data
@@ -348,7 +350,7 @@ throws Exception
                             html.tableCellStart(propsMissing);
                             html.span(flag,propsFlag);
                             html.tableCellEnd();
-                            ++flagCountTotal;
+                            //++flagCountTotal;
                         }
                         else {
                             // Blank cell
@@ -369,14 +371,14 @@ throws Exception
                             html.write("" + StringUtil.formatString(value,dataFormat));
                             html.span(flag,propsFlag);
                             html.tableCellEnd();
-                            ++flagCountTotal;
+                            //++flagCountTotal;
                         }
                         // Process total/average
                         if ( ts.isDataMissing(yearTotal) ) {
                             yearTotal = 0.0;
                         }
                         yearTotal += value;
-                        ++nonMissingInRow;
+                        //++nonMissingInRow;
                     }
                 }
         
@@ -424,7 +426,8 @@ throws Exception
     double value;
     String flag = null;
     int missingCountTotal = 0;
-    int flagCountTotal = 0;
+    // TODO smalers 2019-06-01 evaluate if needed
+    //int flagCountTotal = 0;
     String dataFormat = "%." + precision + "f";
     String [] td = new String[1]; // Single cell value
     List<String> foundFlagsList = new ArrayList<String>(); // Flags found from the data
@@ -451,7 +454,7 @@ throws Exception
                 html.tableCellStart(propsMissing);
                 html.span(flag,propsFlag);
                 html.tableCellEnd();
-                ++flagCountTotal;
+                //++flagCountTotal;
             }
             else {
                 // Blank cell
@@ -472,7 +475,7 @@ throws Exception
                 html.write("" + StringUtil.formatString(value,dataFormat));
                 html.span(flag,propsFlag);
                 html.tableCellEnd();
-                ++flagCountTotal;
+                //++flagCountTotal;
             }
         }
         html.tableRowEnd();
@@ -513,7 +516,8 @@ throws Exception
     double value;
     String flag = null;
     int missingCountTotal = 0;
-    int flagCountTotal = 0;
+    // TODO smalers 2019-06-01 Determine if needed
+    //int flagCountTotal = 0;
     String dataFormat = "%." + precision + "f";
     String [] td = new String[1]; // Single cell value
     List<String> foundFlagsList = new ArrayList<String>(); // Flags found from the data
@@ -539,7 +543,7 @@ throws Exception
                 html.tableCellStart(propsMissing);
                 html.span(flag,propsFlag);
                 html.tableCellEnd();
-                ++flagCountTotal;
+                //++flagCountTotal;
             }
             else {
                 // Blank cell
@@ -560,7 +564,7 @@ throws Exception
                 html.write("" + StringUtil.formatString(value,dataFormat));
                 html.span(flag,propsFlag);
                 html.tableCellEnd();
-                ++flagCountTotal;
+                //++flagCountTotal;
             }
         }
         html.tableRowEnd();
@@ -601,7 +605,8 @@ throws Exception
     double value;
     String flag = null;
     int missingCountTotal = 0;
-    int flagCountTotal = 0;
+    // TODO smalers 20109-06-01 evaluate if needed
+    // int flagCountTotal = 0;
     String dataFormat = "%." + precision + "f";
     String [] td = new String[1]; // Single cell value
     List<String> foundFlagsList = new ArrayList<String>(); // Flags found from the data
@@ -628,7 +633,7 @@ throws Exception
                 html.tableCellStart(propsMissing);
                 html.span(flag,propsFlag);
                 html.tableCellEnd();
-                ++flagCountTotal;
+                //++flagCountTotal;
             }
             else {
                 // Blank cell
@@ -649,7 +654,7 @@ throws Exception
                 html.write("" + StringUtil.formatString(value,dataFormat));
                 html.span(flag,propsFlag);
                 html.tableCellEnd();
-                ++flagCountTotal;
+                //++flagCountTotal;
             }
         }
         html.tableRowEnd();
@@ -741,7 +746,8 @@ throws Exception
     double yearTotal = ts.getMissing();
     int nonMissingInRow = 0;
     int missingCountTotal = 0;
-    int flagCountTotal = 0;
+    // TODO smalers 2019-06-01 evaluate if needed
+    //int flagCountTotal = 0;
     String dataFormat = "%." + precision + "f";
     String [] td = new String[1]; // Single cell value
     List<String> foundFlagsList = new ArrayList<String>(); // Flags found from the data
@@ -768,7 +774,7 @@ throws Exception
                 html.tableCellStart(propsMissing);
                 html.span(flag,propsFlag);
                 html.tableCellEnd();
-                ++flagCountTotal;
+                //++flagCountTotal;
             }
             else {
                 // Blank cell
@@ -789,7 +795,7 @@ throws Exception
                 html.write("" + StringUtil.formatString(value,dataFormat));
                 html.span(flag,propsFlag);
                 html.tableCellEnd();
-                ++flagCountTotal;
+                //++flagCountTotal;
             }
             // Process total/average
             if ( ts.isDataMissing(yearTotal) ) {
@@ -858,7 +864,8 @@ throws Exception
     double value;
     String flag = null;
     int missingCountTotal = 0;
-    int flagCountTotal = 0;
+    // TODO smalers 2019-06-01 Determine if needed
+    //int flagCountTotal = 0;
     String dataFormat = "%." + precision + "f";
     String [] td = new String[1]; // Single cell value
     List<String> foundFlagsList = new ArrayList<String>(); // Flags found from the data
@@ -883,7 +890,7 @@ throws Exception
                 html.tableCellStart(propsMissing);
                 html.span(flag,propsFlag);
                 html.tableCellEnd();
-                ++flagCountTotal;
+                //++flagCountTotal;
             }
             else {
                 // Blank cell
@@ -904,7 +911,7 @@ throws Exception
                 html.write("" + StringUtil.formatString(value,dataFormat));
                 html.span(flag,propsFlag);
                 html.tableCellEnd();
-                ++flagCountTotal;
+                //++flagCountTotal;
             }
         }
         html.tableRowEnd();
