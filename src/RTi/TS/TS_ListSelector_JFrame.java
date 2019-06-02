@@ -333,6 +333,7 @@ Sets up the GUI.
 @param data the Vector of TS to display in the worksheet.
 */
 private void setupGUI(List<? extends TS> data) {
+	@SuppressWarnings("unchecked")
 	TS_List_TableModel tableModel = new TS_List_TableModel((List<TS>)data);
 	TS_List_CellRenderer cr = new TS_List_CellRenderer(tableModel);
 
