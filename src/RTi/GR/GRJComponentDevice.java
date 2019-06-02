@@ -600,10 +600,11 @@ private void initialize ( PropList props )
 		_devy2 = 1.0;
 		_limits = new GRLimits ( _devx1, _devy1, _devx2, _devy2 );
 	}
-	else {
+	//else {
+		// TODO smalers 2019-06-01 evaluate whether needed
 		// Set the limits...
-		setLimits ( limits );
-	}
+		//setLimits ( limits );
+	//}
 
 	// The size of the device will have been set in the constructor, but
 	// the base class only knows how to store the data.  Force a resize here.

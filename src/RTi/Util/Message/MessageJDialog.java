@@ -182,7 +182,8 @@ public MessageJDialog( JFrame parent, String message )
 		pan.setLayout( new GridLayout( 1, 1 ) );
 		//use a JList within a JScrollPane to display text
 		//instead of just making JLabels 
-		JList list = new JList( new Vector(vec) );
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		JList<List<String>> list = new JList( new Vector<String>(vec) );
 		list.setBackground( Color.LIGHT_GRAY );
 		JScrollPane pane = new JScrollPane( list );
 		Dimension d = new Dimension ( 600, 200 );

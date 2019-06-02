@@ -102,7 +102,9 @@ private String __list_source = "";
 
 /**
 Data for component type (often a list of objects).  If the component is a group, the
-data will be a list of the components in the group.
+data will be a list of DataSetComponent in the group.
+If typical data, it will contain a List of data.
+In some cases, it will be a singular object.
 */
 private Object __data = null;
 
@@ -216,6 +218,7 @@ sub-components to a group component.
 @param component Sub-component to add to the component.
 @exception Exception if trying to add a component to a non-group component.
 */
+@SuppressWarnings("unchecked")
 public void addComponent ( DataSetComponent component )
 throws Exception
 {	String routine = "DataSetComponent.addComponent";
@@ -225,9 +228,9 @@ throws Exception
 	}
 	if ( __data == null ) {
 		// Allocate memory for the components.
-		__data = new Vector ();
+		__data = new Vector<DataSetComponent> ();
 	}
-	((List)__data).add ( component );
+	((List<DataSetComponent>)__data).add ( component );
 	// Set so the component knows who its parent is...
 	component.__parent = this;
 	if ( Message.isDebugOn ) {

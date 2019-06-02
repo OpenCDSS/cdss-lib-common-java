@@ -1147,6 +1147,9 @@ public static final List<Object> fixedRead ( String string, int[] field_types, i
 			tokens.add ( var.toString() );
 		}
 		++nread;
+		if ( nread < 0 ) {
+			// TODO smalers 2019-05-28 figure out what to do with nread
+		}
 	}
 	return tokens;
 }

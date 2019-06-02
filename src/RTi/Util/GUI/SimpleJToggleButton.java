@@ -57,6 +57,7 @@ an action listener.  An example of it is as follows:
 button = new SimpleJToggleButton("My Button", "MyButton" + this);
 </pre>
 */
+@SuppressWarnings("serial")
 public class SimpleJToggleButton extends JToggleButton {
 
 /**

@@ -310,27 +310,27 @@ private double [] __seeTransformedMonthly;
 /**
 Standard error of prediction (SEP) on a monthly basis.
 */
-private double [] __sepMonthly;
+//private double [] __sepMonthly;
 /**
 Standard error of prediction (SEP) on a monthly basis, for transformed values.
 */
-private double [] __sepTransformedMonthly;
+//private double [] __sepTransformedMonthly;
 /**
 Standard error (SE) of slope on a monthly basis.
 */
-private double [] __seSlopeMonthly;
+//private double [] __seSlopeMonthly;
 /**
 Standard error (SE) of slope on a monthly basis, for transformed values.
 */
-private double [] __seSlopeTransformedMonthly;
+//private double [] __seSlopeTransformedMonthly;
 /**
 T-test score b/SE on a monthly basis.
 */
-private double [] __testSlopeMonthly;
+//private double [] __testSlopeMonthly;
 /**
 Standard error (SE) of slope on a monthly basis, for transformed values.
 */
-private double [] __testSlopeTransformedMonthly;
+//private double [] __testSlopeTransformedMonthly;
 /**
 Indicates whether analysis results are available for monthly analysis.
 */
@@ -2692,10 +2692,12 @@ public void setCorrelationCoefficient ( int monthIndex, double coeff )
 	}
 }
 
+// TODO smalers 2019-06-01 figure out why not called
 /**
 Set the value that is substituted for data if using the log transform and the original value is <= 0.
 @param leZeroLogValue data value to use in place of the original for calculations.
 */
+@SuppressWarnings("unused")
 private void setLEZeroLogValue ( Double leZeroLogValue )
 {
     __leZeroLogValue = leZeroLogValue;

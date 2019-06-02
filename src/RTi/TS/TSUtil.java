@@ -487,7 +487,7 @@ The IGNORE_MISSING flag is used for missing data.
 @param ts_to_add Time series to add to "ts".
 @exception TSException if there is an error adding the time series.
 */
-public static TS add ( TS ts, TS ts_to_add )
+public static <T extends TS> T add ( T ts, T ts_to_add )
 throws TSException, Exception
 {	String message, routine = "TSUtil.add";
 
@@ -504,7 +504,7 @@ throws TSException, Exception
 		throw new TSException ( message );
 	}
 	// Else, set up a vector and call the overload routine...
-	List<TS> v = new ArrayList<TS>(1);
+	List<T> v = new ArrayList<T>(1);
 	v.add ( ts_to_add );
 	double [] factor = new double[1];
 	factor[0] = 1.0;
@@ -526,7 +526,7 @@ The IGNORE_MISSING flag is used for missing data.
 @param ts_to_add List of time series to add to "ts".
 @exception TSException if an error occurs adding the time series.
 */
-public static TS add ( TS ts, List<TS> ts_to_add )
+public static <T extends TS> T add ( T ts, List<T> ts_to_add )
 throws Exception
 {	return add ( ts, ts_to_add, IGNORE_MISSING );
 }
@@ -540,7 +540,7 @@ genesis information are updated to reflect the addition.
 @param missing_flag See overloaded version for description.
 @exception TSException if an error occurs adding the time series.
 */
-public static TS add ( TS ts, List<? extends TS> tsToAddList, int missing_flag )
+public static <T extends TS> T add ( T ts, List<T> tsToAddList, int missing_flag )
 throws Exception {
 	return add ( ts, tsToAddList, missing_flag, null, null );
 }
@@ -556,7 +556,7 @@ genesis information are updated to reflect the addition.
 @param addEnd startin date/time to add, or null to process full period
 @exception TSException if an error occurs adding the time series.
 */
-public static TS add ( TS ts, List<? extends TS> tsToAddList, int missingFlag, DateTime addStart, DateTime addEnd )
+public static <T extends TS> T add ( T ts, List<T> tsToAddList, int missingFlag, DateTime addStart, DateTime addEnd )
 throws Exception
 {	String message, routine = "TSUtil.add";
 
@@ -600,7 +600,7 @@ SET_MISSING_IF_ANY_MISSING   If any time series in "ts_to_add" or "ts" has
 </pre>
 @exception RTi.TS.TSException if there is an error adding the time series.
 */
-public static TS add ( TS ts, List<? extends TS> tsToAddList, double factor[], int missingFlag )
+public static <T extends TS> T add ( T ts, List<T> tsToAddList, double factor[], int missingFlag )
 throws Exception {
 	return add ( ts, tsToAddList, factor, missingFlag, null, null );
 }
@@ -627,12 +627,12 @@ SET_MISSING_IF_ANY_MISSING   If any time series in "ts_to_add" or "ts" has
 @param addEnd startin date/time to add, or null to process full period
 @exception RTi.TS.TSException if there is an error adding the time series.
 */
-public static TS add ( TS ts, List<? extends TS> tsToAddList, double factor[], int missingFlag, DateTime addStart, DateTime addEnd )
+public static <T extends TS> T add ( T ts, List<T> tsToAddList, double factor[], int missingFlag, DateTime addStart, DateTime addEnd )
 throws TSException, Exception
 {	String message, routine = "TSUtil.add";
 	int	dl = 20, nmissing = 0;
 	double add = 0.0, mult = 1.0;
-	TS	tspt = null;
+	T tspt = null;
 
 	boolean missingIndicators[] = null;
 
@@ -10708,6 +10708,7 @@ throws Exception
 	}
 	// Get the shift between time zones...
 	String ts_tz = ts.getDate1().getTimeZoneAbbreviation();
+	@SuppressWarnings("deprecation")
 	int offset = TZ.calculateOffsetMinutes ( ts_tz, req_tz, from_date );
 	if ( offset == 0 ) {
 		// The time zones are numerically equal.
@@ -10817,7 +10818,7 @@ The IGNORE_MISSING flag is used for missing data.
 @param tsToSubtract List of time series to subtract from "ts".
 @param missingFlag See documentation for add().
 */
-public static TS subtract ( TS ts, List<TS> tsToSubtract, int missingFlag )
+public static <T extends TS> T subtract ( T ts, List<T> tsToSubtract, int missingFlag )
 throws Exception {
 	return subtract ( ts, tsToSubtract, missingFlag, null, null );
 }
@@ -10833,7 +10834,7 @@ The IGNORE_MISSING flag is used for missing data.
 @param subtractStart starting date/time for subtract, or null for full period
 @param subtractEnd starting date/time for subtract, or null for full period
 */
-public static TS subtract ( TS ts, List<TS> tsToSubtract, int missingFlag, DateTime subtractStart, DateTime subtractEnd )
+public static <T extends TS> T subtract ( T ts, List<T> tsToSubtract, int missingFlag, DateTime subtractStart, DateTime subtractEnd )
 throws Exception
 {	// Call the main overload routine...
 	if ( tsToSubtract == null ) {

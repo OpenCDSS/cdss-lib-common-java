@@ -111,11 +111,13 @@ throws Throwable
 /**
 Starts the thread that actually begins running the event timer.
 */
+@SuppressWarnings("deprecation")
 public void run()
 {	while( true ){
 		synchronized( _isDone ){
 			if( _isDone.booleanValue() ){
-				try {	stop();
+				try {
+					stop();
 				}
 				catch ( Exception e ) {
 				}

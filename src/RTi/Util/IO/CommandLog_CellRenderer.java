@@ -28,6 +28,7 @@ import RTi.Util.GUI.JWorksheet_AbstractExcelCellRenderer;
 /**
 This class renders cells for CommandLogRecord list tables.
 */
+@SuppressWarnings("serial")
 public class CommandLog_CellRenderer extends JWorksheet_AbstractExcelCellRenderer {
 
 /**

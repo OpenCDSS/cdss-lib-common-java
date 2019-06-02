@@ -407,7 +407,7 @@ This method is called from readTimeSeries().
 @param req_date1 Requested first date/time (can be null).
 @param req_date2 Requested last date/time (can be null).
 */
-public List readDataChronListForSensorIDAndPeriod (	String sensorid,
+public List<DIADvisor_DataChron> readDataChronListForSensorIDAndPeriod (	String sensorid,
 							DateTime req_date1,
 							DateTime req_date2 )
 throws Exception
@@ -429,7 +429,7 @@ throws Exception
 	}
 	// Also add wheres for the start and end dates if they are specified...
 	ResultSet rs = dmiSelect(q);
-	List v = toDataChronList (rs);
+	List<DIADvisor_DataChron> v = toDataChronList (rs);
 	rs.close();
 	return v;
 }
@@ -449,12 +449,12 @@ public void readGlobalData () throws SQLException, Exception {
 Read the GroupDef records.
 @return a vector of objects of type DIADvisor_GroupDef.
 */
-public List readGroupDefList ()
+public List<DIADvisor_GroupDef> readGroupDefList ()
 throws Exception
 {	DMISelectStatement q = new DMISelectStatement ( this );
 	buildSQL ( q, _S_GROUPDEF );
 	ResultSet rs = dmiSelect(q);
-	List v = toGroupDefList (rs);
+	List<DIADvisor_GroupDef> v = toGroupDefList (rs);
 	rs.close();
 	return v;
 }
@@ -468,7 +468,7 @@ This method is called from readTimeSeries().
 @param req_date1 Requested first date/time (can be null).
 @param req_date2 Requested last date/time (can be null).
 */
-private List readRegularTSRecordList (	String ts_table,
+private List<DIADvisor_RegularTSRecord> readRegularTSRecordList (	String ts_table,
 						String sensorid,
 						DateTime req_date1,
 						DateTime req_date2 )
@@ -498,7 +498,7 @@ throws Exception
 	}
 	// Also add wheres for the start and end dates if they are specified...
 	ResultSet rs = dmiSelect(q);
-	List v = toRegularTSRecordList (rs);
+	List<DIADvisor_RegularTSRecord> v = toRegularTSRecordList (rs);
 	rs.close();
 	return v;
 }
@@ -507,7 +507,7 @@ throws Exception
 Read SensorDef records for distinct group.
 @return a vector of objects of type DIADvisor_SensorDef.
 */
-public List readSensorDefListForDistinctGroup ()
+public List<DIADvisor_SensorDef> readSensorDefListForDistinctGroup ()
 throws Exception
 {	DMISelectStatement q = new DMISelectStatement ( this );
 	// Select from SensorDef
@@ -517,7 +517,7 @@ throws Exception
 	q.addOrderByClause("SensorDef.Group");
 	ResultSet rs = dmiSelect ( q );
 	// Transfer here instead of the toSensorDefList() method...
-	List v = new Vector();
+	List<DIADvisor_SensorDef> v = new Vector<DIADvisor_SensorDef>();
 	int index = 1;
 	String s;
 	DIADvisor_SensorDef data = null;
@@ -544,13 +544,13 @@ throws Exception
 	buildSQL ( q, _S_SENSOR_DEF );
 	q.addWhereClause ( "SensorDef." + getFieldLeftEscape() + "Sensor ID" + getFieldRightEscape() + "=" + SensorId ); 
 	ResultSet rs = dmiSelect(q);
-	List v = toSensorDefList (rs);
+	List<DIADvisor_SensorDef> v = toSensorDefList (rs);
 	rs.close();
 	if ( (v == null) || (v.size() < 1) ) {
 		return null;
 	}
 	else {
-	    return (DIADvisor_SensorDef)v.get(0);
+	    return v.get(0);
 	}
 }
 
@@ -558,12 +558,12 @@ throws Exception
 Read the SensorDef records.
 @return a vector of objects of type DIADvisor_SensorDef.
 */
-public List readSensorDefList ()
+public List<DIADvisor_SensorDef> readSensorDefList ()
 throws Exception
 {	DMISelectStatement q = new DMISelectStatement ( this );
 	buildSQL ( q, _S_SENSOR_DEF );
 	ResultSet rs = dmiSelect(q);
-	List v = toSensorDefList (rs);
+	List<DIADvisor_SensorDef> v = toSensorDefList (rs);
 	rs.close();
 	return v;
 }
@@ -572,13 +572,13 @@ throws Exception
 Read the SiteDef records.
 @return a vector of objects of type DIADvisor_SiteDef.
 */
-public List readSiteDefList ()
+public List<DIADvisor_SiteDef> readSiteDefList ()
 throws Exception
 {	DMISelectStatement q = new DMISelectStatement ( this );
 	buildSQL ( q, _S_SITE_DEF );
 	//q.addWhereClause ( "Area.MeasLoc_num=" + MeasLoc_num ); 
 	ResultSet rs = dmiSelect(q);
-	List v = toSiteDefList (rs);
+	List<DIADvisor_SiteDef> v = toSiteDefList (rs);
 	rs.close();
 	return v;
 }
@@ -593,12 +593,13 @@ throws Exception
 {	DMISelectStatement q = new DMISelectStatement ( this );
 	buildSQL ( q, _S_SYS_CONFIG );
 	ResultSet rs = dmiSelect(q);
-	List v = toSysConfigList (rs);
+	List<DIADvisor_SysConfig> v = toSysConfigList (rs);
 	rs.close();
 	if ( (v == null) || (v.size() == 0) ) {
 		return null;
 	}
-	else {	return (DIADvisor_SysConfig)v.get(0);
+	else {
+		return v.get(0);
 	}
 }
 
@@ -693,7 +694,8 @@ public TS readTimeSeries (String tsident_string, DateTime req_date1,
 		return ts;
 	}
 	// Read the data...
-	List data_records = null;
+	List<DIADvisor_RegularTSRecord> data_records = null;
+	List<DIADvisor_DataChron> chron_records = null;
 	if ( is_regular ) {
 		if ( tsident.getScenario().equals("") ) {
 			data_records =__dmi_operational.readRegularTSRecordList(
@@ -708,11 +710,10 @@ public TS readTimeSeries (String tsident_string, DateTime req_date1,
 		}
 	}
 	else {	if ( tsident.getScenario().equals("") ) {
-			data_records =
-			__dmi_operational.readDataChronListForSensorIDAndPeriod(
+			chron_records = __dmi_operational.readDataChronListForSensorIDAndPeriod(
 			tsident.getLocation(), req_date1, req_date2 );
 		}
-		else {	data_records =
+		else {	chron_records =
 			__dmi_archive.readDataChronListForSensorIDAndPeriod (
 			tsident.getLocation(), req_date1, req_date2 );
 		}
@@ -743,8 +744,7 @@ public TS readTimeSeries (String tsident_string, DateTime req_date1,
 	else if ( size > 0 ) {
 		// Set the date from the records...
 		if ( is_regular ) {
-			reg_data = (DIADvisor_RegularTSRecord)
-				data_records.get(0);
+			reg_data = data_records.get(0);
 			ts.setDate1(new DateTime(reg_data._StartTime));
 			ts.setDate1Original(new DateTime(reg_data._StartTime));
 
@@ -754,13 +754,11 @@ public TS readTimeSeries (String tsident_string, DateTime req_date1,
 			ts.setDate2Original(new DateTime(reg_data._StartTime));
 			ts.allocateDataSpace();
 		}
-		else {	irreg_data = (DIADvisor_DataChron)
-				data_records.get(0);
+		else {	irreg_data = chron_records.get(0);
 			ts.setDate1(new DateTime(irreg_data._DateTime));
 			ts.setDate1Original(new DateTime(irreg_data._DateTime));
 
-			irreg_data = (DIADvisor_DataChron)
-				data_records.get(size - 1);
+			irreg_data = chron_records.get(size - 1);
 			ts.setDate2(new DateTime(irreg_data._DateTime));
 			ts.setDate2Original(new DateTime(irreg_data._DateTime));
 			ts.allocateDataSpace();
@@ -780,8 +778,7 @@ public TS readTimeSeries (String tsident_string, DateTime req_date1,
 			// Set the date rather than declaring a new instance
 			// to increase performance...
 			if ( is_regular ) {
-				reg_data = (DIADvisor_RegularTSRecord)
-					data_records.get(i);
+				reg_data = data_records.get(i);
 				date.setDate ( reg_data._StartTime );
 				// Adjust so the time is the interval-ending
 				// time (DIADvisor uses the interval start,
@@ -794,8 +791,7 @@ public TS readTimeSeries (String tsident_string, DateTime req_date1,
 			else {	// Since DataChron is irregular, the time is
 				// used as is.   Get the value depending on
 				// whether DataValue1 or DataValue2 are used...
-				irreg_data = (DIADvisor_DataChron)
-					data_records.get(i);
+				irreg_data = chron_records.get(i);
 				date.setDate ( irreg_data._DateTime );
 				flag = irreg_data._DataType;
 				if ( is_datavalue1 ) {
@@ -844,8 +840,8 @@ Convert a ResultSet to a Vector of DIADvisor_DataChron.
 @param rs ResultSet from a DataChron table query.
 query.
 */
-private List toDataChronList ( ResultSet rs ) throws Exception
-{	List v = new Vector();
+private List<DIADvisor_DataChron> toDataChronList ( ResultSet rs ) throws Exception
+{	List<DIADvisor_DataChron> v = new Vector<DIADvisor_DataChron>();
 	int index = 1;
 	double d;
 	int i;
@@ -902,8 +898,8 @@ private List toDataChronList ( ResultSet rs ) throws Exception
 Convert a ResultSet to a Vector of DIADvisor_GroupDef.
 @param rs ResultSet from a GroupDef table query.
 */
-private List toGroupDefList ( ResultSet rs ) throws Exception
-{	List v = new Vector();
+private List<DIADvisor_GroupDef> toGroupDefList ( ResultSet rs ) throws Exception
+{	List<DIADvisor_GroupDef> v = new Vector<DIADvisor_GroupDef>();
 	int index = 1;
 	String s;
 	int i;
@@ -941,8 +937,8 @@ Convert a ResultSet to a Vector of DIADvisor_RegularTSRecord.
 @param rs ResultSet from a regular time series table (Hour, Day, Interval)
 query.
 */
-private List toRegularTSRecordList ( ResultSet rs ) throws Exception
-{	List v = new Vector();
+private List<DIADvisor_RegularTSRecord> toRegularTSRecordList ( ResultSet rs ) throws Exception
+{	List<DIADvisor_RegularTSRecord> v = new Vector<DIADvisor_RegularTSRecord>();
 	int index = 1;
 	double d;
 	int i;
@@ -978,8 +974,8 @@ private List toRegularTSRecordList ( ResultSet rs ) throws Exception
 Convert a ResultSet to a Vector of DIADvisor_SensorDef.
 @param rs ResultSet from a SensorDef table query.
 */
-private List toSensorDefList ( ResultSet rs ) throws Exception
-{	List v = new Vector();
+private List<DIADvisor_SensorDef> toSensorDefList ( ResultSet rs ) throws Exception
+{	List<DIADvisor_SensorDef> v = new Vector<DIADvisor_SensorDef>();
 	int index = 1;
 	String s;
 	int i;
@@ -1131,8 +1127,8 @@ private List toSensorDefList ( ResultSet rs ) throws Exception
 Convert a ResultSet to a Vector of DIADvisor_SiteDef.
 @param rs ResultSet from a SiteDef table query.
 */
-private List toSiteDefList ( ResultSet rs ) throws Exception
-{	List v = new Vector();
+private List<DIADvisor_SiteDef> toSiteDefList ( ResultSet rs ) throws Exception
+{	List<DIADvisor_SiteDef> v = new Vector<DIADvisor_SiteDef>();
 	int index = 1;
 	String s;
 	long l;
@@ -1199,8 +1195,8 @@ private List toSiteDefList ( ResultSet rs ) throws Exception
 Convert a ResultSet to a Vector of DIADvisor_SysConfig.
 @param rs ResultSet from a SysConfig table query.
 */
-private List toSysConfigList ( ResultSet rs ) throws Exception
-{	List v = new Vector();
+private List<DIADvisor_SysConfig> toSysConfigList ( ResultSet rs ) throws Exception
+{	List<DIADvisor_SysConfig> v = new Vector<DIADvisor_SysConfig>();
 	int index = 1;
 	int i;
 	DIADvisor_SysConfig data = null;

@@ -524,6 +524,7 @@ This is useful when writing a PropList to a file in a well-defined order.
 @param regExp Regular expression recognized by StringUtil.matchesRegExp().
 @return a list of Prop, or null if no matching properties are found.
 */
+@SuppressWarnings("deprecation")
 public List<Prop> getPropsMatchingRegExp ( String regExp )
 {	if ( (__list == null) || (regExp == null) ) {
 		return null;

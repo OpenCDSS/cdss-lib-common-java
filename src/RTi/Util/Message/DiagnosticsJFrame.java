@@ -172,8 +172,8 @@ private JLabel __logfileName_JLabel;
 private JCheckBox __debug_JCheckBox;
 private JCheckBox __message_JCheckBox;
 private JCheckBoxMenuItem __menu_JCheckBoxMenuItem = null;
-private JList __message_JList;
-private DefaultListModel __message_JListModel;
+private JList<String> __message_JList;
+private DefaultListModel<String> __message_JListModel;
 
 private int __list_max;
 
@@ -473,8 +473,8 @@ public void openGUI ( int mode )
     __logStatusLevel_JTextField = new JTextField ( 4 );
     __debug_JCheckBox = new JCheckBox ( "Allow debug", Message.isDebugOn );
     __message_JCheckBox = new JCheckBox ( "Show messages", true );
-    __message_JListModel = new DefaultListModel ();
-    __message_JList = new JList(__message_JListModel);
+    __message_JListModel = new DefaultListModel<String> ();
+    __message_JList = new JList<String>(__message_JListModel);
     JScrollPane message_JScrollPane = new JScrollPane ( __message_JList );
 
     JPanel p1 = new JPanel();

@@ -2393,6 +2393,9 @@ int totalPoints, int minNumPoints) {
 		// should not be null here, unless some catastrophic error occurred.
 		DateTimeFormat dtf = __dateFormatHashtable.get(format);
 		int num = 0;
+		if ( num < 0 ) {
+			// TODO code added to avoid compiler warning about not used
+		}
 		boolean isAbsolute = dtf.isAbsolute();
 		if (isAbsolute) {
 			// easy case

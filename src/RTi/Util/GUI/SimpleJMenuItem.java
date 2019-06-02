@@ -50,6 +50,7 @@ and event handler setup.  An example of use is:
 Then implement an ActionListener interface and check for events with a command
 name of "Myapp.Exit".
 */
+@SuppressWarnings("serial")
 public class SimpleJMenuItem 
 extends JMenuItem {
 

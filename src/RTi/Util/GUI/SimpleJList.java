@@ -21,26 +21,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
 
 NoticeEnd */
 
-//---------------------------------------------------------------------------
-// SimpleJList - class to allow an easily-changeable JList.
-//---------------------------------------------------------------------------
-// Copyright:  See the COPYRIGHT file.
-//---------------------------------------------------------------------------
-// History:
-//
-// 2002-09-18	J. Thomas Sapienza, RTi	Initial version.
-// 2002-09-25	JTS, RTi		Javadoc'd
-// 2002-12-17	JTS, RTi		Added 'getSelectedItem()'
-// 2003-03-25	JTS, RTi		Added the Array and Vector constructors.
-// 2003-03-26	JTS, RTi		Added code to support an optional 
-//					InverseListSelectionModel.
-// 2004-05-04	JTS, RTi		Added the setListData() methods.
-// 2004-05-06	JTS, RTi		Now uses the MutableJList_SelectionModel
-// 2005-04-08	JTS, RTi		Renamed from MutableJList.
-// 2005-04-26	JTS, RTi		Added finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//---------------------------------------------------------------------------
-
 package RTi.Util.GUI;
 
 import java.util.List;
@@ -53,6 +33,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 /**
+Class to allow an easily-changeable JList.
 Class wraps around JList and provides functionality for dynamically 
 changing the contents of JList.<p>
 Example of use:<p>
@@ -64,8 +45,9 @@ Example of use:<p>
 	sourceList.addListSelectionListener(this);
 </code>
 */
-public class SimpleJList 
-extends JList 
+@SuppressWarnings("serial")
+public class SimpleJList<T>
+extends JList<T>
 implements ListSelectionListener {
 
 /**
@@ -76,7 +58,7 @@ private boolean __autoUpdate = true;
 /**
 The List model that the list will use.
 */
-private DefaultListModel __dlm;
+private DefaultListModel<T> __dlm;
 
 /**
 The InverseListSelectionModel that can possibly be used.
@@ -93,7 +75,7 @@ Constructor.
 */
 public SimpleJList() {
 	super();
-	__dlm = new DefaultListModel();
+	__dlm = new DefaultListModel<T>();
 	initialize();
 	setModel(__dlm);
 }	
@@ -102,9 +84,9 @@ public SimpleJList() {
 Constructor.
 @param array an array of objects that will be used to populate the list.
 */
-public SimpleJList(Object array[]) {
+public SimpleJList(T array[]) {
 	super();
-	__dlm = new DefaultListModel();
+	__dlm = new DefaultListModel<T>();
 	for (int i = 0; i < array.length; i++) {
 		__dlm.addElement(array[i]);
 	}
@@ -116,9 +98,9 @@ public SimpleJList(Object array[]) {
 Constructor.
 @param vector a list of objects that will be used to populate the list.
 */
-public SimpleJList(List vector) {
+public SimpleJList(List<T> vector) {
 	super();
-	__dlm = new DefaultListModel();
+	__dlm = new DefaultListModel<T>();
 	int size = vector.size();
 	for (int i = 0; i < size; i++) {
 		__dlm.addElement(vector.get(i));
@@ -131,7 +113,7 @@ public SimpleJList(List vector) {
 Adds an object to the JList in the last position.
 @param o the object to add to the list.
 */
-public void add(Object o) {
+public void add(T o) {
 	__dlm.addElement(o);
 	if (__ilsm != null) {
 		__ilsm.add(__dlm.size());
@@ -147,7 +129,7 @@ Adds an object to the JList in the given position.
 @param o the object to add to the list
 @param pos the position in the list at which to put the object.
 */
-public void add(Object o, int pos) {
+public void add(T o, int pos) {
 	__dlm.add(pos, o);
 	if (__ilsm != null) {
 		__ilsm.add(pos);
@@ -210,8 +192,8 @@ public int getItemCount() {
 Returns all the items in the list.
 @return all the items in the list.
 */
-public List getItems() {
-	List v = new Vector(__dlm.size());
+public List<T> getItems() {
+	List<T> v = new Vector<T>(__dlm.size());
 	for (int i = 0; i < __dlm.size(); i++) {
 		v.add(__dlm.get(i));
 	}
@@ -240,8 +222,8 @@ public Object getSelectedItem() {
 Returns only the selected items in the list.  The returned Vector is guaranteed to be non-null.
 @return only the selected items in the list.
 */
-public List getSelectedItems() {
-	List v = new Vector(getSelectedSize());
+public List<T> getSelectedItems() {
+	List<T> v = new Vector<T>(getSelectedSize());
 	int[] indices = getSelectedIndices();	
 	for (int i = 0; i < indices.length; i++) {
 		v.add(__dlm.get(indices[i]));
@@ -367,7 +349,7 @@ Sets the object at the given position.
 @param pos the position at which to set the object.
 @param o the object to set in the position, overwriting the old object.
 */
-public void set(int pos, Object o) {
+public void set(int pos, T o) {
 	__dlm.set(pos, o);
 	update();
 }
@@ -404,8 +386,8 @@ Sets the data in the list from an array of Objects.  Any data already in the
 list will be lost.  Overloads the method in JList.
 @param array the array of Objects to populate the list with.
 */
-public void setListData(Object[] array) {
-	__dlm = new DefaultListModel();
+public void setListData(T[] array) {
+	__dlm = new DefaultListModel<T>();
 	for (int i = 0; i < array.length; i++) {
 		__dlm.addElement(array[i]);
 	}
@@ -414,12 +396,12 @@ public void setListData(Object[] array) {
 }
 
 /**
-Sets the data in the list from a Vector of Objects.  Any data already in the 
+Sets the data in the list from a list of Objects.  Any data already in the 
 list will be lost.  Overloads the method in JList.
 @param vector the Vector of Objects to populate the list with.
 */
-public void setListData(List vector) {
-	__dlm = new DefaultListModel();
+public void setListData(List<T> vector) {
+	__dlm = new DefaultListModel<T>();
 	int size = vector.size();
 	for (int i = 0; i < size; i++) {
 		__dlm.addElement(vector.get(i));
@@ -431,7 +413,7 @@ public void setListData(List vector) {
 Sets the model to use with this SimpleJList.
 @param dlm a non-null DefaultListModel to use.
 */
-public void setModel(DefaultListModel dlm) {
+public void setModel(DefaultListModel<T> dlm) {
 	super.setModel(dlm);
 	if (__ilsm != null) {
 		__ilsm.update(dlm.size());

@@ -79,7 +79,8 @@ that they increase the speed of browsing through a table of time series
 dramatically.  Without the caching, scrolling to the end of a long time series
 can take many seconds, whereas it is nearly instant with the steps taken here.
 */
-public class TSViewTable_TableModel extends JWorksheet_AbstractRowTableModel
+@SuppressWarnings("serial")
+public class TSViewTable_TableModel extends JWorksheet_AbstractRowTableModel<TS>
 {
 
 /**
@@ -391,7 +392,6 @@ throws TSException
     // for the period.  Otherwise it will be difficult to navigate the data.
     int irrPrecision = __irregularDateTimePrecision;
     int tsPrecision;
-    List<Object> dataList = _data;
     List<TS> tslist = _data;
     int size = tslist.size();
     TS ts;
@@ -566,7 +566,7 @@ throws Throwable {
 Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
-public Class getColumnClass (int columnIndex) {
+public Class<?> getColumnClass (int columnIndex) {
 	if ( columnIndex == 0 ) {
 	    return String.class; // Date/Time
 	}

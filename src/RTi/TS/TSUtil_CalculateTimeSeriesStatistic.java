@@ -270,7 +270,7 @@ throws Exception
     }
     // A valid statistic should always be >= 0
     if ( statistic >= 0.0 ) {
-        Class c = getStatisticDataClass();
+        Class<?> c = getStatisticDataClass();
         if ( c == Double.class ) {
             setStatisticResult ( new Double(statistic) );
         }
@@ -353,7 +353,8 @@ throws Exception
     boolean isMissing; // Whether "value" is missing
     boolean inCondition = false; // Current time-step is in required condition, based on checkSurplus
     int inConditionCount = 0; // Number of time-steps in required condition
-    int inConditionInstanceCount = 0; // Number of times in condition
+    // TODO smalers 2019-06-01 evaluate how needed
+    //int inConditionInstanceCount = 0; // Number of times in condition
     boolean inConditionPrev = false; // Whether previous time-step was in condition
     double statistic = 0.0; // Value of statistic being computed, zero is ok
     DateTime statisticDate = null; // Time-step at start of condition, null if never have condition
@@ -391,7 +392,7 @@ throws Exception
             }
             Message.printStatus ( 2, routine, "Statistic=" + statistic + " at=" + statisticDate);
             // Add to the totals
-            ++inConditionInstanceCount;
+            //++inConditionInstanceCount;
             // Reset for next condition
             inConditionCount = 0;
         }
@@ -944,7 +945,7 @@ public static List<String> getStatisticChoicesAsStrings()
 Return the statistic data class.  This is useful for data management and ensures that
 the class is known even if the statistic is null or NaN.
 */
-public Class getStatisticDataClass ()
+public Class<?> getStatisticDataClass ()
 {
     TSStatisticType t = getStatisticType();
     // Most are Double so check for integers and DateTime

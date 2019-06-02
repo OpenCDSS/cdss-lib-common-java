@@ -53,7 +53,7 @@ list of data.
 TODO (JTS - 2003-10-27) Add support for Object-storing props, or simply exclude them from being displayed.
 */
 @SuppressWarnings("serial")
-public class PropList_TableModel<T extends PropList> extends JWorksheet_AbstractRowTableModel<T> {
+public class PropList_TableModel extends JWorksheet_AbstractRowTableModel<PropList> {
 
 /**
 Number of columns in the table model.
@@ -96,7 +96,7 @@ by the user before being committed to the proplist read in from a file.
 @param valEditable whether the prop values can be edited
 @throws Exception if invalid data were passed in.
 */
-public PropList_TableModel(T props, boolean keyEditable, boolean valEditable)
+public PropList_TableModel(PropList props, boolean keyEditable, boolean valEditable)
 throws Exception {
 	if (props == null) {
 		throw new Exception ("Invalid proplist data passed to PropList_TableModel constructor.");
@@ -119,7 +119,7 @@ displayed in the table model.  Cannot be null.
 @param valEditable whether the prop values can be edited
 @throws Exception if invalid data were passed in.
 */
-public PropList_TableModel(T props, List<String> ignores, boolean keyEditable, boolean valEditable)
+public PropList_TableModel(PropList props, List<String> ignores, boolean keyEditable, boolean valEditable)
 throws Exception {
 	if (props == null) {
 		throw new Exception ("Invalid proplist data passed to PropList_TableModel constructor.");

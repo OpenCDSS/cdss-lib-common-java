@@ -70,11 +70,13 @@ public RegExpFilenameFilter ( String regexp )
 {	_regexp = regexp;
 }
 
+// TODO smalers 2019-06-01 evaluate replacing deprecated code
 /**
 @return true if the name matches the regular expression passed in during construction.
 @param dir Directory of file being evaluated.
 @param name File being evaluated (without leading directory path).
 */
+@SuppressWarnings("deprecation")
 public boolean accept ( File dir, String name )
 {	return StringUtil.matchesRegExp ( name, _regexp );
 }

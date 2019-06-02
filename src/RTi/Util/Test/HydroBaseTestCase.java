@@ -308,8 +308,8 @@ throws Exception {
 			return;
 		}		
 
-		Class c1 = o1.getClass();
-		Class c2 = o2.getClass();
+		Class<?> c1 = o1.getClass();
+		Class<?> c2 = o2.getClass();
 	
 		if (c1 != c2) {
 			internalFail(

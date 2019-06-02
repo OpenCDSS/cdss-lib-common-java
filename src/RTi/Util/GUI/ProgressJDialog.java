@@ -66,6 +66,7 @@ constructor).<p>
 	}
 </pre></blockquote>
 */
+@SuppressWarnings("serial")
 public class ProgressJDialog 
 extends JDialog 
 implements Runnable {

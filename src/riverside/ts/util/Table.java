@@ -33,7 +33,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.logging.Logger;
+//import java.util.logging.Logger;
 
 /**
  * A 2-column lookup table implementation taken from the National Weater Service Streamflow Forecast System
@@ -266,9 +266,11 @@ public class Table {
         }
     }
 
+    /* TODO smalers 2019-06-01 evaluate use of function - this code is not actively used.
     private static Logger logger() {
         return Logger.getLogger(Table.class.getName());
     }
+    */
 
     public int getSmallerIndex(double value, int column) {
         double[] d = column == GETCOLUMN_1 ? column1 : column2;

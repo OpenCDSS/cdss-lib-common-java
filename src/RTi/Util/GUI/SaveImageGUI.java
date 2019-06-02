@@ -411,7 +411,7 @@ String array and then removing all the ones that have duplicates.
 duplicate elements.  The returned array will never be null, but it may be empty.
 */
 private String[] uniquify(String[] strings) {
-	Set<String> set = new HashSet();
+	Set<String> set = new HashSet<String>();
 	for (int i = 0; i < strings.length; i++) {
 		String name = strings[i].toLowerCase();
 		set.add(name);

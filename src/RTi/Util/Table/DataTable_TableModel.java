@@ -35,12 +35,12 @@ Table model for displaying data table data in a JWorksheet.
 */
 @SuppressWarnings("serial")
 public class DataTable_TableModel 
-extends JWorksheet_AbstractRowTableModel {
+extends JWorksheet_AbstractRowTableModel<DataTable> {
 
 /**
 The classes of the fields, stored in an array for quicker access.
 */
-private Class[] __fieldClasses;
+private Class<?>[] __fieldClasses;
 
 /**
 The field types as per the table field types.
@@ -93,8 +93,8 @@ Determines the kind of classes stored in each table field.
 @param dataTypes the data types array from the data table.
 @return an array of the Class of each field.
 */
-private Class[] determineClasses(int[] dataTypes) {
-	Class[] classes = new Class[dataTypes.length];
+private Class<?>[] determineClasses(int[] dataTypes) {
+	Class<?>[] classes = new Class[dataTypes.length];
 
 	for (int i = 0; i < dataTypes.length; i++) {
 		if ( __dataTable.isColumnArray(dataTypes[i]) ) {
@@ -157,7 +157,7 @@ throws Throwable {
 Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
-public Class getColumnClass (int columnIndex) {
+public Class<?> getColumnClass (int columnIndex) {
 	return __fieldClasses[columnIndex];
 }
 

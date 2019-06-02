@@ -163,19 +163,6 @@ public void deleteRow(int row) {
 }
 
 /**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	_sortOrder = null;
-	_cellEditOverride = null;
-	_data = null;
-	_listeners = null;
-	_worksheet = null;
-	super.finalize();
-}
-
-/**
 Dummy version of the method to get column tool tips for a worksheet.  This one
 just returns null, meaning that no tool tips are to be set up.
 */

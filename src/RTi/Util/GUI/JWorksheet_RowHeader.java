@@ -50,6 +50,7 @@ import javax.swing.ListCellRenderer;
 This class is a header for worksheets that goes on the left side of the 
 worksheet and tracks the row number for each row.
 */
+@SuppressWarnings("serial")
 public class JWorksheet_RowHeader 
 extends JLabel 
 implements ListCellRenderer {

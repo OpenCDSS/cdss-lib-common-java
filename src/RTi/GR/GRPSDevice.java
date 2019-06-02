@@ -526,9 +526,10 @@ throws GRException
 		_devy2 = 1.0;
 		_limits = new GRLimits ( _devx1, _devy1, _devx2, _devy2 );
 	}
-	else {	// Set the limits...
-		setLimits ( limits );
-	}
+	//else {	// Set the limits...
+		// TODO smalers 2019-06-01 evalute whether needed
+		//setLimits ( limits );
+	//}
 	// ---- End from GRDevice -----
 
 	// Initialize general information for driver...

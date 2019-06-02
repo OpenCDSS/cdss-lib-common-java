@@ -36,7 +36,7 @@ public class LogPearsonType3Distribution
 /**
 Sample data set (no missing values), in original form (not transformed).
 */
-private double [] __X = null;
+//private double [] __X = null;
 
 /**
 Skew coefficient G.
@@ -63,7 +63,7 @@ public LogPearsonType3Distribution ( double [] X )
         throw new InvalidParameterException (
             "Sample size is too small - cannot analyze for log-Pearson Type III distribution." );
     }
-    setData ( X );
+    //setData ( X );
     // Compute the basic statistics
     // If a data value is <= 0.0 assume that it is .001 when computing the log
     // First compute logXbar = sum(log10(X))/n
@@ -360,10 +360,10 @@ public double lookupK ( double G, double recurrenceInterval )
 Set the sample dataset.
 @param X sample data (no missing data).
 */
-private void setData ( double [] X ) 
-{
-    __X = X;
-}
+//private void setData ( double [] X ) 
+//{
+//    __X = X;
+//}
 
 /**
 Set the skew coefficient G.

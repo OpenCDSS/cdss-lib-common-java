@@ -110,6 +110,7 @@ The TSViewSummaryJFrame provides a text report summary for a list of time
 series.  The report is dependent on the time series interval and data type.  The
 TSViewSummaryJFrame is managed by the TSViewJFrame parent.
 */
+@SuppressWarnings("serial")
 public class TSViewSummaryJFrame extends JFrame
 implements ActionListener, WindowListener
 {

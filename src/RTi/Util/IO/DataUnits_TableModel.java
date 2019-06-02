@@ -30,13 +30,9 @@ import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 /**
 Table model for displaying data table data in a JWorksheet.
 */
-public class DataUnits_TableModel extends JWorksheet_AbstractRowTableModel
+@SuppressWarnings("serial")
+public class DataUnits_TableModel extends JWorksheet_AbstractRowTableModel<DataUnits>
 {
-
-/**
-The table displayed in the worksheet.
-*/
-private List<DataUnits> __dataUnitsList = null;
 
 /**
 Number of columns in the table model (with the alias).
@@ -69,7 +65,7 @@ throws Exception {
     else {
         _rows = dataUnitsList.size();
     }
-    __dataUnitsList = dataUnitsList;
+    //__dataUnitsList = dataUnitsList;
 }
 
 /**
@@ -77,6 +73,7 @@ From AbstractTableModel.  Returns the class of the data stored in a given
 column.  All values are treated as strings.
 @param columnIndex the column for which to return the data class.
 */
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public Class getColumnClass (int columnIndex) {
     switch (columnIndex) {
         case COL_DIMENSION: return String.class;
@@ -167,7 +164,7 @@ public Object getValueAt(int row, int col)
         row = _sortOrder[row];
     }
 
-    DataUnits dataUnits = __dataUnitsList.get(row);
+    DataUnits dataUnits = _data.get(row);
     if ( dataUnits == null ) {
         return "";
     }

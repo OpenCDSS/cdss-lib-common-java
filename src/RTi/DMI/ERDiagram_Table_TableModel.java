@@ -45,7 +45,7 @@ This class is a table model for displaying data from ERDiagram_Table objects.
 */
 @SuppressWarnings("serial")
 public class ERDiagram_Table_TableModel 
-extends JWorksheet_AbstractRowTableModel {
+extends JWorksheet_AbstractRowTableModel<ERDiagram_Table> {
 
 /**
 The number of columns in the table model. 
@@ -73,7 +73,7 @@ Constructor.  This builds the Model for displaying the given ERDiagram_Table obj
 @param data list of ERDiagram_Table objects for which to display data.
 @throws Exception if an invalid data or dmi was passed in.
 */
-public ERDiagram_Table_TableModel(List data) 
+public ERDiagram_Table_TableModel(List<ERDiagram_Table> data) 
 throws Exception {
 	if (data == null) {
 		throw new Exception ("Null data Vector passed to " 

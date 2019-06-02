@@ -35,7 +35,7 @@ The alias can be treated as a hidden column.
 This class may eventually be moved to the RTi.TS package.
 */
 @SuppressWarnings("serial")
-public class TS_List_TableModel extends JWorksheet_AbstractRowTableModel
+public class TS_List_TableModel extends JWorksheet_AbstractRowTableModel<TS>
 {
 
 /**
@@ -62,10 +62,10 @@ public final int COL_INPUT_NAME	= 12;
 
 /**
 Constructor.  This builds the model for displaying the given time series data.
-@param data the Vector of TS that will be displayed in the table (null is allowed).
+@param data the list of TS that will be displayed in the table (null is allowed).
 @throws Exception if an invalid results passed in.
 */
-public TS_List_TableModel ( List data ) {
+public TS_List_TableModel ( List<TS> data ) {
 	this ( data, false );
 }
 
@@ -75,7 +75,7 @@ Constructor.  This builds the model for displaying the given time series data.
 @param include_alias If true, an alias column will be included after the
 location column.  The JWorksheet.removeColumn ( COL_ALIAS ) method should be called.
 */
-public TS_List_TableModel ( List data, boolean include_alias ) {
+public TS_List_TableModel ( List<TS> data, boolean include_alias ) {
 	if ( data == null ) {
 		_rows = 0;
 	}
@@ -90,7 +90,7 @@ From AbstractTableModel.  Returns the class of the data stored in a given
 column.  All values are treated as strings.
 @param columnIndex the column for which to return the data class.
 */
-public Class getColumnClass (int columnIndex) {
+public Class<?> getColumnClass (int columnIndex) {
 	switch (columnIndex) {
 		case COL_ID: return String.class;
 		case COL_ALIAS: return String.class;

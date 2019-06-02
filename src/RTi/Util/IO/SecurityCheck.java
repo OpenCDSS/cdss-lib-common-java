@@ -59,6 +59,7 @@ public abstract class SecurityCheck
 /**
 @return true if the AWT event queue can be checked, false if not.
 */
+@SuppressWarnings("deprecation")
 public static boolean canCheckAWTEventQueue()
 {	String routine = "SecurityCheck.canCheckAWTEventQueue";
 
@@ -401,6 +402,7 @@ public static boolean canReadFile ( String file0 )
 /**
 @return true if able to use the clipboard, false if not.
 */
+@SuppressWarnings("deprecation")
 public static boolean canUseClipboard ()
 {	String routine = "SecurityCheck.canUseClipboard";
 

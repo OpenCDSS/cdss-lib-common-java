@@ -26,7 +26,7 @@ package RTi.Util.IO;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -266,7 +266,9 @@ public DataSetComponent getComponentForComponentName ( String name )
 		// If the component is a group and did not match the type, check
 		// the sub-types in the component...
 		if ( comp.isGroup() ) {
-			v = (List)comp.getData();
+			@SuppressWarnings("unchecked")
+			List<DataSetComponent> dataList = (List<DataSetComponent>)comp.getData();
+			v = dataList;
 			size2 = 0;
 			if ( v != null ) {
 				size2 = v.size();
@@ -305,7 +307,9 @@ public DataSetComponent getComponentForComponentType ( int type )
 		// If the component is a group and did not match the type, check
 		// the sub-types in the component...
 		if ( comp.isGroup() ) {
-			v = (List)comp.getData();
+			@SuppressWarnings("unchecked")
+			List<DataSetComponent> dataList = (List<DataSetComponent>)comp.getData();
+			v = dataList;
 			size2 = 0;
 			if ( v != null ) {
 				size2 = v.size();
@@ -335,7 +339,7 @@ Return the data components list for components in the specified group.
 @return the data components list for components in the specified group.
 */
 public List<DataSetComponent> getComponentsForGroup ( DataSetComponent groupComp )
-{	List<DataSetComponent> componentsInGroup = new Vector();
+{	List<DataSetComponent> componentsInGroup = new Vector<DataSetComponent>();
 	if ( (groupComp == null) || !groupComp.isGroup() ) {
 		return componentsInGroup;
 	}
@@ -849,7 +853,9 @@ public String toString ()
 		}
 		// TODO SAM 2011-01-17 This does not seem right - mixing data (sub) components and data lists.
 		if ( comp.isGroup() ) {
-			v = (List)comp.getData();
+			@SuppressWarnings("unchecked")
+			List<DataSetComponent> dataList = (List<DataSetComponent>)comp.getData();
+			v = dataList;
 			size2 = 0;
 			if ( v != null ) {
 				size2 = v.size();
@@ -888,8 +894,16 @@ comments are available.
 public static void writeXMLFile ( String filename_prev, String filename,
 					DataSet dataset, String [] new_comments )
 throws IOException
-{	String [] comment_str = { "#" };
-	String [] ignore_comment_str = { "#>" };
+{	List<String> comment_str = new ArrayList<String>();
+	comment_str.add("#");
+	List<String> ignore_comment_str = new ArrayList<String>();
+	ignore_comment_str.add("#>");
+	List<String> newCommentsList = new ArrayList<String>();
+	if ( new_comments != null ) {
+		for ( int i = 0; i < new_comments.length; i++ ) {
+			newCommentsList.add(new_comments[i]);
+		}
+	}
 	PrintWriter out = null;
 	try {
 		String full_filename_prev = IOUtil.getPathUsingWorkingDir ( filename_prev );
@@ -898,7 +912,7 @@ throws IOException
 		}
 		String full_filename = IOUtil.getPathUsingWorkingDir ( filename );
 		out = IOUtil.processFileHeaders ( full_filename_prev, full_filename, 
-			new_comments, comment_str, ignore_comment_str, 0 );
+			newCommentsList, comment_str, ignore_comment_str, 0 );
 		if ( out == null ) {
 			throw new IOException ( "Error writing to \"" + full_filename + "\"" );
 		}

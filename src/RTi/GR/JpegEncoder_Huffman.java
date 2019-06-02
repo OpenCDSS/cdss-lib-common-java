@@ -140,8 +140,8 @@ public int[] valDCluminance = {
 public Object ACmatrix[];
 public Object DCmatrix[];
 
-public Vector bits;
-public Vector val;
+public Vector<int[]> bits;
+public Vector<int[]> val;
 
 /**
  * The Huffman class constructor.
@@ -151,13 +151,13 @@ public Vector val;
  */
 public JpegEncoder_Huffman(int Width,int Height)
 {
-	bits = new Vector();
+	bits = new Vector<int[]>();
 	bits.addElement(bitsDCluminance);
 	bits.addElement(bitsACluminance);
 	bits.addElement(bitsDCchrominance);
 	bits.addElement(bitsACchrominance);
 
-	val = new Vector();
+	val = new Vector<int[]>();
 	val.addElement(valDCluminance);
 	val.addElement(valACluminance);
 	val.addElement(valDCchrominance);

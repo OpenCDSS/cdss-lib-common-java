@@ -82,6 +82,7 @@ import RTi.Util.String.StringUtil;
 The SearchJDialog searches a JTextComponent and positions the cursor at found
 text.
 */
+@SuppressWarnings("serial")
 public class SearchJDialog 
 extends JDialog 
 implements ActionListener, KeyListener, WindowListener {

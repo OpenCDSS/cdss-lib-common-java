@@ -60,6 +60,7 @@ an action listener.  An example of its is as follows:
 button = new SimpleJButton("My Button", "MyButton" + this );
 </pre>
 */
+@SuppressWarnings("serial")
 public class SimpleJButton 
 extends JButton {
 

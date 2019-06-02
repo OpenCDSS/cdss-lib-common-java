@@ -113,6 +113,7 @@ click-drag - setSelectionInterval
 The partial fix is to reroute the method calls to the 1.4 behavior.  Additionally, current row/column needed to be set
 in some instances such as selecting or deselection cells.
 */
+@SuppressWarnings("serial")
 public class JWorksheet_RowSelectionModel 
 extends DefaultListSelectionModel {
 
@@ -455,7 +456,7 @@ Returns an integer array of the columns that have had some of their cells select
 @return an integer array of the columns that have had some of their cells selected.
 */
 public int[] getSelectedColumns() {
-	List v = new Vector();
+	List<Integer> v = new Vector<Integer>();
 
 	for (int i = 0; i < _cols; i++) {
 		for (int j = 0; j < _rows; j++) {
@@ -496,7 +497,7 @@ Returns an integer array of the rows that have had some of their cells selected.
 @return an integer array of the rows that have had some of their cells selected.
 */
 public int[] getSelectedRows() {
-	List v = new Vector();
+	List<Integer> v = new Vector<Integer>();
 
 	for (int i = 0; i < _rows; i++) {
 		for (int j = 0; j < _cols; j++) {

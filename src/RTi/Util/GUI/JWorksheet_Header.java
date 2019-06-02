@@ -45,6 +45,7 @@ This class is the header that a JWorksheet uses.  It provides additional
 functionality that normal headers do not, such as the ability to set tooltips
 on columns.
 */
+@SuppressWarnings("serial")
 public class JWorksheet_Header 
 extends JTableHeader {
 

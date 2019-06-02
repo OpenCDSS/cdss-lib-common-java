@@ -893,6 +893,7 @@ This will be reset to zero if no data are available.
 one of the combo boxes that lists the fields for a filter.  If negative, display the number of items in
 the list.  A list longer than that specified will be scrolled.
 */
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public void setInputFilters ( List<InputFilter> inputFilters, int numFilterGroups, int numWhereChoicesToDisplay )
 {	// First remove the existing input filters (the event generators will also be removed so
 	// listeners will no longer get the events)...
@@ -909,6 +910,7 @@ public void setInputFilters ( List<InputFilter> inputFilters, int numFilterGroup
 	else {
 	    setNumFilterGroups ( numFilterGroups );
 	}
+	//__inputFilterListArray = new List<InputFilter[]>[__numFilterGroups];
 	__inputFilterListArray = new List[__numFilterGroups];
 	InputFilter filter;
 	for ( int ifg = 0; ifg < __numFilterGroups; ifg++ ) {
@@ -920,6 +922,7 @@ public void setInputFilters ( List<InputFilter> inputFilters, int numFilterGroup
 			// Copy the original...
 			// TODO smalers 2018-09-04 is it necessary to clone the data arrays or can they be reused.
 			// - maybe need a shallower clone?
+			//__inputFilterListArray[ifg] = new Vector<InputFiilter[]>(numFilters);
 			__inputFilterListArray[ifg] = new Vector(numFilters);
 			for ( int ifilter = 0; ifilter < numFilters; ifilter++ ) {
 				filter = inputFilters.get(ifilter);
@@ -945,7 +948,8 @@ public void setInputFilters ( List<InputFilter> inputFilters, int numFilterGroup
 	//				provided.
 	//
 	// where positions 2-4 are used as necessary based on the type of the input.
-	__whereComponentList = new Vector(__numFilterGroups);
+	__whereComponentList = new Vector<JComponent>(__numFilterGroups);
+	//__operatorComponentList = new Vector<InputFilter[]>(__numFilterGroups);
 	__operatorComponentList = new Vector(__numFilterGroups);
 
 	setNumWhereChoicesToDisplay(numWhereChoicesToDisplay);

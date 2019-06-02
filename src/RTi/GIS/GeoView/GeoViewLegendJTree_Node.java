@@ -81,6 +81,7 @@ This class is a convenience class for displaying CheckBox and label information
 in a Tree similar to how ESRI handles its Table of Contents tree sections.
 These nodes contain two components, a JCheckBox (with no text) and a separate JLabel.  
 */
+@SuppressWarnings("serial")
 public class GeoViewLegendJTree_Node 
 extends SimpleJTree_Node
 implements FocusListener, MouseListener, ItemListener, ItemSelectable {
@@ -126,7 +127,7 @@ private JTextField __field = null;
 /**
 The listeners that are registered to listen for this objects item state changed events.
 */
-private List __listeners = null;
+private List<ItemListener> __listeners = null;
 
 /**
 Constructor.
@@ -179,7 +180,7 @@ private void deselectAllOthers(SimpleJTree_Node node) {
 		}		
 	}
 	if (node.getChildCount() >= 0) {
-		for (Enumeration e = node.children(); e.hasMoreElements();) {
+		for (Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
 			SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 			deselectAllOthers(n);
 		}
@@ -309,7 +310,7 @@ private void initialize(String text, String name, GeoViewLegendJTree tree, JPopu
 	setComponent(panel);
 
 	__check.addItemListener(this);
-	__listeners = new Vector();
+	__listeners = new Vector<ItemListener>();
 	addItemListener(tree);
 
 	__popup = popup;
@@ -388,7 +389,7 @@ GeoViewLegendJTree that catches the new event can see which specific node issued
 public void itemStateChanged(ItemEvent e) {
 	ItemEvent newEvt = new ItemEvent(this, 0, null, e.getStateChange());
 	for (int i = 0; i < __listeners.size(); i++) {
-		ItemListener l = (ItemListener)__listeners.get(i);
+		ItemListener l = __listeners.get(i);
 		l.itemStateChanged(newEvt);
 	}
 }

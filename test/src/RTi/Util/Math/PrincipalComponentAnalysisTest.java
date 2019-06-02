@@ -59,8 +59,7 @@ public class PrincipalComponentAnalysisTest extends TestCase {
         xMatrix[9][0] = 13.62; xMatrix[9][1] = 7.87; xMatrix[9][2] = 23.55; xMatrix[9][3] = 12.44; xMatrix[9][4] = 24.21; xMatrix[9][5] = 23.15; xMatrix[9][6] = 5.12;
         xMatrix[10][0] = 8.54; xMatrix[10][1] = 4.72; xMatrix[10][2] = 13.66; xMatrix[10][3] = 7.01; xMatrix[10][4] = 14.29; xMatrix[10][5] = 13.78; xMatrix[10][6] = 2.76;
         
-        PrincipalComponentAnalysis pca = MathUtil.performPrincipalComponentAnalysis(yArray, xMatrix,
-            -999, -999, 20 );
+        //PrincipalComponentAnalysis pca = MathUtil.performPrincipalComponentAnalysis(yArray, xMatrix, -999, -999, 20 );
 
         // need to add check for expected file and actual results.
     }

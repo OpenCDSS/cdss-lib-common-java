@@ -21,12 +21,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
 
 NoticeEnd */
 
-/*****************************************************************************
-CheckFile_DataModel class - 2007-03-27 - KAT
-******************************************************************************
-Revisions
-2007-03-27	Kurt Tometich, RTi		Initial version.
-*****************************************************************************/
 package RTi.Util.IO;
 import java.util.List;
 import java.util.Vector;
@@ -38,16 +32,36 @@ of checks and a list of data.
 */
 public class CheckFile_DataModel 
 {
-	private List __data;				// stores data from running checks
-	private String __info;				// stores information and suggestions
-										// about the latest data check run
+	/**
+	 * Stores data from running checks.
+	 * Corresponding to each table header column.
+	 */
+	private List<String []> __data;
+
+	/**
+	 * Stores information and suggestions about the latest data check run
+	 */
+	private String __info;
 	
-	private String[] __table_header;	// column headers for the data 
-	private String __title;				// title or name of the component
-	private int __total_problems;		// total number of product rows that
-										// had problems
-	private int __total_checked;		// total number of component objects
-										// checked on last run
+	/**
+	 * Column headers for the data 
+	 */
+	private String[] __table_header;
+
+	/**
+	 * Title or name of the component
+	 */
+	private String __title;
+
+	/**
+	 * Total number of product rows that had problems.
+	 */
+	private int __total_problems;
+
+	/**
+	 * Total number of component objects checked on last run.
+	 */
+	private int __total_checked;
 	
 	/**
 	Initializes a DataModel object for a Check File.
@@ -58,7 +72,7 @@ public class CheckFile_DataModel
 	@param num_problems
 	@param total
 	*/
-	public CheckFile_DataModel( List data, String[] table_header,
+	public CheckFile_DataModel( List<String []> data, String[] table_header,
 	String title, String info, int num_problems, int total )
 	{
 		// store data from checks
@@ -98,7 +112,7 @@ public class CheckFile_DataModel
 	Returns the data list for this model.
 	@return list of invalid data.
 	*/
-	public List getData()
+	public List<String []> getData()
 	{
 		return __data;
 	}

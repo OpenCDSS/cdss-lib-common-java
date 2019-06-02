@@ -31,7 +31,8 @@ import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 This class is a table model for time series metadata information.
 By default the sheet will contain row and column numbers.
 */
-public class GenericDatabaseDataStore_TS_TableModel extends JWorksheet_AbstractRowTableModel
+@SuppressWarnings("serial")
+public class GenericDatabaseDataStore_TS_TableModel extends JWorksheet_AbstractRowTableModel<TimeSeriesMeta>
 {
 
 /**
@@ -68,7 +69,7 @@ Constructor.  This builds the model for displaying the given time series data.
 location column.  The JWorksheet.removeColumn ( COL_ALIAS ) method should be called.
 @throws Exception if an invalid results passed in.
 */
-public GenericDatabaseDataStore_TS_TableModel ( List data, GenericDatabaseDataStore dataStore )
+public GenericDatabaseDataStore_TS_TableModel ( List<TimeSeriesMeta> data, GenericDatabaseDataStore dataStore )
 throws Exception
 {	if ( data == null ) {
 		_rows = 0;
@@ -85,7 +86,7 @@ From AbstractTableModel.  Returns the class of the data stored in a given
 column.  All values are treated as strings.
 @param columnIndex the column for which to return the data class.
 */
-public Class getColumnClass (int columnIndex) {
+public Class<?> getColumnClass (int columnIndex) {
 	switch (columnIndex) {
 	    case COL_LOC_TYPE: return String.class;
 		case COL_ID: return String.class;
@@ -162,7 +163,7 @@ public Object getValueAt(int row, int col)
 		row = _sortOrder[row];
 	}
 
-	TimeSeriesMeta meta = (TimeSeriesMeta)_data.get(row);
+	TimeSeriesMeta meta = _data.get(row);
 	if ( meta == null ) {
 		return "";
 	}

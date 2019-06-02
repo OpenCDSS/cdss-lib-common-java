@@ -67,6 +67,7 @@ import RTi.Util.Time.TimeScaleType;
 This ShefATS class provides static methods for reading and writing .A format
 SHEF (Standard Hydrological Exchange Format) time series.  Currently, only write methods are available.
 */
+@SuppressWarnings("deprecation")
 public class ShefATS
 {
 

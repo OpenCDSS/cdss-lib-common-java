@@ -171,9 +171,9 @@ private GeoViewProject __gvp = null;
 
 private JCheckBox __labelSelectedJCheckBox = null;
 
-private JComboBox __uniqueValuesFieldJComboBox = null;
-private JComboBox __classBreakFieldJComboBox = null;
-private JComboBox __labelFieldJComboBox = null;
+private JComboBox<String> __uniqueValuesFieldJComboBox = null;
+private JComboBox<String> __classBreakFieldJComboBox = null;
+private JComboBox<String> __labelFieldJComboBox = null;
 
 private JPanel __symbolJPanel = null; // Symbol Panel
 private JPanel __singleSymbolJPanel = null;
@@ -1007,7 +1007,7 @@ private void setupGUI() {
 		y = 0;
 	        JGUIUtil.addComponent(__singleSymbolJPanel,new JLabel ("Symbol style:"),
 			0, y, 1, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		JComboBox _symbol_styleJComboBox = new JComboBox();
+		JComboBox<String> _symbol_styleJComboBox = new JComboBox<String>();
 		_symbol_styleJComboBox.setEnabled ( false );
 	
 		if ( (shapeType == GeoLayer.POINT) || (shapeType == GeoLayer.POINT_ZM) ||
@@ -1121,7 +1121,7 @@ private void setupGUI() {
 	        JGUIUtil.addComponent( __uniqueValuesJPanel,
 			new GeoLayerViewLegendJPanel(__layerView, false),
 			0, ++y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
-		__uniqueValuesFieldJComboBox = new JComboBox ();
+		__uniqueValuesFieldJComboBox = new JComboBox<String>();
 		__uniqueValuesFieldJComboBox.addItem( "Junk" );
 	        JGUIUtil.addComponent(__uniqueValuesJPanel, 
 			__uniqueValuesFieldJComboBox,
@@ -1144,7 +1144,7 @@ private void setupGUI() {
 	        JGUIUtil.addComponent( __classBreaksJPanel, new JLabel (
 			"Classification Field:"),
 			0, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
-		__classBreakFieldJComboBox = new JComboBox ();
+		__classBreakFieldJComboBox = new JComboBox<String>();
 		__classBreakFieldJComboBox.setEnabled(false);
 		DataTable attributeTable = layer.getAttributeTable();
 		String [] attributeTableFieldNames = null;
@@ -1182,7 +1182,7 @@ private void setupGUI() {
 		colors_group.add(_color_tableJRadioButton);
 		JGUIUtil.addComponent( colorJPanel, _color_tableJRadioButton, 
 			0, ++yc, 2, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
-		JComboBox _color_tableJComboBox = new JComboBox();
+		JComboBox<String>_color_tableJComboBox = new JComboBox<String>();
 		_color_tableJComboBox.setEnabled ( false );
 		GRColorTable color_table = symbol.getColorTable();
 		JGUIUtil.addToJComboBox ( _color_tableJComboBox,
@@ -1283,7 +1283,7 @@ private void setupGUI() {
 		y = 0;
 	        JGUIUtil.addComponent(__scaledSymbolJPanel, new JLabel("Symbol style:"),
 			0, y, 1, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		JComboBox __scaledSymbol_styleJComboBox = new JComboBox();
+		JComboBox<String> __scaledSymbol_styleJComboBox = new JComboBox<String>();
 		__scaledSymbol_styleJComboBox.setEnabled ( false );
 		if ( (shapeType == GeoLayer.POINT) || (shapeType == GeoLayer.POINT_ZM) ||
 			(shapeType == GeoLayer.MULTIPOINT) ) {
@@ -1488,7 +1488,7 @@ private void setupGUI() {
 
         JGUIUtil.addComponent( labelJPanel, new JLabel("Label field(s):"),
 		0, ++y, 2, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		__labelFieldJComboBox = new JComboBox ();
+		__labelFieldJComboBox = new JComboBox<String>();
 		JGUIUtil.addToJComboBox ( __labelFieldJComboBox, attributeTableFieldNames );
 		//__labelFieldJComboBox.addItemListener ( this );
 		__labelFieldJComboBox.addActionListener(this);
@@ -1531,7 +1531,7 @@ private void setupGUI() {
 	
 	    JGUIUtil.addComponent( labelJPanel, new JLabel ("Label font:" ),
 			0, ++y, 2, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		JComboBox __labelFontJComboBox = new JComboBox();
+		JComboBox<String> __labelFontJComboBox = new JComboBox<String>();
 		__labelFontJComboBox.setEnabled ( false );
 		__labelFontJComboBox.addItem ( "Helvetica" );
 	    JGUIUtil.addComponent( labelJPanel, __labelFontJComboBox,
@@ -1554,7 +1554,7 @@ private void setupGUI() {
 	
 	    JGUIUtil.addComponent( labelJPanel, new JLabel ("Position:" ),
 			0, ++y, 2, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		JComboBox _label_positionJComboBox = new JComboBox();
+		JComboBox<String> _label_positionJComboBox = new JComboBox<String>();
 		_label_positionJComboBox.setEnabled(false);
 		JGUIUtil.addToJComboBox ( _label_positionJComboBox, GRText.getTextPositions() );
 		_label_positionJComboBox.setSelectedItem(GRText.toString(symbol.getLabelPosition()));

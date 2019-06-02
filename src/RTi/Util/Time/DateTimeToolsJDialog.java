@@ -129,6 +129,7 @@ public void actionPerformed( ActionEvent event )
 /**
 Calculate date/time from UNIX time and display.
 */
+@SuppressWarnings("deprecation")
 private void calculateDateFromUnixTime () {
 	String unixToDateTime = "";
 	String unixToDateTimeComputed = "";

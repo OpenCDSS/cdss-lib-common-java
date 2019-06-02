@@ -43,7 +43,7 @@ import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 import RTi.Util.Message.Message;
 
 @SuppressWarnings("serial")
-public class XMRGViewerTableModel extends JWorksheet_AbstractRowTableModel {
+public class XMRGViewerTableModel extends JWorksheet_AbstractRowTableModel<Object> {
 
 /**
 The grid from the XMRG that contains the data values.
@@ -86,7 +86,7 @@ From AbstractTableModel.  Returns the class of the data stored in a given
 column.
 @param columnIndex the column for which to return the data class.
 */
-public Class getColumnClass (int columnIndex) {
+public Class<?> getColumnClass (int columnIndex) {
 	return Double.class;
 }
 

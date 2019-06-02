@@ -32,13 +32,13 @@ import RTi.Util.String.StringUtil;
 /**
 Sort time series.
 */
-public class TSUtil_SortTimeSeries
+public class TSUtil_SortTimeSeries <T extends TS>
 {
     
 /**
 Time series to sort.
 */
-private List<TS> tslist = null;
+private List<T> tslist = null;
 
 /**
 How to get TSID to sort ("TSID" or "AliasTSID").
@@ -68,7 +68,7 @@ Constructor.
 @param propertyFormat time series property format for sorting, using C-style %s, etc.
 @param sortOrder sort order, -1 descending or 1 ascending.
 */
-public TSUtil_SortTimeSeries ( List<TS> tslist, String tsidFormat, String property, String propertyFormat, int sortOrder )
+public TSUtil_SortTimeSeries ( List<T> tslist, String tsidFormat, String property, String propertyFormat, int sortOrder )
 {   this.tslist = tslist;
     this.tsidFormat = tsidFormat;
     this.property = property;
@@ -79,9 +79,9 @@ public TSUtil_SortTimeSeries ( List<TS> tslist, String tsidFormat, String proper
 /**
 Sort the time series as per the constructor parameters.
 */
-public List<TS> sortTimeSeries ( )
+public List<T> sortTimeSeries ( )
 throws Exception
-{   List<TS> tslist = this.tslist;
+{   List<T> tslist = this.tslist;
 
     if ( (tslist == null) || (tslist.size() == 0) ) {
         return tslist;
@@ -98,7 +98,7 @@ throws Exception
         // If so, sort using the native format so number sort OK.
         // If not, convert to strings to sort
         // Nulls are treated as small values
-        TS ts = null;
+        T ts = null;
         int intCount = 0;
         int doubleCount = 0;
         int stringCount = 0;
@@ -129,6 +129,12 @@ throws Exception
                 }
             }
         }
+        if ( stringCount < 0 ) {
+        	// TODO use so compiler does not complain about unused variable
+        }
+        if ( unknownCount < 0 ) {
+        	// TODO use so compiler does not complain about unused variable
+        }
         if ( (doubleCount + nullCount) == size ) {
             // Sorting floating point numbers
             double [] doubles = new double[size];
@@ -155,7 +161,7 @@ throws Exception
             // Get the sorted order...
             MathUtil.sort ( doubles, MathUtil.SORT_QUICK, order,
                 sortOrder, true ); // Use sort array
-            List<TS> tslistSorted = new ArrayList<TS>( size );
+            List<T> tslistSorted = new ArrayList<T>( size );
             for ( int i = 0; i < size; i++ ) {
                 tslistSorted.add( tslist.get ( sortOrder[i] ) );
             }
@@ -186,7 +192,7 @@ throws Exception
             // Get the sorted order...
             MathUtil.sort ( integers, MathUtil.SORT_QUICK, order,
                 sortOrder, true ); // Use sort array
-            List<TS> tslistSorted = new ArrayList<TS>( size );
+            List<T> tslistSorted = new ArrayList<T>( size );
             for ( int i = 0; i < size; i++ ) {
                 tslistSorted.add( tslist.get ( sortOrder[i] ) );
             }
@@ -217,7 +223,7 @@ throws Exception
             StringUtil.sortStringList ( strings, order,
                 sortOrder, true, // Use sort array
                 true ); // Ignore case.
-            List<TS> tslistSorted = new ArrayList<TS>( size );
+            List<T> tslistSorted = new ArrayList<T>( size );
             for ( int i = 0; i < size; i++ ) {
                 tslistSorted.add( tslist.get ( sortOrder[i] ) );
             }
@@ -227,7 +233,7 @@ throws Exception
     else if ( (this.propertyFormat != null) && !this.propertyFormat.equals("") ) {
         List<String> strings = new ArrayList<String>(size);
         // Sort by formatting a property string
-        TS ts = null;
+        T ts = null;
         for ( int i = 0; i < size; i++ ) {
             ts = tslist.get(i);
             if ( ts == null ) {
@@ -243,7 +249,7 @@ throws Exception
             sortOrder, true, // Use sort array
             true ); // Ignore case.
         // Now sort the time series...
-        List<TS> tslistSorted = new ArrayList<TS>( size );
+        List<T> tslistSorted = new ArrayList<T>( size );
         for ( int i = 0; i < size; i++ ) {
             tslistSorted.add( tslist.get ( sortOrder[i] ) );
         }
@@ -257,7 +263,7 @@ throws Exception
         }
         TSIdent tsid;
         List<String> strings = new ArrayList<String>(size);
-        TS ts = null;
+        T ts = null;
         for ( int i = 0; i < size; i++ ) {
             ts = tslist.get(i);
             if ( tryAliasFirst ) {
@@ -286,7 +292,7 @@ throws Exception
             sortOrder, true, // Use sort array
             true ); // Ignore case.
         // Now sort the time series...
-        List<TS> tslistSorted = new ArrayList<TS>( size );
+        List<T> tslistSorted = new ArrayList<T>( size );
         for ( int i = 0; i < size; i++ ) {
             tslistSorted.add( tslist.get ( sortOrder[i] ) );
         }

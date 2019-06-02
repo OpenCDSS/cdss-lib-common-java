@@ -68,6 +68,7 @@ is easily extensible for more specialized purposes.  The developer should
 choose which way to go.  For an example of a specialized version, see
 RTi.GIS.GeoView.GeoViewLegendJTree_Node.
 */
+@SuppressWarnings("serial")
 public class SimpleJTree_Node 
 extends DefaultMutableTreeNode 
 implements Cloneable {

@@ -44,8 +44,9 @@ The table contains a single column, each row of which is a line in a log file.
 The worksheet text is all monospaced, and there is no header on the right side
 for listing line numbers.
 */
+@SuppressWarnings("serial")
 public class MessageLogTableModel 
-extends JWorksheet_AbstractRowTableModel {
+extends JWorksheet_AbstractRowTableModel<String> {
 
 /**
 Number of columns in the table model.
@@ -63,9 +64,9 @@ Constructor.
 @param messages the messages that will be displayed in the table.  Each element
 in the Vector is a line in the log file, and must be a String.
 */
-public MessageLogTableModel(List messages) {
+public MessageLogTableModel(List<String> messages) {
 	if (messages == null) {
-		messages = new Vector();
+		messages = new Vector<String>();
 	}
 	_rows = messages.size();
 	_data = messages;
@@ -75,7 +76,7 @@ public MessageLogTableModel(List messages) {
 Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
-public Class getColumnClass (int columnIndex) {
+public Class<?> getColumnClass (int columnIndex) {
 	switch (columnIndex) {
 		case COL_MESSAGE:	return String.class;
 		default:		return String.class;
