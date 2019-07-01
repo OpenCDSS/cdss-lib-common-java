@@ -2138,6 +2138,33 @@ public static int indexOfIgnoreCase ( String full, String substring, int fromInd
 }
 
 /**
+Return index of substring in string list.  If string is not in string list,
+-1 is returned.  A case-insensitive compare is used.
+@return Index of string in stringlist (or -1).
+@param stringlist List of strings to search.
+@param searchString String to return index of.
+*/
+public static int indexOfSubstringIgnoreCase ( List<String> stringlist, String searchString )
+{	if ( stringlist == null || searchString == null ) {
+		return -1;
+    }
+
+	int num_strings = stringlist.size();
+	String currentString;
+	for ( int i=0; i<num_strings; i++ ) {
+		currentString = stringlist.get(i);
+		if (currentString == null) {
+			// skip
+		}
+		else if ( currentString.toUpperCase().indexOf ( searchString.toUpperCase()) >= 0 ) {
+			return i;	
+		}
+	}
+	return -1;
+}
+
+
+/**
 Determine whether a string is an ASCII string.
 @return true if the string is an ASCII string.
 @param s String to check.

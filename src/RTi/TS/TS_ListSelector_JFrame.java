@@ -21,21 +21,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
 
 NoticeEnd */
 
-// ----------------------------------------------------------------------------
-// TS_ListSelector_JFrame - a GUI for selecting a group of time series from
-//	a large list of time series.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2005-03-29	J. Thomas Sapienza, RTi	Initial version.
-// 2005-04-04	JTS, RTi		GUI revised to allow display of time
-//					series as graph, summary, table, or
-//					to initiate other actions, depending
-//					on the values passed into the 
-//					constructor in a PropList.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package RTi.TS;
 
 import java.awt.GridBagConstraints;
@@ -75,6 +60,12 @@ notified.</li>
 <pre>
 	PropList props = new PropList("TS_ListSelector_JFrame");
 	props.add("ActionButtons=Graph,Table,Summary");
+	// Optional...
+	JFrame parent = ...;
+	props.setUsingObject("ParentUIComponent", parent);
+	props.add("Width", 700);
+	props.add("Height", 500);
+	// end optional
 	TS_ListSelector_JFrame listGUI = new TS_ListSelector_JFrame(data,props);
 	listGUI.addTSListSelectorListener(this);
 </pre>
@@ -105,6 +96,11 @@ The worksheet that appears in the GUI.
 private JWorksheet __worksheet = null;
 
 /**
+ * Parent UI, used to center the JFrame.
+ */
+private JFrame parent = null;
+
+/**
 The PropList passed to the constructor to control GUI behavior.
 */
 private PropList __props = null;
@@ -125,6 +121,16 @@ private List<SimpleJButton> __buttons = null;
 The TS_ListSelector_Listener that have been registered to be informed when OK is pressed.
 */
 private List<TS_ListSelector_Listener> __listeners = null;
+
+/**
+ * Requested width of the window.
+ */
+private int widthReq = -1;
+
+/**
+ * Requested height of the window.
+ */
+private int heightReq = -1;
 
 /**
 Constructor.  
@@ -308,7 +314,32 @@ private void processPropList(PropList props) {
 	else {
 		__buttonLabels.add(__BUTTON_OK);
 	}
+
+	// Parent component is used to center
+	Object o = __props.getContents("ParentUIComponent");
+	if ( o instanceof JFrame ) {
+		this.parent = (JFrame)o; 
+	}
 	
+	// Get the requested size
+	s = __props.getValue("Width");
+	if ( (s != null) ) {
+		try {
+			this.widthReq = Integer.parseInt(s);
+		}
+		catch ( NumberFormatException e ) {
+			// Just absorb
+		}
+	}
+	s = __props.getValue("Height");
+	if ( (s != null) ) {
+		try {
+			this.heightReq = Integer.parseInt(s);
+		}
+		catch ( NumberFormatException e ) {
+			// Just absorb
+		}
+	}
 }
 
 /**
@@ -399,6 +430,11 @@ private void setupGUI(List<? extends TS> data) {
 
 	pack();
 
+	// Set the size if requested
+	if ( (this.widthReq > 0) && (this.heightReq > 0) ) {
+		setSize(this.widthReq, this.heightReq);
+	}
+
 	String app = JGUIUtil.getAppNameForWindows();
 	String title = "Select Time Series";
 	if (app == null) {
@@ -408,7 +444,12 @@ private void setupGUI(List<? extends TS> data) {
 		setTitle(app + " - " + title);
 	}
 
-	JGUIUtil.center(this);
+	if ( this.parent == null ) {
+		JGUIUtil.center(this);
+	}
+	else {
+		JGUIUtil.center(this, this.parent);
+	}
 
 	setVisible(true);
 }

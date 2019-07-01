@@ -502,9 +502,9 @@ Center a Component in the screen using the current frame and screen dimensions.
 This always centers the component on the first screen (screen 0).
 <pre>
 example:
-Frame f;
+JFrame f;
 f.pack();
-GUIUtil.center( f );
+GUIUtil.center( f, parent );
 </pre>
 @param c Component object.
 @param parent parent of c that defines screen on which to center
@@ -552,6 +552,7 @@ public static void center ( Component c, Component parent )
 	    if ( (y + componentHeight) > parentScreenBounds.height) {
 	    	y = parentScreenBounds.y;
 	    }
+	    // Set top left corner
 		c.setLocation(x,y);
 	}
 }
