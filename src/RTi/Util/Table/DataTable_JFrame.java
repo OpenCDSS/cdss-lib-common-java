@@ -67,6 +67,11 @@ The panel containing the worksheet that will be displayed in the frame.
 private DataTable_JPanel __dataTablePanel = null;
 
 /**
+ * Parent JFrame, used to center the table window.
+ */
+private JFrame __parent = null;
+
+/**
 Message bar text fields.
 */
 private JTextField
@@ -86,6 +91,19 @@ Constructor.
 */
 public DataTable_JFrame(String title, DataTable table) 
 throws Exception
+{
+	this ( null, title, table );
+}
+
+/**
+Constructor.
+@param parent parent JFrame, used to center the window on the parent.
+@param title the title to put on the frame.
+@param filename the name of the file to be read and displayed in the worksheet.
+@throws Exception if table is null.
+*/
+public DataTable_JFrame(JFrame parent, String title, DataTable table) 
+throws Exception
 {	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
 	if ( title == null ) {
 		if ( (JGUIUtil.getAppNameForWindows() == null) || JGUIUtil.getAppNameForWindows().equals("") ) {
@@ -103,6 +121,7 @@ throws Exception
             setTitle( JGUIUtil.getAppNameForWindows() +	" - " + title );
 		}
 	}
+	__parent = parent;
 	__table = table;
 	
 	setupGUI();
@@ -183,7 +202,12 @@ throws Exception {
 	getContentPane().add("South", statusBar);
 
 	setSize(600, 400);
-	JGUIUtil.center(this);
+	if ( this.__parent == null ) {
+		JGUIUtil.center(this);
+	}
+	else {
+		JGUIUtil.center(this, this.__parent);
+	}
 
 	int count = __dataTablePanel.getWorksheetRowCount();
 	String plural = "s";
