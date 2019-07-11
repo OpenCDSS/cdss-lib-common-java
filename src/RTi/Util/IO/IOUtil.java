@@ -1168,7 +1168,7 @@ public static List<String> getJarFilesManifests() {
 	JarFile jar = null;
 	Manifest mf = null;
 	Object[] o = null;
-	Set set = null;
+	Set<Object> set = null;
 	String tab = "    ";
 	List<String> sort = null;
 	List<String> v = new ArrayList<String>();
