@@ -8260,14 +8260,23 @@ protected DateTime getEndDate() {
  */
 protected TS getEventLegendTimeSeries ( GRPoint eventPoint ) {
 	// Loop through the legend hotspots and see if any match the point
-	//Message.printStatus(2,"","Searching legend hotspots for event point (device/drawing units) " + eventPoint );
+	if ( Message.isDebugOn ) {
+		Message.printStatus(2,"","Searching legend hotspots for event point (device/drawing units) " + eventPoint );
+	}
 	for ( Map.Entry<TS, GRLimits> entry : __legendTimeSeriesDrawMap.entrySet() ) {
-		Object value = entry.getValue();
+		GRLimits value = entry.getValue();
 		if ( value != null ) {
-			GRLimits drawLimits = (GRLimits)value; // Device units 
-			//Message.printStatus(2,"","Legend hotspot device/drawing limits are " + drawLimits );
+			GRLimits drawLimits = value; // Device units 
+			if ( Message.isDebugOn ) {
+				Message.printStatus(2,"","Legend hotspot device/drawing limits are " + drawLimits );
+			}
 			if ( drawLimits.contains(eventPoint) ) {
-				return entry.getKey();
+				// Return the TS associated with the hotspot
+				TS ts = entry.getKey();
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2,"","Found time series in legend:  " + ts.getIdentifierString() );
+				}
+				return ts;
 			}
 		}
 	}

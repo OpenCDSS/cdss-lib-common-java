@@ -2548,20 +2548,28 @@ public void mousePressed ( MouseEvent event )
 		// Check to see if a legend hot-spot was clicked on.
 		TS eventTS = tsgraphForPage.getEventLegendTimeSeries(eventPoint);
 		if ( eventTS != null ) {
-			//Message.printStatus(2,"","Mouse click - found legend time series " + eventTS.getIdentifierString());
+			if ( Message.isDebugOn ) {
+				Message.printStatus(2,"","Mouse click - found legend time series " + eventTS.getIdentifierString());
+			}
 			// Indicate that the time series is selected for the graph, so special treatment occurs during rendering
 			// The TSGraph instance should be the same whether graph or page because it contains both
-			//boolean isSelected = tsgraphForPage.toggleTimeSeriesSelection ( eventTS );
-			//Message.printStatus(2,"","Mouse click - legend time series selected=" + isSelected + " " + eventTS.getIdentifierString());
+			boolean isSelected = tsgraphForPage.toggleTimeSeriesSelection ( eventTS );
+			if ( Message.isDebugOn ) {
+				Message.printStatus(2,"","Mouse click - legend time series selected=" + isSelected + " " + eventTS.getIdentifierString());
+			}
 			// Indicate to force a repaint so (un)selected time series will draw with proper style
 			forceRepaint = true;
 		}
 		else {
-			//Message.printStatus(2,"","Mouse click - did not find legend time series");
+			if ( Message.isDebugOn ) {
+				Message.printStatus(2,"","Mouse click - did not find legend time series");
+			}
 		}
 	}
 	else {
-		//Message.printStatus(2, "", "Click was not on any page drawing area" );
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2, "", "Click was not on any page drawing area" );
+		}
 	}
 	if ( tsgraphForGraph != null ) {
 		// Click was in a graph drawing area
