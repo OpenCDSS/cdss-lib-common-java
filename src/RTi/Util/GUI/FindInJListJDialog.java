@@ -90,21 +90,22 @@ import RTi.Util.GUI.SimpleJList;
 import RTi.Util.GUI.SimpleJButton;
 
 /**
-The FindInJListJDialog is a dialog containing a list through which users can 
-search to find desired information.
+The FindInJListJDialog is a dialog containing that users can 
+use search to find desired information in an input JList.
+Searches occur on the String representation of the JList contents.
+However, the list can use a data model of any object type,
+as long as toString() returns strings that can be searched.
 */
 @SuppressWarnings("serial")
 public class FindInJListJDialog extends JDialog
 implements ActionListener, KeyListener, MouseListener, WindowListener
 {
-private JTextField	__find_JTextField;	// text response from user
-private JList<String>		__original_JList;	// Original List to search
-private SimpleJList<String>	__find_JList;		// List containing found items
-						// in the original list.
+private JTextField __find_JTextField;	// text response from user
+private JList<?> __original_JList;	// Original List to search
+private SimpleJList<String>	__find_JList;		// List containing found items in the original list.
 /* SAMX not needed??
 private ListSelectionListener	__selection_listener;
-						// Selection listener for the
-						// original list.
+						// Selection listener for the original list.
 */
 private JPopupMenu	__find_JPopupMenu;	// Popup to edit list.
 
@@ -118,43 +119,25 @@ private int[]		__find_index = null;	// Positions in original List
 /**
 FindInJListJDialog Constructor.
 @param parent JFrame class instantiating this class.
-@param list JList to operate on.
+@param list JList to operate on, can be a list of any object type.
 @param title JDialog title.
 */
-public FindInJListJDialog ( JFrame parent, JList<String> list, String title )
-{	this ( parent, true, list, title );
+public FindInJListJDialog ( JFrame parent, JList<?> list, String title )
+{	// Call the overloaded method
+	this ( parent, true, list, title );
 }
 
 /**
 FindInJListJDialog Constructor.
 @param parent JFrame class instantiating this class.
 @param modal If true, the dialog is modal.  If false, it is not.
-@param list JList to operate on.
+@param list JList to operate on, can be a list of any object type.
 @param title JDialog title.
 */
-public FindInJListJDialog ( JFrame parent, boolean modal, JList<String> list, String title )
+public FindInJListJDialog ( JFrame parent, boolean modal, JList<?> list, String title )
 {	super ( parent, modal );
-	initialize ( parent, list, title );//, null );
+	initialize ( parent, list, title );
 }
-
-/**
-FindInJListJDialog Constructor.
-@param parent JFrame class instantiating this class.
-@param list JList to operate on.
-@param title JDialog title.
-@param selection_listener An object that is listening to events on the original
-JList.  If supplied, then in addition to adjustments made to the JList, a
-ListSelectionEvent will be sent to indicate the adjustment.  This will allow the
-JList to be interpreted in container graphical interfaces.  Currently this is
-only implemented for the "select first" action.
-*/
-/* TODO SAM 2007-06-22 Evaluate if needed
-public FindInJListJDialog (	JFrame parent, JList list, String title,
-				ListSelectionListener selection_listener )
-{	super ( parent, true );
-	initialize ( parent, list, title, selection_listener );
-}
-*/
 
 /**
 Responds to ActionEvents.
@@ -263,12 +246,12 @@ public void actionPerformed ( ActionEvent event )
 /**
 Instantiates the components.
 @param parent JFrame class instantiating this class.
-@param list JList that is being operated on.
+@param list JList that is being operated on, can be a list of any object type.
 @param title Dialog title.
 */
 //@param selection_listener ListSelectionListener to pass ListSelectionEvents to
 //for the list.
-private void initialize ( JFrame parent, JList<String> list, String title )//,
+private void initialize ( JFrame parent, JList<?> list, String title )//,
 				//ListSelectionListener selection_listener )
 {	__original_JList = list;
 	//__selection_listener = selection_listener;
