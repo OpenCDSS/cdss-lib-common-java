@@ -483,11 +483,14 @@ Append one table to another.
 @param distinctColumns requested columns to check for distinct combinations (currently only one column
 is allowed), will override reqIncludeColumns, specify null to not check for distinct values
 @param columnMap map to rename original columns to new name
+@param columnData map to set additional data for appended records,
+the strings are converted to a type for the data column
 @param columnFilters map for columns that will apply a filter
 @return the number of rows appended
 */
 public int appendTable ( DataTable table, DataTable appendTable, String [] reqIncludeColumns,
-    Hashtable<String,String> columnMap, Hashtable<String,String> columnFilters )
+    Hashtable<String,String> columnMap, Hashtable<String,String> columnData,
+    Hashtable<String,String> columnFilters )
 {   String routine = getClass().getSimpleName() + ".appendTable";
     // List of columns that will be appended
     String [] columnNamesToAppend = null;
@@ -639,7 +642,35 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
             }
         }
         if ( somethingAppended ) {
-            // Set the record in the original table
+            // Set the record in the original table.
+        	// First see if additional data should be set
+        	if ( columnData != null ) {
+        		// Iterate through the hash
+        		// - this is brute force
+        		// - TODO smalers, could parse once to improve performance
+        		for ( Map.Entry<String,String> entry : columnData.entrySet() ) {
+        			String column = entry.getKey();
+        			String value = entry.getValue();
+        			// Get the column
+        			try {
+        				int iColumn = getFieldIndex(column);
+        				int colType = getFieldDataType(iColumn);
+        				if ( colType == TableField.DATA_TYPE_STRING ) {
+        					rec.setFieldValue(iColumn, value);
+        				}
+        				else if ( colType == TableField.DATA_TYPE_DOUBLE ) {
+        					Double value_double = Double.valueOf(value);
+        					rec.setFieldValue(iColumn, value_double);
+        				}
+        				else if ( colType == TableField.DATA_TYPE_INT ) {
+        					Integer value_int = Integer.valueOf(value);
+        					rec.setFieldValue(iColumn, value_int);
+        				}
+        			}
+        			catch ( Exception e ) {
+        			}
+        		}
+        	}
             try {
                 table.addRecord(rec);
                 ++irowAppended;
