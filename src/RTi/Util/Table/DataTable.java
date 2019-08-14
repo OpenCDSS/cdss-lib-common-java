@@ -488,7 +488,7 @@ is allowed), will override reqIncludeColumns, specify null to not check for dist
 */
 public int appendTable ( DataTable table, DataTable appendTable, String [] reqIncludeColumns,
     Hashtable<String,String> columnMap, Hashtable<String,String> columnFilters )
-{   String routine = getClass().getName() + ".appendTable";
+{   String routine = getClass().getSimpleName() + ".appendTable";
     // List of columns that will be appended
     String [] columnNamesToAppend = null;
     String [] columnNames = table.getFieldNames();
@@ -673,7 +673,7 @@ specify null to not check for distinct values
 public DataTable createCopy ( DataTable table, String newTableID, String [] reqIncludeColumns,
     String [] distinctColumns, Hashtable<String,String> columnMap,
     Hashtable<String,String> columnFilters, StringDictionary columnExcludeFilters )
-{   String routine = getClass().getName() + ".createCopy";
+{   String routine = getClass().getSimpleName() + ".createCopy";
     // List of columns that will be copied
     String [] columnNamesToCopy = null;
     // TODO SAM 2013-11-25 Remove code if the functionality works
@@ -2075,7 +2075,7 @@ NUMBER_COLUMNS and USE_LAST_MATCH [default] are supported)
 public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,String> joinColumnsMap, String [] reqIncludeColumns,
     Hashtable<String,String> columnMap, Hashtable<String,String> columnFilters, DataTableJoinMethodType joinMethod,
     HandleMultipleJoinMatchesHowType handleMultipleMatchesHow, List<String> problems )
-{   String routine = getClass().getName() + ".joinTable", message;
+{   String routine = getClass().getSimpleName() + ".joinTable", message;
 
     // List of columns that will be copied to the first table
     String [] columnNamesToCopy = null;
@@ -3742,6 +3742,34 @@ private static String parseFile_ProcessString ( String cell )
     else {
         return cell;
     }
+}
+
+/**
+Rename column(s) in a table.
+@param table table to modify
+@param columnMap map to rename original columns to new name
+@param problems list of problems that will be filled during processing
+*/
+public void renameFields ( DataTable table, Hashtable<String,String> columnMap, List<String> problems )
+{   //String routine = getClass().getSimpleName() + ".renameFields";
+
+	// Iterate through the columnMap and rename columns
+	for ( Map.Entry<String,String> entry: columnMap.entrySet() ) {
+		String name = entry.getKey();
+		String newName = entry.getValue();
+		// Get the existing column by searching 
+		int colNum = -1;
+		try {
+			colNum = getFieldIndex(name);
+		}
+		catch ( Exception e ) {
+			problems.add("Requested column name \"" + name + "\" is not found in table \"" + table.getTableID() + "\"");
+			continue;
+		}
+		TableField field = _table_fields.get(colNum);
+		// Rename the column
+		field.setName(newName);
+	}
 }
 
 /**
