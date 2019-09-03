@@ -104,7 +104,7 @@ Whether the parameter can be null or not.
 private boolean[] __parameterNullable = null;
 
 /**
-Whether there is a return type.
+Whether there is a return type, used with a procedure.
 */
 private boolean __hasReturnValue = false;
 
@@ -119,7 +119,7 @@ The dmi used that this stored procedure will connect to the DB with.
 private DMI __dmi = null;
 
 /**
-The types of all the parameters in int type.
+The types of all the parameters in int type, corresponding to java.sql.Types.
 */
 private int[] __parameterTypes = null;
 
@@ -129,7 +129,7 @@ The number of parameters.
 private int __numParameters = 0;
 
 /**
-The type of the return value.
+The type of the return value, from java.sql.Types.
 */
 private int __returnType = -1;
 
@@ -154,15 +154,9 @@ The name of the return parameter.
 private String __returnName = null;
 
 /**
-The type of the return value.
+The type of the return value, from java.sql.Types.
 */
 private String __returnTypeString = null;
-
-/**
-Constructor.  Private so it cannot be called.
-*/
-// FIXME SAM 2008-04-15 Evaluate if this is by design or not needed.
-//private DMIStoredProcedureData() {}
 
 /**
 Constructor.
@@ -193,12 +187,16 @@ throws Exception {
 	__callableStatement = __dmi.getConnection().prepareCall(createStoredProcedureCallString());
 		
 	if (hasReturnValue()) {
+		// Register the output value so that it can be retrieved to check the status
+		// - note that the return type can vary so calling code needs to understand how to retrieve
 		__callableStatement.registerOutParameter(1, getReturnType());
 	}	
 }
 
 /**
 Creates the string that will be passed to the DMI's connection in order to build the stored procedure.
+The syntax will be {[?=]call procedureName[([parameter],[,[parameter]]...)]},
+depending on whether a return value is used and number of parameters.
 @return the "{call .... }" string.
 */
 private String createStoredProcedureCallString() {

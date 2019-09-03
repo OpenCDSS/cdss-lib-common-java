@@ -2537,6 +2537,10 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod )
 private void computeDataLimits_CheckDisplayLimitProperties(List<TS> tslist, TSLimits limits ) {
 	//Message.printWarning(2,"","Before checking display limit properties, tslimits="+limits);
 	for ( TS ts : tslist ) {
+		if ( ts == null ) {
+			// Null time series are possible, such stacked graph with line on top
+			continue;
+		}
 		Double propMinValue = null;
 		Double propMaxValue = null;
 		Object propMinValueO = ts.getProperty("DataValueDisplayMin");

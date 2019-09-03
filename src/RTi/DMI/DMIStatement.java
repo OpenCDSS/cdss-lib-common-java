@@ -666,6 +666,42 @@ throws SQLException {
 }
 
 /**
+Gets the return value from a stored procedure as an Object.
+This is useful when the return value type does not need to be specifically handled.
+SQL return types are mapped to typical Java object types Boolean, Float, Double, Integer, Long, String.
+@return the return value.
+*/
+public Object getReturnValue() 
+throws SQLException {
+	int returnType = getDMIStoredProcedureData().getReturnType();
+	if ( returnType == java.sql.Types.BIGINT ) {
+		return __storedProcedureCallableStatement.getLong(1);  
+	}
+	else if ( returnType == java.sql.Types.BOOLEAN ) {
+		return __storedProcedureCallableStatement.getBoolean(1);  
+	}
+	else if ( (returnType == java.sql.Types.DECIMAL) ||
+		(returnType == java.sql.Types.FLOAT) ||
+		(returnType == java.sql.Types.REAL) ) {
+		return __storedProcedureCallableStatement.getFloat(1);  
+	}
+	else if ( returnType == java.sql.Types.DOUBLE ) {
+		return __storedProcedureCallableStatement.getDouble(1);  
+	}
+	else if ( returnType == java.sql.Types.INTEGER ) {
+		return __storedProcedureCallableStatement.getInt(1);  
+	}
+	else if ( (returnType == java.sql.Types.LONGVARCHAR) ||
+	    (returnType == java.sql.Types.VARCHAR) ) {
+		return __storedProcedureCallableStatement.getString(1);  
+	}
+	// TODO smalers 2019-08-29 need to handle timestamp and date
+	else {
+		throw new SQLException ( "SQL procedure return type " + returnType + " is not handled.");
+	}
+}
+
+/**
 Gets the return value from a stored procedure that returns a value as a String.
 @return the return value.
 */
@@ -889,7 +925,7 @@ throws Exception {
 	}
 	else {
 		__spParameters[parameterNum - 1] = "" + param;
-	}	
+	}
 }
 
 /**
@@ -1084,6 +1120,32 @@ throws Exception {
 			break;
 		default:
 			throw new Exception ("Unsupported type: " + type);
+	}
+}
+
+/**
+ * Return a string representation of the statement.
+ * Typically this is handled in overloaded methods but for stored procedure is handled here.
+ */
+public String toString() {
+	if ( isStoredProcedure() ) {
+		StringBuilder desc = new StringBuilder();
+		if ( _spData.hasReturnValue() ) {
+			desc.append(_spData.getReturnTypeString() + " ");
+		}
+		desc.append(_spData.getProcedureName() + "(");
+		for (int i = 0; i < _spData.getNumParameters(); i++) {
+			if ( i != 0 ) {
+				desc.append(", ");
+			}
+			desc.append( __spParameters[i] );
+		}
+		desc.append(")");
+		return desc.toString();
+	}
+	else {
+		// Pass through
+		return super.toString();
 	}
 }
 
