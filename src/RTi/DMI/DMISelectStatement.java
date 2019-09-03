@@ -73,6 +73,8 @@ throws SQLException {
 		throw new SQLException("Cannot use executeStoredProcedure() to "
 			+ "execute a DMISelectStatement that is not a stored procedure.");
 	}
+	// Put together the query string for troubleshooting
+	
 	return __storedProcedureCallableStatement.executeQuery();
 }
 
@@ -208,10 +210,15 @@ private String toAccessString() {
 }
 
 /**
-Format the SELECT statement.
+Format the SELECT statement for SQL.
+If a stored procedure, the parent class toString() is used.
 @return the SELECT statement as a string.
 */
 public String toString() {	
+	if ( this.isStoredProcedure() ) {
+		return super.toString();
+	}
+
 	if (_dmi.getDatabaseEngine().equalsIgnoreCase("Access")) {
 		return toAccessString();
 	}
