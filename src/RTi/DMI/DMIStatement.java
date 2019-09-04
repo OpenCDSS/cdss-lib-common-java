@@ -592,6 +592,7 @@ throws Exception
 Creates the string that can be pasted into a Query Analyzer to run the
 stored procedure exactly as it is executed internally by the DMI.  The result
 from this call is different from the createStoredProcedureCallString() call.
+This is used for logging but is NOT passed to the database for processing.
 @return the "exec ...." String.
 */
 public String createStoredProcedureString() {
@@ -616,6 +617,26 @@ public String createStoredProcedureString() {
 	}
 
 	return callString;
+}
+
+/**
+Executes this statement's stored procedure.  If this statement was not set
+up as a Stored Procedure, an exception will be thrown.
+@return the ResultSet that was returned from the query.
+*/
+public boolean executeStoredProcedure()
+throws SQLException {
+	if (!isStoredProcedure()) {
+		throw new SQLException("Cannot use executeStoredProcedure() to "
+			+ "execute a DMIStatement that is not a stored procedure.");
+	}
+	// Put together the query string for troubleshooting
+	
+	// execute can be used with any type of SQL statement and returns a boolean.
+	// A true indicates that the method returned a result set object that can be retrieved using getResultSet().
+	// A false indicates that the query returned an int value or void.
+	// It executes select and insert/update statements.
+	return __storedProcedureCallableStatement.execute();
 }
 
 /**
@@ -669,6 +690,7 @@ throws SQLException {
 Gets the return value from a stored procedure as an Object.
 This is useful when the return value type does not need to be specifically handled.
 SQL return types are mapped to typical Java object types Boolean, Float, Double, Integer, Long, String.
+See:  https://www.tutorialspoint.com/jdbc/jdbc-data-types.htm
 @return the return value.
 */
 public Object getReturnValue() 
@@ -677,7 +699,8 @@ throws SQLException {
 	if ( returnType == java.sql.Types.BIGINT ) {
 		return __storedProcedureCallableStatement.getLong(1);  
 	}
-	else if ( returnType == java.sql.Types.BOOLEAN ) {
+	else if ( (returnType == java.sql.Types.BIT) ||
+		(returnType == java.sql.Types.BOOLEAN) ) {
 		return __storedProcedureCallableStatement.getBoolean(1);  
 	}
 	else if ( (returnType == java.sql.Types.DECIMAL) ||
@@ -950,7 +973,7 @@ throws Exception {
 
 /**
 Sets a value in the specified parameter position.
-@param param the parameter to pass in.
+@param param the procedure parameter to pass in, as a timestamp.
 @param parameterNum the number of the parameter position (1+) to set.
 @throws Exception if the specified parameter is not a String type.
 */
@@ -959,7 +982,10 @@ throws Exception {
     if ( param == null ) {
         setNullValue(parameterNum);
     }
+    // Pass a new instance to protect against any changes
+    // - time zone will have been applied in calling code
 	__storedProcedureCallableStatement.setTimestamp(parameterNum, (new Timestamp(param.getTime())));
+	// The following is for logging later
 	if (_spData.hasReturnValue()) {
 		__spParameters[parameterNum - 2] = "'" + param + "'";
 	}

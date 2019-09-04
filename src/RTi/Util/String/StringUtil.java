@@ -169,6 +169,8 @@ import java.lang.StringBuffer;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Vector;
 
@@ -2638,6 +2640,150 @@ Check to see if a String matches a regular expression, considering case explicit
 */
 public static boolean matchesRegExp ( String candidate_string, String regexp_string )
 {	return matchesRegExp ( false, candidate_string, regexp_string );
+}
+
+/**
+ * Parse a dictionary string of format:
+ *     key1: value1, key2: value2
+ * If value contains special characters (: and ,), it can be surrounded by single quotes to escape, for example:
+ *     key1: 'value1', key2: 'value2'
+ * @param dictString the dictionary string
+ * @return a LinkedHashMap with the dictionary, used to maintain the order of the dictionary.
+ * Any quoted values will have quotes removed.
+ */
+public static HashMap<String,String> parseDictionary ( String dictString ) {
+    HashMap<String,String> dict = new LinkedHashMap<String,String>();
+    // Use Message debug level 1 to see processing, remove when logic is confirmed
+    // Because the value may be surrounded by double quotes, have to parse
+    if ( (dictString != null) && (dictString.length() > 0) && (dictString.indexOf(":") > 0) ) {
+    	if ( dictString.indexOf("'") < 0) {
+    		// Legacy code that works when no surrounding quotes
+    		// First break map pairs by comma
+            List<String>pairs = StringUtil.breakStringList(dictString, ",", 0 );
+            // Now break pairs and put in hashtable
+            for ( String pair : pairs ) {
+                String [] parts = pair.split(":");
+                dict.put(parts[0].trim(), parts[1].trim() );
+            }
+    	}
+    	else {
+    		// Have surrounding quotes so break out token by token
+    		// - this code may replace the above but the above worked so keep until tested out
+    		int pos = -1;
+    		int posLast = dictString.length() - 1;
+    		boolean inKey = false;
+    		boolean inValue = false;
+    		boolean quoted = false;
+    		char c;
+    		StringBuilder key = new StringBuilder(), value = new StringBuilder(); // Define so use length to check
+    		while ( pos < posLast ) {
+    			++pos; // Increment character
+    			c = dictString.charAt(pos);
+    			if ( Message.isDebugOn ) {
+    				Message.printDebug(1,"","pos=" + pos + " c=" + c + " inKey=" + inKey + " inValue=" + inValue +
+    					" quoted=" + quoted + " keyLength=" + key.length() + " key=" + key + " value=" + value);
+    			}
+    			// Loop through the dictionary string
+    			if ( !inKey && !inValue && (key.length() == 0) ) {
+    				if ( Message.isDebugOn ) {
+    					Message.printDebug(1,"","Searching for key");
+    				}
+    				// Searching for the next key
+    				if ( Character.isWhitespace(c) || c == ',' ) {
+    					// Can skip characters
+    					continue;
+    				}
+    				else {
+    					// Found a key, may be surrounded by single quotes
+    					if ( Message.isDebugOn ) {
+    						Message.printDebug(1,"","Found key");
+    					}
+   						inKey = true;
+   						inValue = false;
+   						key = new StringBuilder();
+    					if ( c == '\'' ) {
+    						quoted = true;
+    					}
+    					else {
+    						// Other character, append
+    						key.append(c);
+    					}
+    				}
+    			}
+    			else if ( inKey ) {
+    				// In a key
+   					if ( Message.isDebugOn ) {
+   						Message.printDebug(1,"","In key");
+   					}
+    				if ( (c == '\'') && quoted )  {
+    					// Found ending quote
+    					inKey = false;
+    					quoted = false;
+    				}
+    				else if ( !quoted && (Character.isWhitespace(c) || (c == ':')) ) {
+    					// Not quoted, found ending delimiter
+    					inKey = false;
+    				}
+    				else {
+    					// Add the character to the key
+    					key.append(c);
+    				}
+    			}
+    			else if ( !inKey && !inValue && (key.length() > 0) )  {
+    				// Found the key but have not yet started the value.
+   					if ( Message.isDebugOn ) {
+   						Message.printDebug(1,"","Searching for value");
+   					}
+    				if ( Character.isWhitespace(c) ) {
+    					// Ignore the character
+    					continue;
+    				}
+    				else if ( c == ':' ) {
+    					// Value is starting
+    					value = new StringBuilder();
+    				}
+    				else if ( c == '\'' ) {
+    					// Value is quoted
+    					quoted = true;
+    					inValue = true;
+    				}
+    				else {
+    					// Any other character
+    					quoted = false;
+    					inValue = true;
+    					value.append(c);
+    				}
+    			}
+    			else if ( inValue ) {
+    				// In a value
+    				if ( (c == '\'') && quoted )  {
+    					// Found ending quote
+    					inValue = false;
+    					quoted = false;
+    					dict.put(key.toString().trim(), value.toString().trim());
+    					key.setLength(0); // Zero out so can start again
+    					inKey = false;
+    					inValue = false;
+    					quoted = false;
+    				}
+    				else if ( !quoted && ((c == ',') || (pos == posLast)) ) {
+    					// Not quoted, found ending delimiter
+    					inValue = false;
+    					dict.put(key.toString().trim(), value.toString().trim());
+    					key.setLength(0); // Zero out so can start again
+    					inKey = false;
+    					inValue = false;
+    					quoted = false;
+    				}
+    				else {
+    					// Character in the value
+    					value.append(c);
+    				}
+    			}
+    		}
+    	}
+    }
+	return dict;
 }
 
 /**

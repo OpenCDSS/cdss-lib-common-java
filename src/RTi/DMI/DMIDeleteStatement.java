@@ -43,14 +43,15 @@ public DMIDeleteStatement ( DMI dmi ) {
 /**
 Executes this statement's stored procedure.  If this statement was not set
 up as a Stored Procedure, an exception will be thrown.
+@return the count of rows deleted.
 */
-public void executeStoredProcedure()
+public int executeStoredProcedureUpdate()
 throws SQLException {
 	if (!isStoredProcedure()) {
 		throw new SQLException("Cannot use executeStoredProcedure() to "
 			+ "execute a DMIDeleteStatement that is not a stored procedure.");
 	}
-	__storedProcedureCallableStatement.executeUpdate();
+	return __storedProcedureCallableStatement.executeUpdate();
 }
 
 /**

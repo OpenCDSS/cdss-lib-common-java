@@ -45,14 +45,15 @@ public DMIWriteStatement ( DMI dmi ) {
 /**
 Executes this statement's stored procedure.  If this statement was not set
 up as a Stored Procedure, an exception will be thrown.
+@return the number of rows updated.
 */
-public void executeStoredProcedure()
+public int executeStoredProcedureUpdate()
 throws SQLException {
 	if (!isStoredProcedure()) {
 		throw new SQLException("Cannot use executeStoredProcedure() to "
 			+ "execute a DMIWriteStatement that is not a stored procedure.");
 	}
-	__storedProcedureCallableStatement.executeUpdate();
+	return __storedProcedureCallableStatement.executeUpdate();
 }
 
 /**
