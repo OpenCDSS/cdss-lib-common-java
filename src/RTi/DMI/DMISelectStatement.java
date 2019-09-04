@@ -63,11 +63,11 @@ public DMISelectStatement ( DMI dmi ) {
 }
 
 /**
-Executes this statement's stored procedure.  If this statement was not set
+Executes this statement's stored procedure to query data.  If this statement was not set
 up as a Stored Procedure, an exception will be thrown.
 @return the ResultSet that was returned from the query.
 */
-public ResultSet executeStoredProcedure()
+public ResultSet executeStoredProcedureQuery()
 throws SQLException {
 	if (!isStoredProcedure()) {
 		throw new SQLException("Cannot use executeStoredProcedure() to "
@@ -75,6 +75,8 @@ throws SQLException {
 	}
 	// Put together the query string for troubleshooting
 	
+	// executeQuery returns a result set by fetching some data from the database.
+	// It executes only select statements.
 	return __storedProcedureCallableStatement.executeQuery();
 }
 

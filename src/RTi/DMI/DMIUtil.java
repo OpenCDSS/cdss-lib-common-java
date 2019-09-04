@@ -2149,6 +2149,7 @@ public static List<String> getDatabaseCatalogNames(DMI dmi, boolean removeSystem
 
 /**
 Returns the list of procedure names in the database, excluding known system procedures.
+The list of PROCEDURE_NAME is returned, which may not be unique if overloaded (see overloaded method).
 @param dmi an open, connected and not-null DMI connection to a database.
 @param removeSystemProcedures if true, remove the known system procedures
 (this may take some work to keep up to date).
@@ -2158,7 +2159,26 @@ in the final list of procedure names.
 is returned if there was an error reading from the database.
 */
 public static List<String> getDatabaseProcedureNames(DMI dmi, boolean removeSystemProcedures,
-    List<String> notIncluded)
+    List<String> notIncluded )
+throws SQLException {
+	return getDatabaseProcedureNames(dmi, removeSystemProcedures, notIncluded, false);
+}
+
+/**
+Returns the list of procedure names in the database, excluding known system procedures.
+The list of PROCEDURE_NAME is returned unless returnSpecificName=true, in which case SPECIFIC_NAME is returned.
+@param dmi an open, connected and not-null DMI connection to a database.
+@param removeSystemProcedures if true, remove the known system procedures
+(this may take some work to keep up to date).
+@param notIncluded a list of all the procedure names that should not be included
+in the final list of procedure names.
+@boolean returnNameWithArgs return the PROCEDURE_NAME with argument list types,
+required when procedure names are overloaded
+@return the list of procedure names in the dmi's database.  null
+is returned if there was an error reading from the database.
+*/
+public static List<String> getDatabaseProcedureNames(DMI dmi, boolean removeSystemProcedures,
+    List<String> notIncluded, boolean returnNameWithArgs )
 throws SQLException
 {   String routine = "getDatabaseProcedureNames";
     int dl = 25;
@@ -2203,7 +2223,14 @@ throws SQLException
     }
     
     while (rs.next()) {
-        String proc = rs.getString("PROCEDURE_NAME");
+        String proc = null;
+        if ( returnNameWithArgs ) {
+        	proc = rs.getString("PROCEDURE_NAME");
+        	// TODO smalers 2019-09-03 Add the argument list for the procedure
+        }
+        else {
+        	proc = rs.getString("PROCEDURE_NAME");
+        }
         if ( Message.isDebugOn ) {
             Message.printDebug(dl, routine, "Procedure name to check = \"" + proc + "\"" );
         }

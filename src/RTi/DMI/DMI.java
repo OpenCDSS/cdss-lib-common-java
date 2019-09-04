@@ -1152,7 +1152,7 @@ throws SQLException {
 	}	
 	
 	if (s.isStoredProcedure()) {
-		ResultSet rs = s.executeStoredProcedure();
+		ResultSet rs = s.executeStoredProcedureQuery();
 		rs.next();
 		return rs.getInt(1);
 	}
@@ -1425,7 +1425,7 @@ throws SQLException {
 	}
 
 	if (select.isStoredProcedure()) {
-		return select.executeStoredProcedure();
+		return select.executeStoredProcedureQuery();
 	}
 	else {	
 		// sets the DMISelectStatement as the last statement executed
