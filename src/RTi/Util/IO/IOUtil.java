@@ -2681,13 +2681,35 @@ public static String toAbsolutePath ( String dir, String path )
 }
 
 /**
- * Convert a file path to a POSIX path.  In particular, this is used to convert
+ * Convert a file path to a portable path.  In particular, this is used to convert
  * Windows paths that can cause problems with backslashes (C:\a\b\c.xxx) to
  * a path with forward slashes that are recognized by Python, R, etc.
  * (c:/a/b/c.xxx).
+ * @param path to be converted to portable path.  If already portable (no backslashes detected),
+ * return as is.
+ * @return portable path, where backslashes are converted to forward slashes.
+ * If the input string is null, null will be returned.
+ */
+public static String toPortablePath ( String path ) {
+	if ( path == null ) {
+		return null;
+	}
+	else {
+		// Replace \ with /
+		return path.replace('\\', '/');
+	}
+}
+
+/**
+ * Convert a file path to a POSIX path.  This is used to convert
+ * Windows paths that can cause problems with drive letters and backslashes (C:\a\b\c.xxx) to
+ * a path with forward slashes that are recognized by Python, R, etc.
+ * (/c/a/b/c.xxx).
+ * If the drive is not included then the leading slash is omitted.
  * @param path to be converted to POSIX path.  If already POSIX (no backslashes detected),
  * return as is.
- * @return POXIX path, where backslashes are converted to forward slashes.
+ * @return POSIX path, where backslashes are converted to forward slashes
+ * and Windows drive is converted to first folder.
  * If the input string is null, null will be returned.
  */
 public static String toPosixPath ( String path ) {
@@ -2695,6 +2717,11 @@ public static String toPosixPath ( String path ) {
 		return null;
 	}
 	else {
+		if ( Character.isAlphabetic(path.charAt(0)) && (path.charAt(1) == ':') ) {
+			// Convert C:... to /C/ by removing colon (next step will deal with backslashes)
+			path = "/" + path.replace(":", "");
+		}
+		// Replace \ with /
 		return path.replace('\\', '/');
 	}
 }
