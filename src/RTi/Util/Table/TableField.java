@@ -330,9 +330,13 @@ private void initialize ( int type, String name, int width, int precision )
 TODO SAM 2009-07-22 Need to use an enum type class for the types and refactor code.
 Lookup the type of data represented in this field as an internal integer given the string type representation.
 @return data type as internal integer representation (e.g., DATA_TYPE_INT = "integer") or -1 if unknown.
+Array data type like "[double]" is not currently handled.
 */
 public static int lookupDataType ( String dataType )
-{   if ( dataType.equalsIgnoreCase("date") ) {
+{   if ( dataType.equalsIgnoreCase("bool") || dataType.equalsIgnoreCase("boolean")) {
+        return DATA_TYPE_BOOLEAN;
+    }
+    else if ( dataType.equalsIgnoreCase("date") ) {
         return DATA_TYPE_DATETIME;
     }
     else if ( dataType.equalsIgnoreCase("datetime") ) {

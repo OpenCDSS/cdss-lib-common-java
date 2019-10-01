@@ -282,13 +282,14 @@ private void checkInputAndCommit ()
 	    // Evaluate whether to implement:  It is OK in the value if the value is completely surrounded by single quotes 
 	    if ( StringUtil.containsAny(key, chars, false) ) {
 	        if ( !key.startsWith("${") && !key.endsWith("}") ) {
-	            message += "\n" + this.keyLabel + " (" + key + ") is not ${Property} and contains special character(s) " + chars + "\nSurround with '  ' to protect.";
+	            message += "\n" + this.keyLabel + " (" + key + ") is not ${Property} and contains special character(s) " + chars + "\nSurround with '  ' to protect or [  ] for array.";
 	        }
 	    }
 	    if ( StringUtil.containsAny(value, chars, false) ) {
 	        if ( ((value.charAt(0) != '\'') && (value.charAt(value.length() - 1) != '\'')) &&
+	             ((value.charAt(0) != '[') && (value.charAt(value.length() - 1) != ']')) &&
 	            (!value.startsWith("${") && !value.endsWith("}")) ) {
-	            message = "\n" + this.valueLabel + " (" + value + ") is not ${Property} and contains special character(s) " + chars + "\nSurround with '  ' to protect.";
+	            message = "\n" + this.valueLabel + " (" + value + ") is not ${Property} and contains special character(s) " + chars + "\nSurround with '  ' to protect or [  ] for array.";
 	        }
         }
 	    if ( key.length() > 0 ) {

@@ -31,6 +31,10 @@ public enum TableColumnType
 {
 
 /**
+Java Boolean.
+*/
+BOOLEAN(TableField.DATA_TYPE_BOOLEAN,"Boolean"),
+/**
 4-byte integer, Java Integer.
 */
 INT(TableField.DATA_TYPE_INT,"Integer"),
@@ -83,7 +87,7 @@ private TableColumnType(int code, String displayName) {
 }
 
 /**
- * Return the display name for the math operator.  This is usually the same as the
+ * Return the display name for the table column data type.  This is usually the same as the
  * value but using appropriate mixed case.
  * @return the display name.
  */

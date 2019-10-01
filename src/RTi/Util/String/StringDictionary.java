@@ -30,6 +30,8 @@ import java.util.Map;
 
 /**
 Dictionary string that handles the format "Key1:value1, Key2:value2, ..."
+The values can be quoted with single quotes to surround special characters (spaces, commas, :).
+An array can also be specified for value if surrounded with [ ].
 */
 public class StringDictionary
 {
@@ -51,11 +53,15 @@ private String itemSep = ",";
 
 /**
 Construct the parser by specifying the input string, the key/value separator, and the dictionary item separator.
+@param s string dictionary to parse.
+@param keyValueSep separator character between key and value, default is ':'.
+@param itemSep separator character between items, default is ','.
 */
 public StringDictionary ( String s, String keyValueSep, String itemSep )
 {
     if ( (s != null) && (s.length() > 0) && (s.indexOf(keyValueSep) > 0) ) {
         // First break map pairs
+    	// - TODO smalers 2019-09-29 this needs logic to handle quoted and bracketed values
         List<String>pairs = StringUtil.breakStringList(s, itemSep, 0 );
         // Now break pairs and put in LinkedHashMap
         for ( String pair : pairs ) {

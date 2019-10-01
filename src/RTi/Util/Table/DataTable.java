@@ -1227,19 +1227,28 @@ private static boolean findPreviousFieldNameOccurances(List<TableField> tableFie
 }
 
 /**
-Format the contents of an array column into a string.
+Format the contents of an array column into a string,
+should only call if the table cell is true for isColumnArray().
+@param row table row 0+
+@param col table column 0+
+@param return table cell formatted as a string, for example to display in UI table.
+Return null if the value is null.
+@exception Exception if an error occurs processing the data
 */
 public String formatArrayColumn ( int row, int col ) throws Exception {
 	// Get the internal data type
 	int columnType = getFieldDataTypes()[col];
 	int dataType = columnType - TableField.DATA_TYPE_ARRAY_BASE;
+	Object oa = getFieldValue(row,col);
+	if ( oa == null ) {
+		return null;
+	}
 	// For the purposes of rendering in the table, treat array as formatted string [ val1, val2, ... ]
 	// Where the formatting of the values is for the raw value
 	StringBuilder b = new StringBuilder("[");
-	Object oa = null;
 	switch ( dataType ) {
 		case TableField.DATA_TYPE_DATETIME:
-			DateTime [] dta = (DateTime [])getFieldValue(row,col);
+			DateTime [] dta = (DateTime [])oa;
 			for ( int i = 0; i < dta.length; i++ ) {
 				if ( i > 0 ) {
 					b.append(",");
@@ -1250,12 +1259,8 @@ public String formatArrayColumn ( int row, int col ) throws Exception {
 			}
 			break;
 		case TableField.DATA_TYPE_DOUBLE:
-			oa = getFieldValue(row,col);
 			double [] da = new double[0];
-			if ( oa == null ) {
-				return null;
-			}
-			else if ( oa instanceof double[] ) {
+			if ( oa instanceof double[] ) {
 				da = (double [])oa;
 			}
 			else if ( oa instanceof Double[] ) {
@@ -1286,12 +1291,8 @@ public String formatArrayColumn ( int row, int col ) throws Exception {
 			}
 			break;
 		case TableField.DATA_TYPE_FLOAT:
-			oa = getFieldValue(row,col);
 			float [] fa = new float[0];
-			if ( oa == null ) {
-				return null;
-			}
-			else if ( oa instanceof float[] ) {
+			if ( oa instanceof float[] ) {
 				fa = (float [])oa;
 			}
 			else if ( oa instanceof Float[] ) {
@@ -1322,12 +1323,8 @@ public String formatArrayColumn ( int row, int col ) throws Exception {
 			}
 			break;
 		case TableField.DATA_TYPE_INT:
-			oa = getFieldValue(row,col);
 			int [] ia = new int[0];
-			if ( oa == null ) {
-				return null;
-			}
-			else if ( oa instanceof int[] ) {
+			if ( oa instanceof int[] ) {
 				ia = (int [])oa;
 			}
 			else if ( oa instanceof Integer[] ) {
@@ -1358,12 +1355,8 @@ public String formatArrayColumn ( int row, int col ) throws Exception {
 			}
 			break;
 		case TableField.DATA_TYPE_LONG:
-			oa = getFieldValue(row,col);
 			long [] la = new long[0];
-			if ( oa == null ) {
-				return null;
-			}
-			else if ( oa instanceof long[] ) {
+			if ( oa instanceof long[] ) {
 				la = (long [])oa;
 			}
 			else if ( oa instanceof Long[] ) {
@@ -1393,13 +1386,41 @@ public String formatArrayColumn ( int row, int col ) throws Exception {
 				}
 			}
 			break;
-		case TableField.DATA_TYPE_BOOLEAN:
-			oa = getFieldValue(row,col);
-			Boolean [] Ba = new Boolean[0]; // Use Boolean object array because boolean can't indicate null value
-			if ( oa == null ) {
-				return null;
+		case TableField.DATA_TYPE_SHORT:
+			short [] sa = new short[0];
+			if ( oa instanceof short[] ) {
+				sa = (short [])oa;
 			}
-			else if ( oa instanceof Boolean[] ) {
+			else if ( oa instanceof Short[] ) {
+				Short [] Sa = (Short [])oa;
+				sa = new short[Sa.length];
+				for ( int i = 0; i < sa.length; i++ ) {
+					if ( DMIUtil.isMissing(sa[i])) {
+						sa[i] = DMIUtil.MISSING_SHORT;
+					}
+					else {
+						sa[i] = sa[i];
+					}
+				}
+			}
+			else {
+				throw new RuntimeException ( "Don't know how to handle short array - is not short[] or Short[]" );
+			}
+			for ( int i = 0; i < sa.length; i++ ) {
+				if ( i > 0 ) {
+					b.append(",");
+				}
+				if ( !DMIUtil.isMissing(sa[i]) ) {
+					// Need to get the TableField format because the overall column will be string
+					// TODO SAM 2015-09-06
+					//b.append(StringUtil.formatString(da[i],__fieldFormats[col]));
+					b.append(sa[i]);
+				}
+			}
+			break;
+		case TableField.DATA_TYPE_BOOLEAN:
+			Boolean [] Ba = new Boolean[0]; // Use Boolean object array because boolean can't indicate null value
+			if ( oa instanceof Boolean[] ) {
 				Ba = (Boolean [])oa;
 			}
 			else if ( oa instanceof boolean[] ) {
@@ -1426,20 +1447,17 @@ public String formatArrayColumn ( int row, int col ) throws Exception {
 			}
 			break;
 		case TableField.DATA_TYPE_STRING:
-			String [] sa = (String [])getFieldValue(row,col);
-			if ( sa == null ) {
-				return null;
-			}
-			for ( int i = 0; i < sa.length; i++ ) {
+			String [] stra = (String [])oa;
+			for ( int i = 0; i < stra.length; i++ ) {
 				if ( i > 0 ) {
 					b.append(",");
 				}
-				if ( sa[i] != null ) {
+				if ( stra[i] != null ) {
 					// Need to get the TableField format because the overall column will be string
 					// TODO SAM 2015-09-06
 					//b.append(StringUtil.formatString(da[i],__fieldFormats[col]));
-					// TODO SAM 2015-11-05 Need to decide if strings in array should be quoted
-					b.append(sa[i]);
+					// Quote strings to make sure separation of strings is clear
+					b.append("\"" + stra[i] + "\"");
 				}
 			}
 			break;
@@ -3936,6 +3954,8 @@ throws Exception
 Set values in the list of table records and setting values for specific columns in each record.
 The records might exist in a table or may not yet have been added to the table.
 The table records are modified directly, rather than trying to find the row in the table to modify.
+This command is used, for example, when inserting table rows and it is desired to avoid
+changing the rest of the table rows.
 @param tableRecords list of TableRecord to set values in
 @param columnValues map for columns values that will be set, where rows to be modified will be the result of the filters;
 values are strings and need to be converged before setting, based on column type
@@ -4016,7 +4036,7 @@ public void setTableRecordValues ( List<TableRecord> tableRecords, HashMap<Strin
                         rec.setFieldValue(columnNumbersToSet[icol], columnValueToSet);
                     }
                     else {
-                        errorMessage.append("Do not know how to set data type (" + TableColumnType.valueOf(columnTypesToSet[icol]) +
+                        errorMessage.append("Do not know how to set column data for type (" + TableColumnType.valueOf(columnTypesToSet[icol]) +
                             ") for column \"" + columnNamesToSet[icol] + "].");
                         ++errorCount;
                     }
@@ -4079,14 +4099,15 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
     }
     // Get the column numbers and values to to set
     String [] columnNamesToSet = new String[columnValues.size()];
-    String [] columnValuesToSet = new String[columnValues.size()];
+    String [] columnValuesToSet = new String[columnValues.size()]; // Values as strings, to be parsed
+    Object [] columnObjectsToSet = new Object[columnValues.size()]; // Values as objects, after parsing, set on first row with set
     int [] columnNumbersToSet = new int[columnValues.size()];
-    int [] columnTypesToSet = new int[columnValues.size()];
+    int [] columnTypesToSet = new int[columnValues.size()]; // Can be array type with specific type extractec below
     ikey = -1;
     for ( Map.Entry<String,String> pairs: columnValues.entrySet() ) {
         columnNumbersToSet[++ikey] = -1;
         try {
-            columnNamesToSet[ikey] = (String)pairs.getKey();
+            columnNamesToSet[ikey] = pairs.getKey();
             columnValuesToSet[ikey] = pairs.getValue();
             columnNumbersToSet[ikey] = getFieldIndex(columnNamesToSet[ikey]);
             columnTypesToSet[ikey] = getFieldDataType(columnNumbersToSet[ikey]);
@@ -4113,8 +4134,12 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
     boolean filterMatches;
     Object o = null;
     String s;
+    // Number of rows that have been set, useful for troubleshooting and used to control parsing
+    // - do not "continue" or "break" in logic below in a way that interferes with this counter
+    // - process each row completely or not all all to increment counter
+    int rowSetCount = 0;
     for ( int irow = 0; irow < getNumberOfRecords(); irow++ ) {
-        filterMatches = true;
+        filterMatches = true; // Default to matching the column and set to false with checks below
         if ( columnNumbersToFilter.length > 0 ) {
             // Filters can be done on any columns so loop through to see if row matches before doing set
             for ( icol = 0; icol < columnNumbersToFilter.length; icol++ ) {
@@ -4153,31 +4178,119 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
         for ( icol = 0; icol < columnNumbersToSet.length; icol++ ) {
             try {
                 // OK if setting to null value, but hopefully should not happen
-                // TODO SAM 2013-08-06 Handle all column types
                 //Message.printStatus(2,routine,"Setting ColNum=" + columnNumbersToSet[icol] + " RowNum=" + irow + " value=" +
                 //    columnValues.get(columnNamesToSet[icol]));
                 if ( columnNumbersToSet[icol] >= 0 ) {
+                	// The column number was determined above so can set
                 	columnValueToSet = columnValuesToSet[icol];
                 	if ( getter != null ) {
-                		// columnValueToSet will initially have formatting information like ${Property}
+                		// columnValueToSet may initially have formatting information like ${Property}
+                		// - using local variable will cause reevalaution if necessary
                 		columnValueToSet = getter.getTableCellValueAsString(columnValueToSet);
                 	}
-                    if ( columnTypesToSet[icol] == TableField.DATA_TYPE_INT ) {
-                        // TODO SAM 2013-08-26 Should parse the values once rather than each time set to improve error handling and performance
-                        setFieldValue(irow, columnNumbersToSet[icol], Integer.parseInt(columnValueToSet), true );
-                    }
-                    else if ( columnTypesToSet[icol] == TableField.DATA_TYPE_DOUBLE ) {
-                        // TODO SAM 2013-08-26 Should parse the values once rather than each time set to improve error handling and performance
-                        setFieldValue(irow, columnNumbersToSet[icol], Double.parseDouble(columnValueToSet), true );
-                    }
-                    else if ( columnTypesToSet[icol] == TableField.DATA_TYPE_STRING ) {
-                        setFieldValue(irow, columnNumbersToSet[icol], columnValueToSet, true );
-                    }
-                    else {
-                        errorMessage.append("Do not know how to set data type (" + TableColumnType.valueOf(columnTypesToSet[icol]) +
-                            ") for column \"" + columnNamesToSet[icol] + "].");
-                        ++errorCount;
-                    }
+               		if ( rowSetCount == 0 ) {
+               			// First row has not been processed so need to determine the objects to set
+                        if ( isColumnArray(columnTypesToSet[icol]) ) {
+                    	    // Array string will have format "[value1,value2,...]"
+                    	    // Since an array type the actual data type is determined by subtracting the array type
+                    	    int dataTypeForArray = columnTypesToSet[icol] - TableField.DATA_TYPE_ARRAY;
+                    	    // For now only handle simple formats and assume no special characters
+                    	    // (e.g., commas are delimiters but not included in data values).
+                    	    // Strip the array brackets
+                    	    String arrayValue = columnValueToSet.replace("[", "").replace("]", "");
+                    	    String[] arrayValueParts = arrayValue.split(",");
+                    	    Object [] arrayValueO = null;
+                    	    // Must allocate the correct array type below because instanceOf may be used elsewhere
+                    	    for ( int ia = 0; ia < arrayValueParts.length; ia++ ) {
+                                if ( dataTypeForArray == TableField.DATA_TYPE_BOOLEAN ) {
+                                	if ( ia == 0 ) {
+                                		arrayValueO = new Boolean[arrayValueParts.length];
+                                	}
+                                    arrayValueO[ia] = Boolean.parseBoolean(arrayValueParts[ia]);
+                                }
+                                else if ( dataTypeForArray == TableField.DATA_TYPE_DATETIME ) {
+                                	if ( ia == 0 ) {
+                                		arrayValueO = new DateTime[arrayValueParts.length];
+                                	}
+                                    arrayValueO[ia] = DateTime.parse(arrayValueParts[ia]);
+                                }
+                                else if ( dataTypeForArray == TableField.DATA_TYPE_DOUBLE ) {
+                                	if ( ia == 0 ) {
+                                		arrayValueO = new Double[arrayValueParts.length];
+                                	}
+                                    arrayValueO[ia] = Double.parseDouble(arrayValueParts[ia]);
+                                }
+                                else if ( dataTypeForArray == TableField.DATA_TYPE_FLOAT ) {
+                                	if ( ia == 0 ) {
+                                		arrayValueO = new Float[arrayValueParts.length];
+                                	}
+                                    arrayValueO[ia] = Float.parseFloat(arrayValueParts[ia]);
+                                }
+                                else if ( dataTypeForArray == TableField.DATA_TYPE_INT ) {
+                                	if ( ia == 0 ) {
+                                		arrayValueO = new Integer[arrayValueParts.length];
+                                	}
+                                    arrayValueO[ia] = Integer.parseInt(arrayValueParts[ia]);
+                                }
+                                else if ( dataTypeForArray == TableField.DATA_TYPE_LONG ) {
+                                	if ( ia == 0 ) {
+                                		arrayValueO = new Long[arrayValueParts.length];
+                                	}
+                                    arrayValueO[ia] = Long.parseLong(arrayValueParts[ia]);
+                                }
+                                else if ( dataTypeForArray == TableField.DATA_TYPE_SHORT ) {
+                                	if ( ia == 0 ) {
+                                		arrayValueO = new Short[arrayValueParts.length];
+                                	}
+                                    arrayValueO[ia] = Short.parseShort(arrayValueParts[ia]);
+                                }
+                                else if ( dataTypeForArray == TableField.DATA_TYPE_STRING ) {
+                                	if ( ia == 0 ) {
+                                		arrayValueO = new String[arrayValueParts.length];
+                                	}
+                                    arrayValueO[ia] = arrayValueParts[ia];
+                                }
+                                else {
+                                    errorMessage.append("Do not know how to set column for array data type (" + TableColumnType.valueOf(dataTypeForArray) +
+                                        ") for column \"" + columnNamesToSet[icol] + "].");
+                                    ++errorCount;
+                                }
+                    	    }
+                    	    // The field value is the array of objects
+                            columnObjectsToSet[icol] = arrayValueO;
+                        }
+                        else if ( columnTypesToSet[icol] == TableField.DATA_TYPE_BOOLEAN ) {
+                            columnObjectsToSet[icol] = Boolean.parseBoolean(columnValueToSet);
+                        }
+                        else if ( columnTypesToSet[icol] == TableField.DATA_TYPE_DATETIME ) {
+                            columnObjectsToSet[icol] = DateTime.parse(columnValueToSet);
+                        }
+                        else if ( columnTypesToSet[icol] == TableField.DATA_TYPE_DOUBLE ) {
+                            columnObjectsToSet[icol] = Double.parseDouble(columnValueToSet);
+                        }
+                        else if ( columnTypesToSet[icol] == TableField.DATA_TYPE_FLOAT ) {
+                            columnObjectsToSet[icol] = Float.parseFloat(columnValueToSet);
+                        }
+                        else if ( columnTypesToSet[icol] == TableField.DATA_TYPE_INT ) {
+                            columnObjectsToSet[icol] = Integer.parseInt(columnValueToSet);
+                        }
+                        else if ( columnTypesToSet[icol] == TableField.DATA_TYPE_LONG ) {
+                            columnObjectsToSet[icol] = Long.parseLong(columnValueToSet);
+                        }
+                        else if ( columnTypesToSet[icol] == TableField.DATA_TYPE_SHORT ) {
+                            columnObjectsToSet[icol] = Short.parseShort(columnValueToSet);
+                        }
+                        else if ( columnTypesToSet[icol] == TableField.DATA_TYPE_STRING ) {
+                            columnObjectsToSet[icol] = columnValueToSet;
+                        }
+                        else {
+                            errorMessage.append("Do not know how to set column for data type (" + TableColumnType.valueOf(columnTypesToSet[icol]) +
+                                ") for column \"" + columnNamesToSet[icol] + "].");
+                            ++errorCount;
+                        }
+               		}
+           			// The value to set will be defined from above so set
+                    setFieldValue(irow, columnNumbersToSet[icol], columnObjectsToSet[icol], true );
                 }
             }
             catch ( Exception e ) {
@@ -4189,9 +4302,12 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                 ++errorCount;
             }
         }
+        // If here the row was processed for setting
+        ++rowSetCount;
     }
+    Message.printStatus(2, routine, "Updated " + rowSetCount + " rows with new values.");
     if ( errorCount > 0 ) {
-        throw new RuntimeException ( "There were + " + errorCount + " errors setting table values: " + errorMessage );
+        throw new RuntimeException ( "There were " + errorCount + " errors setting table values: " + errorMessage );
     }
 }
 
@@ -4590,6 +4706,46 @@ public boolean trimStrings ( )
 {	return _trim_strings;
 }
 
+/**
+Writes a table to a delimited file.  If the data items contain the delimiter,
+they will be written surrounded by double quotes.
+The overloaded version of this method is called.
+@param filename the file to write
+@param delimiter the delimiter between columns
+@param writeColumnNames If true, the field names will be read from the fields 
+and written as a one-line header of field names.  The headers are double-quoted.
+If all headers are missing, then the header line will not be written.
+@param comments a list of Strings to put at the top of the file as comments, 
+@param commentLinePrefix prefix string for comment lines specify if incoming comment strings have not already been prefixed.
+@param alwaysQuoteStrings if true, then always surround strings with double quotes; if false strings will only
+be quoted when they include the delimiter
+@param newlineReplacement if not null, replace newlines in string table values with the replacement string
+(which can be an empty string).  This is needed to ensure that the delimited file does not include unexpected
+newlines in mid-row.  Checks are done for \r\n, then \n, then \r to catch all combinations.  This can be a
+performance hit and mask data issues so the default is to NOT replace newlines.
+@param NaNValue value to replace NaN in output (a value of null will result in NaN being written).
+*/
+public void writeDelimitedFile(String filename, String delimiter, boolean writeColumnNames, List<String> comments,
+    String commentLinePrefix, boolean alwaysQuoteStrings, String newlineReplacement, String NaNValue ) 
+throws Exception {
+	HashMap<String,String> writeProps = new HashMap<>();
+	if ( alwaysQuoteStrings ) {
+		writeProps.put("AlwaysQuoteStrings", "True");
+	}
+	else {
+		writeProps.put("AlwaysQuoteStrings", "False");
+	}
+	if ( newlineReplacement != null ) {
+		writeProps.put("NewlineReplacement", newlineReplacement);
+	}
+	if ( NaNValue != null ) {
+		writeProps.put("NaNValue", NaNValue);
+	}
+	// Call the generic version that takes list of properties
+	writeDelimitedFile(filename, delimiter, writeColumnNames, comments,
+		commentLinePrefix, writeProps );
+}
+
 // TODO SAM 2006-06-21
 // Need to check for delimiter in header and make this code consistent with
 // the RTi.Util.GUI.JWorksheet file saving code, or refactor to use the same code.
@@ -4604,16 +4760,21 @@ If all headers are missing, then the header line will not be written.
 @param comments a list of Strings to put at the top of the file as comments, 
 @param commentLinePrefix prefix string for comment lines specify if incoming comment strings have not already been
 prefixed.
-@param alwaysQuoteStrings if true, then always surround strings with double quotes; if false strings will only
-be quoted when they include the delimiter
-@param newlineReplacement if not null, replace newlines in string table values with the replacement string
+@param writeProps additional properties to control writing:
+<ul>
+<li>AlwaysQuoteDateTimes - if true, then always surround date/times with double quotes;
+if false date/times will only be quoted when they include the delimiter</li>
+<li>AlwaysQuoteStrings - if true, then always surround strings with double quotes;
+if false strings will only be quoted when they include the delimiter</li>
+<li>NaNValue - value to replace NaN in output (no property or null will result in NaN being written).</li>
+<li>NewlineReplacement - if not null, replace newlines in string table values with this replacement string
 (which can be an empty string).  This is needed to ensure that the delimited file does not include unexpected
 newlines in mid-row.  Checks are done for \r\n, then \n, then \r to catch all combinations.  This can be a
-performance hit and mask data issues so the default is to NOT replace newlines.
-@param NaNValue value to replace NaN in output (a value of null will result in NaN being written).
+performance hit and mask data issues so the default is to NOT replace newlines.</li>
+</ul>
 */
 public void writeDelimitedFile(String filename, String delimiter, boolean writeColumnNames, List<String> comments,
-    String commentLinePrefix, boolean alwaysQuoteStrings, String newlineReplacement, String NaNValue ) 
+    String commentLinePrefix, HashMap<String,String> writeProps )
 throws Exception {
 	String routine = getClass().getSimpleName() + ".writeDelimitedFile";
 	
@@ -4628,8 +4789,35 @@ throws Exception {
 	if ( !commentLinePrefix.equals("") ) {
 	    commentLinePrefix2 = commentLinePrefix + " "; // Add space for readability
 	}
+
+	// Output string to use for NaN values
+	String NaNValue = writeProps.get("NaNValue");
 	if ( NaNValue == null ) {
 	    NaNValue = "NaN";
+	}
+	
+	// Indicate whether strings should always be quoted
+	// - default is to not quote date/times
+	boolean alwaysQuoteDateTimes = false;
+	String AlwaysQuoteDateTimes = writeProps.get("AlwaysQuoteDateTimes");
+	if ( (AlwaysQuoteDateTimes != null) && AlwaysQuoteDateTimes.equalsIgnoreCase("true") ) {
+		alwaysQuoteDateTimes = true;
+	}
+
+	// Indicate whether strings should always be quoted
+	// - default is to only quote if string includes delimiter
+	boolean alwaysQuoteStrings = false;
+	String AlwaysQuoteStrings = writeProps.get("AlwaysQuoteStrings");
+	if ( (AlwaysQuoteStrings != null) && AlwaysQuoteStrings.equalsIgnoreCase("true") ) {
+		alwaysQuoteStrings = true;
+	}
+	
+	// String to use for newlines, can be "", by default don't replace 
+	// - default is to not replace newlines
+	String NewlineReplacement = writeProps.get("NewlineReplacement");
+	String newlineReplacement = null;
+	if ( NewlineReplacement != null ) {
+		newlineReplacement = NewlineReplacement;
 	}
 
 	PrintWriter out = new PrintWriter( new BufferedWriter(new FileWriter(filename)));
@@ -4689,7 +4877,12 @@ throws Exception {
     		    if ( fieldValue == null ) {
     		        cell = "";
     		    }
+                if ( isColumnArray(tableFieldType) ) {
+                	// The following formats the array for display in UI table
+                	cell = formatArrayColumn(row,col);
+                }
     		    else if ( tableFieldType == TableField.DATA_TYPE_FLOAT ) {
+    		    	// Handle specifically in order to format precision and handle NaN value
                     fieldValueFloat = (Float)fieldValue;
                     if ( fieldValueFloat.isNaN() ) {
                         cell = NaNValue;
@@ -4704,6 +4897,7 @@ throws Exception {
                     }
     		    }
     		    else if ( tableFieldType == TableField.DATA_TYPE_DOUBLE ) {
+    		    	// Handle specifically in order to format precision and handle NaN value
     		        fieldValueDouble = (Double)fieldValue;
     		        if ( fieldValueDouble.isNaN() ) {
     		            cell = NaNValue;
@@ -4718,10 +4912,10 @@ throws Exception {
     		        }
                 }
                 else {
-                    // Use default formatting.
+                    // Use default formatting from object toString().
                     cell = "" + fieldValue;
                 }
-    		    // Figure out if the cell needs to be quoted
+    		    // Figure out if the initial cell needs to be quoted
     			// Surround the values with double quotes if:
     		    // 1) the field contains the delimiter
     		    // 2) alwaysQuoteStrings=true
@@ -4733,6 +4927,17 @@ throws Exception {
     		    		doQuoteCell = true;
     		    	}
     		    	else if ( alwaysQuoteStrings ) {
+    		    		// Calling code requests quoting strings always
+    		    		doQuoteCell = true;
+    		    	}
+    		    }
+    		    else if ( tableFieldType == TableField.DATA_TYPE_DATETIME ) {
+    		    	if ( cell.indexOf("\"") > -1 ) {
+    		    		// Cell includes a double quote so quote the whole thing
+    		    		doQuoteCell = true;
+    		    	}
+    		    	else if ( alwaysQuoteDateTimes ) {
+    		    		// Calling code requests quoting date/times always
     		    		doQuoteCell = true;
     		    	}
     		    }
@@ -4769,4 +4974,5 @@ throws Exception {
     	out.close();
 	}
 }
+
 }
