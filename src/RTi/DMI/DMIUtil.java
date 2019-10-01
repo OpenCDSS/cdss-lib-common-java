@@ -199,6 +199,11 @@ Constant that represents a missing int value.
 public static final int MISSING_INT = Integer.MIN_VALUE;
 
 /**
+Constant that represents a missing short value.
+*/
+public static final int MISSING_SHORT = Short.MIN_VALUE;
+
+/**
 Constant that represents a missing long value.
 */
 public static final long MISSING_LONG = Long.MIN_VALUE;
