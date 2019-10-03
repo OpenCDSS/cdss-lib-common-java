@@ -1874,6 +1874,199 @@ throws Exception
 }
 
 /**
+Create a cache of date/times for time series (all date/times that occur),
+typically used to create an all-inclusive list of date/times for irregular time series,
+such as when comparing or displaying time series.
+Time series do not need to be irregular.
+This code was extracted from TSViewTable_TableModel.java.
+@param tslist list of time series to extract date/times from
+@param analysisStart date/time to start extracting date/times (default is full overlapping time series period).
+@param analysisEnd date/time to end extracting date/times (default is full overlapping time series period).
+@return list of DateTime corresponding to all possible date/times in the provided time series
+*/
+public static List<DateTime> createTSDateTimeList ( List<TS> tslist, DateTime analysisStart, DateTime analysisEnd )
+throws TSException
+{   String routine = "TSUtil.createTSDateTimeList";
+	List<DateTime> dateTimeList = new ArrayList<>();
+    // More than one irregular time series.  They at least have to have the same date/time precision
+    // for the period.  Otherwise it will be difficult to navigate the data.
+	// Use the starting date/time in the time series to check for precision since date/times are processed here.
+    int tsPrecision = -1;
+    int size = tslist.size();
+    TS ts;
+    for ( int its = 0; its < size; its++ ) {
+        if ( tslist.get(its) == null ) {
+            continue;
+        }
+        ts = (IrregularTS)tslist.get(its);
+        if ( ts.getDate1() == null ) {
+            continue;
+        }
+        int tsPrecision2 = ts.getDate1().getPrecision();
+        if ( tsPrecision < 0 ) {
+        	// Assign
+        	tsPrecision = tsPrecision2;
+        }
+        else if ( tsPrecision2 != tsPrecision ) {
+            // This will be a problem in processing the data
+            String message = "Time series date/times do not have the same precision by checking period start.  Can't process";
+            Message.printWarning ( 2, routine, message );
+            throw new UnequalTimeIntervalException ( message );
+        }
+    }
+    // Was able to determine the precision of data so can continue
+    // The logic works as follows:
+    // 0) Advance the iterator for each time series to initialize
+    // 1) Find the earliest date/time in the iterator current position
+    // 2) Add cached date/times that will result in:
+    //    - actual value if time series has a value at the date/time
+    //    - values not at the same date/time result in blanks for the other time series
+    // 3) For any values that will be output, advance that time series' iterator
+    // 4) Go to step 1
+    // Create iterators for each time series
+    boolean doCheckPeriod = false;
+    if ( (analysisStart != null) || (analysisEnd != null) ) {
+    	// Period has been specified so 
+    	doCheckPeriod = true;
+    }
+    TSIterator [] tsIteratorArray = new TSIterator[tslist.size()];
+    for ( int its = 0; its < size; its++ ) {
+        if ( tslist.get(its) == null ) {
+            tsIteratorArray[its] = null; // Keep same order as time series
+        }
+        //ts = (IrregularTS)tslist.get(its);
+        ts = tslist.get(its);
+        try {
+            // Iterate through full period
+        	// - TODO smalers 2019-10-02 need to implement analysis period but need to make sure it aligns
+            tsIteratorArray[its] = ts.iterator();
+        }
+        catch ( Exception e ) {
+            tsIteratorArray[its] = null;; // Keep same order as time series
+        }
+    }
+    int its;
+    TSIterator itsIterator;
+    // Use the following to extract dates from each time series
+    // A call to the iterator next() method will return null when no more data, which is
+    // the safest way to process the data
+    TSData [] tsdata = new TSData[tslist.size()];
+    TSData tsdataMin = null; // Used to find min date/time for all the iterators
+    DateTime dtMin = null; // Used to compare date/times for all the iterators
+    DateTime dtCached = null; // Cached date/time
+    int iteratorMin = -1;
+    int loopCount = 0;
+    boolean doAdd = true; // When checking analysis period
+    while ( true ) {
+        // Using the current date/time, output the earliest value for all time series that have the value and
+        // increment the iterator for each value that is output.
+        ++loopCount;
+        if ( loopCount == 1 ) {
+            // Need to call next() one time on all time series to initialize all iterators to the first
+            // data point in the time series.  Otherwise, next() is only called below to advance.
+            for ( its = 0; its < size; its++ ) {
+                itsIterator = tsIteratorArray[its];
+                if ( itsIterator != null ) {
+                    tsdata[its] = itsIterator.next();
+                }
+            }
+        }
+        // Loop through the iterators:
+        // 1) Find the earliest date/time
+        // 2) Add to the cache
+        // 3) Advance the iterator(s)
+        // Do this until all iterators next() have returned null
+        tsdataMin = null;
+        dtMin = null;
+        for ( its = 0; its < size; its++ ) {
+            if ( tsdataMin == null ) {
+                // Find the first date/time for all the iterators at their current positions
+                if ( tsdata[its] != null ) {
+                    tsdataMin = tsdata[its];
+                    dtMin = tsdataMin.getDate();
+                    iteratorMin = its;
+                    //Message.printStatus(2, routine, "Initializing minimum date/time to " + dtMin );
+                }
+            }
+            else {
+                // Have a non-null first date/time to compare to so check this iterator against it
+                // The lessThan() method DOES NOT compare time zone in any case
+                if ( (tsdata[its] != null) && tsdata[its].getDate().lessThan(dtMin) ) {
+                    // Have found an earlier date/time to be used in the comparison
+                    // Note - time zone is NOT checked
+                    dtMin = tsdata[its].getDate();
+                    tsdataMin = tsdata[its];
+                    iteratorMin = its;
+                    //Message.printStatus(2, routine, "Found earlier minimum date/time [" + its + "] " + dtMin );
+                }
+            }
+        }
+        // 2) Add to the cache
+        if ( dtMin == null ) {
+            // Done processing all data
+            break;
+        }
+        // Create a new instance so independent of any data manipulations.
+        // Create a fast instance since it will be used for iteration and data access but not be manipulated or checked
+        dtCached = new DateTime(dtMin,DateTime.DATE_FAST);
+        // TODO smalers 2019-01-02 deal with time zone later
+        //if ( !__irregularTZSame ) {
+            // Set the timezone to blank for cached date/times rather than showing wrong time zone that might be misinterpreted
+            dtCached.setTimeZone("");
+        //}
+        if ( doCheckPeriod ) {
+        	// Need to make sure the period is within the requested period
+        	// Default is to add the date/time
+        	doAdd = true;
+        	if ( analysisStart != null ) {
+        		// Need to check analysis start
+        		if ( dtCached.lessThan(analysisStart) ) {
+        			// Date/time is before the analysisStart so don't include
+        			doAdd = false;
+        		}
+        	}
+        	if ( doAdd && (analysisEnd != null) && dtCached.greaterThan(analysisEnd) ) {
+        		// Date/time is OK for analysisStart (above)
+        		// but date/time is after the analysis end
+        		doAdd = false;
+        	}
+        	if ( doAdd ) {
+        		// OK to add the date/time
+        		dateTimeList.add(dtCached);
+        	}
+        }
+        else {
+        	dateTimeList.add(dtCached);
+        }
+        //Message.printStatus(2,routine,"Row [" + (__irregularDateTimeCache.size() - 1) + "] " + dtCached);
+        // 3) Advance the iterator for the one with the minimum date/time and all with the same date/time
+        // Note - time zone is NOT checked by equals()
+        for ( its = 0; its < size; its++ ) {
+            // First check below increases performance a bit
+            // Use the prototype date if available to ensure that time zone is handled
+        	/* TODO smalers 2019-10-02 deal with time zone later
+            if ( (__irregularPrototypeDateTime != null) && (__irregularPrototypeDateTime[its] != null) ) {
+                // Use the prototype DateTime (which has proper time zone) and overwrite the specific date/time values
+                // Do not call setDate() because it will set whether to use time zone and defeat the purpose of the prototype
+                __irregularPrototypeDateTime[its].setYear(dtMin.getYear());
+                __irregularPrototypeDateTime[its].setMonth(dtMin.getMonth());
+                __irregularPrototypeDateTime[its].setDay(dtMin.getDay());
+                __irregularPrototypeDateTime[its].setHour(dtMin.getHour());
+                __irregularPrototypeDateTime[its].setMinute(dtMin.getMinute());
+                __irregularPrototypeDateTime[its].setSecond(dtMin.getSecond());
+                dtMin = __irregularPrototypeDateTime[its];
+            }
+            */
+            if ( (iteratorMin == its) || ((tsdata[its] != null) && dtMin.equals(tsdata[its].getDate())) ) {
+                tsdata[its] = tsIteratorArray[its].next();
+                //Message.printStatus(2, routine, "Advanced iterator[" + its + "] date/time to " + tsdata[its] );
+            }
+        }
+    }
+    return dateTimeList;
+}
+
+/**
 Create a monthly summary report for the time series.  This format is suitable
 for data intervals less than monthly.  Data are first accumulated to daily
 values and are then accumulated to monthly for the final output.  This report

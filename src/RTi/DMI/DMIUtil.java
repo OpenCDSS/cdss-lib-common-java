@@ -3084,6 +3084,12 @@ Determines whether a Double value is missing.
 @return true if the Double is missing, false if not.
 */
 public static boolean isMissing(Double value) {
+	if ( value == null ) {
+		return true;
+	}
+	else if ( value.isNaN() ) {
+		return true;
+	}
 	return isMissingDouble(value.doubleValue());
 }
 
@@ -3102,6 +3108,12 @@ Determines whether a Float value is missing.
 @return true if the Float is missing, false if not.
 */
 public static boolean isMissing(Float value) {
+	if ( value == null ) {
+		return true;
+	}
+	else if ( value.isNaN() ) {
+		return true;
+	}
 	return isMissingDouble(value.floatValue());
 }
 
@@ -3120,7 +3132,12 @@ Determines whether an Integer value is missing.
 @return true if the Integer is missing, false if not.
 */
 public static boolean isMissing(Integer value) {
-	return isMissingInt(value.intValue());
+	if ( value == null ) {
+		return true;
+	}
+	else {
+		return isMissingInt(value.intValue());
+	}
 }
 
 /**
@@ -3138,7 +3155,12 @@ Determines whether a Long value is missing.
 @return true if the Long is missing, false if not.
 */
 public static boolean isMissing(Long value) {
-	return isMissingLong(value.longValue());
+	if ( value == null ) {
+		return true;
+	}
+	else {
+		return isMissingLong(value.longValue());
+	}
 }
 
 /**

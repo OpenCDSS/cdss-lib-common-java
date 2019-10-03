@@ -4185,7 +4185,8 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                 	columnValueToSet = columnValuesToSet[icol];
                 	if ( getter != null ) {
                 		// columnValueToSet may initially have formatting information like ${Property}
-                		// - using local variable will cause reevalaution if necessary
+                		// - using local variable will cause reevaluation if necessary
+                		// - TODO smalers 2019-10-02 need to evaluate how this impacts (re)parsing logic below
                 		columnValueToSet = getter.getTableCellValueAsString(columnValueToSet);
                 	}
                		if ( rowSetCount == 0 ) {
@@ -4199,56 +4200,118 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                     	    // Strip the array brackets
                     	    String arrayValue = columnValueToSet.replace("[", "").replace("]", "");
                     	    String[] arrayValueParts = arrayValue.split(",");
-                    	    Object [] arrayValueO = null;
-                    	    // Must allocate the correct array type below because instanceOf may be used elsewhere
+                    	    Object [] arrayValueO = null; // Array that is parsed from input strings, used to avoid re-parsing
+                    	    // Allocate the correct array type below because instanceOf may be used elsewhere to check type
+                    	    // - in other words don't allocate array of Object
                     	    for ( int ia = 0; ia < arrayValueParts.length; ia++ ) {
-                                if ( dataTypeForArray == TableField.DATA_TYPE_BOOLEAN ) {
+                    	    	if ( dataTypeForArray == TableField.DATA_TYPE_BOOLEAN ) {
                                 	if ( ia == 0 ) {
+                                		// Allocate array of the correct type
                                 		arrayValueO = new Boolean[arrayValueParts.length];
                                 	}
-                                    arrayValueO[ia] = Boolean.parseBoolean(arrayValueParts[ia]);
+                                	if ( (arrayValueParts[ia] == null) || arrayValueParts[ia].isEmpty() || arrayValueParts[ia].equalsIgnoreCase("null") ) {
+                                		 arrayValueO[ia] = null;
+                    	    		}
+                    	    		else {
+                                		arrayValueO[ia] = Boolean.parseBoolean(arrayValueParts[ia]);
+                                	}
                                 }
                                 else if ( dataTypeForArray == TableField.DATA_TYPE_DATETIME ) {
                                 	if ( ia == 0 ) {
+                                		// Allocate array of the correct type
                                 		arrayValueO = new DateTime[arrayValueParts.length];
                                 	}
-                                    arrayValueO[ia] = DateTime.parse(arrayValueParts[ia]);
+                                	if ( (arrayValueParts[ia] == null) || arrayValueParts[ia].isEmpty() || arrayValueParts[ia].equalsIgnoreCase("null") ) {
+                                		 arrayValueO[ia] = null;
+                    	    		}
+                    	    		else {
+                                        arrayValueO[ia] = DateTime.parse(arrayValueParts[ia]);
+                    	    		}
                                 }
                                 else if ( dataTypeForArray == TableField.DATA_TYPE_DOUBLE ) {
                                 	if ( ia == 0 ) {
+                                		// Allocate array of the correct type
                                 		arrayValueO = new Double[arrayValueParts.length];
                                 	}
-                                    arrayValueO[ia] = Double.parseDouble(arrayValueParts[ia]);
+                                	if ( arrayValueParts[ia] == null ) {
+                                		 arrayValueO[ia] = null;
+                    	    		}
+                                	else if ( arrayValueParts[ia].isEmpty() || arrayValueParts[ia].equalsIgnoreCase("null") ) {
+                                		 arrayValueO[ia] = null;
+                                	}
+                                	else if ( arrayValueParts[ia].equalsIgnoreCase("NaN") ) {
+                                		 arrayValueO[ia] = Double.NaN;
+                                	}
+                    	    		else {
+                    	    			arrayValueO[ia] = Double.parseDouble(arrayValueParts[ia]);
+                    	    		}
                                 }
                                 else if ( dataTypeForArray == TableField.DATA_TYPE_FLOAT ) {
                                 	if ( ia == 0 ) {
+                                		// Allocate array of the correct type
                                 		arrayValueO = new Float[arrayValueParts.length];
                                 	}
-                                    arrayValueO[ia] = Float.parseFloat(arrayValueParts[ia]);
+                                	if ( arrayValueParts[ia] == null ) {
+                                		 arrayValueO[ia] = null;
+                    	    		}
+                                	else if ( arrayValueParts[ia].isEmpty() || arrayValueParts[ia].equalsIgnoreCase("null") ) {
+                                		 arrayValueO[ia] = null;
+                                	}
+                                	else if ( arrayValueParts[ia].equalsIgnoreCase("NaN") ) {
+                                		 arrayValueO[ia] = Float.NaN;
+                                	}
+                    	    		else {
+                    	    			arrayValueO[ia] = Float.parseFloat(arrayValueParts[ia]);
+                    	    		}
                                 }
                                 else if ( dataTypeForArray == TableField.DATA_TYPE_INT ) {
                                 	if ( ia == 0 ) {
+                                		// Allocate array of the correct type
                                 		arrayValueO = new Integer[arrayValueParts.length];
                                 	}
-                                    arrayValueO[ia] = Integer.parseInt(arrayValueParts[ia]);
+                                	if ( (arrayValueParts[ia] == null) || arrayValueParts[ia].isEmpty() || arrayValueParts[ia].equalsIgnoreCase("null") ) {
+                                		 arrayValueO[ia] = null;
+                    	    		}
+                    	    		else {
+                    	    			arrayValueO[ia] = Integer.parseInt(arrayValueParts[ia]);
+                    	    		}
                                 }
                                 else if ( dataTypeForArray == TableField.DATA_TYPE_LONG ) {
                                 	if ( ia == 0 ) {
+                                		// Allocate array of the correct type
                                 		arrayValueO = new Long[arrayValueParts.length];
                                 	}
-                                    arrayValueO[ia] = Long.parseLong(arrayValueParts[ia]);
+                                	if ( (arrayValueParts[ia] == null) || arrayValueParts[ia].isEmpty() || arrayValueParts[ia].equalsIgnoreCase("null") ) {
+                                		 arrayValueO[ia] = null;
+                    	    		}
+                    	    		else {
+                    	    			arrayValueO[ia] = Long.parseLong(arrayValueParts[ia]);
+                    	    		}
                                 }
                                 else if ( dataTypeForArray == TableField.DATA_TYPE_SHORT ) {
                                 	if ( ia == 0 ) {
+                                		// Allocate array of the correct type
                                 		arrayValueO = new Short[arrayValueParts.length];
                                 	}
-                                    arrayValueO[ia] = Short.parseShort(arrayValueParts[ia]);
+                                	if ( (arrayValueParts[ia] == null) || arrayValueParts[ia].isEmpty() || arrayValueParts[ia].equalsIgnoreCase("null") ) {
+                                		 arrayValueO[ia] = null;
+                    	    		}
+                    	    		else {
+                    	    			arrayValueO[ia] = Short.parseShort(arrayValueParts[ia]);
+                    	    		}
                                 }
                                 else if ( dataTypeForArray == TableField.DATA_TYPE_STRING ) {
                                 	if ( ia == 0 ) {
+                                		// Allocate array of the correct type
                                 		arrayValueO = new String[arrayValueParts.length];
                                 	}
-                                    arrayValueO[ia] = arrayValueParts[ia];
+                                	if ( (arrayValueParts[ia] == null) || arrayValueParts[ia].equalsIgnoreCase("null") ) {
+                                		// Empty strings are OK.
+                                		arrayValueO[ia] = null;
+                    	    		}
+                    	    		else {
+                    	    			arrayValueO[ia] = arrayValueParts[ia];
+                    	    		}
                                 }
                                 else {
                                     errorMessage.append("Do not know how to set column for array data type (" + TableColumnType.valueOf(dataTypeForArray) +
@@ -4257,6 +4320,9 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                                 }
                     	    }
                     	    // The field value is the array of objects
+                    	    // - to ensure that data are separate, create a new instance of the array each time
+                    	    // - TODO smalers 2019-10-02 if the column getter/formatter will change each time due to property evaluations,
+                    	    //   need to use a dynamic array, maybe check for a non-null dynamic array in this case?
                             columnObjectsToSet[icol] = arrayValueO;
                         }
                         else if ( columnTypesToSet[icol] == TableField.DATA_TYPE_BOOLEAN ) {
@@ -4290,7 +4356,14 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                         }
                		}
            			// The value to set will be defined from above so set
-                    setFieldValue(irow, columnNumbersToSet[icol], columnObjectsToSet[icol], true );
+                    if ( isColumnArray(columnTypesToSet[icol]) ) {
+                    	// TODO smalers 2019-10-02 Arrays are not immutable, so need to clone the arrays.
+                        setFieldValue(irow, columnNumbersToSet[icol], columnObjectsToSet[icol], true );
+                    }
+                    else {
+                    	// Objects are immutable so don't need to clone them.
+                        setFieldValue(irow, columnNumbersToSet[icol], columnObjectsToSet[icol], true );
+                    }
                 }
             }
             catch ( Exception e ) {
@@ -4877,7 +4950,7 @@ throws Exception {
     		    if ( fieldValue == null ) {
     		        cell = "";
     		    }
-                if ( isColumnArray(tableFieldType) ) {
+    		    else if ( isColumnArray(tableFieldType) ) {
                 	// The following formats the array for display in UI table
                 	cell = formatArrayColumn(row,col);
                 }
@@ -4887,7 +4960,7 @@ throws Exception {
                     if ( fieldValueFloat.isNaN() ) {
                         cell = NaNValue;
                     }
-                    else if ( precision > 0 ) {
+                    else if ( precision >= 0 ) {
                         // Format according to the precision if floating point
                         cell = StringUtil.formatString(fieldValue,"%." + precision + "f");
                     }
@@ -4902,7 +4975,7 @@ throws Exception {
     		        if ( fieldValueDouble.isNaN() ) {
     		            cell = NaNValue;
     		        }
-    		        else if ( precision > 0 ) {
+    		        else if ( precision >= 0 ) {
                         // Format according to the precision if floating point
                         cell = StringUtil.formatString(fieldValue,"%." + precision + "f");
     		        }
