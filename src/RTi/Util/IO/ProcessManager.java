@@ -165,7 +165,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.Runtime;
 import java.lang.Exception;
 import java.lang.StringBuffer;
 import java.util.ArrayList;
@@ -320,8 +319,10 @@ implements ActionListener, Runnable
 Command to run.  If the command array is specified, this string will be created by using the array values
 separated by spaces.  In this case, the command array is still used for actual calls
 and the string is used for messages.
+The string DOES not contain surrounding quotes so add those if needed.
 */
 private String __command = null;
+
 /**
 Command array, which can be used to initialize a process instead of a simple command string.
 */
@@ -484,13 +485,15 @@ public ProcessManager ( String command, int timeoutMilliseconds, String exitStat
     if ( Message.isDebugOn ) {
         Message.printDebug ( 1, routine, "ProcessManager constructor: \"" + command + "\"" );
     }
+    // TODO smalers 2019-10-12 don't automatically quote because this causes problems on Linux
+    // - add the double quotes when needed
     // If the command includes spaces, escape with quotes
-    if ( command.indexOf(" ") > 0 ) {
-        __command = "\"" + command + "\"";
-    }
-    else {
+    //if ( command.indexOf(" ") > 0 ) {
+        //__command = "\"" + command + "\"";
+    //}
+    //else {
         __command = command;
-    }
+    //}
     __timeoutMilliseconds = timeoutMilliseconds;
     __exitValue = 0;
     
@@ -662,6 +665,33 @@ public void actionPerformed ( ActionEvent e )
 		"Process has timed out after " + __timeoutMilliseconds + " milliseconds." );
 		setProcessFinished ( 999, "Process timed out." );
 	}
+}
+
+/**
+ * Add environment variables for the process.
+ */
+private void addEnvironmentToProcess( ProcessBuilder pb) {
+	Map<String,String> pbMap = pb.environment();
+	for ( String env: __environmentMap.keySet() ) {
+		String oldVal = pbMap.get(env);
+	    String newVal = __environmentMap.get(env);
+	    // Determine if the map value has a +, indicating that it should be appended to
+	    // existing values, and remove the + so that the set can occur.
+	    boolean append = true;
+	    if ( (newVal.length() > 0) && (newVal.charAt(0) == '+') ) {
+	        append = true;
+	        newVal = newVal.substring(1);
+	    }
+	    if ( append && (oldVal != null) ) {
+	        pbMap.put(env, oldVal + newVal);
+	       	//Message.printStatus(2, rtn, "Setting environment variable " + env + "=" + (oldVal + newVal) );
+	    }
+	    else {
+	        // Just set
+	      	//Message.printStatus(2, rtn, "Setting environment variable " + env + "=" + newVal);
+	        pbMap.put(env, newVal);
+	    }
+    }
 }
 
 /**
@@ -909,7 +939,6 @@ process will complete in one of the following ways:
 */
 public void run ()
 {	String rtn = "ProcessManager.run";
-    boolean useProcessBuilder = true; // If using the ProcessBuilder class to create the process
 
 	__stopwatch = new StopWatch();
 	__stopwatch.start();
@@ -951,17 +980,24 @@ public void run ()
 			__commandInterpreterArray[1] = "/C";
 		}
 		else {
-		    Message.printWarning ( 2, rtn, "Unable to start process for \"" + __command +
-			"\".  Unknown OS \"" + os_name + "\"" );
+		    Message.printWarning ( 2, rtn, "Unknown OS \"" + os_name + "\". Unable to start process for:  " + __command );
 			setProcessFinished ( 997, "Unknown operating system \""+ os_name + "\"" );
 			return;
 		}
 		// Set up the command string, which is used for messages and
 		// if the command array version is NOT used...
 		if ( __isCommandInterpreterUsed ) {
-			if ( __commandInterpreter.length() != 0 ) {
+			if ( !__commandInterpreter.isEmpty() ) {
 				// Command interpreter used and it is not empty...
-				commandString = __commandInterpreter + " " + __command;
+				// - when the interpreter is used, the command to run follows an argument,
+				//   and need to encapsulate it in double quotes if necessary to escape content
+				if ( (__command.indexOf(" ") > 0) || (__command.indexOf("\t") > 0) ) {
+					Message.printStatus(2,rtn,"Adding double quotes around command due to whitespace in command.");
+					commandString = __commandInterpreter + " \"" + __command + "\"";
+				}
+				else {
+					commandString = __commandInterpreter + " " + __command;
+				}
 			}
 			else {
 			    // Command interpreter used but it is empty...
@@ -1000,62 +1036,33 @@ public void run ()
 		        Message.printStatus ( __processStatusLevel, rtn,
 		            "Array [" + i + "] = \""+ array[i] + "\" (" + array[i].length() + " characters)." );
 		    }
-		    if ( useProcessBuilder ) {
-		        ProcessBuilder pb = new ProcessBuilder ( array );
-		        if ( __workingDir != null ) {
-		            Message.printStatus ( 2, rtn, "Setting ProcessBuilder working directory to \"" + __workingDir + "\".");
-		            pb.directory ( __workingDir );
-		        }
-		        // Add the environment to the process
-		        Map<String,String> pbMap = pb.environment();
-		        for ( String env: __environmentMap.keySet() ) {
-		            String oldVal = pbMap.get(env);
-		            String newVal = __environmentMap.get(env);
-		            // Determine if the map value has a +, indicating that it should be appended to
-		            // existing values, and remove the + so that the set can occur.
-		            boolean append = true;
-		            if ( (newVal.length() > 0) && (newVal.charAt(0) == '+') ) {
-		                append = true;
-		                newVal = newVal.substring(1);
-		            }
-		            if ( append && (oldVal != null) ) {
-		                pbMap.put(env, oldVal + newVal);
-		            }
-		            else {
-		                // Just set
-		                pbMap.put(env, newVal);
-		            }
-		        }
-		        __process = pb.start();
+		    // Use ProcessBuilder to run the process
+		    ProcessBuilder pb = new ProcessBuilder ( array );
+		    if ( __workingDir != null ) {
+		        Message.printStatus ( 2, rtn, "Setting ProcessBuilder working directory to \"" + __workingDir + "\".");
+		        pb.directory ( __workingDir );
 		    }
-		    else {
-	            Runtime rt = Runtime.getRuntime();
-	            __process = rt.exec ( array );
-		    }
+		    // Add the environment to the process
+		    addEnvironmentToProcess(pb);
+		    __process = pb.start();
 		}
 		else {
 		    // Execute using the full command line.  The interpreter
 			// is properly included (or not) in the command_string...
 		    Message.printStatus ( __processStatusLevel, rtn,
-	            "Running on \"" + os_name + "\".  Executing process using full command line \""+ commandString +
-	            "\" (" + commandString.length() + " characters)." );
-		    if ( useProcessBuilder ) {
-		        // Need to separate the command shell and its argument so that the underlying system "exec" call can find
-		        // the program in the path.  The remaining command is passed as is but may require care with double quotes
-		        // around commands that contain spaces.
-		        ProcessBuilder pb = new ProcessBuilder ( __commandInterpreterArray[0], __commandInterpreterArray[1], __command );
-                if ( __workingDir != null ) {
-                    Message.printStatus ( 2, rtn, "Setting ProcessBuilder working directory to \"" + __workingDir + "\".");
-                    pb.directory ( __workingDir );
-                }
-		        __process = pb.start();
-	        }
-	        else {
-	            // The command string contains the interpreter.  Apparently the underlying code is able to find the interpreter
-	            // even though it is not specifically called out (like in the ProcessBuilder) array above.
-	            Runtime rt = Runtime.getRuntime();
-	            __process = rt.exec ( commandString );
-	        }
+	            "Running on \"" + os_name + "\".  Executing process using full command line : " + commandString );
+		    Message.printStatus ( __processStatusLevel, rtn,
+	            "Command string length = " + commandString.length() + " characters." );
+		    // Need to separate the command shell and its argument so that the underlying system "exec" call can find
+		    // the program in the path.  The remaining command is passed as is but may require care with double quotes
+		    // around commands that contain spaces.
+		    ProcessBuilder pb = new ProcessBuilder ( __commandInterpreterArray[0], __commandInterpreterArray[1], __command );
+            if ( __workingDir != null ) {
+                Message.printStatus ( 2, rtn, "Setting ProcessBuilder working directory to \"" + __workingDir + "\".");
+                pb.directory ( __workingDir );
+            }
+		    addEnvironmentToProcess(pb);
+		    __process = pb.start();
 		}
 	} catch ( SecurityException se ) {
 		Message.printWarning ( 2, rtn, "Security exception encountered." );
