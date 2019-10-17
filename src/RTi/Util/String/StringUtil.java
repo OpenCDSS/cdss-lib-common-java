@@ -21,142 +21,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
 
 NoticeEnd */
 
-// ----------------------------------------------------------------------------
-// StringUtil - string functions
-// ----------------------------------------------------------------------------
-// Notes:	(1)	This class contains public static RTi string utility
-//			functions.  They are essentially equivalent to the
-//			HMData C library routines, except for overloading and
-//			use of Java classes.
-//		(2)	The debug messages in this code HAS been wrapped with
-//			isDebugOn.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 14 Mar 1998	Steven A. Malers, RTi	Add javadoc.
-// 08 Apr 1998	SAM, RTi		Fix the Double toString conversion
-//					problem.
-// 09 Apr 1998	SAM, RTi		Add arrayToVector and VectorToArray.
-// 14 Apr 1999	SAM, RTi		Add toString that takes a vector and
-//					line separator to convert report
-//					vectors into something that can display
-//					in a TextArea.
-// 23 Jun 1999	SAM, RTi		Add matchesRegExp.
-// 28 Jun 1999	Catherine E.		Add indexOf to return index of string
-//		Nutting-Lane, RTi	in string list.
-// 01 Aug 1999	SAM, RTi		Add to unpad() the ability to unpad the
-//					entire string.
-// 26 Oct 1999	CEN, RTi		Check for "+" in fixedRead when reading
-//					Integer.
-// 03 Dec 1999	SAM, RTi		Add fix where formatString was crashing
-//					when the number of format strings was
-//					> the the number of data to process.
-//					Optimize code a little by using literal
-//					name for routine in formatString, set
-//					intermediate vectors to null when done
-//					in overloaed versions.
-// 12 Oct 2000	SAM, RTi		Add \r to list of whitespace characters
-//					in default for unpad().  Fix where
-//					a one-character line was not getting
-//					unpadded at the end.
-// 13 Dec 2000	SAM, RTi		Add containsIgnoreCase().
-// 02 Jan 2001	SAM, RTi		Add firstToken() and count().
-// 15 Jan 2001	SAM, RTi		Add tokenCount() and change count() to
-//					patternCount().  Add getToken() and
-//					deprecate firstToken().
-// 11 Apr 2001	SAM, RTi		Fix bug where breakStringList() was not
-//					properly handling empty quoted strings.
-// 01 Oct 2001	SAM, RTi		Overload formatString() to take Double
-//					and Integer.
-// 2001-12-05	SAM, RTi		Clean up sortStringList().
-// 2001-12-20	SAM, RTi		Change so that fixedRead() does not
-//					return the non-data items in the
-//					return Vector.  This requires that all
-//					code that use the method be updated
-//					accordingly.  Also overload
-//					so the format can be passed in using
-//					arrays of specifiers (elimating the need
-//					to repetitively parse a format string),
-//					and, optionally, pass in the Vector to
-//					fill so that it can be reused.
-//					All of this should result in a marked
-//					increase in performance, especially
-//					in cases where the format used
-//					repeatedly (e.g., model input files).
-//					Minor cleanup in ato*() methods.
-// 2002-01-08	SAM, RTi		Update sortStringList() to allow a
-//					sorted index to be manipulated, similar
-//					to the MathUtil sort methods.
-// 2002-02-03	SAM, RTi		Overload matchesRegExp() to ignore case
-//					and fix a bug where candidate strings
-//					that were not at least as long as the
-//					regular expression string caused an
-//					exception.
-// 2002-05-01	SAM, RTi		Add remove().
-// 2002-06-19	SAM, RTi		Add lineWrap().
-// 2002-09-03	J. Thomas Sapienza, RTi	Add replaceString().
-// 2002-09-05	SAM, RTi		Fix bug in breakStringList() where
-//					quoted strings were not being handle
-//					correctly in all cases and rework code
-//					to improve performance some.  Keep
-//					around the old version as
-//					breakStringListOld() to allow
-//					comparisons when problems arise.
-// 2002-10-03	SAM, RTi		Found that the new breakStringList() did
-//					not behave the same as the old when
-//					delimiters are at the beginning of the
-//					string (old skipped).  Make the new
-//					version behave the same as the old.
-// 2002-10-14	Morgan Love, RTi	Added methods:
-//					String byteToHex( byte b )
-//						which Returns hex String 
-//						representation of byte b.
-//					String charToHex(char c)
-//						which returns hex String 
-//						representation of char c.
-//					Both Methods originated in the NWSRFS
-//					GUI StringUtil class: UnicodeFormatter.
-//					These methods are similar to copyrighted
-//					versions from Sun (OK for non-commercial
-//					use).  However the code is very basic
-//					and hopefully there is no issue with RTi
-//					using - probably just the standard Sun
-//					policy on released code.
-//					Add maxSize() to return the longest
-//					String in a Vector.
-// 2003-03-06	SAM, RTi		Review replaceString() and change from
-//					private to public.
-// 2003-03-25	SAM, RTi		Change round() to use Long internally
-//					because some very large numbers are
-//					being encountered.
-// 2003-06-04	SAM, RTi		Add endsWithIgnoreCase().
-// 2003-06-11	JTS, RTi		Added startsWithIgnoreCase().
-// 2003-06-12	JTS, RTi		Fixed bug in replaceString that resulted
-//					in it not working if the string (s2)
-//					that was replacing the other string 
-//					(s1) contained s1 as a substring
-// 2003-12-10	SAM, RTi		Add toVector() to take an Enumeration.
-// 2003-12-17	SAM, RTi		Add removeDuplicates(Vector).
-// 2004-03-03	JTS, RTi		Added wrap() and related helper methods
-//					to wrap lines of text at given lengths.
-// 2004-03-09	JTS, RTi		Added stringsAreEqual() for easy 
-//					testing of even null strings.
-// 2004-05-10	JTS, RTi		Added isLong().
-// 2004-05-24	Scott Townsend, RTi	Added isASCII(). This is needed to
-//					parse data coming from NWSRFS binary
-//					database files.
-// 2004-07-20	SAM, RTi		* Deprecate matchesRegExp() in favor of
-//					  matchesIgnoreCase().
-// 2005-08-18	SAM, RTi		Fix bug in removeDuplicates() where the
-//					index was not being decremented on a
-//					delete, resulting in not all duplicates
-//					being removed.
-// 2006-04-10	SAM, RTi		Overload addToStringList() to accept an
-//					array of String.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-// EndHeader
-
 package RTi.Util.String;
 
 import java.lang.Character;
@@ -1908,7 +1772,7 @@ Format a double as a string.
 @param format Format to use.
 */
 public static final String formatString ( double d, String format )
-{	List<Double> v = new Vector<Double>( 1, 1 );
+{	List<Double> v = new ArrayList<>(1);
 	v.add ( new Double(d) );
 	return formatString ( v, format );
 }
@@ -1920,7 +1784,7 @@ Format a Double as a string.
 @param format Format to use.
 */
 public static final String formatString ( Double d, String format )
-{	List<Double> v = new Vector<Double>( 1, 1 );
+{	List<Double> v = new ArrayList<>(1);
 	v.add ( d );
 	return formatString ( v, format );
 }
@@ -1932,7 +1796,7 @@ Format a float as a string.
 @param format Format to use.
 */
 public static final String formatString ( float f, String format )
-{	List<Float> v = new Vector<Float>( 1, 1 );
+{	List<Float> v = new ArrayList<>(1);
 	v.add ( new Float(f) );
 	return formatString ( v, format );
 }
@@ -1944,7 +1808,7 @@ Format an int as a string.
 @param format Format to use.
 */
 public static final String formatString ( int i, String format )
-{	List<Integer> v = new Vector<Integer>( 1, 1 );
+{	List<Integer> v = new ArrayList<>(1);
 	v.add ( new Integer(i) );
 	return formatString ( v, format );
 }
@@ -1956,7 +1820,7 @@ Format an Integer as a string.
 @param format Format to use.
 */
 public static final String formatString ( Integer i, String format )
-{	List<Integer> v = new Vector<Integer>( 1, 1 );
+{	List<Integer> v = new ArrayList<>(1);
 	v.add ( i );
 	return formatString ( v, format );
 }
@@ -1968,7 +1832,7 @@ Format a long as a string.
 @param format Format to use.
 */
 public static final String formatString ( long l, String format )
-{	List<Long> v = new Vector<Long>( 1, 1 );
+{	List<Long> v = new ArrayList<>(1);
 	v.add ( new Long(l) );
 	return formatString ( v, format );
 }
