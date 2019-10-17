@@ -367,17 +367,44 @@ public static void copyToClipboard(String string) {
 }
 
 /**
-Enforce a file extension.  For example, if a file chooser is used but the file
+Enforce a file extension using a list of accepted extensions.
+For example, if a file chooser is used but the file
 extension is not added by the chooser.  For example, if the file name is
 "file" and the extension is "zzz", then the returned value will be "file.zzz".
 If the file is "file.zzz", the returned value will be the same (no change).
 There is currently no sophistication to handle input file names with multiple
 extensions that are different from the requested extension.
 @param filename The file name on which to enforce the extension.
+@param extensions The file extension to enforce, without the leading ".".
+All extensions are checked (case sensitive).  The first matched is used.
+If none match, the first extension in the list is applied.
+@return the filename with enforced extension.
+*/
+public static String enforceFileExtension ( String filename, List<String> extensions )
+{	for ( String extension : extensions ) {
+		if ( filename.endsWith("." + extension) ) {
+			// Found a match so use filename as is
+			return filename;
+		}
+	}
+	// If here the extension did not match so use the first extension
+	return filename + "." + extensions.get(0);
+}
+
+
+/**
+Enforce a file extension.  For example, if a file chooser is used but the file
+extension is not added by the chooser.  For example, if the file name is
+"file" and the extension is "zzz", then the returned value will be "file.zzz".
+If the file is "file.zzz", the returned value will be the same (no change).
+Used the overloaded method to handle input file names with multiple extensions.
+@param filename The file name on which to enforce the extension.
 @param extension The file extension to enforce, without the leading ".".
+@return the filename with enforced extension.
 */
 public static String enforceFileExtension ( String filename, String extension )
 {	if ( StringUtil.endsWithIgnoreCase(filename, "." + extension) ) {
+		// Found a match so use filename as is
 		return filename;
 	}
 	else {

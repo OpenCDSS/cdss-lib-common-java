@@ -242,7 +242,7 @@ Typically, a command will be run in one of the ways illustrated below:
 	// Use any of the available constructors...
 	ProcessManager pm = new ProcessManager ( "Some command" );
 	Thread thread = new Thread ( pm );
-	pm.start ();	// This executes the run() method in ProcessManager.
+	thread.start ();	// This executes the run() method in ProcessManager.
 	// Do not set pm to null.  This apparently causes a problem with the
 	// thread.
 	</pre> 

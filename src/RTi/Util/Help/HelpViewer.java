@@ -24,8 +24,13 @@ NoticeEnd */
 package RTi.Util.Help;
 
 import java.awt.Desktop;
+import java.io.File;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
+import RTi.Util.IO.IOUtil;
+import RTi.Util.IO.ProcessManager;
 import RTi.Util.Message.Message;
 
 /**
@@ -93,9 +98,15 @@ public class HelpViewer {
 			}
 	        // Now display using the default application for the file extension
 	        Message.printStatus(2, routine, "Opening documentation \"" + docUri + "\"" );
-			// If 
+			// Use the desktop to display documentation
 			if ( !Desktop.isDesktopSupported() ) {
-				Message.printWarning(1, "", "Opening browser from software not supported.  View the following in a browser: " + docUri );
+				if ( IOUtil.isUNIXMachine() ) {
+					// Only try on Linux since Windows Desktop seems to work OK
+					showHelpRunBrowser(docUri);
+				}
+				else {
+					Message.printWarning(1, "", "Opening browser from software not supported.  View the following in a browser: " + docUri );
+				}
 			}
 			else {
 		        // The Desktop.browse() method will always open, even if the page does not exist,
@@ -106,10 +117,49 @@ public class HelpViewer {
 		            desktop.browse ( new URI(docUri) );
 		        }
 		        catch ( Exception e ) {
-		            Message.printWarning(2, "", "Unable to display documentation at \"" + docUri + "\" (" + e + ")." );
+		        	if ( IOUtil.isUNIXMachine() ) {
+					   	// Only try on Linux since Windows Desktop seems to work OK
+					   	showHelpRunBrowser(docUri);
+				    }
+		        	else {
+		        		Message.printWarning(2, "", "Unable to display documentation at \"" + docUri + "\" (" + e + ")." );
+		        	}
 		        }
 			}
 	    }
+	}
+	
+	/**
+	 * Show help by running a browser.
+	 * This is typically used on Linux because Desktop.browse() does not seem to be supported.
+	 */
+	private void showHelpRunBrowser ( String docUri ) {
+		boolean browserOk = false;
+		Message.printWarning(2, "", "Attempting direct call to browsers." );
+		List<String> browsers = new ArrayList<>();
+		browsers.add("chromium");
+		browsers.add("chromium.exe");
+		for ( String browser : browsers ) {
+			// Find the browser in the path
+			File programFile = IOUtil.findProgramInPath(browser);
+			if ( programFile != null ) {
+				try {
+					ProcessManager pm = new ProcessManager(browser + " " + docUri);
+					Thread thread = new Thread ( pm );
+					thread.start ();	// This executes the run() method in ProcessManager.
+					browserOk = true;
+					break;
+				}
+				catch ( Exception e ) {
+					Message.printWarning(3, "",  "Error running :" + browser + " " + docUri);
+					browserOk = false;
+				}
+			}
+		}
+		if ( !browserOk ) {
+			Message.printWarning(1, "", "Opening browser from software not supported and unable to open in browser." +
+			   "  View the following in a browser: " + docUri );
+		}
 	}
 
 }
