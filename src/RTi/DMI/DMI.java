@@ -572,7 +572,8 @@ ODBC Data Source Name if __jdbc_odbc is false.
 private String __odbc_name;
 
 /**
-Additional connection properties, which will be added at the end of the connection URL with a leading semi-colon.
+Additional connection properties, which will be added at the end of the connection URL.
+If a leading delimiter is needed such as semi-colon or ampersand, include in the string.
 These are typically passed in for datastores that require special properties.
 Set with setAdditionalConnectionProperties() before calling open().
 */
@@ -2392,7 +2393,7 @@ throws SQLException, Exception {
 		Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
 		connUrl = "jdbc:odbc:" + __odbc_name;
 		if ( (__additionalConnectionProperties != null) && (__additionalConnectionProperties.length() > 0) ) {
-			connUrl = connUrl + ";" + __additionalConnectionProperties;
+			connUrl = connUrl + __additionalConnectionProperties;
 		}
 		Message.printStatus (2, routine, "Opening ODBC connection using JDBC/ODBC and \"" + connUrl + "\"" );
 	}
@@ -2481,7 +2482,9 @@ public void rollback() throws SQLException {
 
 /**
 Set additional connection URL properties.
-@param additionalConnectionProperties a string of form "prop1=value1;prop2=value2"
+@param additionalConnectionProperties a string of form ";prop1=value1;prop2=value2",
+where the semi-colon represents a delimiter.
+Use the appropriate delimiter character for the database technology being used.
 */
 public void setAdditionalConnectionProperties ( String additionalConnectionProperties )
 {
