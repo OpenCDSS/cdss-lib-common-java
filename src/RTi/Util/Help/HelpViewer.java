@@ -102,7 +102,7 @@ public class HelpViewer {
 			if ( !Desktop.isDesktopSupported() ) {
 				if ( IOUtil.isUNIXMachine() ) {
 					// Only try on Linux since Windows Desktop seems to work OK
-					showHelpRunBrowser(docUri);
+					showHelpRunBrowserUnix(docUri);
 				}
 				else {
 					Message.printWarning(1, "", "Opening browser from software not supported.  View the following in a browser: " + docUri );
@@ -119,7 +119,7 @@ public class HelpViewer {
 		        catch ( Exception e ) {
 		        	if ( IOUtil.isUNIXMachine() ) {
 					   	// Only try on Linux since Windows Desktop seems to work OK
-					   	showHelpRunBrowser(docUri);
+					   	showHelpRunBrowserUnix(docUri);
 				    }
 		        	else {
 		        		Message.printWarning(2, "", "Unable to display documentation at \"" + docUri + "\" (" + e + ")." );
@@ -133,26 +133,45 @@ public class HelpViewer {
 	 * Show help by running a browser.
 	 * This is typically used on Linux because Desktop.browse() does not seem to be supported.
 	 */
-	private void showHelpRunBrowser ( String docUri ) {
+	private void showHelpRunBrowserUnix ( String docUri ) {
 		boolean browserOk = false;
-		Message.printWarning(2, "", "Attempting direct call to browsers." );
-		List<String> browsers = new ArrayList<>();
-		browsers.add("chromium");
-		browsers.add("chromium.exe");
-		for ( String browser : browsers ) {
-			// Find the browser in the path
-			File programFile = IOUtil.findProgramInPath(browser);
-			if ( programFile != null ) {
-				try {
-					ProcessManager pm = new ProcessManager(browser + " " + docUri);
-					Thread thread = new Thread ( pm );
-					thread.start ();	// This executes the run() method in ProcessManager.
-					browserOk = true;
-					break;
-				}
-				catch ( Exception e ) {
-					Message.printWarning(3, "",  "Error running :" + browser + " " + docUri);
-					browserOk = false;
+		// First try using xdg-open
+		Message.printWarning(2, "", "Attempting call to xdg-open." );
+		try {
+			ProcessManager pm = new ProcessManager("xdg-open " + docUri);
+			Thread thread = new Thread ( pm );
+			thread.start ();	// This executes the run() method in ProcessManager.
+			browserOk = true;
+			// TODO smalers 2019-10-17 maybe there is a way to check the xdg-open command,
+			// but not sure how exit status for a thread would work
+		}
+		catch ( Exception e ) {
+			Message.printWarning(3, "",  "Error running: xdg-open " + docUri);
+			browserOk = false;
+		}
+		if ( !browserOk ) {
+			Message.printWarning(2, "", "Attempting direct call to browsers." );
+			// Try running browser directly
+			List<String> browsers = new ArrayList<>();
+			browsers.add("chromium");
+			browsers.add("chromium.exe");
+			browsers.add("firefox");
+			browsers.add("firefox.exe");
+			for ( String browser : browsers ) {
+				// Find the browser in the path
+				File programFile = IOUtil.findProgramInPath(browser);
+				if ( programFile != null ) {
+					try {
+						ProcessManager pm = new ProcessManager(browser + " " + docUri);
+						Thread thread = new Thread ( pm );
+						thread.start ();	// This executes the run() method in ProcessManager.
+						browserOk = true;
+						break;
+					}
+					catch ( Exception e ) {
+						Message.printWarning(3, "",  "Error running: " + browser + " " + docUri);
+						browserOk = false;
+					}
 				}
 			}
 		}
