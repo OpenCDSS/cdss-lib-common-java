@@ -45,7 +45,7 @@ private List<DataStore> __dataStoreList = null;
 /**
 Number of columns in the table model (with the alias).
 */
-private int __COLUMNS = 14;
+private int __COLUMNS = 15;
 
 /**
 Absolute column indices, for column lookups.
@@ -64,11 +64,12 @@ public final int COL_DATABASE_NAME = 8;
 // Straight ODBC connection...
 public final int COL_ODBC_NAME = 9;
 public final int COL_SYSTEM_LOGIN = 10;
+public final int COL_CONNECT_PROPS = 11;
 // Web service data store...
-public final int COL_SERVICE_ROOT_URI = 11;
+public final int COL_SERVICE_ROOT_URI = 12;
 // General error string
-public final int COL_STATUS_MESSAGE = 12;
-public final int COL_CONFIG_FILE = 13;
+public final int COL_STATUS_MESSAGE = 13;
+public final int COL_CONFIG_FILE = 14;
 
 /**
 Constructor.
@@ -123,6 +124,7 @@ public String getColumnName(int columnIndex) {
         case COL_DATABASE_NAME: return "Database Name";
         case COL_ODBC_NAME: return "ODBC Name";
         case COL_SYSTEM_LOGIN: return "Database Login";
+        case COL_CONNECT_PROPS: return "Additional Connection Properties";
         case COL_SERVICE_ROOT_URI: return "Web Service Root URI";
         case COL_STATUS_MESSAGE: return "Status Message";
         case COL_CONFIG_FILE: return "Configuration File";
@@ -146,6 +148,7 @@ public String[] getColumnToolTips() {
     tooltips[COL_DATABASE_NAME] = "Database name for database datastore.";
     tooltips[COL_ODBC_NAME] = "ODBC name when used with generic database datastore.";
     tooltips[COL_SYSTEM_LOGIN] = "Database account login.";
+    tooltips[COL_CONNECT_PROPS] = "Database additional connection properties (depends on database driver).";
     tooltips[COL_SERVICE_ROOT_URI] = "Root URI for web service datastore.";
     tooltips[COL_STATUS_MESSAGE] = "Error message (e.g., when initialization failed).";
     tooltips[COL_CONFIG_FILE] = "Datastore configuration file.";
@@ -285,6 +288,18 @@ public Object getValueAt(int row, int col)
             }
         case COL_SYSTEM_LOGIN:
         	return dataStore.getProperty("SystemLogin");
+        case COL_CONNECT_PROPS:
+            if ( databaseDataStore != null ) {
+            	if ( databaseDataStore.getDMI() != null ) {
+            		return databaseDataStore.getDMI().getAdditionalConnectionProperties();
+            	}
+            	else {
+            		return "";
+            	}
+            }
+            else {
+                return "";
+            }
         case COL_SERVICE_ROOT_URI:
             if ( webServiceDataStore != null ) {
                 return webServiceDataStore.getServiceRootURI();
@@ -317,6 +332,7 @@ public int[] getColumnWidths() {
     widths[COL_DATABASE_NAME] = 15;
     widths[COL_ODBC_NAME] = 16;
     widths[COL_SYSTEM_LOGIN] = 10;
+    widths[COL_CONNECT_PROPS] = 20;
     widths[COL_SERVICE_ROOT_URI] = 50;
     widths[COL_STATUS_MESSAGE] = 30;
     widths[COL_CONFIG_FILE] = 50;
