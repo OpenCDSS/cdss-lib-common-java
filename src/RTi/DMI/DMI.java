@@ -1772,11 +1772,20 @@ throws Throwable {
 }
 
 /**
+Return the additional database connection properties.
+These are used to customize a connection based on the JDBC driver connection string options.
+@return the additional database connection properties.
+*/
+public String getAdditionalConnectionProperties() {
+	return __additionalConnectionProperties;
+}
+
+/**
 Returns all the kinds of databases a DMI can connect to.
 @return a list of all the kinds of databases a DMI can connect to.
 */
 protected static List<String> getAllDatabaseTypes() {
-	List<String> v = new ArrayList<String>(9);
+	List<String> v = new ArrayList<>(9);
 	v.add("Access");
 	v.add("Derby");
 	v.add("Excel");
