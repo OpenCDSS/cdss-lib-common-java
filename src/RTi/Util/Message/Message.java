@@ -156,7 +156,8 @@ public abstract class Message
 
 /**
 The following are used when setting message output locations.  Output to the
-terminal (UNIX or DOS shell).  This prints to System.out.
+terminal (UNIX or DOS shell).i
+This prints to System.err (prior to 2019-10-20 used System.out).
 */
 public final static int TERM_OUTPUT = 0;
 

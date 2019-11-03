@@ -301,7 +301,10 @@ protected void initStreams() {
 	// Set the output stream for terminal so that we can debug initial
 	// output.  Don't call setOutputFile or we will recurse...
 
-	_out_stream[Message.TERM_OUTPUT] = new PrintWriter ( System.out, true );
+    // TODO smalers 2019-10-20 switch to standard error for console logging to prevent
+    // logging messages from being confused with analysis output printed to standard output.
+	//_out_stream[Message.TERM_OUTPUT] = new PrintWriter ( System.out, true );
+	_out_stream[Message.TERM_OUTPUT] = new PrintWriter ( System.err, true );
 }
 
 /**
@@ -825,9 +828,9 @@ protected void printWarning ( int level, String routine, Throwable e )
     e.printStackTrace();
 
 	if (IOUtil.isRunningApplet()) {
-		System.out.println("Exception stack trace follows...");
+		System.err.println("Exception stack trace follows...");
 		e.printStackTrace();
-		System.out.println("... end of exception stack trace.");
+		System.err.println("... end of exception stack trace.");
 	}
 	else {
 		printWarning ( level, routine, "Exception stack trace follows (see log file)..." );
