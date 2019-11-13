@@ -478,14 +478,12 @@ public int addField ( int insertPos, TableField tableField, Object initValue, Da
 /**
 Append one table to another.
 @param table original table
-@param newTableID identifier for new table
-@param reqIncludeColumns requested columns to include or null to include all
-@param distinctColumns requested columns to check for distinct combinations (currently only one column
-is allowed), will override reqIncludeColumns, specify null to not check for distinct values
-@param columnMap map to rename original columns to new name
+@param appendTable table that is being appended to the original table
+@param reqIncludeColumns requested columns in append table to include or null to include all
+@param columnMap map to rename original columns in the append table to new name (to match original table that is receiving data)
 @param columnData map to set additional data for appended records,
 the strings are converted to a type for the data column
-@param columnFilters map for columns that will apply a filter
+@param columnFilters map for columns that will apply a filter in the append table, to limit rows being appended
 @return the number of rows appended
 */
 public int appendTable ( DataTable table, DataTable appendTable, String [] reqIncludeColumns,
@@ -494,59 +492,71 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
 {   String routine = getClass().getSimpleName() + ".appendTable";
     // List of columns that will be appended
     String [] columnNamesToAppend = null;
-    String [] columnNames = table.getFieldNames();
+    String [] firstTableColumnNames = table.getFieldNames();
     if ( (reqIncludeColumns != null) && (reqIncludeColumns.length > 0) ) {
-        // Append only the requested names
+        // Append only the requested names from the append table
         columnNamesToAppend = reqIncludeColumns;
     }
     else {
-        // Append all
-        columnNamesToAppend = table.getFieldNames();
+        // Append all columns from the append table
+        columnNamesToAppend = appendTable.getFieldNames();
     }
-    // Column numbers in the append table to match the original table.  Any values set to -1 will result in null.
-    int [] columnNumbersInAppendTable = new int[table.getNumberOfFields()];
-    String [] appendTableColumnNamesOriginal = appendTable.getFieldNames();
-    String [] appendTableColumnNames = appendTable.getFieldNames();
+    // Column numbers in the append table to align with the original table.  Any values set to -1 will result in null.
+    int [] firstTableColumnNumbersInAppendTable = new int[table.getNumberOfFields()];
+    String [] appendTableColumnNamesOriginal = appendTable.getFieldNames();  // columns from append table
+    String [] appendTableColumnNamesAfterMapping = appendTable.getFieldNames(); // columns from append table after mapping, set below
     // Replace the append table names using the column map
-    Object o;
-    for ( int icol = 0; icol < appendTableColumnNames.length; icol++ ) {
+    String columnMapped;
+    for ( int icol = 0; icol < appendTableColumnNamesAfterMapping.length; icol++ ) {
+    	// If column map is provided, use it
         if ( columnMap != null ) {
-            o = columnMap.get(appendTableColumnNames[icol]);
-            if ( o != null ) {
+        	// Append column table output name is looked up from append table column original name
+            columnMapped = columnMap.get(appendTableColumnNamesAfterMapping[icol]);
+            if ( columnMapped != null ) {
                 // Reset the append column name with the new name, which should match a column name in the first table
-                appendTableColumnNames[icol] = (String)o;
+                appendTableColumnNamesAfterMapping[icol] = columnMapped;
             }
         }
     }
     // Loop through the columns in the original table and match the column numbers in the append table
     boolean appendColumnFound = false;
-    for ( int icol = 0; icol < columnNumbersInAppendTable.length; icol++ ) {
-        columnNumbersInAppendTable[icol] = -1; // No match between first and append table
+    int errorCount = 0;
+    StringBuffer errorMessage = new StringBuffer();
+    for ( int icol = 0; icol < firstTableColumnNumbersInAppendTable.length; icol++ ) {
+        firstTableColumnNumbersInAppendTable[icol] = -1; // No match between first and append table, will result in null in original table
         // Check each of the column names in the original table to match whether appending from the append table
-        // The append table column names will have been mapped to the first table above
-        for ( int i = 0; i < appendTableColumnNames.length; i++ ) {
-            // First check to see if the column name should be appended
+        // - appendTableColumnNamesAfterMapping are names in the original table, achieved through mapping
+        // The append table column names will have been mapped to the first table above.
+        for ( int i = 0; i < appendTableColumnNamesAfterMapping.length; i++ ) {
+            // First check to see if the column name should be appended by whether append table and original table columns map to same column name
             appendColumnFound = false;
             for ( int j = 0; j < columnNamesToAppend.length; j++ ) {
+            	// columnNamesToAppend
                 if ( columnNamesToAppend[j].equalsIgnoreCase(appendTableColumnNamesOriginal[i]) ) {
+                	// Found a requested column to append in the append table (using original column names)
                     appendColumnFound = true;
                     break;
                 }
             }
             if ( !appendColumnFound ) {
-                // Skip the table column - don't append
+            	//Message.printStatus(2, routine, "Column \"" + appendTableColumnNamesOriginal[i] +
+            		//"\" was not requested to append/copy to first table.");
                 continue;
             }
-            if ( columnNames[icol].equalsIgnoreCase(appendTableColumnNames[i]) ) {
-                columnNumbersInAppendTable[icol] = i;
+            if ( firstTableColumnNames[icol].equalsIgnoreCase(appendTableColumnNamesAfterMapping[i]) ) {
+            	// Have a matching column in first (original) table and the append table
+            	// - this is after append table column names have been mapped (renamed)
+            	Message.printStatus(2, routine, "Original table column [" + icol + "] \"" +
+            		firstTableColumnNames[icol] + "\" maps to append table column [" + i + "] \"" +
+            			appendTableColumnNamesAfterMapping[i] + "\" (before mapping: \"" +
+            		    appendTableColumnNamesOriginal[i] + "\")");
+                firstTableColumnNumbersInAppendTable[icol] = i;
                 break;
             }
         }
     }
     int [] tableColumnTypes = table.getFieldDataTypes(); // Original table column types
     int [] appendTableColumnTypes = appendTable.getFieldDataTypes(); // Append column types, lined up with original table
-    int errorCount = 0;
-    StringBuffer errorMessage = new StringBuffer();
     // Get filter columns and glob-style regular expressions
     int [] columnNumbersToFilter = new int[columnFilters.size()];
     String [] columnFilterGlobs = new String[columnFilters.size()];
@@ -562,14 +572,53 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
             columnFilterGlobs[ikey] = columnFilters.get(key);
             // Turn default globbing notation into internal Java regex notation
             columnFilterGlobs[ikey] = columnFilterGlobs[ikey].replace("*", ".*").toUpperCase();
+            Message.printStatus(2, routine, "Filtering column [" + columnNumbersToFilter[ikey] + "] \"" +
+                key + "\" to match \"" + columnFilterGlobs[ikey] + "\"");
         }
         catch ( Exception e ) {
             ++errorCount;
             if ( errorMessage.length() > 0 ) {
-                errorMessage.append(" ");
+                errorMessage.append("\n");
             }
             errorMessage.append ( "Filter column \"" + key + "\" not found in table \"" + appendTable.getTableID() + "\".");
         }
+    }
+    // If extra column data were provided, parse here so don't have to parse each time added
+    // - these are values for the original table columns that are not provided by append table
+    Object [] columnDataParsedValues = new Object[columnData.size()];
+    int iColumnData = -1;
+	for ( Map.Entry<String,String> entry : columnData.entrySet() ) {
+		++iColumnData;
+		String column = entry.getKey();
+		String value = entry.getValue();
+		// Get the column
+		try {
+			int iColumn = getFieldIndex(column);
+			int colType = getFieldDataType(iColumn);
+        	if ( colType == TableField.DATA_TYPE_STRING ) {
+        		columnDataParsedValues[iColumnData] = value;
+        	}
+        	else if ( colType == TableField.DATA_TYPE_DOUBLE ) {
+        		Double value_double = Double.valueOf(value);
+        		columnDataParsedValues[iColumnData] = value_double;
+        	}
+        	else if ( colType == TableField.DATA_TYPE_INT ) {
+        		Integer value_int = Integer.valueOf(value);
+        		columnDataParsedValues[iColumnData] = value_int;
+        	}
+        	else if ( colType == TableField.DATA_TYPE_LONG ) {
+        		Long value_long = Long.valueOf(value);
+        		columnDataParsedValues[iColumnData] = value_long;
+        	}
+       	}
+       	catch ( Exception e ) {
+            ++errorCount;
+            if ( errorMessage.length() > 0 ) {
+                errorMessage.append("\n");
+            }
+            errorMessage.append ( "Error parsing column data ( " + value + ") - will use null" );
+      		columnDataParsedValues[iColumnData] = null;
+       	}
     }
     // Loop through all the data records and append records to the table
     int icol;
@@ -579,22 +628,26 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
     String s;
     TableRecord rec;
     for ( int irow = 0; irow < appendTable.getNumberOfRecords(); irow++ ) {
-        somethingAppended = false;
-        filterMatches = true;
+        somethingAppended = false; // Nothing appended so don't process record below
+        filterMatches = true; // Meaning, include the record, true by default if no filters
         if ( columnNumbersToFilter.length > 0 ) {
             // Filters can be done on any columns so loop through to see if row matches before doing append
             for ( icol = 0; icol < columnNumbersToFilter.length; icol++ ) {
                 if ( columnNumbersToFilter[icol] < 0 ) {
+                	// Column for filter was not found so cannot apply the filter
                     filterMatches = false;
+                    Message.printStatus(2, routine, "Column name to filter could not be determined." );
                     break;
                 }
                 try {
-                    o = appendTable.getFieldValue(irow, columnNumbersToFilter[icol]);
+                    Object o = appendTable.getFieldValue(irow, columnNumbersToFilter[icol]);
                     if ( o == null ) {
                         filterMatches = false;
+                        // Message.printStatus(2, routine, "Object is null, cannot check against filter \"" + columnFilterGlobs[icol] + "\"");
                         break; // Don't include nulls when checking values
                     }
                     s = ("" + o).toUpperCase();
+                    // Message.printStatus(2, routine, "Checking \"" + s + "\" against filter \"" + columnFilterGlobs[icol] + "\"");
                     if ( !s.matches(columnFilterGlobs[icol]) ) {
                         // A filter did not match so don't copy the record
                         filterMatches = false;
@@ -602,87 +655,104 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
                     }
                 }
                 catch ( Exception e ) {
+                	if ( errorMessage.length() > 0 ) {
+                    	errorMessage.append("\n");
+                	}
                     errorMessage.append("Error getting append table data [" + irow + "][" +
-                        columnNumbersToFilter[icol] + "].");
+                        columnNumbersToFilter[icol] + "] for filter.");
                     Message.printWarning(3, routine, "Error getting append table data for [" + irow + "][" +
-                        columnNumbersToFilter[icol] + "] (" + e + ")." );
+                        columnNumbersToFilter[icol] + "] for filter (" + e + ")." );
+                    ++errorCount;
                 }
-            }
+            } // End checking column filters
             if ( !filterMatches ) {
-                // Skip the record.
+            	// One or more filters were provided and did not match the record so skip the record.
+            	// - the following generates a lot of output and can fill up the disk - disable for production code
+            	//Message.printStatus(2, routine, "Row " + (irow + 1) + " did not match filter...not appending row.");
                 continue;
             }
         }
-        // Loop through columns in the original table and set values from the append table
-        // Create a record and add...
+        // Loop through columns in the original table and set values from the append table.
+        // - the number of columns will match the first table
+        // Create a record and add values for each column extracted from the append table...
         rec = new TableRecord();
-        for ( icol = 0; icol < columnNumbersInAppendTable.length; icol++ ) {
+        for ( icol = 0; icol < firstTableColumnNumbersInAppendTable.length; icol++ ) {
             try {
-                if ( columnNumbersInAppendTable[icol] < 0 ) {
+                if ( firstTableColumnNumbersInAppendTable[icol] < 0 ) {
                     // Column in first table was not matched in the append table so set to null
                     rec.addFieldValue(null);
                 }
                 else {
                     // Set the value in the original table, if the type matches
-                    if ( tableColumnTypes[icol] == appendTableColumnTypes[columnNumbersInAppendTable[icol]] ) {
-                        rec.addFieldValue(appendTable.getFieldValue(irow, columnNumbersInAppendTable[icol]));
+                    if ( tableColumnTypes[icol] == appendTableColumnTypes[firstTableColumnNumbersInAppendTable[icol]] ) {
+                        rec.addFieldValue(appendTable.getFieldValue(irow, firstTableColumnNumbersInAppendTable[icol]));
                     }
                     else {
+                    	// Types did not match so set to null
+                    	// - TODO smalers 2019-11-05 add intelligent casting
+                    	Message.printWarning(3, routine, "Column types do not match for column \"" +
+                    		firstTableColumnNames[icol] + "\" - using null value." );
+                    	++errorCount;
                         rec.addFieldValue(null);
                     }
                 }
-                somethingAppended = true;
+                somethingAppended = true; // Checked below to ensure that empty TableRecord is not added
             }
             catch ( Exception e ) {
                 // Should not happen
-                errorMessage.append("Error appending [" + irow + "][" + columnNumbersInAppendTable[icol] + "].");
-                Message.printWarning(3, routine, "Error setting appending [" + irow + "][" +
-                    columnNumbersInAppendTable[icol] + "] (" + e + ")." );
+               	if ( errorMessage.length() > 0 ) {
+                   	errorMessage.append("\n");
+               	}
+                errorMessage.append("Error appending [" + irow + "][" + firstTableColumnNumbersInAppendTable[icol] + "].");
+                Message.printWarning(3, routine, "Error setting/appending [" + irow + "][" +
+                    firstTableColumnNumbersInAppendTable[icol] + "] (" + e + ")." );
                 ++errorCount;
             }
         }
         if ( somethingAppended ) {
+        	// A record was determined from the append table that contained some data to append.
             // Set the record in the original table.
-        	// First see if additional data should be set
+        	// First see if additional data should be set, as provided by column data.
         	if ( columnData != null ) {
         		// Iterate through the hash
-        		// - this is brute force
-        		// - TODO smalers, could parse once to improve performance
+        		iColumnData = -1;
         		for ( Map.Entry<String,String> entry : columnData.entrySet() ) {
+        			++iColumnData;
         			String column = entry.getKey();
-        			String value = entry.getValue();
         			// Get the column
         			try {
         				int iColumn = getFieldIndex(column);
-        				int colType = getFieldDataType(iColumn);
-        				if ( colType == TableField.DATA_TYPE_STRING ) {
-        					rec.setFieldValue(iColumn, value);
-        				}
-        				else if ( colType == TableField.DATA_TYPE_DOUBLE ) {
-        					Double value_double = Double.valueOf(value);
-        					rec.setFieldValue(iColumn, value_double);
-        				}
-        				else if ( colType == TableField.DATA_TYPE_INT ) {
-        					Integer value_int = Integer.valueOf(value);
-        					rec.setFieldValue(iColumn, value_int);
-        				}
+        				rec.setFieldValue(iColumn, columnDataParsedValues[iColumnData]);
         			}
         			catch ( Exception e ) {
+        				// Should not happen but print warning if it does
+                        ++errorCount;
+                        if ( errorMessage.length() > 0 ) {
+                            errorMessage.append("\n");
+                        }
+                        errorMessage.append ( "Error setting column \"" + column + "\" data value (" +
+                        	columnDataParsedValues[iColumnData] + ") - previous value will remain." );
         			}
         		}
         	}
+        	// If here add the record to the original table
             try {
                 table.addRecord(rec);
                 ++irowAppended;
             }
             catch ( Exception e ) {
+               	if ( errorMessage.length() > 0 ) {
+                   	errorMessage.append("\n");
+               	}
                 errorMessage.append("Error appending row [" + irow + "].");
+                ++errorCount;
             }
         }
     }
     if ( errorCount > 0 ) {
-        throw new RuntimeException ( "There were + " + errorCount + " errors appending data to the table: " +
-            appendTable.getTableID() );
+    	Message.printWarning(3, routine, errorMessage.toString());
+        throw new RuntimeException ( "There were " + errorCount + " errors appending data from \"" + appendTable.getTableID() +
+        	"\" to the table \"" + table.getTableID() + "\"" );
     }
     return irowAppended;
 }
@@ -1058,6 +1128,17 @@ throws Exception
 		record = _table_records.get(i);
 		record.deleteField(fieldNum);
 	}
+}
+
+/**
+Delete all records from the table, useful when a temporary table is being reused.
+@return the number of records deleted.
+*/
+public int deleteAllRecords() 
+throws Exception {
+	int nrec = _table_records.size();
+	_table_records.clear();
+	return nrec;
 }
 
 /**

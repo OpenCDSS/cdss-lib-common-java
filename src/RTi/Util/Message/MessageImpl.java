@@ -43,6 +43,8 @@ import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
+
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -75,62 +77,89 @@ protected int __SHOW_MESSAGE_TAG = 0x10;
 Indicates if the Message class has been initialized.
 */
 protected boolean _initialized = false;
+
 /**
 JFrame when a GUI application, to allow message dialogs to be on top.
 */
 protected JFrame _top_level = null;
+
 /**
 Controls the appearance of messages.
 */
 protected int _flag = 0;
+
 /**
 Debug levels for the different output streams.
 */
 protected int [] _debug_level;
+
 /**
 Status levels for the different output streams.
 */
 protected int [] _status_level;
+
 /**
 Warning levels for the different output streams.
 */
 protected int [] _warning_level;
+
 /**
 Methods to receive output for the different streams.
 */
 protected Method [] _method;
+
 /**
 Indicates if any methods (functions) have been registered to receive output.
 */
 protected boolean _method_registered;
+
 /**
 Associated with _method.
 */
 protected Object [] _object;
+
 /**
 Newline character to use for output.
 */
 protected String _newline;
+
 /**
 Prefix to use for messages.
 */
 protected String _prefix;
+
 /**
 Suffix to use for messages.
 */
 protected String _suffix;
+
 /**
 Output streams for file output.
 */
 protected PrintWriter [] _out_stream;
+
+/**
+Output File for file output, used to examine file size, etc..
+*/
+protected File [] _out_File;
+
 /**
 Name of log file (perhaps at some point track names of all output receivers?).
 */
 protected String _logfile;
 /**
+ * Maximum size of the log file in bytes, -1 means no limit.
+ * - using a size will slow down logging slightly for additional checks
+ *   but the feature is needed to prevent filling up the disk for large workflows
+ * - only the log file is impacted (not all output streams)
+ */
+protected long _logfileMaxSize = -1;
+
+/**
 Properties to control display of messages, especially warnings.
 */
 protected PropList _props = new PropList ("Message.props");
+
 /**
 Use to increase performance rather than hit proplist.
 */
@@ -254,8 +283,8 @@ protected void initialize()
 {	if( _initialized ) {
 		return;
 	}
-	// For now we want to show the routine and flush the output.  For
-	// performance, we will likely turn flushing off at some point...
+	// For now want to show the routine and flush the output.
+	// For performance, may turn flushing off at some point...
 	_debug_level = new int[MAX_FILES];
 	_flag = Message.GUI_FOR_WARNING_1 | Message.SHOW_ROUTINE | Message.FLUSH_OUTPUT;
 	_logfile = "";
@@ -264,6 +293,7 @@ protected void initialize()
 	_newline = System.getProperty( "line.separator" );
 	_object = new Object[MAX_FILES];
 	_out_stream = new PrintWriter[MAX_FILES];
+	_out_File = new File[MAX_FILES];
 	_prefix = "";
 	_show_warning_dialog = true;
 	_status_level = new int[MAX_FILES];
@@ -291,6 +321,7 @@ protected void initialize()
 protected void initStreams() {
     for( int i=0; i<MAX_FILES; i++ ){
 		_out_stream[i] = null;
+		_out_File[i] = null;
 		_method[i] = null;
 		_object[i] = null;
 		_debug_level[i] = 0;
@@ -298,10 +329,10 @@ protected void initStreams() {
 		_warning_level[i] = 1; // Default is some warning
 	}
 
-	// Set the output stream for terminal so that we can debug initial
-	// output.  Don't call setOutputFile or we will recurse...
+	// Set the output stream for terminal so that can debug initial output.
+    // Don't call setOutputFile or will recurse...
 
-    // TODO smalers 2019-10-20 switch to standard error for console logging to prevent
+    // smalers 2019-10-20 switched to standard error for console logging to prevent
     // logging messages from being confused with analysis output printed to standard output.
 	//_out_stream[Message.TERM_OUTPUT] = new PrintWriter ( System.out, true );
 	_out_stream[Message.TERM_OUTPUT] = new PrintWriter ( System.err, true );
@@ -380,7 +411,7 @@ throws IOException
 		throw new IOException ( message );
 	}
 
-	// If we get here, we opened the log file...
+	// If here, the log file was successfully opened...
 
 	Message.printStatus ( 1, routine, "Opened log file \"" + logfile +
 	"\".  Previous messages not in file." );
@@ -458,6 +489,14 @@ protected void printDebug( int level, String routine, String message )
 
 	for( int i=0; i<MAX_FILES; i++ ){
 		if( _out_stream[i] != null && level <= _debug_level[i] ){
+			if ( (_logfileMaxSize > 0) && (i == Message.LOG_OUTPUT) ) {
+				// Maximum log file size was specified, currently only apply to log file
+				// - cut off output if log file size is greater than limit
+				if ( _out_File[i].length() > _logfileMaxSize ) {
+					// Don't output to logfile because size limit has been reached
+					return;
+				}
+			}
 			_out_stream[i].print( message2 + _newline );
 			if ( (_flag & Message.FLUSH_OUTPUT) != 0 ) {
 				_out_stream[i].flush();
@@ -623,8 +662,7 @@ protected void printStatus ( int level, String routine, String message )
 	}
 	String routine_string = "";
 	if ( routine != null ) {
-		// We only show the routine if we have requested it and the
-		// status level is greater than 1.
+		// Only show the routine if requested and the status level is greater than 1.
 		if( ( _flag & Message.SHOW_ROUTINE) != 0 ){
 			if ( level > 1 ) {
 				if ( routine.isEmpty() ) {
@@ -658,6 +696,14 @@ protected void printStatus ( int level, String routine, String message )
 
 	for( int i=0; i<MAX_FILES; i++ ){
 		if( (_out_stream[i] != null) && (level <= _status_level[i]) ){
+			if ( (_logfileMaxSize > 0) && (i == Message.LOG_OUTPUT) ) {
+				// Maximum log file size was specified, currently only apply to log file
+				// - cut off output if log file size is greater than limit
+				if ( _out_File[i].length() > _logfileMaxSize ) {
+					// Don't output to logfile because size limit has been reached
+					return;
+				}
+			}
 			_out_stream[i].print( message2 + _newline );
 			_out_stream[i].flush();
 		}
@@ -780,6 +826,14 @@ protected void printWarning ( int level, String tag, String routine, String mess
 
 	for( int i=0; i<MAX_FILES; i++ ){
 		if( _out_stream[i] != null && level <= _warning_level[i] ){
+			if ( (_logfileMaxSize > 0) && (i == Message.LOG_OUTPUT) ) {
+				// Maximum log file size was specified, currently only apply to log file
+				// - cut off output if log file size is greater than limit
+				if ( _out_File[i].length() > _logfileMaxSize ) {
+					// Don't output to logfile because size limit has been reached
+					return;
+				}
+			}
 			_out_stream[i].print( message2 + _newline );
 			if ( (_flag & Message.FLUSH_OUTPUT) != 0 ) {
 				_out_stream[i].flush();
@@ -987,7 +1041,18 @@ Set the log file name for the log file.
 protected void setLogFile ( String logfile )
 {	if ( logfile != null ) {
 		_logfile = new String ( logfile );
+		// Also set a File, used to check maximum size
+		_out_File[Message.LOG_OUTPUT] = new File(logfile);
 	}
+}
+
+/**
+Set the log file maximum size.
+@param maxSize maximum log file size.
+*/
+protected void setLogFileMaxSize ( long maxSize )
+{	
+	_logfileMaxSize = maxSize;
 }
 
 /**
