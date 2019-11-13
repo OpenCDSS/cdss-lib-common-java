@@ -552,6 +552,17 @@ Set the log file name for the log file.
 */
 public static void setLogFile ( String logfile )
 {	impl.setLogFile(logfile);
+	// Also set the File associated with the log file
+}
+
+/**
+Set the log file maximum size in bytes.
+@param maxSize log file maximum sizes.
+*/
+public static void setLogFileMaxSize ( long maxSize)
+{	impl.setLogFileMaxSize(maxSize);
+	Message.printStatus(2, "Message", "Set log file maximum size to " + maxSize + " bytes." );
+	Message.printStatus(2, "Message", "Actual maximum may be slightly larger because last full line is printed without truncation.");
 }
 
 /**

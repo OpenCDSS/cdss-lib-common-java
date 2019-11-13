@@ -138,18 +138,20 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
         if ( (operator == DataTableMathOperatorType.TO_INTEGER) ||
         	((input1FieldType == TableField.DATA_TYPE_INT) &&
         	(input2FieldType == TableField.DATA_TYPE_INT)) ) {
-            outputField = __table.addField(new TableField(TableField.DATA_TYPE_INT,output,-1,-1), null );
+            outputFieldType = TableField.DATA_TYPE_INT;
+            outputField = __table.addField(new TableField(outputFieldType,output,-1,-1), null );
         }
         else {
         	// One or both output fields are floating point so default output to double
-            outputField = __table.addField(new TableField(TableField.DATA_TYPE_DOUBLE,output,10,4), null );
+            outputFieldType = TableField.DATA_TYPE_DOUBLE;
+            outputField = __table.addField(new TableField(outputFieldType,output,10,4), null );
         }
     }
     if ( (input1FieldType != TableField.DATA_TYPE_INT) && (input1FieldType != TableField.DATA_TYPE_DOUBLE) ) {
-    	problems.add("Input1 column type is not integer or double - cannot do math.");
+    	problems.add("Input1 column (" + input1 + ") type (" + TableField.getDataTypeAsString(input1FieldType) + ") is not integer or double - cannot do math.");
     }
     if ( (input2Field >= 0) && (input2FieldType != TableField.DATA_TYPE_INT) && (input2FieldType != TableField.DATA_TYPE_DOUBLE) ) {
-    	problems.add("Input2 column type is not integer or double - cannot do math.");
+    	problems.add("Input2 column (" + input2 + ") type (" + TableField.getDataTypeAsString(input2FieldType) + ") is not integer or double - cannot do math.");
     }
     
     if ( problems.size() > 0 ) {
@@ -236,8 +238,10 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
         } 
         // Check for missing values and compute the output
         if ( operator == DataTableMathOperatorType.TO_INTEGER ) {
+        	// Output should be set as an integer
+            outputFieldType = TableField.DATA_TYPE_INT;
 			// Only need the first input
-			// Set integer and double in case output table column is not configured properly
+			// Set integer and double in case output table column is not configured properly as integer
         	if ( input1FieldType == TableField.DATA_TYPE_DOUBLE ) {
 	            if ( (input1ValDouble == null) || input1ValDouble.isNaN() ) {
 	                outputValInteger = null;
@@ -316,11 +320,16 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
             if ( outputFieldType == TableField.DATA_TYPE_INT ) {
                 __table.setFieldValue(irec, outputField, outputValInteger );
             }
+            else if ( outputFieldType == TableField.DATA_TYPE_LONG ) {
+                __table.setFieldValue(irec, outputField, new Long(outputValInteger) );
+            }
             else if ( outputFieldType == TableField.DATA_TYPE_DOUBLE ) {
                 __table.setFieldValue(irec, outputField, outputValDouble );
             }
             else {
             	// TODO SAM 2016-08-02 may need to support other output columns like strings
+                problems.add ( "Error setting value in row [" + irec + "] - don't know how to handle table column type " +
+                	TableField.getDataTypeAsString(outputFieldType) );
             }
         }
         catch ( Exception e ) {
