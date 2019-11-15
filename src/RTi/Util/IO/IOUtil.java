@@ -31,7 +31,7 @@ import java.awt.Toolkit;
 
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -48,7 +48,9 @@ import java.lang.Math;
 import java.lang.String;
 import java.lang.StringBuffer;
 import java.lang.System;
-
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -1661,6 +1663,81 @@ public static List<String> getSystemProperties() {
 	v.add("");
 	
 	return v;
+}
+
+/**
+Download a file given a URI and optionally save to a local file or StringBuffer.
+If the file is not saved, the error code return value will indicate whether it exists (200)
+or not (not 200).
+@param uri the URI for the file to retrieve.
+@param outputFile output file to save the content.  If null or empty, don't save.
+@param outputString output string to save the content.  If null, don't save.
+@return HTTP exit code from retrieving the content.
+*/
+public static int getUriContent ( String uri, String outputFile, StringBuilder outputString )
+throws IOException, MalformedURLException
+{
+    FileOutputStream fos = null;
+    HttpURLConnection urlConnection = null;
+    InputStream is = null;
+    int code = -1; // HTTP code
+	try {
+        // Some sites need cookie manager
+        // (see http://stackoverflow.com/questions/11022934/getting-java-net-protocolexception-server-redirected-too-many-times-error)
+        CookieHandler.setDefault(new CookieManager(null,CookiePolicy.ACCEPT_ALL));
+        // Open the input stream...
+        URL url = new URL(uri);
+        urlConnection = (HttpURLConnection)url.openConnection();
+        is = urlConnection.getInputStream();
+        BufferedInputStream isr = new BufferedInputStream(is);
+        // Open the output file...
+        boolean doOutputFile = false;
+        if ( (outputFile != null) && !outputFile.isEmpty() ) {
+            fos = new FileOutputStream( outputFile );
+            doOutputFile = true;
+        }
+        boolean doOutputString = false;
+        if ( outputString != null ) {
+        	doOutputString = true;
+        }
+        // Output the characters to the local file...
+        int numCharsRead;
+        int arraySize = 8192; // 8K optimal
+        byte[] byteArray = new byte[arraySize];
+        //int bytesRead = 0;
+        while ((numCharsRead = isr.read(byteArray, 0, arraySize)) != -1) {
+        	if ( doOutputFile ) {
+        		fos.write(byteArray, 0, numCharsRead);
+        	}
+            if ( doOutputString ) {
+            	// Also set the content in memory
+            	if ( numCharsRead == byteArray.length ) {
+            		outputString.append(new String(byteArray));
+            	}
+            	else {
+            		byte [] byteArray2 = new byte[numCharsRead];
+            		System.arraycopy(byteArray, 0, byteArray2, 0, numCharsRead);
+            		outputString.append(new String(byteArray2));
+            	}
+            }
+            //bytesRead += numCharsRead;
+        }
+	}
+    finally {
+        // Close the streams and connection
+        if ( is != null ) {
+        	try {
+        		is.close();
+        	}
+        	catch ( IOException e ) {
+        	}
+        }
+        if ( urlConnection != null ) {
+        	urlConnection.disconnect();
+        	code = urlConnection.getResponseCode();
+        }
+    }
+	return code;
 }
 
 /**
