@@ -758,6 +758,166 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
 }
 
 /**
+Change the table column data type to the requested type.
+This is typically done because an original type cannot be generically handled,
+for example, DBF file floating point column that is actually storing an integer.
+@param reqDataType requested data type, one of TableField.DATA_TYPE_*.
+@param newWidth new column width, can be -1 to not use, -2 to keep previous value.
+@param newPrecision new column precision, can be -1 to not use, -2 to keep previous value.
+@exception Exception if an error occurs converting values
+*/
+public void changeFieldDataType ( int fieldNum, int newDataType, int newWidth, int newPrecision ) 
+throws Exception {
+	int oldDataType = -1;
+	String format = null; // Used when converting from Float/Double to String
+	try {
+		oldDataType = this.getFieldDataType(fieldNum);
+	}
+	catch ( Exception e ) {
+        throw new RuntimeException ( "Cannot determine data type for column [" + fieldNum + "]" );
+	}
+	if ( oldDataType == newDataType ) {
+		// Nothing to do
+		return;
+	}
+	// Field will be changed below, also need width and precision to format some conversions
+	TableField field = this.getTableField(fieldNum);
+	if ( (newDataType != TableField.DATA_TYPE_DOUBLE) &&
+	    (newDataType != TableField.DATA_TYPE_FLOAT) &&
+	    (newDataType != TableField.DATA_TYPE_INT) &&
+	    (newDataType != TableField.DATA_TYPE_STRING) ) {
+        throw new RuntimeException ( "New column data type \"" + TableField.getDataTypeAsString(newDataType) + "\" is not implemented." );
+	}
+	else {
+	    if ( (newDataType == TableField.DATA_TYPE_STRING) &&
+            (oldDataType != TableField.DATA_TYPE_DOUBLE) &&
+	        (oldDataType != TableField.DATA_TYPE_FLOAT) ) {
+	    	// Define output format, necessary to prevent default exponential format from toString()
+	    	format = "%" + field.getWidth() + "." + field.getPrecision() + "f";
+	    }
+	}
+	if ( (oldDataType != TableField.DATA_TYPE_DOUBLE) &&
+	    (oldDataType != TableField.DATA_TYPE_FLOAT) &&
+	    (oldDataType != TableField.DATA_TYPE_INT) &&
+	    (oldDataType != TableField.DATA_TYPE_STRING) ) {
+        throw new RuntimeException ( "Converstion of column data type \"" +
+            TableField.getDataTypeAsString(oldDataType) + "\" to \"" +
+            TableField.getDataTypeAsString(newDataType) + "\" is not implemented." );
+	}
+	// Change the table field information
+	field.setDataType(newDataType);
+	if ( newWidth > -2 ) {
+	    field.setWidth(newWidth);
+	}
+	if ( newPrecision > -2 ) {
+	    field.setPrecision(newPrecision);
+	}
+	// Change the data in the table
+	int numRec = getNumberOfRecords();
+	Object o;
+	Float f;
+	Double d;
+	String s;
+	Integer i;
+	for ( int irec = 0; irec < numRec; irec++ ) {
+	    o = this.getFieldValue(irec, fieldNum);
+	    if ( o == null ) {
+	    	// Nothing to be done because old and new will both be null
+	    }
+	    if ( newDataType == TableField.DATA_TYPE_DOUBLE ) {
+	    	if ( o instanceof Float ) {
+	    	    f = (Float)o;
+	    		if ( f.isNaN() ) {
+	        	    this.setFieldValue(irec, fieldNum, Double.NaN );
+	    		}
+	    		else {
+	        	    this.setFieldValue(irec, fieldNum, new Double(f.doubleValue()));
+	    		}
+	        }
+	    	else if ( o instanceof Integer ) {
+	    	    i = (Integer)o;
+	            this.setFieldValue(irec, fieldNum, new Double(i.doubleValue()));
+	        }
+	    	else if ( o instanceof String ) {
+	    	    s = (String)o;
+	        	this.setFieldValue(irec, fieldNum, new Double(s));
+	        }
+	    }
+	    else if ( newDataType == TableField.DATA_TYPE_FLOAT ) {
+	    	if ( o instanceof Double ) {
+	    	    d = (Double)o;
+	    		if ( d.isNaN() ) {
+	        	    this.setFieldValue(irec, fieldNum, Float.NaN );
+	    		}
+	    		else {
+	        	    this.setFieldValue(irec, fieldNum, new Float(d.doubleValue()));
+	    		}
+	        }
+	    	else if ( o instanceof Integer ) {
+	    	    i = (Integer)o;
+	            this.setFieldValue(irec, fieldNum, new Float(i.floatValue()));
+	        }
+	    	else if ( o instanceof String ) {
+	    	    s = (String)o;
+	        	this.setFieldValue(irec, fieldNum, new Float(s));
+	        }
+	    }
+	    else if ( newDataType == TableField.DATA_TYPE_INT ) {
+	    	if ( o instanceof Double ) {
+	    	    d = (Double)o;
+	    		if ( d.isNaN() ) {
+	    		    // Integer does not have equivalent to NaN so use null
+	        	    this.setFieldValue(irec, fieldNum, null );
+	    		}
+	    		else {
+	        	    this.setFieldValue(irec, fieldNum, new Integer(d.intValue()));
+	    		}
+	        }
+	    	else if ( o instanceof Float ) {
+	    	    f = (Float)o;
+	    		if ( f.isNaN() ) {
+	    		    // Integer does not have equivalent to NaN so use null
+	        	    this.setFieldValue(irec, fieldNum, null );
+	    		}
+	    		else {
+	        	    this.setFieldValue(irec, fieldNum, new Integer(f.intValue()));
+	    		}
+	        }
+	    	else if ( o instanceof String ) {
+	    	    s = (String)o;
+	        	this.setFieldValue(irec, fieldNum, new Integer(s));
+	        }
+	    }
+	    else if ( newDataType == TableField.DATA_TYPE_STRING ) {
+	    	if ( o instanceof Double ) {
+	    	    d = (Double)o;
+	    		if ( d.isNaN() ) {
+	    		    // String does not have equivalent to NaN so use null
+	        	    this.setFieldValue(irec, fieldNum, null );
+	    		}
+	    		else {
+	        	    this.setFieldValue(irec, fieldNum, String.format(format, d));
+	    		}
+	        }
+	    	else if ( o instanceof Float ) {
+	    	    f = (Float)o;
+	    		if ( f.isNaN() ) {
+	    		    // String does not have equivalent to NaN so use null
+	        	    this.setFieldValue(irec, fieldNum, null );
+	    		}
+	    		else {
+	        	    this.setFieldValue(irec, fieldNum, String.format(format, f));
+	    		}
+	        }
+	    	else if ( o instanceof Integer ) {
+	    	    i = (Integer)o;
+	        	this.setFieldValue(irec, fieldNum, "" + i);
+	        }
+	    }
+	}
+}
+
+/**
 Create a copy of the table.
 @param table original table
 @param newTableID identifier for new table
