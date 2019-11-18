@@ -1935,6 +1935,184 @@ public static String getToken ( String string, String delim, int flag, int token
 	return v.get(token);
 }
 
+/**
+Process lists of strings to handle include and exclude.
+The returned list is populated first considering the "includeFirst" parameter and the other list is removed.
+The returned list is typically an overall list of strings to include.
+This could be used, for example, to indicate which columns in a table to include in processing.
+@param initialList An initial list to check for inclusion,
+if null then includeList will be used and should not contain regular expressions.
+@param includeList A list of strings to include, can be null.
+@param excludeList A list of strings to exclude, can be null.
+@param includeFirst If true, the initial list is checked against the "includeList".
+If false, the list is first populated with "excludeList".
+The second list is then removed from the first list
+@param ignoreCase if true, the comparison of strings ignores case.
+@param checkRegex if true, compare strings by allowing Java regular expressions (String.matches()).
+In this case, if ignoreCase=true, strings are converted to uppercase before evaluating.
+Original input with globbing style wildcard "*" must have been converted to Java style wildcard ".*".
+*/
+public static List<String> includeExcludeStrings ( List<String> initialList,
+	List<String> includeList, List<String> excludeList,
+	boolean includeFirst,
+	boolean ignoreCase,
+	boolean checkRegex ) {
+    List<String> returnList = new ArrayList<>();
+    List<String> listToRemove = null;
+    List<String> listToInclude = null;
+    // Initialize list.
+    if ( includeFirst ) {
+    	listToInclude = includeList;
+    	listToRemove = excludeList;
+    }
+    else {
+    	listToInclude = excludeList;
+    	listToRemove = includeList;
+    }
+    // Populate the return list
+    // - only add strings that are in the "listToInclude"
+    if ( initialList == null ) {
+        // If the initial list is null, use the include list
+    	initialList = new ArrayList<>();
+    	if ( includeList != null ) {
+    		initialList.addAll(includeList);
+    	}
+    }
+	// Add to the return list from the include list
+    for ( String s1 : initialList ) {
+	    // Search the include list
+	    // - if a match, add to the list
+	    for ( String s2 : listToInclude ) {
+		    if ( checkRegex ) {
+			    // Checking regular expression
+			    if ( ignoreCase ) {
+				    // Can't use simple string comparison, so convert to upper-case.
+				    if ( s1.toUpperCase().matches(s2.toUpperCase()) ) {
+					    returnList.add(s1);
+				    }
+			    }
+			    else {
+				    if ( s1.matches(s2) ) {
+					    returnList.add(s1);
+				    }
+			    }
+		    }
+		    else {
+			    // Not checking regular expression so can just do string comparison.
+			    if ( ignoreCase ) {
+				    if ( s1.equalsIgnoreCase(s2) ) {
+					    returnList.add(s1);
+				    }
+			    }
+			    else {
+				    if ( s1.equals(s2) ) {
+					    returnList.add(s1);
+				    }
+			    }
+		    }
+	    }
+    }
+    // Loop through the initial list
+    // - must use indices because list size is changed during looping
+    int s1Size = returnList.size();
+    String s1;
+    for ( int is1 = 0; is1 < s1Size; is1++ ) {
+    	s1 = returnList.get(is1);
+    	// Search the exclude list
+    	// - if a match, remove from the list
+    	for ( String s2 : listToRemove ) {
+    		if ( checkRegex ) {
+    			// Checking regular expression
+    			if ( ignoreCase ) {
+    				// Can't use simple string comparison, so convert to upper-case.
+    				if ( s1.toUpperCase().matches(s2.toUpperCase()) ) {
+    					returnList.remove(s1);
+    					--is1;
+    					--s1Size;
+    				}
+    			}
+    			else {
+    				if ( s1.matches(s2) ) {
+    					returnList.remove(s1);
+    					--is1;
+    					--s1Size;
+    				}
+    			}
+    		}
+    		else {
+    			// Not checking regular expression so can just do string comparison.
+    			if ( ignoreCase ) {
+    				if ( s1.equalsIgnoreCase(s2) ) {
+    					returnList.remove(s1);
+    					--is1;
+    					--s1Size;
+    				}
+    			}
+    			else {
+    				if ( s1.equals(s2) ) {
+    					returnList.remove(s1);
+    					--is1;
+    					--s1Size;
+    				}
+    			}
+    		}
+    	}
+    }
+    return returnList;
+}
+
+/**
+Evaluate a list of strings and return a new list that matches strings to include.
+The returned list includes only strings in the included list.
+This could be used, for example, to indicate which columns in a table to include in processing.
+@param initialList An initial list of strings to evaluate, none of which are regex.
+@param includeList A list of strings to include, which can include regex.
+@param ignoreCase if true, the comparison of strings ignores case.
+@param checkRegex if true, compare strings by allowing Java regular expressions (String.matches()).
+In this case, if ignoreCase=true, strings are converted to uppercase before evaluating.
+Original input with globbing style wildcard "*" must have been converted to Java style wildcard ".*".
+*/
+public static List<String> includeStrings ( List<String> initialList, List<String> includeList,
+	boolean ignoreCase, boolean checkRegex ) {
+    List<String> returnList = new ArrayList<>();
+    // Loop through the include list
+    // - only add strings that are in the second list
+    for ( String s1 : initialList ) {
+    	// List through the second list
+    	// - if a match, remove from the list
+    	for ( String s2 : includeList ) {
+    		if ( checkRegex ) {
+    			// Checking regular expression
+    			if ( ignoreCase ) {
+    				// Can't use simple string comparison, so convert to upper-case.
+    				if ( s1.toUpperCase().matches(s2.toUpperCase()) ) {
+    					returnList.add(s1);
+    				}
+    			}
+    			else {
+    				if ( s1.matches(s2) ) {
+    					returnList.add(s1);
+    				}
+    			}
+    		}
+    		else {
+    			// Not checking regular expression so can just do string comparison.
+    			if ( ignoreCase ) {
+    				if ( s1.equalsIgnoreCase(s2) ) {
+    					returnList.add(s1);
+    				}
+    			}
+    			else {
+    				if ( s1.equals(s2) ) {
+    					returnList.add(s1);
+    				}
+    			}
+    		}
+    	}
+    }
+    return returnList;
+}
+
 // TODO SAM 2009-06-01 Evaluate whether to deprecate, etc given that it should not be ignore case
 // based on the name of the method.
 /**
