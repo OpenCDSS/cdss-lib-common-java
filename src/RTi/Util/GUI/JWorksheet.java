@@ -41,6 +41,7 @@ import java.awt.event.MouseListener;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Vector;
@@ -475,6 +476,7 @@ private final String
 	__MENU_COPY_HEADER = "Copy with Header",
 	__MENU_COPY_ALL = "Copy All",
 	__MENU_COPY_ALL_HEADER = "Copy All with Header",
+	__MENU_VIEW_CELL_CONTENTS = "View Cell Contents",
 	__MENU_DESELECT_ALL = "Deselect All",
 	__MENU_PASTE = "Paste",
 	__MENU_CALCULATE_STATISTICS = "Calculate Statistics",
@@ -738,6 +740,8 @@ appropriate header information, too.
 */
 private JMenuItem __copyHeaderMenuItem = null;
 private JMenuItem __copyAllHeaderMenuItem = null;
+
+private JMenuItem __viewCellContentsMenuItem = null;
 
 private JMenuItem __deselectAllMenuItem = null;
 private JMenuItem __selectAllMenuItem = null;
@@ -1183,6 +1187,9 @@ public void actionPerformed(ActionEvent event) {
 	}
 	else if (command.equals(__MENU_COPY_ALL_HEADER)) {
 		copyAllToClipboard(true);
+	}
+	else if (command.equals(__MENU_VIEW_CELL_CONTENTS)) {
+		viewCellContents();
 	}
 	else if (command.equals(__MENU_DESELECT_ALL)) {
 		deselectAll();
@@ -1855,7 +1862,7 @@ private void calculateStatistics () throws Exception {
 		// Create the table
 		DataTable table = new DataTable(tableFieldList);
 	
-		JWorksheet_AbstractTableModel tableModel = getTableModel();
+		JWorksheet_AbstractTableModel<?> tableModel = getTableModel();
 		// Transfer the data from the worksheet to the subset table
 		Object cellContents;
 		for (int irow = 0; irow < numSelectedRows; irow++) {
@@ -4841,13 +4848,15 @@ private void maybeShowPopup(MouseEvent event) {
 				__pasteMenuItem.setEnabled(true);
 				__deselectAllMenuItem.setEnabled(true);
 				__selectAllMenuItem.setEnabled(true);
+				__viewCellContentsMenuItem.setEnabled(true);
 			}
 			else {
 				__copyMenuItem.setEnabled(false);
 				__copyHeaderMenuItem.setEnabled(false);
 				__pasteMenuItem.setEnabled(false);
 				__deselectAllMenuItem.setEnabled(false);
-				__selectAllMenuItem.setEnabled(true);
+				__selectAllMenuItem.setEnabled(true); // Always enabled
+				__viewCellContentsMenuItem.setEnabled(false);
 			}
 			__mainPopup.show(event.getComponent(), event.getX(), event.getY());
 		}
@@ -6610,6 +6619,7 @@ private void setupPopupMenu(JPopupMenu menu, boolean worksheetHandlePopup) {
 	__pasteMenuItem = new JMenuItem(__MENU_PASTE);
 	__copyAllMenuItem = new JMenuItem(__MENU_COPY_ALL);
 	__copyAllHeaderMenuItem = new JMenuItem(__MENU_COPY_ALL_HEADER);
+	__viewCellContentsMenuItem = new JMenuItem(__MENU_VIEW_CELL_CONTENTS);
 	
 	__deselectAllMenuItem = new JMenuItem(__MENU_DESELECT_ALL);
 	__deselectAllMenuItem.addActionListener(this);
@@ -6632,6 +6642,10 @@ private void setupPopupMenu(JPopupMenu menu, boolean worksheetHandlePopup) {
 		menu.add(__copyAllMenuItem);
 		__copyAllHeaderMenuItem.addActionListener(this);
 		menu.add(__copyAllHeaderMenuItem);
+
+		menu.addSeparator();
+		__viewCellContentsMenuItem.addActionListener(this);
+		menu.add(__viewCellContentsMenuItem);
 	}
 	if (__pasteEnabled) {
 		__pasteMenuItem.addActionListener(this);
@@ -6918,6 +6932,45 @@ never be true in publicly-released code.
 */
 public void testing(boolean testing) {
 	__testing = testing;
+}
+
+/**
+View the contents of a single selected cell.
+This is needed because sometimes the cell content is too big to fit in table column.
+@param firstRow the firstRow to copy to the clipboard.
+@param lastRow the lastRow to be copied.
+*/
+private void viewCellContents() {
+	List<int []> selectedCells = getSelectedCells();
+	int [] selectedRows = selectedCells.get(0);
+	int [] selectedColumns = selectedCells.get(1);
+	StringBuilder b = new StringBuilder();
+	JWorksheet_AbstractTableModel<?> tableModel = getTableModel();
+	try {
+	    for ( int i = 0; i < selectedRows.length; i++ ) {
+		    if ( i > 0 ) {
+			    b.append("\n\n");
+		    }
+		    b.append("" + tableModel.getValueAt(selectedRows[i],  selectedColumns[i]) + "\n");
+	    }
+		PropList props = new PropList("CellContents");
+		props.set("Title=Cell Contents");
+		String s = b.toString();
+		s.replace("\r\n", "\n");
+		Component parent = SwingUtilities.getWindowAncestor(this);
+		if ( parent instanceof JFrame ) {
+			new ReportJDialog((JFrame)parent, Arrays.asList(s.split("\n")), props, true);
+		}
+		else if ( parent instanceof JDialog ) {
+			new ReportJDialog((JDialog)parent, Arrays.asList(s.split("\n")), props, true);
+		}
+		else {
+			Message.printWarning(1, "", "Unable to display cell contents - unknown parent window component.");
+		}
+	}
+	catch ( Exception e ) {
+		Message.printWarning(1, "", "Error displaying cell contents.");
+	}
 }
 
 /**
