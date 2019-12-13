@@ -1384,6 +1384,17 @@ public static String getPathUsingWorkingDir ( String path )
 }
 
 /**
+ * Get the process ID for the current Java Virtual Machine.
+ * This is useful when communicating the information in a system.
+ */
+public static int getProcessId () {
+	String processName = java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
+	String pid = processName.split("@")[0];
+	Integer ipid = Integer.parseInt(pid);
+	return ipid.intValue();
+}
+
+/**
 Return the program arguments.
 @return The program arguments set with setProgramArguments.
 @see #setProgramArguments
@@ -1603,6 +1614,7 @@ public static List<String> getSystemProperties() {
 	v.add("");
 	
 	v.add("Java Virtual Machine Memory Information: ");
+	v.add(tab + "JVM PID: " + IOUtil.getProcessId() );
 	Runtime r = Runtime.getRuntime();
 	v.add(tab + "Maximum memory (see Java -Xmx): " + r.maxMemory() + " bytes, " + r.maxMemory()/1024 + " kb, " + r.maxMemory()/1048576 + " mb" );
 	v.add(tab + "Total memory (will be increased to maximum as needed): " + r.totalMemory() + " bytes, " + r.totalMemory()/1024 + " kb, " + r.totalMemory()/1048576 + " mb");

@@ -297,6 +297,7 @@ NoticeEnd */
 
 package RTi.DMI;
 
+import RTi.Util.IO.IOUtil;
 import RTi.Util.Message.Message;
 
 import RTi.Util.String.StringUtil;
@@ -309,6 +310,7 @@ import java.sql.Statement;
 import java.sql.SQLException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
@@ -573,9 +575,10 @@ private String __odbc_name;
 
 /**
 Additional connection properties, which will be added at the end of the connection URL.
-If a leading delimiter is needed such as semi-colon or ampersand, include in the string.
+If a leading delimiter is needed such as ?, semi-colon or &, include in the string.
 These are typically passed in for datastores that require special properties.
 Set with setAdditionalConnectionProperties() before calling open().
+Login and password are handled separately from the connection URL.
 */
 private String __additionalConnectionProperties = "";
 
@@ -2245,6 +2248,8 @@ throws SQLException, Exception {
 
 	// Set up the database-specific connection strings...
 
+	HashMap<String,Object> propertyMap = new HashMap<>();
+	propertyMap.put("ProcessId", "" + IOUtil.getProcessId());
 	if ( __jdbc_odbc ) {
 		printStatusOrDebug(dl, routine, "Using JDBC ODBC connection.");
 		// The URL is formed using several pieces of information...
@@ -2256,6 +2261,9 @@ throws SQLException, Exception {
 			// case is therefore the same as if __jdbc_odbc = false.
 			Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
 			connUrl = "jdbc:odbc:" + __database_name;
+		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
+			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,propertyMap);
+		    }
 			Message.printStatus(2, routine,
 				"Opening ODBC connection for Microsoft Access JDBC/ODBC and \"" + connUrl + "\"");
 		}
@@ -2269,6 +2277,9 @@ throws SQLException, Exception {
             Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
             if ( __database_server.equalsIgnoreCase("memory") ) {
                 connUrl = "jdbc:derby:memory:db;create=true";
+		        if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
+			        connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+		        }
             }
             else {
                 throw new SQLException ( "For Derby currenty only support in-memory databases." );
@@ -2289,6 +2300,9 @@ throws SQLException, Exception {
 				+ __database_server + ":" 
 				+ __port + "/" + __database_name
 				+ ":INFORMIXSERVER=" + server;
+		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
+			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+		    }
 			// Login and password specified below.
 			// +";user=" + login + ";password=" + password;
 			Message.printStatus(2, routine, "Opening ODBC connection for Informix using \"" + connUrl + "\"");
@@ -2299,6 +2313,9 @@ throws SQLException, Exception {
 			connUrl = "jdbc:mysql://" 
 				+ __database_server + ":" 
 				+ __port + "/" + __database_name;
+		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
+			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+		    }
 			Message.printStatus(2, routine,
 				"Opening ODBC connection for MySQL using \"" + connUrl + "\"" );
 		}
@@ -2307,6 +2324,9 @@ throws SQLException, Exception {
 			connUrl = "jdbc:postgresql://" 
 				+ __database_server + ":" 
 				+ __port + "/" + __database_name;
+		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
+			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+		    }
 			Message.printStatus(2, routine, "Opening ODBC connection for PostgreSQL using \"" + connUrl + "\"" );
 		}
 		// All the SQL Server connections are now concentrated into one code block as using the SQL Server
@@ -2314,6 +2334,9 @@ throws SQLException, Exception {
 		else if ( _database_engine == DBENGINE_SQLSERVER ) {
             // http://msdn.microsoft.com/en-us/library/ms378428%28SQL.90%29.aspx
             connUrl = "jdbc:sqlserver://" + __database_server;
+		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
+			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+		    }
             // if connecting to a named instance, DO NOT USE PORT!
             // NOTE : it is generally recommended to use the port for speed
             // -IWS
@@ -2335,6 +2358,9 @@ throws SQLException, Exception {
 			connUrl = "jdbc:microsoft:sqlserver://"
 				+ __database_server + ":"
 				+ __port + ";DatabaseName=" + __database_name;
+		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
+			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+		    }
 			Message.printStatus(2, routine,
 				"Opening ODBC connection for SQLServer2000 using \"" + connUrl + "\"");
 		} 
@@ -2347,6 +2373,9 @@ throws SQLException, Exception {
 			connUrl = "jdbc:sqlserver://"
 				+ __database_server + ":"
 				+ __port + ";DatabaseName=" + __database_name;
+		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
+			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+		    }
 			Message.printStatus(2, routine, "Opening ODBC connection for SQLServer using \"" + connUrl + "\"");
 		} 
 		else if (_database_engine == _DBENGINE_SQLSERVER7 ) {
@@ -2366,6 +2395,9 @@ throws SQLException, Exception {
 			connUrl = "jdbc:inetdae7:" 
 				+ __database_server + ":"
 				+ __port + "?database=" + __database_name;
+		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
+			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+		    }
 			// This will turn off support for < SQL Server 7...
 			// "?sql7=true";
 			Message.printStatus(2, routine,
@@ -2378,6 +2410,9 @@ throws SQLException, Exception {
 			Class.forName( "org.h2.Driver");
             java.io.File f = new java.io.File(__database_server);
 			connUrl = "jdbc:h2:file:" + f.getAbsolutePath() + ";IFEXISTS=TRUE";
+		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
+			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+		    }
 			Message.printStatus(2, routine, "Opening JDBC connection for H2 using \"" + connUrl + "\"" );
 		}
         else if (_database_engine == DBENGINE_ORACLE ) {
@@ -2385,6 +2420,9 @@ throws SQLException, Exception {
             // Load the database driver class into memory...
 			Class.forName( "oracle.jdbc.driver.OracleDriver");
             connUrl = "jdbc:oracle:thin:@" + __database_server + ":" + __port + ":" + __database_name;
+		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
+			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+		    }
 			Message.printStatus(2, routine, "Opening ODBC connection for Oracle using \"" + connUrl + "\"");
         }
 		else {	
@@ -2401,8 +2439,8 @@ throws SQLException, Exception {
 		printStatusOrDebug(dl, routine, "Using default Java connection method.");
 		Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
 		connUrl = "jdbc:odbc:" + __odbc_name;
-		if ( (__additionalConnectionProperties != null) && (__additionalConnectionProperties.length() > 0) ) {
-			connUrl = connUrl + __additionalConnectionProperties;
+		if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
+			connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
 		}
 		Message.printStatus (2, routine, "Opening ODBC connection using JDBC/ODBC and \"" + connUrl + "\"" );
 	}
