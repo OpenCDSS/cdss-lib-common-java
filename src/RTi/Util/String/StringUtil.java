@@ -36,6 +36,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import RTi.Util.Message.Message;
@@ -679,6 +680,32 @@ public static boolean endsWithIgnoreCase ( String s, String pattern )
 	}
 	String sub = s.substring(slen - plen);
 	return sub.regionMatches(true,0,pattern,0,plen);
+}
+
+/**
+ * Expand a string by replacing ${Property}.
+ * This currently does not handled nested properties.
+ * @param s String to expand, optionally containing ${Property} notation.
+ * @param map Map of properties where key is the property name and value is used for the property.
+ * Objects are converted to string only if the value is not null.
+ */
+public static String expandForProperties ( String s, HashMap<String,Object> map ) {
+	// Iterate through the map and replace strings.
+	String sExpanded = s;
+	String sValue;
+	for ( Map.Entry<String,Object> entry : map.entrySet() ) {
+		String key = entry.getKey();
+		Object value = entry.getValue();
+		if ( value == null ) {
+			continue;
+		}
+		else {
+			// TODO smalers 2019-12-13 this may need fixed for floating point formatting to avoid scientific notation
+			sValue = "" + value;
+		}
+		sExpanded = sExpanded.replace("${" + key + "}", sValue);
+	}
+	return sExpanded;
 }
 
 /**

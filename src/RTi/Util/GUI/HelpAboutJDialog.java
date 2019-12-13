@@ -94,7 +94,7 @@ private String
 GUI buttons.
 */
 private SimpleJButton
-	__jarJButton = null,
+	__detailsJButton = null,
 	__okJButton = null;
 
 /**
@@ -203,8 +203,8 @@ private void initialize(String title, String label, boolean showSystemDetails) {
     southNorth_JPanel.add(__okJButton);
 
 	if ( showSystemDetails || Message.isDebugOn ) {
-		__jarJButton = new SimpleJButton(__BUTTON_SYSTEM_DETAILS, this);
-        southNorth_JPanel.add(__jarJButton);
+		__detailsJButton = new SimpleJButton(__BUTTON_SYSTEM_DETAILS, this);
+        southNorth_JPanel.add(__detailsJButton);
 	}
 
 	if (title != null) {
