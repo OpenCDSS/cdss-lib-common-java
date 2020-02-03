@@ -3113,9 +3113,9 @@ Properties and their effects:<br>
 
 <tr>
 <td><b>ColumnDataTypes</b></td>
-<td>The data types for the column, either "Auto" (determine from column contents),
-"AllStrings" (all are strings, fastest processing and the default from historical behavior),
-or a list of data types (to be implemented in the future).  SEE ALSO DateTimeColumns.</td>
+<td>The data types for the column, either "Auto" (determine from column contents) or
+"AllStrings" (all are strings, fastest processing and the default from historical behavior).
+SEE ALSO DateTimeColumns.</td>
 <td>AllStrings.</td>
 </tr>
 
@@ -3231,15 +3231,20 @@ throws Exception
 	}
 	*/
    
-    // FIXME SAM 2008-01-27 Using other than the default of strings does not seem to work
-    // The JWorksheet does not display correctly.
-    boolean ColumnDataTypes_Auto_boolean = false;   // To improve performance below
+	// Default is to treat column types as all strings, which is fastest
+	// - setting ColumnDataTypes=Auto will determine column types by data
+    boolean ColumnDataTypes_Auto_boolean = false;
     // TODO SAM 2008-04-15 Evaluate whether the following should be used
     //String ColumnDataTypes = "AllStrings";  // Default for historical reasons
     String propVal = props.getValue("ColumnDataTypes");
-    if ( (propVal != null) && (propVal.equalsIgnoreCase("Auto"))) {      
-        //ColumnDataTypes = "Auto";
-        ColumnDataTypes_Auto_boolean = true;
+    if ( propVal != null ) {
+    	if ( propVal.equalsIgnoreCase("Auto") ) {      
+    		ColumnDataTypes_Auto_boolean = true;
+    	}
+    	else if ( propVal.equalsIgnoreCase("AllStrings") ) {      
+    		//ColumnDataTypes = "Auto";
+    		ColumnDataTypes_Auto_boolean = false;
+    	}
     }
 
     String Delimiter = "";
