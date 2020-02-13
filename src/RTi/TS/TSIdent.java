@@ -119,8 +119,10 @@ public static final String INPUT_SEPARATOR = "~";
 
 /**
 The quote can be used to surround TSID parts that have periods, so as to protect the part.
+This is typically used with location and data type, although not common.
 */
 public static final String PERIOD_QUOTE = "'";
+public static final char PERIOD_QUOTE_CHAR = '\'';
 
 /**
 The DataFlavor for transferring this specific class.
@@ -1147,26 +1149,26 @@ throws Exception
 		Message.printDebug ( dl, routine, "...done declaring TSIdent" );
 	}
 
-	// First parse the datastore and input type information...
+	// First parse the datastore and input type information.
+	// - does not matter if TSID parts are quoted at this point
 
-	String identifier0 = identifier;
-	List<String> list = StringUtil.breakStringList ( identifier, "~", 0 );
-	int	i, nlist1;
-	if ( list != null ) {
-		nlist1 = list.size();
-		// Reset to first part for checks below...
-		identifier = list.get(0);
-		if ( nlist1 == 2 ) {
-			tsident.setInputType ( list.get(1) );
+	String identifierNoInputName = identifier;
+	List<String> inputTypeList = StringUtil.breakStringList ( identifier, "~", 0 );
+	if ( inputTypeList != null ) {
+		int nlist = inputTypeList.size();
+		// Reset to first part for processing below checks below...
+		identifierNoInputName = inputTypeList.get(0);
+		if ( nlist == 2 ) {
+			tsident.setInputType ( inputTypeList.get(1) );
 		}
-		else if ( nlist1 >= 3 ) {
-			tsident.setInputType ( list.get(1) );
+		else if ( nlist >= 3 ) {
+			tsident.setInputType ( inputTypeList.get(1) );
 			// File name may have a ~ so find the second instance
 			// of ~ and use the remaining string...
-			int pos = identifier0.indexOf ( "~" );
-			if ( (pos >= 0) && identifier0.length() > (pos + 1) ) {
+			int pos = identifier.indexOf ( "~" );
+			if ( (pos >= 0) && identifier.length() > (pos + 1) ) {
 				// Have something at the end...
-				String sub = identifier0.substring ( pos + 1 );
+				String sub = identifier.substring ( pos + 1 );
 				pos = sub.indexOf ( "~" );
 				if ( (pos >= 0) && (sub.length() > (pos + 1))) {
 					// The rest is the file...
@@ -1176,29 +1178,33 @@ throws Exception
 		}
 	}
 
-	// Now parse the 5-part identifier...
+	// Now parse the 5-part identifier that does not have trailing ~...
 
 	String full_location = "", full_source = "", interval_string = "", scenario = "", full_type = "";
 
-	// TODO SAM 2013-06-14 Need to evaluate how to handle parts that include periods - single quotes around?
-	// Figure out whether we are using the new or old conventions.  First
-	// check to see if the number of fields is small.  Then check to see if
-	// the data type and interval are combined.
-
-	int posQuote = identifier.indexOf("'");
+	List<String> tsidPartList = null;  // TSID parts, as delimited by .
+	int posQuote = identifierNoInputName.indexOf(PERIOD_QUOTE);
+	// 'list' below are the TSID parts split by periods
+	//   list[0] = location
+	//   list[1] = data source
+	//   list[2] = data type
+	//   list[3] = data interval
+	//   list[4] = scenario, with [trace] at end
 	if ( posQuote >= 0 ) {
-		// Have at least one quote so assume TSID something like:
-		// LocaId.Source.'DataType-some.parts.with.periods'.Interval
-		list = parseIdentifier_SplitWithQuotes(identifier);
+		// Have at least one quote so assume TSID something like the following where data type is escaped:
+		//   LocaId.Source.'DataType-some.parts.with.periods'.Interval
+		// or location ID is escaped:
+		//   'LocaId.xx'.Source.'DataType-some.parts.with.periods'.Interval
+		tsidPartList = parseIdentifier_SplitWithQuotes(identifierNoInputName);
 	}
 	else {
 		// No quote in TSID so do simple parse
-		list = StringUtil.breakStringList ( identifier, ".", 0 );
+		tsidPartList = StringUtil.breakStringList ( identifierNoInputName, ".", 0 );
 	}
-	nlist1 = list.size();
-	for ( i = 0; i < nlist1; i++ ) {
+	int tsidPartListSize = tsidPartList.size();
+	for ( int i = 0; i < tsidPartListSize; i++ ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine, "TS ID list[" + i + "]:  \"" + list.get(i) + "\"" );
+			Message.printDebug ( dl, routine, "TS ID list[" + i + "]:  \"" + tsidPartList.get(i) + "\"" );
 		}
 	}
 
@@ -1208,71 +1214,55 @@ throws Exception
 
 	// Parse out location and split the rest of the ID...
 	//
-	// FIXME SAM 2008-04-28 Don't think quotes are valid anymore given command parameter
-	// use.  Evaluate removing quote handling.
 	// FIXME SAM 2013-06-16 Actually, may need quotes for more new use cases where periods are in identifier parts
 	// This field is allowed to be surrounded by quotes since some
 	// locations cannot be identified by a simple string.  Allow
 	// either ' or " to be used and bracket it.
 
+	// Location type
+	// - does not need to be surrounded by single quotes
 	int locationTypeSepPos = -1;
-	if ( (identifier.charAt(0) != '\'') && (identifier.charAt(0) != '\"') ) {
-	    // There is not a quoted location string so there is the possibility of having a location type
-	    // This logic looks at the full string.  If the separator is after a period, then the colon is being
-	    // detected other than at the start in the location
-	    locationTypeSepPos = identifier.indexOf(LOC_TYPE_SEPARATOR);
-	    if ( locationTypeSepPos > identifier.indexOf(SEPARATOR) ) {
-	        locationTypeSepPos = -1;
-	    }
-	}
+	String locationPart = tsidPartList.get(0);  // LocationType:FullLocation or FullLocation
+	String locationIdPart = locationPart; // Full string used if location type is not used
+	locationTypeSepPos = locationPart.indexOf(LOC_TYPE_SEPARATOR);
 	String locationType = "";
 	if ( locationTypeSepPos >= 0 ) {
-	    // Have a location type so split out and set, then treat the rest of the identifier
+	    // Have a location type so split out and set, then treat the rest of the location
 	    // as the location identifier for further processing
-	    locationType = identifier.substring(0,locationTypeSepPos);
-	    identifier = identifier.substring(locationTypeSepPos + 1);
+	    locationType = locationPart.substring(0,locationTypeSepPos);
+	    // Remaining location part is the remainder of the LocType:locationPart string,
+	    // which will be processed below.
+	    locationIdPart = locationPart.substring(locationTypeSepPos + 1);
 	}
-	if ( (identifier.charAt(0) == '\'') || (identifier.charAt(0) == '\"')) {
-		full_location = StringUtil.readToDelim ( identifier.substring(1), identifier.charAt(0) );
-		// Get the 2nd+ fields...
-		int posQuote2 = identifier.indexOf("'");
-		if ( posQuote2 >= 0 ) {
-			// Have at least one quote so assume TSID something like:
-			// LocaId.Source.'DataType-some.parts.with.periods'.Interval
-			list = parseIdentifier_SplitWithQuotes(identifier.substring(full_location.length()+1));
-		}
-		else {
-			list =	StringUtil.breakStringList ( identifier.substring(full_location.length()+1), ".", 0 );
-		}
-		nlist1 = list.size();
+	
+	// Location identifier (without leading LocationType: from above)
+	// - may be surrounded by single quotes (TODO smalers 2020-02-13 double quotes allowed for history)
+	if ( tsidPartListSize >= 1 ) {
+		// TODO smalers 2020-02-13 treat like datatype and keep surrounding quotes
+		//if ( (locationIdPart.charAt(0) == '\'') || (locationIdPart.charAt(0) == '\"')) {
+			// Read the location excluding the delimiter
+		//	full_location = StringUtil.readToDelim ( locationPart.substring(1), locationPart.charAt(0) );
+		//}
+		//else {
+				full_location = locationIdPart;
+		//	}
 	}
-	else {
-		int posQuote2 = identifier.indexOf("'");
-		if ( posQuote2 >= 0 ) {
-			// Have at least one quote so assume TSID something like:
-			// LocaId.Source.'DataType-some.parts.with.periods'.Interval
-			list = parseIdentifier_SplitWithQuotes(identifier);
-		}
-		else {
-			list = StringUtil.breakStringList ( identifier, ".", 0 );
-		}
-		nlist1 = list.size();
-		if ( nlist1 >= 1 ) {
-			full_location = list.get(0);
-		}
-	}
+
 	// Data source...
-	if ( nlist1 >= 2 ) {
-		full_source = list.get(1);
+	if ( tsidPartListSize >= 2 ) {
+		full_source = tsidPartList.get(1);
 	}
+
 	// Data type...
-	if ( nlist1 >= 3 ) {
-		full_type = list.get(2);
+	if ( tsidPartListSize >= 3 ) {
+		// Data type will include surrounding quotes - otherwise would need to add when rebuilding the full TSID string
+		full_type = tsidPartList.get(2);
 	}
+
 	// Data interval...
-	String sequenceID = null;
-	if ( nlist1 >= 4 ) {
-		interval_string = list.get(3);
+	String sequenceId = null;
+	if ( tsidPartListSize >= 4 ) {
+		interval_string = tsidPartList.get(3);
 		// If no scenario is used, the interval string may have the sequence ID on the end, so search for the [ and split the
 		// sequence ID out of the interval string...
 		int index = interval_string.indexOf ( SEQUENCE_NUMBER_LEFT );
@@ -1280,7 +1270,7 @@ throws Exception
 		if ( index >= 0 ) {
 			if ( interval_string.endsWith(SEQUENCE_NUMBER_RIGHT)){
 				// Should be a properly-formed sequence ID, but need to remove the brackets...
-				sequenceID = interval_string.substring( index + 1, interval_string.length() - 1).trim();
+				sequenceId = interval_string.substring( index + 1, interval_string.length() - 1).trim();
 			}
 			if ( index == 0 ) {
 				// There is no interval, just the sequence ID (should not happen)...
@@ -1291,17 +1281,19 @@ throws Exception
 			}
 		}
 	}
+
 	// Scenario...  It is possible that the scenario has delimiters
 	// in it.  Therefore, we need to concatenate all the remaining
 	// fields to compose the complete scenario...
-	if ( nlist1 >= 5 ) {
-		StringBuffer buffer = new StringBuffer();
-		buffer.append ( list.get(4) );
-		for ( i = 5; i < nlist1; i++ ) {
-			buffer.append ( "." );
-			buffer.append ( list.get(i) );
+	if ( tsidPartListSize >= 5 ) {
+		StringBuffer scenarioBuffer = new StringBuffer();
+		scenarioBuffer.append ( tsidPartList.get(4) );
+		for ( int i = 5; i < tsidPartListSize; i++ ) {
+			// Append the delimiter to create the original un-parsed string
+			scenarioBuffer.append ( "." );
+			scenarioBuffer.append ( tsidPartList.get(i) );
 		}
-		scenario = buffer.toString ();
+		scenario = scenarioBuffer.toString ();
 	}
 	// The scenario may now have the sequence ID on the end, search for the [ and split out of the scenario...
 	int index = scenario.indexOf ( SEQUENCE_NUMBER_LEFT );
@@ -1309,7 +1301,7 @@ throws Exception
 	if ( index >= 0 ) {
 		if ( scenario.endsWith(SEQUENCE_NUMBER_RIGHT) ) {
 			// Should be a properly-formed sequence ID...
-			sequenceID = scenario.substring ( index + 1, scenario.length() - 1 ).trim();
+			sequenceId = scenario.substring ( index + 1, scenario.length() - 1 ).trim();
 		}
 		if ( index == 0 ) {
 			// There is no scenario, just the sequence ID...
@@ -1320,8 +1312,13 @@ throws Exception
 		}
 	}
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine, "After split: fullloc=\"" + full_location + "\" fullsrc=\"" +
-		full_source + "\" type=\"" + full_type + "\" int=\"" + interval_string + "\" scen=\"" + scenario + "\"" );
+		Message.printDebug ( dl, routine,
+			"After split: full_location=\"" + full_location +
+			"\" full_source=\"" + full_source +
+			"\" type=\"" + full_type +
+			"\" interval=\"" + interval_string +
+			"\" scenario=\"" + scenario +
+			"\" sequenceId=\"" + sequenceId + "\"" );
 	}
 
 	// Now set the identifier component parts...
@@ -1332,7 +1329,7 @@ throws Exception
 	tsident.setType ( full_type );
 	tsident.setInterval ( interval_string );
 	tsident.setScenario ( scenario );
-	tsident.setSequenceID ( sequenceID );
+	tsident.setSequenceID ( sequenceId );
 
 	// Return the TSIdent object for use elsewhere...
 
@@ -1410,8 +1407,8 @@ private static List<String> parseIdentifier_SplitWithQuotes(String identifier) {
 				}
 			}
 		}
-		else if ( c == '\'' ) {
-			// Found a quote, which will surround a point, as in:  .'some.part'.
+		else if ( c == PERIOD_QUOTE_CHAR ) {
+			// Found a quote, which will surround a point, as in:  .'some.part.xx'.
 			if ( Message.isDebugOn ) {
 				Message.printDebug(1, "", "Found quote" );
 			}
@@ -1447,8 +1444,9 @@ private static List<String> parseIdentifier_SplitWithQuotes(String identifier) {
 		}
 	}
 	if ( Message.isDebugOn ) {
+		String routine = "TSIdent.parseIdentifier_SplitWithQuotes";
 		for ( String s : parts ) {
-			Message.printDebug(1, "xxx", "TSID part is \"" + s + "\"");
+			Message.printDebug(1, routine, "TSID part is \"" + s + "\"");
 		}
 	}
 	return parts;
