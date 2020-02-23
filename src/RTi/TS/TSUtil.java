@@ -416,8 +416,9 @@ TRANSFER_BYDATETIME, Mar 1 will always line up with Mar 1, regardless of whether
 leap years are encountered.  However, if TRANSFER_SEQUENTIALLY is used, then
 data from Feb 29 of a leap year may be transferred to Mar 1 on the non-leapyear time series.
 */
-public static String TRANSFER_BYDATETIME = "ByDateTime";
-public static String TRANSFER_SEQUENTIALLY = "Sequentially";
+// The following has been replaced with TransferDataHowType enumeration.
+//public static String TRANSFER_BYDATETIME = "ByDateTime";
+//public static String TRANSFER_SEQUENTIALLY = "Sequentially";
 
 // ----------------------------------------------------------------------------
 // TSUtil.add - add time series together
@@ -1405,7 +1406,7 @@ throws Exception
 	boolean transfer_bydate = true;	// Default - make dates match in both time series.
 	if ( props != null ) {
 		String prop_val = props.getValue("TransferData");
-		if ( (prop_val != null) && prop_val.equalsIgnoreCase(TRANSFER_SEQUENTIALLY) ) {
+		if ( (prop_val != null) && prop_val.equalsIgnoreCase(TransferDataHowType.SEQUENTIALLY.toString()) ) {
 			// Transfer sequentially...
 			transfer_bydate = false;
 		}
@@ -10377,7 +10378,7 @@ throws Exception
 	String setFlagDescription = null;
 	if ( props != null ) {
 		String propVal = props.getValue("TransferData");
-		if ( (propVal != null) && propVal.equalsIgnoreCase(TRANSFER_SEQUENTIALLY) ) {
+		if ( (propVal != null) && propVal.equalsIgnoreCase(TransferDataHowType.SEQUENTIALLY.toString()) ) {
 			// Transfer sequentially...
 			transfer_bydate = false;
 		}
