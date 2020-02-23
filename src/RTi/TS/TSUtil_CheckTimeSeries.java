@@ -666,7 +666,7 @@ throws Exception
 
     TSIterator tsi = ts.iterator(getAnalysisStart(), getAnalysisEnd()); // Overall period
     TSIterator tsi2 = ts.iterator(getAnalysisStart(), getAnalysisEnd()); // Search forward window
-    TSIterator tsi3 = ts.iterator(getAnalysisStart(), getAnalysisEnd()); // Action window
+    //TSIterator tsi3 = ts.iterator(getAnalysisStart(), getAnalysisEnd()); // Action window
     TSData data = null; // Initial data point
     TSData data2 = null; // Data point looking forward
     double tsvalue; // time series data value
@@ -721,8 +721,9 @@ throws Exception
             // Take action on the offending values and reset the main iterator to start after the adjusted
             // sequence
             // If an action is required, do it
-            tsi3.setBeginTime(startToAdjust);
-            tsi3.setEndTime(endToAdjust);
+            //tsi3.setBeginTime(startToAdjust);
+            //tsi3.setEndTime(endToAdjust);
+        	TSIterator tsi3 = ts.iterator(startToAdjust, endToAdjust);
             int count = value1m1;
             while ( (data2 = tsi3.next()) != null ) {
                 date2 = data2.getDate();

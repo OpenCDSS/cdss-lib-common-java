@@ -93,15 +93,6 @@ throws Exception
 }
 
 /**
-Clean up for garbage collection.
-@exception Throwable if there is an error.
-*/
-protected void finalize()
-throws Throwable
-{	super.finalize();
-}
-
-/**
 Return the duration of the data value in seconds.  This method is only defined
 for the IrregularTSIterator and will return zero for regular TS.
 @return Data value duration in seconds.
@@ -175,7 +166,7 @@ If false is returned, then the iterator is positioned at the last date with data
 public boolean hasNext ()
 {
 	// For an irregular time series, get the date/time for the next value and check whether it is past _date2
-	TSData nextData = _tsdata.getNext();
+	TSData nextData = this._tsdata.getNext();
 	if ( nextData == null ) {
 		// There is no next point
 		return false;
@@ -186,7 +177,7 @@ public boolean hasNext ()
 			// Next point does not have a date
 			return false;
 		}
-		else if ( dt.greaterThan(_date2) ) {
+		else if ( dt.greaterThan(this._date2) ) {
 			// Next point is past the end
 			return false;
 		}
@@ -206,59 +197,74 @@ public TSData next ( )
 {	int dl = 30;
 	TSData theData = null; // Use this for returns.
 
-	if ( (_ts == null) || (_ts.getDataSize() == 0) ) {
-		return null;
-	}
-	if ( _lastDateProcessed ) { 
+	// Clearly no data available so return null
+
+	if ( (this._ts == null) || (this._ts.getDataSize() == 0) ) {
 		return null;
 	}
 
-	// Only want to advance the date if we have not already gone past the end...
+	// First advance the current date/time.
 
-	if ( _firstDateProcessed ) {
-		theData = _tsdata.getNext();                         	
-	}
-	else {
-		List<TSData> v = ((IrregularTS)_ts).getData();
-		if ( (v == null) || (v.size() == 0) ) {
-			return null;
+	//if ( _firstDateProcessed ) {
+	if ( ! this._isIterationComplete ) {
+		// if ( _firstDateProcessed ) {
+		if ( this._nextWasCalledFirst ) {
+			// Have previously called next() so initialization has occurred
+			theData = this._tsdata.getNext();
 		}
-		int size = v.size();
-		TSData ptr = null;
-		for ( int i = 0; i < size; i++ ) {
-			ptr = v.get(i);
-			if ( ptr.getDate().equals(_currentDate) ) {
-				theData = ptr;
-				break;
+		else {
+			// This is the first call to next() so need to find the first data point
+			List<TSData> v = ((IrregularTS)this._ts).getData();
+			if ( (v == null) || (v.size() == 0) ) {
+				return null;
+			}
+			int size = v.size();
+			TSData ptr = null;
+			for ( int i = 0; i < size; i++ ) {
+				ptr = v.get(i);
+				if ( ptr.getDate().equals(this._currentDate) ) {
+					theData = ptr;
+					break;
+				}
+			}
+			this._nextWasCalledFirst = true;
+		}
+
+		if ( theData == null ) {
+			// Have exceeded the limits of the data list...
+			//_lastDateProcessed = true;
+			this._isIterationComplete = true;
+		}
+		else {
+			// Have some data to return
+	    	this._currentDate = theData.getDate();
+			if ( this._currentDate.greaterThan(this._date2) ) {
+				// Have gone past the requested end date/time...
+				//_lastDateProcessed = true;
+				this._isIterationComplete = true;
+				if ( Message.isDebugOn ) {
+					Message.printDebug ( dl, "IrregularTSIterator.next", "Have passed end date: " + _date2.toString() );
+				}
 			}
 		}
-		_firstDateProcessed = true;
 	}
 
-	if ( theData == null ) {
-		// We are at the end or have exceeded the limits the data...
-		_lastDateProcessed = true;
-	}
-	else {
-	    _currentDate = theData.getDate();
-		if ( _currentDate.greaterThan(_date2) ) {
-			// We are further than we want to go ...
-			_lastDateProcessed = true;
-			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, "IrregularTSIterator.next", "Have passed end date: " + _date2.toString() );
-			}
-		}
-	}
+	// Now return data or null.
 
-	if ( _lastDateProcessed ) { 
+	//if ( _lastDateProcessed ) { 
+	if ( this._isIterationComplete ) { 
 		return null;
 	}
 	else {
-	    _tsdata = theData;
+	    this._tsdata = theData;
 		return theData;
 	}
 }
 
 // TODO - need to add previous also need to add clone().
+
+public TSData previous () {
+	throw new RuntimeException("IrregularTSIterator.previous() is not implemented.");
+}
 
 }

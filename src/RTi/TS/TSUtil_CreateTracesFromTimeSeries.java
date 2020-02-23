@@ -29,6 +29,7 @@ import java.util.List;
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.TimeInterval;
+import RTi.Util.Time.TimeUtil;
 import RTi.Util.Time.YearType;
 
 /**
@@ -97,6 +98,7 @@ that of the time series being examined.
 traces are requested.  The total list of time series when plotted should match the original time series.
 If "ShiftToReference", then the start of each time
 series is shifted to the reference date.  Consequently, when plotted, the time series traces will overlay.
+@param transferDataHowType indicates how to transfer time series data, if null default to TransferDataHowType.SEQUENTIAL.
 @param InputStart_DateTime First allowed date (use to constrain how many years of the time series are processed).
 @param InputEnd_DateTime Last allowed date (use to constrain how many years of the time series are processed).
 @param alias alias format string
@@ -107,12 +109,17 @@ series is shifted to the reference date.  Consequently, when plotted, the time s
 @exception IrregularTimeSeriesNotSupportedException if the method is called with an irregular time series.
 */
 public List<TS> getTracesFromTS ( TS ts, String TraceLength, DateTime ReferenceDate_DateTime,
-    YearType outputYearType, String ShiftDataHow, DateTime InputStart_DateTime, DateTime InputEnd_DateTime,
+    YearType outputYearType, String ShiftDataHow, TransferDataHowType transferDataHowType,
+    DateTime InputStart_DateTime, DateTime InputEnd_DateTime,
     String alias, String descriptionFormat, boolean createData )
 throws IrregularTimeSeriesNotSupportedException, Exception
 {   String routine = getClass().getSimpleName() + ".getTracesFromTS";
     if ( ts == null ) {
         return null;
+    }
+    
+    if ( transferDataHowType == null ) {
+    	transferDataHowType = TransferDataHowType.SEQUENTIALLY;
     }
 
     // For now do not handle IrregularTS (too hard to handle all the shifts
@@ -180,13 +187,27 @@ throws IrregularTimeSeriesNotSupportedException, Exception
         // Make sure the reference date is of the right precision...
         ReferenceDate_DateTime2 = TSUtil.newPrecisionDateTime ( ts, ReferenceDate_DateTime);
     }
+    boolean transferByDateTime = false;  // To simplify logic below, currently only allowed if time interval is day
+    if ( transferDataHowType == TransferDataHowType.BY_DATETIME ) {
+        if ( ts.getDataIntervalBase() == TimeInterval.DAY ) {
+            // Need logic if <= daily time series
+            transferByDateTime = true;
+        }
+        else if ( ts.getDataIntervalBase() <= TimeInterval.DAY ) {
+            // Don't handle yet because need to decrement full day of intervals via previous(),
+            // which may involve more than one value - only handle day for now, which involves one call to previous()
+            throw new UnsupportedTimeIntervalException("Creating traces using transfer" +
+            TransferDataHowType.BY_DATETIME + " only supported for intervals >= Day.");
+        }
+        // Else month, year, etc are OK to treat as sequential in all cases because no discontinuity due to leap year
+    }
     //if ( Message.isDebugOn ) {
-        Message.printStatus ( 2, routine, "Reference date is " + ReferenceDate_DateTime2 );
+        Message.printStatus ( 2, routine, "All traces will start on reference date " + ReferenceDate_DateTime2 );
     //}
 
     // Allocate the list for traces...
 
-    List<TS> tslist = new ArrayList<TS>();
+    List<TS> tslist = new ArrayList<>();
     
     // Allocate start dates for the input and output time series by copying the reference date.
     // The precision and position within the year will therefore be correct.  Set the year below
@@ -232,6 +253,31 @@ throws IrregularTimeSeriesNotSupportedException, Exception
         // Create a new time series using the old header as input...
         TS tracets = TSUtil.newTimeSeries ( ts.getIdentifierString(), true);
         tracets.copyHeader ( ts );
+        if ( transferByDateTime ) {
+        	tracets.addToGenesis("Data values from input are transferred ensuring date/time is retained (other than year shift).");
+        	tracets.addToGenesis("- Leap year Feb 29 in trace controls.  Input time series values may be discarded or may be missing.");
+        	if ( date1_out.isLeapYear() )  {
+          		tracets.addToGenesis("- Trace start date/time year " + date1_out.getYear() + " IS a leap year and will have Feb 29 data.");
+        	}
+        	else {
+          		tracets.addToGenesis("- Trace start date/time year " + date1_out.getYear() + " IS NOT a leap year and will not have Feb 29 data.");
+        	}
+        	if ( outputYearType != YearType.CALENDAR ) {
+        		if ( TimeUtil.isLeapYear(date1_out.getYear() + 1) )  {
+        			tracets.addToGenesis("- Year type is " + outputYearType + " and year after initial trace year ("
+        				+ (date1_out.getYear() + 1) + " IS a leap year.");
+        		}
+        		else {
+        			tracets.addToGenesis("- Year type is " + outputYearType + " and year after initial trace year ("
+        				+ (date1_out.getYear() + 1) + " IS NOT a leap year.");
+        		}
+        	}
+        }
+        else {
+        	tracets.addToGenesis("Data values from input are transferred sequentially.");
+        	tracets.addToGenesis("- Leap year Feb 29 in trace controls." );
+        	tracets.addToGenesis("- Input time series values date/times may shift due to sequential processing over Feb 29/March 1.");
+        }
         int seqNum = date1_in.getYear();
         if ( outputYearType != null ) {
             // Adjust the sequence number by the first year offset
@@ -253,18 +299,72 @@ throws IrregularTimeSeriesNotSupportedException, Exception
             ", output:" + date1_out + " to " + date2_out );
         //}
         if ( createData ) {
+            // 
             // Allocate the data space...
             tracets.allocateDataSpace();
             // Transfer the data using iterators so that the data sequence is continuous over leap years, etc.
             TSIterator tsi_in = ts.iterator ( date1_in, date2_in );
             TSIterator tsi_out = tracets.iterator ( date1_out, date2_out );
             TSData data_out = null;
-            while ( tsi_in.next() != null ) {
-                // Get the corresponding point in the output.
+            int dayIn, dayTrace, monthIn, monthTrace;
+            while ( tsi_in.next() != null ) { // Advance the input
+                // Get the next corresponding point in the output.
                 data_out = tsi_out.next();
-                // Only transfer if output is not null because null indicates the end of the
-                // output time series iterator period has been reached.
-                if ( data_out != null ) {
+            	if ( transferByDateTime ) {
+            		// If here, only day is supported (checked above)
+            		// Need to see if the days do not align due to leap year.
+            		// If this is the case, adjust the input date forward or back by one day.
+            		// This check is complicated because may be using other than calendar year.
+            		// The input time series date/time 'dtIn' will be advancing continuously.
+            		// The output time series date/time 'dtTrace' will be advancing continuously (other than resets to the start).
+            		//
+            		// Case 1: if the output time series position is Feb 29 when the input time series position is March 1
+            		// - set the output to missing
+            		// - decrement the input time series iterator to the previous day so that 'next()'
+            		//   will result in input time series being positioned at March 1
+            		//   (adjustment only needs to be made once every 4 years)
+            		//
+            		// Case 2: if the output time series position is Mar 1 when the input time series position is Feb 29:
+            		// - skip setting the value in the output time series since did not have a Feb 29
+            		// - decrement the output time series iterator to the previous day so that 'next()'
+            		//   will result in input time series being positioned at March 1
+            		//   (adjustment only needs to be made once every 4 years)
+            		dayIn = tsi_in.getDate().getDay();
+            		monthIn = tsi_in.getDate().getMonth();
+            		dayTrace = tsi_out.getDate().getDay();
+            		monthTrace = tsi_out.getDate().getMonth();
+            		if ( (monthIn == 3) && (dayIn == 1) && (monthTrace == 2) && (dayTrace == 29) ) {
+            			// Case 1 - trace has leap year Feb 29 but input does not
+            			Message.printStatus(2, routine, "Case 1 - setting trace to missing on Feb 29 for input year " + tsi_in.getDate().getYear());
+            			if ( data_out != null ) {
+            				// Set the trace to missing since input did not have
+                        	tracets.setDataValue( tsi_out.getDate(), ts.getMissing());
+                    	}
+            			// Reset input iterator back one day so that next() called in next loop iteration will go to March 1, same as next() for output
+            			Message.printStatus(2, routine, "  - input time series iterator before calling previous() is: " + tsi_in.getDate() );
+            			tsi_in.previous();
+            			Message.printStatus(2, routine, "  - input time series iterator after calling previous() is: " + tsi_in.getDate() );
+            			// Don't want to set value as per sequential so jump to top of loop.
+            			continue;
+            		}
+            		else if ( (monthIn == 2) && (dayIn == 29) && (monthTrace == 3) && (dayTrace == 1) ) {
+            			// Case 2 - input has leap year Feb 29 but trace does not
+            			// - don't set output value
+            			// - decrement output iterator so that next call will process March 1 again
+            			Message.printStatus(2, routine, "Case 2 - ignoring input Feb 29 for input year " + tsi_in.getDate().getYear());
+            			tsi_out.previous();
+            			// Don't want to set value as per sequential so jump to top of loop.
+            			continue;
+            		}
+            		else {
+            			// Not dealing with leap year issues, logic is similar to sequential and is handled below.
+            		}
+            	}
+            	// If here, data are being transferred sequentially or transferring by date/time and no leap year issue for this data value.
+            	// This is the simpler method because the iterator just move forward
+            	// Only transfer if output is not null because null indicates the end of the
+            	// output time series iterator period has been reached.
+            	if ( data_out != null ) {
                     tracets.setDataValue( tsi_out.getDate(), ts.getDataValue(tsi_in.getDate()));
                 }
             }

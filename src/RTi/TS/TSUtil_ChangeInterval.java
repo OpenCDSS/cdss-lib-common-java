@@ -1830,7 +1830,8 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
             newTSi.next();
 
             // Loop, starting from 1st data point in old TS until the end of the old time series.
-            while (!oldTSi.isLastDateProcessed()) {
+            //while (!oldTSi.isLastDateProcessed()) {
+            while (!oldTSi.isIterationComplete() ) {
                 Message.printDebug (20, routine, "Working on old date: " + oldTSi.getDate());
                 oldTSCurrentDate = new DateTime(oldTSi.getDate());
                 oldTSPreviousDate = new DateTime(oldTSCurrentDate);
@@ -2127,7 +2128,8 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
             // Loop through the new TS until the end of the
             // old interval - 1 new interval, computing and
             // saving the interpolated values.
-            while ( !newTSi.isLastDateProcessed() && newTSi.getDate().lessThanOrEqualTo(nextDate)) {
+            // while ( !newTSi.isLastDateProcessed() && newTSi.getDate().lessThanOrEqualTo(nextDate)) {
+            while ( !newTSi.isIterationComplete() && newTSi.getDate().lessThanOrEqualTo(nextDate)) {
                 // Get date offset of the new TS value.
                 offsetLength = newTSi.getDate().toDouble() - previousDateDouble;
 
