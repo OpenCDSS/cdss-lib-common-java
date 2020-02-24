@@ -163,10 +163,20 @@ import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.lang.Math;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Vector;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
 import RTi.GR.GRAxisDirectionType;
+import RTi.GRTS.product.Annotation;
+import RTi.GRTS.product.Data;
+import RTi.GRTS.product.Product;
+import RTi.GRTS.product.SubProduct;
 import RTi.TS.TS;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.Prop;
@@ -4328,10 +4338,17 @@ typically only when debugging.
 @return the product formatted as a string using the specified format type.
 */
 public String toString ( boolean outputAll, boolean outputHowSet, TSProductFormatType formatType, boolean sort ) {
+	if ( (formatType == TSProductFormatType.JSON_PRETTY) || (formatType == TSProductFormatType.JSON_COMPACT) ) {
+		// Separate method formats for JSON
+		return toStringJson ( outputAll, outputHowSet, sort );
+	}
+
+	// Else, outputting properties format
+
 	// First write the main product properties, then subproduct, and within
 	// each subproduct the data properties.  Use the prefix notation and
 	// shave the prefix off each property as it is written...
-
+	
 	String nl = System.getProperty("line.separator");
 	StringBuilder out = new StringBuilder();
 	List<Prop> props = __proplist.getPropsMatchingRegExp ( "Product.*" );
@@ -4714,6 +4731,420 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 }
 
 /**
+Output the product to a text representation.
+@param outputAll indicates whether to output all the properties (true),
+or only those that are different from defaults (false).
+The latter is generally the legacy behavior used by software to create shorter files.
+@param outputHowSet indicate whether "how set" value should be output in addition to property value,
+typically only when debugging.
+@param sort indicate whether properties should be sorted (true) or left in default order (false).
+@return the product formatted as a string using the specified format type.
+*/
+public String toStringJson ( boolean outputAll, boolean outputHowSet, boolean sort ) {
+	String routine = getClass().getSimpleName() + ".toStringJson";
+
+	// Output is done using the Jackson library, with business objects that can be serialized.
+	// Because the "TSProduct" class is already taken, use more generic class names
+	// Product, SubProduct, Data, and Annotation.
+
+	Product product = new Product();
+	
+	// First write the main product properties, then subproduct, and within
+	// each subproduct the data properties.
+	// Unlike the "properties" format, which is a flat list of property strings,
+	// this model is hierarchical, consistent with JSON.
+	
+	List<Prop> productProps = __proplist.getPropsMatchingRegExp ( "Product.*" );
+	Prop productProp = null;
+	int howSet = 0;
+	int size = 0;
+	if ( productProps != null ) {
+		size = productProps.size();
+		if ( sort ) {
+			java.util.Collections.sort(productProps);
+		}
+	}
+
+	boolean output = false;
+	String howSetString = "";
+	
+	for (int i = 0; i < size; i++) {
+		output = false;
+		howSetString = "";
+		productProp = productProps.get(i);
+		howSet = productProp.getHowSet();
+		
+		if (howSet == Prop.SET_HIDDEN) {
+			// these are never saved
+			continue;
+		}
+		else if (outputAll) {
+			output = true;
+		}
+		else if (!outputAll) {
+			if ( (howSet == Prop.SET_FROM_PERSISTENT) ||
+				(howSet == Prop.SET_AT_RUNTIME_BY_USER) ||
+				(howSet == Prop.SET_AT_RUNTIME_FOR_USER) ) {
+				output = true;
+			}
+		}
+		howSetString = "";
+		if ( outputHowSet ) {
+			if (howSet == Prop.SET_FROM_PERSISTENT) {
+				howSetString = " [SET_FROM_PERSISTENT]";
+			}
+			else if (howSet == Prop.SET_AS_RUNTIME_DEFAULT) {
+				howSetString = " [SET_AS_RUNTIME_DEFAULT]";
+			}
+			else if (howSet == Prop.SET_AT_RUNTIME_BY_USER) {
+				howSetString = " [SET_AT_RUNTIME_BY_USER]";
+			}
+			else if (howSet == Prop.SET_AT_RUNTIME_FOR_USER) {
+				howSetString = " [SET_AT_RUNTIME_FOR_USER]";
+			}
+			else {
+				howSetString = " [UNKNOWN]";
+			}
+		}
+
+		if (output) {
+			//out.append(prop.getKey().substring(8) + " = \"" + prop.getValue() + "\"" + howSetString + nl );
+			product.setProperty(productProp.getKey().substring(8), productProp.getValue() + howSetString );
+		}
+	} // end properties for Product
+
+	// Loop through the SubProduct in the Product...
+
+	int nsubs = getNumSubProducts();
+	List<Prop> subProductProps = null;
+	Prop subProductProp = null;
+	int dsize = 0;
+	int sub_prefix_length = 0;
+	String data_prefix;
+	int data_prefix_length = 0;
+
+	String type = null;
+	String key = null;
+	
+	for (int isub = 0; isub < nsubs; isub++) {
+		// Add a SubProduct object to the Product
+		SubProduct subProduct = new SubProduct();
+		product.addSubProduct ( subProduct );
+
+		// Get the properties for the subproduct
+		subProductProps = __proplist.getPropsMatchingRegExp("SubProduct " + (isub + 1) + ".*");
+		String sub_prefix = "[SubProduct " + (isub + 1) + "]";
+		sub_prefix_length = sub_prefix.length();
+		
+		size = 0;
+		if ( subProductProps != null ) {
+			size = subProductProps.size();
+			if ( sort ) {
+				java.util.Collections.sort(subProductProps);
+			}
+		}
+		
+		for ( int i = 0; i < size; i++ ) {
+			output = false;
+			howSetString = "";
+			subProductProp = subProductProps.get(i);
+			key = subProductProp.getKey();
+			howSet = subProductProp.getHowSet();
+
+			if (howSet == Prop.SET_HIDDEN) {
+				continue;
+			}
+			else if (outputAll) {
+				output = true;
+			}
+			else if (!outputAll) {
+				// Don't write internal properties that typically don't show up in the product file
+				if ( (howSet == Prop.SET_FROM_PERSISTENT) ||
+					(howSet == Prop.SET_AT_RUNTIME_BY_USER) ||
+					(howSet == Prop.SET_AT_RUNTIME_FOR_USER) ) {
+					// OK
+				}
+				else {
+					// not ok
+					continue;
+				}
+
+				if ( !outputHowSet ) {
+					// Never output the following internal properties
+					if (key.toUpperCase().endsWith("PRODUCTIDORIGINAL")) {
+						continue;
+					}
+					else if (key.toUpperCase().endsWith("LEFTYAXISORIGINALGRAPHTYPE")) {
+					    continue;
+					}
+					else if (key.toUpperCase().endsWith("RIGHTYAXISORIGINALGRAPHTYPE")) {
+					    continue;
+					}
+				}
+
+				output = true;
+			}
+			howSetString = "";
+			if ( outputHowSet ) {
+				if (howSet == Prop.SET_FROM_PERSISTENT) {
+					howSetString = " [SET_FROM_PERSISTENT]";
+				}
+				else if (howSet == Prop.SET_AS_RUNTIME_DEFAULT) {
+					howSetString = " [SET_AS_RUNTIME_DEFAULT]";
+				}
+				else if (howSet == Prop.SET_AT_RUNTIME_BY_USER) {
+					howSetString = " [SET_AT_RUNTIME_BY_USER]";
+				}
+				else if (howSet == Prop.SET_AT_RUNTIME_FOR_USER) {
+					howSetString = " [SET_AT_RUNTIME_FOR_USER]";
+				}
+				else {
+					howSetString = " [UNKNOWN]";
+				}
+			}
+
+			if (output) {
+				// out.append(prop.getKey().substring(sub_prefix_length - 1) + " = \"" + prop.getValue() + "\"" + howSetString + nl );
+				subProduct.setProperty(subProductProp.getKey().substring(sub_prefix_length - 1), subProductProp.getValue() + howSetString );
+			}
+		} // end properties for SubProduct
+
+		// Now write the data properties...
+		int ndata = getNumData(isub);
+		List<Prop> dataProps = null;
+		Prop dataProp = null;
+		for ( int idata = 0; idata < ndata; idata++ ) {
+			// Add a Data object to the SubProduct
+			Data data = new Data();
+			subProduct.addData ( data );
+
+			dataProps = __proplist.getPropsMatchingRegExp ("Data " + (isub + 1) + "." + (idata + 1) +".*");
+			data_prefix = "[Data " + (isub + 1) + "." + (idata + 1) + "]";
+			data_prefix_length = data_prefix.length();
+			dsize = 0;
+			
+			if ( dataProps != null ) {
+				dsize = dataProps.size();
+				if ( sort ) {
+					java.util.Collections.sort(dataProps);
+				}
+			}
+			
+			for ( int j = 0; j < dsize; j++ ) {
+				output = false;
+				dataProp = dataProps.get(j);
+				howSet = dataProp.getHowSet();
+				key = dataProp.getKey().substring(data_prefix_length - 1);
+
+				if (howSet == Prop.SET_HIDDEN) {
+					continue;
+				}
+				else if (outputAll) {
+					output = true;
+				}
+				else if (!outputAll) {
+					if ( (howSet == Prop.SET_FROM_PERSISTENT) ||
+						(howSet == Prop.SET_AT_RUNTIME_BY_USER) ||
+						(howSet == Prop.SET_AT_RUNTIME_FOR_USER) ) {
+						// OK
+					}
+					else {
+						// not ok
+						continue;
+					}
+					
+					if ( !outputHowSet ) {
+						if (key.toUpperCase().endsWith("PRODUCTIDORIGINAL")) {
+						     continue;
+						}
+					}
+
+					output = true;
+				}
+				howSetString = "";
+				if ( outputHowSet ) {
+					if (howSet == Prop.SET_FROM_PERSISTENT) {
+						howSetString = " [SET_FROM_PERSISTENT]";
+					}
+					else if (howSet == Prop.SET_AS_RUNTIME_DEFAULT) {
+						howSetString = " [SET_AS_RUNTIME_DEFAULT]";
+					}
+					else if (howSet == Prop.SET_AT_RUNTIME_BY_USER) {
+						howSetString = " [SET_AT_RUNTIME_BY_USER]";
+					}
+					else if (howSet == Prop.SET_AT_RUNTIME_FOR_USER) {
+						howSetString = " [SET_AT_RUNTIME_FOR_USER]";
+					}
+					else {
+						howSetString = " [UNKNOWN]";
+					}
+				}
+
+				if (output) {
+					//out.append(prop.getKey().substring(
+					//    data_prefix_length - 1) + " = \"" + prop.getValue() + "\"" + howSetString + nl);
+					data.setProperty(dataProp.getKey().substring(data_prefix_length - 1), dataProp.getValue() + howSetString );
+				}
+			} // end Data property
+		} // end Data in SubProduct
+
+		// Now write the annotations for the SubProduct
+
+		int nann = getNumAnnotations(isub);
+		List<Prop> annotationProps = null;
+		Prop annotationProp = null;
+		for (int iann = 0; iann < nann; iann++) {
+			// Add a Data object to the SubProduct
+			Annotation annotation = new Annotation();
+			subProduct.addAnnotation ( annotation );
+
+			annotationProps = __proplist.getPropsMatchingRegExp("Annotation " + (isub + 1) + "." + (iann + 1) + ".*");
+			type = getPropValue("Annotation " + (isub + 1) + "." + (iann + 1) + ".ShapeType");
+			data_prefix = "[Annotation " + (isub + 1) + "." + (iann + 1) + "]";
+
+			data_prefix_length = data_prefix.length();
+			dsize = 0;
+			if (annotationProps != null) {
+				dsize = annotationProps.size();
+			}
+			for (int j = 0; j < dsize; j++) {
+        		output = false;
+        		annotationProp = annotationProps.get(j);
+        		howSet = annotationProp.getHowSet();
+        	
+        		if (howSet == Prop.SET_HIDDEN) {
+        			continue;
+        		}
+        		else if (outputAll) {
+        			output = true;
+        		}
+        		else if (!outputAll) {
+        			if ( (howSet == Prop.SET_FROM_PERSISTENT)
+    			    	|| (howSet == Prop.SET_AT_RUNTIME_BY_USER)
+    			    	|| (howSet == Prop.SET_AT_RUNTIME_FOR_USER) ) {
+        				// ok
+        			}
+        			else {
+        				// not ok
+        				continue;
+        			}
+        
+        			key = annotationProp.getKey().substring(data_prefix_length - 1);
+        
+        			// List the annotation shape types alphabetically
+        			// Because annotation properties include some generic properties and some for the specific shape type
+        			// have to check what should be saved for each annotation.
+        			// First check property for generic annotation properties
+        			if ( key.equalsIgnoreCase("AnnotationID") ||
+        				// key.equalsIgnoreCase("AnotationName") || TODO SAM 2016-10-16 Evaluate whether should fully enable sice in UI
+        				key.equalsIgnoreCase("AnnotationTableID") ||
+        				key.equalsIgnoreCase("Color") ||
+        				key.equalsIgnoreCase("Order") ||
+        				key.equalsIgnoreCase("ShapeType") ||
+        				key.equalsIgnoreCase("XAxisSystem") ||
+        				key.equalsIgnoreCase("YAxis") ||
+        				key.equalsIgnoreCase("YAxisSystem") ) {
+        				output = true;
+        			}
+        			else if (type.equalsIgnoreCase("Line")) {
+        				if ( key.equalsIgnoreCase("LineStyle") ||
+        					key.equalsIgnoreCase("LineWidth") ||
+        					key.equalsIgnoreCase("Points") ) {
+        					output = true;
+        				}
+        			}
+        			else if (type.equalsIgnoreCase("Rectangle")) {
+        				if ( key.equalsIgnoreCase("Points") ) {
+        					output = true;
+        				}
+        			}
+        			else if (type.equalsIgnoreCase("Symbol")) {
+        				if (key.equalsIgnoreCase("Point")
+        					|| key.equalsIgnoreCase("SymbolPosition")
+        					|| key.equalsIgnoreCase("SymbolSize")
+        					|| key.equalsIgnoreCase("SymbolStyle") ) {
+        					output = true;
+        				}
+        			}
+        			else if (type.equalsIgnoreCase("Text")) {
+        				if (key.equalsIgnoreCase("FontSize")
+        					|| key.equalsIgnoreCase("FontStyle")
+        					|| key.equalsIgnoreCase("FontName")
+        					|| key.equalsIgnoreCase("Point")
+        					|| key.equalsIgnoreCase("Text")
+        					|| key.equalsIgnoreCase("TextPosition") ) {
+        					output = true;
+        				}
+        			}
+        		}
+        		howSetString = "";
+				if ( outputHowSet ) {
+					if (howSet == Prop.SET_FROM_PERSISTENT) {
+						howSetString = " [SET_FROM_PERSISTENT]";
+					}
+					else if (howSet == Prop.SET_AS_RUNTIME_DEFAULT) {
+						howSetString = " [SET_AS_RUNTIME_DEFAULT]";
+					}
+					else if (howSet == Prop.SET_AT_RUNTIME_BY_USER) {
+						howSetString = " [SET_AT_RUNTIME_BY_USER]";
+					}
+					else if (howSet == Prop.SET_AT_RUNTIME_FOR_USER) {
+						howSetString = " [SET_AT_RUNTIME_FOR_USER]";
+					}
+					else {
+						howSetString = " [UNKNOWN]";
+					}
+				}
+        
+        		if (output) {		
+        			//out.append(prop.getKey().substring(data_prefix_length - 1) + " = \"" + prop.getValue() + "\"" + howSetString + nl);
+					annotation.setProperty(annotationProp.getKey().substring(data_prefix_length - 1), annotationProp.getValue() + howSetString );
+        		}
+			} // end Annotation property
+		} // end Annotation in SubProduct
+	} // end SubProduct in Product
+	
+	// Now serialize to JSON using Jackson
+
+	try {
+		// The following does not currently use Jackson Mixins - use annotations in the classes
+		JsonFactory jsonFactory = new JsonFactory();
+		ObjectMapper objectMapper = new ObjectMapper(jsonFactory);
+		boolean prettyPrint = true;
+		objectMapper.configure(SerializationFeature.INDENT_OUTPUT, prettyPrint);
+		StringBuilder json = new StringBuilder();
+		//String jsonFormat = "bare";
+		String jsonFormat = "named";
+		//String jsonFormat = "full";
+		if ( jsonFormat.equals("bare") ) {
+			// Simplest form
+			json.append(objectMapper.writeValueAsString(product));
+		}
+		else if ( jsonFormat.equals("named") ) {
+			// Similar to BARE but add a name
+			// Use a map to wrap the response parts
+			HashMap<String,Object> responseMap = new LinkedHashMap<String,Object>();
+			responseMap.put("product", product);
+			json.append(objectMapper.writeValueAsString(responseMap));
+		}
+		/*
+		else if ( jsonFormat.equals("full") ) {
+			// Create a wrapper list class to ensure that root "stations" element is output
+			StationsWrapper stationsWrapper = new StationsWrapper(new ApiVersion(),
+				attributionAndUsageDAO.defaultInstance(),responseInfo,stations);
+			json.append(objectMapper.writeValueAsString(stationsWrapper));
+		}
+		*/
+		return json.toString();
+	}
+	catch ( Exception e ) {
+		Message.printWarning(3,routine,"Error creating JSON for time series product.");
+		Message.printWarning(3,routine,e);
+	}
+	return ""; // Fall-through
+}
+
+/**
 Transfer the properties into objects that can be used by other code more
 efficiently.  For now don't do anything until we explore the concept of just
 getting everything out of the PropList.
@@ -4731,8 +5162,8 @@ protected void unSet(String key) {
 }
 
 /**
-Write the TSProduct as a file.  If the file exists, it will be replaced with
-the new contents and comments will not be transferred.
+Write the TSProduct as a "properties" (similar to INI) file.
+If the file exists, it will be replaced with the new contents and comments will not be transferred.
 @param filename Name of file to save.
 @param outputAll If true, all properties will be saved, even those that have been
 assigned internally at run-time.  If false, only the properties read from a
@@ -4754,6 +5185,36 @@ throws Exception
 	PrintWriter out = new PrintWriter(new FileOutputStream (filename ));
 	out.print(productString);
 	out.close();
+}
+
+/**
+Write the TSProduct as a JSON file.
+If the file exists, it will be replaced with the new contents and comments will not be transferred.
+@param filename Name of file to save.
+@param outputAll If true, all properties will be saved, even those that have been
+assigned internally at run-time.  If false, only the properties read from a
+persistent source and modified by the user during the run will be saved.  The
+former is useful to see the full list of properties, the latter to save the
+minimum amount of information.
+@exception if there is an error writing the file.
+*/
+public void writeJsonFile ( String filename, boolean outputAll )
+throws Exception
+{	// First convert the product to a JSON string
+	boolean outputHowSet = false; // only used for development
+	boolean sort = true; // Sort alphabetically, easier for programmers to find information
+	String productString = toString ( outputAll, outputHowSet, TSProductFormatType.JSON_PRETTY, sort );
+	// Then write to the file
+	PrintWriter out = null;
+	try {
+		out = new PrintWriter(new FileOutputStream (filename ));
+		out.print(productString);
+	}
+	finally {
+		if ( out != null ) {
+			out.close();
+		}
+	}
 }
 
 }

@@ -248,32 +248,22 @@ public Prop ( String key, int intKey, String contents, int howSet )
 /**
 Used to compare this Prop to another Prop in order to sort them.  Inherited from Comparable interface.
 @param o the Prop to compare against.
-@return 0 if the Props' keys and values are the same, or -1 if this Prop sorts
-earlier than the other Prop, or 1 if this Prop sorts higher than the other Prop.
+@return 0 if the Props' keys and values are the same,
+-1 if this Prop sorts earlier than the other Prop,
+or 1 if this Prop sorts higher than the other Prop.
 */
 public int compareTo(Prop p)
 {
-	int result = 0;
-
-	result = __key.compareTo(p.getKey());
+	// First compare the property name (key)
+	int result = __key.compareTo(p.getKey());
 	if (result != 0) {
 		return result;
 	}
 
+	// If the keys are the same, compare the values
 	result = __value.compareTo(p.getValue());
-	return result;
-}
 
-/**
-Finalize before garbage collection.
-@exception Throwable if there is an error.
-*/
-protected void finalize ()
-throws Throwable
-{	__key = null;
-	__contents = null;
-	__value = null;
-	super.finalize();
+	return result;
 }
 
 /**

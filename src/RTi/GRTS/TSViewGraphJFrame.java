@@ -170,6 +170,7 @@ import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
+import javax.swing.filechooser.FileFilter;
 
 import RTi.DMI.DMI;
 import RTi.GR.GRLimits;
@@ -1339,6 +1340,10 @@ private void saveGraph() {
     if (TSGraphJComponent.svgEnabled) {
         fc.addChoosableFileFilter ( svg_sff );  
     }
+	SimpleFileFilter json_sff = new SimpleFileFilter("json", "Time Series Product File" );
+	fc.addChoosableFileFilter ( json_sff );
+	SimpleFileFilter json_all_sff = new SimpleFileFilter("json", "Time Series Product File (all properties)" );
+	fc.addChoosableFileFilter ( json_all_sff );
 	SimpleFileFilter tsp_sff = new SimpleFileFilter("tsp", "Time Series Product File" );
 	fc.addChoosableFileFilter ( tsp_sff );
 
@@ -1381,16 +1386,17 @@ private void saveGraph() {
 	last_directory = fc.getSelectedFile().getParent();
 	String path = fc.getSelectedFile().getPath();
 	JGUIUtil.setLastFileDialogDirectory(last_directory);
-	if ( (fc.getFileFilter() == dv_sff) || (fc.getFileFilter() == txt_sff) ) {
+	FileFilter fileFilter = fc.getFileFilter();
+	if ( (fileFilter == dv_sff) || (fileFilter == txt_sff) ) {
 		if ( !TSUtil.intervalsMatch(__tslist) ) {
 			Message.printWarning ( 1, routine, "Unable to write DateValue time series of different intervals." );
 			return;
 		}
-		try {	
-			if (fc.getFileFilter() == dv_sff) {
+		try {
+			if (fileFilter == dv_sff) {
 			    path = IOUtil.enforceFileExtension ( path, "dv" );
 			}
-			else if (fc.getFileFilter() == txt_sff) {
+			else if (fileFilter == txt_sff) {
 			    path = IOUtil.enforceFileExtension ( path, "txt" );
 			}
 			__tsview_JFrame.setWaitCursor ( true );
@@ -1403,15 +1409,15 @@ private void saveGraph() {
 			__tsview_JFrame.setWaitCursor ( false );
 		}
 	}
-	else if (fc.getFileFilter() == jpg_sff || fc.getFileFilter() == png_sff) {
+	else if (fileFilter == jpg_sff || fileFilter == png_sff) {
 	    String type = "PNG";   // For message below
 		try {	
 			__tsview_JFrame.setWaitCursor(true);
-			if (fc.getFileFilter() == png_sff) {
+			if (fileFilter == png_sff) {
 			    path = IOUtil.enforceFileExtension ( path, "png" );
 			}
 			// Leave *.jpeg alone but by default enforce *.jpg
-			else if ( (fc.getFileFilter() == jpg_sff) && !StringUtil.endsWithIgnoreCase(path,"jpeg")) {
+			else if ( (fileFilter == jpg_sff) && !StringUtil.endsWithIgnoreCase(path,"jpeg")) {
 	            path = IOUtil.enforceFileExtension ( path, "jpg" );
 	            type = "JPG";
 	        }
@@ -1426,7 +1432,35 @@ private void saveGraph() {
 			__tsview_JFrame.setWaitCursor(false);
 		}
 	}
-    else if ( fc.getFileFilter() == svg_sff ) {
+	else if ( fileFilter == json_sff ) {
+		try {
+		    path = IOUtil.enforceFileExtension ( path, "json" );		
+		    boolean outputAll = false; // Only output non-default properties
+			__tsproduct.writeJsonFile ( path, outputAll );
+			__tsproduct.setDirty(false);
+			__tsproduct.propsSaved();
+			//__tsproduct.setPropsHowSet(Prop.SET_FROM_PERSISTENT);
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 1, routine, "Error saving time series product file:\n" + "\"" + path + "\"");
+			Message.printWarning ( 2, routine, e );
+		}
+	}
+	else if ( fileFilter == json_all_sff ) {
+		try {
+		    path = IOUtil.enforceFileExtension ( path, "json" );		
+		    boolean outputAll = true; // Output all properties
+			__tsproduct.writeJsonFile ( path, outputAll );
+			__tsproduct.setDirty(false);
+			__tsproduct.propsSaved();
+			//__tsproduct.setPropsHowSet(Prop.SET_FROM_PERSISTENT);
+		}
+		catch ( Exception e ) {
+			Message.printWarning ( 1, routine, "Error saving time series product file:\n" + "\"" + path + "\"");
+			Message.printWarning ( 2, routine, e );
+		}
+	}
+    else if ( fileFilter == svg_sff ) {
         try {   
             __tsview_JFrame.setWaitCursor(true);
             path = IOUtil.enforceFileExtension ( path, "svg" );
@@ -1446,7 +1480,7 @@ private void saveGraph() {
             __tsview_JFrame.setWaitCursor(false);
         }
     }
-	else if ( fc.getFileFilter() == tsp_sff ) {
+	else if ( fileFilter == tsp_sff ) {
 		try {
 		    path = IOUtil.enforceFileExtension ( path, "tsp" );		
 			__tsproduct.writeFile ( path, false );
@@ -1463,7 +1497,7 @@ private void saveGraph() {
 	    // Save to a DMI (database, etc.) via the interface.
 		if (dmiff != null) {
 			for (int i = 0; i < size; i++) {
-				if (fc.getFileFilter() == dmiff[i]) {
+				if (fileFilter == dmiff[i]) {
 					TSProductDMI dmi = tsProductDMIs.get(i);
 					dmi.writeTSProduct(__tsproduct);
 				}
