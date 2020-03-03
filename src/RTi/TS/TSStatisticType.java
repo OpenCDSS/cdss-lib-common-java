@@ -272,6 +272,14 @@ public enum TSStatisticType
      * Nonexceedance probability, can be percent or fraction.
      */
     NEP ( "NEP", "Nonexceedance Probability", "Nonexceedance probability, can be percent or fraction." ), // Make the same as NONEXCEEDANCE_PROBABILITY
+	/**
+	 * New maximum value in the sample, typically used when processing a period that increases over time.
+	 */
+	NEW_MAX ( "NewMax", "New Maxinumum", "New maximum value was found in the sample (0 or 1)." ),
+	/**
+	 * New minimum value in the sample, typically used when processing a period that increases over time.
+	 */
+	NEW_MIN ( "NewMin", "New Mininumum", "New minimum value was found in the sample (0 or 1)." ),
     /**
      * Nonexceedance probability, percent.
      */

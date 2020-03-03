@@ -80,7 +80,7 @@ private DateTime __outputEnd = null;
 /**
 Sample type.
 */
-private RunningAverageType __SampleType = null;
+private RunningAverageType __sampleType = null;
 
 /**
 Statistic.
@@ -166,7 +166,8 @@ size to do the calculation, or -1 if the sample size does not matter
 public TSUtil_RunningStatistic ( TS ts, int n, Integer [] nByMonth, Integer [][] nCustomByMonth,
 	TSStatisticType statisticType,
 	DateTime analysisStart, DateTime analysisEnd,
-    RunningAverageType sampleType, int allowMissingCount, int minimumSampleSize, DistributionType distributionType,
+    RunningAverageType sampleType,
+    int allowMissingCount, int minimumSampleSize, DistributionType distributionType,
     Hashtable<String,String> distributionParameters, String probabilityUnits, SortOrderType sortOrderType,
     DateTime normalStart, DateTime normalEnd, DateTime outputStart, DateTime outputEnd )
 {   String message;
@@ -528,7 +529,7 @@ Return the sample window type.
 */
 public RunningAverageType getSampleType ()
 {
-    return __SampleType;
+    return __sampleType;
 }
 
 /**
@@ -556,6 +557,8 @@ public static List<TSStatisticType> getStatisticChoices()
     choices.add ( TSStatisticType.MEAN );
     choices.add ( TSStatisticType.MEDIAN );
     choices.add ( TSStatisticType.MIN );
+    choices.add ( TSStatisticType.NEW_MAX );
+    choices.add ( TSStatisticType.NEW_MIN );
     choices.add ( TSStatisticType.NONEXCEEDANCE_PROBABILITY );
     choices.add ( TSStatisticType.PERCENT_OF_MAX );
     choices.add ( TSStatisticType.PERCENT_OF_MEDIAN );
@@ -660,21 +663,52 @@ throws TSException, IrregularTimeSeriesNotSupportedException
     }
     */
 
-    // Handling of specific statistics...
+    // Initialize handling of specific statistics...
 
     // Some statistics are a manipulation of a "normal period" statistic. For example, "PercentOfMean" requires an
     // initial statistic (Mean) to be calculated for the normal period and then the input time series value is used to compute
     // the final statistic.  Use statisticTypeForNormal to save the final statistic.  The process is as follows:
     // 1) Compute the statistic for the normal period (may be the same as the analysis period)
     // 2) Use the results from 1 to compute the output for the analysis period
+    int intervalBase = ts.getDataIntervalBase();
+    int intervalMult = ts.getDataIntervalMult();
     TSStatisticType statisticTypeForNormal = null;
     double unitsMult = 1.0; // Used for probability conversion from fraction
     String newUnits = null;
+    // Calculated statistic for period, for each day, used for RunningAverageType.N_ALL_YEARS and SampleFilter="MatchDay"
+    Hashtable<String,Double> statisticForPeriodByInterval = new Hashtable<>();
     if ( (statisticType == TSStatisticType.LAG1_AUTO_CORRELATION) ||
         (statisticType == TSStatisticType.PLOTTING_POSITION) ||
         (statisticType == TSStatisticType.RANK) ||
         (statisticType == TSStatisticType.SKEW) ) {
         newUnits = "";
+    }
+    else if (
+        (statisticType == TSStatisticType.NEW_MAX) ||
+        (statisticType == TSStatisticType.NEW_MIN) ) {
+    	// Initialize the hashtable to store statistic for each day
+    	// - use leap year 2020 to ensure Feb 29 is included
+    	DateTime dt = null;
+    	DateTime dtEnd = null;
+    	if ( ts.getDataIntervalBase() == TimeInterval.DAY ) {
+    		dt = DateTime.parse("2020-01-01");
+    		dtEnd = DateTime.parse("2020-12-31");
+    	}
+    	else if ( ts.getDataIntervalBase() == TimeInterval.MONTH ) {
+    		dt = DateTime.parse("2020-01");
+    		dtEnd = DateTime.parse("2020-12");
+    	}
+   		statisticForPeriodByInterval = new Hashtable<>();
+   		String key = null;
+    	for ( ; dt.lessThanOrEqualTo(dtEnd); dt.addInterval(intervalBase,intervalMult) ) {
+    		if ( ts.getDataIntervalBase() == TimeInterval.DAY ) {
+    			key = String.format("%02d%02d", dt.getMonth(), dt.getDay() );
+    		}
+    		else if ( ts.getDataIntervalBase() == TimeInterval.MONTH ) {
+    			key = String.format("%02d", dt.getMonth() );
+    		}
+    		statisticForPeriodByInterval.put(key, Double.valueOf(Double.NaN));
+    	}
     }
     else if (
         (statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY) ||
@@ -713,8 +747,6 @@ throws TSException, IrregularTimeSeriesNotSupportedException
     
     // Create a new time series of the proper type...
 
-    int intervalBase = ts.getDataIntervalBase();
-    int intervalMult = ts.getDataIntervalMult();
     String newInterval = "" + intervalMult + TimeInterval.getName(intervalBase,1);
     try {
         newts = TSUtil.newTimeSeries ( newInterval, false );
@@ -927,6 +959,9 @@ throws TSException, IrregularTimeSeriesNotSupportedException
         Hashtable<String,double []> valueCache = new Hashtable<String,double[]>();
         int month;
         int [] offsetData;
+        double statisticForPeriod = Double.NaN; // Used when computing long-term statistic, for example NEW_MAX used with N_ALL_YEAR period
+        double statisticForSample = Double.NaN; // Statistic computed from sample, used when decision logic is needed to avoid declaring again
+        boolean haveNewStatisticForSample = false; // Whether a new period statistic needs to be set in the time series
         for ( ; date.lessThanOrEqualTo( end ); date.addInterval(intervalBase, intervalMult) ) {
             // Initialize the date for looking up values to the initial offset from the loop date (new lines up with old)
             valueDateTime.setDate ( date );
@@ -986,7 +1021,8 @@ throws TSException, IrregularTimeSeriesNotSupportedException
                 }
                 if ( sampleArray == null ) {
                     // Generate array and save in cache, ignoring missing values
-                    sampleArrayTSData = TSUtil.toArrayForDateTime ( ts, start, end, date, false );
+                	boolean includeMissing = false;
+                    sampleArrayTSData = TSUtil.toArrayForDateTime ( ts, start, end, date, includeMissing );
                     if ( sampleArrayTSData == null ) {
                         sampleArrayTSData = new TSData[0];
                     }
@@ -1075,6 +1111,64 @@ throws TSException, IrregularTimeSeriesNotSupportedException
                     }
                     else if ( statisticType == TSStatisticType.MIN ) {
                         newts.setDataValue(date,MathUtil.min(count, sampleArray));
+                    }
+                    else if ( (statisticType == TSStatisticType.NEW_MAX) ||
+                    	(statisticType == TSStatisticType.NEW_MIN)
+                    	) {
+                    	haveNewStatisticForSample = false; // Don't yet know whether have value to set as new statistic value
+                    	String dateKey = null;
+                    	if ( intervalBase == TimeInterval.DAY ) {
+                    		dateKey = String.format("%02d%02d", date.getMonth(), date.getDay() );
+                    	}
+                    	else if ( intervalBase == TimeInterval.MONTH ) {
+                    		dateKey = String.format("%02d", date.getMonth() );
+                    	}
+                    	// Indicate how to indicate new max
+                   		// - if unit value, set value to 1 for new max, 0 if not
+                    	// - otherwise, set the value to the new maximum value
+                   		boolean setUnitValue = false;  // TODO smalers 2020-03-01 Will test out and see if this logic should be the only logic
+                   		// Only daily sample filter is currently supported
+                   		statisticForPeriod = statisticForPeriodByInterval.get(dateKey);
+                   		if ( Double.isNaN(statisticForPeriod) ) {
+                   			// Statistic for period has not been set yet so set it
+                   			// - the value will be checked below to decide if a new value is found
+                   			haveNewStatisticForSample = true;
+                   		}
+                        // Always need to do the calculation
+                       	if ( statisticType == TSStatisticType.NEW_MAX ) {
+                    	   	// Calculate the new maximum
+                       	   	statisticForSample = MathUtil.max(count, sampleArray);
+                       	   	if ( statisticForSample > statisticForPeriod ) {
+                       	   		haveNewStatisticForSample = true;
+                       	   	}
+                       	}
+                       	else if ( statisticType == TSStatisticType.NEW_MIN ) {
+                    	   	// Calculate the new minimum
+                       	   	statisticForSample = MathUtil.min(count, sampleArray);
+                       	   	if ( statisticForSample < statisticForPeriod ) {
+                       	   		haveNewStatisticForSample = true;
+                       		}
+                       	}
+                       	if ( haveNewStatisticForSample ) {
+                       		// Set the flag to the triggering value so it can be displayed later
+                       		// - set the value in the hash, currently only supported for day
+                      		statisticForPeriodByInterval.put(dateKey,statisticForSample);
+                       		if ( setUnitValue ) {
+                       			// Set a value of 1 for time series indicating new maximum
+                       			String newValueString = String.format("%.2f",statisticForSample);
+                       			newts.setDataValue(date,1.0,newValueString,-1);
+                       		}
+                       		else {
+                       			// Set the new value as the time series value
+                       			newts.setDataValue(date,statisticForSample);
+                       		}
+                       	}
+                       	else {
+                       	   	// Not a new maximum so set to the indicator value of 0.0, no need for flag
+                       		if ( setUnitValue ) {
+                       			newts.setDataValue(date,0.0);
+                       		}
+                       	}
                     }
                     else if ( statisticType == TSStatisticType.NONEXCEEDANCE_PROBABILITY ) {
                         value = ts.getDataValue(date);
@@ -1426,7 +1520,7 @@ Set the method by which the data sample is determined.
 */
 private void setSampleType ( RunningAverageType runningAverageType )
 {
-    __SampleType = runningAverageType;
+    this.__sampleType = runningAverageType;
 }
 
 /**
