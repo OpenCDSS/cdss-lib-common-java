@@ -37,6 +37,36 @@ these statistics types should typically decide which statistics are supported.
 public enum TSStatisticType
 {
     /**
+     * Change in magnitude from first to last value in a sample: (last - first).
+     * Typically used for change in an interval.
+     */
+    CHANGE("Change", "Change", "Change in magnitude from first to last value."),
+    /**
+     * Change in magnitude from first to last value in a sample as absolute value:  abs(last - first).
+     * Typically used for change in an interval.
+     */
+    CHANGE_ABS("ChangeAbs", "ChangeAbs", "Change in magnitude from first to last value, absolute."),
+    /**
+     * Change in magnitude from first to last value in a sample as a fraction:  (last - first)/first.
+     * Typically used for change in an interval.
+     */
+    CHANGE_FRACTION("ChangeFraction", "ChangeFraction", "Change in magnitude from first to last value as fraction."),
+    /**
+     * Change in magnitude from first to last value in a sample as a fraction, absolute value:  abs((last - first)/first)
+     * Typically used for change in an interval.
+     */
+    CHANGE_FRACTION_ABS("ChangeFractionAbs", "ChangeFractionAbs", "Change in magnitude from first to last value as fraction, absolute)."),
+    /**
+     * Change in magnitude from first to last value in a sample as a fraction:  (last - first)/first * 100.
+     * Typically used for change in an interval.
+     */
+    CHANGE_PERCENT("ChangePercent", "ChangePercent", "Change in magnitude from first to last value as percent."),
+    /**
+     * Change in magnitude from first to last value in a sample as a percent of absolute value:  abs((last - first)/first * 100)
+     * Typically used for change in an interval.
+     */
+    CHANGE_PERCENT_ABS("ChangePercentAbs", "ChangePercentAbs", "Change in magnitude from first to last value as percent, absolute)."),
+    /**
      * Count of missing and non-missing values (total count).
      */
     COUNT("Count", "Count", "Count of missing and nonmissing values in a sample."),

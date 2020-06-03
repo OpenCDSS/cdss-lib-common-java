@@ -287,6 +287,7 @@ public TSUtil_RunningStatistic ( TS ts, int n, Integer [] nByMonth, Integer [][]
 
 /**
 Return the offset data for a month.
+This indicates the interval offsets needed to position the date/time around the current date/time.
 @return offset data as array { offset1, offset2, neededCount } or null if monthly values and the month n is null.
 */
 public int [] calculateOffsetData ( RunningAverageType sampleType, int month, int n,
@@ -549,7 +550,13 @@ other code must enforce these properties and provide transparency to users.
 public static List<TSStatisticType> getStatisticChoices()
 {
     // Enable statistics that illustrate how things change over time
-    List<TSStatisticType> choices = new ArrayList<TSStatisticType>();
+    List<TSStatisticType> choices = new ArrayList<>();
+    choices.add ( TSStatisticType.CHANGE );
+    choices.add ( TSStatisticType.CHANGE_ABS );
+    choices.add ( TSStatisticType.CHANGE_FRACTION );
+    choices.add ( TSStatisticType.CHANGE_FRACTION_ABS );
+    choices.add ( TSStatisticType.CHANGE_PERCENT );
+    choices.add ( TSStatisticType.CHANGE_PERCENT_ABS );
     choices.add ( TSStatisticType.EXCEEDANCE_PROBABILITY );
     choices.add ( TSStatisticType.GEOMETRIC_MEAN );
     choices.add ( TSStatisticType.LAG1_AUTO_CORRELATION );
@@ -675,9 +682,17 @@ throws TSException, IrregularTimeSeriesNotSupportedException
     TSStatisticType statisticTypeForNormal = null;
     double unitsMult = 1.0; // Used for probability conversion from fraction
     String newUnits = null;
+   	boolean doIncludeMissingInSample = false; // Used below to set to true if CHANGE statistics, but generally false
     // Calculated statistic for period, for each day, used for RunningAverageType.N_ALL_YEARS and SampleFilter="MatchDay"
     Hashtable<String,Double> statisticForPeriodByInterval = new Hashtable<>();
-    if ( (statisticType == TSStatisticType.LAG1_AUTO_CORRELATION) ||
+    if ( (statisticType == TSStatisticType.CHANGE) ||
+    	(statisticType == TSStatisticType.CHANGE_ABS) ||
+    	(statisticType == TSStatisticType.CHANGE_PERCENT) ||
+    	(statisticType == TSStatisticType.CHANGE_PERCENT_ABS) ) {
+    	// Need to include missing in sample because end points are used for calculation
+    	doIncludeMissingInSample = true;
+    }
+    else if ( (statisticType == TSStatisticType.LAG1_AUTO_CORRELATION) ||
         (statisticType == TSStatisticType.PLOTTING_POSITION) ||
         (statisticType == TSStatisticType.RANK) ||
         (statisticType == TSStatisticType.SKEW) ) {
@@ -1022,6 +1037,10 @@ throws TSException, IrregularTimeSeriesNotSupportedException
                 if ( sampleArray == null ) {
                     // Generate array and save in cache, ignoring missing values
                 	boolean includeMissing = false;
+                	if ( doIncludeMissingInSample ) {
+                		// For example for CHANGE
+                		includeMissing = true;
+                	}
                     sampleArrayTSData = TSUtil.toArrayForDateTime ( ts, start, end, date, includeMissing );
                     if ( sampleArrayTSData == null ) {
                         sampleArrayTSData = new TSData[0];
@@ -1085,8 +1104,73 @@ throws TSException, IrregularTimeSeriesNotSupportedException
             if ( doCalc ) {
                 // Handle the statistics that are supported...
                 try {
-                    if ( statisticType == TSStatisticType.LAG1_AUTO_CORRELATION ) {
-                        newts.setDataValue(date,MathUtil.lagAutoCorrelation(count, sampleArray, 1));
+                    if ( statisticType == TSStatisticType.CHANGE ) {
+                    	// Difference between last sample value and first sample value
+                    	if ( count > 0 ) {
+                    		if ( !ts.isDataMissing(sampleArray[0]) && !ts.isDataMissing(sampleArray[count - 1]) ) {
+                    			value = sampleArray[count - 1] - sampleArray[0];
+                    			newts.setDataValue(date,value);
+                    		}
+                    	}
+                    	// Else time series will be missing by default
+                    }
+                    else if ( statisticType == TSStatisticType.CHANGE_ABS ) {
+                    	// Difference between last sample value and first sample value, absolute
+                    	if ( count > 0 ) {
+                    		if ( !ts.isDataMissing(sampleArray[0]) && !ts.isDataMissing(sampleArray[count - 1]) ) {
+                    			value = Math.abs(sampleArray[count - 1] - sampleArray[0]);
+                    			newts.setDataValue(date,value);
+                    		}
+                    	}
+                    	// Else time series will be missing by default
+                    }
+                    else if ( statisticType == TSStatisticType.CHANGE_FRACTION ) {
+                    	// Difference between last sample value and first sample value, fraction
+                    	if ( count > 0 ) {
+                    		if ( !ts.isDataMissing(sampleArray[0]) && !ts.isDataMissing(sampleArray[count - 1]) ) {
+                    			if ( sampleArray[0] != 0 ) {
+                    				value = (sampleArray[count - 1] - sampleArray[0])/sampleArray[0];
+                    				newts.setDataValue(date,value);
+                    			}
+                    		}
+                    	}
+                    	// Else time series will be missing by default
+                    }
+                    else if ( statisticType == TSStatisticType.CHANGE_FRACTION_ABS ) {
+                    	// Difference between last sample value and first sample value, fraction, absolute
+                    	if ( count > 0 ) {
+                    		if ( !ts.isDataMissing(sampleArray[0]) && !ts.isDataMissing(sampleArray[count - 1]) ) {
+                    			if ( sampleArray[0] != 0.0 ) {
+                    				value = Math.abs((sampleArray[count - 1] - sampleArray[0])/sampleArray[0]);
+                    				newts.setDataValue(date,value);
+                    			}
+                    		}
+                    	}
+                    	// Else time series will be missing by default
+                    }
+                    else if ( statisticType == TSStatisticType.CHANGE_PERCENT ) {
+                    	// Difference between last sample value and first sample value, percent
+                    	if ( count > 0 ) {
+                    		if ( !ts.isDataMissing(sampleArray[0]) && !ts.isDataMissing(sampleArray[count - 1]) ) {
+                    			if ( sampleArray[0] != 0 ) {
+                    				value = 100.0*(sampleArray[count - 1] - sampleArray[0])/sampleArray[0];
+                    				newts.setDataValue(date,value);
+                    			}
+                    		}
+                    	}
+                    	// Else time series will be missing by default
+                    }
+                    else if ( statisticType == TSStatisticType.CHANGE_PERCENT_ABS ) {
+                    	// Difference between last sample value and first sample value, percent, absolute
+                    	if ( count > 0 ) {
+                    		if ( !ts.isDataMissing(sampleArray[0]) && !ts.isDataMissing(sampleArray[count - 1]) ) {
+                    			if ( sampleArray[0] != 0.0 ) {
+                    				value = Math.abs(100.0*(sampleArray[count - 1] - sampleArray[0])/sampleArray[0]);
+                    				newts.setDataValue(date,value);
+                    			}
+                    		}
+                    	}
+                    	// Else time series will be missing by default
                     }
                     else if ( statisticType == TSStatisticType.EXCEEDANCE_PROBABILITY ) {
                         value = ts.getDataValue(date);
@@ -1099,6 +1183,9 @@ throws TSException, IrregularTimeSeriesNotSupportedException
                     }
                     else if ( statisticType == TSStatisticType.GEOMETRIC_MEAN ) {
                         newts.setDataValue(date,MathUtil.geometricMean(count, sampleArray));
+                    }
+                    else if ( statisticType == TSStatisticType.LAG1_AUTO_CORRELATION ) {
+                        newts.setDataValue(date,MathUtil.lagAutoCorrelation(count, sampleArray, 1));
                     }
                     else if ( statisticType == TSStatisticType.MAX ) {
                         newts.setDataValue(date,MathUtil.max(count, sampleArray));
