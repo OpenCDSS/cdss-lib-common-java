@@ -204,6 +204,10 @@ private List<TSProductAnnotationProvider> __tsProductAnnotationProviders = null;
 
 /**
 List of TSProductDMI objects available for use with any of the sub guis.
+These provide the ability to save/read TSProduct objects.
+Most of the time the TSTool product file as *.tsp or *.json is used.
+However, products where at one point saved to HydroBase.
+This is no longer done so all of this functionality may be removed in the future if not used.
 */
 private List<TSProductDMI> __tsProductDMIs = null;
 
