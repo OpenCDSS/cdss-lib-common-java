@@ -24,6 +24,7 @@ NoticeEnd */
 package riverside.datastore;
 
 import java.util.List;
+import java.util.Map;
 
 import RTi.TS.TS;
 import RTi.TS.TSIdent;
@@ -59,8 +60,19 @@ public interface PluginDataStore {
 	public JWorksheet_AbstractRowTableModel createTimeSeriesListTableModel(String dataType, String timeStep, InputFilter_JPanel ifp );
 	
 	/**
+	 * Return the list of plugin properties, used to facilitate integration of plugin with application.
+	 * There is not a standard list of properties, but the following are useful:
+	 * <ul>
+	 * <li> Version - a version string following semantic versioning (e.g., "1.2.3" or "1.2.3 (2020-05-29)",
+	 *      which can be used in documentation at a minimum.</li>
+	 * </ul>
+	 */
+	public Map<String,Object> getPluginProperties();
+	
+	/**
 	 * Return the list of time series data type strings.
-	 * These strings are specific to the datastore and may be simple like "DataType1"
+	 * These strings are specific to the datastore and may be simple like
+	 * "DataType1"
 	 * or more complex like "DataStore1 - note for data type".
 	 * @param dataInterval data interval from TimeInterval.getName(TimeInterval.HOUR,0) to filter the list of data types.
 	 * If null, blank, or "*" the interval is not considered when determining the list of data types.
