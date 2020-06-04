@@ -36,6 +36,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -510,6 +511,35 @@ public static boolean fileReadable ( String filename )
 	//boolean canread = file.canRead();
 	//file = null;
 	//return canread;
+}
+
+/**
+ * Read a file into a StringBuilder, including retaining the existing newlines. 
+ * This ensures that if the text is modified and written,
+ * the file will have the same line endings as the original.
+ * @param filename Name of file to read.
+ * @return StringBuilder containing the characters in the file.
+ */
+public static StringBuilder fileToStringBuilder ( String filename )
+throws FileNotFoundException, IOException {
+	StringBuilder sb = new StringBuilder();
+	
+	BufferedReader reader = null;
+	try {
+		reader = new BufferedReader(new FileReader(filename) );
+		int bufferLen = 512;
+		char [] array = new char[bufferLen];
+		int nchars;
+		while ((nchars = reader.read(array,0,bufferLen)) > -1 ) {
+	  		sb.append(array,0,nchars);
+	   	}
+	}
+	finally {
+		if ( reader != null ) {
+			reader.close();
+		}
+	}
+	return sb;
 }
 
 /**

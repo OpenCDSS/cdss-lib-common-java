@@ -144,7 +144,7 @@ throws Exception
 	String prop_value = null;
 	DateTime date1 = null;
 	DateTime date2 = null;
-	Message.printStatus ( 2, "", "Processing product" );
+	Message.printStatus ( 2, routine, "Processing product" );
 	int nsubs = tsproduct.getNumSubProducts();
 	prop_value = tsproduct.getLayeredPropValue("IsTemplate", -1, -1 );
 	boolean is_template = false;
@@ -284,6 +284,11 @@ throws Exception
 		}
 	}
 	*/
+	String outputProductFile = tsproduct.getLayeredPropValue ( "OutputProductFile", -1, -1 );
+	String outputProductFormat = tsproduct.getLayeredPropValue ( "OutputProductFormat", -1, -1 );
+	if ( (outputProductFormat == null) || outputProductFormat.isEmpty() ) {
+		outputProductFormat = "JSON"; // Default
+	}
 	String preview_output = tsproduct.getLayeredPropValue ( "PreviewOutput", -1, -1 );
 	try {
 	    // Draw to the image file first in case because the on-screen display throws
@@ -338,6 +343,17 @@ throws Exception
                 tsview.addWindowListener ( _tsview_window_listener );
             }
         }
+		// Create the output product file if requested.
+		// - this is the same as "Save" in the TSView_Graph window
+        // - do this after the product is processed because many properties will be set internally
+		if ( (outputProductFile != null) && !outputProductFile.isEmpty() ) {
+			if ( outputProductFormat.equalsIgnoreCase("json") ) {
+				tsproduct.writeJsonFile(outputProductFile, true);
+			}
+			else {
+				tsproduct.writeFile(outputProductFile, true);
+			}
+		}
 	}
 	catch ( Exception e ) {
 		Message.printWarning ( 3, "TSProcessor.processGraphProduct", "Unable to create graph." );

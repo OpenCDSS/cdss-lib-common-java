@@ -4734,7 +4734,8 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 Output the product to a text representation.
 @param outputAll indicates whether to output all the properties (true),
 or only those that are different from defaults (false).
-The latter is generally the legacy behavior used by software to create shorter files.
+The latter is generally the legacy behavior used by software to create shorter files,
+which are easier to deal with by users because less properties to edit.
 @param outputHowSet indicate whether "how set" value should be output in addition to property value,
 typically only when debugging.
 @param sort indicate whether properties should be sorted (true) or left in default order (false).
