@@ -73,7 +73,15 @@ TO_DOUBLE("ToDouble"),
 /*
 Cast a string value to an integer.
 */
-TO_INTEGER("ToInteger");
+TO_INTEGER("ToInteger"),
+/*
+Convert a string value to lower case.
+*/
+TO_LOWERCASE("ToLowerCase"),
+/*
+Convert a string value to upper case.
+*/
+TO_UPPERCASE("ToUpperCase");
 
 /**
  * The name that should be displayed when used in UIs and reports.

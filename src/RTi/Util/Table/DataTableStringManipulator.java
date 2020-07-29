@@ -71,7 +71,7 @@ Get the list of operators that can be used.
 */
 public static List<DataTableStringOperatorType> getOperatorChoices()
 {
-    List<DataTableStringOperatorType> choices = new Vector<DataTableStringOperatorType>();
+    List<DataTableStringOperatorType> choices = new Vector<>();
     choices.add ( DataTableStringOperatorType.APPEND );
     choices.add ( DataTableStringOperatorType.PREPEND );
     choices.add ( DataTableStringOperatorType.REPLACE );
@@ -84,6 +84,8 @@ public static List<DataTableStringOperatorType> getOperatorChoices()
     choices.add ( DataTableStringOperatorType.TO_DATE_TIME );
     choices.add ( DataTableStringOperatorType.TO_DOUBLE );
     choices.add ( DataTableStringOperatorType.TO_INTEGER );
+    choices.add ( DataTableStringOperatorType.TO_LOWERCASE );
+    choices.add ( DataTableStringOperatorType.TO_UPPERCASE );
     return choices;
 }
 
@@ -164,6 +166,7 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             __table.addField(new TableField(TableField.DATA_TYPE_DOUBLE,outputColumn,-1,6), null );
         }
         else {
+        	// All other types use a string column type.
             __table.addField(new TableField(TableField.DATA_TYPE_STRING,outputColumn,-1,-1), null );
         }
         try {
@@ -448,12 +451,27 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             }
         }
         else if ( operator == DataTableStringOperatorType.TO_INTEGER ) {
+        	// First try to convert the string to an integer
             try {
                 outputVal = Integer.parseInt(input1Val);
             }
             catch ( NumberFormatException e ) {
-                outputVal = null;
+            	// If the above fails, try converting to a Double
+            	try {
+            		Double outputDouble = Double.parseDouble(input1Val);
+            		// intValue may truncate but want to round in the normal way
+            		outputVal = new Integer((int)Math.round(outputDouble));
+            	}
+            	catch ( NumberFormatException e2 ) {
+            		outputVal = null;
+            	}
             }
+        }
+        else if ( operator == DataTableStringOperatorType.TO_LOWERCASE ) {
+            outputVal = input1Val.toLowerCase();
+        }
+        else if ( operator == DataTableStringOperatorType.TO_UPPERCASE ) {
+            outputVal = input1Val.toUpperCase();
         }
         // Check the length of the string because may need to reset output column width
         if ( input1ColumnNum == outputColumnNum ) {
