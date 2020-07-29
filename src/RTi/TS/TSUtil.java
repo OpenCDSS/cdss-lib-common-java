@@ -4922,8 +4922,9 @@ throws Exception
 	TSData tsdata = new TSData(); // Data point used for setting the data flag handling the data flag.
 	int fillCount = 0;
 	if ( interval_base == TimeInterval.IRREGULAR ) {
-		Message.printWarning ( 1, routine, "Filling irregular time series using interpolation is not supported." );
-		return;
+		message = "Filling irregular time series using interpolation is not supported.";
+		Message.printWarning ( 3, routine, message );
+		throw new IrregularTimeSeriesNotSupportedException(message);
 	}
 	else {
 	    // Loop using addInterval...
@@ -4933,12 +4934,17 @@ throws Exception
 		int num_after_intervals = 0, num_before_intervals = 0;
 		boolean previous_was_filled = false;
 		double before_value = 0.0, after_value = 0.0;
+		DateTime date1 = ts.getDate1();
+		DateTime date2 = ts.getDate2();
 		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 			oldvalue = ts.getDataValue ( date );
 			if ( ts.isDataMissing(oldvalue) ) {
 				// If the previous value was filled using interpolation then re-use the delta...
 				if ( previous_was_filled ) {
 					value = value + delta;
+					if ( Message.isDebugOn ) {
+						Message.printStatus(2, routine, "date=" + date + " delta=" + delta + " value=" + value);
+					}
 					if ( FillFlag_boolean ) {
 						// Set the data flag, appending to the old value...
 						tsdata = ts.getDataPoint ( date, tsdata );
@@ -4957,9 +4963,19 @@ throws Exception
 				before = new DateTime ( date );
 				after = new DateTime ( date );
 				num_before_intervals = num_after_intervals = 0;
-				// Search for date before.  Start with the current date so increment.  This often only
-				// comes in to play if the requested period allows backing up to find a value.
-				while ( before.greaterThanOrEqualTo(start) ) {
+				// Search for date before with non-missing.  Start with the current date so decrement.
+				// There are two cases:
+				// 1) Missing value is immediately after a non-missing value, which is the typical case.
+				//    In this case the logic looks forward to the bounding end value and the delta
+				//    works properly with check above for 'previous_was_filled'.
+				//      num_before_intervals = 1
+				// 2) It is possible that non-missing is before the fill start (if a start was specified)
+				//    so allow searching to the start of the time series.
+				//    In this case additional delta values need to be added to jump over the
+				//    values before the start period.
+				//      num_before_intervals > 1
+				//while ( before.greaterThanOrEqualTo(start) ) {
+				while ( before.greaterThanOrEqualTo(date1) ) {
 					// If not missing, break...
 					if ( !ts.isDataMissing( ts.getDataValue(before)) ) {
 						before_found = true;
@@ -4971,8 +4987,10 @@ throws Exception
 						break;
 					}
 				}
-				// Now search for date after...
-				while ( after.lessThanOrEqualTo(end) ) {
+				// Now search for date after.
+				// It is possible that non-missing is before the fill start so allow searching to the
+				// start of the time series.
+				while ( after.lessThanOrEqualTo(date2) ) {
 					// If not missing, break...
 					if ( !ts.isDataMissing( ts.getDataValue(after)) ) {
 						after_found = true;
@@ -4990,7 +5008,13 @@ throws Exception
 					before_value = ts.getDataValue(before);
 					after_value = ts.getDataValue(after);
 					delta =	(after_value - before_value)/(num_before_intervals + num_after_intervals);
-					value = before_value + delta;
+					value = before_value + delta*num_before_intervals;
+					if ( Message.isDebugOn ) {
+						Message.printStatus(2, routine, "date=" + date + " before=" + before + " beforeValue=" + before_value +
+							" after=" + after + " afterValue=" + after_value +
+							" num_before_intervals=" + num_before_intervals + " num_after_intervals=" + num_after_intervals +
+							" delta=" + delta + " value=" + value);
+					}
 					if ( FillFlag_boolean ) {
 						// Set the data flag, appending to the old value...
 						tsdata = ts.getDataPoint ( date, tsdata );
