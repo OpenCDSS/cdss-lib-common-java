@@ -4251,7 +4251,8 @@ then sets the time zone for the instance to the requested time zone.
 @exception Exception if the time zone cannot be shifted (unknown time zone).
 */
 public void shiftTimeZone ( String zone )
-{	Message.printStatus(2, "", "Shifting to time zone \"" + zone + "\"");
+{	String routine = getClass().getSimpleName() + ".shiftTimeZone";
+	Message.printStatus(2, routine, "Shifting to time zone \"" + zone + "\"");
 	if ( zone.isEmpty() ) {
 		// Just set the time zone to blank to make times timezone-agnostic
 		setTimeZone ( "" );

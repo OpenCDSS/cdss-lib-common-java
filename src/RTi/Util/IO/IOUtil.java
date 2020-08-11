@@ -2329,13 +2329,13 @@ public static PrintWriter processFileHeaders ( String oldFile, String newFile, L
 	return ofp;
 }
 
-// TODO SAM 2012-06-28 Perhaps return an object that has the response code and output strings - refactor later if needed.
 /**
 Read a response given a URL string.  If the response code is >= 400 the result is read from the error stream.
 Otherwise, the response is read from the input stream.
+See the UrlReader class as a more robust option.
 @return the string read from a URL.
 @param urlString the URL to read from.
-@param errorCheck if specified, the 
+@deprecated use the UrlReader class.
 */
 public static String readFromURL ( String urlString )
 throws MalformedURLException, IOException

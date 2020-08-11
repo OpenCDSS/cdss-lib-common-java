@@ -274,11 +274,15 @@ private void calculateStatistic (
     yearStart.setDay( 1 ); // Will not be used if monthly input
     yearStart.setHour ( 0 );
     yearStart.setMinute ( 0 );
+    yearStart.setSecond ( 0 );
+    yearStart.setHSecond( 0 );
     DateTime yearEnd = new DateTime ( yearStart );
     yearEnd.addMonth ( 11 );
     yearEnd.setDay ( TimeUtil.numDaysInMonth(yearEnd.getMonth(), yearEnd.getYear()));
     yearEnd.setHour ( 23 );
     yearEnd.setMinute ( 59 );
+    yearEnd.setSecond ( 59 );
+    yearEnd.setHSecond( 99 ); // TODO smalers 2020-08-04 maybe change logic to do < and use exact interval?
     // Always create a new instance of date for the iterator to protect original data
     double value;  // The value in the original time series
     // Year for output (reverse the year offset from the window)...
@@ -288,9 +292,9 @@ private void calculateStatistic (
     // Use these internal to the loop below so as to not interfere with the full-year iteration
     DateTime yearStartForAnalysisWindow = null;
     DateTime yearEndForAnalysisWindow = null;
-    // Loop until all the new years are processed
-    // The new time series period should have been defined to align with the output year type
-    // Checking the year start will allow any period - with missing values filling in if necessary
+    // Loop until all the output years are processed.
+    // The new time series period should have been defined to align with the output year type.
+    // Checking the year start will allow any period - with missing values filling in if necessary.
     while ( yearStart.lessThanOrEqualTo(analysisEnd) ) {
         // Initialize for the new year
         double sum = 0.0;
@@ -298,7 +302,7 @@ private void calculateStatistic (
         int nNotMissing = 0;
         // Extract data from the old time series for the new year
         // This loops over the full year so that missing values on the end will impact results
-        Message.printStatus(2, routine, "Processing old time series for " + yearStart + " to " + yearEnd +
+        Message.printStatus(2, routine, "Processing input time series for " + yearStart + " to " + yearEnd +
             " to create output year " + outputYear );
         // Change the window within the year based on the analysis window.  This will shorten the
         // number of iterations and potentially lessen the missing data count.  This is OK to set here
@@ -325,6 +329,8 @@ private void calculateStatistic (
             yearStartForAnalysisWindow.setDay(analysisWindowStart.getDay());
             yearStartForAnalysisWindow.setHour(analysisWindowStart.getHour());
             yearStartForAnalysisWindow.setMinute(analysisWindowStart.getMinute());
+            yearStartForAnalysisWindow.setSecond(analysisWindowStart.getSecond());
+            yearStartForAnalysisWindow.setHSecond(analysisWindowStart.getHSecond());
         }
         if ( analysisWindowEnd == null ) {
             // OK to use full years
@@ -345,6 +351,8 @@ private void calculateStatistic (
             yearEndForAnalysisWindow.setDay(analysisWindowEnd.getDay());
             yearEndForAnalysisWindow.setHour(analysisWindowEnd.getHour());
             yearEndForAnalysisWindow.setMinute(analysisWindowEnd.getMinute());
+            yearEndForAnalysisWindow.setSecond(analysisWindowEnd.getSecond());
+            yearEndForAnalysisWindow.setHSecond(analysisWindowEnd.getHSecond());
         }
         if ( (analysisWindowStart != null) || (analysisWindowEnd != null) ) {
             Message.printStatus(2, routine, "Resetting input analysis window to requested " +
@@ -368,6 +376,8 @@ private void calculateStatistic (
                 yearStartForAnalysisWindow.setDay(searchStart.getDay());
                 yearStartForAnalysisWindow.setHour(searchStart.getHour());
                 yearStartForAnalysisWindow.setMinute(searchStart.getMinute());
+                yearStartForAnalysisWindow.setSecond(searchStart.getSecond());
+                yearStartForAnalysisWindow.setHSecond(searchStart.getHSecond());
             }
             else {
                 yearEndForAnalysisWindow = new DateTime(yearEnd);
@@ -383,6 +393,8 @@ private void calculateStatistic (
                 yearEndForAnalysisWindow.setDay(searchStart.getDay());
                 yearEndForAnalysisWindow.setHour(searchStart.getHour());
                 yearEndForAnalysisWindow.setMinute(searchStart.getMinute());
+                yearEndForAnalysisWindow.setSecond(searchStart.getSecond());
+                yearEndForAnalysisWindow.setHSecond(searchStart.getHSecond());
             }
             Message.printStatus(2, routine,
                 "Resetting input analysis window using SearchStart to requested " +
@@ -391,6 +403,10 @@ private void calculateStatistic (
         // Create an iterator for the data...
         TSIterator tsi = null;
         try {
+            if ( Message.isDebugOn ) {
+                Message.printDebug ( 10, routine, "Initializing iterator for " +
+                	yearStartForAnalysisWindow + " to " + yearEndForAnalysisWindow );
+            }
        		tsi = ts.iterator(yearStartForAnalysisWindow,yearEndForAnalysisWindow);
         }
         catch ( Exception e ) {
@@ -407,6 +423,7 @@ private void calculateStatistic (
         double extremeValue = yearts.getMissing(); // Used for DayOfMin, etc., where check and day are tracked.
         boolean doneAnalyzing = false; // If true, there is no more data or a statistic is complete
         // Loop through the data in the analysis window
+        Message.printDebug ( 10, routine, "Procoessing data..." );
         while ( true ) {
             if ( iterateForward ) {
                 // First call will initialize and return first point.
