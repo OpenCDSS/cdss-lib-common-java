@@ -21,41 +21,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
 
 NoticeEnd */
 
-// ----------------------------------------------------------------------------
-// IrregularTSIterator - used to iterate through irregular time series data
-// ----------------------------------------------------------------------------
-// History:
-//
-// 05 Jul 2000	Steven A. Malers, RTi	Copy TSDateIterator and update to have
-//					basic needed functionality.
-// 27 Jul 2000	Michael Thiemann, RTi   Use TSIterator as base class and derive
-//					this class to improve performance.
-// 28 Jul 2000	SAM, RTi		Clean up code to remove redundant
-//					code in derived class.
-// 11 Oct 2000	SAM, RTi		Port to Java from C++.
-// 10 Sep 2001	SAM, RTi		Change iterator to be more similar to
-//					C++, which was updated after the initial
-//					port.  Fix a problem in IrregularTS that
-//					impacted iteration.
-// 2001-11-06	SAM, RTi		Review javadoc.  Verify that variables
-//					are set to null when no longer used.
-// 2003-06-02	SAM, RTi		Upgrade to use generic classes.
-//					* Change TSDate to DateTime.
-// 2003-07-24	SAM, RTi		* Synchronize with C++ code.
-//					* Have the constructors throw an
-//					  Exception if the time series or dates
-//					  are null.
-//					* Add getDuration().
-//					* Add finalize().
-// 2005-09-14	SAM, RTi		Change _last_date_encountered to
-//					_last_date_processed, as per the
-//					TSIterator base class.
-// 2005-09-16	SAM, RTi		* Add skeleton goTo(),
-//					  goToNearestNext(),
-//					  goToNearestPrevious().
-// ----------------------------------------------------------------------------
-// EndHeader
-
 package RTi.TS;
 
 import java.util.List;
@@ -69,6 +34,12 @@ It is used similarly to the TSIterator.  See TSIterator for examples of use.
 */
 public class IrregularTSIterator extends TSIterator
 {
+	
+	/**
+	 * The time series being iterated cast to IrregularTS,
+	 * to avoid having to cast elsewhere.
+	 */
+	private IrregularTS irregularTS = null;
 
 /**
 Construct an iterator for the full period of the time series.
@@ -78,6 +49,7 @@ Construct an iterator for the full period of the time series.
 public IrregularTSIterator ( IrregularTS ts )
 throws Exception
 {	super ( ts );
+	irregularTS = ts;
 }	
 
 /**
@@ -90,6 +62,7 @@ Construct an iterator for the given period of the time series.
 public IrregularTSIterator ( IrregularTS ts, DateTime date1, DateTime date2 )
 throws Exception
 {	super ( ts, date1, date2 );
+	irregularTS = ts;
 }
 
 /**
@@ -187,7 +160,14 @@ public boolean hasNext ()
 }
 
 /**
-Advance the iterator.  When called the first time, the initial value will be returned.
+Advance the iterator.  When called the first time,
+the initial value will be returned as follows:
+<ul>
+<li>If no period was specified in the constructor,
+return the first data point in the time series.</li>
+<li>If a period was specified in the constructor,
+return the first data point >= the start time.</li>
+</ul>
 @return null if the data is past the end or a pointer to an internal
 TSData object containing the data for the current time step (WARNING:  the
 contents of this object are volatile and change with each iteration).  Use the
@@ -208,30 +188,43 @@ public TSData next ( )
 	//if ( _firstDateProcessed ) {
 	if ( ! this._isIterationComplete ) {
 		// if ( _firstDateProcessed ) {
-		if ( this._nextWasCalledFirst ) {
-			// Have previously called next() so initialization has occurred
+		if ( this._nextWasCalledFirst || this._previousWasCalledFirst ) {
+			// Have previously called next() or previous() so initialization has occurred.
+			// - just return the next item in the list, which is very fast
 			theData = this._tsdata.getNext();
 		}
 		else {
-			// This is the first call to next() so need to find the first data point
-			List<TSData> v = ((IrregularTS)this._ts).getData();
-			if ( (v == null) || (v.size() == 0) ) {
+			// This is the first call to next() so need to find the first data point:
+			// - if no period was specified, return the first value
+			// - if a period was specified, return the first point >= the start
+			List<TSData> tsdataList = this.irregularTS.getData();
+			if ( (tsdataList == null) || (tsdataList.size() == 0) ) {
+				// No data.
 				return null;
 			}
-			int size = v.size();
+			int size = tsdataList.size();
 			TSData ptr = null;
 			for ( int i = 0; i < size; i++ ) {
-				ptr = v.get(i);
-				if ( ptr.getDate().equals(this._currentDate) ) {
+				ptr = tsdataList.get(i);
+				// this._currentDate is set in the constructor as the initial date/time as requested or from the time series.
+				// Because irregular time series may not exactly match, use >= to find the first value.
+				// For example, may be computing statistics on a regular interval but irregular interval data don't
+				// align with those intervals.
+				// Old code
+				// - TODO smalers 2020-08-04 remove when tested out
+				//if ( ptr.getDate().equals(this._currentDate) ) {
+				if ( ptr.getDate().greaterThanOrEqualTo(this._currentDate) ) {
 					theData = ptr;
 					break;
 				}
 			}
+			// TODO smalers 2020-08-04 does this need to check whether this._prevWasCalledFirst?
 			this._nextWasCalledFirst = true;
 		}
 
 		if ( theData == null ) {
-			// Have exceeded the limits of the data list...
+			// Have called next() and reached the end of the data list...
+			// - can call next() past the end of the requested period - does not return null in that case
 			//_lastDateProcessed = true;
 			this._isIterationComplete = true;
 		}
