@@ -45,7 +45,7 @@ private List<DataStore> __dataStoreList = null;
 /**
 Number of columns in the table model (with the alias).
 */
-private int __COLUMNS = 15;
+private int __COLUMNS = 19;
 
 /**
 Absolute column indices, for column lookups.
@@ -70,6 +70,11 @@ public final int COL_SERVICE_ROOT_URI = 12;
 // General error string
 public final int COL_STATUS_MESSAGE = 13;
 public final int COL_CONFIG_FILE = 14;
+// Plugin standard properties
+public final int COL_PLUGIN_NAME = 15;
+public final int COL_PLUGIN_DESCRIPTION = 16;
+public final int COL_PLUGIN_AUTHOR = 17;
+public final int COL_PLUGIN_VERSION = 18;
 
 /**
 Constructor.
@@ -128,6 +133,10 @@ public String getColumnName(int columnIndex) {
         case COL_SERVICE_ROOT_URI: return "Web Service Root URI";
         case COL_STATUS_MESSAGE: return "Status Message";
         case COL_CONFIG_FILE: return "Configuration File";
+        case COL_PLUGIN_NAME: return "Plugin Name";
+        case COL_PLUGIN_DESCRIPTION: return "Plugin Description";
+        case COL_PLUGIN_AUTHOR: return "Plugin Author";
+        case COL_PLUGIN_VERSION: return "Plugin Version";
         default: return "";
     }
 }
@@ -152,6 +161,10 @@ public String[] getColumnToolTips() {
     tooltips[COL_SERVICE_ROOT_URI] = "Root URI for web service datastore.";
     tooltips[COL_STATUS_MESSAGE] = "Error message (e.g., when initialization failed).";
     tooltips[COL_CONFIG_FILE] = "Datastore configuration file.";
+    tooltips[COL_PLUGIN_NAME] = "Plugin name (if datastore is a plugin)";
+    tooltips[COL_PLUGIN_DESCRIPTION] = "Plugin description (if datastore is a plugin)";
+    tooltips[COL_PLUGIN_AUTHOR] = "Plugin author (if datastore is a plugin)";
+    tooltips[COL_PLUGIN_VERSION] = "Plugin version (if datastore is a plugin)";
     return tooltips;
 }
 
@@ -197,6 +210,10 @@ public Object getValueAt(int row, int col)
     WebServiceDataStore webServiceDataStore = null;
     if ( dataStore instanceof WebServiceDataStore ) {
         webServiceDataStore = (WebServiceDataStore)dataStore;
+    }
+    PluginDataStore pluginDataStore = null;
+    if ( dataStore instanceof PluginDataStore ) {
+        pluginDataStore = (PluginDataStore)dataStore;
     }
     switch (col) {
         case COL_TYPE:
@@ -311,6 +328,38 @@ public Object getValueAt(int row, int col)
         	return dataStore.getStatusMessage();
         case COL_CONFIG_FILE:
         	return dataStore.getProperty("DataStoreConfigFile");
+        case COL_PLUGIN_NAME:
+        	if ( pluginDataStore != null ) {
+        		// Will be null or a String.
+        		return pluginDataStore.getPluginProperties().get("Name");
+        	}
+        	else {
+        		return "";
+        	}
+        case COL_PLUGIN_DESCRIPTION:
+        	if ( pluginDataStore != null ) {
+        		// Will be null or a String.
+        		return pluginDataStore.getPluginProperties().get("Description");
+        	}
+        	else {
+        		return "";
+        	}
+        case COL_PLUGIN_AUTHOR:
+        	if ( pluginDataStore != null ) {
+        		// Will be null or a String.
+        		return pluginDataStore.getPluginProperties().get("Author");
+        	}
+        	else {
+        		return "";
+        	}
+        case COL_PLUGIN_VERSION:
+        	if ( pluginDataStore != null ) {
+        		// Will be null or a String.
+        		return pluginDataStore.getPluginProperties().get("Version");
+        	}
+        	else {
+        		return "";
+        	}
         default: return "";
     }
 }
@@ -336,6 +385,10 @@ public int[] getColumnWidths() {
     widths[COL_SERVICE_ROOT_URI] = 50;
     widths[COL_STATUS_MESSAGE] = 30;
     widths[COL_CONFIG_FILE] = 50;
+    widths[COL_PLUGIN_NAME] = 20;
+    widths[COL_PLUGIN_DESCRIPTION] = 30;
+    widths[COL_PLUGIN_AUTHOR] = 25;
+    widths[COL_PLUGIN_VERSION] = 20;
     return widths;
 }
 
