@@ -1320,6 +1320,28 @@ public void refresh ()
 }
 
 /**
+Remove a data point corresponding to the index of the data array.
+This is used in internal code.
+@param index index in the data array (0+)
+@return true if the point was removed, false if not (index was not found)
+*/
+public boolean removeDataPoint ( int index ) {
+	int size = __tsDataList.size();
+	if ( index < size ) {
+		// Index is in the array space
+        __tsDataList.remove(index);
+        // Mark dirty so that we recompute the data limits...
+        _dirty  = true;
+        // Decrement the data size...
+        setDataSize ( getDataSize() - 1 );
+        return true;
+	}
+	else {
+		return false;
+	}
+}
+
+/**
 Remove a data point corresponding to the date.
 @param date date/time for which to remove the data point.
 @return true if the point was removed, false if not (date was not found).
