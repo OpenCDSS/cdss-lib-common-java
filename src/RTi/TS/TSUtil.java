@@ -335,9 +335,9 @@ import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.InvalidTimeIntervalException;
+import RTi.Util.Time.TZ;
 import RTi.Util.Time.TimeInterval;
 import RTi.Util.Time.TimeUtil;
-import RTi.Util.Time.TZ;
 import RTi.Util.Time.YearType;
 
 import java.io.FileWriter;
@@ -9624,15 +9624,15 @@ a simple case-dependent string match is performed
 for regular interval data), "SetMissing" to set values to missing, and otherwise use "newvalue" to replace.
 @param analysisWindowStart the starting date/time within a year to start the replacement,
 consistent with the time series interval
-@param analysisWindowEnd the endin date/time within a year to start the replacement,
+@param analysisWindowEnd the ending date/time within a year to start the replacement,
 consistent with the time series interval
 @param setFlag flag value to set on data values when resetting a value
-@param setFlagDesc descriptionion for set flag
+@param setFlagDesc description for set flag
 */
 public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date, Double minValue,
 	Double maxValue, Double newValue, String matchFlag, String action,
 	DateTime analysisWindowStart, DateTime analysisWindowEnd, String setFlag, String setFlagDescription )
-{	
+{	String routine = "replaceValue";
     if ( (newValue == null) && ((action == null) || action.equals("")) ) {
         throw new InvalidParameterException(
             "Neither new value or action have been specified.  Cannot replace value in time series." );
@@ -9643,7 +9643,7 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
     }
     double minvalue = Double.NaN;
     if ( minValue != null ) {
-        minvalue = minValue; // Does this increase peformance?
+        minvalue = minValue; // Does this increase performance?
     }
     double maxvalue = Double.NaN;
     if ( maxValue != null ) {
@@ -9657,22 +9657,25 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 	TSLimits valid_dates = getValidPeriod ( ts, start_date, end_date );
 	DateTime start = valid_dates.getDate1();
 	DateTime end = valid_dates.getDate2();
+	//if ( Message.isDebugOn ) {
+	//	Message.printDebug(1, routine, "Period for replace is " + start + " to " + end);
+	//}
 	boolean doRemove = false;
 	boolean doSetMissing = false;
 	double missing = ts.getMissing();
 	if ( action != null ) {
-	    if ( action.equals("Remove") ) {
+	    if ( action.equalsIgnoreCase("Remove") ) {
 	        doRemove = true;
 	    }
-	    else if ( action.equals("SetMissing") ) {
+	    else if ( action.equalsIgnoreCase("SetMissing") ) {
             doSetMissing = true;
         }
 	}
-	boolean doMatchValue = false; // Checking numerical value for match
+	boolean doMatchValue = false; // Whether checking numerical value for match
 	if ( minValue != null ) {
 	    doMatchValue = true;
 	}
-    boolean doMatchFlag = false; // Checking flg for match
+    boolean doMatchFlag = false; // Whether checking flag for match
     if ( (matchFlag != null) && !matchFlag.equals("") ) {
         doMatchFlag = true;
     }
@@ -9702,6 +9705,7 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the vector...
 		IrregularTS irrts = (IrregularTS)ts;
+		// This returns a pointer to the full data list (not a copy)
 		List<TSData> alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
@@ -9723,18 +9727,29 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 				// Past the end of where we want to go so quit...
 				break;
 			}
-			value = tsdata.getDataValue();
 			if ( doMatchValue ) {
-    			if ( (value >= minvalue) && (value <= maxvalue) ) {
-    			    // Found a value to process
-    			    matchedForReplace = true;
+				value = tsdata.getDataValue();
+				// Check the value
+				if ( maxValue == null ) {
+					// Only checking minimum
+					if ( value >= minvalue ) {
+						// Found a value to process
+						matchedForReplace = true;
+					}
+				}
+				else if ( (value >= minvalue) && (value <= maxvalue) ) {
+					// Checking minimum and maximum values
+					// Found a value to process
+					matchedForReplace = true;
     			}
 			}
-            // Also check the flag
     	    if ( doMatchFlag ) {
+    	    	// Also check the flag - this is ANDed with the value
     	        if ( matchFlag.equals(tsdata.getDataFlag()) ) {
+    	        	// Flag matches the check value
     	            if ( !doMatchValue || (doMatchValue && matchedForReplace) ) {
     	                // Criteria are met
+    	            	// - only checking flag or flag and value match check
     	                matchedForReplace = true;
     	            }
     	            else {
@@ -9743,36 +9758,44 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
     	            }
     	        }
     	        else {
+    	        	// Flag was not matched so don't match
     	            matchedForReplace = false;
     	        }
     	    }
 			if ( matchedForReplace ) {
-			    // Also check whether in the analysis window
+				// Value and/or flag were matched above.
+			    // Also check whether in the analysis window.
 	            if ( doAnalysisWindow ) {
-                    // Do check after checking values to increase performance
+                    // Check analysis window after checking values to increase performance
                     windowStart.setYear(date.getYear());
                     windowEnd.setYear(date.getYear());
                     if ( date.lessThan(windowStart) || date.greaterThan(windowEnd) ) {
-                        // Not in analysis window so don't proces
+                        // Not in analysis window so don't process
                         continue;
                     }
                 }
+	            // If here have matched the value for replacement.
 			    if ( doRemove ) {
-			        // This will remove the point at the date (there should only be one matching date)...
-			        pointRemoved = irrts.removeDataPoint(date);
-			        if ( pointRemoved ) {
-			            // TODO SAM 2010-08-18 Evaluate changing to iterator and remove following code
-    			        // Decrement counters
-    			        --i;
-    			        --nalltsdata;
-    			        ++replaceCount; // Handle in each clause here and below because the above call could fail
-			        }
+			        // This will remove the point at the date (there should only be one matching date/time)...
+			    	// The following is a performance hit because it searches the entire time series.
+			    	// Just remove from the data array.
+			        //pointRemoved = irrts.removeDataPoint(date);
+			    	pointRemoved = irrts.removeDataPoint(i);
+			    	if ( pointRemoved ) {
+			    		// TODO SAM 2010-08-18 Evaluate changing to iterator and remove following code
+			    		// Decrement counters
+			    		--i;
+			    		--nalltsdata;
+			    		++replaceCount;
+			    	}
 			    }
 			    else if ( doSetMissing ) {
+			    	// Set the value to missing
 			        tsdata.setDataValue(missing);
 			        ++replaceCount;
 			    }
 			    else {
+			    	// Set to the new value
 			        tsdata.setDataValue(newvalue);
 			        ++replaceCount;
 			    }
@@ -9792,9 +9815,19 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
 			value = ts.getDataValue ( date );
 			matchedForReplace = false;
-			if ( doMatchValue && (value >= minvalue) && (value <= maxvalue) ) {
-			    // The numerical value matched the check condition
-			    matchedForReplace = true;
+			if ( doMatchValue ) {
+				if ( maxValue == null ) {
+					// Only checking minimum
+					if ( value >= minvalue ) {
+						// Found a value to process
+						matchedForReplace = true;
+					}
+				}
+				else if ( (value >= minvalue) && (value <= maxvalue) ) {
+					// Checking minimum and maximum values
+					// Found a value to process
+					matchedForReplace = true;
+    			}
 			}
             // Also check the flag
             if ( doMatchFlag ) {
