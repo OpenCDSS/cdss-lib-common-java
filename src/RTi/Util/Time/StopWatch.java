@@ -57,10 +57,22 @@ Stop date for a StopWatch session.
 private Date _stop_date;
 
 /**
-Constructor and initialize the StopWatch count to zero milliseconds.
+Construct and initialize the StopWatch count to zero milliseconds.
+Call 'start()' to start the stopwatch.
 */
 public StopWatch ()
+{	this ( false );
+}
+
+/**
+Construct and initialize the StopWatch count to zero milliseconds,
+and start the stopwatch.
+*/
+public StopWatch ( boolean start )
 {	initialize ( 0 );
+	if ( start ) {
+		start();
+	}
 }
 
 /**
@@ -94,15 +106,6 @@ Reset the StopWatch to zero and call start().
 public void clearAndStart ()
 {   _total_milliseconds = 0;
     start();
-}
-
-/**
-Finalize before garbage collection.
-*/
-protected void finalize()
-throws Throwable
-{	_start_date = null;
-	_stop_date = null;
 }
 
 /**
