@@ -251,8 +251,11 @@ throws Exception {
 		Message.printDebug(20, "TableRecord.getFieldValue", "Getting index " + index);
 	}
 	//if ( __useArray ) {
-        if (__colMax < index) {
-            throw new Exception ("Column index [" + index + "] invalid (record has " + __colMax + " columns)");
+        if ( index < 0 ) {
+            throw new Exception ("Column index [" + index + "] is invalid.");
+        }
+        if ( __colMax < index ) {
+            throw new Exception ("Column index [" + index + "] is invalid (record has " + __colMax + " columns)");
         }
         return __recordArray[index];
 	//}

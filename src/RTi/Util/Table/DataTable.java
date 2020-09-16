@@ -3120,6 +3120,14 @@ SEE ALSO DateTimeColumns.</td>
 </tr>
 
 <tr>
+<td><b>ColumnNames</b></td>
+<td>The column names, separated by commas.
+Specify when the file does not contain column names.
+If specified, the HeaderLines parameter will be ignored.</td>
+<td></td>
+</tr>
+
+<tr>
 <td><b>CommentLineIndicator</b></td>
 <td>The characters with which comment lines begin.
 Lines starting with this character are skipped (TrimInput is applied after checking for comments).</td>
@@ -3153,7 +3161,8 @@ using the following StringUtil.breakStringList() call (the flag can be modified 
 <td><b>HeaderLines (previously HeaderRows)</b></td>
 <td>The lines containing the header information, specified as single number or a range (e.g., 2-3).
 Multiple lines will be separated with a newline when displayed, or Auto to automatically treat the
-first non-comment row as a header if the value is double-quoted.</td>
+first non-comment row as a header if the value is double-quoted.
+This will be ignored if ColumnNames is specified.</td>
 <td>Auto</td>
 </tr>
 
@@ -3324,6 +3333,15 @@ throws Exception
     }
     // Use to speed up code below.
     int HeaderLinesList_size = HeaderLineList.size();
+
+	String [] columnNames = new String[0];
+    propVal = props.getValue("ColumnNames");
+    if ( (propVal != null) && !propVal.isEmpty() ) {
+		columnNames = propVal.split(",");
+		for ( int i = 0; i < columnNames.length; i++ ) {
+			columnNames[i] = columnNames[i].trim();
+		}
+    }
     
     String [] dateTimeColumns = null;
     propVal = props.getValue("DateTimeColumns");
@@ -3466,14 +3484,21 @@ throws Exception
 	// parseFile() on a file of size 0 (no lines, no characters)
 	// it will throw an exception.  This should be checked out in the future.
 	
+	// If the column names were specified, set them up front.
+	List<TableField> tableFields = null; // Table fields as controlled by header or examination of data records
+	boolean headers_found = false; // Indicates whether the headers have been found
+	int numFields = -1; // Number of table fields.
+	if ( columnNames.length > 0 ) {
+        tableFields = parseFile_SetColumnNames ( columnNames );
+        numFields = tableFields.size();
+        headers_found = true;
+	}
+	
 	// Read until the end of the file...
 	
 	int linecount = 0; // linecount = 1 for first line in file, for user perspective.
 	int dataLineCount = 0;
 	int linecount0; // linecount0 = linecount - 1 (zero index), for code perspective.
-	boolean headers_found = false; // Indicates whether the headers have been found
-	List<TableField> tableFields = null; // Table fields as controlled by header or examination of data records
-	int numFields = -1; // Number of table fields.
 	TableField tableField = null; // Table field added below
 	while ( true ) {
 		line = in.readLine();
@@ -3505,7 +3530,7 @@ throws Exception
 		
 		// "line" now contains the latest non-comment line so evaluate whether
 	    // the line contains the column names.
-	    
+		
 		if ( !headers_found && (HeaderLines_Auto_boolean ||
 		    ((HeaderLineList != null) && linecount0 <= HeaderLinesList_maxval)) ) {
 		    if ( HeaderLines_Auto_boolean ) {
@@ -4037,6 +4062,30 @@ private static String parseFile_ProcessString ( String cell )
     else {
         return cell;
     }
+}
+
+/**
+Initialize the table fields to specified column names.
+All fields are set to type String, although this will be reset when data records are processed.
+@param columnNames column names to use for table fields.
+@return A list of TableField describing the table columns.
+*/
+private static List<TableField> parseFile_SetColumnNames ( String [] columnNames ) {
+    List<TableField> tableFields = new ArrayList<>();
+    TableField tableField = null;
+    String temp = null;
+    for (int i = 0; i < columnNames.length; i++) {
+        temp = columnNames[i].trim();
+        while (findPreviousFieldNameOccurances(tableFields, temp)) {
+            temp = temp + "_2";
+        }
+        tableField = new TableField();
+        tableField.setName(temp);
+        // All table fields by default are treated as strings.
+        tableField.setDataType(TableField.DATA_TYPE_STRING);
+        tableFields.add(tableField);
+    }
+    return tableFields;
 }
 
 /**
