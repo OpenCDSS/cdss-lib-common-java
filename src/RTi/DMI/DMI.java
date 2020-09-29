@@ -440,6 +440,11 @@ specifically known to this code.  Useful for generic connections.
 */
 public static final int DBENGINE_ODBC = 100;
 
+/**
+Database engine corresponding to SQLite database.
+*/
+public static final int DBENGINE_SQLITE = 110;
+
 ///////////////////////////////////////////////////////////
 //  Commit / Rollback constants
 ///////////////////////////////////////////////////////////
@@ -889,6 +894,15 @@ throws Exception {
 		__fieldRightEscape = "";
 		__stringDelim = "'";
 		_database_engine = DBENGINE_POSTGRESQL;
+		if ( port <= 0 ) {
+			setDefaultPort ();
+		}
+	}
+	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("SQLite")) {
+		__fieldLeftEscape = "";
+		__fieldRightEscape = "";
+		__stringDelim = "'";
+		_database_engine = DBENGINE_SQLITE;
 		if ( port <= 0 ) {
 			setDefaultPort ();
 		}
@@ -2329,6 +2343,27 @@ throws SQLException, Exception {
 		    }
 			Message.printStatus(2, routine, "Opening ODBC connection for PostgreSQL using \"" + connUrl + "\"" );
 		}
+		else if (_database_engine == DBENGINE_SQLITE ) {
+			// Database is a file, not via port connection
+			// See:  https://www.sqlitetutorial.net/sqlite-java/sqlite-jdbc-driver/
+			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_SQLITE'");
+			if ( __database_server.equalsIgnoreCase("memory") ) {
+				// Open an in-memory database
+				connUrl = "jdbc:sqlite::memory";
+		    	if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
+			    	connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+		    	}
+			}
+			else {
+				// Path on windows needs to be forward slashes, therefore convert:
+				//   C:\a\b\c   to   C:/a/b/c
+				connUrl = "jdbc:sqlite:" + __database_server.replace('\\', '/');
+		    	if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
+			    	connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+		    	}
+			}
+			Message.printStatus(2, routine, "Opening ODBC connection for SQLite using \"" + connUrl + "\"" );
+		}
 		// All the SQL Server connections are now concentrated into one code block as using the SQL Server
 		// 2008 JDBC (jdbc4) driver.  Comments are included below in case troubleshooting needs to occur.
 		else if ( _database_engine == DBENGINE_SQLSERVER ) {
@@ -2643,6 +2678,9 @@ throws Exception {
 	}
 	else if (__database_engine_String.equalsIgnoreCase("PostgreSQL")) {
 		_database_engine = DBENGINE_POSTGRESQL;
+	}
+	else if (__database_engine_String.equalsIgnoreCase("SQLite")) {
+		_database_engine = DBENGINE_SQLITE;
 	}
 	else if (StringUtil.startsWithIgnoreCase(__database_engine_String,"SQL_Server") ||
 		StringUtil.startsWithIgnoreCase(__database_engine_String,"SQLServer")) {
@@ -3020,6 +3058,10 @@ public void setDefaultPort() {
 	}
 	else if ( _database_engine == DBENGINE_POSTGRESQL ) {
 		__port = 5432;
+	}
+	else if ( _database_engine == DBENGINE_SQLITE ) {
+		// Not used since a file database
+		__port = -1;
 	}
 	else if ( _database_engine == DBENGINE_SQLSERVER ) {
 		__port = 1433;
