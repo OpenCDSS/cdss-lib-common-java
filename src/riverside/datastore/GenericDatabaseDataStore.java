@@ -107,7 +107,9 @@ public GenericDatabaseDataStore ( String name, String description, DMI dmi )
     setDMI ( dmi );
     // Rely on other authentication to prevent writing.
     // TODO SAM 2013-02-26 Perhaps use a database configuration file property to control
-    dmi.setEditable ( true );
+    if ( dmi != null ) {
+    	dmi.setEditable ( true );
+    }
 }
     
 /**
