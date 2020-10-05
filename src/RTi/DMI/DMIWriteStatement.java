@@ -111,6 +111,9 @@ public String toInsertString() {
 	}
 
 	statement.append(")");
+
+	// Add the trailing character to the statement, may be empty string.
+	statement.append(_dmi.getStatementEnd());
 	
 	return statement.toString();
 }
@@ -141,7 +144,7 @@ public String toUpdateString(boolean tryBuildWhere) {
 		statement.append (" ");
 	} else {
 		Message.printWarning(2, "DMIWriteStatement.toUpdateString", 	
-			"No table specified to use in creation of SQL");
+			"No TABLE specified to use in creation of SQL");
 		return "";
 	}
 
@@ -195,32 +198,28 @@ public String toUpdateString(boolean tryBuildWhere) {
 	}
 	else {
 		Message.printWarning(2, "DMIWriteStatement.toUpdateString",
-			"No where clause specified for update SQL");
+			"No WHERE clause specified for update SQL");
 		return "";
+	}
+
+	// Add the trailing character to the statement, may be empty string.
+	String end = _dmi.getStatementEnd();
+	if ( !end.isEmpty() && !statement.toString().endsWith(end) ) {
+		statement.append(end);
 	}
 	
 	return statement.toString();
 }
 
+/**
+ * Return a string suitable for logging, indicating both versions of the write statement string,
+ * for insert and for update.
+ * @return string representation of the statement suitable for logging.
+ */
 public String toString() {
-	return "Insert string version: \n" + toInsertString() + "\nUpdate string version: \n" + toUpdateString(true);
-/*		
-	String s= "Insert string version: \n" + toInsertString() + "\n\nUpdate "
-		+ "string version: \n" + toUpdateString(true) + "\n";
-	for (int i = 0; i < _table_Vector.size(); i++) {
-		s += "Table (" +i+ "): '" + _table_Vector.elementAt(i) + "'\n";
-	}
-	for (int i = 0; i < _where_Vector.size(); i++) {
-		s += "where (" +i+ "): '" + _where_Vector.elementAt(i) + "'\n";
-	}
-	for (int i = 0; i < _values_Vector.size(); i++) {
-		s += "values (" +i+ "): '"+_values_Vector.elementAt(i) + "'\n";
-	}
-	for (int i = 0; i < _field_Vector.size(); i++) {
-		s += "field (" +i+ "): '" + _field_Vector.elementAt(i) + "'\n";
-	}
-	return s;
-*/
+	return "One or both of the following may be used depending on write mode.\n" +
+		"Insert string version: \n" + toInsertString() +
+		"\nUpdate string version: \n" + toUpdateString(true);
 }
 
 }

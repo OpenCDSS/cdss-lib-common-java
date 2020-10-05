@@ -96,6 +96,10 @@ throws SQLException
 	            precision = -1; // Allow any width
 	        }
         }
+        else if ( dbengineType == DMI.DBENGINE_SQLITE ) {
+        	// Column width is not restricted and comes back as a large number
+        	precision = meta.getColumnDisplaySize(i);
+        }
         Message.printStatus(2, routine, "Adding column \"" + columnNames[i - 1] + "\" SQLType=" + meta.getColumnType(i) + " columnType=" + columnType +
         	" width (metadata precision)=" + precision + ", precision (metadata scale) = " + scale);
         if ( Message.isDebugOn ) {
@@ -106,9 +110,13 @@ throws SQLException
         	// Varchar and others may return large value, which causes problems (have seen with PostgreSQL)
         	// See:  https://dev.mysql.com/doc/connector-j/en/connector-j-reference-type-conversions.html
         	// Not sure what the magic number is but use 100000
+        	Message.printStatus(2, routine, "Database column precision (" + precision + ") is > 100000.  Setting to -1");
         	precision = -1;
         }
-        table.addField( new TableField(columnType,columnNames[i - 1],precision,scale), null);
+        // Translate above JDBC terms into DataTable terms.
+        int fieldWidth = precision;
+        int fieldPrecision = scale;
+        table.addField( new TableField(columnType,columnNames[i - 1],fieldWidth,fieldPrecision), null);
     }
     // Transfer each record in the ResultSet to the table
     String s;

@@ -289,7 +289,7 @@ NoticeEnd */
 // 2005-04-07	JTS, RTi		Added setInputName() and getInputName().
 // 2005-10-12	JTS, RTi		Shared constructor code moved to a 
 //					single initialize() method in order to
-//					accomodate changes in HydroBase.
+//					accommodate changes in HydroBase.
 // 2005-12-01	JTS, RTi		Previous fix broke Access ODBC 
 //					connections.  Fixed.
 // ----------------------------------------------------------------------------
@@ -598,6 +598,7 @@ Valid types are:<br>
 <li>MySQL</ul>
 <li>Oracle</ul>
 <li>PostgreSQL</ul>
+<li>SQLite</ul>
 <li>SQLServer</ul>
 </ul>
 */
@@ -614,9 +615,14 @@ This leads to more verbose SQL but is conservative.  For example, for SQL Server
 */
 private String __fieldRightEscape = "";
 /**
-The delimiter for strings.
+The delimiter for strings, such as single quotes.
 */
 private String __stringDelim = "";
+/**
+The character for statement end, such as semi-colon for SQLite.
+This is used in auto-generated internal SQL.
+*/
+private String __statementEnd = "";
 
 /**
 Database engine as integer, to improve performance.  The protected value is
@@ -839,6 +845,7 @@ throws Exception {
 		__fieldLeftEscape = "[";
 		__fieldRightEscape = "]";	
 		__stringDelim = "'";
+		__statementEnd = "";
 		__database_server = "Local";
 		_database_engine = DBENGINE_ACCESS;
 	}
@@ -846,6 +853,7 @@ throws Exception {
         __fieldLeftEscape = "";
         __fieldRightEscape = "";   
         __stringDelim = "'";
+		__statementEnd = "";
         if ( __database_server.equalsIgnoreCase("memory") ) {
             __database_server = "localhost";
         }
@@ -856,6 +864,7 @@ throws Exception {
         __fieldLeftEscape = "[";
         __fieldRightEscape = "]";   
         __stringDelim = "'";
+		__statementEnd = "";
         __database_server = "Local";
         _database_engine = DBENGINE_EXCEL;
     }
@@ -863,6 +872,7 @@ throws Exception {
 		__fieldLeftEscape = "\"";
 		__fieldRightEscape = "\"";	
 		__stringDelim = "'";
+		__statementEnd = "";
 		_database_engine = DBENGINE_INFORMIX;
 		if ( port <= 0 ) {
 			setDefaultPort ();
@@ -872,6 +882,7 @@ throws Exception {
 		__fieldLeftEscape = "";
 		__fieldRightEscape = "";	
 		__stringDelim = "'";
+		__statementEnd = "";
 		_database_engine = DBENGINE_MYSQL;
 		if ( port <= 0 ) {
 			setDefaultPort ();
@@ -881,6 +892,7 @@ throws Exception {
 		__fieldLeftEscape = "\"";
 		__fieldRightEscape = "\"";	
 		__stringDelim = "'";
+		__statementEnd = "";
 		_database_engine = DBENGINE_ORACLE;
 		if ( port <= 0 ) {
 			setDefaultPort ();
@@ -893,6 +905,7 @@ throws Exception {
 		__fieldLeftEscape = "";
 		__fieldRightEscape = "";
 		__stringDelim = "'";
+		__statementEnd = "";
 		_database_engine = DBENGINE_POSTGRESQL;
 		if ( port <= 0 ) {
 			setDefaultPort ();
@@ -902,6 +915,7 @@ throws Exception {
 		__fieldLeftEscape = "";
 		__fieldRightEscape = "";
 		__stringDelim = "'";
+		__statementEnd = ";";
 		_database_engine = DBENGINE_SQLITE;
 		if ( port <= 0 ) {
 			setDefaultPort ();
@@ -913,6 +927,7 @@ throws Exception {
 		__fieldLeftEscape = "[";
 		__fieldRightEscape = "]";		
 		__stringDelim = "'";
+		__statementEnd = "";
 		_database_engine = DBENGINE_SQLSERVER;
 		if ( port <= 0 ) {
 			setDefaultPort ();
@@ -929,6 +944,7 @@ throws Exception {
         __fieldLeftEscape = "";
 		__fieldRightEscape = "";	
 		__stringDelim = "'";
+		__statementEnd = "";
 		_database_engine = DBENGINE_H2;
     }
 	else {
@@ -937,6 +953,7 @@ throws Exception {
 	        __fieldLeftEscape = "";
 	        __fieldRightEscape = "";    
 	        __stringDelim = "'";
+	        __statementEnd = "";
 	        _database_engine = DBENGINE_ODBC;
 	    }
 	    else {
@@ -1519,7 +1536,7 @@ __editable is set to true, none of the code is executed and an exception is thro
 @param s a DMIWriteStatement object to be executed
 @param writeFlag not used with stored procedures; for SQL can be INSERT_UPDATE, UPDATE_INSERT, UPDATE,
 INSERT, DELETE_INSERT to indicate order of operations (can impact performance).
-@return an integer of the rowcount from the insert or update
+@return an integer of the row count from the insert or update
 @throws SQLException thrown if there are problems with a 
 Connection.createStatement or Statement.executeQuery().  Also thrown if the
 database is in read-only mode, or if the database is not connected
@@ -1527,6 +1544,8 @@ database is in read-only mode, or if the database is not connected
 */
 public int dmiWrite(DMIWriteStatement s, int writeFlag) 
 throws SQLException, Exception {
+	// Enable the following to troubleshoot but normally should be false.
+	//__dumpSQLOnExecution = true;
 	if (!__connected) {
 		throw new SQLException ("Database not connected.  Cannot make call to DMI.dmiWriteStatement()");
 	}
@@ -1544,6 +1563,7 @@ throws SQLException, Exception {
 	
 	Statement stmt = __connection.createStatement();
 
+	int rowCount = -1; // Number of rows inserted or updated.
 	switch (writeFlag) {
 		case INSERT_UPDATE:
 		// first try to insert the statement in the table.  
@@ -1566,7 +1586,10 @@ throws SQLException, Exception {
 			if (__dumpSQLOnExecution) {
 				Message.printStatus(2, "DMI.dmiWrite", "Trying to execute INSERT: " + s.toInsertString());
 			}
-			stmt.executeUpdate(s.toInsertString());
+			rowCount = stmt.executeUpdate(s.toInsertString());
+			if (__dumpSQLOnExecution) {
+				Message.printStatus(2, "DMI.dmiWrite", "Inserted " + rowCount + " rows.");
+			}
 			// Used for knowing when to do a startTransaction(ROLLBACK) versus a startTransaction(COMMIT).
 			// Since a delete statement causes a database change (and if the code has gotten this far
 			// the delete was successful and didn't throw an exception), the database can now be
@@ -1582,7 +1605,10 @@ throws SQLException, Exception {
 						if (__dumpSQLOnExecution) {
 							Message.printStatus(2, "DMI.dmiWrite", s.toUpdateString());
 						}
-						stmt.executeUpdate(s.toUpdateString());
+						rowCount = stmt.executeUpdate(s.toUpdateString());
+						if (__dumpSQLOnExecution) {
+							Message.printStatus(2, "DMI.dmiWrite", "Inserted " + rowCount + " rows.");
+						}
 					}
 					catch (Exception ex) {
 						if (__dumpSQLOnError) {
@@ -1611,7 +1637,10 @@ throws SQLException, Exception {
 						if (__dumpSQLOnExecution) {
 							Message.printStatus(2, "DMI.dmiWrite", s.toUpdateString());
 						}
-						stmt.executeUpdate(s.toUpdateString());
+						rowCount = stmt.executeUpdate(s.toUpdateString());
+						if (__dumpSQLOnExecution) {
+							Message.printStatus(2, "DMI.dmiWrite", "Inserted " + rowCount + " rows.");
+						}
 					}
 					catch (Exception ex) {
 						if (__dumpSQLOnError) {
@@ -1636,17 +1665,21 @@ throws SQLException, Exception {
 				+ "existing record, but since there is no information "
 				+ "on the INSERT error codes for the database type " 
 				+ "with which you are working (" + __database_engine_String + ") "
-			 	+ "there is no certainty about this.  DMI needs to be enhanced to provide feedback.");
+			 	+ "there is no certainty about this.  The DMI class needs to be enhanced to handle."
+				+ " SQLState=" + e.getSQLState() + " SQLError=" + e.getErrorCode()
+				+ " SQLErrorMessage=" + e.getMessage());
 			}
 		}
 		break;
 		case UPDATE_INSERT:
-			int result = 0;
 			try {
 				if (__dumpSQLOnExecution) {
 					Message.printStatus(2, "DMI.dmiWrite", s.toUpdateString(true));
 				}
-				result = stmt.executeUpdate(s.toUpdateString(true));
+				rowCount = stmt.executeUpdate(s.toUpdateString(true));
+				if (__dumpSQLOnExecution) {
+					Message.printStatus(2, "DMI.dmiWrite", "Updated " + rowCount + " rows.");
+				}
 			}
 			catch (Exception e) {
 				if (__dumpSQLOnError) {
@@ -1655,13 +1688,13 @@ throws SQLException, Exception {
 				throw e;
 			}
 	
-			if (result == 0) {
+			if (rowCount == 0) {
 				// The update failed, so try an insert.
 				if (__dumpSQLOnExecution) {
 					Message.printStatus(2, "DMI.dmiWrite", s.toInsertString());
 				}
 				try {
-					result = stmt.executeUpdate(s.toInsertString());
+					rowCount = stmt.executeUpdate(s.toInsertString());
 				}
 				catch (Exception e) {
 					if (__dumpSQLOnError) {
@@ -1681,7 +1714,10 @@ throws SQLException, Exception {
 				if (__dumpSQLOnExecution) {
 					Message.printStatus(2, "DMI.dmiWrite", s.toUpdateString());
 				}
-				stmt.executeUpdate(s.toUpdateString());	
+				rowCount = stmt.executeUpdate(s.toUpdateString());	
+				if (__dumpSQLOnExecution) {
+					Message.printStatus(2, "DMI.dmiWrite", "Updated " + rowCount + " rows.");
+				}
 			}
 			catch (Exception e) {
 				if (__dumpSQLOnError) {
@@ -1701,7 +1737,10 @@ throws SQLException, Exception {
 				if (__dumpSQLOnExecution) {
 					Message.printStatus(2, "DMI.dmiWrite", s.toInsertString());
 				}
-				stmt.executeUpdate(s.toInsertString());	
+				rowCount = stmt.executeUpdate(s.toInsertString());	
+				if (__dumpSQLOnExecution) {
+					Message.printStatus(2, "DMI.dmiWrite", "Inserted " + rowCount + " rows.");
+				}
 			}
 			catch (Exception e) {
 				if (__dumpSQLOnError) {
@@ -1729,19 +1768,8 @@ throws SQLException, Exception {
 		stmt.close();
 	}			
 
-	// TODO Remove the integer return values, or not?
-	// The argument can be made for keeping and removing the return values.
-	//
-	// Against:
-	// They are unnecessary.  When working with write statements, no return
-	// is anticipated and therefore is unlikely to be used.
-	//
-	// For:
-	// It's just a little more debug information.  The return value from a
-	// update or insert is how many records were updated or inserted.  
-	// While that number should be known for insert statements, perhaps
-	// there could be a time when the number of updated records would be useful information to have.
-	return 0;
+	// Return the statement return status, which is typically the number of rows processed.
+	return rowCount;
 }
 
 /**
@@ -2101,6 +2129,14 @@ protected static List<String> getServerDatabaseTypes() {
 }
 
 /**
+Returns the statement end string, for example semi-colon needded by some databases.
+@return the statement end string.
+*/
+public String getStatementEnd() {
+    return __statementEnd;
+}
+
+/**
 Returns the string delimiter
 @return the string delimiter
 */
@@ -2221,10 +2257,10 @@ throws Exception, SQLException {
 	open (__system_login, __system_password );
 	
 	// Determine the database version (the derived class method will be called if defined)...
-	printStatusOrDebug(10, routine, "Determining database version ... (abstract method, outside of DMI class)");
+	printStatusOrDebug(10, routine, "Determining database version ... (abstract method, defined in class derived from DMI)");
 	determineDatabaseVersion();
 
-	printStatusOrDebug(10, routine, "Reading global data ... (abstract method, outside of DMI class)");
+	printStatusOrDebug(10, routine, "Reading global data ... (abstract method, defined in class derived from DMI)");
 	readGlobalData();
 	__lastQuery = null;
 	__lastSQL = null;
@@ -2281,7 +2317,7 @@ throws SQLException, Exception {
 			Message.printStatus(2, routine,
 				"Opening ODBC connection for Microsoft Access JDBC/ODBC and \"" + connUrl + "\"");
 		}
-        if (_database_engine == DBENGINE_DERBY ) {
+		else if (_database_engine == DBENGINE_DERBY ) {
             printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_DERBY'");
             // If the server name is "memory" then the in-memory URL is used
             // TODO SAM 2014-04-22 Figure out how to handle better
@@ -2349,7 +2385,7 @@ throws SQLException, Exception {
 			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_SQLITE'");
 			if ( __database_server.equalsIgnoreCase("memory") ) {
 				// Open an in-memory database
-				connUrl = "jdbc:sqlite::memory";
+				connUrl = "jdbc:sqlite::memory:";
 		    	if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
 			    	connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
 		    	}
@@ -2466,7 +2502,7 @@ throws SQLException, Exception {
 				+ __database_engine_String);
 		}
 	}
-	else {	
+	else {
 		// The URL uses a standard JDBC ODBC connections, regardless of
 		// the database engine (this should not normally be used for
 		// Java applications - or need to figure out how to use the
