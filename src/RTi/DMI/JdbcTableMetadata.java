@@ -40,6 +40,13 @@ private String remarks = "";
 private String selfRefCol = "";
 private String selfRefColHowCreated = "";
 
+/*
+ * Table identifier used with supplemental metadata,
+ * used when database does not provide all metadata,
+ * such as SQLite table descriptions.
+ */
+private int metadataTableId = -1;
+
 /**
 Construct object.
 */
@@ -54,6 +61,14 @@ Get the catalog (may be null)
 public String getCatalog ()
 {
 	return this.catalog;
+}
+
+/**
+Get the supplemental metadata table ID.
+*/
+public int getMetadataTableId ()
+{
+	return this.metadataTableId;
 }
 
 /**
@@ -110,6 +125,14 @@ Set the catalog.
 public void setCatalog ( String catalog )
 {
 	this.catalog = catalog;
+}
+
+/**
+Set the supplemental metadata table identifier.
+*/
+public void setMetadataTableId ( int metadataTableId )
+{
+	this.metadataTableId = metadataTableId;
 }
 
 /**
