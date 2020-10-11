@@ -206,6 +206,7 @@ private int initialize ( )
 Parse a property string like "Variable=Value" where the value may be an
 expression to be expanded.  This function is in this class (rather than
 PropList) because it relies on the list of PropLists to expand the value of the property string.
+If the value string contains an =, surround with double quotes:  "Variable=\"Value\""
 @return An instance of Prop resulting from the property string.
 @param prop_string The property string to parse.
 */

@@ -75,6 +75,13 @@ public String toString() {
 			statement.append ( " AND " + _where_Vector.get(i) );
 		}
 	}
+
+	// Add the trailing character to the statement, may be empty string.
+	String end = _dmi.getStatementEnd();
+	if ( !end.isEmpty() && !statement.toString().endsWith(end) ) {
+		statement.append(end);
+	}
+
 	return statement.toString();
 }
 

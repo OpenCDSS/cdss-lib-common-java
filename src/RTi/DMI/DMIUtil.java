@@ -2377,15 +2377,19 @@ public static List<String> getDatabaseSchemaNames(DMI dmi, String catalog, boole
         // TODO SAM 2013-07-22 SQL Server does not implement completely so just brute force below
         //if ( dmi.getDatabaseEngineType() == DMI.DBENGINE_SQLSERVER ) {
         //    // Have to make the call without the catalog...
+        if ( metadata.supportsSchemasInTableDefinitions() ) {
+        	// Schemas are not supported by all databases
+        	// - empty list is processed below
             rs = metadata.getSchemas();
         //}
         //else {
         //    rs = metadata.getSchemas(catalog,null);
         //}
-        if (rs == null) {
-            Message.printWarning(3, routine, "Error getting schemas.");
-            return null;
-        } 
+            if (rs == null) {
+                Message.printWarning(3, routine, "Error getting schemas.");
+                return null;
+            } 
+        }
     } 
     catch (Exception e) {
         Message.printWarning(3, routine, "Error getting schemas.");
@@ -2394,7 +2398,7 @@ public static List<String> getDatabaseSchemaNames(DMI dmi, String catalog, boole
     } 
 
     String schema, cat;
-    List<String> schemas = new Vector<String>();
+    List<String> schemas = new Vector<>();
     try {
         while ( rs.next() ) {
             try {   
