@@ -323,7 +323,8 @@ public PropList ( String listName, String persistentName, int persistentFormat )
 }
 
 /**
-Add a property by parsing out a property string like "X=Y".
+Add a property by parsing out a property string like "Property=Value".
+If the value string contains an =, surround with double quotes:  "Property=\"Value\""
 @param prop_string A property string.
 */
 public void add ( String prop_string )
@@ -1023,6 +1024,7 @@ throws IOException
 Set the property given a string like "prop=propcontents" where "propcontents"
 can be a string containing wild-cards.  This feature is used with configuration files.
 If the property key exists, reset the property to the new information.
+If the value string contains an =, surround with double quotes:  "Property=\"Value\""
 @see PropListManager
 @param propString A property string like prop=contents.
 */
