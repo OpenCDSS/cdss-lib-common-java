@@ -1461,6 +1461,72 @@ throws Exception {
 }
 
 /**
+ * Format an SQL select IN clause.
+ * The leading `WHERE` is not included in order to allow flexibility creating more complex statements.
+ * The entire clause is wrapped in parentheses if necessary to handle extra null check.
+ * Currently this only handles primitive types String, int, double, float, etc., not date/time, boolean, or other types.
+ * @param dmi DMI being queried.
+ * @param table Name of table being queried.
+ * @param column Name of column being queried.
+ * @param items items to be added to the clause.  The object's toString() method will be called.
+ * If null is encountered in the list it will be handled with extra 'OR column is NULL' clause.
+ * @return the IN clause in format "IN (item1, item2)" optionally with null clause such as
+ * "IN (item1, item2) OR item1 IS NULL)"
+ */
+public static String formatIn (DMI dmi, String table, String column, Object [] items ) {
+	StringBuilder b = new StringBuilder(); // Blank unless items are added below
+	int itemCount = 0;
+	boolean nullFound = false;
+	// Process if the list is non-empty.
+	if ( (items != null) && (items.length > 0) ) {
+		for ( int i = 0; i < items.length; i++ ) {
+			if ( items[i] == null ) {
+				nullFound = true;
+			}
+			else {
+				if ( itemCount > 0 ) {
+					b.append(", ");
+				}
+				if ( items[i] instanceof String ) {
+					b.append("'");
+				}
+				b.append(items[i].toString());
+				if ( items[i] instanceof String ) {
+					b.append("'");
+				}
+				++itemCount;
+			}
+		}
+	}
+	// Form the SQL
+	if ( itemCount > 0 ) {
+		// Have some non-null items.
+		if ( nullFound ) {
+			// Wrap entire clause in extra ()
+			b.insert(0, "(");
+		}
+		b.insert(0, table + "." + column + " IN (");
+		b.append(")"); // closing ) for IN ()
+	}
+	if ( nullFound ) {
+		// Add additional clause because null was found in the list.
+		if ( itemCount > 0 ) {
+			b.append ( " OR " );
+		}
+		b.append(table + "." + column + " IS NULL");
+		if ( itemCount > 0 ) {
+			b.append(")");  // Trailing parenthesis for full IN clause
+		}
+	}
+	if ( (itemCount > 0) || nullFound ) {
+		return b.toString();
+	}
+	else {
+		return "";
+	}
+}
+
+/**
 Formats a where clause given the field side (in the whereString) and the 
 is side (in the isString), and the kind of value that should be stored in the isString(type).
 @param whereString field name (checks are not performed on this)
