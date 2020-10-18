@@ -899,7 +899,10 @@ throws Exception {
 		}
 	}
 	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("PostgreSQL")) {
+		// Escape for keywords.
+		// See:  https://www.postgresql.org/docs/9.6/sql-keywords-appendix.html
 		// The following caused issues
+		// - TODO smalers 2020-10-12 why is this an issue?
 		//__fieldLeftEscape = "\"";
 		//__fieldRightEscape = "\"";
 		__fieldLeftEscape = "";
@@ -912,8 +915,10 @@ throws Exception {
 		}
 	}
 	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("SQLite")) {
-		__fieldLeftEscape = "";
-		__fieldRightEscape = "";
+		// Escape the fields to make sure that reserved keywords, etc., are not an issue
+		// See:  https://sqlite.org/lang_keywords.html
+		__fieldLeftEscape = "\"";
+		__fieldRightEscape = "\"";
 		__stringDelim = "'";
 		__statementEnd = ";";
 		_database_engine = DBENGINE_SQLITE;
