@@ -25,6 +25,7 @@ package RTi.Util.Table;
 
 import java.io.IOException;
 import java.security.InvalidParameterException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -142,7 +143,7 @@ public DataTableComparer ( DataTable table1, List<String>compareColumns1, List<S
     // will be the full list.
     if ( (compareColumns1 == null) || (compareColumns1.size() == 0) ) {
         // Get the columns from the first table
-        compareColumns1 = Arrays.asList(table1.getFieldNames());
+        compareColumns1 = new ArrayList<>(Arrays.<String>asList(table1.getFieldNames()));
         // Remove the columns to be ignored
         StringUtil.removeMatching(compareColumns1, excludeColumns1, true);
     }
@@ -165,7 +166,7 @@ public DataTableComparer ( DataTable table1, List<String>compareColumns1, List<S
     setCompareColumns1 ( compareColumns1 );
     if ( compareColumns2 == null ) {
         // Get the columns from the second table
-        compareColumns2 = Arrays.asList(table2.getFieldNames());
+        compareColumns2 = new ArrayList<>(Arrays.<String>asList(table2.getFieldNames()));
     }
     else {
         // Confirm that the columns exist
@@ -210,7 +211,7 @@ Perform the comparison, creating the output table.
 */
 public void compare ()
 throws Exception
-{   String routine = getClass().getName() + ".compare";
+{   String routine = getClass().getSimpleName() + ".compare";
     // At this point the inputs should be OK so create a new table that has columns that
     // include both of the original column names but are of type string
     DataTable table1 = getTable1();
@@ -220,9 +221,9 @@ throws Exception
     List<String> compareColumns1 = getCompareColumns1();
     List<String> compareColumns2 = getCompareColumns2();
     // Table 1 is the master and consequently its indices will control the comparisons
-    int[] columnNumbers1 = table1.getFieldIndices((String [])compareColumns1.toArray());
+    int[] columnNumbers1 = table1.getFieldIndices(StringUtil.toArray(compareColumns1));
     // Table 2 column numbers are first determined from the table...
-    int[] columnNumbers2 = table2.getFieldIndices((String [])compareColumns2.toArray());
+    int[] columnNumbers2 = table2.getFieldIndices(StringUtil.toArray(compareColumns2));
     if ( getMatchColumnsByName() ) {
         // Order in column2 may not be the same as was originally specified
         columnNumbers2 = new int[columnNumbers1.length];
@@ -323,8 +324,10 @@ throws Exception
     String format1, format2;
     for ( int irow = 0; irow < table1.getNumberOfRecords(); ++irow ) {
         for ( int icol = 0; icol < columnNumbers1.length; icol++ ) {
-            Message.printStatus ( 2, routine, "Comparing row [" + irow + "] columns [" +
-                columnNumbers1[icol] + "] / [" + columnNumbers2[icol] + "]" );
+        	if ( Message.isDebugOn ) {
+        		Message.printStatus ( 2, routine, "Comparing row [" + irow + "] columns [" +
+                    columnNumbers1[icol] + "] / [" + columnNumbers2[icol] + "]" );
+        	}
             // Get the value from the first table and format as a string for comparisons...
             value1 = null;
             if ( columnNumbers1[icol] >= 0 ) {

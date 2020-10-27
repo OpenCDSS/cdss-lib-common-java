@@ -2360,7 +2360,7 @@ Join one table to another by matching column column values.
 @param handleMultipleMatchesHow indicate how multiple join matches should be handled (currently only
 NUMBER_COLUMNS and USE_LAST_MATCH [default] are supported)
 @param problems list of problems that will be filled during processing
-@return the number of rows appended
+@return the number of rows joined
 */
 public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,String> joinColumnsMap, String [] reqIncludeColumns,
     Hashtable<String,String> columnMap, Hashtable<String,String> columnFilters, DataTableJoinMethodType joinMethod,
@@ -2567,6 +2567,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
     // Do this up front because the records are checked multiple times during the join
     boolean [] joinTableRecordMatchesFilter = new boolean[tableToJoin.getNumberOfRecords()];
     int icol;
+    // Number of table 1 rows joined with table2 data.
     int nrowsJoined = 0;
     String s;
     for ( int irow = 0; irow < tableToJoin.getNumberOfRecords(); irow++ ) {
@@ -2858,7 +2859,16 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
         throw new RuntimeException ( "There were " + problems.size() + " errors joining table \"" + tableToJoin.getTableID() + "\" to \"" +
             table.getTableID() + "\"" );
     }
-    return nrowsJoined;
+    // TODO smalers 2020-10-19 ignore the nrowsJoined from above and compute from the tracking array.
+    // - need to further clean this up
+    int nrowsJoined2 = 0;
+    for ( int i = 0; i < joinTableRecordMatchesTable1.length; i++ ) {
+    	if ( joinTableRecordMatchesTable1[i] ) {
+    		++nrowsJoined2;
+    	}
+    }
+    //return nrowsJoined;
+    return nrowsJoined2;
 }
 
 /**

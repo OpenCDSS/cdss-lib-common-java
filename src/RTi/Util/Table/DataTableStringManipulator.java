@@ -25,7 +25,6 @@ package RTi.Util.Table;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringDictionary;
@@ -71,11 +70,11 @@ Get the list of operators that can be used.
 */
 public static List<DataTableStringOperatorType> getOperatorChoices()
 {
-    List<DataTableStringOperatorType> choices = new Vector<>();
+    List<DataTableStringOperatorType> choices = new ArrayList<>();
     choices.add ( DataTableStringOperatorType.APPEND );
     choices.add ( DataTableStringOperatorType.PREPEND );
-    choices.add ( DataTableStringOperatorType.REPLACE );
     choices.add ( DataTableStringOperatorType.REMOVE );
+    choices.add ( DataTableStringOperatorType.REPLACE );
     choices.add ( DataTableStringOperatorType.SPLIT );
     choices.add ( DataTableStringOperatorType.SUBSTRING );
     // TODO SAM 2015-04-29 Need to enable boolean
@@ -85,6 +84,7 @@ public static List<DataTableStringOperatorType> getOperatorChoices()
     choices.add ( DataTableStringOperatorType.TO_DOUBLE );
     choices.add ( DataTableStringOperatorType.TO_INTEGER );
     choices.add ( DataTableStringOperatorType.TO_LOWERCASE );
+    choices.add ( DataTableStringOperatorType.TO_MIXEDCASE );
     choices.add ( DataTableStringOperatorType.TO_UPPERCASE );
     return choices;
 }
@@ -469,6 +469,17 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
         }
         else if ( operator == DataTableStringOperatorType.TO_LOWERCASE ) {
             outputVal = input1Val.toLowerCase();
+        }
+        else if ( operator == DataTableStringOperatorType.TO_MIXEDCASE ) {
+        	// Convert the first letter of each word to mixed case and others to lowercase
+        	StringBuilder b = new StringBuilder(input1Val.toLowerCase());
+        	for ( int i = 0; i < input1Val.length(); i++ ) {
+        		if ( (i == 0) || ((i > 0) && Character.isWhitespace(b.charAt(i - 1))) ) {
+        			// First character in a word
+        			b.setCharAt(i, Character.toUpperCase(b.charAt(i)) );
+        		}
+        	}
+            outputVal = b.toString();
         }
         else if ( operator == DataTableStringOperatorType.TO_UPPERCASE ) {
             outputVal = input1Val.toUpperCase();

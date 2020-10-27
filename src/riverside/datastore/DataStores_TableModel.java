@@ -45,7 +45,7 @@ private List<DataStore> __dataStoreList = null;
 /**
 Number of columns in the table model (with the alias).
 */
-private int __COLUMNS = 19;
+private int __COLUMNS = 20;
 
 /**
 Absolute column indices, for column lookups.
@@ -58,23 +58,24 @@ public final int COL_STATUS = 4;
 // Enabled for all but currently only database has enabled
 public final int COL_TS_INTERFACE_DEFINED = 5;
 public final int COL_TS_INTERFACE_WORKS = 6;
-// Database data store...
-public final int COL_DATABASE_SERVER = 7;
-public final int COL_DATABASE_NAME = 8;
+// Database datastore...
+public final int COL_DATABASE_ENGINE = 7;
+public final int COL_DATABASE_SERVER = 8;
+public final int COL_DATABASE_NAME = 9;
 // Straight ODBC connection...
-public final int COL_ODBC_NAME = 9;
-public final int COL_SYSTEM_LOGIN = 10;
-public final int COL_CONNECT_PROPS = 11;
+public final int COL_ODBC_NAME = 10;
+public final int COL_SYSTEM_LOGIN = 11;
+public final int COL_CONNECT_PROPS = 12;
 // Web service data store...
-public final int COL_SERVICE_ROOT_URI = 12;
+public final int COL_SERVICE_ROOT_URI = 13;
 // General error string
-public final int COL_STATUS_MESSAGE = 13;
-public final int COL_CONFIG_FILE = 14;
+public final int COL_STATUS_MESSAGE = 14;
+public final int COL_CONFIG_FILE = 15;
 // Plugin standard properties
-public final int COL_PLUGIN_NAME = 15;
-public final int COL_PLUGIN_DESCRIPTION = 16;
-public final int COL_PLUGIN_AUTHOR = 17;
-public final int COL_PLUGIN_VERSION = 18;
+public final int COL_PLUGIN_NAME = 16;
+public final int COL_PLUGIN_DESCRIPTION = 17;
+public final int COL_PLUGIN_AUTHOR = 18;
+public final int COL_PLUGIN_VERSION = 19;
 
 /**
 Constructor.
@@ -125,6 +126,7 @@ public String getColumnName(int columnIndex) {
         case COL_STATUS: return "Status";
         case COL_TS_INTERFACE_DEFINED: return "Time Series Interface Defined";
         case COL_TS_INTERFACE_WORKS: return "Time Series Interface Works";
+        case COL_DATABASE_ENGINE: return "Database Engine";
         case COL_DATABASE_SERVER: return "Database Server";
         case COL_DATABASE_NAME: return "Database Name";
         case COL_ODBC_NAME: return "ODBC Name";
@@ -153,6 +155,7 @@ public String[] getColumnToolTips() {
     tooltips[COL_STATUS] = "Status (Ok/Error) - see Status Message";
     tooltips[COL_TS_INTERFACE_DEFINED] = "Is time series interface defined? - see TimeSeries* properties in datstore configuration file.";
     tooltips[COL_TS_INTERFACE_WORKS] = "Does time series interface work, based on query of tables in TimeSeries* datastore configuration properties?";
+    tooltips[COL_DATABASE_ENGINE] = "Database engine software.";
     tooltips[COL_DATABASE_SERVER] = "Database server for database datastore.";
     tooltips[COL_DATABASE_NAME] = "Database name for database datastore.";
     tooltips[COL_ODBC_NAME] = "ODBC name when used with generic database datastore.";
@@ -267,6 +270,18 @@ public Object getValueAt(int row, int col)
         	else {
         		return "No";
         	}
+        case COL_DATABASE_ENGINE:
+            if ( databaseDataStore != null ) {
+            	if ( databaseDataStore.getDMI() != null ) {
+            		return databaseDataStore.getDMI().getDatabaseEngine();
+            	}
+            	else {
+            		return "";
+            	}
+            }
+            else {
+                return "";
+            }
         case COL_DATABASE_SERVER:
             if ( databaseDataStore != null ) {
             	if ( databaseDataStore.getDMI() != null ) {
@@ -377,6 +392,7 @@ public int[] getColumnWidths() {
     widths[COL_STATUS] = 10;
     widths[COL_TS_INTERFACE_DEFINED] = 8;
     widths[COL_TS_INTERFACE_WORKS] = 8;
+    widths[COL_DATABASE_ENGINE] = 8;
     widths[COL_DATABASE_SERVER] = 15;
     widths[COL_DATABASE_NAME] = 15;
     widths[COL_ODBC_NAME] = 16;
