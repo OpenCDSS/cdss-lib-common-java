@@ -3148,7 +3148,8 @@ public static int removeMatching ( List<String> strings, List<String> strings2, 
     String s;
     boolean match;
     int matchCount = 0;
-    for ( int i = 0; i < size; i++ ) {
+    // Iterate backwards so removing does not cause an issue
+    for ( int i = (size - 1); i >= 0 ; i-- ) {
         s = strings.get(i);
         if ( s == null ) {
             continue;

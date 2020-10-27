@@ -79,6 +79,10 @@ Convert a string value to lower case.
 */
 TO_LOWERCASE("ToLowerCase"),
 /*
+Convert a string value to mixed case.
+*/
+TO_MIXEDCASE("ToMixedCase"),
+/*
 Convert a string value to upper case.
 */
 TO_UPPERCASE("ToUpperCase");
