@@ -2823,11 +2823,14 @@ private static void writeTimeSeriesProperties ( PrintWriter out, TS ts, int its,
 	StringBuilder b = new StringBuilder ( "Properties_" + (its + 1) + " = {");
 	// Get all the properties.  Then extract the properties that match the IncludeProperties list
 	HashMap<String,Object> props = ts.getProperties();
-	List<String> matchedProps = new ArrayList<String>();
+	List<String> matchedProps = new ArrayList<>();
+	// Loop through the full list of properties and get those that match the pattern
 	for ( int iprop = 0; iprop < includeProperties.length; iprop++ ) {
 		for ( String key: props.keySet() ) {
 			if ( key.matches(includeProperties[iprop]) ) {
-				// Make sure the property is not already in the list to include
+				// The included property matches a property in the time series.
+				// Make sure the property is not already in the list to include.
+				// - could happen if multiple patterns were provided that return the same property names.
 				boolean match = false;
 				for ( String p : matchedProps ) {
 					if ( p.equals(key) ) {
@@ -2841,25 +2844,28 @@ private static void writeTimeSeriesProperties ( PrintWriter out, TS ts, int its,
 			}
 		}
 	}
-	// Loop through the full list of properties and get those that match the pattern
+	// Output the properties that were requested and match and actual property.
 	int iprop = -1;
 	for ( String p : matchedProps ) {
 		++iprop;
 		o = ts.getProperty(p);
 		if ( iprop > 0 ) {
+			// Not first so append a comma to separate properties.
 			b.append(",");
 		}
+		// Append the property name.
 		b.append(p+":");
+		// Append the property value.
 		if ( o == null ) {
 			b.append("null");
 		}
 		else if ( o instanceof Double ) {
 			// Don't want default of exponential notation so always format
-			b.append("" + StringUtil.formatString((Double)o,"%.6f"));
+			b.append(StringUtil.formatString((Double)o,"%.6f"));
 		}
 		else if ( o instanceof Float ) {
 			// Don't want default of exponential notation so always format
-			b.append("" + StringUtil.formatString((Float)o,"%.6f"));
+			b.append(StringUtil.formatString((Float)o,"%.6f"));
 		}
 		else if ( o instanceof Integer ) {
 			b.append("" + o);
@@ -2871,6 +2877,7 @@ private static void writeTimeSeriesProperties ( PrintWriter out, TS ts, int its,
 			b.append("\""+o+"\"");
 		}
 		else {
+			// Don't specifically handle the type so treat as a string.
 			// TODO SAM 2015-05-18 this may cause problems if it contains newlines
 			b.append("\""+o+"\"");
 		}

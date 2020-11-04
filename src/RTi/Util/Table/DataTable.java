@@ -3882,7 +3882,8 @@ throws Exception
 			if ( ColumnDataTypes_Auto_boolean ) {
 			    // Set the data as an object of the column type.
 			    if ( tableFieldType[icol] == TableField.DATA_TYPE_INT ) {
-			    	cell = cell.trim();
+		    		// Some data has quotes around numbers so remove.
+			    	cell = cell.trim().replace("\"","");
 			    	if ( parseFile_CellContentsNull(cell) ) {
 			    		tablerec.addFieldValue ( null );
 			    	}
@@ -3897,6 +3898,7 @@ throws Exception
 			    	}
 			    	else {
 			    		try {
+			    			// Some data has quotes around date/times so remove.
 			    			tablerec.addFieldValue( DateTime.parse(cell.replace("\"", "")) );
 			    		}
 			    		catch ( Exception e ) {
@@ -3905,7 +3907,8 @@ throws Exception
 			    	}
 	            }
 			    else if ( tableFieldType[icol] == TableField.DATA_TYPE_DOUBLE ) {
-			    	cell = cell.trim();
+		    		// Some data has quotes around numbers so remove.
+			    	cell = cell.trim().replace("\"", "");
 			    	if ( parseFile_CellContentsNull(cell) ) {
 			    		tablerec.addFieldValue ( null );
 			    	}
