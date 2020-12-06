@@ -395,7 +395,7 @@ parameters are determined to be invalid.
 */
 public void parseCommand ( String command )
 throws InvalidCommandSyntaxException, InvalidCommandParameterException
-{	String routine = "SkeletonCommand.parseCommand", message;
+{	String routine = getClass().getSimpleName() + ".parseCommand", message;
     // The following causes problems with commands that have quoted parameters that include ()
     // Therefore, parse more brute force to get the command name and parameter list string
 	// List<String> tokens = StringUtil.breakStringList ( command, "()", StringUtil.DELIM_SKIP_BLANKS );
