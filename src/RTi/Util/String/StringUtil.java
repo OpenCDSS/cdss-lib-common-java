@@ -586,6 +586,65 @@ public static String charToHex(char c)
 }
 
 /**
+ * Compare two strings lexicographically (alphabetically) using an operator.
+ * Convert to upper or lower case prior to calling to compare by ignoring case.
+ * @param s1 first string.
+ * @param operator operator (>, >=, <, <=, = or ==, !=).
+ * @param s2 second string.
+ */
+public static boolean compareUsingOperator(String s1, String operator, String s2) {
+	if ( operator.equals("=") || operator.equals("==") ) {
+		if ( s1.equals(s2) ) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else if ( operator.equals("!=") ) {
+		if ( ! s1.equals(s2) ) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else if ( operator.equals("<") ) {
+		if ( s1.compareTo(s2) < 0 ) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else if ( operator.equals("<=") ) {
+		if ( s1.compareTo(s2) <= 0 ) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else if ( operator.equals(">") ) {
+		if ( s1.compareTo(s2) > 0 ) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else if ( operator.equals(">=") ) {
+		if ( s1.compareTo(s2) >= 0 ) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	return false;
+}
+
+/**
 Indicate whether the string contains any of the specified characters.  This
 can be used to check for restricted characters in input.
 @param s String to check.
