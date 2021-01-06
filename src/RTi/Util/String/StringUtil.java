@@ -586,14 +586,110 @@ public static String charToHex(char c)
 }
 
 /**
+ * Compare two semantic version strings lexicographically (alphabetically) using an operator.
+ * Convert to upper or lower case prior to calling to compare by ignoring case.
+ * The strings must have consistent formats but do not need to have the same number of parts.
+ * Versions with fewer parts are assumed to have lower value, as if 0 in higher parts.
+ * @param s1 first version string (e.g., "1.2.3" or "1.2.3.dev" or "1.2.3dev").
+ * @param operator operator (>, >=, <, <=, = or ==, !=).
+ * @param s2 second version string, with format similar to the first.
+ * @param maxParts the maximum number of parts to compare, useful when trailing "beta", etc.
+ * cause issues and are not appropriate for production software.
+ * Specify as <= 0 to ignore.
+ */
+public static boolean compareSemanticVersions(String s1, String operator, String s2, int maxParts) {
+	List<String> s1Parts = breakStringList(s1,".",0);
+	List<String> s2Parts = breakStringList(s2,".",0);
+	int lenMax = s1Parts.size();
+	lenMax = Math.max(lenMax,s2Parts.size());
+	if ( (maxParts > 0) && (lenMax > maxParts) ) {
+		lenMax = maxParts;
+	}
+	String s1PartUpper;
+	String s2PartUpper;
+	// It is a pain to compare each part considering the impact of operators on result.
+	// Instead, format each part with space padding on left and then compare the reformatted strings.
+	// The space has the lowest value of printable ASCII characters and results in proper evaluation.
+	// Nulls are treated as empty strings and therefore low value.
+	// Care is taken to use a width that contains the value for each string.
+	StringBuilder b1 = new StringBuilder();
+	StringBuilder b2 = new StringBuilder();
+	for ( int i = 0; i < lenMax; i++ ) {
+		// Append version separator
+		if ( i != 0 ) {
+			b1.append(".");
+			b2.append(".");
+		}
+		// Get the length needed for the part
+		int lenPart = 0;
+		if ( s1Parts.size() >= (i - 1) ) {
+			// Have an s1 part
+			lenPart = s1Parts.get(i).length();
+		}
+		if ( s2Parts.size() >= (i - 1) ) {
+			// Have an s2 part
+			lenPart = Math.max(lenPart,(s2Parts.get(i).length()));
+		}
+		// Right justify string and pad with leading spaces for shorter string.
+		String formatPart = "%" + lenPart + "." + lenPart + "s";
+		if ( s1Parts.size() >= (i - 1) ) {
+			s1PartUpper = s1Parts.get(i).toUpperCase();
+		}
+		else {
+			s1PartUpper = "";
+		}
+		b1.append(formatString(s1PartUpper,formatPart));
+		if ( s2Parts.size() >= (i - 1) ) {
+			s2PartUpper = s2Parts.get(i).toUpperCase();
+		}
+		else {
+			s2PartUpper = "";
+		}
+		b2.append(formatString(s2PartUpper,formatPart));
+	}
+	// Return the comparison of the formatted strings.
+	//Message.printStatus(2,"","Comparing \"" + b1 + "\" and \"" + b2 + "\"");
+	return compareUsingOperator(b1.toString(), operator, b2.toString());
+}
+
+/**
  * Compare two strings lexicographically (alphabetically) using an operator.
  * Convert to upper or lower case prior to calling to compare by ignoring case.
+ * Null evaluates to "zero".
+ * If s1 is null and s2 is null, only evaluate to true for = operator.
+ * If s1 is null and s2 is not, only evaluate to true for < or !=.
+ * If s1 is not null and s2 is null, only evaluate to true for > or !=.
  * @param s1 first string.
  * @param operator operator (>, >=, <, <=, = or ==, !=).
  * @param s2 second string.
  */
 public static boolean compareUsingOperator(String s1, String operator, String s2) {
-	if ( operator.equals("=") || operator.equals("==") ) {
+	if ( (s1 == null) && (s2 == null) ) {
+		if ( operator.equals("=") || operator.equals("==") ) {
+			// Two null strings are equal
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else if ( (s1 == null) && (s2 != null) ) {
+		if ( operator.equals("<") || operator.equals("!=") ) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else if ( (s1 != null) && (s2 == null) ) {
+		if ( operator.equals(">") || operator.equals("!=") ) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	else if ( operator.equals("=") || operator.equals("==") ) {
 		if ( s1.equals(s2) ) {
 			return true;
 		}
