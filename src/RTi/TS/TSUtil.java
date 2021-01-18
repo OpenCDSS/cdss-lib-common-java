@@ -631,6 +631,10 @@ SET_MISSING_IF_ANY_MISSING   If any time series in "ts_to_add" or "ts" has
 public static <T extends TS> T add ( T ts, List<T> tsToAddList, double factor[], int missingFlag, DateTime addStart, DateTime addEnd )
 throws TSException, Exception
 {	String message, routine = "TSUtil.add";
+	// Use for troubleshooting.
+	// - should only be used in development and not production
+	// - this results in more status messages
+	boolean debug = false;
 	int	dl = 20, nmissing = 0;
 	double add = 0.0, mult = 1.0;
 	T tspt = null;
@@ -722,6 +726,9 @@ throws TSException, Exception
 			Message.printWarning ( 3, routine, message );
 			throw new TSException ( message );
 		}
+		if ( debug ) {
+			Message.printStatus(2,routine,"Adding time series " + tspt.getIdentifierString() + " to output time series.");
+		}
 		// Get the units conversions to convert to the final TS...
 		try {
 		    conversion = DataUnits.getConversion( tspt.getDataUnits(), req_units );
@@ -780,15 +787,23 @@ throws TSException, Exception
 			}
 			DateTime date = new DateTime ( startDate );
 			
+			if ( debug ) {
+				Message.printStatus(2,routine,"Time series " + tspt.getIdentifierString() + " has period " + tspt.getDate1() + " to " + tspt.getDate2() );
+			}
 			for ( timestepIndex = 0;
 				date.lessThanOrEqualTo( endDate);
 				date.addInterval(intervalBase, intervalMult),
 				++timestepIndex ) {
 				// If a previous time series had missing data at this time step and setToMissing is true
-				// then the value has already been set to missing and there is no reason to do anything else...
+				// then the value has already been set to missing and there is no reason to do anything else.
+				// - missingIndicators[timestepIndex] will be true if any previously processed time series were missing for date/time.
 				if ( setToMissing && missingIndicators[timestepIndex] ) {
-					// Increment this because we are in effect treating as missing.
+					// Increment this because treating as missing.
 					++nmissing;
+				    if ( debug ) {
+				    	// Use status
+						Message.printStatus ( 2, routine, "At " + date + ", setToMising=true and missingIndicators=true.  Not processing data." );
+					}
 					continue;
 				}
 				// If here, the previous time series in the loop did NOT have missing data at this
@@ -802,35 +817,61 @@ throws TSException, Exception
 					if ( setToMissing ) {
 						missingIndicators[timestepIndex] = true;
 						ts.setDataValue ( date, tsMissing );
+						if ( debug ) {
+							// Use status
+							Message.printStatus ( 2, routine, "At " + date + ", part time series " +
+								tspt.getIdentifierString() + " is missing, setting output to missing." );
+						}
+					}
+					else {
+						if ( debug ) {
+							// Use status
+							Message.printStatus ( 2, routine, "At " + date + ", part time series " +
+								tspt.getIdentifierString() + " is missing, ignoring part value." );
+						}
 					}
 					continue;
 				}
-				// If here, there is a non-missing data value to add so do it...
+				// If here, there is a non-missing data value to add so do it.
 				dataValue = ts.getDataValue ( date );
 				if ( ts.isDataMissing( dataValue ) ) {
-					// Original data is missing so reset and multiply by the factor...
+					// Original data is missing so set the value and multiply by the factor...
 					if ( missingFlag == SET_MISSING_IF_ANY_MISSING ) {
+						// No need to add since value will be set to missing late.
 						missingIndicators[timestepIndex] = true;
 						++nmissing;
+						if ( debug ) {
+							// Use status
+							Message.printStatus ( 2, routine, "At " + date + ", output time series is missing and SET_MISSING_IF_ANY_MISSING ." );
+						}
 						continue;
 					}
 					else {
 					    if ( Message.isDebugOn ) {
-							Message.printDebug ( dl, routine, "At " + date + ", setting " +
-							(dataValueToAdd*mult + add)*factor[i] + " to " + dataValue );
+							Message.printDebug ( dl, routine, "At " + date + ", setting " + tspt.getIdentifierString() + " " +
+							(dataValueToAdd*mult + add)*factor[i] + " over " + dataValue );
 						}
 						ts.setDataValue ( date, (dataValueToAdd*mult + add)*factor[i] );
+					    if ( debug ) {
+					    	// Use status
+							Message.printStatus ( 1, routine, "At " + date + ", set " + 
+							(dataValueToAdd*mult + add)*factor[i] + " over " + dataValue + " result is " + ts.getDataValue(date) );
+						}
 					}
 				}
 				else {
-				    // Add to current value...
+				    // Original time series value is non-missing.  Add the current value...
 					if ( Message.isDebugOn ) {
 						Message.printDebug ( dl, routine, "At " + date + ", adding " +
 						(dataValueToAdd*mult + add)*factor[i] + " to " + dataValue );
 					}
 					ts.setDataValue ( date, dataValue + (dataValueToAdd*mult + add)*factor[i] );
+					if ( debug ) {
+						Message.printStatus ( 1, routine, "At " + date + ", added " + tspt.getIdentifierString() + " " +
+						(dataValueToAdd*mult + add)*factor[i] + " to " + dataValue + " result is " + ts.getDataValue(date) );
+					}
 				}
-			}
+			} // End of time loop
 			if ( factor[i] >= 0.0 ) {
 				if ( factor[i] == 1.0 ) {
 					ts.setDescription ( ts.getDescription() + " + " + tspt.getDescription () );
