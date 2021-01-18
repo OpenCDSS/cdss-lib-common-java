@@ -674,6 +674,7 @@ public static boolean compareUsingOperator(String s1, String operator, String s2
 		}
 	}
 	else if ( (s1 == null) && (s2 != null) ) {
+		// null s1 is considered to be less than an non-null version
 		if ( operator.equals("<") || operator.equals("!=") ) {
 			return true;
 		}
@@ -682,6 +683,7 @@ public static boolean compareUsingOperator(String s1, String operator, String s2
 		}
 	}
 	else if ( (s1 != null) && (s2 == null) ) {
+		// non-null s1 is considered to be > a null version
 		if ( operator.equals(">") || operator.equals("!=") ) {
 			return true;
 		}
