@@ -4343,9 +4343,10 @@ A string to use as the description for the data flag, for example in report lege
 </tr>
 
 </table>
+@return the number of values filled
 @exception if there is an error performing the fill.
 */
-public static void fillConstant ( TS ts, DateTime start_date, DateTime end_date, double value, PropList props )
+public static int fillConstant ( TS ts, DateTime start_date, DateTime end_date, double value, PropList props )
 throws Exception
 {	// Get valid dates because the ones passed in may have been null...
 
@@ -4383,7 +4384,7 @@ throws Exception
 		List<TSData> alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series...
-			return;
+			return nfilled;
 		}
 		int nalltsdata = alltsdata.size();
 		DateTime date = null;
@@ -4448,6 +4449,7 @@ throws Exception
 				end + " using constant " + value + " (" + nfilled + " values filled)." );
 		}
 	}
+	return nfilled;
 }
 
 /**
@@ -4846,15 +4848,16 @@ Fill missing data in the time series using linear interpolation between non-miss
 @param intervals_can_fill Number of intervals (width of gap) that can be filled.
 If 0 then there is no limit on the number of intervals that can be filled.
 @param interpolate_method Reserved for future use.  Currently always linear.
+@return number of values filled
 @exception TSException if there is an error filling the time series.
 */
-public static void fillInterpolate ( TS ts, DateTime start_date, DateTime end_date,
+public static int fillInterpolate ( TS ts, DateTime start_date, DateTime end_date,
 	int intervals_can_fill, int interpolate_method )
 throws TSException, Exception
 {
 	PropList props = new PropList ( "fillInterpolate" );
 	props.set( "MaxIntervals=" + intervals_can_fill );
-	fillInterpolate ( ts, start_date, end_date, props );
+	return fillInterpolate ( ts, start_date, end_date, props );
 }
 
 /**
@@ -4914,9 +4917,10 @@ The maximum number of missing values in a contiguous gap to fill or zero to fill
 </tr>
 
 </table>
+@return number of values filled
 @exception TSException if there is an error filling the time series.
 */
-public static void fillInterpolate ( TS ts, DateTime start_date, DateTime end_date, PropList props )
+public static int fillInterpolate ( TS ts, DateTime start_date, DateTime end_date, PropList props )
 throws Exception
 {	String message, routine = "TSUtil.fillInterpolate";
 
@@ -5092,6 +5096,7 @@ throws Exception
             ts.addDataFlagMetadata(new TSDataFlagMetadata(FillFlag, "Filled missing data using interpolation (max intervals=" + intervals_can_fill + ")"));
         }
 	}
+    return fillCount;
 }
 
 /**
@@ -5632,9 +5637,10 @@ when FactorMethod=NearestPoint.  Possible values are:
 </tr>
 
 </table>
+@return number of values filled
 @exception RTi.TS.Exception if there is a problem filling data.
 */
-public static void fillProrate(	TS ts, TS independent_ts, DateTime start_date, DateTime end_date, PropList props )
+public static int fillProrate(	TS ts, TS independent_ts, DateTime start_date, DateTime end_date, PropList props )
 throws Exception
 {	String  routine = "TSUtil.fillProrate";
 	String	message;
@@ -6050,6 +6056,8 @@ throws Exception
     		}
     	}
 	} // NearestPoint
+	
+	return fill_count;
 }
 
 /**
@@ -6613,9 +6621,10 @@ Fill missing data by repeating the last known value, processing either forward o
 @param direction -1 if filling backward, >= 0 if filling forward.
 @param max_intervals Maximum number of intervals to fill in a gap.  Zero indicates to fill all (no maximum).
 @param fillFlag flag to mark values that were filled, null or blank to not mark
+@param number of values filled
 @exception RTi.TS.TSException if there is a problem filling data.
 */
-public static void fillRepeat (	TS ts, DateTime start_date, DateTime end_date, int direction, int max_intervals,
+public static int fillRepeat (	TS ts, DateTime start_date, DateTime end_date, int direction, int max_intervals,
     String fillFlag )
 {	String routine = "TSUtil.fillRepeat";
 	String message;
@@ -6728,6 +6737,8 @@ public static void fillRepeat (	TS ts, DateTime start_date, DateTime end_date, i
         ts.addDataFlagMetadata(new TSDataFlagMetadata( flag, message));
         ts.addToGenesis ( message );
     }
+    
+    return fillCountTotal;
 }
 
 /**
