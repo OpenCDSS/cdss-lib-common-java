@@ -449,8 +449,8 @@ protected List<String> _genesis;
 
 /**
 TODO SAM 2010-09-21 Evaluate whether generic "Attributable" interface should be implemented instead.
-Properties for the time series beyond the built-in properties.  For example, location
-information like county and state can be set as a property.
+Properties for the time series beyond the built-in properties.
+For example, location information like county and state can be set as a property.
 */
 private LinkedHashMap<String,Object> __property_HashMap = null;
 
@@ -1659,6 +1659,7 @@ public DateTime getNonMissingDataDate2( )
 
 /**
 Get the hashtable of properties, for example to allow display.
+Only dynamic (not built-in) properties are returned.
 @return the hashtable of properties, for example to allow display, guaranteed to not be null.
 */
 public HashMap<String,Object> getProperties()
@@ -1670,15 +1671,30 @@ public HashMap<String,Object> getProperties()
 
 /**
 Get a time series property's contents (case-specific).
+The surrounding ${} used in TSTool should have been removed before calling.
+The following built-in properties are checked in addition to dynamic properties:
+<ul>
+<li>alias</li>
+</ul>
 @param propertyName name of property being retrieved.
 @return property object corresponding to the property name.
 */
 public Object getProperty ( String propertyName )
 {
+	Object propertyValue = null;
     if ( __property_HashMap == null ) {
         return null;
     }
-    return __property_HashMap.get ( propertyName );
+    // First check dynamic property.
+    propertyValue = __property_HashMap.get ( propertyName );
+    if ( propertyValue == null ) {
+    	// Also check built-in properties - the surrounding ${ts:} should have been removed before call.
+    	if ( propertyName.equalsIgnoreCase("alias") ) {
+    		// Null is allowed.
+    		propertyValue = this.getAlias();
+    	}
+    }
+    return propertyValue;
 }
 
 /**
