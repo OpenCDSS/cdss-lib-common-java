@@ -1671,10 +1671,11 @@ public HashMap<String,Object> getProperties()
 
 /**
 Get a time series property's contents (case-specific).
-The surrounding ${} used in TSTool should have been removed before calling.
+The surrounding ${ts:} used in TSTool should have been removed before calling.
 The following built-in properties are checked in addition to dynamic properties:
 <ul>
 <li>alias</li>
+<li>description</li>
 </ul>
 @param propertyName name of property being retrieved.
 @return property object corresponding to the property name.
@@ -1682,16 +1683,19 @@ The following built-in properties are checked in addition to dynamic properties:
 public Object getProperty ( String propertyName )
 {
 	Object propertyValue = null;
-    if ( __property_HashMap == null ) {
-        return null;
+    if ( __property_HashMap != null ) {
+    	// First check dynamic property.
+    	propertyValue = __property_HashMap.get ( propertyName );
     }
-    // First check dynamic property.
-    propertyValue = __property_HashMap.get ( propertyName );
     if ( propertyValue == null ) {
     	// Also check built-in properties - the surrounding ${ts:} should have been removed before call.
     	if ( propertyName.equalsIgnoreCase("alias") ) {
     		// Null is allowed.
     		propertyValue = this.getAlias();
+    	}
+    	else if ( propertyName.equalsIgnoreCase("description") ) {
+    		// Null is allowed.
+    		propertyValue = this.getDescription();
     	}
     }
     return propertyValue;
