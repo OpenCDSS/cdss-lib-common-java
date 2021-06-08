@@ -662,6 +662,7 @@ public static boolean compareSemanticVersions(String s1, String operator, String
  * @param s1 first string.
  * @param operator operator (>, >=, <, <=, = or ==, !=).
  * @param s2 second string.
+ * @return true if the comparison statement is true, false if not.
  */
 public static boolean compareUsingOperator(String s1, String operator, String s2) {
 	if ( (s1 == null) && (s2 == null) ) {

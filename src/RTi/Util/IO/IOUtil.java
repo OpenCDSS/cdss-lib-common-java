@@ -2520,7 +2520,8 @@ public static void setProgramCommandFile ( String command_file )
 Set the program main data, which can be used later for GUI labels, etc.  This
 is generally called from the main() or init() function of an application (or from application base classes).
 @param progname The program name.
-@param progver The program version.
+@param progver The program version, used in Help About and other information,
+can be a semantic version, version with date, etc., but version should always be the first string.
 @param argv The program command-line arguments (ignored if an Applet).
 @see #getProgramName
 @see #getProgramVersion
@@ -2578,7 +2579,7 @@ public static void setProgramUser ( String user )
 }
 
 /**
-Set the program version.
+Set the program version, used in Help About dialogs and checking for version requirements.
 @param progver The program version.
 @see #getProgramVersion
 */
