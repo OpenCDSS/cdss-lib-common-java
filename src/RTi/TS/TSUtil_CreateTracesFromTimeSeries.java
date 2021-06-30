@@ -153,8 +153,8 @@ throws IrregularTimeSeriesNotSupportedException, Exception
         TraceLength_TimeInterval = TimeInterval.parseInterval ( TraceLength );
     }
 
-    // First determine the overall period in the original time series that is to be processed
-    // This will limit the data to be processed from the original
+    // First determine the overall period in the original time series that is to be processed.
+    // This will limit the data to be processed from the original.
 
     TSLimits valid_dates = TSUtil.getValidPeriod ( ts, InputStart_DateTime, InputEnd_DateTime );
     // Reset the reference to the input period...
@@ -163,12 +163,12 @@ throws IrregularTimeSeriesNotSupportedException, Exception
     Message.printStatus(2, routine, "Period for input time series is InputStart=" + InputStart_DateTime +
         " InputEnd=" + InputEnd_DateTime );
 
-    // Make sure there is a valid reference date for the start date/time...
+    // Make sure there is a valid reference date for the start date/time.
 
     DateTime ReferenceDate_DateTime2 = null;
     if ( ReferenceDate_DateTime == null ) {
-        // Create a reference date for Jan 1 that is of the correct precision...
-        // If in discovery mode the dates may not be set in the time series so use a default to pass remaining logic
+        // Create a reference date for Jan 1 that is of the correct precision.
+        // If in discovery mode the dates may not be set in the time series so use a default to pass remaining logic.
         if ( (ts == null) || (ts.getDate1() == null) ) {
             ReferenceDate_DateTime2 = new DateTime();
         }
@@ -247,7 +247,8 @@ throws IrregularTimeSeriesNotSupportedException, Exception
         if ( date1_in.greaterThan(InputEnd_DateTime) ) {
             // Trace period is past the requested period so no more traces need to be generated.
             Message.printStatus(2, routine, "Requested InputStart=" + InputStart_DateTime +
-                " InputEnd=" + InputEnd_DateTime + ", quit processing trace date1_in=" + date1_in + " date2_in=" + date2_in );
+                " InputEnd=" + InputEnd_DateTime + ", quit processing trace date1_in=" + date1_in + " date2_in=" + date2_in +
+                " because date1_in > InputEnd");
             break;
         }
         // Create a new time series using the old header as input...
