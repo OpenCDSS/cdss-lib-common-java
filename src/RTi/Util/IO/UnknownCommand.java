@@ -120,7 +120,7 @@ CommandWarningException, CommandException
         CommandStatus status = getCommandStatus();
         status.clearLog(CommandPhaseType.RUN);
         
-        String message = "Do not know how to run unknown command \"" + toString() + "\"";
+        String message = "Don't know how to run unknown command: " + toString();
         Message.printWarning(warning_level,
             MessageUtil.formatMessageTag( command_tag, ++warning_count), routine, message );
         status.addToLog ( CommandPhaseType.RUN,

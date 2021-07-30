@@ -204,31 +204,52 @@ public static void appendLogRecords ( CommandStatus status, List<CommandStatusPr
       if ( commandList == null ) {
           return;
       }
-      // Loop through the commands
-      int size = commandList.size();
-      CommandStatusProvider csp;
-      for ( int i = 0; i < size; i++ ) {
-          // Transfer the command log records to the status...
-          csp = commandList.get(i);
+      int iCommand = 0; // Used for output.
+      // Loop through the commands.
+      for ( CommandStatusProvider csp : commandList ) {
+    	  ++iCommand;
+          // Transfer the command log records from each command that was run to the
+    	  // single command status.
           CommandStatus status2 = csp.getCommandStatus();
-          // Append command log records for each run mode...
-          List<CommandLogRecord> logs = status2.getCommandLog(CommandPhaseType.INITIALIZATION);
+          // Append command log records for each run mode.
           CommandLogRecord logRecord;
-          for ( int il = 0; il < logs.size(); il++ ) {
-        	  logRecord = logs.get(il);
+          // TODO smalers 2021-07-29 evaluate whether records should be copied:
+          // - use copyLog=true because log record is being modified
+          boolean copyLog = true;
+          for ( CommandLogRecord log : status2.getCommandLog(CommandPhaseType.INITIALIZATION) ) {
+        	  if ( copyLog ) {
+        		  logRecord = log; 
+        	  }
+        	  else {
+        		  logRecord = new CommandLogRecord(log);
+        	  }
         	  logRecord.setCommandStatusProvider(csp);
+        	  // Add the original command string to simplify pinpointing problems.
+        	  logRecord.setProblem("FROM ORIGINAL COMMAND (" + iCommand + "):\n" + csp + "\n\n" + logRecord.getProblem());
               status.addToLog(CommandPhaseType.INITIALIZATION, logRecord );
           }
-          logs = status2.getCommandLog(CommandPhaseType.DISCOVERY);
-          for ( int il = 0; il < logs.size(); il++ ) {
-        	  logRecord = logs.get(il);
+          for ( CommandLogRecord log : status2.getCommandLog(CommandPhaseType.DISCOVERY) ) {
+        	  if ( copyLog ) {
+        		  logRecord = log; 
+        	  }
+        	  else {
+        		  logRecord = new CommandLogRecord(log);
+        	  }
         	  logRecord.setCommandStatusProvider(csp);
+        	  // Add the original command string to simplify pinpointing problems.
+        	  logRecord.setProblem("FROM ORIGINAL COMMAND (" + iCommand + "):\n" + csp + "\n\n" + logRecord.getProblem());
               status.addToLog(CommandPhaseType.DISCOVERY, logRecord );
           }
-          logs = status2.getCommandLog(CommandPhaseType.RUN);
-          for ( int il = 0; il < logs.size(); il++ ) {
-        	  logRecord = logs.get(il);
+          for ( CommandLogRecord log : status2.getCommandLog(CommandPhaseType.RUN) ) {
+        	  if ( copyLog ) {
+        		  logRecord = log; 
+        	  }
+        	  else {
+        		  logRecord = new CommandLogRecord(log);
+        	  }
         	  logRecord.setCommandStatusProvider(csp);
+        	  // Add the original command string to simplify pinpointing problems.
+        	  logRecord.setProblem("FROM ORIGINAL COMMAND (" + iCommand + "):\n" + csp + "\n\n" + logRecord.getProblem());
               status.addToLog(CommandPhaseType.RUN, logRecord );
           }
       }

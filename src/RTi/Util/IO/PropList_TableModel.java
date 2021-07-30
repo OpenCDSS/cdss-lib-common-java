@@ -97,11 +97,18 @@ by the user before being committed to the proplist read in from a file.
 @throws Exception if invalid data were passed in.
 */
 public PropList_TableModel(PropList props, boolean keyEditable, boolean valEditable)
+// TODO smalers 2021-07-10 need to implement sort, boolean sort)
 throws Exception {
 	if (props == null) {
 		throw new Exception ("Invalid proplist data passed to PropList_TableModel constructor.");
 	}
 	__props = new PropList(props);
+	/* TODO smalers 2021-07-10 need to implement case-independent sort.
+	if ( sort ) {
+		// Sort the properties by name.
+		__props.sortList();
+	}
+	*/
 	_rows = __props.size();
 
 	__keyEditable = keyEditable;

@@ -3175,12 +3175,19 @@ public static int patternCount ( String s, String pattern )
 	if ( (s == null) || (pattern == null) || (pattern.length() < 1) ) {
 		return count;
 	}
-	int size = s.length ();
-	char c = pattern.charAt(0);
-	for ( int i = 0; i < size; i++ ) {
-		if ( s.charAt(i) == c ) {
-			++count;
+	if ( (pattern.length() == 1) && (pattern.charAt(0) != '*') ) {
+		// Single character.
+		int size = s.length ();
+		char c = pattern.charAt(0);
+		for ( int i = 0; i < size; i++ ) {
+			if ( s.charAt(i) == c ) {
+				++count;
+			}
 		}
+	}
+	else {
+		// TODO smalers 2021-07-24 need to implement.
+		throw new RuntimeException("Only single character patterns are currently supported.");
 	}
 	return count;
 }

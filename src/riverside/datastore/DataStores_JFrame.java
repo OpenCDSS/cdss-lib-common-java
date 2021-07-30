@@ -26,6 +26,7 @@ package riverside.datastore;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.JFrame;
@@ -47,6 +48,11 @@ The data table that was passed in.
 private List<DataStore> __dataStoreList = null;
 
 /**
+The datastore map.
+*/
+private HashMap<String,String> __dataStoreSubstituteMap = null;
+
+/**
 The panel containing the worksheet that will be displayed in the frame.
 */
 private DataStores_JPanel __dataTablePanel = null;
@@ -62,9 +68,10 @@ private JTextField
 Constructor.
 @param title the title to put on the frame.
 @param dataStoreList the list of data stores to display in the worksheet.
+@param dataStoreSubstituteMap map to substitute datastore names
 @throws Exception if table is null.
 */
-public DataStores_JFrame(String title, Component parent, List<DataStore> dataStoreList) 
+public DataStores_JFrame(String title, Component parent, List<DataStore> dataStoreList, HashMap<String,String> dataStoreSubstituteMap ) 
 throws Exception
 {	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
 	if ( title == null ) {
@@ -84,6 +91,7 @@ throws Exception
 		}
 	}
 	__dataStoreList = dataStoreList;
+	__dataStoreSubstituteMap = dataStoreSubstituteMap;
 	
 	setupGUI(parent);
 }
@@ -108,7 +116,7 @@ Sets up the GUI.
 private void setupGUI(Component parent) 
 throws Exception
 {
-	__dataTablePanel = new DataStores_JPanel(this, __dataStoreList);
+	__dataTablePanel = new DataStores_JPanel(this, this.__dataStoreList, this.__dataStoreSubstituteMap);
 
 	getContentPane().add("Center", __dataTablePanel);
 

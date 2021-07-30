@@ -82,7 +82,13 @@ GREATER_THAN_OR_EQUAL_TO(">="),
 /**
  * Is value equal to.
  */
-EQUAL_TO("==");
+EQUAL_TO("=="),
+/**
+ * Is value not equal to.
+ * Care should be taken when using with floating point numbers due to truncation and rounding,
+ * but should work with integers, date/times, strings.
+ */
+NOT_EQUAL_TO("!=");
 
 /**
  * The name that should be displayed when the best fit type is used in UIs and reports.

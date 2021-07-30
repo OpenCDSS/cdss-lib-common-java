@@ -84,13 +84,14 @@ public class CommandFile {
 	 */
 	public CommandFile ( String filename, boolean readAnnotations ) {
 		this.filename = filename;
+		// Read the annotations from the command file so that they are accessible for command file processing.
 		if ( readAnnotations ) {
 			readAnnotations();
 		}
 	}
 	
 	/**
-	 * Return the expected status string, determined from `@expectedStatus status` annotation comment.
+	 * Return the expected status string, determined from '@expectedStatus status' annotation comment.
 	 * @return the expected status string.
 	 */
 	public String getExpectedStatusString () {
@@ -98,7 +99,7 @@ public class CommandFile {
 	}
 
 	/**
-	 * Return the expected status, determined from `@expectedStatus status` annotation comment.
+	 * Return the expected status, determined from '@expectedStatus status' annotation comment.
 	 * @return the expected status.
 	 */
 	public CommandStatusType getExpectedStatus() {
@@ -114,7 +115,7 @@ public class CommandFile {
 	}
 
 	/**
-	 * Return the command file identifier, determined from `@id` annotation comment.
+	 * Return the command file identifier, determined from '@id' annotation comment.
 	 * @return the command file identifier.
 	 */
 	public String getId () {
@@ -122,7 +123,7 @@ public class CommandFile {
 	}
 
 	/**
-	 * Return the command file order 'id', determined from `@order before/after id` annotation comment.
+	 * Return the command file order 'id', determined from '@order before/after id' annotation comment.
 	 * @return the command file order.
 	 */
 	public String getOrderId () {
@@ -130,7 +131,7 @@ public class CommandFile {
 	}
 
 	/**
-	 * Return the test suite, determined from `@testSuite suiteName` annotation comment.
+	 * Return the test suite, determined from '@testSuite suiteName' annotation comment.
 	 * @return the test suite.
 	 */
 	public String getTestSuite () {
@@ -138,7 +139,7 @@ public class CommandFile {
 	}
 
 	/**
-	 * Return the command file order operator, determined from `@order before/after id` annotation comment.
+	 * Return the command file order operator, determined from '@order before/after id' annotation comment.
 	 * @return the command file order operator.
 	 */
 	public CommandFileOrderType getOrderOperatorType () {
@@ -147,6 +148,7 @@ public class CommandFile {
 
 	/**
 	 * Read the command file annotations from the file and populate internal data.
+	 * Then can can use the get methods to access the information determined from annotations.
 	 */
 	public void readAnnotations () {
 		String routine = getClass().getSimpleName() + ".readAnnotations";
@@ -159,36 +161,48 @@ public class CommandFile {
 			Message.printWarning(3, routine, "File \"" + this.filename + "\" not found.  Cannot read annotations.");
 			return;
 		}
+		// Default values for annotations.
+		this.expectedStatus = CommandStatusType.SUCCESS;
 		try {
+			Message.printStatus(2, routine, "Processing annotations for file: " + this.filename );
 			String line;
 			String lineUpper;
 			int index;
+			// Read each line from the command file and search for annotations.
 			while ( true ) {
 				line = in.readLine();
 				if ( line == null ) {
 					break;
 				}
 				// Trim in case indented and convert to upper case for comparisons.
-				line = line.trim();
-				lineUpper = line.toUpperCase();
-				// Check @expectedStatus status
+				lineUpper = line.trim().toUpperCase();
+				// Check:  @expectedStatus status
 				index = lineUpper.indexOf("@EXPECTEDSTATUS");
 				if ( index >= 0 ) {
-					// Get the status as the next token after the tag.
+					// Get the expected status as the next token after the tag:
+					// - do upper case comparison
+					// - allow variation as long as the first part of the annotation is matched
 					this.expectedStatusString = StringUtil.getToken(line.substring(index), " \t",
                         StringUtil.DELIM_SKIP_BLANKS, 1);
+					String statusUpper = this.expectedStatusString.toUpperCase();
+					Message.printStatus(2, routine, "Detected expectedStatus: " + statusUpper );
 					// Translate variations to the official name recognized by RunCommands().
-    				if ( expectedStatusString.equalsIgnoreCase("Warn") ) {
+    				if ( statusUpper.startsWith("WARN") ) {
     					this.expectedStatus = CommandStatusType.WARNING;
     				}
-    				else if ( expectedStatusString.equalsIgnoreCase("Fail") ) {
+    				else if ( statusUpper.startsWith("FAIL") ) {
     					this.expectedStatus = CommandStatusType.FAILURE;
     				}
-    				else if ( expectedStatusString.equalsIgnoreCase("Success") ) {
+    				else if ( statusUpper.equals("SUCCESS") ) {
     					this.expectedStatus = CommandStatusType.SUCCESS;
     				}
+    				else {
+    					this.expectedStatus = CommandStatusType.UNKNOWN;
+    				}
+    				Message.printStatus(2, routine, "ExpectedStatus is: " + this.expectedStatus);
 				}
-				// Check @id CommandFileId
+
+				// Check for:  @id CommandFileId
 				index = lineUpper.indexOf("@ID");
 				if ( index >= 0 ) {
 					// Get the identifier as the next token after the tag.
@@ -196,7 +210,8 @@ public class CommandFile {
                         StringUtil.DELIM_SKIP_BLANKS, 1);
 					Message.printStatus(2, routine, "Id is: " + this.id);
 				}
-				// Check @order before/after CommandFileId
+
+				// Check for:  @order before/after CommandFileId
 				index = lineUpper.indexOf("@ORDER");
 				if ( index >= 0 ) {
 					// Get the operator and command file id as the next tokens after the tag.
@@ -208,7 +223,8 @@ public class CommandFile {
 					Message.printStatus(2, routine, "order operator: " + this.orderOperatorType);
 					Message.printStatus(2, routine, "order id: " + this.orderId);
 				}
-				// Check @testSuite suiteName
+
+				// Check for:  @testSuite suiteName
 				index = lineUpper.indexOf("@TESTSUITE");
 				if ( index >= 0 ) {
 					// Get the test suite name as the next token after the tag.
