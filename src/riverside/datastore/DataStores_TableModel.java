@@ -23,10 +23,13 @@ NoticeEnd */
 
 package riverside.datastore;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import RTi.DMI.DatabaseDataStore;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
+import RTi.Util.Message.Message;
 
 /**
 Table model for displaying data store data in a JWorksheet.
@@ -43,9 +46,14 @@ The table displayed in the worksheet.
 private List<DataStore> __dataStoreList = null;
 
 /**
+Map of datastore name substitutes.
+*/
+private HashMap<String,String> __dataStoreSubstituteMap = null;
+
+/**
 Number of columns in the table model (with the alias).
 */
-private int __COLUMNS = 20;
+private int __COLUMNS = 22;
 
 /**
 Absolute column indices, for column lookups.
@@ -55,27 +63,30 @@ public final int COL_NAME = 1;
 public final int COL_DESCRIPTION = 2;
 public final int COL_ENABLED = 3;
 public final int COL_STATUS = 4;
-// Enabled for all but currently only database has enabled
+// Enabled for all but currently only database has enabled.
 public final int COL_TS_INTERFACE_DEFINED = 5;
 public final int COL_TS_INTERFACE_WORKS = 6;
-// Database datastore...
+// Database datastore.
 public final int COL_DATABASE_ENGINE = 7;
 public final int COL_DATABASE_SERVER = 8;
 public final int COL_DATABASE_NAME = 9;
-// Straight ODBC connection...
+// Straight ODBC connection.
 public final int COL_ODBC_NAME = 10;
 public final int COL_SYSTEM_LOGIN = 11;
 public final int COL_CONNECT_PROPS = 12;
-// Web service data store...
+// Web service data store.
 public final int COL_SERVICE_ROOT_URI = 13;
 // General error string
 public final int COL_STATUS_MESSAGE = 14;
 public final int COL_CONFIG_FILE = 15;
-// Plugin standard properties
+// Plugin standard properties.
 public final int COL_PLUGIN_NAME = 16;
 public final int COL_PLUGIN_DESCRIPTION = 17;
 public final int COL_PLUGIN_AUTHOR = 18;
 public final int COL_PLUGIN_VERSION = 19;
+// Used for testing.
+public final int COL_SUBSTITUTED_FOR = 20;
+public final int COL_SUBSTITUTED_BY = 21;
 
 /**
 Constructor.
@@ -84,6 +95,18 @@ Constructor.
 */
 public DataStores_TableModel(List<DataStore> dataStoreList) 
 throws Exception {
+	// Call the overloaded constructor.
+	this(dataStoreList, null);
+}
+
+/**
+Constructor.
+@param dataStoreList the list of data stores to show in a worksheet.
+@param dataStoreSubstituteMap map of datastore substitutes (old, new names)
+@throws NullPointerException if the dataTable is null.
+*/
+public DataStores_TableModel(List<DataStore> dataStoreList, HashMap<String,String> dataStoreSubstituteMap ) 
+throws Exception {
     if ( dataStoreList == null ) {
         _rows = 0;
     }
@@ -91,6 +114,7 @@ throws Exception {
         _rows = dataStoreList.size();
     }
     __dataStoreList = dataStoreList;
+    __dataStoreSubstituteMap = dataStoreSubstituteMap;
 }
 
 /**
@@ -139,6 +163,8 @@ public String getColumnName(int columnIndex) {
         case COL_PLUGIN_DESCRIPTION: return "Plugin Description";
         case COL_PLUGIN_AUTHOR: return "Plugin Author";
         case COL_PLUGIN_VERSION: return "Plugin Version";
+        case COL_SUBSTITUTED_FOR: return "Substituted For";
+        case COL_SUBSTITUTED_BY: return "Substituted By";
         default: return "";
     }
 }
@@ -168,6 +194,8 @@ public String[] getColumnToolTips() {
     tooltips[COL_PLUGIN_DESCRIPTION] = "Plugin description (if datastore is a plugin)";
     tooltips[COL_PLUGIN_AUTHOR] = "Plugin author (if datastore is a plugin)";
     tooltips[COL_PLUGIN_VERSION] = "Plugin version (if datastore is a plugin)";
+    tooltips[COL_SUBSTITUTED_FOR] = "This datastore will be used instead of the indicated datastore(s))";
+    tooltips[COL_SUBSTITUTED_BY] = "This datastore will not be used - instead, the indicated datastore will be used.)";
     return tooltips;
 }
 
@@ -375,7 +403,35 @@ public Object getValueAt(int row, int col)
         	else {
         		return "";
         	}
-        default: return "";
+        case COL_SUBSTITUTED_FOR:
+        	// The datastore can be a substitute for one or more original datastores:
+        	// - need to search the new datastore names for any matches
+        	if ( this.__dataStoreSubstituteMap != null ) {
+        		StringBuilder oldNames = new StringBuilder();
+        		for ( Map.Entry<String,String> entry: this.__dataStoreSubstituteMap.entrySet() ) {
+        			String newName = entry.getValue();
+        			if ( newName.equals(dataStore.getName()) ) {
+        				if ( oldNames.length() > 0 ) {
+        					oldNames.append(",");
+        				}
+        				oldNames.append(entry.getKey());
+        			}
+        		}
+        		return oldNames.toString();
+        	}
+        	else {
+        		return "";
+        	}
+        case COL_SUBSTITUTED_BY:
+        	if ( this.__dataStoreSubstituteMap != null ) {
+        		// Return the new name (the substitute) - can only be one.
+        		return this.__dataStoreSubstituteMap.get(dataStore.getName());
+        	}
+        	else {
+        		return "";
+        	}
+        default:
+        	return "";
     }
 }
 
@@ -405,6 +461,8 @@ public int[] getColumnWidths() {
     widths[COL_PLUGIN_DESCRIPTION] = 30;
     widths[COL_PLUGIN_AUTHOR] = 25;
     widths[COL_PLUGIN_VERSION] = 20;
+    widths[COL_SUBSTITUTED_FOR] = 20;
+    widths[COL_SUBSTITUTED_BY] = 20;
     return widths;
 }
 

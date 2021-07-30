@@ -90,6 +90,20 @@ public CommandLogRecord(CommandStatusType severity, String type, String problem,
 }
 
 /**
+ * Copy constructor for a command log record.
+ * @param severity Severity for the log record, from CommandStatusType.
+ * @param type the log record type.
+ * @param problem A String describing the problem.
+ * @param recommendation A String recommending a solution.
+ */
+public CommandLogRecord(CommandLogRecord record) {
+    this.__severity = record.__severity;
+    this.__type = record.__type;
+    this.__problem = record.__problem;
+    this.__recommendation = record.__recommendation;
+}
+
+/**
  * Details that can be used to troubleshoot and link to other information.
  * TODO SAM 2007-06-25 Need to flush out the details.  For example, this could
  * be a list of the parameter/value pairs.  It is more difficult to define the

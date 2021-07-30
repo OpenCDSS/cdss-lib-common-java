@@ -947,6 +947,9 @@ public static int getRequiredNumberOfValuesForCheckCriteria ( CheckType checkCri
     else if ( checkCriteria == CheckType.EQUAL_TO ) {
         return 1;
     }
+    else if ( checkCriteria == CheckType.NOT_EQUAL_TO ) {
+        return 1;
+    }
     else if ( checkCriteria == CheckType.GREATER_THAN ) {
         return 1;
     }

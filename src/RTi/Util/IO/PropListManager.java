@@ -62,20 +62,25 @@ import RTi.Util.String.StringUtil;
 import RTi.Util.Message.Message;
 
 /**
-This class manages a list of PropList objects.  It is generally only used for
-applications where several property lists need to be evaluated to determine the
-value of properties.  For example, an application may support a user
-configuration file, a system configuration file, and run-time user settings.
-Each source of properties can be stored in a separate PropList and can be
-managed by PropListManager.  This class has several functions that can handle
-recursive checks of PropLists and can expand configuration contents.
+This class manages a list of PropList objects.
+
+It can be used for in applications where several property lists need to be evaluated to determine the value of properties.
+For example, an application may support a user configuration file, a system configuration file, and run-time user settings.
+Each source of properties can be stored in a separate PropList and can be managed by PropListManager.
+This class has several functions that can handle recursive checks of PropLists and can expand configuration contents.
+
+An instance of the manager is created in IOUtil for global access and can therefore be used when necessary
+to share application properties to deep code.
 
 @see Prop
 @see PropList
 */
 public class PropListManager {
 
-List<PropList> _proplists; // List of PropList objects
+/**
+ * List of PropList objects being managed.
+ */
+List<PropList> _proplists;
 
 /**
 Default constructor.
@@ -103,7 +108,7 @@ public void addList ( PropList proplist, boolean replace_if_match )
 		int size = _proplists.size();
 		PropList proplist_pt = null;
 		for ( int i = 0; i < size; i++ ) {
-			proplist_pt = (PropList)_proplists.get(i);
+			proplist_pt = _proplists.get(i);
 			if ( proplist_pt == null ) {
 				continue;
 			}
@@ -133,15 +138,6 @@ public int addList ( String listname, int listformat )
 }
 
 /**
-Clean up memory for garbage collection.
-*/
-protected void finalize()
-throws Throwable
-{	_proplists = null;
-	super.finalize();
-}
-
-/**
 Return the property associated with the key.
 @return The property associated with the string key.
 @param key The string key to look up.
@@ -152,7 +148,7 @@ public Prop getProp ( String key )
 	PropList proplist;
 	Prop found;
 	for ( int i = 0; i < size; i++ ) {
-		proplist = (PropList)_proplists.get(i);
+		proplist = _proplists.get(i);
 		if ( proplist == null ) {
 			continue;
 		}
@@ -169,6 +165,20 @@ Return the list of PropLists managed by this PropListManager.
 */
 public List<PropList> getPropLists ()
 {	return _proplists;
+}
+
+/**
+Return a PropList given the name.
+@param name the PropList name
+@return the list matching the name, or null if not found
+*/
+public PropList getPropList ( String name ) {
+	for ( PropList list : this._proplists ) {
+		if ( list.getPropListName().equals(name) ) {
+			return list;
+		}
+	}
+	return null;
 }
 
 /**
@@ -195,11 +205,12 @@ public String getValue ( String key )
 	return null;
 }
 
-// Initialize the object...
-
-private int initialize ( )
-{	_proplists = new Vector<PropList>();
-	return 0;
+/**
+ *  Initialize the object.
+ */
+private void initialize ( ) {
+	// Use a Vector to be thread-safe since global instance may be used.
+	_proplists = new Vector<PropList>();
 }
 
 /**
@@ -241,12 +252,12 @@ static Prop parsePropString ( String prop_string )
 		}
 	}
 
-	// The variable is the first token, the contents is the remaining...
+	// The variable is the first token, the contents is the remaining.
 
-	String variable = ((String)tokens.get(0)).trim();
+	String variable = tokens.get(0).trim();
 	String contents = "";
 	for ( int i = 1; i < size; i++ ) {
-		contents = contents + ((String)tokens.get(i)).trim();
+		contents = contents + tokens.get(i).trim();
 	}
 	prop = new Prop ( variable, (Object)contents, "" );
 	return prop;
@@ -429,7 +440,7 @@ public static String resolveContentsValue (	List<PropList> proplists, String con
 
 	// Initialize variables...
 
-	StringBuffer value	= new StringBuffer ();
+	StringBuffer value = new StringBuffer ();
 
 	// Because of a technical issue, we need to assume here that we are inside soft quotes...
 
@@ -459,7 +470,7 @@ public static String resolveContentsValue (	List<PropList> proplists, String con
 	boolean literal_quotes = true;
 	for ( ilist = 0; ilist < size; ++ilist ) {
 		// Get the PropList based on the vector position...
-		proplist = (PropList)proplists.get(ilist);
+		proplist = proplists.get(ilist);
 		if ( proplist == null ) {
 			continue;
 		}
@@ -749,7 +760,7 @@ single specified property list.
 public static String resolvePropValue ( PropList list, String key )
 {	// Create a vector and call the routine that accepts the vector...
 
-	List<PropList> v = new Vector<PropList>();
+	List<PropList> v = new Vector<>();
 	v.add ( list );
 	String result = resolvePropValue ( v, key );
 	return result;
@@ -827,14 +838,14 @@ public static String resolvePropValue ( List<PropList> list, String key )
 	Prop prop = null;
 	for ( int i = 0; i < vsize; i++ ) {
 		// First get the list...
-		proplist = (PropList)list.get(i);
+		proplist = list.get(i);
 		if ( proplist == null ) {
 			continue;
 		}
 		// Now loop through the items in the list...
 		int psize = proplist.size();
 		for ( int j = 0; j < psize; j++ ) {
-			prop = (Prop)proplist.propAt(j);
+			prop = proplist.propAt(j);
 			if ( prop.getKey().equalsIgnoreCase(key) ) {
 				// We have a match.
 				++found_count;
@@ -893,7 +904,7 @@ public int setValue ( String listname, String key, Object contents )
 	int size = _proplists.size();
 	PropList proplist;
 	for ( int i = 0; i < size; i++ ) {
-		proplist = (PropList)_proplists.get(i);
+		proplist = _proplists.get(i);
 		if ( proplist == null ) {
 			continue;
 		}

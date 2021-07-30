@@ -65,7 +65,7 @@ import java.util.Date;
 import java.util.Properties;
 import java.util.Set;
 import java.util.List;
-
+import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -579,7 +579,7 @@ throws IOException
 		throw new IOException ( message );
 	}
 
-	list = new ArrayList<String>(50);
+	list = new ArrayList<>(50);
 	while ( true ) {
 		tempstr = fp.readLine();
 		if ( tempstr == null ) {
@@ -1254,12 +1254,17 @@ public static List<String> getJarFilesManifests() {
 	Set<Object> set = null;
 	String tab = "    ";
 	List<String> sort = null;
-	List<String> v = new ArrayList<String>();
+	List<String> v = new ArrayList<>();
+	
+	v.add ("---------------------------------------------------------------------------");
+	v.add ("Manifest values for each jar file in the class path are listed below:");
+	v.add ("- manifest values are sorted");
+	v.add ("---------------------------------------------------------------------------");
+	v.add ("");
 	
 	for (int i = 0; i < jars.length; i++) {
 		if (!StringUtil.endsWithIgnoreCase(jars[i], ".jar")) {
-			// directories, etc, can be specified in a class path
-			// but avoid those for just the jar files in the class path.
+			// Directories, etc, can be specified in a class path but only process the jar files in the class path.
 			continue;
 		}
 		
@@ -1276,10 +1281,9 @@ public static List<String> getJarFilesManifests() {
 				sort.add(tab + ((Attributes.Name)(o[j])) + " = " + a.getValue((Attributes.Name)(o[j])));
 			}
 
-			// the order in which the data in the manifest file 
-			// are returned is not guaranteed to be in the same
-			// order as they are in the manifest file.  Thus, the
-			// data are sorted to present a consistent return pattern.
+			// The order in which the data in the manifest file are returned is not guaranteed to be in the same
+			// order as they are in the manifest file.
+			// Therefore, the data are sorted to present a consistent return pattern.
 			Collections.sort(sort);
 			size = sort.size();
 			for (j = 0; j < size; j++) {
@@ -1596,22 +1600,23 @@ public static String getPropValue ( String key )
 }
 
 /**
-Returns a list of Strings containing information about the system on which
+Returns a list of strings containing information about the system on which
 the Java application is currently running.
+See also getJarFileManifests() method for details for each jar file.
 @return a list of Strings.
 */
 public static List<String> getSystemProperties() {
 	String tab = "    ";
 	
-	List<String> v = new ArrayList<String>();
+	List<String> systemProperties = new ArrayList<>();
 
-	v.add("System Properties Defined for Application: ");
-	v.add(tab + " Program Name: " + _progname + " " + _progver);
-	v.add(tab + " User Name: " + _user);
+	systemProperties.add("System Properties Defined for Application: ");
+	systemProperties.add(tab + " Program Name: " + _progname + " " + _progver);
+	systemProperties.add(tab + " User Name: " + _user);
 	String now = TimeUtil.getSystemTimeString("");
-	v.add(tab + " Date: " + now);
-	v.add(tab + " Host: " + _host);
-	v.add(tab + " Working Directory: " + _working_dir);
+	systemProperties.add(tab + " Date: " + now);
+	systemProperties.add(tab + " Host: " + _host);
+	systemProperties.add(tab + " Working Directory: " + _working_dir);
 	String command = tab + " Command: " + _progname + " ";
 
 	int totalLength = command.length();
@@ -1623,9 +1628,9 @@ public static List<String> getSystemProperties() {
 			length = _argv[i].length() + 1;
 		
 			if (totalLength + length >= 80) {
-				// it would be too big for the line, so add the current line and put the next
-				// argument on what will be the next line
-				v.add(command);
+				// Full command line would be too big for the line,
+				// so add the current line and put the next argument on what will be the next line.
+				systemProperties.add(command);
 				command = tab + tab + _argv[i];
 			}
 			else {
@@ -1634,55 +1639,65 @@ public static List<String> getSystemProperties() {
 			totalLength = command.length();
 		}
 	}
-	v.add(command);
-	v.add("");
+	systemProperties.add(command);
+	systemProperties.add("");
 	
-	v.add("Operating System Information");
-	v.add(tab + "Name: " + System.getProperty("os.name"));
-	v.add(tab + "Version: " + System.getProperty("os.version"));
-	v.add(tab + "System Architecture: " + System.getProperty("os.arch"));
-	v.add("");
+	systemProperties.add("Operating System Information:");
+	systemProperties.add(tab + "Name: " + System.getProperty("os.name"));
+	systemProperties.add(tab + "Version: " + System.getProperty("os.version"));
+	systemProperties.add(tab + "System Architecture: " + System.getProperty("os.arch"));
+	systemProperties.add("");
+
+	systemProperties.add("Environment Variables:");
+    Map<String,String> env = System.getenv();
+    Set<String> envVars = env.keySet();
+    List<String> envVarList = new ArrayList<>(envVars);
+    envVarList = StringUtil.sortStringList(envVarList, StringUtil.SORT_ASCENDING, null, false, true);
+    for ( String name : envVarList ) {
+    	systemProperties.add(tab + " " + name + " = \"" + System.getenv(name) + "\"");
+    }
+    systemProperties.add("");
 	
-	v.add("Java Virtual Machine Memory Information: ");
-	v.add(tab + "JVM PID: " + IOUtil.getProcessId() );
+	systemProperties.add("Java Virtual Machine Memory Information:");
+	systemProperties.add(tab + "JVM PID: " + IOUtil.getProcessId() );
 	Runtime r = Runtime.getRuntime();
-	v.add(tab + "Maximum memory (see Java -Xmx): " + r.maxMemory() + " bytes, " + r.maxMemory()/1024 + " kb, " + r.maxMemory()/1048576 + " mb" );
-	v.add(tab + "Total memory (will be increased to maximum as needed): " + r.totalMemory() + " bytes, " + r.totalMemory()/1024 + " kb, " + r.totalMemory()/1048576 + " mb");
+	systemProperties.add(tab + "Maximum memory (see Java -Xmx): " + r.maxMemory() + " bytes, " + r.maxMemory()/1024 + " kb, " + r.maxMemory()/1048576 + " mb" );
+	systemProperties.add(tab + "Total memory (will be increased to maximum as needed): " + r.totalMemory() + " bytes, " + r.totalMemory()/1024 + " kb, " + r.totalMemory()/1048576 + " mb");
 	long used = r.totalMemory() - r.freeMemory();
-	v.add(tab + "Used memory: " + used + " bytes, " + used/1024 + " kb, " + used/1048576 + " mb");
-	v.add(tab + "Free memory: " + r.freeMemory() + " bytes, " + r.freeMemory()/1024 + " kb, " + r.freeMemory()/1048576 + " mb");
-	v.add("");
+	systemProperties.add(tab + "Used memory: " + used + " bytes, " + used/1024 + " kb, " + used/1048576 + " mb");
+	systemProperties.add(tab + "Free memory: " + r.freeMemory() + " bytes, " + r.freeMemory()/1024 + " kb, " + r.freeMemory()/1048576 + " mb");
+	systemProperties.add("");
 	
-    v.add("Java Virtual Machine Properties (System.getProperties()): ");
+    systemProperties.add("Java Virtual Machine Properties (System.getProperties()): ");
     Properties properties = System.getProperties();
     Set<String> names = properties.stringPropertyNames();
-    ArrayList<String> nameList = new ArrayList<String>(names);
+    List<String> nameList = new ArrayList<>(names);
     Collections.sort ( nameList );
     for ( String name : nameList ) {
     	if ( name.equals("line.separator") ) {
-    		// Special case because printing actual character will be invisible
+    		// Special case because printing actual character will be invisible.
     		String nl = System.getProperty(name);
     		nl = nl.replace("\r", "\\r");
     		nl = nl.replace("\n", "\\n");
-    		v.add(tab + " " + name + " = \"" + nl + "\"");
+    		systemProperties.add(tab + " " + name + " = \"" + nl + "\"");
     	}
     	else {
-    		v.add(tab + " " + name + " = \"" + System.getProperty(name) + "\"");
+    		systemProperties.add(tab + " " + name + " = \"" + System.getProperty(name) + "\"");
     	}
     }
-    v.add("");
+    systemProperties.add("");
 	
-	v.add("Java Information");
-	v.add(tab + "Vendor: " + System.getProperty("java.vendor"));
-	v.add(tab + "Version: " + System.getProperty("java.version"));
-	v.add(tab + "Home: " + System.getProperty("java.home"));
+	systemProperties.add("Java Information:");
+	systemProperties.add(tab + "Vendor: " + System.getProperty("java.vendor"));
+	systemProperties.add(tab + "Version: " + System.getProperty("java.version"));
+	systemProperties.add(tab + "Home: " + System.getProperty("java.home"));
 
 	String sep = System.getProperty("path.separator");
 
 	String[] jars = System.getProperty("java.class.path").split(sep);
 
 	if (jars.length == 0) {
-		return v;
+		return systemProperties;
 	}
 
 	String cp = tab + "Classpath: " + jars[0];
@@ -1692,7 +1707,7 @@ public static List<String> getSystemProperties() {
 		length = jars[i].length();
 
 		if (totalLength + length >= 80) {
-			v.add(cp + sep);
+			systemProperties.add(cp + sep);
 			cp = tab + tab + jars[i];
 		}
 		else {
@@ -1700,11 +1715,11 @@ public static List<String> getSystemProperties() {
 		}
 		totalLength = cp.length();
 	}
-	v.add(cp);
+	systemProperties.add(cp);
 		
-	v.add("");
+	systemProperties.add("");
 	
-	return v;
+	return systemProperties;
 }
 
 /**
@@ -2008,6 +2023,107 @@ public static boolean isUNIXMachine ()
 	else {
 	    return false;
 	}
+}
+
+/**
+Count the number of lines in a file.
+@param file	File to read.
+@return the number of lines in the file.
+@exception IOException if there is an error.
+*/
+public static int lineCount ( File file)
+throws IOException {
+	String message, routine = "IOUtil.lineCount", tempstr;
+	
+	if ( file == null ) {
+		message = "Filename is null.";
+		//Message.printWarning ( 10, routine, message );
+		throw new IOException ( message );
+	}
+	if ( file.getAbsoluteFile().length() == 0 ) {
+		message = "Filename is empty.";
+		//Message.printWarning ( 10, routine, message );
+		throw new IOException ( message );
+	}
+
+	// Open the file...
+
+	BufferedReader fp = null;
+	try {
+	    fp = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream( file.getAbsolutePath()) ));
+	}
+	catch ( Exception e ) {
+		message = "Unable to read file \"" + file.getAbsolutePath() + "\" (" + e + ").";
+		Message.printWarning ( 3, routine, message );
+		throw new IOException ( message );
+	}
+
+	int count = 0;
+	while ( true ) {
+		tempstr = fp.readLine();
+		if ( tempstr == null ) {
+			break;
+		}
+		++count;
+	}
+	fp.close ();
+	return count;
+}
+
+/**
+Count the number of pattern matches in a file.
+@param file	File to read and convert to string list.
+@param pattern string with Java regular expression
+@param boolean countLines if true, return the number of lines with matches, if false (currently not supported),
+return the number of pattern matches (more than one match per line is allowed)
+@return the number of pattern matches in the file (can be more than one match on a line).
+@exception IOException if there is an error.
+*/
+public static int matchCount ( File file, String pattern, boolean countLines )
+throws IOException {	
+	String message, routine = "IOUtil.matchCount", tempstr;
+	
+	if ( file == null ) {
+		message = "Filename is null.";
+		//Message.printWarning ( 10, routine, message );
+		throw new IOException ( message );
+	}
+	if ( file.getAbsoluteFile().length() == 0 ) {
+		message = "Filename is empty.";
+		//Message.printWarning ( 10, routine, message );
+		throw new IOException ( message );
+	}
+
+	// Open the file...
+
+	BufferedReader fp = null;
+	try {
+	    fp = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream( file.getAbsolutePath()) ));
+	}
+	catch ( Exception e ) {
+		message = "Unable to read file \"" + file.getAbsolutePath() + "\" (" + e + ").";
+		Message.printWarning ( 3, routine, message );
+		throw new IOException ( message );
+	}
+
+	int count = 0;
+	while ( true ) {
+		tempstr = fp.readLine();
+		if ( tempstr == null ) {
+			break;
+		}
+		
+		if ( countLines ) {
+			if ( tempstr.matches(pattern) ) {
+				++count;
+			}
+		}
+		else {
+			
+		}
+	}
+	fp.close ();
+	return count;
 }
 
 /**

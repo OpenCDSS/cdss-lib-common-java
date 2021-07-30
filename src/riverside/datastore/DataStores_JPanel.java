@@ -25,6 +25,7 @@ package riverside.datastore;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -48,6 +49,11 @@ public class DataStores_JPanel extends JPanel
 The list of data stores to display in the worksheet.
 */
 private List<DataStore> __dataStoreList = null;
+
+/**
+ * Map of datastore substitutes.
+ */
+private HashMap<String,String> __dataStoreSubstituteMap = null;
 
 /**
 The parent frame containing this panel.
@@ -81,15 +87,16 @@ To display with other properties, use the other constructor.
 @param dataStoreList the list of data stores to display in the panel.
 @throws NullPointerException if any of the parameters are null.
 */
-public DataStores_JPanel(DataStores_JFrame parent, List<DataStore> dataStoreList ) 
+public DataStores_JPanel(DataStores_JFrame parent, List<DataStore> dataStoreList, HashMap<String,String> dataStoreSubstituteMap ) 
 throws Exception
 {
 	if (parent == null || dataStoreList == null) {
 		throw new NullPointerException();
 	}
 
-	__parent = parent;
-	__dataStoreList = dataStoreList;
+	this.__parent = parent;
+	this.__dataStoreList = dataStoreList;
+	this.__dataStoreSubstituteMap = dataStoreSubstituteMap;
 
 	__props = new PropList("DataTable_JPanel.JWorksheet");
 	__props.add("JWorksheet.ShowPopupMenu=true");
@@ -177,7 +184,7 @@ throws Exception {
 
 	JScrollWorksheet jsw = null;
 	try {
-		DataStores_TableModel tm = new DataStores_TableModel(__dataStoreList);
+		DataStores_TableModel tm = new DataStores_TableModel(__dataStoreList, this.__dataStoreSubstituteMap);
 		DataStores_CellRenderer cr = new DataStores_CellRenderer(tm);
 	
 		jsw = new JScrollWorksheet(cr, tm, __props);

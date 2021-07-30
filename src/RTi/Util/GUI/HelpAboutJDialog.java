@@ -121,19 +121,18 @@ public void actionPerformed(ActionEvent event) {
 		dispose();	
 	}
 	else if (s.equals(__BUTTON_SYSTEM_DETAILS)) {
-		List<String> v1 = IOUtil.getSystemProperties();
-		List<String> v2 = IOUtil.getJarFilesManifests();
+		List<String> systemDetails = new ArrayList<>();
+		List<String> systemProperties = IOUtil.getSystemProperties();
+		List<String> jarManifests = IOUtil.getJarFilesManifests();
 
-		List<String> v3 = new ArrayList<String>();
-		for (int i = 0; i < v1.size(); i++) {
-			v3.add(v1.get(i));
-		}
-		for (int i = 0; i < v2.size(); i++) {
-			v3.add(v2.get(i));
-		}
+		systemDetails.addAll(systemProperties);
+		systemDetails.addAll(jarManifests);
+
 		PropList props = new PropList("HelpAboutJDialog");
 		props.set("Title=System Information");
-		new ReportJDialog(this, v3, props, true);
+		props.set("TotalWidth=800");
+		props.set("TotalHeight=500");
+		new ReportJDialog(this, systemDetails, props, true);
 	}
 }
 
