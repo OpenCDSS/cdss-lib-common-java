@@ -79,4 +79,21 @@ public class RequirementCheckList {
 			return false;
 		}
 	}
+	
+	/**
+	 * Format the check results, for example for use in command status.
+	 * @return a string with each criteria that did not meet the criteria
+	 */
+	public String formatResults () {
+		StringBuilder b = new StringBuilder();
+		for ( RequirementCheck check : this.requirementCheckList ) {
+			if ( !check.isRequirementMet() ) {
+				if ( b.length() > 0 ) {
+					b.append("\n");
+				}
+				b.append(check.getFailReason());
+			}
+		}
+		return b.toString();
+	}
 }

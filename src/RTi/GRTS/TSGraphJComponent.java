@@ -401,50 +401,52 @@ series with the longest overall period).
 */
 public TSGraphJComponent ( TSViewGraphJFrame parent, List<TS> tslist, PropList props )
 {	super ( "TSGraphJComponent" );
-	_force_redraw = true;
-	_parent = parent;
-	_tslist = tslist;
-	// Convert the old-style PropList to a TSProduct instance.  This also fills _display_props...
-	_tsproduct = createTSProductFromPropList ( props, tslist );
-	checkDisplayProperties ( _tsproduct, _displayProps );
-	_tsproduct.checkProperties();
+	this._force_redraw = true;
+	this._parent = parent;
+	this._tslist = tslist;
+	// Convert the old-style PropList to a TSProduct instance:
+	// - this also fills _display_props
+	this._tsproduct = createTSProductFromPropList ( props, tslist );
+	// Now use _displayProps for further processing.
+	checkDisplayProperties ( this._tsproduct, this._displayProps );
+	this._tsproduct.checkProperties();
 	// Need to figure out the requested height and width because this
-	// information is used to create the TSGraph instances...
+	// information is used to create the TSGraph instances.
 	double height = 400.0, width = 400.0;
 
-	String propVal = _tsproduct.getLayeredPropValue ( "TotalHeight", -1, -1, false );
+	String propVal = this._tsproduct.getLayeredPropValue ( "TotalHeight", -1, -1, false );
 	if ( (propVal != null) && StringUtil.isDouble(propVal) ) {
 		height = StringUtil.atod(propVal);
 	}
-	propVal = _tsproduct.getLayeredPropValue ( "TotalWidth", -1, -1,false);
+	propVal = this._tsproduct.getLayeredPropValue ( "TotalWidth", -1, -1,false);
 	if ( (propVal != null) && StringUtil.isDouble(propVal) ) {
 		width = StringUtil.atod(propVal);
 	}
 
-	if ( !_is_reference_graph ) {
+	if ( !this._is_reference_graph ) {
 		setSize ( (int)width, (int)height );
-		// Swing seems to need this (the above does not do anything!)...
+		// Swing seems to need this (the above does not do anything!).
 		setPreferredSize ( new Dimension((int)width, (int)height) );
 	}
 	
-	// Now create the TSGraph instances that will manage the individual graphs...
-	_tsgraphs = createTSGraphsFromTSProduct ( _tsproduct, _displayProps,
+	// Now create the TSGraph instances that will manage the individual graphs.
+	this._tsgraphs = createTSGraphsFromTSProduct ( this._tsproduct, this._displayProps,
 		tslist, new GRLimits(0.0,0.0,width,height) );
-	checkTSProductGraphs ( _tsproduct, _tsgraphs );
-	// Open the drawing areas with initial limits...
+	checkTSProductGraphs ( this._tsproduct, this._tsgraphs );
+	// Open the drawing areas with initial limits.
 	openDrawingAreas ();
 
 	// For now background color cannot be changed.
-	setBackground ( _background_color );
+	setBackground ( this._background_color );
 
-	// Enable events on the component...
+	// Enable events on the component.
 
 	requestFocus();
 	addMouseListener ( this );
 	addMouseMotionListener ( this );
 	addKeyListener ( this );
 
-	// Force a paint on construction...
+	// Force a paint on construction.
 	repaint();
 }
 
@@ -463,28 +465,28 @@ series with the longest overall period).
 public TSGraphJComponent ( TSViewGraphJFrame parent, TSProduct tsproduct, PropList displayProps )
 {	super ( "TSGraphJComponent" );
 	String routine = "TSGraphJComponent";
-	_force_redraw = true;
-	_parent = parent;
-	_tslist = tsproduct.getTSList();// Do this for now.  Later remove _tslist
-	_displayProps = displayProps;
-	if ( _displayProps == null ) {
-		_displayProps = new PropList ( "display" );
+	this._force_redraw = true;
+	this._parent = parent;
+	this._tslist = tsproduct.getTSList();// Do this for now.  Later remove _tslist
+	this._displayProps = displayProps;
+	if ( this._displayProps == null ) {
+		this._displayProps = new PropList ( "display" );
 	}
-	if ( (_tslist == null) || (_tslist.size() == 0) ) {
+	if ( (this._tslist == null) || (this._tslist.size() == 0) ) {
 		Message.printWarning ( 2, routine, "Time series list is null.  Product will be empty." );
 	}
-	checkDisplayProperties ( tsproduct, _displayProps );
-	_tsproduct = tsproduct;
-	_tsproduct.checkProperties();
+	checkDisplayProperties ( tsproduct, this._displayProps );
+	this._tsproduct = tsproduct;
+	this._tsproduct.checkProperties();
 	// Set the requested (or if not specified, default) height and width
 	// because this information is used to create the TSGraph instances...
 	double height = 400.0, width = 400.0;
 
-	String prop_val = _tsproduct.getLayeredPropValue ( "TotalHeight", -1, -1, false );
+	String prop_val = this._tsproduct.getLayeredPropValue ( "TotalHeight", -1, -1, false );
 	if ( (prop_val != null) && StringUtil.isDouble(prop_val) ) {
 		height = StringUtil.atod(prop_val);
 	}
-	prop_val = _tsproduct.getLayeredPropValue ( "TotalWidth", -1, -1,false);
+	prop_val = this._tsproduct.getLayeredPropValue ( "TotalWidth", -1, -1,false);
 	if ( (prop_val != null) && StringUtil.isDouble(prop_val) ) {
 		width = StringUtil.atod(prop_val);
 	}
@@ -497,15 +499,15 @@ public TSGraphJComponent ( TSViewGraphJFrame parent, TSProduct tsproduct, PropLi
 	// individual graphs.  The limits of the graphs will not be correct
 	// because the titles, etc., have not been considered.  The limits will
 	// be reset in the first paint() method call and every resize after that.
-	_tsgraphs = createTSGraphsFromTSProduct ( _tsproduct, _displayProps, _tslist,
+	this._tsgraphs = createTSGraphsFromTSProduct ( this._tsproduct, this._displayProps, this._tslist,
 		new GRLimits( 0.0,0.0,width,height) );
-	checkTSProductGraphs ( _tsproduct, _tsgraphs );
+	checkTSProductGraphs ( this._tsproduct, this._tsgraphs );
 
 	// Open the drawing areas with initial limits...
 	openDrawingAreas ();
 
 	// For now background color cannot be changed.
-	setBackground ( _background_color );
+	setBackground ( this._background_color );
 
 	// Enable events on the component...
 
@@ -515,7 +517,7 @@ public TSGraphJComponent ( TSViewGraphJFrame parent, TSProduct tsproduct, PropLi
 	addKeyListener ( this );
 
 	// Install decorator for cross hair cursor
-	_cursorDecorator = new TSCursorDecorator(this, _rubber_band_color,_background_color);
+	this._cursorDecorator = new TSCursorDecorator(this, this._rubber_band_color, this._background_color);
 	// Force a paint on construction...
 	repaint();
 }
@@ -586,45 +588,48 @@ display properties and sets internal variables that are commonly used.
 time series product properties
 */
 private void checkDisplayProperties ( TSProduct tsproduct, PropList displayProps )
-{	String routine = getClass().getName() + ".checkDisplayProperties";
+{	String routine = getClass().getSimpleName() + ".checkDisplayProperties";
 
-	_is_reference_graph = false;
-	_gtype = "Main:";
+	this._is_reference_graph = false;
+	this._gtype = "Main:";
+	if ( displayProps == null ) {
+		throw new RuntimeException ( "Display properties are null - software bug." );
+	}
 	String propVal = displayProps.getValue ( "ReferenceGraph" );
 	if ( (propVal != null) && propVal.equalsIgnoreCase("true") ) {
-		_is_reference_graph = true;
-		_gtype = "Ref:";
-		_interaction_mode = INTERACTION_ZOOM;
+		this._is_reference_graph = true;
+		this._gtype = "Ref:";
+		this._interaction_mode = INTERACTION_ZOOM;
 	}
     propVal = tsproduct.getLayeredPropValue("VisibleStart", -1, -1);
     if ( propVal != null ) {
-        __visibleStart = null;
+        this.__visibleStart = null;
         try {
-            __visibleStart = DateTime.parse(propVal);
+            this.__visibleStart = DateTime.parse(propVal);
         }
         catch ( Exception e ) {
-            __visibleStart = null;
+            this.__visibleStart = null;
         }
-        Message.printStatus(2, routine, "Setting VisibleStart=" + __visibleStart );
+        Message.printStatus(2, routine, "Setting VisibleStart=" + this.__visibleStart );
     }
     propVal = tsproduct.getLayeredPropValue("VisibleEnd", -1, -1);
     if ( propVal != null ) {
-        __visibleEnd = null;
+        this.__visibleEnd = null;
         try {
-            __visibleEnd = DateTime.parse(propVal);
+            this.__visibleEnd = DateTime.parse(propVal);
         }
         catch ( Exception e ) {
-            __visibleEnd = null;
+            this.__visibleEnd = null;
         }
-        Message.printStatus(2, routine, "Setting VisibleEnd=" + __visibleEnd );
+        Message.printStatus(2, routine, "Setting VisibleEnd=" + this.__visibleEnd );
     }
 
-	if ( _external_Image == null ) {
+	if ( this._external_Image == null ) {
 		// Don't want to reset if already reset when converted from a
 		// PropList - need to clean this up?
-		_external_Image = (BufferedImage)displayProps.getContents("Image");
-		if ( _external_Image != null ) {
-			Message.printDebug( 1, "", _gtype + "Using external Image for drawing." );
+		this._external_Image = (BufferedImage)displayProps.getContents("Image");
+		if ( this._external_Image != null ) {
+			Message.printDebug( 1, "", this._gtype + "Using external Image for drawing." );
 			// Disable reference time series (don't want labels in legend).
 			displayProps.set ( "ReferenceTSIndex=" + -1 );
 		}
@@ -1233,7 +1238,7 @@ default values for the resulting TSProduct.
 @param tslist List of time series for the product.
 */
 private TSProduct createTSProductFromPropList ( PropList proplist, List<TS> tslist )
-{	//String routine = "TSGraphJComponent.createTSProductFromPropList";
+{	String routine = "TSGraphJComponent.createTSProductFromPropList";
 
     try {
 
@@ -1242,6 +1247,7 @@ private TSProduct createTSProductFromPropList ( PropList proplist, List<TS> tsli
 	TSProduct tsproduct = new TSProduct ();
 	tsproduct.setTSList ( tslist );
 	if ( proplist == null ) {
+		Message.printStatus(2,routine,"Creating product from property list - no properties to process.");
 		return tsproduct;
 	}
 
@@ -1380,7 +1386,7 @@ private TSProduct createTSProductFromPropList ( PropList proplist, List<TS> tsli
 
 	int nts = 0;
 	if ( tslist != null ) {
-		nts = _tslist.size();
+		nts = this._tslist.size();
 	}
 	TS ts;
 	int how_set_prev2 = tsproduct.getPropList().getHowSet();
@@ -1430,33 +1436,33 @@ private TSProduct createTSProductFromPropList ( PropList proplist, List<TS> tsli
 	// MaximizeGraphSpace - default true
 	// Graph.EnableTracker - default true
 
-	_displayProps = new PropList ( "display" );
+	this._displayProps = new PropList ( "display" );
 
 	// Double buffering is seldom specified.  The default is true (set in the base class)...
-	_double_buffering = true;
+	this._double_buffering = true;
 	prop_val = proplist.getValue ( "DoubleBuffer" );
 	if ( (prop_val != null) && prop_val.equalsIgnoreCase("false") ) {
-		_double_buffering = false;
+		this._double_buffering = false;
 	}
 
 	// A reference graph is used for zooming and has few other features besides data...
 	prop_val = proplist.getValue ( "ReferenceGraph" );
 	if ( prop_val != null ) {
-		_displayProps.set ( "ReferenceGraph=" + prop_val );
+		this._displayProps.set ( "ReferenceGraph=" + prop_val );
 	}
 
 	prop_val = proplist.getValue ( "ReferenceTSIndex" );
 	if ( prop_val != null ) {
-		_displayProps.set ( "ReferenceTSIndex=" + prop_val );
+		this._displayProps.set ( "ReferenceTSIndex=" + prop_val );
 	}
 
 	// Image passed in when processing products in batch mode...
 
-	_external_Image = (BufferedImage)proplist.getContents("Image");
-	if ( _external_Image != null ) {
+	this._external_Image = (BufferedImage)proplist.getContents("Image");
+	if ( this._external_Image != null ) {
 		Message.printDebug( 1, "", _gtype + "Using external Image for drawing." );
 		// Disable reference time series (don't want labels in legend).
-		_displayProps.set ( "ReferenceTSIndex=" + -1 );
+		this._displayProps.set ( "ReferenceTSIndex=" + -1 );
 	}
 
 	tsproduct.getPropList().setHowSet ( how_set_prev );
@@ -1467,6 +1473,8 @@ private TSProduct createTSProductFromPropList ( PropList proplist, List<TS> tsli
 	}
 	catch ( Exception e ) {
 		// Should never happen.
+		Message.printWarning(3, routine, "Exception creating TSProduct from properties (" + e + ").");
+		Message.printWarning(3, routine, e);
 	}
 	return null;
 }

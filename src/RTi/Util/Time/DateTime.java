@@ -2723,46 +2723,72 @@ If more specific handling is needed, use the method version that accepts a forma
 @exception IllegalArgumentException If the string is not understood.
 @see #toString
 */
-public static DateTime parse ( String dateString )
+public static DateTime parse ( String dateTimeString )
 {	int	length = 0;
-	char c;	// Use to optimize code below
+	char c;	// Use to optimize code below.
 
-	// First check to make sure we have something...
-	if( dateString == null ) {
+	// First check to make sure that there is something to parse.
+	if( dateTimeString == null ) {
 		Message.printWarning( 3, "DateTime.parse", "Cannot get DateTime from null string." );
 		throw new IllegalArgumentException ( "Null DateTime string to parse" );
 	} 
-	length = dateString.length();
+	length = dateTimeString.length();
 	if( length == 0 ) {
 		Message.printWarning( 3, "DateTime.parse", "Cannot get DateTime from zero-length string." );
 		throw new IllegalArgumentException ( "Empty DateTime string to parse" );
 	}
 	
-	// Try to determine if there is a time zone based on whether there is a space and then character at the end,
-	// for example:  2000-01-01 00 GMT-8.0
-	// This will work except if the string had AM, PM, etc., but that has never been handled anyhow
-	// This also assumes that standard time zones are used, which will start with a character string (not number)
-	// and don't themselves include spaces.
-	// TODO SAM 2016-05-02 need to handle date/time format strings - maybe deal with in Java 8
-	int lastSpacePos = dateString.lastIndexOf(' ');
-	int lengthNoTimeZone = length;
-	String dateStringNoTimeZone = dateString; // Assume no time zone and reset below if time zone is found
+	// Determine if a timezone is included in the string.  The following forms are handled below:
+	//   2010-07-01T03:16:11-06:00   - ISO 8601 format, see: https://en.wikipedia.org/wiki/ISO_8601 
+	//   2000-01-01 00 GMT-8.0       - used in TSTool build-in formats
 	String timeZone = null;
-	if ( lastSpacePos > 0 ) {
-		timeZone = dateString.substring(lastSpacePos).trim();
-		if ( timeZone.length() == 0 ) {
-			// Don't actually have anything at the end of the string
-			timeZone = null;
+	String dateStringNoTimeZone = dateTimeString; // Assume no time zone and reset below if time zone is found.
+	int lengthNoTimeZone = length;
+
+	// Check for the ISO 8601 form of date/time string:
+	// - must have "T" in the string
+	// - for example:
+	//      2021-08-01T21:10:31+00:00
+	//      2021-08-01T21:10:31Z
+	//      20210801T211031Z
+	if ( dateTimeString.indexOf('T') > 0 ) {
+		// If the string ends in Z it is UTC time.
+		if ( dateTimeString.charAt((dateTimeString.length() - 1)) == 'Z' ) {
+			timeZone = "Z";
+			dateStringNoTimeZone = dateTimeString.substring(0, (dateTimeString.length() - 1));
 		}
 		else {
-			if ( !Character.isLetter(timeZone.charAt(0)) ) {
-				// Assume that end is not a time zone (could just be the time specified after a space)
+			// Let the remaining parse code get out as much information as possible.
+			// - use the full string as previously initialized
+			// - TODO smalers 2021-08-01 does the 'timeZone' need to be set here?
+		}
+	}
+	else {
+		// Check for the second form of date/time string.
+		// Try to determine if there is a time zone based on whether there is a space and then character at the end,
+		// for example:  2000-01-01 00 GMT-8.0
+		// This will work except if the string had AM, PM, etc., but that has never been handled anyhow
+		// This also assumes that standard time zones are used, which will start with a character string (not number)
+		// and don't themselves include spaces.
+		// TODO SAM 2016-05-02 need to handle date/time format strings - maybe deal with in Java 8
+		int lastSpacePos = dateTimeString.lastIndexOf(' ');
+		
+		if ( lastSpacePos > 0 ) {
+			timeZone = dateTimeString.substring(lastSpacePos).trim();
+			if ( timeZone.length() == 0 ) {
+				// Don't actually have anything at the end of the string
 				timeZone = null;
 			}
-			if ( timeZone != null ) {
-				// Actually had the time zone so save some data to help with parsing
-				dateStringNoTimeZone = dateString.substring(0,lastSpacePos).trim();
-				lengthNoTimeZone = dateStringNoTimeZone.length();
+			else {
+				if ( !Character.isLetter(timeZone.charAt(0)) ) {
+					// Assume that end is not a time zone (could just be the time specified after a space)
+					timeZone = null;
+				}
+				if ( timeZone != null ) {
+					// Actually had the time zone so save some data to help with parsing
+					dateStringNoTimeZone = dateTimeString.substring(0,lastSpacePos).trim();
+					lengthNoTimeZone = dateStringNoTimeZone.length();
+				}
 			}
 		}
 	}
@@ -2792,8 +2818,8 @@ public static DateTime parse ( String dateString )
 			dateTime = parse( dateStringNoTimeZone, FORMAT_MM_SLASH_DD, 0 );
 		}
 		else {
-            Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from \"" + dateString + "\"" );
-			throw new IllegalArgumentException ( "Invalid DateTime string \"" + dateString + "\"" );
+            Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from \"" + dateTimeString + "\"" );
+			throw new IllegalArgumentException ( "Invalid DateTime string \"" + dateTimeString + "\"" );
 		}
 	}
 	else if( lengthNoTimeZone == 6 ){
@@ -2803,8 +2829,8 @@ public static DateTime parse ( String dateString )
 		if ( dateStringNoTimeZone.charAt(1) == '/') {
 			dateTime = parse(" "+ dateStringNoTimeZone, FORMAT_MM_SLASH_YYYY,0);
 		}
-		else {	Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from \"" + dateString + "\"" );
-			throw new IllegalArgumentException ( "Invalid DateTime string \"" + dateString + "\"" );
+		else {	Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from \"" + dateTimeString + "\"" );
+			throw new IllegalArgumentException ( "Invalid DateTime string \"" + dateTimeString + "\"" );
 		}
 	}
 	else if( lengthNoTimeZone == 7 ){
@@ -2836,8 +2862,8 @@ public static DateTime parse ( String dateString )
 			dateTime = parse(dateStringNoTimeZone, FORMAT_YYYYMMDD, 0 );
 		}
 		else {
-            Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from \"" + dateString + "\"" );
-			throw new IllegalArgumentException ( "Invalid DateTime string \"" + dateString + "\"" );
+            Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from \"" + dateTimeString + "\"" );
+			throw new IllegalArgumentException ( "Invalid DateTime string \"" + dateTimeString + "\"" );
 		}
 	}
 	else if ( lengthNoTimeZone == 9 ) {
@@ -2854,8 +2880,8 @@ public static DateTime parse ( String dateString )
 			dateTime = parse(dateStringNoTimeZone, FORMAT_MM_SLASH_DD_SLASH_YYYY, -9 );
 		}
 		else {
-            Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from \"" + dateString + "\"" );
-			throw new IllegalArgumentException ( "Invalid DateTime string \"" + dateString + "\"" );
+            Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from \"" + dateTimeString + "\"" );
+			throw new IllegalArgumentException ( "Invalid DateTime string \"" + dateTimeString + "\"" );
 		}
 	}
 	else if( lengthNoTimeZone == 10 ){
@@ -2869,9 +2895,7 @@ public static DateTime parse ( String dateString )
 			dateTime = parse( dateStringNoTimeZone, FORMAT_YYYY_MM_DD, 0 );
 		}
 	}
-        //
-        // Length 11 would presumably by YYYYMMDDHmm, but this is not currently allowed.
-        //
+    // Length 11 might be YYYYMMDDHmm, but this is not currently allowed.
 	else if( lengthNoTimeZone == 12 ){
 		//
 		// the date is YYYYMMDDHHmm
@@ -2952,20 +2976,20 @@ public static DateTime parse ( String dateString )
         //
         dateTime = parse( dateStringNoTimeZone, FORMAT_YYYY_MM_DD_HH_mm_SS_hh_ZZZ, 0 );
     }
-    else if ( (lengthNoTimeZone > 10) && (dateString.charAt(11) == 'T') ) {
+    else if ( (lengthNoTimeZone > 10) && (dateTimeString.charAt(10) == 'T') ) {
     	// Assume ISO 8601 if string contains time and a T (ISO 8601 date-only should have been handled above)
     	// - this is a bit tricky given T could be in time zone
     	dateTime = parse( dateStringNoTimeZone, FORMAT_ISO_8601, 0 );
     }
 	else {
 	    // Unknown format so throw an exception...
-		throw new IllegalArgumentException ( "Date/time string \"" + dateString +
+		throw new IllegalArgumentException ( "Date/time string \"" + dateTimeString +
 			"\" format is not auto-recognized - may need to specify format." );
 	}
 	
 	if ( dateTime == null ) {
 		// Fall through... was not parsed
-		throw new IllegalArgumentException ( "Date/time string \"" + dateString +
+		throw new IllegalArgumentException ( "Date/time string \"" + dateTimeString +
 			"\" format is not auto-recognized - may need to specify format." );
 	}
 	if ( timeZone == null ) {

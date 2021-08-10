@@ -3170,12 +3170,12 @@ Count the number of unique (non-overlapping) instances of a pattern in a string.
 @param pattern Pattern to search for.  Currently this can only be a one-character string.
 @return The count of the unique instances.
 */
-public static int patternCount ( String s, String pattern )
-{	int count = 0;
+public static int patternCount ( String s, String pattern ) {
+	int count = 0;
 	if ( (s == null) || (pattern == null) || (pattern.length() < 1) ) {
 		return count;
 	}
-	if ( (pattern.length() == 1) && (pattern.charAt(0) != '*') ) {
+	if ( pattern.length() == 1 ) {
 		// Single character.
 		int size = s.length ();
 		char c = pattern.charAt(0);
@@ -3184,18 +3184,18 @@ public static int patternCount ( String s, String pattern )
 				++count;
 			}
 		}
+		return count;
 	}
 	else {
 		// TODO smalers 2021-07-24 need to implement.
 		throw new RuntimeException("Only single character patterns are currently supported.");
 	}
-	return count;
 }
 
 /**
 Return "s" if the count is > 1 or an empty string if 1.  This is used to form strings that may or may not refer
 to a plural.
-@param count the number of objects being evaluted to determine if plural.
+@param count the number of objects being evaluated to determine if plural.
 @return "s" if count is > 1, and "" otherwise.
 */
 public static String pluralS ( int count )

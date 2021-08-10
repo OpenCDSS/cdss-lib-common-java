@@ -590,9 +590,9 @@ Initialize data and open the GUI.
 defined in the TSViewJFrame constructor documentation.
 */
 private void initialize (TSViewJFrame tsview_gui,List<TS> tslist, PropList props )
-{	__tsview_JFrame = tsview_gui;
-	__tslist = tslist;
-	__props = props;
+{	this.__tsview_JFrame = tsview_gui;
+	this.__tslist = tslist;
+	this.__props = props;
 	// Used to set the menu bar...
 
 	//if ( includeFullCode ) {
@@ -600,16 +600,16 @@ private void initialize (TSViewJFrame tsview_gui,List<TS> tslist, PropList props
 	JGUIUtil.setIcon(this, JGUIUtil.getIconImage());
 	
 	// TODO SAM 2011-11-29 Need to figure out how to let TSProduct file properties set the window title
-	if (__tsproduct == null) {
+	if (this.__tsproduct == null) {
 		prop_value = __props.getValue("TSViewTitleString");
-        if (__tsproduct == null) {
+        if (this.__tsproduct == null) {
             prop_value = __props.getValue("Product.TSViewTitleString");
         }
 	}
 	else {
-		prop_value = __tsproduct.getPropValue("TSViewTitleString");
-		if (__tsproduct == null) {
-		    prop_value = __tsproduct.getPropValue("Product.TSViewTitleString");
+		prop_value = this.__tsproduct.getPropValue("TSViewTitleString");
+		if (this.__tsproduct == null) {
+		    prop_value = this.__tsproduct.getPropValue("Product.TSViewTitleString");
 		}
 	}
 
