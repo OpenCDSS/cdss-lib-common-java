@@ -1479,6 +1479,7 @@ Return null if the value is null.
 public String formatArrayColumn ( int row, int col ) throws Exception {
 	// Get the internal data type
 	int columnType = getFieldDataTypes()[col];
+	// The data within the array is determined from an offset of the TableField.DATA_TYPE_ARRAY type.
 	int dataType = columnType - TableField.DATA_TYPE_ARRAY_BASE;
 	Object oa = getFieldValue(row,col);
 	if ( oa == null ) {
@@ -1580,6 +1581,24 @@ public String formatArrayColumn ( int row, int col ) throws Exception {
 					}
 				}
 			}
+			/* TODO smalers 2021-08-02 lists have too much overhead and harder to check.  Stick to array for now.
+			else if ( (oa instanceof List<?>) ) {
+				// Handle List<Integer>:
+				// - TODO smalers 2021-08-02 make sure the list contains Integer and handle nulls
+				List<?> Ia = (List)oa;
+				ia = new int[Ia.size()];
+				Integer I;
+				for ( int i = 0; i < ia.length; i++ ) {
+					I = (Integer)Ia.get(i);
+					if ( (I == null) && DMIUtil.isMissing(I) ) {
+						ia[i] = DMIUtil.MISSING_INT;
+					}
+					else {
+						ia[i] = (Integer)Ia.get(i);
+					}
+				}
+			}
+			*/
 			else {
 				throw new RuntimeException ( "Don't know how to handle integer array - is not int[] or Integer[]" );
 			}

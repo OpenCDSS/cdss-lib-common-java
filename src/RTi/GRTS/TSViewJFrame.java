@@ -438,7 +438,7 @@ public TSViewJFrame ( TSProduct tsproduct )
 throws Exception
 {	super ( "Time Series View" );
 	// Must set this before calling initialize()...
-	_tsproduct = tsproduct;
+	this._tsproduct = tsproduct;
 	// Later phase out _tslist
 	// Actually, set a property to make sure the centering works
 	PropList props = new PropList("TSViewJFrame");
@@ -683,25 +683,25 @@ throws Exception
     		throw new Exception ( "No time series to view." );
     	}
     	*/
-    	_tslist = tslist;
+    	this._tslist = tslist;
     	if ( proplist == null ) {
     		// That is ok, create a new one...
-    		_props = new PropList ( "TSView.Defaults" );
+    		this._props = new PropList ( "TSView.Defaults" );
     	}
     	else {
     	    // Use what was supplied...
-    		_props = proplist;
+    		this._props = proplist;
     	}
     
     	// Check the proplist for the initial view...
     
     	String prop_value = null;
-    	if ( _tsproduct == null ) {
-    		prop_value = _props.getValue ( "InitialView" );
+    	if ( this._tsproduct == null ) {
+    		prop_value = this._props.getValue ( "InitialView" );
     		//Message.printStatus ( 1, "","InitialView from PropList is \""+ prop_value + "\"" );
     	}
     	else {
-    	    prop_value = _tsproduct.getPropValue ( "InitialView" );
+    	    prop_value = this._tsproduct.getPropValue ( "InitialView" );
     		//Message.printStatus ( 1,"","InitialView from TSProduct is \""+prop_value + "\"" );
     	}
     	if ( prop_value == null ) {
@@ -726,8 +726,8 @@ throws Exception
 		throw new Exception ( message );
 	}
 	
-	if (__tsProductDMIs == null) {
-		__tsProductDMIs = new Vector<TSProductDMI>();
+	if ( this.__tsProductDMIs == null ) {
+		this.__tsProductDMIs = new Vector<TSProductDMI>();
 	}
 	if (__tsProductAnnotationProviders == null) {
 		__tsProductAnnotationProviders = new Vector<TSProductAnnotationProvider>();
@@ -795,7 +795,7 @@ protected void openGUI ( TSViewType type )
     
     			if ( _tsproduct == null ) {
     				// Old-style...
-    				_graph_gui = new TSViewGraphJFrame ( this, _tslist, _props );
+    				_graph_gui = new TSViewGraphJFrame ( this, this._tslist, this._props );
     			}
     			else {
     				// New-style...

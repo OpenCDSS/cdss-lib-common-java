@@ -31,9 +31,7 @@ import RTi.Util.IO.CommandStatusProvider;
 import RTi.Util.IO.CommandStatusType;
 
 /**
- * Provides convenience methods for working with Command Status.
- * 
- * @author dre
+ * Provides convenience methods for working with CommandStatus.
  */
 public class CommandStatusProviderUtil
 {
@@ -52,8 +50,9 @@ public class CommandStatusProviderUtil
         String toolTip = CommandStatusProviderUtil.getCommandLogHTML(csp);
         return toolTip;
       }
-    else
+    else {
       return null;
+    }
   }
 
   /**
@@ -66,7 +65,6 @@ public class CommandStatusProviderUtil
   {
     return HTMLUtil.text2html(getCommandLogText(csp),true);
   }
-
 
   /**
    * Returns the command log records ready for display as text
@@ -173,4 +171,3 @@ public class CommandStatusProviderUtil
     return status;
   } // eof getHighestSeverity()
 }
-

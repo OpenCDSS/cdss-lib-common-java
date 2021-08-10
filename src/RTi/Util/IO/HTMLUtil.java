@@ -27,6 +27,10 @@ package RTi.Util.IO;
 
 import java.util.Arrays;
 
+import RTi.Util.Message.Message;
+
+//import RTi.Util.Message.Message;
+
 /*
  * HtmlUtil.java
  *
@@ -42,19 +46,25 @@ import java.util.Arrays;
  * @author        Yves Henri AMAIZO
  */
 public class HTMLUtil {
+
     /**
      * Method text2html: Convert a text to an HTML format.
+     * Special characters may be encoded with &xxxx; literal.
+     * Characters that do not require encoding, such as space, are passed through.
+     * If necessary, search and replace after this encoding is processed.
      *
-     * @param text:     The original text string
-     * @param includeWrapper if true, include &lt;html&gt; wrapper tags around the HTML.  If false, convert the string
-     * encoding to HTML to deal with special characters, but do not wrap the string with the tags.
-     * @return          The converted HTML text including symbolic codes string
+     * @param text The original text string
+     * @param includeWrapper if true, include &lt;html&gt; wrapper tags around the HTML.
+     * If false, convert the string encoding to HTML to deal with special characters, but do not wrap the string with the tags.
+     * @return The converted HTML text including symbolic codes string
      */
     public static String text2html(String text, boolean includeWrapper) {
-        if (text == null)
+    	boolean debug = false; // Set to true to troubleshoot.
+        if (text == null) {
             return text;
+        }
         
-        StringBuffer t = new StringBuffer(text.length() + 10); // 10 is just a test value, could be anything, should affect performance
+        StringBuilder t = new StringBuilder(text.length());
  
         if ( includeWrapper ) {
             t.append("<html>");
@@ -62,22 +72,34 @@ public class HTMLUtil {
         
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
-            // Check for non ISO8859-1 characters
+            // Check for non ISO8859-1 characters.
             int pos = (int)c;
-            //Message.printStatus(2, "", "Position for " + c + " is " + pos );
+            if ( debug ) {
+            	if ( c == '\n' ) {
+            		Message.printStatus(2, "", "Detected NL" );
+            	}
+            	else if ( c == '\r' ) {
+            		Message.printStatus(2, "", "Detected CR" );
+            	}
+            	Message.printStatus(2, "", "Lookup table position for '" + c + "' is " + pos );
+            }
             if ( pos < symbolicCode.length ) {
-                // Character is within the lookup table
+                // Character is within the lookup table.
                 String sc = symbolicCode[pos];
-                //Message.printStatus(2, "", "Translated character is " + sc );
+                if ( debug ) {
+                	 Message.printStatus(2, "", "Translated character '" + c + "' is '" + sc + "'" );
+                }
                 if ("".equals(sc)) {
-                    // Character does not need to be converted so just append
+                    // Character does not need to be converted so just append the original character.
                     t = t.append(c);
-                } else {
-                    // Character was converted to encoded representation
+                }
+                else {
+                    // Character was converted to encoded representation.
                     t = t.append(sc);
                 }
-            } else {
-                // Not in the lookup table so just append
+            }
+            else {
+                // Not in the lookup table so just append.
                 t = t.append(c);
             }
         }
@@ -94,31 +116,34 @@ public class HTMLUtil {
      * @return          The converted text without symbolic codes string
      */
     public static String html2text(String text) {
-        if (text == null)
+        if (text == null) {
             return text;
-        StringBuffer t = new StringBuffer(text.length());
+        }
+        StringBuilder t = new StringBuilder(text.length());
         for (int i = 0; i < text.length(); i++) {
             char c = text.charAt(i);
             if (c == '&') {
                 String code = String.valueOf(c);
                 do {
-                    if (++i >= text.length())
+                    if (++i >= text.length()) {
                         break;
+                    }
                     if (text.charAt(i) == '&') {
                         i--;
                         break;
                     }
                     code += text.charAt(i);
                 } while (text.charAt(i) != ';');
-                int index = Arrays.binarySearch(sortedSymbolicCode,
-                        new NumericSymbolicCode(code, 0));
+                int index = Arrays.binarySearch(sortedSymbolicCode, new NumericSymbolicCode(code, 0));
                 // Does the extracting code correspond to something ?
                 if (index >= 0) {
                     t = t.append((char) sortedSymbolicCode[index].getNumericCode());
-                } else {
+                }
+                else {
                     t = t.append(code);
                 }
-            } else {
+            }
+            else {
                 t = t.append(c);
             }
         }
@@ -132,47 +157,51 @@ public class HTMLUtil {
      * that character or this symbolic code is not used.
      */
     private static final String[] symbolicCode = {
-        // 0
+        // 0+
         "", "", "", "", "", "", "", "", "", "",
-        // 10
+        // 10+
+        // 10 - Linux newline
+        // 13 - carriage return - only convert the newline (10) character
         "<br>", "", "", "", "", "", "", "", "", "",
-        // 20
+        // 20+
         "", "", "", "", "",
         "&#25;", // yen sign
         "", "", "", "",
-        // 30
+        // 30+
         "", "", "", "",
         "&quot;", // quotation mark
         "", "", "", "&amp;", "",
-        // 40
+        // 40+
         "", "", "", "", "", "", "", "", "", "",
-        // 50
+        // 50+
         "", "", "", "", "", "", "", "", "", "",
-        // 60
+        // 60+
         "&lt;", "", "&gt;", "",
         "&#64;", // commercial at
         "", "", "", "", "",
-        // 70
+        // 70+
         "", "", "", "", "", "", "", "", "", "",
-        // 80
+        // 80+
         "", "", "", "", "", "", "", "", "", "",
-        // 90
+        // 90+
         "", "", "", "", "", "",
         "&#96;", // grave accent
         "", "", "",
-        // 100
+        // 100+
         "", "", "", "", "", "", "", "", "", "",
-        // 110-130
+        // 110+
         "", "", "", "", "", "", "", "", "", "",
+        // 120+
         "", "", "", "", "", "", "", "", "&#128;", "",
+        // 130+
         "", "", "", "", "", "", "", "", "", "",
-        // 140
+        // 140+
         "", "", "", "", "", "&#145;",
         "&#146;", // other apostrophe
         "&#147;", "&#148;", "",
-        // 150
+        // 150+
         "", "", "", "", "", "", "", "", "", "",
-        // 160
+        // 160+
         "&nbsp;", // non breaking space (should be &nbsp;)
         "&iexcl;", // inverted exclamation sign
         "&cent;", // cent sign
@@ -183,7 +212,7 @@ public class HTMLUtil {
         "&sect;", // section sign (legal)
         "&uml;", // umlaut (dieresis)
         "&copy;", // copyright
-        // 170
+        // 170+
         "&ordf;", // feminine ordinal
         "&laquo;", // guillemot left
         "&not;", // not sign
@@ -194,7 +223,7 @@ public class HTMLUtil {
         "&plusmn;", // plus or minus
         "&sup2;", // raised to square(superscript two)
         "&sup3;", // superscript three
-        // 180
+        // 180+
         "&acute;", // acute accent
         "&micro;", // micron sign
         "&para", // paragraph sign, Pi
@@ -205,8 +234,8 @@ public class HTMLUtil {
         "&raquo;", // guillemot right
         "&frac14;", // one-forth fraction
         "&frac12;", // half fraction
-        // 190
-        "&frac34;", // three-forths fraction
+        // 190+
+        "&frac34;", // three-fourth fraction
         "&iquest;", // inverted question mark
         "&Agrave;", // A with grave accent
         "&Aacute;", // A with acute accent
@@ -216,7 +245,7 @@ public class HTMLUtil {
         "&Aring;", // A with umlaut mark
         "&AElig;", // AE dipthong (ligature)
         "&Ccedil;", // C with cedilla mark
-        // 200
+        // 200+
         "&Egrave;", // E with grave accent
         "&Eacute;", // E with acute accent
         "&Ecirc;", // E with circumflex accent
@@ -227,7 +256,7 @@ public class HTMLUtil {
         "&Iuml;", // I with umlaut mark
         "&ETH;", // Icelandic Capital Eth
         "&Ntilde;", // N with tilde accent
-        // 210
+        // 210+
         "&Ograve;", // O with grave accent
         "&Oacute;", // O with acute accent
         "&Ocirc;", // O with circumflex accent
@@ -238,7 +267,7 @@ public class HTMLUtil {
         "&Ugrave;", // U with grave accent
         "&Uacute;", // U with acute accent
         "&Ucirc;", // U with circumflex accent
-        // 220
+        // 220+
         "&Uuml;", // U with umlaut mark
         "&Yacute;", // Y with acute accent
         "&THORN;", // Icelandic Capital Thorn
@@ -249,7 +278,7 @@ public class HTMLUtil {
         "&atilde;", // a with tilde accent
         "&auml;", // a with angstrom
         "&aring;", // a with umlaut mark
-        // 230
+        // 230+
         "&aelig;", // ae dipthong (ligature)
         "&ccedil;", // c with cedilla mark
         "&egrave;", // e with grave accent
@@ -260,7 +289,7 @@ public class HTMLUtil {
         "&iacute;", // i with acute accent
         "&icirc;", // i with circumflex accent
         "&iuml;", // i with umlaut mark
-        // 240
+        // 240+
         "&eth;", // Icelandic small eth
         "&ntilde;", // n with tilde accent
         "&ograve", // o with grave accent
@@ -271,7 +300,7 @@ public class HTMLUtil {
         "&divide;", // divide sign
         "&oslash;", // o slash
         "&ugrave;", // u with grave accent
-        // 250
+        // 250+
         "&uacute;", // u with acute accent
         "&ucirc;", // u with circumflex accent
         "&uuml;", // u with umlaut mark
