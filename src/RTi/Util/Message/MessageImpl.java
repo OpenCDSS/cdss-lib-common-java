@@ -265,6 +265,16 @@ protected int getStatusLevel ( int i )
 }
 
 /**
+Return the top-level frame for the application that uses messages.
+@return the top-level frame for the application that uses messages,
+can be null if no UI.
+*/
+protected JFrame getTopLevel ()
+{
+	return this._top_level;
+}
+
+/**
 Return the warning level for an output stream.
 @return The warning level for an output stream number (specified by a *_OUTPUT value).
 @param i The output stream number.

@@ -338,6 +338,17 @@ public static int getStatusLevel ( int i )
 }
 
 /**
+Get the top-level frame for the application that uses messages.
+This can be used by code that needs to display a dialog and otherwise does not have
+knowledge of the main application JFrame.
+@param f Top-level JFrame for application.
+*/
+public static JFrame getTopLevel ()
+{	
+    return impl.getTopLevel();
+}
+
+/**
 Return the warning level for an output stream.
 @return The warning level for an output stream number (specified by a *_OUTPUT value).
 @param i The output stream number.
@@ -716,8 +727,8 @@ public static void setSuffix ( String suffix )
 }
 
 /**
-Set the top-level frame for the application that uses messages.  This allows
-the modal warning dialog to be created.
+Set the top-level frame for the application that uses messages.
+This allows the modal warning dialog to be created on top of the main window.
 @param f Top-level JFrame for application.
 */
 public static void setTopLevel ( JFrame f )
