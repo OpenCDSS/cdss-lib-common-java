@@ -94,7 +94,7 @@ public class HTMLStatusAssembler
     problem = HTMLUtil.text2html(problem, false);
     // Replace two spaces with &emsp; to ensure spacing, such as JSON formatting.
     // - otherwise HTML browser tends to compress
-    problem = problem.replace("  ", "&emsp");
+    problem = problem.replace("  ", "&emsp;");
     buf.append("<tr><td valign=top>" + count + "</td><td valign=top>" + phase + bgcolor + severity
         +"</td><td valign=top>" + problem + "</td>"
         +"<td valign=top>" + HTMLUtil.text2html(recommendation,false) + "</td></tr>"

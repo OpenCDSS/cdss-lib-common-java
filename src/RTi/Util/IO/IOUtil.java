@@ -370,6 +370,25 @@ public static void copyToClipboard(String string) {
 }
 
 /**
+ * Delete a directory.
+ * From:  https://www.baeldung.com/java-delete-directory
+ * @param directory directory to be deleted
+ * @return true if delete was successful, false if not
+ */
+public static boolean deleteDirectory ( File directory ) {
+	if ( directory.exists() ) {
+	    File[] allContents = directory.listFiles();
+	    if (allContents != null) {
+	        for (File file : allContents) {
+	            deleteDirectory(file);
+	        }
+	    }
+	    return directory.delete();
+	}
+	return false;
+}
+
+/**
 Enforce a file extension using a list of accepted extensions.
 For example, if a file chooser is used but the file
 extension is not added by the chooser.  For example, if the file name is
