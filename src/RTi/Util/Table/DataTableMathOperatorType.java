@@ -40,6 +40,15 @@ ADD("+"),
  */
 ASSIGN("="),
 /**
+ * Cumulate current and previous row value.
+ */
+CUMULATE ( "Cumulate" ),
+/**
+ * Delta between current and previous row value
+ * (positive means current row value is larger).
+ */
+DELTA ( "Delta" ),
+/**
  * Divide values.
  */
 DIVIDE ( "/" ),
