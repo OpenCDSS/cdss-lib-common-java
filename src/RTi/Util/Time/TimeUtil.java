@@ -2223,17 +2223,22 @@ public static boolean isDateTime ( String date_string, int format )
 }
 
 /**
-Return true if the string is a date, false otherwise.  The format is determined
-from the string.  The DateTime class is used to parse the date and therefore
+Return true if the string is a date, false otherwise.
+The format is determined from the string.
+The DateTime class is used to parse the date and therefore
 only date/time formats recognized by DateTime are recognized.
+Because this results in a full parse, it is useful when checking data before parsing.
+Raw data processing should just parse once.
 @param date_string Date string to parse.
 @return true if the string is a date (can be parsed).
 */
 public static boolean isDateTime ( String date_string )
 {	try {
+		// Try parsing the string.  An exception will be thrown if invalid.
 	    DateTime.parse ( date_string );
 		return true;
 	} catch ( Exception e ) { 
+		// Could not parse so not a recognized DateTime string.
 		return false;
 	}
 }

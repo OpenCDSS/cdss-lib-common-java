@@ -2499,14 +2499,14 @@ public static DateTime parse ( String date_string, PropList datetime_props )
 {
 	if (date_string == null) {
 		Message.printWarning(3, "DateTime.parse", "Cannot get DateTime from null string.");
-		throw new IllegalArgumentException("Null DateTime string to parse");
+		throw new IllegalArgumentException("Null DateTime string to parse.");
 	} 
 
 	String str = date_string.trim();
 
 	if (str.length() == 0) {
 		Message.printWarning(3, "DateTime.parse", "Cannot get DateTime from empty string.");
-		throw new IllegalArgumentException("Empty DateTime string to parse");
+		throw new IllegalArgumentException("Empty DateTime string to parse.");
 	}		
 
 	if (Character.isDigit(date_string.charAt(0))) {
@@ -2729,30 +2729,35 @@ public static DateTime parse ( String dateTimeString )
 
 	// First check to make sure that there is something to parse.
 	if( dateTimeString == null ) {
-		Message.printWarning( 3, "DateTime.parse", "Cannot get DateTime from null string." );
-		throw new IllegalArgumentException ( "Null DateTime string to parse" );
+		if ( Message.isDebugOn ) {
+			// May be called by TimeUtil.isDateTime() so don't fill up the log file.
+			Message.printWarning( 3, "DateTime.parse", "Cannot get DateTime from null string." );
+		}
+		throw new IllegalArgumentException ( "Null DateTime string to parse." );
 	} 
+	// Length with time zone (if it is provided).
 	length = dateTimeString.length();
 	if( length == 0 ) {
-		Message.printWarning( 3, "DateTime.parse", "Cannot get DateTime from zero-length string." );
-		throw new IllegalArgumentException ( "Empty DateTime string to parse" );
+		if ( Message.isDebugOn ) {
+			// May be called by TimeUtil.isDateTime() so don't fill up the log file.
+			Message.printWarning( 3, "DateTime.parse", "Cannot get DateTime from zero-length string." );
+		}
+		throw new IllegalArgumentException ( "Empty DateTime string to parse." );
 	}
 	
 	// Determine if a timezone is included in the string.  The following forms are handled below:
 	//   2010-07-01T03:16:11-06:00   - ISO 8601 format, see: https://en.wikipedia.org/wiki/ISO_8601 
 	//   2000-01-01 00 GMT-8.0       - used in TSTool build-in formats
 	String timeZone = null;
-	String dateStringNoTimeZone = dateTimeString; // Assume no time zone and reset below if time zone is found.
-	int lengthNoTimeZone = length;
+	//String dateStringNoTimeZone = dateTimeString; // Assume no time zone and reset below if time zone is found.
+	//int lengthNoTimeZone = length;
 
 	// Check for the ISO 8601 form of date/time string:
 	// - must have "T" in the string
-	// - for example:
-	//      2021-08-01T21:10:31+00:00
-	//      2021-08-01T21:10:31Z
-	//      20210801T211031Z
-	if ( dateTimeString.indexOf('T') > 0 ) {
-		// If the string ends in Z it is UTC time.
+	// - no spaces in the string
+	if ( (dateTimeString.indexOf('T') > 0) && (dateTimeString.indexOf(' ') < 0) ) {
+		/*
+		// If the string ends in Z and preceding character is a digit it is UTC time.
 		if ( dateTimeString.charAt((dateTimeString.length() - 1)) == 'Z' ) {
 			timeZone = "Z";
 			dateStringNoTimeZone = dateTimeString.substring(0, (dateTimeString.length() - 1));
@@ -2762,11 +2767,18 @@ public static DateTime parse ( String dateTimeString )
 			// - use the full string as previously initialized
 			// - TODO smalers 2021-08-01 does the 'timeZone' need to be set here?
 		}
+		*/
+		// Use the specific parser.
+		int format = FORMAT_ISO_8601;
+		return parse(dateTimeString, format);
 	}
+	// Else parse using code that has worked for a long time below.
+	/*
 	else {
 		// Check for the second form of date/time string.
 		// Try to determine if there is a time zone based on whether there is a space and then character at the end,
-		// for example:  2000-01-01 00 GMT-8.0
+		// for example:
+		//   2000-01-01 00 GMT-8.0
 		// This will work except if the string had AM, PM, etc., but that has never been handled anyhow
 		// This also assumes that standard time zones are used, which will start with a character string (not number)
 		// and don't themselves include spaces.
@@ -2792,194 +2804,192 @@ public static DateTime parse ( String dateTimeString )
 			}
 		}
 	}
+	*/
 
 	// This if-elseif structure is used to determine the format of the date represented by date_string.
 	// All of these parse the string without time zone.  If time zone was detected, it is added at the end.
 	// TODO SAM 2016-05-02 need to remove some cases now previously checked for time zone now that
 	// time zone is checked above.  The legacy code assumed 3-digit time zone but now longer time zone is accepted.
 	DateTime dateTime = null;
-	if( lengthNoTimeZone == 4 ){
+	if( length == 4 ){
 		//
 		// the date is YYYY 
 		//
-		dateTime = parse( dateStringNoTimeZone, FORMAT_YYYY, 0 );
+		dateTime = parse( dateTimeString, FORMAT_YYYY, 0 );
 	}
-	else if( lengthNoTimeZone == 5 ){
+	else if( length == 5 ){
 		//
 		// the date is MM/DD or MM-DD or HH:mm
 		// Don't allow MM/YY!!!
 		//
-		c = dateStringNoTimeZone.charAt ( 2 );
+		c = dateTimeString.charAt ( 2 );
 		if ( c == ':' ) {
-			dateTime = parse( dateStringNoTimeZone, FORMAT_HH_mm, 0 );
+			dateTime = parse( dateTimeString, FORMAT_HH_mm, 0 );
 		}
 		else if ( (c == '/') || (c == '-') ) {
 			// The following will work for both...
-			dateTime = parse( dateStringNoTimeZone, FORMAT_MM_SLASH_DD, 0 );
+			dateTime = parse( dateTimeString, FORMAT_MM_SLASH_DD, 0 );
 		}
 		else {
             Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from \"" + dateTimeString + "\"" );
 			throw new IllegalArgumentException ( "Invalid DateTime string \"" + dateTimeString + "\"" );
 		}
 	}
-	else if( lengthNoTimeZone == 6 ){
+	else if( length == 6 ){
 		//
 		// the date is M/YYYY
 		//
-		if ( dateStringNoTimeZone.charAt(1) == '/') {
-			dateTime = parse(" "+ dateStringNoTimeZone, FORMAT_MM_SLASH_YYYY,0);
+		if ( dateTimeString.charAt(1) == '/') {
+			dateTime = parse(" "+ dateTimeString, FORMAT_MM_SLASH_YYYY,0);
 		}
 		else {	Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from \"" + dateTimeString + "\"" );
 			throw new IllegalArgumentException ( "Invalid DateTime string \"" + dateTimeString + "\"" );
 		}
 	}
-	else if( lengthNoTimeZone == 7 ){
+	else if( length == 7 ){
 		//
 		// the date is YYYY-MM or MM/YYYY
 		//
-		if( dateStringNoTimeZone.charAt(2) == '/' ) {
-			dateTime = parse( dateStringNoTimeZone, FORMAT_MM_SLASH_YYYY, 0 );
+		if( dateTimeString.charAt(2) == '/' ) {
+			dateTime = parse( dateTimeString, FORMAT_MM_SLASH_YYYY, 0 );
 		}
 		else {
-			dateTime = parse( dateStringNoTimeZone, FORMAT_YYYY_MM, 0 );
+			dateTime = parse( dateTimeString, FORMAT_YYYY_MM, 0 );
 		}
 	}
-	else if ( lengthNoTimeZone == 8 ) {
-		if ( (dateStringNoTimeZone.charAt(2) == '/') && (dateStringNoTimeZone.charAt(5) == '/') ) {
+	else if ( length == 8 ) {
+		if ( (dateTimeString.charAt(2) == '/') && (dateTimeString.charAt(5) == '/') ) {
 			//
 			// the date is MM/DD/YY
 			//
-			dateTime = parse(dateStringNoTimeZone, FORMAT_MM_SLASH_DD_SLASH_YY, 0 );
+			dateTime = parse(dateTimeString, FORMAT_MM_SLASH_DD_SLASH_YY, 0 );
 		}
-		else if((dateStringNoTimeZone.charAt(1) == '/') && (dateStringNoTimeZone.charAt(3) == '/') ) {
+		else if((dateTimeString.charAt(1) == '/') && (dateTimeString.charAt(3) == '/') ) {
 			//
 			// the date is M/D/YYYY
 			//
-			dateTime = parse(dateStringNoTimeZone, FORMAT_MM_SLASH_DD_SLASH_YYYY, 8 );
+			dateTime = parse(dateTimeString, FORMAT_MM_SLASH_DD_SLASH_YYYY, 8 );
 		}
-		else if (StringUtil.isInteger(dateStringNoTimeZone) ) {
+		else if (StringUtil.isInteger(dateTimeString) ) {
 			// Assume YYYYMMDD
-			dateTime = parse(dateStringNoTimeZone, FORMAT_YYYYMMDD, 0 );
+			dateTime = parse(dateTimeString, FORMAT_YYYYMMDD, 0 );
 		}
 		else {
             Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from \"" + dateTimeString + "\"" );
 			throw new IllegalArgumentException ( "Invalid DateTime string \"" + dateTimeString + "\"" );
 		}
 	}
-	else if ( lengthNoTimeZone == 9 ) {
-		if ( (dateStringNoTimeZone.charAt(2) == '/') && (dateStringNoTimeZone.charAt(4) == '/') ) {
+	else if ( length == 9 ) {
+		if ( (dateTimeString.charAt(2) == '/') && (dateTimeString.charAt(4) == '/') ) {
 			//
 			// the date is MM/D/YYYY
 			//
-			dateTime = parse(dateStringNoTimeZone, FORMAT_MM_SLASH_DD_SLASH_YYYY, 9 );
+			dateTime = parse(dateTimeString, FORMAT_MM_SLASH_DD_SLASH_YYYY, 9 );
 		}
-		else if((dateStringNoTimeZone.charAt(1) == '/') && (dateStringNoTimeZone.charAt(4) == '/') ) {
+		else if((dateTimeString.charAt(1) == '/') && (dateTimeString.charAt(4) == '/') ) {
 			//
 			// the date is M/DD/YYYY
 			//
-			dateTime = parse(dateStringNoTimeZone, FORMAT_MM_SLASH_DD_SLASH_YYYY, -9 );
+			dateTime = parse(dateTimeString, FORMAT_MM_SLASH_DD_SLASH_YYYY, -9 );
 		}
 		else {
             Message.printWarning( 2, "DateTime.parse", "Cannot get DateTime from \"" + dateTimeString + "\"" );
 			throw new IllegalArgumentException ( "Invalid DateTime string \"" + dateTimeString + "\"" );
 		}
 	}
-	else if( lengthNoTimeZone == 10 ){
+	else if( length == 10 ){
 		//
 		// the date is MM/DD/YYYY or YYYY-MM-DD 
 		//
-		if( dateStringNoTimeZone.charAt(2) == '/' ) {
-			dateTime = parse( dateStringNoTimeZone, FORMAT_MM_SLASH_DD_SLASH_YYYY, 0 );
+		if( dateTimeString.charAt(2) == '/' ) {
+			dateTime = parse( dateTimeString, FORMAT_MM_SLASH_DD_SLASH_YYYY, 0 );
 		}
 		else {
-			dateTime = parse( dateStringNoTimeZone, FORMAT_YYYY_MM_DD, 0 );
+			dateTime = parse( dateTimeString, FORMAT_YYYY_MM_DD, 0 );
 		}
 	}
     // Length 11 might be YYYYMMDDHmm, but this is not currently allowed.
-	else if( lengthNoTimeZone == 12 ){
+	else if( length == 12 ){
 		//
 		// the date is YYYYMMDDHHmm
 		//
-		dateTime = parse( dateStringNoTimeZone, FORMAT_YYYYMMDDHHmm, 0 );
+		dateTime = parse( dateTimeString, FORMAT_YYYYMMDDHHmm, 0 );
 	}
-	else if( lengthNoTimeZone == 13 ){
+	else if( length == 13 ){
 		//
 		// the date is YYYY-MM-DD HH
 		// or          MM/DD/YYYY HH
 		// or          MM-DD-YYYY HH
 		//
-		if ( dateStringNoTimeZone.charAt(2) == '/' ) {
-			dateTime = parse( dateStringNoTimeZone, FORMAT_MM_SLASH_DD_SLASH_YYYY_HH, 0 );
+		if ( dateTimeString.charAt(2) == '/' ) {
+			dateTime = parse( dateTimeString, FORMAT_MM_SLASH_DD_SLASH_YYYY_HH, 0 );
 		}
-		else if ( dateStringNoTimeZone.charAt(2) == '-' ) {
-			dateTime = parse( dateStringNoTimeZone, FORMAT_MM_DD_YYYY_HH, 0 );
+		else if ( dateTimeString.charAt(2) == '-' ) {
+			dateTime = parse( dateTimeString, FORMAT_MM_DD_YYYY_HH, 0 );
 		}
 		else {
-			dateTime = parse( dateStringNoTimeZone, FORMAT_YYYY_MM_DD_HH, 0 );
+			dateTime = parse( dateTimeString, FORMAT_YYYY_MM_DD_HH, 0 );
 		}
 	}
-	else if ( (lengthNoTimeZone > 14) && Character.isLetter(dateStringNoTimeZone.charAt(14))){
+	else if ( (length > 14) && Character.isLetter(dateTimeString.charAt(14))){
 		//
 		// the date is YYYY-MM-DD HH Z...
 		//
-		dateTime = parse( dateStringNoTimeZone, FORMAT_YYYY_MM_DD_HH_ZZZ, 0 );
+		dateTime = parse( dateTimeString, FORMAT_YYYY_MM_DD_HH_ZZZ, 0 );
 	}
-	else if( lengthNoTimeZone == 15 ){
+	else if( length == 15 ){
 		//
 		// the date is YYYY-MM-DD HHmm
 		//
-		dateTime = parse( dateStringNoTimeZone, FORMAT_YYYY_MM_DD_HHmm, 0 );
+		dateTime = parse( dateTimeString, FORMAT_YYYY_MM_DD_HHmm, 0 );
 	}
-	else if( lengthNoTimeZone == 16 ){
+	else if( length == 16 ){
 		//
 		// the date is YYYY-MM-DD HH:mm or MM/DD/YYYY HH:mm
 		//
-		if( dateStringNoTimeZone.charAt(2) == '/' ) {
-			dateTime = parse( dateStringNoTimeZone, FORMAT_MM_SLASH_DD_SLASH_YYYY_HH_mm, 0 );
+		if( dateTimeString.charAt(2) == '/' ) {
+			dateTime = parse( dateTimeString, FORMAT_MM_SLASH_DD_SLASH_YYYY_HH_mm, 0 );
 		}
 		else {
-			dateTime = parse( dateStringNoTimeZone, FORMAT_YYYY_MM_DD_HH_mm,0);
+			dateTime = parse( dateTimeString, FORMAT_YYYY_MM_DD_HH_mm,0);
 		}
 	}
-	else if ( (lengthNoTimeZone > 17) && Character.isLetter(dateStringNoTimeZone.charAt(17))){
+	else if ( (length > 17) && Character.isLetter(dateTimeString.charAt(17))){
 		//
 		// the date is YYYY-MM-DD HH:MM Z...
 		//
-		dateTime = parse( dateStringNoTimeZone, FORMAT_YYYY_MM_DD_HH_mm_ZZZ, 0 );
+		dateTime = parse( dateTimeString, FORMAT_YYYY_MM_DD_HH_mm_ZZZ, 0 );
 	}
-	else if( lengthNoTimeZone == 19 ){
+	else if( length == 19 ){
 		//
 		// the date is YYYY-MM-DD HH:mm:SS or MM/DD/YYYY HH:mm:SS
 		//
-        if( dateStringNoTimeZone.charAt(2) == '/' ) {
-        	dateTime = parse( dateStringNoTimeZone, FORMAT_MM_SLASH_DD_SLASH_YYYY_HH_mm_SS, 0 );
+        if( dateTimeString.charAt(2) == '/' ) {
+        	dateTime = parse( dateTimeString, FORMAT_MM_SLASH_DD_SLASH_YYYY_HH_mm_SS, 0 );
 		}
 		else {
-			dateTime = parse( dateStringNoTimeZone, FORMAT_YYYY_MM_DD_HH_mm_SS, 0 );
+			dateTime = parse( dateTimeString, FORMAT_YYYY_MM_DD_HH_mm_SS, 0 );
         }
 	}
-	else if( lengthNoTimeZone == 22 ){
+	else if( (length == 22) && (dateTimeString.charAt(19) == ':') ){
 		//
 		// the date is YYYY-MM-DD HH:mm:SS:hh
 		//
-		dateTime = parse( dateStringNoTimeZone, FORMAT_YYYY_MM_DD_HH_mm_SS_hh, 0 );
+		dateTime = parse( dateTimeString, FORMAT_YYYY_MM_DD_HH_mm_SS_hh, 0 );
 	}
-	else if( lengthNoTimeZone >= 23 && dateStringNoTimeZone.charAt(19) == ' ' ){
+	else if( (length >= 23) && dateTimeString.charAt(19) == ' ' ){
 		//
-		// the date is YYYY-MM-DD HH:mm:SS ZZZ...
+		// The date/time is:
+		//    YYYY-MM-DD HH:mm:SS ZZZ...
+		//    YYYY-MM-DDTHH:mm:SS ZZZ...
 		//
-		dateTime = parse( dateStringNoTimeZone, FORMAT_YYYY_MM_DD_HH_mm_SS_ZZZ, 0);
+		dateTime = parse( dateTimeString, FORMAT_YYYY_MM_DD_HH_mm_SS_ZZZ, 0);
 	}
-    else if( lengthNoTimeZone > 23 && dateStringNoTimeZone.charAt(19) == ':' && dateStringNoTimeZone.charAt(22) == ' ' ){
+    else if( (length >= 23) && dateTimeString.charAt(19) == ':' && dateTimeString.charAt(22) == ' ' ){
         //
         // the date is YYYY-MM-DD HH:mm:SS:hh ZZZ...
         //
-        dateTime = parse( dateStringNoTimeZone, FORMAT_YYYY_MM_DD_HH_mm_SS_hh_ZZZ, 0 );
-    }
-    else if ( (lengthNoTimeZone > 10) && (dateTimeString.charAt(10) == 'T') ) {
-    	// Assume ISO 8601 if string contains time and a T (ISO 8601 date-only should have been handled above)
-    	// - this is a bit tricky given T could be in time zone
-    	dateTime = parse( dateStringNoTimeZone, FORMAT_ISO_8601, 0 );
+        dateTime = parse( dateTimeString, FORMAT_YYYY_MM_DD_HH_mm_SS_hh_ZZZ, 0 );
     }
 	else {
 	    // Unknown format so throw an exception...
@@ -2992,12 +3002,15 @@ public static DateTime parse ( String dateTimeString )
 		throw new IllegalArgumentException ( "Date/time string \"" + dateTimeString +
 			"\" format is not auto-recognized - may need to specify format." );
 	}
+	// 2021-08-23 smalers latest code parses time zone as ISO 8601 or other formats.
+	/* Time zone is set when the string is parsed.
 	if ( timeZone == null ) {
 		timeZone = "";
 	}
 	// Set the time zone to what was specified in the string.
 	// If no time zone was specified then blank is used
 	dateTime.setTimeZone(timeZone);
+	*/
 	return dateTime;
 }
 
@@ -3010,11 +3023,10 @@ This routine is the inverse of toString(int format).
 @return A DateTime corresponding to the date.
 @param date_string A string representation of a date/time.
 @param format Date format (see FORMAT_*).
-@exception Exception If there is an error parsing the date string.
+@exception IllegalArgumentException If there is an error parsing the date string.
 @see #toString
 */
 public static DateTime parse ( String date_string, int format )
-throws Exception
 {	// Call the overloaded method with no special flag...
 	return parse ( date_string, format, 0 );
 }
@@ -3234,14 +3246,15 @@ private static DateTime parse ( String date_string, int format, int flag )
 		date.__hour = ((Integer)v.get(3)).intValue();
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_ZZZ ) {
+		// YYYY-MM-DD hh ZZZ...
 		date = new DateTime ( PRECISION_HOUR );
 		is_hour = true;
-		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2x1s3" );
+		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
 		date.__hour = ((Integer)v.get(3)).intValue();
-		date.setTimeZone ( ((String)v.get(4)).trim() );
+		date.setTimeZone ( date_string.substring(13).trim() );
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm ) {
 		date = new DateTime ( PRECISION_MINUTE );
@@ -3295,39 +3308,43 @@ private static DateTime parse ( String date_string, int format, int flag )
 		date.__hsecond = ((Integer)v.get(6)).intValue();
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_ZZZ ) {
+		// YYYY-MM-DDTHH ZZZ...
 		date = new DateTime ( PRECISION_HOUR );
 		v = StringUtil.fixedRead ( date_string,
-		"i4x1i2x1i2x1i2x1s3" );
+		"i4x1i2x1i2x1i2" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
 		date.__hour = ((Integer)v.get(3)).intValue();
-		date.setTimeZone ( (String)v.get(4) );
+		date.setTimeZone ( date_string.substring(13).trim() );
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_ZZZ ) {
+		// YYYY-MM-DDThh:mm ZZZ...
 		date = new DateTime ( PRECISION_MINUTE );
-		v = StringUtil.fixedRead ( date_string,"i4x1i2x1i2x1i2x1i2x1s3" );
+		v = StringUtil.fixedRead ( date_string,"i4x1i2x1i2x1i2x1i2" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
 		date.__hour = ((Integer)v.get(3)).intValue();
 		date.__minute = ((Integer)v.get(4)).intValue();
-		date.setTimeZone ( (String)v.get(5) );
+		date.setTimeZone ( date_string.substring(16).trim() );
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_SS_ZZZ ) {
+		// YYYY-MM-DDThh:mm:ss ZZZ...
 		date = new DateTime ( PRECISION_SECOND );
-		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2x1i2x1i2x1s3" );
+		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2x1i2x1i2" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
 		date.__hour = ((Integer)v.get(3)).intValue();
 		date.__minute = ((Integer)v.get(4)).intValue();
 		date.__second = ((Integer)v.get(5)).intValue();
-		date.setTimeZone ( (String)v.get(6) );
+		date.setTimeZone ( date_string.substring(19).trim() );
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_SS_hh_ZZZ ) {
+		// YYYY-MM-DDThh:mm:ss:xx ZZZ...
 		date = new DateTime ( PRECISION_HSECOND );
-		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2x1i2x1i2x1i2x1s3" );
+		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2x1i2x1i2x1i2" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
@@ -3335,11 +3352,12 @@ private static DateTime parse ( String date_string, int format, int flag )
 		date.__minute = ((Integer)v.get(4)).intValue();
 		date.__second = ((Integer)v.get(5)).intValue();
 		date.__hsecond = ((Integer)v.get(6)).intValue();
-		date.setTimeZone ( (String)v.get(7) );
+		date.setTimeZone ( date_string.substring(23).trim() );
 	}
 	else if ( format == FORMAT_ISO_8601 ) {
-		// ISO 8601 formats.  See:  https://en.wikipedia.org/wiki/ISO_8601
-		// - do not support decimal parts other than seconds
+		// ISO 8601 formats:
+		// - see:  https://en.wikipedia.org/wiki/ISO_8601
+		// - support up to h-seconds
 		// - do not support weeks
 		// - cannot rely on something like OffsetDateTime to parse because don't know if time zone is included, etc.
 		// Could have a variety of formats:
@@ -4084,12 +4102,14 @@ If null or blank, PRECISION_TIME_ZONE is off.
 */
 public DateTime setTimeZone( String zone ) 
 {	if ( (zone == null) || (zone.length() == 0) ) {
-		__tz = "";
-		__use_time_zone = false;
+		// No time zone is used.
+		this.__tz = "";
+		this.__use_time_zone = false;
 	}
 	else {
-        __use_time_zone = true;
-		__tz = zone;
+		// Time zone is used.
+        this.__use_time_zone = true;
+		this.__tz = zone;
 	}
     return this;
 }
