@@ -2062,7 +2062,7 @@ Return a list of TableRecord matching the given columns and column values.
 @param columnNames list of column (field) names, case-insensitive.
 @param columnValue list of column values to match in the records.
 The type of the object will be checked before doing the comparison.
-@return TableRecord matching the specified column value, guaranteed to be non-null but may be zero length.
+@return List of TableRecord matching the specified column value, guaranteed to be non-null but may be empty list.
 */
 public List<TableRecord> getRecords ( List<String> columnNames, List<? extends Object> columnValues )
 throws Exception
@@ -2070,7 +2070,7 @@ throws Exception
     // Figure out the column numbers that will be checked
     int iColumn = -1;
     int [] columnNumbers = new int[columnNames.size()];
-    List<TableRecord> recList = new ArrayList<TableRecord>();
+    List<TableRecord> recList = new ArrayList<>();
     for ( String columnName: columnNames ) {
         ++iColumn;
         // If -1 is returned then a column name does not exist and no matches are possible
@@ -2087,7 +2087,7 @@ Return a list of TableRecord matching the given columns and column values.
 @param columnNumbers list of column (field) numbers, 0+.  Any values < 0 will result in an empty list being returned.
 @param columnValue list of column values to match in the records.
 The type of the object will be checked before doing the comparison.
-@return TableRecord matching the specified column value, guaranteed to be non-null but may be zero length.
+@return List of TableRecord matching the specified column values, guaranteed to be non-null but may be an empty list.
 */
 public List<TableRecord> getRecords ( int [] columnNumbers, List<? extends Object> columnValues )
 throws Exception
@@ -2098,7 +2098,7 @@ throws Exception
         // TODO SAM 2013-07-02 Why not return an empty list here?
         return null;
     }
-    List<TableRecord> recList = new ArrayList<TableRecord>();
+    List<TableRecord> recList = new ArrayList<>();
     // Make sure column numbers are valid.
     for ( int iColumn = 0; iColumn < columnNumbers.length; iColumn++ ) {
         if ( columnNumbers[iColumn] < 0 ) {
