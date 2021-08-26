@@ -25,6 +25,8 @@ package RTi.Util.Math;
 
 import java.security.InvalidParameterException;
 
+import RTi.Util.Message.Message;
+
 /**
 This class provides storage for check on the regression data and results, including ensuring that the
 sample size, correlation coefficient, and T-test (confidence interval) meet required constraints.  The class
@@ -93,7 +95,11 @@ value based on data in other objects
 */
 public RegressionChecks ( boolean analysisPerformedOK, Integer minimumSampleSize, Integer sampleSize,
     Double minimumR, Double R, Double confidenceIntervalPercent, Boolean isTestOK )
+throws InvalidParameterException
 {
+	if ( Message.isDebugOn ) {
+		Message.printDebug(2, "RegressionChecks", "Entering RegressionChecks constructor.");
+	}
     __isAnalysisPerformedOK = analysisPerformedOK;
     
     __minimumSampleSize = minimumSampleSize;
@@ -101,8 +107,13 @@ public RegressionChecks ( boolean analysisPerformedOK, Integer minimumSampleSize
     __isSampleSizeOK = true;
     if ( __minimumSampleSize != null ) {
         if ( __minimumSampleSize <= 0 ) {
-            throw new InvalidParameterException("Minimum sample size (" +
-                __minimumSampleSize + ") is invalid - must be >= 0");
+        	// This is an exception to prevent programming errors and should not normally be seen in production code.
+        	String message = ("Minimum sample size (" + __minimumSampleSize + ") is invalid - must be >= 0.  Check software.");
+        	Message.printWarning(3,"RegressionChecks",message);
+        	if ( Message.isDebugOn ) {
+        		Message.printDebug(2, "RegressionChecks", message);
+        	}
+            throw new InvalidParameterException(message);
         }
         if ( (__sampleSize == null) || (__sampleSize < __minimumSampleSize) ) {
             __isSampleSizeOK = false;
@@ -126,6 +137,9 @@ public RegressionChecks ( boolean analysisPerformedOK, Integer minimumSampleSize
     else {
         __isTestOK = isTestOK;
     }
+	if ( Message.isDebugOn ) {
+		Message.printDebug(2, "RegressionChecks", "Exiting RegressionChecks constructor.");
+	}
 }
 
 /**

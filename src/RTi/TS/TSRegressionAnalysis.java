@@ -296,15 +296,33 @@ Analyze the data for filling.  In this case the full analysis is performed inclu
 @param confidenceInterval the confidence interval that is used to perform the T test when checking the
 relationship(s)
 */
-public void analyzeForFilling ( Integer minimumSampleSize, Double minimumR, Double confidenceInterval )
-{
+public void analyzeForFilling ( Integer minimumSampleSize, Double minimumR, Double confidenceInterval ) {
+	String routine = getClass().getSimpleName() + ".analyzeForFilling";
+    if ( Message.isDebugOn ) {
+         Message.printDebug(2, routine, "Calling calculateRegressionRelationships." );
+    }
     calculateRegressionRelationships(getAnalysisMethod(), getTransformation(), getForcedIntercept());
+    if ( Message.isDebugOn ) {
+         Message.printDebug(2, routine, "Back from calling calculateRegressionRelationships." );
+    }
+    if ( Message.isDebugOn ) {
+         Message.printDebug(2, routine, "Calling calculateEquationErrorsWhenFilling." );
+    }
     calculateEquationErrorsWhenFilling(getTransformation());
+    if ( Message.isDebugOn ) {
+         Message.printDebug(2, routine, "Back from calling calculateEquationErrorsWhenFilling." );
+    }
     if ( (minimumSampleSize == null) || (minimumSampleSize < 2) ) {
         // At least 2 points are needed to avoid division by zero in computations
         minimumSampleSize = 2;
     }
+    if ( Message.isDebugOn ) {
+         Message.printDebug(2, routine, "Calling checkRegressionRelationships." );
+    }
     checkRegressionRelationships(minimumSampleSize, minimumR, confidenceInterval);
+    if ( Message.isDebugOn ) {
+         Message.printDebug(2, routine, "Back from calling checkRegressionRelationships." );
+    }
 }
 
 /**
@@ -611,20 +629,21 @@ relationship(s)
 */
 private void checkRegressionRelationships (
     Integer minimumSampleSize, Double minimumR, Double confidenceInterval )
-{
-    // Reset to defaults if necessary
+{	String routine = getClass().getSimpleName() + ".checkRegressionRelationships";
+    // Reset to defaults if necessary.
     if ( minimumSampleSize == null || minimumSampleSize < 3 ) {
-        minimumSampleSize = 3; // Less than this and will have division by zero
+        minimumSampleSize = 3; // Less than this and will have division by zero.
     }
-    //Transformed will be same as untransformed if no transformation 
+    // Transformed will be same as untransformed if no transformation.
     TSRegressionData data = getTSRegressionDataTransformed ();
     TSRegressionResults results = getTSRegressionResults ();
     TSRegressionEstimateErrors errors = getTSRegressionErrorsTransformed ();
-    // Finally, set the check results to indicate whether the relationships are within acceptable parameters
+    // Finally, set the check results to indicate whether the relationships are within acceptable parameters.
     
-    //single
+    // Single regression relationship.
     RegressionChecks regressionChecksSingle = null;
     if (__analyzeSingleEquation) {
+   		/* TODO smalers 2021-08-25 implement more granular error handling like monthly.
     	regressionChecksSingle = new RegressionChecks(
     			results.getSingleEquationRegressionResults().getIsAnalysisPerformedOK(),
     			minimumSampleSize, data.getSingleEquationRegressionData().getN1(),
@@ -635,32 +654,95 @@ private void checkRegressionRelationships (
     							results.getSingleEquationRegressionResults().getB()),
     							errors.getSingleEquationRegressionErrors().getStudentTTestQuantile(
     									getConfidenceIntervalPercent())));
+    									*/
+    	Double testScore;
+   		try {
+   			// Program mixed station analysis was took the absolute value of the test score so do that here.
+			testScore = Math.abs(errors.getSingleEquationRegressionErrors().getTestScore(
+						results.getSingleEquationRegressionResults().getB()));
+   		}
+   		catch ( NullPointerException e ) {
+   			// Test score came out null, so couldn't take the absolute value set it to null.
+   			testScore = null;
+   			if ( Message.isDebugOn ) {
+   				Message.printDebug(2, routine, "Detected null pointer for single relationship test score - using null.");
+   			}
+   		}
+		try {
+			if ( Message.isDebugOn ) {
+				Message.printDebug(2, routine, "Creating RegressionChecks object for single relationship.");
+			}
+			regressionChecksSingle = new RegressionChecks(
+    			results.getSingleEquationRegressionResults().getIsAnalysisPerformedOK(),
+    			minimumSampleSize, data.getSingleEquationRegressionData().getN1(),
+    			minimumR, results.getSingleEquationRegressionResults().getCorrelationCoefficient(),
+    			getConfidenceIntervalPercent(),
+    			errors.getSingleEquationRegressionErrors().getTestRelated(
+    				testScore,
+    				errors.getSingleEquationRegressionErrors().getStudentTTestQuantile(
+    					getConfidenceIntervalPercent())));
+			if ( Message.isDebugOn ) {
+				Message.printDebug(2, routine, "Back from creating RegressionChecks object for single relationship.");
+			}
+		}
+		catch ( Exception e ) {
+			Message.printWarning(3, routine, "Exception creating RegressionChecks object.");
+			Message.printWarning(3, routine, e);
+			// Rethrow.
+			throw ( e );
+		}
     }
     
-    //monthly
+    // Monthly regression relationships.
     RegressionChecks [] regressionChecksMonthly = new RegressionChecks[12];
     if (__analyzeMonthlyEquations) {
     	for ( int iMonth = 1; iMonth <= 12; iMonth++ ) {
     		Double testScore;
     		try {
-    			//program mixed station analysis was based off took the absolute value of the test score
-    			//so we're doing that here
+    			// Program mixed station analysis was took the absolute value of the test score so do that here.
     			testScore = Math.abs(errors.getMonthlyEquationRegressionErrors(iMonth).getTestScore(
 						results.getMonthlyEquationRegressionResults(iMonth).getB()));
     		}
     		catch (NullPointerException e) {
-    			//test score came out null, so couldn't take the absolute value
-    			//set it to null
+    			// Test score came out null, so couldn't take the absolute value set it to null.
     			testScore = null;
+    			if ( Message.isDebugOn ) {
+   					Message.printDebug(2, routine, "Detected null pointer for test score - using null for month " + iMonth + ".");
+   				}
     		}
-    		regressionChecksMonthly[iMonth - 1] = new RegressionChecks(
-    			results.getMonthlyEquationRegressionResults(iMonth).getIsAnalysisPerformedOK(),
-    				minimumSampleSize, data.getMonthlyEquationRegressionData(iMonth).getN1(),
-    				minimumR, results.getMonthlyEquationRegressionResults(iMonth).getCorrelationCoefficient(),
-    				getConfidenceIntervalPercent(),
-    				errors.getMonthlyEquationRegressionErrors(iMonth).getTestRelated(
-    					testScore, errors.getMonthlyEquationRegressionErrors(iMonth).getStudentTTestQuantile(
-    						getConfidenceIntervalPercent())));
+    		try {
+    			if ( Message.isDebugOn ) {
+		  			Message.printDebug(2, routine, "Creating RegressionChecks object for month " + iMonth + ".");
+		  			Message.printDebug(2, routine, "isAnalysisPerformedOK=" + results.getMonthlyEquationRegressionResults(iMonth).getIsAnalysisPerformedOK() );
+		  			Message.printDebug(2, routine, "minimumSampleSize=" + minimumSampleSize);
+		  			Message.printDebug(2, routine, "N1=" + data.getMonthlyEquationRegressionData(iMonth).getN1() );
+		  			Message.printDebug(2, routine, "minimumR=" + minimumR );
+		  			Message.printDebug(2, routine, "correlationCoefficient=" + results.getMonthlyEquationRegressionResults(iMonth).getCorrelationCoefficient());
+		  			Message.printDebug(2, routine, "confidenceIntervalPercent=" + getConfidenceIntervalPercent() );
+		  			Message.printDebug(2, routine, "testScore=" + testScore );
+		  			Message.printDebug(2, routine, "studentTTestQuantile=" + errors.getMonthlyEquationRegressionErrors(iMonth).getStudentTTestQuantile( this.getConfidenceIntervalPercent()));
+	  			}
+    			regressionChecksMonthly[iMonth - 1] = new RegressionChecks(
+    				results.getMonthlyEquationRegressionResults(iMonth).getIsAnalysisPerformedOK(),
+    				minimumSampleSize,
+    				data.getMonthlyEquationRegressionData(iMonth).getN1(),
+    				minimumR,
+    				results.getMonthlyEquationRegressionResults(iMonth).getCorrelationCoefficient(),
+   					getConfidenceIntervalPercent(),
+   					errors.getMonthlyEquationRegressionErrors(iMonth).getTestRelated(
+   						testScore,
+   						errors.getMonthlyEquationRegressionErrors(iMonth).getStudentTTestQuantile(
+    						this.getConfidenceIntervalPercent())));
+    			if ( Message.isDebugOn ) {
+		  			Message.printDebug(2, routine, "Back from creating RegressionChecks object for month " + iMonth + ".");
+	  			}
+    		}
+    		catch ( Exception e ) {
+		  		Message.printWarning(3, routine, "Exception creating RegressionChecks object for month " + iMonth + ".");
+		  		Message.printWarning(3, routine, e);
+		  		// Rethrow.
+		  		throw ( e );
+			}
     	}
     }
     setTSRegressionChecksTransformed ( new TSRegressionChecks ( regressionChecksSingle, regressionChecksMonthly) );

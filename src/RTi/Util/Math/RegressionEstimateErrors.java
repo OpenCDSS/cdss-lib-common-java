@@ -25,6 +25,8 @@ package RTi.Util.Math;
 
 import org.apache.commons.math3.distribution.TDistribution;
 
+import RTi.Util.Message.Message;
+
 /**
 This class provides storage for regression analysis errors, determined by using the
 results of the regression analysis to estimate values that were previously known (in N1) and then measuring the
@@ -179,15 +181,17 @@ for the slope of the regression line), to determine if it is a good relationship
 @return null if unable to compute the quantile
 */
 public Double getStudentTTestQuantile ( Double confidenceIntervalPercent )
-{   
+{   String routine = getClass().getSimpleName() + ".getStudentTTestQuantile";
     if ( confidenceIntervalPercent == null ) {
-        //Message.printStatus(2,routine,"confidenceIntervalPercent is null - not computing quantile");
+    	if ( Message.isDebugOn ) {
+    		Message.printDebug(2,routine,"confidenceIntervalPercent is null - not computing quantile");
+    	}
         return null;
     }
     if ( getRegressionData() == null ) {
         return null;
     }
-    // Single tail exceedance probability in range 0 to 1.0
+    // Single tail exceedance probability in range 0 to 1.0.
     // For example, a confidence interval of 95% will have p = .05
     double alpha = (100 - confidenceIntervalPercent)/100.0;
     double alpha2 = alpha/2.0;
@@ -200,8 +204,17 @@ public Double getStudentTTestQuantile ( Double confidenceIntervalPercent )
         return null;
     }
     // Length of array will be N1 by definition - subtract 2 for the intercept and slope to get
-    // the degrees of freedom
+    // the degrees of freedom.
     int dof = Y1est.length - 2;
+    /* Used for troubleshooting - should be handled by the Apache library.
+    if ( dof == 0 ) {
+    	// Not enough data.
+    	if ( Message.isDebugOn ) {
+    		Message.printDebug(2, routine, "Not enough data, returning null." );
+    	}
+    	return null;
+    }
+    */
     Double quantile = null;
     //commented out to make looking through logs easier
     //Message.printStatus(2,routine, "alpha=" + alpha );
@@ -211,18 +224,50 @@ public Double getStudentTTestQuantile ( Double confidenceIntervalPercent )
         boolean useApacheMath = true;
         if ( useApacheMath ) {
             // Why is degrees of freedom a double?
-            org.apache.commons.math3.distribution.TDistribution tDist = new TDistribution(dof);
+        	// TODO smalers 2021-08-25 use for troubleshooting library code.
+        	//if ( Message.isDebugOn ) {
+        	//	for ( int idof = 20; idof >= 0; --idof ) {
+        	//		Message.printDebug(2,routine,"Calling TDistribution with dof=" + idof );
+    		//   		org.apache.commons.math3.distribution.TDistribution tDist =
+    		//   			new org.apache.commons.math3.distribution.TDistribution(idof);
+        	//	}
+        	//}
+
+        	if ( Message.isDebugOn ) {
+    		   	Message.printDebug(2,routine,"Calling TDistribution with dof=" + dof );
+    	   	}
+            org.apache.commons.math3.distribution.TDistribution tDist =
+            	new org.apache.commons.math3.distribution.TDistribution(dof);
+        	if ( Message.isDebugOn ) {
+    		   	Message.printDebug(2,routine,"Back from calling TDistribution." );
+    	   	}
             //Get the value at which this confidence interval is satisfied
+        	if ( Message.isDebugOn ) {
+    		   	Message.printDebug(2,routine,"Calling inverseCumulativeProbability with alpha2=" + alpha2 );
+    	   	}
             quantile = -1*tDist.inverseCumulativeProbability(alpha2);
+        	if ( Message.isDebugOn ) {
+    		   	Message.printDebug(2,routine,"Back from calling inverseCumulativeProbability." );
+    	   	}
         }
         else {
             StudentTTest t = new StudentTTest();
+        	if ( Message.isDebugOn ) {
+    		   	Message.printDebug(2,routine,"Calling getStudentTQuantile with alpha2=" + alpha2 + " dof=" + dof );
+    	   	}
             quantile = t.getStudentTQuantile(alpha2, dof );
+        	if ( Message.isDebugOn ) {
+    		   	Message.printDebug(2,routine,"Back from calling getStudentTQuantile." );
+    	   	}
         }
     }
     catch ( Exception e ) {
-        // typically dof too small
-        quantile = null; // Not computed
+        // Typically dof (sample size) too small.
+       	if ( Message.isDebugOn ) {
+       		Message.printWarning(3, routine, "Error computing student T test.");
+       		Message.printWarning(3, routine, e);
+       	}
+        quantile = null; // Not computed.
     }
     return quantile;
 }
