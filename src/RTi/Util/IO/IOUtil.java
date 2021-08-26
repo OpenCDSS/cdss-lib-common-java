@@ -58,7 +58,9 @@ import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.URI;
 import java.net.URL;
-
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -326,6 +328,32 @@ public static boolean classCanBeLoaded(String className) {
 	return true;
 }
 
+/**
+ * Copy a directory.
+ * Based on:  https://www.baeldung.com/java-copy-directory
+ * @param sourceDirectory source directory to be copied
+ * @param destinationDirectory destination directory to create
+ * @param problems a list of problems copying, which allows copying attempts to occur without first error throwing an exception
+ */
+public static void copyDirectory ( String sourceDirectory, String destinationDirectory, List<String> problems )
+throws IOException {
+    Files.walk(Paths.get(sourceDirectory)).forEach(source -> {
+        Path destination = Paths.get(
+        	destinationDirectory,
+        	source.toString().substring(sourceDirectory.length()));
+        try {
+        	// Copy each file (or create an empty folder);
+            Files.copy(source, destination);
+        }
+        catch (IOException e) {
+        	String message = "Error copying folder \"" + source + "\" to \"" + destination + "\".";
+        	Message.printWarning(3,"IOUtil.copyDirectory", message );
+        	problems.add(message);
+        }
+    });
+}
+
+// TODO smalers 2021-08-26 replace with Java NIO Files class call.
 /** 
 Copies a file from one file to another.
 @param source the source file to copy.
