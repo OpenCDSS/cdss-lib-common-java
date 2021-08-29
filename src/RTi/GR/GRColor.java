@@ -119,18 +119,14 @@ public static final GRColor grey80 = new GRColor ( 0.8, 0.8, 0.8 );
 public static final GRColor grey90 = new GRColor ( 0.9, 0.9, 0.9 );
 
 /**
-Indicates whether the color is transparent or not.
-*/
-private boolean _is_transparent = false;
-
-/**
 Constructor.  Builds a GRColor with the given red, green and blue values.
 @param r the red value in the range (0.0 - 1.0)
 @param g the green value in the range (0.0 - 1.0)
 @param b the blue value in the range (0.0 - 1.0)
 */
 public GRColor ( double r, double g, double b )
-{	super ( (float)r, (float)g, (float)b );
+{	// Default is opaque.
+	super ( (float)r, (float)g, (float)b, (float)1.0 );
 }
 
 /**
@@ -156,7 +152,8 @@ Constructor.  Builds a GRColor with the given red, green and blue values.
 @param b the blue value in the range (0 - 255)
 */
 public GRColor ( int r, int g, int b )
-{	super ( r, g, b );
+{	// Default is opaque.
+	super ( r, g, b, 255 );
 }
 
 /**
@@ -172,11 +169,23 @@ public GRColor ( int r, int g, int b, int a )
 
 /**
 Constructor.  Builds a GRColor with the given red, green and blue values.
+Opacity (alpha) is set to 1.0.
 @param r the red value in the range (0.0 - 1.0)
 @param g the green value in the range (0.0 - 1.0)
 @param b the blue value in the range (0.0 - 1.0)
 */
 public GRColor ( float r, float g, float b )
+{
+	this (r, g, b, (float)1.0);
+}
+
+/**
+Constructor.  Builds a GRColor with the given red, green and blue values.
+@param r the red value in the range (0.0 - 1.0)
+@param g the green value in the range (0.0 - 1.0)
+@param b the blue value in the range (0.0 - 1.0)
+*/
+public GRColor ( float r, float g, float b, float alpha )
 {
 // NOTE!!
 // This code is UGLY, but it's that way for a reason.  The original intent 
@@ -194,7 +203,8 @@ public GRColor ( float r, float g, float b )
 	super (
 		((r < 0) ? (float)0.0 : (r > 1.0) ?	(float)1.0 : r),
 		((g < 0) ? (float)0.0 : (g > 1.0) ?	(float)1.0 : g),
-		((b < 0) ? (float)0.0 :	(b > 1.0) ?	(float)1.0 : b));	
+		((b < 0) ? (float)0.0 :	(b > 1.0) ?	(float)1.0 : b),
+		((b < 0) ? (float)0.0 :	(alpha > 1.0) ?	(float)1.0 : alpha) );
 }
 
 /**
@@ -211,71 +221,84 @@ public Object clone() {
 }
 
 /**
-Finalize before garbage collection.
-*/
-protected void finalize ()
-throws Throwable
-{	super.finalize();
-}
-
-/**
 Indicate whether color is transparent (no color).
+This corresponds to an opacity (alpha) of 0.
 @return true if transparent.
 */
 public boolean isTransparent ()
-{	return _is_transparent;
+{	if ( getAlpha() == 0 ) {
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 /**
-Set whether color is transparent (no color).
-@param is_transparent True if color is transparent.
-@return true if transparent, after set.
-*/
-public boolean isTransparent ( boolean is_transparent )
-{	_is_transparent = is_transparent;
-	return _is_transparent;
-}
-
-/**
-Define a new color determined by parsing the string.  This version is used
-because the base class already has a getColor() method.  Constructing from a
-String is not supported because the Color base class cannot be easily
-initialized.  Valid color strings include the following:
+Parse a color string and return a new instance of GRColor.
+This version is used because the base class already has a getColor() method.
+Valid color strings include the following:
 <ul>
 <li>	Color name (e.g., "Black", or any other recognized color name included in COLOR_NAMES).</li>
 <li>	Floating point RGB in the range 0 to 1 (e.g., "0.0,1.0,1.0").  The
 	numbers must be floating point numbers (a period in the string will
-	indicate that all are floating point numbers).</li>
+	indicate that all are floating point numbers).
+	Opacity of 1.0 is assumed.</li>
+<li>	Floating point RGB in the range 0 to 1 with opacity (e.g., "0.0,1.0,1.0,1.0").  The
 <li>	Integer RGB in the range 0 to 255 (e.g., 0,255,255).</li>
-<li>	Integer color where leftmost bits are ignored and others are in order RGB (e.g., 255 is blue).</li>
-<li>	Hexadecimal similar to previous version (e.g., 0x000000ff).</li>
+<li>	Integer RGB in the range 0 to 255 with opacity (e.g., 0,255,255,255).</li>
+<li>	Integer color where bits are in order RGBA (e.g., 0 is black).</li>
+<li>	Hexadecimal value for 0xrrggbb.</li>
+<li>	Hexadecimal value with opacity (e.g., 0xrrggbbaa).</li>
+<li>	Hexadecimal value for #rrggbbaa.</li>
+<li>	Hexadecimal value with opacity (e.g., #rrggbbaa).</li>
 </ul>
+Extra 00 on the left of hexadecimal values are OK and will be ignored
+because the rightmost values are significant.
 @param color Name of color (see COLOR_NAMES).
 @return a new Color instance, or black if the name cannot be matched or an error occurs.
 */
 public static GRColor parseColor ( String color )
-{	if ( color.indexOf('.') >= 0 ) {
-		// Assume 0.0-1.0 RGB values separated by commas
+{	if ( (color.indexOf(',') >= 0) && (color.indexOf('.') >= 0) ) {
+		// Assume 0.0-1.0 RGB values separated by commas.
 		List<String> v = StringUtil.breakStringList(color,",",StringUtil.DELIM_SKIP_BLANKS );
-		if ( (v == null) || (v.size() != 3) ) {
-			v = null;
+		if ( (v == null) || (v.size() < 3) ) {
+			// Not enough parts.  Use black.
 			return new GRColor(0);
 		}
-		GRColor grc = new GRColor ( StringUtil.atof(v.get(0)), StringUtil.atof(v.get(1)),
-			StringUtil.atof(v.get(2)) );
-		return grc;
+		else if ( v.size() > 3 ) {
+			// Includes alpha.
+			return new GRColor ( StringUtil.atof(v.get(0).trim()), StringUtil.atof(v.get(1).trim()),
+				StringUtil.atof(v.get(2).trim()), StringUtil.atof(v.get(3)));
+		}
+		else if ( v.size() == 3 ) {
+			// Does not include alpha.
+			return new GRColor ( StringUtil.atof(v.get(0).trim()), StringUtil.atof(v.get(1).trim()),
+				StringUtil.atof(v.get(2).trim()), (float)1.0);
+		}
 	}
 	else if ( color.indexOf(',') >= 0 ) {
-		// Assume 0-255 RGB values separated by commas
+		// Assume 0-255 RGB values separated by commas.
 		List<String> v = StringUtil.breakStringList(color,",",StringUtil.DELIM_SKIP_BLANKS );
-		if ( (v == null) || (v.size() != 3) ) {
+		if ( (v == null) || (v.size() < 3) ) {
+			// Not enough parts.  Use black.
 			return new GRColor(0);
 		}
-		GRColor grc = new GRColor (
-			StringUtil.atoi(v.get(0)),
-			StringUtil.atoi(v.get(1)),
-			StringUtil.atoi(v.get(2)) );
-		return grc;
+		else if ( v.size() > 3 ) {
+			// Includes alpha.
+			return new GRColor (
+				StringUtil.atoi(v.get(0)),
+				StringUtil.atoi(v.get(1)),
+				StringUtil.atoi(v.get(2)),
+				StringUtil.atoi(v.get(3)));
+		}
+		else if ( v.size() == 3 ) {
+			// No alpha.
+			return new GRColor (
+				StringUtil.atoi(v.get(0)),
+				StringUtil.atoi(v.get(1)),
+				StringUtil.atoi(v.get(2)) );
+		}
 	}
 	else if ( color.equalsIgnoreCase("black") ) {
 		return new GRColor ( 0, 0, 0 );
@@ -305,9 +328,8 @@ public static GRColor parseColor ( String color )
 		return new GRColor ( 255, 0, 255 );
 	}
 	else if ( color.equalsIgnoreCase("none") ) {
-		GRColor grc = new GRColor ( 0, 0, 0 );
-		grc.isTransparent(true);
-		return grc;
+		// Color does not matter since 0% opaque (100% transparent).
+		return new GRColor ( 0, 0, 0, 0 );
 	}
 	else if ( color.equalsIgnoreCase("orange") ) {
 		return new GRColor ( 255, 165, 0 );
@@ -325,17 +347,58 @@ public static GRColor parseColor ( String color )
 		return new GRColor ( 255, 255, 0 );
 	}
 	try {
-		// Try base class method to decode hex into an integer...
+		// Try base class method to decode hex into an integer, handles:
+		//   0xrrggbb
+		//   0xrrggbbaa
+		//   #rrggbb
+		//   #rrggbbaa
 		Color c = decode ( color );
-		GRColor grc = new GRColor (
-		c.getRed(), c.getGreen(), c.getBlue() );
+		GRColor grc = new GRColor ( c.getRed(), c.getGreen(), c.getBlue() );
 		return grc;
 	}
 	catch ( Exception e ) {
 		//Message.printWarning ( 1, "", e );
-		; // just return black
+		; // just return black below
 	}
+	// Fall through is black.
 	return new GRColor(0);
+}
+
+/**
+ * Return the string hexadecimal value for the color in format #rrggbb without alpha.
+ */
+public String toHex () {
+	return toHex(false);
+}
+
+/**
+ * Return the string hexadecimal value for the color in format #rrggbbaa
+ */
+public String toHex ( boolean includeAlpha ) {
+	StringBuilder s = new StringBuilder("#");
+	String part = Integer.toHexString(getRed());
+	if ( part.equals("0") ) {
+		part = "00";
+	}
+	s.append(part);
+	part = Integer.toHexString(getGreen());
+	if ( part.equals("0") ) {
+		part = "00";
+	}
+	s.append(part);
+	part = Integer.toHexString(getBlue());
+	if ( part.equals("0") ) {
+		part = "00";
+	}
+	s.append(part);
+	if ( includeAlpha ) {
+		part = Integer.toHexString(getAlpha());
+		if ( part.equals("0") ) {
+			part = "00";
+		}
+		s.append(part);
+	}
+	return s.toString();
 }
 
 /**

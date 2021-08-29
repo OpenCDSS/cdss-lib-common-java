@@ -1063,12 +1063,21 @@ private void openGUI ( boolean mode )
 	
 	__trackerModeJComboBox = new SimpleJComboBox(false);
 	__trackerModeJComboBox.setToolTipText("Indicate how the mouse tracker should behave, for graphs that support the tracker");
-	__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NEAREST);
-	__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NEAREST_SELECTED);
-	__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NEAREST_TIME);
-	__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NEAREST_TIME_SELECTED);
-	__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NONE);
-	__trackerModeJComboBox.select("" + TSGraphMouseTrackerType.NONE);
+	if ( getMainJComponent().isRasterGraph() ) {
+		// Raster graph.
+		__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.XYAXES);
+		__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NONE);
+		__trackerModeJComboBox.select("" + TSGraphMouseTrackerType.NONE);
+	}
+	else {
+		// Normal graph.
+		__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NEAREST);
+		__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NEAREST_SELECTED);
+		__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NEAREST_TIME);
+		__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NEAREST_TIME_SELECTED);
+		__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NONE);
+		__trackerModeJComboBox.select("" + TSGraphMouseTrackerType.NONE);
+	}
 	__trackerModeJComboBox.addItemListener(this);
 	button_top_JPanel.add ( new JLabel("Tracker:") );
 	button_top_JPanel.add ( __trackerModeJComboBox );
@@ -1576,7 +1585,10 @@ public void tsViewZoom ( TSGraph g, GRShape devlim, GRShape datalim )
 	if ( datalim instanceof GRLimits ) {
 		GRLimits newLimits = new GRLimits((GRLimits)datalim);
 		Message.printStatus(2, "tsViewZoom", "Adding new limits to reference graph" );
-		_ref_graph.getReferenceGraphZoomHistory().add(newLimits);
+		if ( _ref_graph != null ) {
+			// May be null for raster and other visualizations.
+			_ref_graph.getReferenceGraphZoomHistory().add(newLimits);
+		}
 	}
 	checkGUIState();
 }

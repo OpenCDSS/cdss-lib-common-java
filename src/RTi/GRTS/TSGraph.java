@@ -242,6 +242,8 @@ import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -255,13 +257,14 @@ import RTi.GR.GRAspect;
 import RTi.GR.GRAxis;
 import RTi.GR.GRAxisDirectionType;
 import RTi.GR.GRColor;
-import RTi.GR.GRColorTable;
 import RTi.GR.GRDrawingArea;
 import RTi.GR.GRDrawingAreaUtil;
 import RTi.GR.GRJComponentDrawingArea;
 import RTi.GR.GRLimits;
 import RTi.GR.GRPoint;
 import RTi.GR.GRSymbol;
+import RTi.GR.GRSymbolTable;
+import RTi.GR.GRSymbolTableRow;
 import RTi.GR.GRText;
 import RTi.GR.GRUnits;
 import RTi.TS.DayTS;
@@ -464,6 +467,11 @@ time series are used for plotting positions.  The contents of the list are deter
 This list is guaranteed to be non-null but may be empty.
 */
 private List<TS> __derivedTSList = new ArrayList<TS>();
+
+/**
+ * Raster graph symbol table that provides colors.
+ */
+private GRSymbolTable rasterSymbolTable = null;
 
 /**
  * List of time series that are selected (by clicking on the legend).
@@ -974,7 +982,7 @@ private int _interval_min = TimeInterval.YEAR;
 private boolean _showDrawingAreaOutline = false;
 
 /**
-Precision for x-axis date data.  This is not private because TSViewGraphGUI
+Precision for x-axis date data.  This is not private because TSViewGraphJFrame
 uses the precision for the mouse tracker.
 */
 protected int _xaxis_date_precision;
@@ -1247,6 +1255,11 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
                 Message.printWarning (3, routine, e);
 			}
 		}
+	}
+	
+	// If necessary, read the raster symbol table.
+    if ( getLeftYAxisGraphType() == TSGraphType.RASTER ) {
+		createRasterSymbolTable ();
 	}
 	
 	if ( !_is_reference_graph ) {
@@ -3465,6 +3478,57 @@ private void computeXAxisDatePrecision ()
 }
 
 /**
+ * Create the symbol table used to defined the colors for a raster graph.
+ * This should be called when a raster graph is created.
+ * The symbol table is saved to this.rasterSymbolTable.
+ */
+private void createRasterSymbolTable () {
+	String routine = getClass().getSimpleName() + ".createRasterSymbolTable";
+    // - currently only one time series is allowed for a raster graph
+	String propValue = _tsproduct.getLayeredPropValue ( "SymbolTablePath", _subproduct, 0, false);
+	if ( (propValue != null) && !propValue.isEmpty() ) {
+		// The file is either absolute or relative to the time series product file.
+		File f = new File( _tsproduct.getPropList().getPersistentName() );
+		String filename = IOUtil.verifyPathForOS( IOUtil.toAbsolutePath( f.getParent(), propValue) );
+		try {
+			this.rasterSymbolTable = GRSymbolTable.readFile ( filename );
+			Message.printStatus ( 2, routine, "Read " + this.rasterSymbolTable.size() +
+				" rows for raster symbol table.");
+		}
+		catch ( IOException e ) {
+			Message.printWarning(3, routine, "Error reading symbol table.");
+			Message.printWarning(3, routine, e);
+		}
+	}
+	if ( this.rasterSymbolTable == null ) {
+		// Define a default symbol table.
+		// Set up the color table.  For now just base on limits of data
+		/* TODO smalers 2021-08-27 old code
+		double tsMin = ts.getDataLimits().getMinValue();
+		double tsMax = ts.getDataLimits().getMaxValue();
+		int nScaleColors = 10;
+		int nScaleValues = nScaleColors - 1;
+		double delta = (tsMax - tsMin)/nScaleValues;
+		double [] scaleValues = new double[nScaleValues];
+		GRColor [] scaleColors =
+			(GRColor [])GRColorTable.createColorTable(GRColorTable.BLUE_TO_RED, nScaleColors, true).
+			toArray(new GRColor[nScaleColors]);
+		for ( int i = 0; i < nScaleValues; i++ ) {
+			scaleValues[i] = tsMin + i*delta;
+		}
+		for ( int i = 0; i < nScaleColors; i++ ) {
+			String value = "";
+			if ( i < nScaleValues ) {
+				value = "" + scaleValues[i];
+			}
+			Message.printStatus(2, "", "Scale " + value + " color [" + i + "] = " + scaleColors[i].getRed() + "," +
+                scaleColors[i].getGreen() + "," + scaleColors[i].getBlue() );
+		}
+		*/
+	}
+}
+
+/**
 Perform additional analysis on the data if other than a basic graph is indicated.
 After the analysis, the data limits are recomputed (this is done for simple data also).
 @param graphType the graph type
@@ -4830,7 +4894,7 @@ private void drawGraphRaster ( TSProduct tsproduct, int subproduct, List<TS> tsl
         ts = tslist.get(its);
         int dataInterval = ts.getDataIntervalBase();
         int dataMult = ts.getDataIntervalMult();
-        if ( (dataInterval != TimeInterval.DAY) || (dataInterval != TimeInterval.MONTH) ) {
+        if ( (dataInterval != TimeInterval.DAY) && (dataInterval != TimeInterval.MONTH) ) {
         	Message.printWarning(3, routine, "Raster graphs are only supported for 1Day and 1Month intervals.");
         	continue;
         }
@@ -4903,7 +4967,7 @@ private void drawLegend ( int axis )
 		return;
 	}
 
-	// Figure out which legend drawing area we are using...
+	// Figure out which legend drawing area to use.
 
 	GRDrawingArea da_legend = null;
 	GRLimits datalim_legend = null;
@@ -4972,11 +5036,11 @@ private void drawLegend ( int axis )
 	double ydelta = text_limits.getHeight();
 	text_limits = null;
 
-	// Draw legend from top down in case we run out of room.  Can center
-	// vertically on the following (line will be one font height down and
+	// Draw legend from top down in case run out of room and need to omit some time series.
+	// Can center vertically on the following (line will be one font height down and
 	// font will be 1/2 height down to top).
 	double ylegend = datalim_legend.getTopY() - ydelta;
-	// Put first time series in list at the top...
+	// Put first time series in list at the top.
 	double symbol_size = 0;
 	int symbol = 0;
 	String prop_value = null;
@@ -4993,7 +5057,7 @@ private void drawLegend ( int axis )
 
 	TS ts;
 
-	// Currently complex graphs are only allowed for left y-axis
+	// Currently complex graphs are only allowed for left y-axis.
 	if ( (axis == GRAxis.LEFT) && (__leftYAxisGraphType == TSGraphType.PREDICTED_VALUE) ) {
 		size = 1 + ((size - 1) * 2);
 	}
@@ -5210,7 +5274,7 @@ private void drawLegend ( int axis )
 		}
 		
 		x[0] = datalim_legend.getLeftX() + xOffset;
-		// Legend drawing limits are in device units so just use pixels...
+		// Legend drawing limits are in device units so just use pixels.
 		x[1] = x[0] + legendLineLength;
 		y[0] = ylegend + ydelta/2.0;
 		y[1] = y[0];
@@ -5223,12 +5287,15 @@ private void drawLegend ( int axis )
 	    	tsGraphType = getTimeSeriesGraphType(axisGraphType, i);
 	    }
 		if ( (axis == GRAxis.LEFT) && (__leftYAxisGraphType == TSGraphType.XY_SCATTER) && (i == 0) ) {
-			;// Do nothing.  Don't want the symbol (but do want the string label below
+			;// Do nothing.  Don't want the symbol (but do want the string label below.
 		}
 		else if ( (tsGraphType == TSGraphType.AREA) || (tsGraphType == TSGraphType.AREA_STACKED) ||
 		    (tsGraphType == TSGraphType.BAR) || (tsGraphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) ) {
 			// Legend symbol is a rectangle with the fill color
 			GRDrawingAreaUtil.fillRectangle ( da_legend, x[0], ylegend, (x[1] - x[0]), ydelta);
+		}
+		else if ( tsGraphType == TSGraphType.RASTER ) {
+			// Don't draw any visual indicator, only the time series identifier, period, etc.
 		}
 		else {
 			// Time series is drawn with lines and/or points
@@ -5298,6 +5365,8 @@ private void drawLegend ( int axis )
 				}
 			}
 		}
+		
+		// Output the time series name, alias, period, etc.
 		da_legend.setColor ( GRColor.black );
 		// Put some space so text does not draw right up against symbol
 		GRDrawingAreaUtil.drawText ( da_legend, " " + legend, x[1], ylegend, 0.0, GRText.LEFT|GRText.BOTTOM );
@@ -5305,21 +5374,21 @@ private void drawLegend ( int axis )
 		if ( ts != null ) {
 			// Save the limits of the legend text as a hot spot that can be clicked on to highlight the
 			// time series during rendering.
-			// Get the limits of the text that was actually drawn in drawing units
+			// Get the limits of the text that was actually drawn in drawing units.
 			GRLimits textDrawLim = GRDrawingAreaUtil.getTextExtents(da_legend, " " + legend, GRUnits.DEVICE);
-			// Lower left corner of the text
+			// Lower left corner of the text.
 			double xll = da_legend.scaleXData(x[1]);
 			//Message.printStatus(2,routine,"Legend x[1]=" + x[1] + " xll=" + xll );
 			double yll = da_legend.scaleYData(ylegend);
 			//Message.printStatus(2,routine,"Legend ylegend=" + ylegend + " yll=" + yll );
-			// Legend limits in device units use Y from top so subtract extents
+			// Legend limits in device units use Y from top so subtract extents.
 			GRLimits legendDrawLimits = new GRLimits(xll,yll,
 				(xll + textDrawLim.getWidth()), (yll - textDrawLim.getHeight()) );
 			__legendTimeSeriesDrawMap.put(ts, legendDrawLimits);
 			//Message.printStatus(2,routine,"Legend \"" + legend + "\" drawing limits are " + legendDrawLimits );
 		}
 		
-		// Decrement the legend for the next iteration, drawing from top to bottom
+		// Decrement the legend for the next iteration, drawing from top to bottom.
 		ylegend -= ydelta;
 	}
 }
@@ -5331,14 +5400,15 @@ so the box looks solid, and before drawing data.
 private void drawOutlineBox ()
 {	GRDrawingAreaUtil.setColor ( _da_lefty_graph, GRColor.black );
 	if ( _is_reference_graph ) {
-		// Just draw a box around the graph area to make it more visible...
+		// Just draw a box around the graph area to make it more visible.
 		// Using GR seems to not always get the line (roundoff)?
 		Rectangle bounds = _dev.getBounds();
 
 		_graphics.drawRect ( 0, 0, (bounds.width - 1), (bounds.height - 1) );
 		return;
 	}
-	else {	// Normal drawing area...
+	else {
+		// Normal drawing area.
 		GRDrawingAreaUtil.drawRectangle ( _da_lefty_graph, _data_lefty_limits.getMinX(), _data_lefty_limits.getMinY(),
 			_data_lefty_limits.getWidth(), _data_lefty_limits.getHeight() );
 	}
@@ -5350,7 +5420,6 @@ Currently this method does nothing.
 */
 private void drawTimeSeriesAnnotations ()
 {
-    
 }
 
 /**
@@ -5375,7 +5444,7 @@ private void drawTitles ()
 	GRDrawingAreaUtil.drawText ( _da_maintitle, maintitle_string, _datalim_maintitle.getCenterX(),
 		_datalim_maintitle.getCenterY(), 0.0, GRText.CENTER_X|GRText.CENTER_Y );
 
-	// Sub title....
+	// Sub title.
 
 	_da_subtitle.setColor ( GRColor.black );
 	String subtitle_font = _tsproduct.getLayeredPropValue ( "SubTitleFontName", _subproduct, -1, false );
@@ -6653,22 +6722,40 @@ private void drawTSRenderAreaGraph ( int its, TS ts, TSGraphType graphType, Prop
 }
 
 /**
-Draw a single time series as a raster.  The time series values are used to create rectangles that are color-coded.
+Draw a single time series as a raster.
+The time series values are used to create rectangles that are color-coded.
 @param ts Single time series to draw.
 @param graphType the graph type to use for the time series (may be needed for other calls).
 @param overrideProps override run-time properties to consider when getting graph properties
 */
 private void drawTSRenderRasterGraph ( TS ts, TSGraphType graphType, PropList overrideProps )
-{   //String routine = "TSGraph.drawTSRenderRasterGraph";
+{   String routine = getClass().getSimpleName() + ".drawTSRenderRasterGraph";
+	
+	// Check that the time series is provided.
     if ( ts == null ) {
         // No data for time series
         return;
     }
+    
+    // Default color for missing data.
+	GRColor nodataColor = GRColor.white;
+	GRSymbolTable symtable = this.rasterSymbolTable;
+	
+	// Look up the NoData color to use for missing data.
+   	if ( symtable.getNoDataSymbolTableRow() == null ) {
+   		// Symbol table does not have NoData fill color:
+   		// - default to white
+   		nodataColor = GRColor.white;
+   	}
+   	else {
+  		nodataColor = symtable.getNoDataSymbolTableRow().getFillColor();
+   	}
+
     // Generate the clipping area that will be set so that no data are drawn outside of the graph
     Shape clip = GRDrawingAreaUtil.getClip(_da_lefty_graph);
     GRDrawingAreaUtil.setClip(_da_lefty_graph, _da_lefty_graph.getDataLimits());
     
-    GRColor tscolor;
+    GRColor tscolor = null;
     //DateTime start = drawTSHelperGetStartDateTime(ts);
     //DateTime end = drawTSHelperGetEndDateTime(ts);
     // FIXME SAM 2013-07-21 The above gets messed up because the data limits are set to an integer range
@@ -6680,27 +6767,6 @@ private void drawTSRenderRasterGraph ( TS ts, TSGraphType graphType, PropList ov
     // Make sure the time zone is not set
     date.setTimeZone("");
     
-    // Set up the color table.  For now just base on limits of data
-    double tsMin = ts.getDataLimits().getMinValue();
-    double tsMax = ts.getDataLimits().getMaxValue();
-    int nScaleColors = 10;
-    int nScaleValues = nScaleColors - 1;
-    double delta = (tsMax - tsMin)/nScaleValues;
-    double [] scaleValues = new double[nScaleValues];
-    GRColor [] scaleColors = (GRColor [])GRColorTable.createColorTable(GRColorTable.BLUE_TO_RED, nScaleColors, true).
-        toArray(new GRColor[nScaleColors]);
-    for ( int i = 0; i < nScaleValues; i++ ) {
-        scaleValues[i] = tsMin + i*delta;
-    }
-    for ( int i = 0; i < nScaleColors; i++ ) {
-        String value = "";
-        if ( i < nScaleValues ) {
-            value = "" + scaleValues[i];
-        }
-        Message.printStatus(2, "", "Scale " + value + " color [" + i + "] = " + scaleColors[i].getRed() + "," +
-                scaleColors[i].getGreen() + "," + scaleColors[i].getBlue() );
-    }
-
     double x0 = 0.0; // X coordinate converted from date/time, left edge of rectangle
     double y0 = 0.0; // Y coordinate corresponding to year, bottom edge of rectangle
     // Iterate through data with the iterator
@@ -6714,9 +6780,9 @@ private void drawTSRenderRasterGraph ( TS ts, TSGraphType graphType, PropList ov
         return;
     }
     double value;
+    double valuePrev = Double.MAX_VALUE;
     int intervalBase = ts.getDataIntervalBase();
     int yearDay; // Day of year for daily data
-    GRColor tscolorPrev = null;
     Message.printStatus(2,"","Drawing raster graph for start=" + start + " end=" + end + " ts.date1=" + ts.getDate1() +
             " ts.date2=" + ts.getDate2() + " data limits = " + _da_lefty_graph.getDataLimits() );
     boolean isLeapYear = false;
@@ -6740,16 +6806,34 @@ private void drawTSRenderRasterGraph ( TS ts, TSGraphType graphType, PropList ov
             x0 = date.getMonth();
         }
         value = tsdata.getDataValue();
-        if (ts.isDataMissing(value)) {
-            // Set color to missing (white);
-            tscolor = GRColor.white;
-        }
-        else {
-            // Color is determined from the value.
-            // < first value break
-            // > last value break
-            // >= all other value breaks
-            tscolor = GRColor.white;
+       	if ( value != valuePrev ) {
+       		valuePrev = value;
+       		if (ts.isDataMissing(value)) {
+            	// Set color to missing (white);
+            	//tscolor = GRColor.white;
+        		tscolor = nodataColor;
+        	}
+        	else {
+        		// Look up the color because the value is different than the previous value.
+        		// Color is determined from the value.
+        		tscolor = symtable.getFillColorForValue ( value );
+        		if ( tscolor == null ) {
+        			// Indicates a problem in the symbol table format:
+        			// - use black rather than the NoData value
+        			if ( Message.isDebugOn ) {
+        				Message.printDebug(2,routine,"No color found for value " + value + " - using black.");
+        			}
+        			tscolor = GRColor.black;
+        		}
+        		else {
+        			if ( Message.isDebugOn ) {
+        				Message.printDebug(2,routine,"Found color for " + value + " - using: " + tscolor.toHex());
+        			}
+        		}
+        		// Save the color so can optimize lookups, useful for sequences of zeros, missing, etc..
+        		valuePrev = value;
+        	}
+            /* TODO smalers 2021-08-27 old code without symbol table.
             for ( int i = 0; i < scaleValues.length; i++ ) {
                 if ( value >= scaleValues[scaleValues.length - 1] ) {
                     // Value is >= largest in scale so use the max color
@@ -6762,13 +6846,13 @@ private void drawTSRenderRasterGraph ( TS ts, TSGraphType graphType, PropList ov
                     break;
                 }
             }
-        }
-        if ( tscolor != tscolorPrev ) {
-            // Do this to optimize a bit so color does not have be changed frequently
+            */
+
+            // Do this to optimize so color does not have be changed frequently.
+        	// TODO smalers 2021-08-27 this will need to be changed if fill and outline are used for some reason
             _da_lefty_graph.setColor(tscolor);
-            tscolorPrev = tscolor;
         }
-        // Rectangle will be one "cell", either a day or month
+        // Rectangle will be one "cell", either a day or month.
         //if ( tscolor == GRColor.white ) {
         //    Message.printStatus(2,"","Drawing raster value " + date + " " + value + " color=white");
         //}
@@ -6777,16 +6861,16 @@ private void drawTSRenderRasterGraph ( TS ts, TSGraphType graphType, PropList ov
         //            tscolor.getRed() + "," + tscolor.getGreen() + "," + tscolor.getBlue() + ",");
         //}
         GRDrawingAreaUtil.fillRectangle(_da_lefty_graph, x0, y0, 1.0, 1.0);
-        // Also fill in the Feb 29 value for non-leap years to the same color as the Feb 28 value.
-        // This ensures that a distracting white line is not shown 
+        // Also fill in the February 29 value for non-leap years to the same color as the February 28 value.
+        // This ensures that a distracting white line is not shown.
         if ( (intervalBase == TimeInterval.DAY) && (month == 2) && (day == 28) && !isLeapYear ) {
-            // Also draw the Feb 29, which will not otherwise be encountered becaue the time series is iterating
-            // through the actual dates.  Use the same color as Feb 28.
+            // Also draw the February 29, which will not otherwise be encountered because the time series is iterating
+            // through the actual dates.  Use the same color as February 28.
             GRDrawingAreaUtil.fillRectangle(_da_lefty_graph, (x0 + 1.0), y0, 1.0, 1.0);
         }
     }
     
-    // Remove the clip around the graph.  This allows other things to be drawn outside the graph bounds
+    // Remove the clip around the graph.  This allows other things to be drawn outside the graph bounds.
     GRDrawingAreaUtil.setClip(_da_lefty_graph, (Shape)null);
     GRDrawingAreaUtil.setClip(_da_lefty_graph, clip);
 }
@@ -8076,81 +8160,111 @@ public String formatMouseTrackerDataPoint ( GRPoint devpt, GRPoint datapt )
 			",  Y:  " + StringUtil.formatString(datapt.y,"%." + _lefty_precision + "f");
 	}
     else if ( __leftYAxisGraphType == TSGraphType.RASTER ) {
-        // If the maximum value is <= 12, then the x axis is months
-        String x = "";
+        String xString = "";
+        String yString = "";
         String valueString = "";
         TSData tsdata;
-        double value;
+        double value = Double.NaN;
         String flag = "", flagString = "";
         int year = (int)(datapt.y);
+        yString = "Year " + year;
         TS ts = null;
+        boolean isMissing = false;
         if ( datapt.associated_object != null ) {
             if ( datapt.associated_object instanceof TS ) {
                 ts = (TS)datapt.associated_object;
             }
         }
-        DateTime d = new DateTime(DateTime.DATE_FAST);
-        d.setYear(year);
-        if ( _data_lefty_limits.getMaxX() <= 12.0 ) {
-            // Monthly data
-            int month = (int)datapt.x;
-            x = "" + month;
-            d.setMonth(month);
-            if ( ts != null ) {
-                tsdata = ts.getDataPoint(d, null);
-                value = tsdata.getDataValue();
-                flag = tsdata.getDataFlag();
-                if ( (flag != null) && !flag.equals("") ) {
-                    flagString = " (" + flag + ")";
-                }
-                if ( ts.isDataMissing(value) ) {
-                    valueString = ", TS:  missing" + flagString;
-                }
-                else {
-                    // TODO SAM 2013-07-31 Need to figure out precision from data, but don't look up each
-                    // call to this method because a performance hit?
-                    valueString = ", TS:  " + StringUtil.formatString(value,"%.2f" + ts.getDataUnits() + flagString );
-                }
-            }
+        if ( ts == null ) {
+        	Message.printStatus(2,"","Time series is null for data point x=" + datapt.x + " y=" + datapt.y);
         }
-        else if ( _data_lefty_limits.getMaxX() <= 366.0 ) {
-            // Graph was set up to always have leap year
-            int dayInYear = (int)datapt.x;
-            boolean isLeapYear = TimeUtil.isLeapYear(year);
-            if ( (dayInYear == 60) && !isLeapYear ) {
-                // Treat as missing since actual year does not have Feb 29
-                return "No value (Feb 29 of non-leap year)";
-            }
-            else {
-                int [] md;
-                if ( !isLeapYear && (dayInYear > 59) ) {
-                    // If not a leap year and past day 59, need to offset the day by one and recompute to get the
-                    // actual day to retrieve the correct data value.  This is because Feb 29 always has a plotting
-                    // position in order to ensure days line up with months.
-                    --dayInYear;
+        else {
+        	DateTime d = new DateTime(DateTime.DATE_FAST);
+        	d.setYear(year);
+        	if ( ts.getDataIntervalBase() == TimeInterval.MONTH ) {
+        	//if ( _data_lefty_limits.getMaxX() <= 12.0 ) { }
+            	// Monthly data:
+        		// - mouse coordinate might scale to outside the drawing area so constrain?
+            	int month = (int)datapt.x;
+            	if ( month < 1 ) {
+            		month = 1;
+            	}
+            	else if ( month > 12 ) {
+            		month = 12;
+            	}
+            	xString = "Month " + month + " (" + TimeUtil.monthAbbreviation(month) + ")";
+            	d.setMonth(month);
+            	if ( ts != null ) {
+            		// New TSData is created each time:
+            		// - evaluate whether to keep an instance in memory between calls
+                	tsdata = ts.getDataPoint(d, null);
+                	value = tsdata.getDataValue();
+                	flag = tsdata.getDataFlag();
+                	if ( (flag != null) && !flag.isEmpty() ) {
+                    	flagString = " (" + flag + ")";
+                	}
+                	if ( ts.isDataMissing(value) ) {
+                    	valueString = "Value: missing" + flagString;
+                       	isMissing = true;
+                	}
+                	else {
+                    	// TODO SAM 2013-07-31 Need to figure out precision from data, but don't look up each
+                    	// call to this method because a performance hit?
+                    	valueString = "Value: " + StringUtil.formatString(value,"%.2f " + ts.getDataUnits() + flagString );
+                	}
+            	}
+        	}
+        	//else if ( _data_lefty_limits.getMaxX() <= 366.0 ) {}
+        	else if ( ts.getDataIntervalBase() == TimeInterval.DAY ) {
+            	// Graph was set up to always have leap year
+            	int dayInYear = (int)datapt.x;
+            	boolean isLeapYear = TimeUtil.isLeapYear(year);
+            	if ( (dayInYear == 60) && !isLeapYear ) {
+                	// Treat as missing since actual year does not have Feb 29
+                	return "No value (Feb 29 of non-leap year)";
+            	}
+            	else {
+                	int [] md;
+                	if ( !isLeapYear && (dayInYear > 59) ) {
+                    	// If not a leap year and past day 59, need to offset the day by one and recompute to get the
+                    	// actual day to retrieve the correct data value.  This is because Feb 29 always has a plotting
+                    	// position in order to ensure days line up with months.
+                    	--dayInYear;
+                	}
+                	md = TimeUtil.getMonthAndDayFromDayOfYear(year, dayInYear);
+                	xString = "Day " + dayInYear + " (" + TimeUtil.monthAbbreviation(md[0]) + " " + md[1] + ")";
+                	d.setMonth(md[0]);
+                	d.setDay(md[1]);
+                	if ( ts != null ) {
+                    	tsdata = ts.getDataPoint(d, null);
+                    	value = tsdata.getDataValue();
+                    	flag = tsdata.getDataFlag();
+                    	if ( (flag != null) && !flag.equals("") ) {
+                        	flagString = " (" + flag + ")";
+                    	}
+                    	if ( ts.isDataMissing(value) ) {
+                        	valueString = "Value: missing" + flagString;
+                        	isMissing = true;
+                    	}
+                    	else {
+                        	valueString = "Value: " + StringUtil.formatString(value,"%.2f") + " " +
+                            	ts.getDataUnits() + flagString;
+                    	}
+                	}
                 }
-                md = TimeUtil.getMonthAndDayFromDayOfYear(year, dayInYear);
-                x = "Day " + dayInYear + " (" + TimeUtil.monthAbbreviation(md[0]) + " " + md[1] + ")";
-                d.setMonth(md[0]);
-                d.setDay(md[1]);
-                if ( ts != null ) {
-                    tsdata = ts.getDataPoint(d, null);
-                    value = tsdata.getDataValue();
-                    flag = tsdata.getDataFlag();
-                    if ( (flag != null) && !flag.equals("") ) {
-                        flagString = " (" + flag + ")";
-                    }
-                    if ( ts.isDataMissing(value) ) {
-                        valueString = ", TS:  missing" + flagString;
-                    }
-                    else {
-                        valueString = ", TS:  " + StringUtil.formatString(value,"%.2f") + " " +
-                            ts.getDataUnits() + flagString;
-                    }
-                }
             }
+        } // End ts != null
+        if ( valueString.isEmpty() ) {
+        	return "";
         }
-        return "X:  " + x + ",  Y:  " + year + valueString;
+        else {
+        	if ( isMissing ) {
+        		return "X: " + xString + ",  Y: " + yString + ", " + valueString;
+        	}
+        	else {
+        		return "X: " + xString + ",  Y: " + yString + ", " + valueString + ", Range: " + getRasterRangeString(value);
+        	}
+        }
     }
 	else {
 		// Simple graph type
@@ -8560,6 +8674,33 @@ public JPopupMenu getJPopupMenu() {
 		_graph_JPopupMenu.add(new SimpleJMenuItem(__MENU_REFRESH, __MENU_REFRESH, this));
 	}
 	return _graph_JPopupMenu;
+}
+
+/**
+ * Return a string suitable for raster graph "Range:",
+ * which indicates the range that a value falls into.
+ * This is used for raster graphs.
+ * @param value the time series value used to look up the range
+ */
+private String getRasterRangeString ( double value ) {
+	if ( this.rasterSymbolTable == null ) {
+		return "";
+	}
+	else {
+		StringBuilder b = new StringBuilder();
+		GRSymbolTableRow row = this.rasterSymbolTable.getSymbolTableRowForValue(value);
+		if ( !row.getValueMinFullString().equalsIgnoreCase("-Infinity") ) {
+			b.append (row.getValueMinFullString());
+		}
+		if ( !row.getValueMinFullString().equalsIgnoreCase("-Infinity") && 
+			!row.getValueMaxFullString().equalsIgnoreCase("Infinity") ) {
+			b.append (" AND ");
+		}
+		if ( !row.getValueMaxFullString().equalsIgnoreCase("Infinity") ) {
+			b.append ( row.getValueMaxFullString() );
+		}
+		return b.toString();
+	}
 }
 
 /**

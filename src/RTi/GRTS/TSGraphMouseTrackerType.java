@@ -45,6 +45,10 @@ public enum TSGraphMouseTrackerType
      */
     NEAREST_TIME_SELECTED("NearestTimeSelected"),
     /**
+     * Used with raster graph to show cross-hair drawn to the axes.
+     */
+    XYAXES("XYAxes"),
+    /**
      * Do not track the mouse.
      */
     NONE("None");
