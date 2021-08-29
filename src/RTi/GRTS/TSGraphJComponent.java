@@ -1553,7 +1553,7 @@ public void drawDrawingAreas ()
 }
 
 // TODO sam 2017-03-03 could move this to the TSGraphJComponentGlassPane class if suitable
-// accessor methods were in place to get data out of TSGraphJComponent
+// accessor methods were in place to get data out of TSGraphJComponent.
 /**
  * Draw the mouse tracker.
  * Currently the focus is to draw the glass pane tracker here but may put in the tracker data and draw elsewhere.
@@ -1563,12 +1563,12 @@ public void drawDrawingAreas ()
  * @param devy device (JComponent) pixel coordinate (0=top edge) of mouse motion
  */
 protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D g, int devx, int devy ) {
-	// Only track if requested to do so
+	// Only track if requested to do so.
 	TSGraphMouseTrackerType trackerType = glassPane.getMouseTrackerType();
 	if ( trackerType == TSGraphMouseTrackerType.NONE ) {
 		return;
 	}
-	// Recreate drawing areas for the glass pane consistent with this component.
+	// Recreate drawing areas for the glass pane consistent with this component:
 	// - Only the drawing areas for the graphs are needed
 	// - This is perhaps inefficient but ensures agreement with this class, in particular if the
 	//   graph has resized or been split, etc.
@@ -1578,7 +1578,8 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 	// TODO sam 2017-03-03 figure out where to create the drawing areas so they are recreated each time this method is called
 	for ( int itsgraph = 1; itsgraph <= _tsgraphs.size(); itsgraph++ ) {
 		TSGraph tsgraph = _tsgraphs.get(itsgraph - 1);
-		// Left y-axis drawing area
+		// Left y-axis drawing area:
+		// - give it a name GraphNum.LeftDaName
 		GRJComponentDrawingArea da = new GRJComponentDrawingArea ( glassPane,
 			"" + itsgraph + "." + tsgraph.getLeftYAxisGraphDrawingArea().getName(),
 			GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null );
@@ -1586,7 +1587,7 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 		da.setDrawingLimits(new GRLimits(tsgraph.getLeftYAxisGraphDrawingArea().getDrawingLimits()),GRUnits.DEVICE, GRLimits.DEVICE);
 		GRDrawingAreaUtil.setAxes(da, tsgraph.getLeftYAxisGraphDrawingArea().getXAxisType(), tsgraph.getLeftYAxisGraphDrawingArea().getYAxisType());
 		glassPane.addDrawingArea(da, true);
-		// Right y-axis drawing area
+		// Right y-axis drawing area.
 		if ( tsgraph.getRightYAxisGraphDrawingArea() != null ) {
 			da = new GRJComponentDrawingArea ( glassPane,
 				"" + itsgraph + "." + tsgraph.getRightYAxisGraphDrawingArea().getName(),
@@ -1597,29 +1598,31 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 			glassPane.addDrawingArea(da, true);
 		}
 	}
-	// Loop through TSGraph and see if the device point fits in the area.
-	// If so, draw it according to mouse tracker rules.
+	// Loop through TSGraph and see if the device point fits in the drawing area.
+	// If so, draw the tracker on the glass pane according to mouse tracker rules.
 	int itsgraph = -1;
-	TSData tsdata = null; // Data point extracted from time series
-	int devHeight = this.getHeight(); // Device units need to be transformed since graphics uses y=0 at top
-	boolean drawTrackerLine = false; // Only draw when in graph type that supports tracker
+	TSData tsdata = null; // Data point extracted from time series.
+	int devHeight = this.getHeight(); // Device units need to be transformed since graphics uses y=0 at top.
+	boolean drawTrackerLine = false; // Only draw when in graph type that supports tracker.
 	for ( TSGraph tsgraph : _tsgraphs ) {
 		++itsgraph;
 		GRDrawingArea daLeftYAxisGraph = tsgraph.getLeftYAxisGraphDrawingArea();
 		GRDrawingArea daRightYAxisGraph = tsgraph.getRightYAxisGraphDrawingArea();
 		TSGraphType leftYAxisGraphType = tsgraph.getLeftYAxisGraphType();
 		TSGraphType rightYAxisGraphType = tsgraph.getRightYAxisGraphType();
-		// Loop through a list of the left and/or right y-axis drawing areas, maximum of 2 in the list
-		List<GRDrawingArea> daGraphList = new ArrayList<GRDrawingArea>();
+		// Loop through a list of the left and/or right y-axis drawing areas, maximum of 2 in the list.
+		List<GRDrawingArea> daGraphList = new ArrayList<>();
 		// Currently can only handle graph types that are one of the following because additional
 		// logic would be needed to handle the plotting positions of other graph types:
 		// - Line
 		// - Area
 		// - Bar
 		// - Point
+		// - Raster (only on left Y axis)
 		if ( daLeftYAxisGraph != null ) {
 			if ( (leftYAxisGraphType == TSGraphType.AREA) || (leftYAxisGraphType == TSGraphType.BAR)
-				|| (leftYAxisGraphType == TSGraphType.LINE) || (leftYAxisGraphType == TSGraphType.POINT) ) {
+				|| (leftYAxisGraphType == TSGraphType.LINE) || (leftYAxisGraphType == TSGraphType.POINT) ||
+				(leftYAxisGraphType == TSGraphType.RASTER) ) {
 				daGraphList.add(daLeftYAxisGraph);
 				drawTrackerLine = true;
 			}
@@ -1631,9 +1634,18 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 				drawTrackerLine = true;
 			}
 		}
-		// The following are used to indicate the nearest point to the mouse
-		// -sized for the number of time series on the axis being processed
-		// -left and right axis are processed separately
+		if ( leftYAxisGraphType == TSGraphType.RASTER ) {
+			// Raster tracker.  No reason for all the logic below.
+			GRLimits daDrawLimits = daLeftYAxisGraph.getDrawingLimits();
+			if ( daDrawLimits.contains(devx, (devHeight - devy)) ) {
+				// Only draw the tracker if the mouse is inside the graphing area.
+				drawMouseTrackerCrossHairs ( glassPane, g, daGraphList, devx, devy );
+			}
+			return;
+		}
+		// The following are used to indicate the nearest point to the mouse:
+		// - sized for the number of time series on the axis being processed
+		// - left and right axis are processed separately
 		List<Double> distNearestList = null;
 		List<TSData> tsdataNearestList = null;
 		List<TS> tsNearestList = null;
@@ -1642,15 +1654,15 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 		List<TSGraph> graphNearestList = null;
 		List<Integer> itsgraphNearestList = null;
 		for ( GRDrawingArea daGraph : daGraphList ) {
-			List<TS> tsForAxis = new ArrayList<TS>();
+			List<TS> tsForAxis = new ArrayList<>();
 			if ( daGraph == daLeftYAxisGraph ) {
-				// Include left axis
+				// Include left axis.
 				boolean includeLeftYAxis = true;
 				boolean includeRightYAxis = false;
 				tsForAxis = tsgraph.getEnabledTSList(includeLeftYAxis, includeRightYAxis);
 			}
 			else if ( daGraph == daRightYAxisGraph ) {
-				// Include right axis
+				// Include right axis.
 				boolean includeLeftYAxis = false;
 				boolean includeRightYAxis = true;
 				tsForAxis = tsgraph.getEnabledTSList(includeLeftYAxis, includeRightYAxis);
@@ -1658,13 +1670,13 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 			if ( (trackerType == TSGraphMouseTrackerType.NEAREST_TIME)
 				|| (trackerType == TSGraphMouseTrackerType.NEAREST_TIME_SELECTED) ) {
 				// Reset the lists because time series are tracked on each axis.
-				distNearestList = new ArrayList<Double>(tsForAxis.size());
-				tsdataNearestList = new ArrayList<TSData>(tsForAxis.size());
-				tsNearestList = new ArrayList<TS>(tsForAxis.size());
-				dtNearestList = new ArrayList<DateTime>(tsForAxis.size());
-				daGraphNearestList = new ArrayList<GRDrawingArea>(tsForAxis.size());
-				graphNearestList = new ArrayList<TSGraph>(tsForAxis.size());
-				itsgraphNearestList = new ArrayList<Integer>(tsForAxis.size());
+				distNearestList = new ArrayList<>(tsForAxis.size());
+				tsdataNearestList = new ArrayList<>(tsForAxis.size());
+				tsNearestList = new ArrayList<>(tsForAxis.size());
+				dtNearestList = new ArrayList<>(tsForAxis.size());
+				daGraphNearestList = new ArrayList<>(tsForAxis.size());
+				graphNearestList = new ArrayList<>(tsForAxis.size());
+				itsgraphNearestList = new ArrayList<>(tsForAxis.size());
 				for ( int i = 0; i < tsForAxis.size(); i++ ) {
 					distNearestList.add(null);
 					tsdataNearestList.add(null);
@@ -1673,7 +1685,7 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 					daGraphNearestList.add(null);
 					graphNearestList.add(null);
 					itsgraphNearestList.add(null);
-					// Set the instances to null
+					// Set the instances to null.
 				}
 			}
 			GRLimits daDrawLimits = daGraph.getDrawingLimits();
@@ -1682,34 +1694,34 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 			if ( (trackerType == TSGraphMouseTrackerType.NEAREST)
 				|| (trackerType == TSGraphMouseTrackerType.NEAREST_SELECTED) ) {
 				if ( daDrawLimits.contains(devx, (devHeight - devy)) ) {
-					// Must contain X and Y coordinate
+					// Must contain X and Y coordinate.
 					doDraw = true;
 				}
 			}
 			else if ( (trackerType == TSGraphMouseTrackerType.NEAREST_TIME)
 				|| (trackerType == TSGraphMouseTrackerType.NEAREST_TIME_SELECTED) ) {
-				// Only needs to contain X coordinate
+				// Only needs to contain X coordinate.
 				if ( daDrawLimits.containsX(devx) ) {
 					doDraw = true;
 				}
 			}
 			if ( drawTrackerLine && doDraw ) {
-				// Mouse coordinates are in the drawing area so draw a line vertically at the point where mouse is
+				// Mouse coordinates are in the drawing area so draw a line vertically at the point where mouse is.
 				g.setColor(Color.gray);
 				g.drawLine(devx,(devHeight-(int)daDrawLimits.getBottomY()),devx,(devHeight-(int)daDrawLimits.getTopY()));
-				// Loop through the time series and get the data closest to the horizontal coordinate
-				// First back-calculate the data x-coordinate (date) so it can be used to look up time series values
+				// Loop through the time series and get the data closest to the horizontal coordinate.
+				// First back-calculate the data x-coordinate (date) so it can be used to look up time series values.
 				GRPoint datapt = daGraph.getDataXY( devx, devy, GRDrawingArea.COORD_DEVICE );
 				// The X coordinate is a floating-point representation of the date/time
 				DateTime dt = new DateTime(datapt.getX(),true);
 				//System.out.println("Mouse date/time=" + dt);
-				// Loop through the time series and find the point that is nearest to the mouse
+				// Loop through the time series and find the point that is nearest to the mouse.
 				// To make this behave well, adjust the search period to align with time series interval and bracket the point.
 				// -Add several intervals each direction if finding nearest point because a rapid jump in the time series
 				//  could lead to not finding the point
 				int its = -1;
 				for ( TS ts : tsForAxis ) {
-					++its; // Always increment because array/list positions are important (don't "continue" before this)
+					++its; // Always increment because array/list positions are important (don't "continue" before this).
 					if ( (ts == null) || (ts.getDate1() == null) ) {
 						// Time series has no data.
 						continue;
@@ -1717,15 +1729,15 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 					if ( ((trackerType == TSGraphMouseTrackerType.NEAREST_SELECTED)
 						|| (trackerType == TSGraphMouseTrackerType.NEAREST_TIME_SELECTED))
 						&& !tsgraph.isTimeSeriesSelected(ts) ) {
-						// Only time series that are selected should be considered
+						// Only time series that are selected should be considered.
 						continue;
 					}
 					int intervalBase = ts.getDataIntervalBase();
 					int intervalMult = ts.getDataIntervalMult();
-					DateTime searchStart = new DateTime(dt); // These will be adjusted below to set a search window
+					DateTime searchStart = new DateTime(dt); // These will be adjusted below to set a search window.
 					DateTime searchEnd = new DateTime(dt);
 					if ( TimeInterval.isRegularInterval(ts.getDataIntervalBase()) ) {
-						// Regular interval time series
+						// Regular interval time series.
 						searchStart.round(-1, intervalBase, intervalMult );
 						searchStart.setPrecision ( ts.getDate1().getPrecision() );
 						// N-hour interval where there is a time zone offset can be problematic,
@@ -1751,13 +1763,13 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 						}
 						if ( (trackerType == TSGraphMouseTrackerType.NEAREST)
 							|| (trackerType == TSGraphMouseTrackerType.NEAREST_SELECTED) ) {
-							// Extend the search window on each side a few intervals to try to match rapid jump
+							// Extend the search window on each side a few intervals to try to match rapid jump.
 							searchStart.addInterval(intervalBase, -10*intervalMult);
 							searchEnd.addInterval(intervalBase, 10*intervalMult);
 						}
 					}
 					else {
-						// Irregular interval time series
+						// Irregular interval time series.
 						// Find the nearest DateTime in the irregular time series and then expand the search window around that,
 						// 2 data points on each side.
 						IrregularTS irrts = (IrregularTS)ts;
@@ -1779,32 +1791,32 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 						searchEnd = new DateTime(tsdataIrr2.getDate());
 						if ( (trackerType == TSGraphMouseTrackerType.NEAREST)
 							|| (trackerType == TSGraphMouseTrackerType.NEAREST_SELECTED) ) {
-							// Extend the search window on each side a few intervals to try to match rapid jump
-							// TODO sam 2017-04-22 need to find a way to iterate back without being a performance hit
+							// Extend the search window on each side a few intervals to try to match rapid jump.
+							// TODO sam 2017-04-22 need to find a way to iterate back without being a performance hit.
 						}
 					}
-					// Calculate the distance between the mouse and search start and end, for non-missing values
-					// Check the starting bounding value
+					// Calculate the distance between the mouse and search start and end, for non-missing values.
+					// Check the starting bounding value.
 					//System.out.println("Searching for point xdev=" + devx + " , ydev=" + devy + " in range " + searchStart + " to " + searchEnd );
 					TSIterator tsi = null;
 					try {
 						tsi = ts.iterator(searchStart, searchEnd);
 					}
 					catch ( Exception e ) {
-						// Skip the time series
+						// Skip the time series.
 						continue;
 					}
 					DateTime searchTime;
 					for ( ; (tsdata = tsi.next()) != null; ) {
 					//for ( DateTime searchTime = new DateTime(searchStart); searchTime.lessThanOrEqualTo(searchEnd);
-						//searchTime.addInterval(ts.getDataIntervalBase(),ts.getDataIntervalMult())) {
+						//searchTime.addInterval(ts.getDataIntervalBase(),ts.getDataIntervalMult())) { }
 						//tsdata = ts.getDataPoint(searchTime, null);
 						searchTime = tsdata.getDate();
 						double tsvalue = tsdata.getDataValue();
 						double xSearchTime = searchTime.toDouble();
-						// Only consider non-missing points in the graph drawing area
+						// Only consider non-missing points in the graph drawing area.
 						if ( !ts.isDataMissing(tsvalue) && daDataLimits.containsX(xSearchTime)) {
-							// Finding the closest point uses device (pixel) units
+							// Finding the closest point uses device (pixel) units:
 							// - y axis in pixels is measured from top down
 							double xDiff = devx - daGraph.scaleXData(xSearchTime);
 							double tsValueAsPixel = daGraph.scaleYData(tsvalue);
@@ -1818,30 +1830,30 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 							//Message.printStatus(2, "", "searchTime=" + searchTime + " tsvalue=" + tsvalue +
 							//	" devx=" + devx + " timeAsX=" + daGraph.scaleXData(xSearchTime) +
 							//	" devy=" + devy + " tsValueAsPixel0=" + tsValueAsPixel0 + " tsValueAsPixel=" + tsValueAsPixel + " xDiff="+xDiff + " yDiff="+yDiff + " dist=" + dist );//+ " TrackerType=" + trackerType + " daGraph=" + daGraph.getName());
-							// Make copies of objects when new nearest is found so original instances won't be used (they are dynamic)
+							// Make copies of objects when new nearest is found so original instances won't be used (they are dynamic).
 							if ( (trackerType == TSGraphMouseTrackerType.NEAREST)
 								|| (trackerType == TSGraphMouseTrackerType.NEAREST_SELECTED) ) {
-								// Only the single nearest point is drawn (multiple axes and graphs can't draw because only one can be nearest)
+								// Only the single nearest point is drawn (multiple axes and graphs can't draw because only one can be nearest).
 								if ( distNearestList == null ) {
 									// First instance and only 0-index instance will be compared.
-									distNearestList = new ArrayList<Double>();
+									distNearestList = new ArrayList<>();
 									distNearestList.add(new Double(dist));
-									tsdataNearestList = new ArrayList<TSData>();
+									tsdataNearestList = new ArrayList<>();
 									tsdataNearestList.add(new TSData(tsdata));
-									tsNearestList = new ArrayList<TS>();
+									tsNearestList = new ArrayList<>();
 									tsNearestList.add(ts);
-									dtNearestList = new ArrayList<DateTime>();
+									dtNearestList = new ArrayList<>();
 									dtNearestList.add(new DateTime(searchTime));
-									daGraphNearestList = new ArrayList<GRDrawingArea>();
+									daGraphNearestList = new ArrayList<>();
 									daGraphNearestList.add(daGraph);
-									graphNearestList = new ArrayList<TSGraph>();
+									graphNearestList = new ArrayList<>();
 									graphNearestList.add(tsgraph);
-									itsgraphNearestList = new ArrayList<Integer>();
+									itsgraphNearestList = new ArrayList<>();
 									itsgraphNearestList.add(itsgraph);
 								}
 								else if ( dist < distNearestList.get(0) ) {
-									// Don't care which time series or axis - find closest
-									// Found a closer point so save its data by replacing the previously-added value
+									// Don't care which time series or axis - find closest.
+									// Found a closer point so save its data by replacing the previously-added value.
 									distNearestList.set(0,new Double(dist));
 									tsdataNearestList.set(0,new TSData(tsdata));
 									tsNearestList.set(0,ts);
@@ -1854,9 +1866,9 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 							}
 							else if ( (trackerType == TSGraphMouseTrackerType.NEAREST_TIME)
 								|| (trackerType == TSGraphMouseTrackerType.NEAREST_TIME_SELECTED)) {
-								// Nearest point to time for each time series
+								// Nearest point to time for each time series.
 								if ( (distNearestList.get(its) == null) || (dist < (distNearestList.get(its))) ) {
-									// Found a closer point for the specific time series so save its data
+									// Found a closer point for the specific time series so save its data.
 									distNearestList.set(its,new Double(dist));
 									tsdataNearestList.set(its,new TSData(tsdata));
 									tsNearestList.set(its,ts);
@@ -1872,7 +1884,7 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 			}
 			if ( (trackerType == TSGraphMouseTrackerType.NEAREST_TIME)
 				|| (trackerType == TSGraphMouseTrackerType.NEAREST_TIME_SELECTED) ) {
-				// Drawing nearest for all time series so draw for the drawing area
+				// Drawing nearest for all time series so draw for the drawing area:
 				// - lists will be sized for the number of time series in the drawing area
 				drawMouseTrackerPoints ( glassPane,
 					distNearestList, tsNearestList, dtNearestList,
@@ -1881,13 +1893,58 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 		}
 		if ( (trackerType == TSGraphMouseTrackerType.NEAREST)
 			|| (trackerType == TSGraphMouseTrackerType.NEAREST_SELECTED)) {
-			// Drawing nearest time series point(s), which could be a time series in left or right y-axis graph
+			// Drawing nearest time series point(s), which could be a time series in left or right y-axis graph:
 			// - lists will only have one item
 			drawMouseTrackerPoints ( glassPane,
 				distNearestList, tsNearestList, dtNearestList,
 				tsdataNearestList, daGraphNearestList, itsgraphNearestList);
 		}
-	} // End TSGraphs loop - will be either left, right, or left and right drawing areas for TSProduct graph
+	} // End TSGraphs loop - will be either left, right, or left and right drawing areas for TSProduct graph.
+}
+
+/**
+ * Draw the mouse tracker as cross-hairs that extend to each axis.
+ * In the future may allow control for only using one axis or other crosshair behavior.
+ * @param glassPane the glass pane on which to draw
+ * @param g Graphics2D for drawing
+ * @param daGraphList list of drawing areas to draw in (known to contain the point)
+ * @param devx device (JComponent) pixel coordinate (0=left edge) of mouse motion
+ * @param devy device (JComponent) pixel coordinate (0=top edge) of mouse motion
+ */
+private void drawMouseTrackerCrossHairs ( TSGraphJComponentGlassPane glassPane, Graphics2D g,
+	List<GRDrawingArea> daGraphList, int devx, int devy ) {
+	// Draw using drawing area corresponding to the graph drawing area
+	// - note that TSGraph index is 1-offset to match TSProduct conventions
+	// For now this is being used only for raster so draw in the first drawing area.
+	GRDrawingArea da0 = daGraphList.get(0);
+	String daName = "1." + da0.getName();
+	Message.printStatus(2,"", "daName=" + daName);
+	GRDrawingArea da = glassPane.getDrawingArea(daName);
+	if ( da == null ) {
+		// Should not happen
+		//Message.printStatus(2,"", "Unable to find drawing area \"" + daName + "\"");
+		//System.out.println("Unable to find drawing area \"" + daName + "\"");
+	}
+	else {
+		//System.out.println("Drawing tracker in DA \"" + daName + "\" at " + dtNearest + ", " + tsdataNearest.getDataValue());
+		//System.out.println("DA data limits: " + da.getDataLimits());
+		//System.out.println("DA drawing limits: " + da.getDrawingLimits());
+		GRLimits daDrawLimits = da.getDrawingLimits();
+		int devHeight = this.getHeight(); // Device units need to be transformed since graphics uses y=0 at top.
+	    // Vertical line.
+		g.setColor(Color.gray);
+		g.drawLine(
+			devx,
+			(devHeight - (int)daDrawLimits.getBottomY()),
+			devx,
+			(devHeight - (int)daDrawLimits.getTopY()));
+	    // Horizontal line.
+		g.drawLine(
+			(int)daDrawLimits.getLeftX(),
+			devy,
+			(int)daDrawLimits.getRightX(),
+			devy);
+	}
 }
 
 /**
@@ -2176,6 +2233,24 @@ Indicate whether this component is currently printing.
 */
 public boolean isPrinting ()
 {	return _printing;
+}
+
+/**
+ * Indicate whether this component contains a raster graph.
+ * Currently TSTool only allows one raster graph so can do this check.
+ * This will need to be revisited in the future if raster graphs can be mixed with other graphs on a product page.
+ */
+public boolean isRasterGraph() {
+	List<TSGraph> tsgraphs = getTSGraphs();
+	boolean isRaster = false;
+	for ( TSGraph tsgraph : tsgraphs ) {
+		// If any are raster, return true.
+		if ( tsgraph.getLeftYAxisGraphType() == TSGraphType.RASTER ) {
+			isRaster = true;
+			break;
+		}
+	}
+	return isRaster;
 }
 
 /**

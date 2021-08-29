@@ -1212,13 +1212,14 @@ not a property to set the line color).</td>
 
 <tr>
 <td><b>SymbolSize</b></td>
-<td>Symbol size in pixels.</td>
+<td>Symbol size in pixels when a single symbol is used.</td>
 <td>0 (no symbol)</td>
 </tr>
 
 <tr>
 <td><b>SymbolStyle</b></td>
-<td>Symbol style.  Symbols are defined in the GRSymbol class.
+<td>Symbol style when a single symbol is used.
+Symbols are defined in the GRSymbol class.
 Recognized symbols are:
 <ul>
 <li>	None</li>
@@ -1237,6 +1238,12 @@ Recognized symbols are:
 </ul>
 </td>
 <td>None</td>
+</tr>
+
+<tr>
+<td><b>SymbolTablePath</b></td>
+<td>Path to a file containing a symbol table.</td>
+<td>No symbol table is used.</td>
 </tr>
 
 <tr>
@@ -1557,6 +1564,10 @@ public void checkAnnotationProperties(int isub, int iann) {
 		if (getLayeredPropValue("SymbolSize", isub, iann, false, true) == null) {
 		    setPropValue("SymbolSize", getDefaultPropValue("SymbolSize", isub, iann, true), isub, iann, true);
 		}
+
+		if (getLayeredPropValue("SymbolTablePath", isub, iann, false, true) == null) {
+		    setPropValue("SymbolTablePath", getDefaultPropValue("SymbolTablePath", isub, iann, true), isub, iann, true);
+		}
 	}
 }
 
@@ -1614,6 +1625,13 @@ public void checkDataProperties(int isub, int its) {
 	    // Point graphs are required to have a symbol
 		if (getLayeredPropValue("SymbolStyle",isub,its,false) == null) {
 			setPropValue("SymbolStyle",	TSGraphJComponent.lookupTSSymbol(its),isub, its);
+		}
+	}
+
+	if (graphType == TSGraphType.RASTER) {
+	    // Raster graphs use a symbol table to define value ranges and corresponding color, etc.
+		if (getLayeredPropValue("SymbolTablePath",isub,its,false) == null) {
+			setPropValue("SymbolTablePath",	"", isub, its);
 		}
 	}
 
@@ -1715,6 +1733,10 @@ public void checkDataProperties(int isub, int its) {
 
 	if (getLayeredPropValue("SymbolStyle", isub, its, false) == null) {
 		setPropValue("SymbolStyle",getDefaultPropValue("SymbolStyle", isub,its,false,graphType),isub, its);
+	}
+
+	if (getLayeredPropValue("SymbolTablePath", isub, its, false) == null) {
+		setPropValue("SymbolTablePath",getDefaultPropValue("SymbolTablePath", isub,its,false,graphType),isub, its);
 	}
 
 	if ( getLayeredPropValue ( "TSAlias", isub, its, false ) == null ) {
@@ -2634,6 +2656,9 @@ boolean isAnnotation, TSGraphType graphType) {
 		else if (param.equalsIgnoreCase("SymbolPosition")) {
 			return "Center";
 		}
+		else if (param.equalsIgnoreCase("SymbolTablePath")) {
+			return "";
+		}
 		return null;
 	}
 
@@ -3101,6 +3126,9 @@ boolean isAnnotation, TSGraphType graphType) {
 			else {
 				return "None";
 			}
+		}
+		else if ( param.equalsIgnoreCase("SymbolTablePath") ){
+			return "";
 		}
 		else if ( param.equalsIgnoreCase("TSAlias") ){
 			return "";
@@ -4618,7 +4646,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 			}
 		}
 
-		// Now write the annotations
+		// Now write the annotations.
 		int nann = getNumAnnotations(isub);
 		for (int iann = 0; iann < nann; iann++) {
 			vdata = __proplist.getPropsMatchingRegExp("Annotation " + (isub + 1) + "." + (iann + 1) + ".*");
