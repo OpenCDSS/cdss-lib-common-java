@@ -133,11 +133,15 @@ public class GRSymbolTableRow {
 		parseLimit(maxValueFullString, 1);
 		if ( (color != null) && !color.isEmpty() ) {
 			this.color = GRColor.parseColor(color);
-			Message.printStatus(2,"","Parsed color is: " + this.color.toHex(true));
+			if ( Message.isDebugOn ) {
+				Message.printStatus(2,"","Parsed color is: " + this.color.toHex(true));
+			}
 		}
 		if ( (fillColor != null) && !fillColor.isEmpty() ) {
 			this.fillColor = GRColor.parseColor(fillColor);
-			Message.printStatus(2,"","Parsed fillColor is: " + this.fillColor.toHex(true));
+			if ( Message.isDebugOn ) {
+				Message.printStatus(2,"","Parsed fillColor is: " + this.fillColor.toHex(true));
+			}
 		}
 		this.opacity = opacity;
 		this.fillOpacity = fillOpacity;
@@ -208,7 +212,9 @@ public class GRSymbolTableRow {
 	private void parseLimit ( String limitValueString, int whichEnd ) {
 		limitValueString = limitValueString.trim();
 		if ( limitValueString.equalsIgnoreCase("NoData") ) {
-			Message.printStatus(2,"","Parsed NoData row.");
+			if ( Message.isDebugOn ) {
+				Message.printStatus(2,"","Parsed NoData row.");
+			}
 			if ( !this.isNoDataRow ) {
 				// Do this to ensure that a single NoData value indicates the row is NoData.
 				this.isNoDataRow = true;
@@ -216,18 +222,24 @@ public class GRSymbolTableRow {
 		}
 		else if ( whichEnd == -1 ) {
 			if ( limitValueString.equalsIgnoreCase("-Infinity") ) {
-				Message.printStatus(2,"","Parsed -Infinity row.");
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2,"","Parsed -Infinity row.");
+				}
 				this.valueMinIsNegativeInfinity = true;
 			}
 			else if ( limitValueString.startsWith(">=") ) {
 				this.valueMinOperator = GE;
 				this.valueMinDouble = Double.parseDouble(limitValueString.substring(2).trim());
-				Message.printStatus(2,"","Parsed min value GE row.");
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2,"","Parsed min value GE row.");
+				}
 			}
 			else if ( limitValueString.startsWith(">") ) {
 				this.valueMinOperator = GT;
 				this.valueMinDouble = Double.parseDouble(limitValueString.substring(1).trim());
-				Message.printStatus(2,"","Parsed min value GT row.");
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2,"","Parsed min value GT row.");
+				}
 			}
 			else {
 				// TODO smalers 2021-08-27 need to figure out the best exception.
@@ -236,18 +248,24 @@ public class GRSymbolTableRow {
 		}
 		else if ( whichEnd == 1 ) {
 			if ( limitValueString.equalsIgnoreCase("Infinity") ) {
-				Message.printStatus(2,"","Parsed Infinity row.");
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2,"","Parsed Infinity row.");
+				}
 				this.valueMaxIsInfinity = true;
 			}
 			else if ( limitValueString.startsWith("<=") ) {
 				this.valueMaxOperator = LE;
 				this.valueMaxDouble = Double.parseDouble(limitValueString.substring(2).trim());
-				Message.printStatus(2,"","Parsed max value LE row.");
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2,"","Parsed max value LE row.");
+				}
 			}
 			else if ( limitValueString.startsWith("<") ) {
 				this.valueMaxOperator = LT;
 				this.valueMaxDouble = Double.parseDouble(limitValueString.substring(1).trim());
-				Message.printStatus(2,"","Parsed max value LT row.");
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2,"","Parsed max value LT row.");
+				}
 			}
 			else {
 				// TODO smalers 2021-08-27 need to figure out the best exception.

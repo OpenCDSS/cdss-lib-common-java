@@ -112,6 +112,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 
+import RTi.GR.GRColorRampType;
 import RTi.GR.GRColorTable;
 import RTi.GR.GRLegend;
 import RTi.GR.GRScaledClassificationSymbol;
@@ -1185,8 +1186,7 @@ private void setupGUI() {
 		JComboBox<String>_color_tableJComboBox = new JComboBox<String>();
 		_color_tableJComboBox.setEnabled ( false );
 		GRColorTable color_table = symbol.getColorTable();
-		JGUIUtil.addToJComboBox ( _color_tableJComboBox,
-			GRColorTable.COLOR_TABLE_NAMES );
+		JGUIUtil.addToJComboBox ( _color_tableJComboBox, GRColorRampType.getDisplayNames() );
 		if ( color_table != null ) {
 			_color_tableJComboBox.setSelectedItem( color_table.getName());
 		}

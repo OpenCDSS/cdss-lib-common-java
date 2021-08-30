@@ -51,46 +51,49 @@ extends Vector<GRColor>
 implements Cloneable
 {
 
+// TODO smalers 2021-08-27 moved the following go GRColorRampType enumeration.
+// Remove this code when tested out.
 /**
 Gray color table.
 */
-public static final int GRAY = 0;
+//public static final int GRAY = 0;
 /**
 Blue to cyan color gradient.
 */
-public static final int BLUE_TO_CYAN = 1;
+//public static final int BLUE_TO_CYAN = 1;
 /**
 Cyan to magenta color gradient.
 */
-public static final int BLUE_TO_MAGENTA = 2;
+//public static final int BLUE_TO_MAGENTA = 2;
 /**
 Blue to red color gradient.
 */
-public static final int BLUE_TO_RED = 3;
+//public static final int BLUE_TO_RED = 3;
 /**
 Cyan to yellow color gradient.
 */
-public static final int CYAN_TO_YELLOW = 4;
+//public static final int CYAN_TO_YELLOW = 4;
 /**
 Magenta to cyan color gradient.
 */
-public static final int MAGENTA_TO_CYAN = 5;
+//public static final int MAGENTA_TO_CYAN = 5;
 /**
 Magenta to red color gradient.
 */
-public static final int MAGENTA_TO_RED = 6;
+//public static final int MAGENTA_TO_RED = 6;
 /**
 Yellow to magenta color gradient.
 */
-public static final int YELLOW_TO_MAGENTA = 7;
+//public static final int YELLOW_TO_MAGENTA = 7;
 /**
 Yellow to red color gradient.
 */
-public static final int YELLOW_TO_RED = 8;
+//public static final int YELLOW_TO_RED = 8;
 
 /**
 Color table names.
 */
+/*
 public static String[] COLOR_TABLE_NAMES = {
     "Gray",
 	"BlueToCyan",
@@ -101,6 +104,7 @@ public static String[] COLOR_TABLE_NAMES = {
 	"MagentaToRed",
 	"YellowToMagenta",
 	"YellowToRed" };
+	*/
 
 /**
 Name for the color table.  Use this, for example if the color table is
@@ -153,18 +157,16 @@ public Object clone() {
 Create a color table using one of the standard GR named color tables.
 Null is returned if the color table name does not match a known name.
 See the overloaded method for more information.
-@param table_name Color table name (see COLOR_TABLE_NAME.*).
+@param rampName Color ramp name (see GRColorRampType).
 @param ncolors	Number of colors to be in color table.
-@param rflag Indicates whether colors should be reversed (true) or left
-in the initial order (0) (this feature makes it so only one versions of each
-standard table is defined).
+@param rflag Indicates whether colors should be reversed (true) or left in the initial order (0)
+(this feature makes it so only one versions of each standard table is defined).
 @return a new GRColorTable for the table name, or null if unable to match the color table name.
 */
-public static GRColorTable createColorTable ( String table_name, int ncolors, boolean rflag)
-{	for ( int i = 0; i < COLOR_TABLE_NAMES.length; i++ ) {
-		if ( COLOR_TABLE_NAMES[i].equalsIgnoreCase(table_name) ) {
-			return createColorTable ( i, ncolors, rflag );
-		}
+public static GRColorTable createColorTable ( String rampName, int ncolors, boolean rflag)
+{	GRColorRampType rampType = GRColorRampType.valueOfIgnoreCase(rampName);
+	if ( rampType != null ) {
+		return createColorTable ( rampType, ncolors, rflag );
 	}
 	return null;
 }
@@ -185,13 +187,13 @@ cases, skip the next blend operation (only assign the main color in the section
 and go on to the next.  This generally occurs when the number of colors
 requested is &gt;5 but still low enough that integer math can result in some
 stretches of the table being ignored.
-@param table_num Color table to be used (e.g., GRColorTable.GRAY).
+@param rampType Color ramp type be used.
 @param ncolors	Number of colors to be in color table.
 @param rflag Indicates whether colors should be reversed (true) or left
-in the initial order (0) (this feature makes it so only one versions of each standard table is defined).
+in the initial order (false) (this feature makes it so only one versions of each standard table is defined).
 @return GRColorTable with number of requested colors or null if not able to create the color table.
 */
-public static GRColorTable createColorTable ( int table_num, int ncolors, boolean rflag)
+public static GRColorTable createColorTable ( GRColorRampType rampType, int ncolors, boolean rflag)
 {	double drgb; // Color increment to be applied when varying shades.
 	double r[] = null;
 	double g[] = null;
@@ -204,8 +206,8 @@ public static GRColorTable createColorTable ( int table_num, int ncolors, boolea
 	r = new double[ncolors];
 	g = new double[ncolors];
 	b = new double[ncolors];
-	if  ( table_num == MAGENTA_TO_CYAN ) {
-		// Magenta to blue to cyan...
+	if  ( rampType == GRColorRampType.MAGENTA_TO_CYAN ) {
+		// Magenta to blue to cyan.
 		r[0] = 1.0;
 		g[0] = 0.0;	// magenta
 		b[0] = 1.0;
@@ -230,7 +232,7 @@ public static GRColorTable createColorTable ( int table_num, int ncolors, boolea
 			} // cyan
 		}
 	}
-	else if ( table_num == BLUE_TO_CYAN ) {
+	else if ( rampType == GRColorRampType.BLUE_TO_CYAN ) {
 		// blue to cyan
 		r[0] = 0.0;
 		g[0] = 0.0;	// blue
@@ -246,7 +248,7 @@ public static GRColorTable createColorTable ( int table_num, int ncolors, boolea
 			}	// cyan
 		}
 	}
-	else if ( table_num == CYAN_TO_YELLOW ) {
+	else if ( rampType == GRColorRampType.CYAN_TO_YELLOW ) {
 		// Only green hues...
 		r[0] = 0.0;
 		g[0] = 1.0;	// cyan
@@ -272,7 +274,7 @@ public static GRColorTable createColorTable ( int table_num, int ncolors, boolea
 			}	// yellow
 		}
 	}
-	else if ( table_num == YELLOW_TO_RED ) {
+	else if ( rampType == GRColorRampType.YELLOW_TO_RED ) {
 		// yellow to red...
 		r[0] = 1.0;
 		g[0] = 1.0;	// yellow
@@ -288,7 +290,7 @@ public static GRColorTable createColorTable ( int table_num, int ncolors, boolea
 			}	// red
 		}
 	}
-	else if ( table_num == YELLOW_TO_MAGENTA ) {
+	else if ( rampType == GRColorRampType.YELLOW_TO_MAGENTA ) {
 		// Only red hues
 		r[0] = 1.0;
 		g[0] = 1.0;	// yellow
@@ -314,7 +316,7 @@ public static GRColorTable createColorTable ( int table_num, int ncolors, boolea
 			}	// magenta
 		}
 	}
-	else if ( table_num == BLUE_TO_RED ) {
+	else if ( rampType == GRColorRampType.BLUE_TO_RED ) {
 		// No magenta, white, or black
 		//
 		// Set the colors manually for requests for less than
@@ -423,7 +425,7 @@ public static GRColorTable createColorTable ( int table_num, int ncolors, boolea
 			}
 		}
 	}
-	else if ( table_num == MAGENTA_TO_RED ) {
+	else if ( rampType == GRColorRampType.MAGENTA_TO_RED ) {
 		// Set the colors manually for requests for less than
 		// five colors...
 		if (	(ncolors >= 1) && (ncolors <= 4) ) {	// magenta
@@ -540,9 +542,8 @@ public static GRColorTable createColorTable ( int table_num, int ncolors, boolea
 			}
 		}
 	}
-	else if ( table_num == BLUE_TO_MAGENTA ) {
-		// Set the colors manually for requests for less than
-		// five colors...
+	else if ( rampType == GRColorRampType.BLUE_TO_MAGENTA ) {
+		// Set the colors manually for requests for less than five colors.
 		if (	(ncolors >= 1) && (ncolors <= 4) ) {	// blue
 			r[0] = 0.0;
 			g[0] = 0.0;
@@ -657,7 +658,7 @@ public static GRColorTable createColorTable ( int table_num, int ncolors, boolea
 			}
 		}
 	}
-	else if ( table_num == GRAY ) {
+	else if ( rampType == GRColorRampType.GRAY ) {
 		// Gray hues...
 		r[0] = 0.0;
 		g[0] = 0.0;
@@ -717,7 +718,7 @@ public static GRColorTable createColorTable ( int table_num, int ncolors, boolea
 		}
 		table.addColor ( new GRColor(r[i], g[i], b[i]) );
 	}
-	table.setName ( COLOR_TABLE_NAMES[table_num] );
+	table.setName ( rampType.toString() );
 	return table;
 }
 
@@ -761,11 +762,8 @@ Convert the color table integer to its string name.
 @param color_table Internal color table number.
 @return String name of color table or "Unknown" if not found.
 */
-public static String toString ( int color_table )
-{	if ( (color_table >= GRAY) && (color_table <= YELLOW_TO_RED) ) {
-		return COLOR_TABLE_NAMES[color_table];
-	}
-	return "Unknown";
+public static String toString ( GRColorRampType rampType ) {	
+	return rampType.toString();
 }
 
 }

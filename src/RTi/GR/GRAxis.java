@@ -742,6 +742,8 @@ public static double [] findLogLabels ( double xmin0, double xmax0 )
 /**
 Returns labels for a set of data (# of labels is bounded).  The values of
 "minl" and "maxl" specify the minimum and maximum acceptable number of labels.
+The internal number representation is not optimized for the number of decimal points;
+therefore, call formatLabels() if necessary.
 @param xmin0 Minimum value in data.
 @param xmax0 Maximum value in data.
 @param include_end_points true if end-points are to be used as labels.
@@ -803,11 +805,10 @@ public static double [] findNLabels ( double xmin0, double xmax0,
 
 	boolean marcio = false;
 
-// TODO (JTS - 2003-05-05) "if (marcio)" ??
-// this code should be cleaned up at the very least ...
-// Comments by SAM in re: the above:
-// Right -- Label positioning is a "science" that can always use more
-// attention.  I suspect that we will get into this more with the Swing TS View updates.  Leave for now.
+// TODO (JTS - 2003-05-05) this code should be cleaned up at the very least.
+// Comments by smalers related to the above:
+// - label positioning is a "science" that can always use more attention
+// - leave for now
 
 	if ( marcio ) {
 		GRLimits marcio_limits = chooseLabels ( xmin, xmax, minl, maxl );
@@ -982,6 +983,32 @@ TODO (JTS - 2003-05-05) can this chunk be removed? SAM: Not yet.
 	"Unable to find requested number of labels" );
 	return null;
 */
+}
+
+/**
+ * Format an array of floating point numbers as nice strings with general rules:
+ * - format most numbers as integers
+ * @param labelValues
+ * @return array of strings with nice labels, suitable for legend, etc that does not need the precision of the data
+ */
+public static String [] formatLabels ( double[] labelValues ) {
+	if ( labelValues == null ) {
+		return new String [0];
+	}
+	String [] labels = new String[labelValues.length];
+	int i = -1;
+	for ( double value : labelValues ) {
+		++i;
+		if ( Math.abs(value) < 1.0 ) {
+			labels[i] = String.format("%.1f", value );
+		}
+		else {
+			labels[i] = String.format("%.0f", value );
+		}
+	}
+	// TODO smalers 2021-08-29 need to loop through again and make sure that there are no duplicates,
+	// typically due to numbers < 0 needing more digits after the decimal point.
+	return labels;
 }
 
 // TODO X (JTS - 2003-05-05) this code is only used by marcio's limits.  If we're not using Marcio's

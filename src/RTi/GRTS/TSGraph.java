@@ -257,6 +257,8 @@ import RTi.GR.GRAspect;
 import RTi.GR.GRAxis;
 import RTi.GR.GRAxisDirectionType;
 import RTi.GR.GRColor;
+import RTi.GR.GRColorRampType;
+import RTi.GR.GRColorTable;
 import RTi.GR.GRDrawingArea;
 import RTi.GR.GRDrawingAreaUtil;
 import RTi.GR.GRJComponentDrawingArea;
@@ -739,17 +741,21 @@ Drawing area for inside legend.
 private GRJComponentDrawingArea _da_lefty_inside_legend = null;
 
 /**
-Drawing area for left y-axis bottom legend.
+Drawing area for right y-axis bottom legend.
 */
 private GRJComponentDrawingArea _da_righty_bottom_legend = null;
 /**
-Drawing area for left y-axis left legend.
+Drawing area for right y-axis left legend.
 */
 private GRJComponentDrawingArea _da_righty_left_legend = null;
 /**
-Drawing area for left y-axis right legend.
+Drawing area for right y-axis right legend.
 */
 private GRJComponentDrawingArea _da_righty_right_legend = null;
+/**
+Drawing area for right raster legend.
+*/
+private GRJComponentDrawingArea _da_right_raster_legend = null;
 /**
 Drawing area for inside legend.
 */
@@ -899,39 +905,44 @@ Drawing limits for left y-axis inside legend.
 private GRLimits _drawlim_lefty_inside_legend = null;
 
 /**
-Data limits for left y-axis bottom legend.
+Data limits for right y-axis bottom legend.
 */
 private GRLimits _datalim_righty_bottom_legend = null;
 /**
-Drawing limits for left y-axis bottom legend.
+Drawing limits for right y-axis bottom legend.
 */
 private GRLimits _drawlim_righty_bottom_legend = null;
 /**
-Data limits for left y-axis left legend.
+Data limits for right y-axis left legend.
 */
 private GRLimits _datalim_righty_left_legend = null;
 /**
-Drawing limits for left y-axis left legend.
+Drawing limits for right y-axis left legend.
 */
 private GRLimits _drawlim_righty_left_legend = null;
 /**
-Data limits for left y-axis right legend.
+Data limits for right y-axis right legend.
 */
 private GRLimits _datalim_righty_right_legend = null;
 /**
-Drawing limits for left y-axis right legend.
+Data limits for right raster legend.
+*/
+private GRLimits _datalim_right_raster_legend = null;
+private GRLimits _drawlim_right_raster_legend = null;
+/**
+Drawing limits for right y-axis right legend.
 */
 private GRLimits _drawlim_righty_right_legend = null;
 /**
-Data limits for left y-axis inside legend.
+Data limits for right y-axis inside legend.
 */
 private GRLimits _datalim_righty_inside_legend = null;
 /**
-Drawing limits for left y-axis inside legend.
+Drawing limits for right y-axis inside legend.
 */
 private GRLimits _drawlim_righty_inside_legend = null;
 
-// Dimensions for drawing areas...
+// Dimensions for drawing areas.
 
 /**
 Is the graph a reference graph?  This is set at construction by checking the display properties.
@@ -1259,7 +1270,7 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 	
 	// If necessary, read the raster symbol table.
     if ( getLeftYAxisGraphType() == TSGraphType.RASTER ) {
-		createRasterSymbolTable ();
+		this.rasterSymbolTable = createRasterSymbolTable ( __tslist );
 	}
 	
 	if ( !_is_reference_graph ) {
@@ -3481,18 +3492,43 @@ private void computeXAxisDatePrecision ()
  * Create the symbol table used to defined the colors for a raster graph.
  * This should be called when a raster graph is created.
  * The symbol table is saved to this.rasterSymbolTable.
+ * @param tslist list of time series for the product
+ * @return GRSymbolTable (may be empty if no suitable time series are available)
  */
-private void createRasterSymbolTable () {
+private GRSymbolTable createRasterSymbolTable ( List<TS> tslist ) {
 	String routine = getClass().getSimpleName() + ".createRasterSymbolTable";
+	GRSymbolTable symtable = null;
     // - currently only one time series is allowed for a raster graph
 	String propValue = _tsproduct.getLayeredPropValue ( "SymbolTablePath", _subproduct, 0, false);
+
+	// Find the time series.  This code matches drawGraphRaster().
+	TS ts = null;
+    for ( int its = 0; its < tslist.size(); its++ ) {
+        ts = tslist.get(its);
+        int dataInterval = ts.getDataIntervalBase();
+        int dataMult = ts.getDataIntervalMult();
+        if ( (dataInterval != TimeInterval.DAY) && (dataInterval != TimeInterval.MONTH) ) {
+        	Message.printWarning(3, routine, "Raster graphs are only supported for 1Day and 1Month intervals.");
+        	continue;
+        }
+        if ( dataMult != 1 ) {
+        	// Not supported
+        	Message.printWarning(3, routine, "Raster graphs are only supported for 1Day and 1Month intervals.");
+        	continue;
+        }
+        if ( ts != null ) {
+        	// Found an acceptable time series.
+            break;
+        }
+    }
+
 	if ( (propValue != null) && !propValue.isEmpty() ) {
 		// The file is either absolute or relative to the time series product file.
 		File f = new File( _tsproduct.getPropList().getPersistentName() );
 		String filename = IOUtil.verifyPathForOS( IOUtil.toAbsolutePath( f.getParent(), propValue) );
 		try {
-			this.rasterSymbolTable = GRSymbolTable.readFile ( filename );
-			Message.printStatus ( 2, routine, "Read " + this.rasterSymbolTable.size() +
+			symtable = GRSymbolTable.readFile ( filename );
+			Message.printStatus ( 2, routine, "Read " + symtable.size() +
 				" rows for raster symbol table.");
 		}
 		catch ( IOException e ) {
@@ -3500,32 +3536,23 @@ private void createRasterSymbolTable () {
 			Message.printWarning(3, routine, e);
 		}
 	}
-	if ( this.rasterSymbolTable == null ) {
-		// Define a default symbol table.
-		// Set up the color table.  For now just base on limits of data
-		/* TODO smalers 2021-08-27 old code
+	if ( (symtable == null) && (ts != null) ) {
+		// Define a default symbol table:
+		// - base on data limits
+		// - use a blue (small value) to red (large value color ramp,
+		//   although different data types might go the opposite direction
 		double tsMin = ts.getDataLimits().getMinValue();
 		double tsMax = ts.getDataLimits().getMaxValue();
-		int nScaleColors = 10;
-		int nScaleValues = nScaleColors - 1;
-		double delta = (tsMax - tsMin)/nScaleValues;
-		double [] scaleValues = new double[nScaleValues];
-		GRColor [] scaleColors =
-			(GRColor [])GRColorTable.createColorTable(GRColorTable.BLUE_TO_RED, nScaleColors, true).
-			toArray(new GRColor[nScaleColors]);
-		for ( int i = 0; i < nScaleValues; i++ ) {
-			scaleValues[i] = tsMin + i*delta;
-		}
-		for ( int i = 0; i < nScaleColors; i++ ) {
-			String value = "";
-			if ( i < nScaleValues ) {
-				value = "" + scaleValues[i];
-			}
-			Message.printStatus(2, "", "Scale " + value + " color [" + i + "] = " + scaleColors[i].getRed() + "," +
-                scaleColors[i].getGreen() + "," + scaleColors[i].getBlue() );
-		}
-		*/
+		GRColor noDataColor = GRColor.white;
+		symtable = GRSymbolTable.createForColorRamp ( tsMin, tsMax, 5, 10,
+			GRColorRampType.BLUE_TO_RED, 2, noDataColor );
 	}
+	if ( symtable == null ) {
+		// Create an empty symbol table:
+		// - will probably result in full black raster graph
+		symtable = new GRSymbolTable();
+	}
+	return symtable;
 }
 
 /**
@@ -4158,7 +4185,7 @@ private void drawAxesFront ( TSProduct tsproduct, int subproduct,
 		return;
 	}
 
-	// Used throughout...
+	// Used throughout.
 
 	String prop_value = null;
 	String title;
@@ -4167,7 +4194,7 @@ private void drawAxesFront ( TSProduct tsproduct, int subproduct,
 	String fontsize;
 	String fontstyle;
 	
-	// Draw text nice using anti-aliasing
+	// Draw text nice using anti-aliasing.
 	GRDrawingAreaUtil.setDeviceAntiAlias( daMainTitle, true);
 	GRDrawingAreaUtil.setDeviceAntiAlias( daLeftYAxisLabel, true);
 	GRDrawingAreaUtil.setDeviceAntiAlias( daRightYAxisLabel, true);
@@ -4886,8 +4913,8 @@ Draw the time series graph for a "Raster" graph.
 */
 private void drawGraphRaster ( TSProduct tsproduct, int subproduct, List<TS> tslist )
 {	String routine = getClass().getSimpleName() + ".drawGraphRaster";
-    // Raster graph can only draw one time series so get the first non-null time series
-	// - Also, only daily and monthly interval are supported
+    // Raster graph can only draw one time series so get the first non-null time series:
+	// - only daily and monthly interval are supported
     TS ts = null;
     int its;
     for ( its = 0; its < tslist.size(); its++ ) {
@@ -4904,6 +4931,7 @@ private void drawGraphRaster ( TSProduct tsproduct, int subproduct, List<TS> tsl
         	continue;
         }
         if ( ts != null ) {
+        	// Found an acceptable time series.
             break;
         }
     }
@@ -4912,6 +4940,7 @@ private void drawGraphRaster ( TSProduct tsproduct, int subproduct, List<TS> tsl
         return;
     }
     drawTS ( tsproduct, subproduct, its, ts, TSGraphType.RASTER );
+    drawLegendRaster ( tsproduct, subproduct );
 }
 
 /**
@@ -4935,15 +4964,15 @@ private void drawLegend ( int axis )
 	// - if right y-axis legend is not shown, use left y-axis legend for all time series (? not sure ?)
 	// - if right y-axis legend is shown, use right y-axis legend for time series in right y-axis
 	//   and left y-axis legend for time series for left y-axis (what is done below)
-	List<TS> tslistForAxis = new ArrayList<TS>(); // List of time series in the legend, depends on whether left or right
+	List<TS> tslistForAxis = new ArrayList<>(); // List of time series in the legend, depends on whether left or right
 	List<TS> tslist = __tslist; // All the time series for the graph, needed to get the right color, based on color defaults
-	String legendPosition = "BottomLeft"; // Default
-	TSGraphType axisGraphType = null; // What is the graph type for the left or right y-axis
+	String legendPosition = "BottomLeft"; // Default.
+	TSGraphType axisGraphType = null; // What is the graph type for the left or right y-axis.
 	if ( axis == GRAxis.LEFT ) {
-		// Left y-axis may be only axis used or may be used with right y-axis
+		// Left y-axis may be only axis used or may be used with right y-axis.
 		legendPosition = _tsproduct.getLayeredPropValue("LeftYAxisLegendPosition", _subproduct, -1, false);
 		if ( legendPosition == null ) {
-			// Legacy value being transitioned to "LeftYAxisLegendPosition" because of addition of right y-axis
+			// Legacy value being transitioned to "LeftYAxisLegendPosition" because of addition of right y-axis.
 			legendPosition = _tsproduct.getLayeredPropValue("LegendPosition", _subproduct, -1, false);
 		}
 		// Get the left y-axis time series
@@ -5020,14 +5049,14 @@ private void drawLegend ( int axis )
 			datalim_legend.getWidth() + 8, datalim_legend.getHeight() + 8);
 	}
 	else {
-		// Includes "None" case
+		// Includes "None" case.
 		// Don't know how to draw legend.
 		Message.printStatus(2,routine,"Don't know how to draw legend in position \"" + legendPosition + "\"" );
 		return;
 	}
 
-	// Get the properties for the legend...
-	// TODO SAM 2017-02-07 Evaluate whether these properties should be split for left and right y-axis
+	// Get the properties for the legend.
+	// TODO SAM 2017-02-07 Evaluate whether these properties should be split for left and right y-axis.
 	String legendFontName = _tsproduct.getLayeredPropValue ( "LegendFontName", _subproduct, -1, false );
 	String legendFontSize = _tsproduct.getLayeredPropValue ( "LegendFontSize", _subproduct, -1, false );
 	String legendFontStyle = _tsproduct.getLayeredPropValue ( "LegendFontStyle", _subproduct, -1, false );
@@ -5074,9 +5103,9 @@ private void drawLegend ( int axis )
 	TSRegression regressionData = null;
 
 	int iStart = 0;
-	int iEnd = size; // One more than last index will break loop
+	int iEnd = size; // One more than last index will break loop.
 	int iIncrement = 1;
-	// Determine if any time series are being drawn as stacked area
+	// Determine if any time series are being drawn as stacked area.
 	boolean reverseLegendOrder = false;
 	//Message.printStatus(2,routine,"Checking time series for stacked area graph type.");
 	for ( int i = 0; i < size; i++ ) {
@@ -5092,39 +5121,38 @@ private void drawLegend ( int axis )
 	    iEnd = -1; // One less than first index will break loop
 	    iIncrement = -1;
 	}
-	double xOffset = 0.0; // Offset used to position legend, when position is "BottomRight"
-	double legendLineLength = 25.0; // Pixels width of the legend line
-	int imatch = -1; // Used to match a specific time series
-	// The following loop works when plotting the time series list forward or backward
+	double xOffset = 0.0; // Offset used to position legend, when position is "BottomRight".
+	double legendLineLength = 25.0; // Pixels width of the legend line.
+	int imatch = -1; // Used to match a specific time series.
+	// The following loop works when plotting the time series list forward or backward.
 	for ( int i = iStart; i != iEnd; i = i + iIncrement ) {
-		imatch = -1; // Used below to match a specific time series in TSGraph index order
+		imatch = -1; // Used below to match a specific time series in TSGraph index order.
 		predicted = false;
 
-		// Make sure that the legend is not drawing using negative data units.  If it is, then it will likely 
-		// go into another graph (since there can be more than one graph in a window/page
+		// Make sure that the legend is not drawing using negative data units.
+		// If it is, then it will likely go into another graph (since there can be more than one graph in a window/page.
 		if (ylegend < 0.0) {
 			 continue;
 		}
 		
 		if ( (axis == GRAxis.LEFT) && (__leftYAxisGraphType == TSGraphType.PREDICTED_VALUE) ) {
-			// Determine the correspondence of the TS to be drawn versus the actual time series that there is
-			// access to.  
-			// ts 0 corresponds to 0
-			// ts 1 corresponds to 1 and 2 (for the dependent and predicted TS)
-			// ts 2 corresponds to 3 and 4 ...
-			// etc.
+			// Determine the correspondence of the TS to be drawn versus the actual time series that there is access to:
+			// - ts 0 corresponds to 0
+			// - ts 1 corresponds to 1 and 2 (for the dependent and predicted TS)
+			// - ts 2 corresponds to 3 and 4 ...
+			// - etc.
 
 			if (i == 0) {
 				tsNum = 0;
 			}
 			else {
 				if (i % 2 == 0) {
-					// the ts is half of the even numbers
+					// The ts is half of the even numbers.
 					tsNum = i / 2;
 					predicted = true;
 				}
 				else {
-					// for odd numbers, the ts is half (the value plus one)
+					// For odd numbers, the ts is half (the value plus one).
 					tsNum = (i + 1) / 2;
 				}
 			}
@@ -5134,10 +5162,9 @@ private void drawLegend ( int axis )
 			}
 
 			if (predicted) {
-				// predicted ones have to be retrieved from the regression data.
+				// Predicted ones have to be retrieved from the regression data.
 				regressionData = _regression_data.get(tsNum - 1);
 				ts = regressionData.getPredictedTS();
-
 			}
 			else {
 				ts = tslistForAxis.get(tsNum);
@@ -5152,7 +5179,7 @@ private void drawLegend ( int axis )
 				legend = legend + " (Predicted)";
 			}
 
-			// Draw the legend line
+			// Draw the legend line.
 			prop_value = _tsproduct.getLayeredPropValue( "Color", _subproduct, tsNum, false);
 			try {	
 				da_legend.setColor(GRColor.parseColor( prop_value));
@@ -5390,6 +5417,109 @@ private void drawLegend ( int axis )
 		
 		// Decrement the legend for the next iteration, drawing from top to bottom.
 		ylegend -= ydelta;
+	}
+}
+
+/**
+ * Draw the legend for raster graph.
+ * @param tsproduct TSProduct describing the graph.
+ * @param subproduct subproduct number on the product (0+)
+ */
+private void drawLegendRaster ( TSProduct tsproduct, int subproduct ) {
+	String routine = getClass().getSimpleName() + ".drawLegendRaster";
+	// Left y-axis may be only axis used or may be used with right y-axis.
+	String legendPosition = _tsproduct.getLayeredPropValue("RasterGraphLegendPosition", _subproduct, 0, false);
+	if ( (legendPosition == null) || (legendPosition.isEmpty())) {
+		// Default to "Right".
+		// TODO smalers 2021-08-28 need to make sure the property is set early on when graphing from TSTool UI
+		legendPosition = "Right";
+	}
+	
+	// Figure out which drawing area to use:
+	// - currently only support on the right
+	GRDrawingArea da_legend;
+	GRLimits datalim_legend;
+	GRLimits drawlim_legend;
+	if ( legendPosition.equalsIgnoreCase("Right") ) {
+		da_legend = _da_right_raster_legend;
+		datalim_legend = _datalim_right_raster_legend;
+		drawlim_legend = _drawlim_right_raster_legend;
+	}
+	else {
+		// Don't know how to handle.
+		return;
+	}
+
+	// Get the properties for the legend:
+	// - use the normal legend fonts rather than requiring separate properties for the raster legend
+	// - 'text_limits' are the extent of the text
+	// - 'ydelta' is the y offest between each line in the legend
+	String legendFontName = _tsproduct.getLayeredPropValue ( "LegendFontName", _subproduct, -1, false );
+	String legendFontSize = _tsproduct.getLayeredPropValue ( "LegendFontSize", _subproduct, -1, false );
+	String legendFontStyle = _tsproduct.getLayeredPropValue ( "LegendFontStyle", _subproduct, -1, false );
+	GRDrawingAreaUtil.setFont ( da_legend, legendFontName, legendFontStyle, StringUtil.atod(legendFontSize) );
+	GRLimits text_limits = GRDrawingAreaUtil.getTextExtents ( da_legend, "TEST STRING", GRUnits.DEVICE );
+	double ydelta = text_limits.getHeight();
+	text_limits = null;
+
+	// Get the symbol table.
+	GRSymbolTable symtable = this.rasterSymbolTable;
+
+	// Draw legend from top down in case run out of room and need to omit some time series.
+	// Can center vertically on the following (line will be one font height down and
+	// font will be 1/2 height down to top).
+	double ylegend = datalim_legend.getTopY() - ydelta;
+	String legend = null;
+	double x[] = new double[2];
+	double y[] = new double[2];
+	double xOffset = 0.0;
+	double xlegend = datalim_legend.getLeftX();
+	double legendLineLength = 25.0; // Pixels width of the legend line (use same dimension for raster).
+
+	x[0] = datalim_legend.getLeftX() + xOffset;
+	// Legend drawing limits are in device units so just use pixels.
+	x[1] = x[0] + legendLineLength;
+	y[0] = ylegend;
+	y[1] = ylegend + ydelta;
+	
+	// For troubleshooting.
+	if ( Message.isDebugOn ) {
+		Message.printStatus(2,routine,"Raster da_legend: " + da_legend);
+		Message.printStatus(2,routine,"Raster datalim_legend: " + datalim_legend);
+		Message.printStatus(2,routine,"Raster drawlim_legend: " + drawlim_legend);
+		Message.printStatus(2,routine,"Raster xlegend: " + xlegend);
+		Message.printStatus(2,routine,"Raster ylegend: " + ylegend);
+		Message.printStatus(2,routine,"Raster ydelta: " + ydelta);
+	}
+	
+	GRSymbolTableRow row;
+	GRColor rowColor;
+	for ( int irow = 0; irow < symtable.size(); irow++ ) {
+		// Output the time series name, alias, period, etc.
+		row = symtable.getSymbolTableRow(irow);
+		// Fill in a rectangle with raster pixel color.
+		rowColor = row.getFillColor();
+		da_legend.setColor ( rowColor );
+		GRDrawingAreaUtil.fillRectangle ( da_legend, x[0], ylegend, (x[1] - x[0]), ydelta);
+		if ( rowColor.equals(GRColor.white) ) {
+			// Also draw a surrounding box.
+			da_legend.setColor ( GRColor.black );
+			GRDrawingAreaUtil.drawRectangle ( da_legend, x[0], ylegend, (x[1] - x[0]), ydelta);
+		}
+		// Draw the text.
+		da_legend.setColor ( GRColor.black );
+		// Put some space so text does not draw right up against symbol:
+		// - make sure that the spaces are included in the code that determines the legend width
+		legend = " " + row.getValueMinFullString() + " " + row.getValueMaxFullString();
+		legend = legend.replace("-Infinity","").replace("Infinity","").replace("NoData NoData","NoData").trim();
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2,routine,"Drawing \"" + legend + "\" at " + xlegend + "," + ylegend);
+		}
+		GRDrawingAreaUtil.drawText ( da_legend, " " + legend, (xlegend + legendLineLength), ylegend, 0.0, GRText.LEFT|GRText.BOTTOM );
+		// Decrement the y for the next legend line.
+		ylegend -= ydelta;
+		y[0] -= ydelta;
+		y[1] -= ydelta;
 	}
 }
 
@@ -8029,7 +8159,7 @@ private void drawYAxisGrid()
 		GRAxis.drawTicks(_da_lefty_graph, GRAxis.Y, GRAxis.LEFT, _ylabels_lefty.length, _ylabels_lefty, -1.0, 0.0 );
 	}
 	
-	// Right y-axis grid lines
+	// Right y-axis grid lines.
 	if ( __drawRightyLabels ) {
 		propValue = _tsproduct.getLayeredPropValue ( "RightYAxisMajorGridColor", _subproduct, -1, false );
 		if ( (propValue != null) && !propValue.equalsIgnoreCase("None") ) {
@@ -8047,13 +8177,13 @@ private void drawYAxisGrid()
 			x[1] = _data_righty_limits.getRightX();
 			// Draw a horizontal grid.
 			if ( _ylabels_righty != null ) {
-				// Can be null for new graph, especially when splitting product
+				// Can be null for new graph, especially when splitting product.
 				GRAxis.drawGrid ( _da_righty_graph, 2, x, _ylabels_righty.length, _ylabels_righty, GRAxis.GRID_SOLID );
 			}
 		}
 	}
 
-	// Right y-axis tick marks (on top of grid lines)
+	// Right y-axis tick marks (on top of grid lines).
 	propValue = _tsproduct.getLayeredPropValue ( "RightYAxisMajorTickColor", _subproduct, -1, false );
 	if ( (propValue != null) && !propValue.equalsIgnoreCase("None") ) {
 		GRColor color;
@@ -9152,9 +9282,15 @@ private void openDrawingAreas ()
 	_da_righty_left_legend.setDataLimits ( _datalim_righty_left_legend );
 
 	_da_righty_right_legend = new GRJComponentDrawingArea ( _dev,
-			"TSGraph.RightYAxisRightLegend", GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null );
+		"TSGraph.RightYAxisRightLegend", GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null );
 	_datalim_righty_right_legend = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
 	_da_righty_right_legend.setDataLimits ( _datalim_righty_right_legend );
+
+	// Raster graph legend overlaps _da_righty_right_legend (can have one or the other)
+	_da_right_raster_legend = new GRJComponentDrawingArea ( _dev,
+		"TSGraph.RightRasterGraphLegend", GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null );
+	_datalim_right_raster_legend = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
+	_da_right_raster_legend.setDataLimits ( _datalim_right_raster_legend );
 
 	_da_righty_inside_legend = new GRJComponentDrawingArea(_dev,
 		"TSGraph.RightYAxisInsideLegend", GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null);
@@ -9361,11 +9497,11 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph )
     if ( datalim_lefty_graph == null ) {
 		return;
 	}
-	// FIXME JTS exceptions thrown when trying to zoom
+	// FIXME JTS exceptions thrown when trying to zoom.
 	if (_end_date == null && _start_date == null) {
 		return;
 	}
-	// FIXME JTS
+	// FIXME JTS.
 	if ( Message.isDebugOn ) {
 		Message.printDebug(1, routine,
 			_gtype + "Setting [" +_subproduct + "] _data_lefty_limits to " + datalim_lefty_graph.toString());
@@ -9374,22 +9510,22 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph )
 	GRLimits dataLimitsInDrawingArea = null;
 	if ( _is_reference_graph ) {
 		// Save the new data limits for drawing but do not reset the
-		// actual GRDrawingArea.  Also make sure the Y limits are the maximum...
+		// actual GRDrawingArea.  Also make sure the Y limits are the maximum.
 		_data_lefty_limits = new GRLimits ( datalim_lefty_graph );
 		_data_lefty_limits.setTopY ( _max_lefty_data_limits.getTopY() );
 		_data_lefty_limits.setBottomY ( _max_lefty_data_limits.getBottomY() );
 		dataLimitsInDrawingArea = new GRLimits(_data_lefty_limits);
 		if ( __leftyDirection == GRAxisDirectionType.REVERSE ) {
-		    // Reverse the data limits used for the reference graph - will be set in drawing area below
+		    // Reverse the data limits used for the reference graph - will be set in drawing area below.
 		    dataLimitsInDrawingArea.reverseY();
 		}
 	}
 	else {
-	    // Do the full recalculation of the data limits and zoom...
-		// Need to recompute new start and end dates...
+	    // Do the full recalculation of the data limits and zoom.
+		// Need to recompute new start and end dates.
 		// Make sure to keep the same date precision.
 		
-		// TODO SAM 2016-10-24 the x-axis limits are currently shared between left and right y-axis
+		// TODO SAM 2016-10-24 the x-axis limits are currently shared between left and right y-axis:
 		// -need to confirm that dates are determined for full time series list
 		
 		// Left y-axis
@@ -9403,11 +9539,11 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph )
 			Message.printDebug ( 1, routine,
 			_gtype + "Set _start_date to " + _start_date + " _end_date to " + _end_date );
 		}
-		// Left y-axis time series only
+		// Left y-axis time series only.
 		boolean includeLeftYAxis = true;
 		boolean includeRightYAxis = false;
 		try {
-		    // Recompute the limits, based on the period and data values...
+		    // Recompute the limits, based on the period and data values.
 			List<TS> tslistToRender = getTSListToRender(true,includeLeftYAxis,includeRightYAxis);
 			if ( tslistToRender.size() == 0) {
 				_tslimits_lefty = null;
@@ -9419,23 +9555,23 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph )
 			    computeDataLimits_CheckDisplayLimitProperties(tslistToRender, _tslimits_lefty);
 				if (__leftYAxisGraphType == TSGraphType.PERIOD){
 					// Set the minimum value to 0 and the maximum value to one more than 
-					// the number of time series.  Reverse the limits to number the same as the legend...
+					// the number of time series.  Reverse the limits to number the same as the legend.
 					_tslimits_lefty.setMaxValue(0.0);
 					_tslimits_lefty.setMinValue( getEnabledTSList(includeLeftYAxis,includeRightYAxis).size() + 1);
 				}
 				else if (__leftYAxisGraphType == TSGraphType.RASTER) {
-				    // Reset the y-axis values to the year - use Max because don't allow zoom
+				    // Reset the y-axis values to the year - use Max because don't allow zoom.
 	                _tslimits_lefty.setMinValue(_max_tslimits_lefty.getDate1().getYear());
 	                _tslimits_lefty.setMaxValue(_max_tslimits_lefty.getDate2().getYear() + 1);
 				}
 				else {
-					// All other graphs
+					// All other graphs.
 					if (!_zoomKeepFullPeriodYLimits) {
-						// False so allow user-specified y-axis limits to be used if specified
-						// Default to values set in the property
+						// False so allow user-specified y-axis limits to be used if specified.
+						// Default to values set in the property.
 						_tslimits_lefty.setMinValue ( _max_tslimits_lefty.getMinValue() );
 						_tslimits_lefty.setMaxValue ( _max_tslimits_lefty.getMaxValue() );
-						// If user has indicated overriding axis limits, use specified values
+						// If user has indicated overriding axis limits, use specified values.
 						String leftYAxisViewMinY = getLeftYAxisViewMinY();
 						if ( StringUtil.isDouble(leftYAxisViewMinY) ) {
 							_tslimits_lefty.setMinValue(Double.parseDouble(leftYAxisViewMinY));
@@ -9446,7 +9582,7 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph )
 							_tslimits_lefty.setMaxValue(Double.parseDouble(leftYAxisViewMaxY));
 							Message.printStatus(2, routine, "Setting max time series value to user maximum " + leftYAxisViewMaxY);
 						}
-						// Also check whether the value should have been taken from a data view
+						// Also check whether the value should have been taken from a data view.
 						if ( leftYAxisViewMinY.equalsIgnoreCase(YAXIS_LIMITS_AUTOFILL_AND_KEEP) ) {
 							if ( !Double.isNaN(this.leftYAxisViewMinYFromData) ) {
 								_tslimits_lefty.setMinValue(this.leftYAxisViewMinYFromData);
@@ -9469,11 +9605,11 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph )
 			return;
 		}
 		
-		// Right y-axis limits
+		// Right y-axis limits.
 
 		try {
-		    // Recompute the limits, based on the visible period and time series data values in the period...
-			// Right y-axis time series only
+		    // Recompute the limits, based on the visible period and time series data values in the period.
+			// Right y-axis time series only.
 			includeLeftYAxis = false;
 			includeRightYAxis = true;
 			boolean enabledOnly = true;
@@ -9487,22 +9623,22 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph )
 			    _tslimits_righty = TSUtil.getDataLimits( tslistToRender, _start_date, _end_date, "", false, _ignoreRightAxisUnits);
 			    computeDataLimits_CheckDisplayLimitProperties(tslistToRender, _tslimits_righty);
 				if (__rightYAxisGraphType == TSGraphType.PERIOD){
-					// Set the minimum value to 0 and the maximum value to one more than 
-					// the number of time series.  Reverse the limits to number the same as the legend...
+					// Set the minimum value to 0 and the maximum value to one more than the number of time series.
+					// Reverse the limits to number the same as the legend.
 					_tslimits_righty.setMaxValue(0.0);
 					_tslimits_righty.setMinValue( tslistToRender.size() + 1);
 				}
 				else if (__rightYAxisGraphType == TSGraphType.RASTER) {
-				    // Reset the y-axis values to the year - use Max because don't allow zoom
+				    // Reset the y-axis values to the year - use Max because don't allow zoom.
 	                _tslimits_righty.setMinValue(_max_tslimits_righty.getDate1().getYear());
 	                _tslimits_righty.setMaxValue(_max_tslimits_righty.getDate2().getYear() + 1);
 				}
 				if (!_zoomKeepFullPeriodYLimits) {
-					// False so allow user-specified y-axis limits to be used if specified
+					// False so allow user-specified y-axis limits to be used if specified.
 					//Message.printStatus(2,routine,"_tslimits_righty="+_tslimits_righty + ", _max_tslimits_righty=" + _max_tslimits_righty);
 					_tslimits_righty.setMinValue ( _max_tslimits_righty.getMinValue() );
 					_tslimits_righty.setMaxValue ( _max_tslimits_righty.getMaxValue() );
-					// If use has indicated overriding, use specified values
+					// If use has indicated overriding, use specified values.
 					String rightYAxisViewMinY = getRightYAxisViewMinY();
 					if ( StringUtil.isDouble(rightYAxisViewMinY) ) {
 						_tslimits_righty.setMinValue(Double.parseDouble(rightYAxisViewMinY));
@@ -9513,7 +9649,7 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph )
 						_tslimits_righty.setMaxValue(Double.parseDouble(rightYAxisViewMaxY));
 						Message.printStatus(2, routine, "Setting max time series value to user maximum " + rightYAxisViewMaxY);
 					}
-					// Also check whether the value should have been taken from a data view
+					// Also check whether the value should have been taken from a data view.
 					if ( rightYAxisViewMinY.equalsIgnoreCase(YAXIS_LIMITS_AUTOFILL_AND_KEEP) ) {
 						if ( !Double.isNaN(this.rightYAxisViewMinYFromData) ) {
 							_tslimits_righty.setMinValue(this.rightYAxisViewMinYFromData);
@@ -9534,49 +9670,49 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph )
 			Message.printWarning ( 2, routine + "(" + _gtype + ")", e );
 			return;
 		}
-		// Set the graph data limits based on the labels, for example to increase the buffer
-		// beyond the data range.
-		// This will set _datalim_graph.  The Y limits are computed from
-		// the max data limits.  The X limits are computed from _start_date and _end_date...
+		// Set the graph data limits based on the labels, for example to increase the buffer beyond the data range.
+		// This will set _datalim_graph.
+		// The Y limits are computed from the max data limits.
+		// The X limits are computed from _start_date and _end_date.
 		/* THIS IS THE ORIGINAL CODE BEFORE ADDING RIGHT Y-AXIS
 		if ( getTSListToRender(true,includeLeftYAxis,includeRightYAxis).size() > 0) {
 			// Only process the left y-axis
 			computeLabels ( _tslimits_lefty, null );
 		    dataLimitsInDrawingArea = new GRLimits(_data_lefty_limits);
 		    if ( __leftyDirection == GRAxisDirectionType.REVERSE ) {
-		        // Reverse the data limits used for the reference graph
+		        // Reverse the data limits used for the reference graph.
 		        dataLimitsInDrawingArea.reverseY();
 		    }
 			_da_lefty_graph.setDataLimits ( dataLimitsInDrawingArea );
 		}
 		*/
-		// Set the graph data limits based on the labels, for example to increase the buffer
-		// beyond the data range.
-		// This will set _datalim_lefty_graph and _datalim_righty_graph.  The Y limits are computed from
-		// the max data limits.  The X limits are computed from _start_date and _end_date...
+		// Set the graph data limits based on the labels, for example to increase the buffer beyond the data range.
+		// This will set _datalim_lefty_graph and _datalim_righty_graph.
+		// The Y limits are computed from the max data limits.
+		// The X limits are computed from _start_date and _end_date.
 		includeLeftYAxis = true;
 		includeRightYAxis = true;
 		if ( getTSListToRender(true,includeLeftYAxis,includeRightYAxis).size() > 0) {
-			// Have something to draw
+			// Have something to draw.
 			// Process both axes because right axis may be linked to left.
 			computeLabels ( _tslimits_lefty, _tslimits_righty );
-			// Reverse left y-axis if requested
+			// Reverse left y-axis if requested.
 		    dataLimitsInDrawingArea = new GRLimits(_data_lefty_limits);
 		    if ( __leftyDirection == GRAxisDirectionType.REVERSE ) {
-		        // Reverse the data limits used for the reference graph
+		        // Reverse the data limits used for the reference graph.
 		        dataLimitsInDrawingArea.reverseY();
 		    }
 			_da_lefty_graph.setDataLimits ( dataLimitsInDrawingArea );
-			// Reverse right y-axis if requested
+			// Reverse right y-axis if requested.
 		    dataLimitsInDrawingArea = new GRLimits(_data_righty_limits);
 		    if ( __rightyDirection == GRAxisDirectionType.REVERSE ) {
-		        // Reverse the data limits used for the reference graph
+		        // Reverse the data limits used for the reference graph.
 		        dataLimitsInDrawingArea.reverseY();
 		    }
 			_da_righty_graph.setDataLimits ( dataLimitsInDrawingArea );
 		}
 		
-		// TODO SAM 2016-10-24 need to enable
+		// TODO SAM 2016-10-24 need to enable.
 	}
 	if ( Message.isDebugOn ) {
 		Message.printDebug(1, routine, _gtype + "After reset, [" +_subproduct + "] _datalim_lefty_graph are " + datalim_lefty_graph );
@@ -9601,19 +9737,20 @@ resizes).  Axes are set to log if the properties indicate to do so.
 corresponding to canvas/component width and height in pixels (or part of a canvas/component).
 */
 public void setDrawingLimits ( GRLimits drawlim_page )
-{	double buffer = 2.0;	// Buffer around drawing areas (helps separate
-				// things and also makes it easier to see
-				// drawing areas when in debug mode
+{
+	// Buffer around drawing areas (helps separate things and also makes it easier to see
+	// drawing areas when in debug mode.
+	double buffer = 2.0;
 	String routine = "TSGraph.setDrawingLimits";
 	
-	// Declare local variables to make it easier to know what is being retrieved
-	// May in the future minimize global references
+	// Declare local variables to make it easier to know what is being retrieved.
+	// May in the future minimize global references.
 	//TSGraphType leftYAxisGraphType = __leftYAxisGraphType;
 	TSGraphType rightYAxisGraphType = __rightYAxisGraphType;
 	TSProduct tsproduct = this._tsproduct;
 	int subproduct = this._subproduct;
-	List<TS> tslistLeftYAxis = this.__left_tslist; // Left y-axis time series
-	List<TS> tslistRightYAxis = this.__right_tslist; // Right y-axis time series
+	List<TS> tslistLeftYAxis = this.__left_tslist; // Left y-axis time series.
+	List<TS> tslistRightYAxis = this.__right_tslist; // Right y-axis time series.
 
 	boolean log_y_lefty = false;
 	boolean log_y_righty = false;
@@ -9633,14 +9770,14 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 		log_y_righty = true;
 	}
 
-	// Figure out dimensions up front based on font size...
+	// Figure out dimensions up front based on font size.
 
-	// Drawing areas will have zero size if nothing is drawn in them...
+	// Drawing areas will have zero size if nothing is drawn in them.
 
 	double mainTitleHeight = 0.0;
 	String mainTitleString = tsproduct.getLayeredPropValue ( "MainTitleString", subproduct, -1, false );
 	if ( (mainTitleString != null) && !mainTitleString.equals("") ) {
-		// Get the text extents and set the height based on that...
+		// Get the text extents and set the height based on that.
 		String mainTitleFontName = tsproduct.getLayeredPropValue ( "MainTitleFontName", subproduct, -1, false );
 		String mainTitleFontSize = tsproduct.getLayeredPropValue ( "MainTitleFontSize", subproduct, -1, false );
 		String mainTitleFontStyle = tsproduct.getLayeredPropValue ( "MainTitleFontStyle", subproduct, -1, false );
@@ -9652,7 +9789,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 	double subTitleHeight = 0.0;
 	String subTitleString = tsproduct.getLayeredPropValue ( "SubTitleString", subproduct, -1, false );
 	if ( (subTitleString != null) && !subTitleString.equals("") ) {
-		// Get the text extents and set the height based on that...
+		// Get the text extents and set the height based on that.
 		String subTitleFontName = tsproduct.getLayeredPropValue ( "SubTitleFontName", subproduct, -1, false );
 		String subTitleFontSize = tsproduct.getLayeredPropValue ( "SubTitleFontSize", subproduct, -1, false );
 		String subTitleFontStyle = tsproduct.getLayeredPropValue ( "SubTitleFontStyle", subproduct, -1, false );
@@ -9661,29 +9798,28 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 		subTitleHeight = textLimits.getHeight();
 	}
 
-	// TODO SAM 2016-10-17 Need to more intelligently set label width by
-	// checking labels for the maximum values (SAMX - get max *10 and
-	// compute label width so we don't have to rely on full label determination?).
+	// TODO smalers 2016-10-17 Need to more intelligently set label width by checking labels for the maximum values.
+	// TODO smalers Get max *10 and compute label width so we don't have to rely on full label determination?).
 	// For now, hard-code the y-axis label widths.
 	// This has been done for some time so it should be OK.  
 
-	double leftYAxisLabelWidth = 80.0; // Height is set to graph height below
-	double rightYAxisLabelWidth = 30.0; // Height is set to graph height below, 30 allows for date overflow
+	double leftYAxisLabelWidth = 80.0; // Height is set to graph height below.
+	double rightYAxisLabelWidth = 30.0; // Height is set to graph height below, 30 allows for date overflow.
 	if ( rightYAxisGraphType != TSGraphType.NONE ) {
-		// Right y-axis is requested so set width similar to left
+		// Right y-axis is requested so set width similar to left.
 		rightYAxisLabelWidth = 80.0;
 	}
 
-	// Left y-axis title
+	// Left y-axis title.
 
-	// Maximum height of y-axis left and right top titles, used for vertical calculations
+	// Maximum height of y-axis left and right top titles, used for vertical calculations.
 	double yAxisTitleTopHeight = 0.0;
 	double leftYAxisTitleHeight = 0.0;
 	double leftYAxisTitleWidth = 0.0;
 	String leftYAxisTitleString = tsproduct.getLayeredPropValue ( "LeftYAxisTitleString", subproduct, -1, false );
 	String leftYAxisTitlePosition = tsproduct.getLayeredPropValue ( "LeftYAxisTitlePosition", subproduct, -1, false );
 	if ( (leftYAxisTitleString != null) && !leftYAxisTitleString.equals("") ){
-		// Get the text extents and set the height based on that...
+		// Get the text extents and set the height based on that.
 		String leftYAxisTitleFontName = tsproduct.getLayeredPropValue ( "LeftYAxisTitleFontName", subproduct, -1, false );
 		String leftYAxisTitleFontSize = tsproduct.getLayeredPropValue ( "LeftYAxisTitleFontSize", subproduct, -1, false );
 		String leftYAxisTitleFontStyle = tsproduct.getLayeredPropValue ( "LeftYAxisTitleFontStyle", subproduct, -1, false );
@@ -9695,15 +9831,15 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 				rotation = Double.parseDouble(leftYAxisTitleRotation);
 			}
 			catch ( NumberFormatException e ) {
-				// Just use 0
+				// Just use 0.
 			}
 		}
-		// Get the limits without rotation
+		// Get the limits without rotation.
 		GRLimits textLimits = GRDrawingAreaUtil.getTextExtents ( _da_lefty_title, leftYAxisTitleString, GRUnits.DEVICE );
 		leftYAxisTitleHeight = textLimits.getHeight();
 		leftYAxisTitleWidth = textLimits.getWidth();
-		// If the rotation is 90 or 270 swap the width and height because text is vertical
-		// TODO SAM 2016-10-17 Later support angles other than perpendicular
+		// If the rotation is 90 or 270 swap the width and height because text is vertical.
+		// TODO SAM 2016-10-17 Later support angles other than perpendicular.
 		if ( rotation > 0.0 ) {
 			if ( ((int)(rotation + .01) == 90) || ((int)(rotation + .01) == 270) ) {
 				leftYAxisTitleHeight = textLimits.getWidth();
@@ -9721,7 +9857,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 		}
 	}
 	
-	// Right y-axis title
+	// Right y-axis title.
 
 	double rightYAxisTitleWidth = 0.0;
 	double rightYAxisTitleHeight = 0.0;
@@ -9730,7 +9866,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 	String rightYAxisTitlePosition = tsproduct.getLayeredPropValue ( "RightYAxisTitlePosition", subproduct, -1, false );
 	if ( (rightYAxisTitleString != null) && !rightYAxisTitleString.equals("") &&
 		(rightYAxisTitlePosition != null) && !rightYAxisTitlePosition.equalsIgnoreCase("None") ) {
-		// Get the text extents and set the height based on that...
+		// Get the text extents and set the height based on that.
 		String rightYAxisTitleFontName = tsproduct.getLayeredPropValue ( "RightYAxisTitleFontName", subproduct, -1, false );
 		String rightYAxisTitleFontSize = tsproduct.getLayeredPropValue ( "RightYAxisTitleFontSize", subproduct, -1, false );
 		String rightYAxisTitleFontStyle = tsproduct.getLayeredPropValue ( "RightYAxisTitleFontStyle", subproduct, -1, false );
@@ -9742,15 +9878,15 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 				rotation = Double.parseDouble(rightYAxisTitleRotation);
 			}
 			catch ( NumberFormatException e ) {
-				// Just use 0
+				// Just use 0.
 			}
 		}
-		// Get the limits without rotation
+		// Get the limits without rotation.
 		GRLimits textLimits = GRDrawingAreaUtil.getTextExtents ( _da_righty_title, rightYAxisTitleString, GRUnits.DEVICE );
 		rightYAxisTitleHeight = textLimits.getHeight();
 		rightYAxisTitleWidth = textLimits.getWidth();
-		// If the rotation is 90 or 270 swap the width and height because text is vertical
-		// TODO SAM 2016-10-17 Later support angles other than perpendicular
+		// If the rotation is 90 or 270 swap the width and height because text is vertical.
+		// TODO SAM 2016-10-17 Later support angles other than perpendicular.
 		if ( rotation > 0.0 ) {
 			if ( ((int)(rotation + .01) == 90) || ((int)(rotation + .01) == 270) ) {
 				rightYAxisTitleHeight = textLimits.getWidth();
@@ -9764,19 +9900,19 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 			}
 		}
 		if ( rightYAxisTitlePosition.equalsIgnoreCase("AboveAxis") ) {
-			// Use the largest vertical height of the left and right top y-axis to allow calculations below
+			// Use the largest vertical height of the left and right top y-axis to allow calculations below.
 			if ( rightYAxisTitleHeight > yAxisTitleTopHeight ) {
 				yAxisTitleTopHeight = rightYAxisTitleHeight;
 			}
 		}
 	}
 
-	// X axis titles
+	// X axis titles.
 
 	double topXAxisTitleHeight = 0.0;
 	String topXAxisTitleString = tsproduct.getLayeredPropValue ( "TopXAxisTitleString", subproduct, -1, false );
 	if ( (topXAxisTitleString != null) && !topXAxisTitleString.equals("") ){
-		// Get the text extents and set the height based on that...
+		// Get the text extents and set the height based on that.
 		String topXAxisTitleFontName = tsproduct.getLayeredPropValue ( "TopXAxisTitleFontName", subproduct, -1, false );
 		String topXAxisTitleFontSize = tsproduct.getLayeredPropValue ( "TopXAxisTitleFontSize", subproduct, -1, false );
 		String topXAxisTitleFontStyle = tsproduct.getLayeredPropValue ( "TopXAxisTitleFontStyle", subproduct, -1, false );
@@ -9788,7 +9924,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 	double bottomXAxisTitleHeight = 0.0;
 	String bottomXAxisTitleString = tsproduct.getLayeredPropValue ( "BottomXAxisTitleString", subproduct, -1, false );
 	if ( (bottomXAxisTitleString != null) && !bottomXAxisTitleString.equals("") ){
-		// Get the text extents and set the height based on that...
+		// Get the text extents and set the height based on that.
 		String bottomXAxisTitleFontName = tsproduct.getLayeredPropValue ( "BottomXAxisTitleFontName", subproduct, -1, false );
 		String bottomXAxisTitleFontSize = tsproduct.getLayeredPropValue ( "BottomXAxisTitleFontSize", subproduct, -1, false );
 		String bottomXAxisTitleFontStyle = tsproduct.getLayeredPropValue ( "BottomXAxisTitleFontStyle", subproduct, -1, false );
@@ -9812,28 +9948,27 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 		bottomXAxisLabelHeight = 2*textLimits.getHeight();
 	}
 
-	// Make an initial determination of the left y-axis legend height and width, based
-	// on the font height and string width.  The dynamic nature of the plot
-	// size really should only impact how many legend items are shown.  Try
-	// to limit to a reasonable number.  This logic works for any legend position.
+	// Make an initial determination of the left y-axis legend height and width, based on the font height and string width.
+	// The dynamic nature of the plot size really should only impact how many legend items are shown.
+	// Try to limit to a reasonable number.  This logic works for any legend position.
 
 	String leftYAxisLegendPosition = tsproduct.getLayeredPropValue ( "LeftYAxisLegendPosition", subproduct, -1, false );
 	if ( leftYAxisLegendPosition == null ) {
-		// Check legacy value
+		// Check legacy value.
 		leftYAxisLegendPosition = tsproduct.getLayeredPropValue ( "LegendPosition", subproduct, -1, false );
 	}
 
 	double leftYAxisLegendHeight = 0.0;
 	double leftYAxisLegendWidth = 0.0;
-	// The following gets the left y-axis time series, assuming there will be left and right y-axis legends
+	// The following gets the left y-axis time series, assuming there will be left and right y-axis legends.
 	if ((tslistLeftYAxis == null) || (tslistLeftYAxis.size() == 0) || (getEnabledTSList(true,false).size() == 0) || leftYAxisLegendPosition.equalsIgnoreCase("None")) {
-		// Default to no legend...
+		// Default to no legend.
 		leftYAxisLegendHeight = 0.0;
 		leftYAxisLegendWidth = 0.0;
 	}
 	else {	
-		// The legend height is based on the legend font size = size*(nts + 1), with the buffer, where nts is the
-		// number of enabled, non-null time series. The legend properties are for the subproduct.
+		// The legend height is based on the legend font size = size*(nts + 1), with the buffer,
+		// where nts is the number of enabled, non-null time series. The legend properties are for the subproduct.
 		String legendFontName = tsproduct.getLayeredPropValue ( "LegendFontName", subproduct, -1, false );
 		String legendFontSize = tsproduct.getLayeredPropValue ( "LegendFontSize", subproduct, -1, false );
 		String legendFontStyle = tsproduct.getLayeredPropValue ( "LegendFontStyle", subproduct, -1, false );
@@ -9851,10 +9986,10 @@ public void setDrawingLimits ( GRLimits drawlim_page )
         	if ( ts.getEnabled() ) {
         		if (__leftYAxisGraphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
         			if (i == 0) {
-        				// ignore the zeroth
+        				// Ignore the zeroth.
         				continue;
         			}
-        			// The time series will be plotted and will be shown in the legend...
+        			// The time series will be plotted and will be shown in the legend.
         			legend = getLegendString(ts, i) + " (Residual)";
         			if (legend != null) {
         				textLimits = GRDrawingAreaUtil.getTextExtents( _da_lefty_bottom_legend, legend, GRUnits.DEVICE);
@@ -9863,7 +9998,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
         			++nts;			
         		}
         		else if (__leftYAxisGraphType == TSGraphType.PREDICTED_VALUE) {
-        			// The time series will be plotted and will be shown in the legend...
+        			// The time series will be plotted and will be shown in the legend.
         			legend = getLegendString(ts, i);
         			if (legend != null) {
         				textLimits = GRDrawingAreaUtil.getTextExtents(_da_lefty_bottom_legend, legend, GRUnits.DEVICE);
@@ -9871,7 +10006,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
         			}
         			++nts;
         			if (i > 0) {
-        				// add the predicted time series, too
+        				// add the predicted time series, too.
         				legend = getLegendString(ts, i) + " (Predicted)";
         				if (legend != null) {
         					textLimits = GRDrawingAreaUtil.getTextExtents( _da_lefty_bottom_legend, legend, GRUnits.DEVICE);
@@ -9881,7 +10016,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
         			}
         		}
         		else {
-        			// The time series will be plotted and will be shown in the legend...
+        			// The time series will be plotted and will be shown in the legend.
         			legend = getLegendString(ts, i);
         			if (legend != null) {
         				textLimits = GRDrawingAreaUtil.getTextExtents( _da_lefty_bottom_legend, legend, GRUnits.DEVICE);
@@ -9893,32 +10028,35 @@ public void setDrawingLimits ( GRLimits drawlim_page )
         }
 
 		ts = null;
-		// Estimate the overall height...
+		// Estimate the overall height.
 		textLimits = GRDrawingAreaUtil.getTextExtents ( _da_lefty_bottom_legend, "TEST STRING", GRUnits.DEVICE );
 		leftYAxisLegendHeight = nts*textLimits.getHeight();
-		// The legend width is increased by the width of the symbol (currently always 25 pixels)...
+		// The legend width is increased by the width of the symbol (currently always 25 pixels).
 		leftYAxisLegendWidth += 25;
 		textLimits = null;
 	}
 	
-	// Make an initial determination of the right y-axis legend height and width, based
-	// on the font height and string width.  The dynamic nature of the plot
-	// size really should only impact how many legend items are shown.  Try
-	// to limit to a reasonable number.  This logic works for any legend position.
-	// TODO SAM 2017-02-07 put the following and above into reused code once it tests out
+	// The following handles normal graph legend and raster graph legend.
+	// One or the other can be drawn, but not both because they would be on top of each other.
+	
+	// Make an initial determination of the right y-axis legend height and width,
+	// based on the font height and string width.
+	// The dynamic nature of the plot size really should only impact how many legend items are shown.
+	// Try to limit to a reasonable number.  This logic works for any legend position.
+	// TODO SAM 2017-02-07 put the following and above into reused code once it tests out.
 
 	String rightYAxisLegendPosition = tsproduct.getLayeredPropValue ( "RightYAxisLegendPosition", subproduct, -1, false );
 	double rightYAxisLegendHeight = 0.0;
 	double rightYAxisLegendWidth = 0.0;
-	// The following gets the right y-axis time series, assuming there will be left and right y-axis legends
+	// The following gets the right y-axis time series, assuming there will be left and right y-axis legends.
 	if ((tslistRightYAxis == null) || (tslistRightYAxis.size() == 0) || rightYAxisLegendPosition.equalsIgnoreCase("None")) {
-		// Default to no legend...
+		// Default to no legend.
 		rightYAxisLegendHeight = 0.0;
 		rightYAxisLegendWidth = 0.0;
 	}
 	else {
-		// The legend height is based on the legend font size = size*(nts + 1), with the buffer, where nts is the
-		// number of enabled, non-null time series. The legend properties are for the subproduct.
+		// The legend height is based on the legend font size = size*(nts + 1), with the buffer,
+		// where nts is the number of enabled, non-null time series. The legend properties are for the subproduct.
 		String legendFontName = tsproduct.getLayeredPropValue ( "LegendFontName", subproduct, -1, false );
 		String legendFontSize = tsproduct.getLayeredPropValue ( "LegendFontSize", subproduct, -1, false );
 		String legendFontStyle = tsproduct.getLayeredPropValue ( "LegendFontStyle", subproduct, -1, false );
@@ -9930,17 +10068,17 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 
         for ( int i = 0; i < size; i++ ) {
         	ts = tslistRightYAxis.get(i);
-        	// FIXME sam 2017-02-09 need to fix this because "i" should be for the full time series list, not just right
+        	// FIXME sam 2017-02-09 need to fix this because "i" should be for the full time series list, not just right.
         	if (ts == null || !isTSEnabled(i)) {
         		continue;
         	}
         	if ( ts.getEnabled() ) {
         		if (__rightYAxisGraphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
         			if (i == 0) {
-        				// ignore the zeroth
+        				// ignore the zeroth.
         				continue;
         			}
-        			// The time series will be plotted and will be shown in the legend...
+        			// The time series will be plotted and will be shown in the legend.
         			legend = getLegendString(ts, i) + " (Residual)";
         			if (legend != null) {
         				textLimits = GRDrawingAreaUtil.getTextExtents( _da_righty_bottom_legend, legend, GRUnits.DEVICE);
@@ -9949,7 +10087,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
         			++nts;			
         		}
         		else if (__rightYAxisGraphType == TSGraphType.PREDICTED_VALUE) {
-        			// The time series will be plotted and will be shown in the legend...
+        			// The time series will be plotted and will be shown in the legend.
         			legend = getLegendString(ts, i);
         			if (legend != null) {
         				textLimits = GRDrawingAreaUtil.getTextExtents(_da_righty_bottom_legend, legend, GRUnits.DEVICE);
@@ -9957,7 +10095,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
         			}
         			++nts;
         			if (i > 0) {
-        				// add the predicted time series, too
+        				// Add the predicted time series, too.
         				legend = getLegendString(ts, i) + " (Predicted)";
         				if (legend != null) {
         					textLimits = GRDrawingAreaUtil.getTextExtents( _da_righty_bottom_legend, legend, GRUnits.DEVICE);
@@ -9967,7 +10105,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
         			}
         		}
         		else {
-        			// The time series will be plotted and will be shown in the legend...
+        			// The time series will be plotted and will be shown in the legend.
         			legend = getLegendString(ts, i);
         			if (legend != null) {
         				textLimits = GRDrawingAreaUtil.getTextExtents( _da_righty_bottom_legend, legend, GRUnits.DEVICE);
@@ -9979,15 +10117,43 @@ public void setDrawingLimits ( GRLimits drawlim_page )
         }
 
 		ts = null;
-		// Estimate the overall height...
+		// Estimate the overall height.
 		textLimits = GRDrawingAreaUtil.getTextExtents ( _da_righty_bottom_legend, "TEST STRING", GRUnits.DEVICE );
 		rightYAxisLegendHeight = nts*textLimits.getHeight();
-		// The legend width is increased by the width of the symbol (currently always 25 pixels)...
+		// The legend width is increased by the width of the symbol (currently always 25 pixels).
 		rightYAxisLegendWidth += 25;
 		textLimits = null;
 	}
-	// Calculate legend limits for each potential legend position, which is the maximum of
-	// the left and right y-axis legend dimensions.  Under normal cases, there should not be conflict
+
+    // Currently if a raster graph the legend position property is associated with the first time series.
+	double rightRasterLegendWidth = 0.0;
+  	double rightRasterLegendHeight = 0.0;  // Not used since the full height of the graph area?
+    if ( this.__leftYAxisGraphType == TSGraphType.RASTER ) {
+    	// Estimate the total text area, used regardless of whether the legend is on the left or right.
+ 	  	textLimits = GRDrawingAreaUtil.getTextExtents ( _da_right_raster_legend, "TEST STRING", GRUnits.DEVICE );
+ 	  	rightRasterLegendHeight = this.rasterSymbolTable.size()*textLimits.getHeight();
+ 	  	// The legend width is the maximum width of all strings.
+ 	  	GRSymbolTableRow row = null;
+ 	  	for ( int irow = 0; irow < this.rasterSymbolTable.size(); irow++ ) {
+ 		  	row = this.rasterSymbolTable.getSymbolTableRow(irow);
+ 		  	String legend2 = "  " + row.getValueMinFullString() + " " + row.getValueMaxFullString();
+ 		  	// Clean up the legend text:
+ 		  	// - trim but then add two spaces on the right to give a bit of buffer
+ 		  	legend2 = legend2.replace("-Infinity","").replace("Infinity","").replace("NoData NoData","NoData").trim() + "  ";
+ 		  	GRLimits textLimits2 = GRDrawingAreaUtil.getTextExtents ( _da_right_raster_legend, legend2, GRUnits.DEVICE );
+ 		  	if ( textLimits2.getWidth() > rightRasterLegendWidth ) {
+ 			  	rightRasterLegendWidth = textLimits2.getWidth();
+ 		  	}
+ 	  	}
+ 	  	// Add some width for the filled rectangle for legend color:
+ 	  	// - set to the same as legendLineWidth in drawLegendRaset()
+ 	  	double legendLineWidth = 25;
+ 		rightRasterLegendWidth += legendLineWidth;
+    }
+
+	// Calculate legend limits for each potential legend position,
+	// which is the maximum of the left and right y-axis legend dimensions.
+	// Under normal cases, there should not be conflict
 	// because the legends will be positioned in different locations.
 	// However, more work may need to be done when both are in the bottom.
 	//double leftLegendWidth = Math.max(leftYAxisLegendWidth, rightYAxisLegendWidth);
@@ -9996,14 +10162,13 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 	//double rightLegendHeight = Math.max(leftYAxisLegendHeight, rightYAxisLegendHeight);
 
 	// Now set the drawing limits based on the requested layout properties and baseline geometry data calculated above.
-	// Drawing limits for the page are set first...
+	// Drawing limits for the page are set first.
 
 	_drawlim_page = new GRLimits ( drawlim_page );
 	
 	_drawlim_error = new GRLimits ( drawlim_page );
 	
-	// Do a check on the graph height and adjust some of the other heights
-	// if necessary (enhance this over time)...
+	// Do a check on the graph height and adjust some of the other heights if necessary (enhance this over time).
 
 	// For legend position "Top" and "Bottom", limit the legend to 1/2 the
 	// page (this can be an issue when traces or many time series are drawn
@@ -10016,35 +10181,35 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 	// "legend_height" and "legend_width" variables to specific variables.
 
 	if ( leftYAxisLegendPosition.toUpperCase().startsWith("BOTTOM") || leftYAxisLegendPosition.equalsIgnoreCase("Top") ) {
-		// Limit legend to half the full page height
+		// Limit legend to half the full page height.
 		if ( leftYAxisLegendHeight > _drawlim_page.getHeight()*.5 ) {
 			leftYAxisLegendHeight = _drawlim_page.getHeight()*.5;
 		}
 	}
 	if ( rightYAxisLegendPosition.toUpperCase().startsWith("BOTTOM") || rightYAxisLegendPosition.equalsIgnoreCase("Top") ) {
-		// Limit legend to half the full page height
+		// Limit legend to half the full page height.
 		if ( rightYAxisLegendHeight > _drawlim_page.getHeight()*.5 ) {
 			rightYAxisLegendHeight = _drawlim_page.getHeight()*.5;
 		}
 	}
 
-	// Compute specific legend height and width values for each legend position...
+	// Compute specific legend height and width values for each legend position.
 
 	double bottom_legend_height = 0.0;
 	double left_legend_width = 0.0;
 	double left_legend_buffer = 0.0;
 	double right_legend_width = 0.0;
 	double right_legend_buffer = 0.0;
-	// Used to calculate layout for left y-axis inside legend
+	// Used to calculate layout for left y-axis inside legend.
 	double inside_lefty_legend_height = 0.0;
 	double inside_lefty_legend_width = 0.0;
 	double inside_lefty_legend_buffer = 0.0;
-	// Used to calculate layout for right y-axis inside legend
+	// Used to calculate layout for right y-axis inside legend.
 	double inside_righty_legend_height = 0.0;
 	double inside_righty_legend_width = 0.0;
 	double inside_righty_legend_buffer = 0.0;
 	
-	// Compute initial legend layout based on left y-axis legend
+	// Compute initial legend layout based on left y-axis legend.
 	
 	if ( leftYAxisLegendPosition.toUpperCase().startsWith("BOTTOM") ) {
 		bottom_legend_height = leftYAxisLegendHeight;
@@ -10089,13 +10254,29 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 		inside_righty_legend_width = rightYAxisLegendWidth;
 		inside_righty_legend_buffer = buffer * 4;
 	}
-	
-	// Set the drawing limits based on what was determined above...
 
-	// Graph main title is only impacted by overall (page) limits...
+   	String rasterGraphLegendPosition = "None";
+    if ( this.__leftYAxisGraphType == TSGraphType.RASTER ) {
+    	// Adjust the legend dimensions based on the raster legend.
+    	rasterGraphLegendPosition =
+    		tsproduct.getLayeredPropValue ( "RasterGraphLegendPosition", subproduct, 0, false );
+    	if ( (rasterGraphLegendPosition == null) || (rasterGraphLegendPosition.isEmpty())) {
+		   	// Default to "Right".
+		   	// TODO smalers 2021-08-28 need to make sure the property is set early on when graphing from TSTool UI
+		   	rasterGraphLegendPosition = "Right";
+	   	}
+    	if ( rasterGraphLegendPosition.equalsIgnoreCase("Right") ) {
+	  	  	// Raster graph legend is on the right so override the size from above.
+    		right_legend_width = Math.max(right_legend_width, rightRasterLegendWidth);
+    	}
+  	}
+	
+	// Set the drawing limits based on what was determined above.
+
+	// Graph main title is only impacted by overall (page) limits.
 
 	if ( mainTitleHeight == 0.0 ) {
-		// Zero height drawing area place holder...
+		// Zero height drawing area place holder.
 		_drawlim_maintitle = new GRLimits ( (drawlim_page.getLeftX() + buffer),	drawlim_page.getTopY(),
 			(drawlim_page.getRightX() - buffer), drawlim_page.getTopY() );
 	}
@@ -10108,10 +10289,10 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 		Message.printDebug ( 1, routine, _gtype + "Main title drawing limits are: " + _drawlim_maintitle );
 	}
 
-	// Graph subtitle is only impacted by page limits and main title...
+	// Graph subtitle is only impacted by page limits and main title.
 
 	if ( subTitleHeight == 0.0 ) {
-		// Zero height drawing area place holder...
+		// Zero height drawing area place holder.
 		_drawlim_subtitle = new GRLimits ( (drawlim_page.getLeftX() + buffer), _drawlim_maintitle.getBottomY(),
 			(drawlim_page.getRightX() - buffer), _drawlim_maintitle.getBottomY() );
 	}
@@ -10124,15 +10305,14 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 		Message.printDebug ( 1, routine, _gtype + "Sub title drawing limits are: " + _drawlim_subtitle.toString() );
 	}
 
-	// Top legend is impacted by page limits and position of subtitle...
+	// Top legend is impacted by page limits and position of subtitle.
 
-	// Currently top legend is not enabled...
+	// Currently top legend is not enabled.
 
-	// Top X axis title is impacted by the left and right legends and the
-	// position of the subtitle.
+	// Top X axis title is impacted by the left and right legends and the position of the subtitle.
 	
 	// y-axis label left edge is impacted by legend position
-	// (for now include left y-axis title inside the label area if the title is on the left)
+	// (for now include left y-axis title inside the label area if the title is on the left):
 	// - currently the left y-axis title is within the label drawing area
 	double leftYAxisLabelLeft = _drawlim_page.getLeftX() + left_legend_buffer + left_legend_width + buffer;
 
@@ -10156,11 +10336,11 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 	}
 
 	// Top x labels are impacted by left and right legends and the position of the top x title.
-	// Top x labels are not currently processed (until we can move the Y axis titles out of the way)...
+	// Top x labels are not currently processed (until we can move the Y axis titles out of the way).
 	
-	// Left y labels are always present.  Even if zero width, use buffer because other code does below...
+	// Left y labels are always present.  Even if zero width, use buffer because other code does below.
 
-	// Calculate the position of the bottom of the y-axis labels (essentially the bottom of the graph)
+	// Calculate the position of the bottom of the y-axis labels (essentially the bottom of the graph).
 	// This is used by a number of calculations below.
 	double yAxisLabelBottom = drawlim_page.getBottomY();
 	if ( bottom_legend_height > 0.0 ) {
@@ -10177,30 +10357,30 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 	}
 	yAxisLabelBottom += buffer;
 
-	// Calculate the position of the top of the y-axis labels (essentially the top of the graph)
+	// Calculate the position of the top of the y-axis labels (essentially the top of the graph).
 	// This is used by a number of calculations below.
-	// y-axis label top is consistent for left and right y-axis and is impacted by y-axis title position and top titles
+	// y-axis label top is consistent for left and right y-axis and is impacted by y-axis title position and top titles.
 	double yAxisLabelTop = drawlim_page.getTopY() - buffer - mainTitleHeight - buffer - subTitleHeight;
-	// TODO SAM 2016-10-24 No top x-axis labels are supported yet but will need to adjust if enabled
+	// TODO SAM 2016-10-24 No top x-axis labels are supported yet but will need to adjust if enabled.
 	if ( yAxisTitleTopHeight > 0.0 ) {
-		// Left and/or right y-axis label is above the axis so add some vertical space
+		// Left and/or right y-axis label is above the axis so add some vertical space.
 		yAxisLabelTop = yAxisLabelTop - buffer - yAxisTitleTopHeight - buffer;
 	}
 	
-	// Left y-axis title
+	// Left y-axis title.
 
 	if ( leftYAxisTitlePosition.equalsIgnoreCase("LeftOfAxis") ) {
-		// Draw the left y-axis title in the same space as the labels so as to avoid extra calculations
-		// Can adjust this later if problematic
+		// Draw the left y-axis title in the same space as the labels so as to avoid extra calculations.
+		// Can adjust this later if problematic.
 		double leftYAxisTitleLeft = leftYAxisLabelLeft;
 	    _drawlim_lefty_title = new GRLimits ( leftYAxisTitleLeft, yAxisLabelBottom,
 			(leftYAxisTitleLeft + leftYAxisTitleWidth),	yAxisLabelTop );
 	}
 	else {
-		// Default is "AboveAxis" to match legacy behavior
+		// Default is "AboveAxis" to match legacy behavior.
 		double leftEdge = (drawlim_page.getLeftX() + left_legend_buffer + left_legend_width + buffer + leftYAxisLabelWidth + buffer -
 		        leftYAxisTitleWidth/2.0);
-		// Center above left edge of graph
+		// Center above left edge of graph.
 		_drawlim_lefty_title = new GRLimits (
 			leftEdge, (yAxisLabelTop + buffer),
 			(leftEdge + leftYAxisTitleWidth), (yAxisLabelTop + buffer + leftYAxisTitleHeight) );
@@ -10209,7 +10389,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 		Message.printDebug ( 1, routine, _gtype + "Left y title drawing limits are: " + _drawlim_lefty_title.toString() );
 	}
 
-	// Left y labels are impacted by left and legends and position of the y axis titles
+	// Left y labels are impacted by left and legends and position of the y axis titles:
 	// - Currently left y-axis title if LeftOfAxis is within the label drawing area so no size impact
 	if ( leftYAxisTitlePosition.equalsIgnoreCase("LeftOfAxis") ) {
 		// No left y-axis title vertically so compute from top down
@@ -10217,7 +10397,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 			(leftYAxisLabelLeft + leftYAxisLabelWidth), yAxisLabelTop );
 	}
 	else {
-		// Default is "AboveAxis"
+		// Default is "AboveAxis":
 		// - currently same as above, may adjust logic later
 		_drawlim_lefty_label = new GRLimits ( leftYAxisLabelLeft, yAxisLabelBottom,
 				(leftYAxisLabelLeft + leftYAxisLabelWidth), yAxisLabelTop );
@@ -10226,7 +10406,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 		Message.printDebug ( 1, routine, _gtype + "Left Y label drawing limits are: " + _drawlim_lefty_label.toString() );
 	}
 
-	// Right y axis labels (do before titles since for now the right y-axis title can sit inside the label drawing area)
+	// Right y axis labels (do before titles since for now the right y-axis title can sit inside the label drawing area).
 
 	double rightYLabelLeftEdge = _drawlim_page.getRightX() - right_legend_buffer - right_legend_width - buffer - rightYAxisLabelWidth;
 	_drawlim_righty_label = new GRLimits (
@@ -10236,20 +10416,20 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 		Message.printDebug ( 1, routine, _gtype + "Right y-axis label drawing limits are: " + _drawlim_righty_label.toString() );
 	}
 	
-	// Right y-axis title (do after labels since for now title sits inside of label drawing area)
+	// Right y-axis title (do after labels since for now title sits inside of label drawing area).
 
 	if ( rightYAxisTitlePosition.equalsIgnoreCase("RightOfAxis") ) {
-		// Draw the right y-axis title on the right inside edge of the labels so as to avoid extra calculations
-		// Can adjust this later if problematic
+		// Draw the right y-axis title on the right inside edge of the labels so as to avoid extra calculations.
+		// Can adjust this later if problematic.
 		double rightEdge = _drawlim_page.getRightX() - right_legend_buffer - right_legend_width - buffer;
 	    _drawlim_righty_title = new GRLimits ( (rightEdge - rightYAxisTitleWidth), yAxisLabelBottom,
 			rightEdge, yAxisLabelTop );
 	}
 	else {
-		// Default is "AboveAxis"
+		// Default is "AboveAxis".
 		double leftEdge = (drawlim_page.getRightX() - right_legend_buffer - right_legend_width - buffer - rightYAxisLabelWidth - buffer -
 		        rightYAxisTitleWidth/2.0);
-		// Center above right edge of graph
+		// Center above right edge of graph.
 		_drawlim_righty_title = new GRLimits (
 			leftEdge, (yAxisLabelTop + buffer),
 			(leftEdge + rightYAxisTitleWidth), (yAxisLabelTop + buffer + rightYAxisTitleHeight) );
@@ -10258,15 +10438,15 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 		Message.printDebug ( 1, routine, _gtype + "Right y-axis title drawing limits are: " + _drawlim_righty_title.toString() );
 	}
 
-	// ...Skip the graph area for now because it will be the remainder...
-	// ...see below for its definition...
+	// Skip the graph area for now because it will be the remainder:
+	// - see below for its definition
 
-	// Now work up from the bottom...
-	// Drawing limits for the bottom legend (always independent of other legends)...
+	// Now work up from the bottom.
+	// Drawing limits for the bottom legend (always independent of other legends).
 
-	// Bottom left y-axis legend
+	// Bottom left y-axis legend.
 	if ( bottom_legend_height == 0.0 ) {
-		// Make zero-height same Y as the bottom of the page area...
+		// Make zero-height same Y as the bottom of the page area.
 		_drawlim_lefty_bottom_legend = new GRLimits ( (_drawlim_page.getLeftX() + buffer), _drawlim_page.getBottomY(),
 			(_drawlim_page.getRightX() - buffer), _drawlim_page.getBottomY());
 	}
@@ -10275,12 +10455,12 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 	        (_drawlim_page.getBottomY() + buffer), (_drawlim_page.getRightX() - buffer),
 			(_drawlim_page.getBottomY() + buffer + bottom_legend_height) );
 	}
-	// Set the data limits for the legend to use device units...
+	// Set the data limits for the legend to use device units.
 	_datalim_lefty_bottom_legend = new GRLimits ( 0.0, 0.0, _drawlim_lefty_bottom_legend.getWidth(), _drawlim_lefty_bottom_legend.getHeight() );
 	
-	// Bottom right y-axis legend
+	// Bottom right y-axis legend.
 	if ( bottom_legend_height == 0.0 ) {
-		// Make zero-height same Y as the bottom of the page area...
+		// Make zero-height same Y as the bottom of the page area.
 		_drawlim_righty_bottom_legend = new GRLimits ( (_drawlim_page.getLeftX() + buffer), _drawlim_page.getBottomY(),
 			(_drawlim_page.getRightX() - buffer), _drawlim_page.getBottomY());
 	}
@@ -10289,16 +10469,16 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 	        (_drawlim_page.getBottomY() + buffer), (_drawlim_page.getRightX() - buffer),
 			(_drawlim_page.getBottomY() + buffer + bottom_legend_height) );
 	}
-	// Set the data limits for the legend to use device units...
+	// Set the data limits for the legend to use device units.
 	_datalim_righty_bottom_legend = new GRLimits ( 0.0, 0.0, _drawlim_righty_bottom_legend.getWidth(), _drawlim_righty_bottom_legend.getHeight() );
 
 	// The position of the bottom X axis title and labels is impacted by
 	// left and right legends and the position of the bottom legend.
-	// Bottom X axis title and labels - work up from the bottom legend...
-	// For the bottomx title, add a little space around so it looks better, even if no title is given.
+	// Bottom X axis title and labels - work up from the bottom legend.
+	// For the bottomx title, add a little space around so it looks better, even if no title is given..
 
 	if ( bottomXAxisTitleHeight == 0.0 ) {
-		// Make zero-height same Y as the top of the legend area...
+		// Make zero-height same Y as the top of the legend area.
 		_drawlim_bottomx_title = new GRLimits (
 			(_drawlim_lefty_label.getRightX() + buffer), (_drawlim_lefty_bottom_legend.getTopY() + buffer),
 			(_drawlim_righty_label.getLeftX() - buffer), (_drawlim_lefty_bottom_legend.getTopY() + buffer + buffer) );
@@ -10310,7 +10490,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 	}
 
 	if ( bottomXAxisLabelHeight == 0.0 ) {
-		// Make zero-height same Y as the top of the X title...
+		// Make zero-height same Y as the top of the X title.
 		_drawlim_bottomx_label = new GRLimits (	(_drawlim_lefty_label.getRightX() + buffer),
 			_drawlim_bottomx_title.getTopY(), (_drawlim_righty_label.getLeftX() - buffer),
 			_drawlim_bottomx_title.getTopY());
@@ -10321,27 +10501,27 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 			(_drawlim_bottomx_title.getTopY() + buffer + bottomXAxisLabelHeight));
 	}
 
-	// Graph drawing area (always what is left)...
+	// Graph drawing area (always what is left).
 
 	if ( _is_reference_graph ) {
 		_drawlim_lefty_graph = new GRLimits ( drawlim_page.getLeftX(), drawlim_page.getBottomY(),
 			drawlim_page.getRightX(), drawlim_page.getTopY() );
 	}
 	else {
-		// Left y-axis graph
+		// Left y-axis graph.
 		if ( leftYAxisTitlePosition.equalsIgnoreCase("LeftOfAxis") ) {
 			_drawlim_lefty_graph = new GRLimits ( (_drawlim_lefty_label.getRightX() + buffer),
 				(_drawlim_bottomx_label.getTopY() + buffer), (_drawlim_righty_label.getLeftX() - buffer),
 				_drawlim_lefty_title.getTopY() );
 		}
 		else {
-			// "AboveAxis" (legacy)
+			// "AboveAxis" (legacy).
 			_drawlim_lefty_graph = new GRLimits ( (_drawlim_lefty_label.getRightX() + buffer),
 				(_drawlim_bottomx_label.getTopY() + buffer), (_drawlim_righty_label.getLeftX() - buffer),
 				(_drawlim_lefty_title.getBottomY() - buffer) );
 		}
 	}
-	// Right y-axis graph, same drawing limits as left y-axis graph (but data limits will be different)
+	// Right y-axis graph, same drawing limits as left y-axis graph (but data limits will be different).
 	_drawlim_righty_graph = new GRLimits ( _drawlim_lefty_graph );
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 1, routine, _gtype + "Graph drawing limits are: " + _drawlim_lefty_graph );
@@ -10353,18 +10533,18 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 	// the graph (this could be a problem if the graph ends - fix by not
 	// drawing when negative y-coordinates are found for data).
 
-	// Left y-axis left legend
+	// Left y-axis left legend.
 	if ( leftYAxisLegendPosition.equalsIgnoreCase("Left") ) {
 		_drawlim_lefty_left_legend = new GRLimits ( (_drawlim_page.getLeftX() + left_legend_buffer),
 		    _drawlim_lefty_graph.getBottomY(), (_drawlim_page.getLeftX() + left_legend_buffer + left_legend_width),
 			_drawlim_lefty_graph.getTopY() );
 	}
 	else {
-		// Set to zero width...
+		// Set to zero width.
 		_drawlim_lefty_left_legend = new GRLimits ( _drawlim_page.getLeftX(), _drawlim_lefty_graph.getBottomY(),
 			_drawlim_page.getLeftX(), _drawlim_lefty_graph.getTopY() );
 	}
-	// Set the data limits for the legend to use device units...
+	// Set the data limits for the legend to use device units.
 	_datalim_lefty_left_legend = new GRLimits ( 0.0, 0.0, _drawlim_lefty_left_legend.getWidth(),
 		_drawlim_lefty_left_legend.getHeight() );
 	
@@ -10375,15 +10555,15 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 			_drawlim_lefty_graph.getBottomY(), (_drawlim_page.getRightX() - right_legend_buffer), _drawlim_lefty_graph.getTopY() );
 	}
 	else {
-		// Set to zero width...
+		// Set to zero width.
 		_drawlim_lefty_right_legend = new GRLimits ( _drawlim_page.getRightX(), _drawlim_lefty_graph.getBottomY(),
 			_drawlim_page.getRightX(), _drawlim_lefty_graph.getTopY() );
 	}
-	// Set the data limits for the legend to use device units...
+	// Set the data limits for the legend to use device units.
 	_datalim_lefty_right_legend = new GRLimits ( 0.0, 0.0, _drawlim_lefty_right_legend.getWidth(),
 		_drawlim_lefty_right_legend.getHeight() );
 	
-	// Right y-axis left legend
+	// Right y-axis left legend.
 	
 	if ( rightYAxisLegendPosition.equalsIgnoreCase("Left") ) {
 		_drawlim_righty_left_legend = new GRLimits ( (_drawlim_page.getLeftX() + left_legend_buffer),
@@ -10391,28 +10571,43 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 			_drawlim_righty_graph.getTopY() );
 	}
 	else {
-		// Set to zero width...
+		// Set to zero width.
 		_drawlim_righty_left_legend = new GRLimits ( _drawlim_page.getLeftX(), _drawlim_righty_graph.getBottomY(),
 			_drawlim_page.getLeftX(), _drawlim_righty_graph.getTopY() );
 	}
-	// Set the data limits for the legend to use device units...
+	// Set the data limits for the legend to use device units.
 	_datalim_righty_left_legend = new GRLimits ( 0.0, 0.0, _drawlim_righty_left_legend.getWidth(),
 		_drawlim_righty_left_legend.getHeight() );
 	
-	// Right y-axis right legend
+	// Right y-axis right legend.
 	
 	if ( rightYAxisLegendPosition.equalsIgnoreCase("Right") ) {
 		_drawlim_righty_right_legend = new GRLimits ( (_drawlim_page.getRightX() - right_legend_buffer - right_legend_width),
 			_drawlim_righty_graph.getBottomY(), (_drawlim_page.getRightX() - right_legend_buffer), _drawlim_righty_graph.getTopY() );
 	}
 	else {
-		// Set to zero width...
+		// Set to zero width.
 		_drawlim_righty_right_legend = new GRLimits ( _drawlim_page.getRightX(), _drawlim_righty_graph.getBottomY(),
 			_drawlim_page.getRightX(), _drawlim_righty_graph.getTopY() );
 	}
-	// Set the data limits for the legend to use device units...
+	// Set the data limits for the legend to use device units.
 	_datalim_righty_right_legend = new GRLimits ( 0.0, 0.0, _drawlim_righty_right_legend.getWidth(),
 		_drawlim_righty_right_legend.getHeight() );
+
+	// Right raster legend:
+	// - same as left y-axis right legend but use raster width as computed above
+	if ( rasterGraphLegendPosition.equalsIgnoreCase("Right") ) {
+		_drawlim_right_raster_legend = new GRLimits ( (_drawlim_page.getRightX() - right_legend_buffer - right_legend_width),
+			_drawlim_lefty_graph.getBottomY(), (_drawlim_page.getRightX() - right_legend_buffer), _drawlim_lefty_graph.getTopY() );
+	}
+	else {
+		// Set to zero width.
+		_drawlim_right_raster_legend = new GRLimits ( _drawlim_page.getRightX(), _drawlim_lefty_graph.getBottomY(),
+			_drawlim_page.getRightX(), _drawlim_lefty_graph.getTopY() );
+	}
+	// Set the data limits for the legend to use device units.
+	_datalim_right_raster_legend = new GRLimits ( 0.0, 0.0, _drawlim_right_raster_legend.getWidth(),
+		_drawlim_right_raster_legend.getHeight() );
 	
 	// Left y-axis inner legend positions
 
@@ -10446,7 +10641,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 	_datalim_lefty_inside_legend = new GRLimits(0.0, 0.0, _drawlim_lefty_inside_legend.getWidth(),
 		_drawlim_lefty_inside_legend.getHeight());
 	
-	// Right y-axis inner legend positions - same as left y-axis other than the drawing limits name
+	// Right y-axis inner legend positions - same as left y-axis other than the drawing limits name.
 
 	if (rightYAxisLegendPosition.equalsIgnoreCase("InsideUpperLeft")) {
 		_drawlim_righty_inside_legend = new GRLimits( _drawlim_righty_graph.getLeftX() + inside_righty_legend_buffer,
@@ -10478,10 +10673,10 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 	_datalim_righty_inside_legend = new GRLimits(0.0, 0.0, _drawlim_righty_inside_legend.getWidth(),
 		_drawlim_righty_inside_legend.getHeight());
 
-	// Now set in the drawing areas...
+	// Now set in the drawing areas.
 
 	if ( (_da_page != null) && (_drawlim_page != null) ) {
-		// _drawlim_page is set in the constructor - we just need to use it as is...
+		// _drawlim_page is set in the constructor - we just need to use it as is.
 		_da_page.setDrawingLimits ( _drawlim_page, GRUnits.DEVICE, GRLimits.DEVICE );
 	}
 	if ( (_da_error != null) && (_drawlim_error != null) ) {
@@ -10552,7 +10747,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 		_da_bottomx_title.setDrawingLimits ( _drawlim_bottomx_title, GRUnits.DEVICE, GRLimits.DEVICE );
 		_da_bottomx_title.setDataLimits ( _datalim_bottomx_title );
 	}
-	// Left y-axis legend options
+	// Left y-axis legend options.
 	if ( (_da_lefty_bottom_legend != null) && (_drawlim_lefty_bottom_legend != null) ) {
 		_da_lefty_bottom_legend.setDrawingLimits ( _drawlim_lefty_bottom_legend, GRUnits.DEVICE, GRLimits.DEVICE );
 		_da_lefty_bottom_legend.setDataLimits ( _datalim_lefty_bottom_legend );
@@ -10569,7 +10764,7 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 		_da_lefty_inside_legend.setDrawingLimits(_drawlim_lefty_inside_legend, GRUnits.DEVICE, GRLimits.DEVICE);
 		_da_lefty_inside_legend.setDataLimits(_datalim_lefty_inside_legend);
 	}
-	// Right y-axis legend options
+	// Right y-axis legend options.
 	if ( (_da_righty_bottom_legend != null) && (_drawlim_righty_bottom_legend != null) ) {
 		_da_righty_bottom_legend.setDrawingLimits ( _drawlim_righty_bottom_legend, GRUnits.DEVICE, GRLimits.DEVICE );
 		_da_righty_bottom_legend.setDataLimits ( _datalim_righty_bottom_legend );
@@ -10581,6 +10776,11 @@ public void setDrawingLimits ( GRLimits drawlim_page )
 	if ( (_da_righty_right_legend != null) && (_drawlim_righty_right_legend != null) ) {
 		_da_righty_right_legend.setDrawingLimits ( _drawlim_righty_right_legend, GRUnits.DEVICE, GRLimits.DEVICE );
 		_da_righty_right_legend.setDataLimits ( _datalim_righty_right_legend );
+	}
+	// For raster graph.
+	if ( (_da_right_raster_legend != null) && (_drawlim_right_raster_legend != null) ) {
+		_da_right_raster_legend.setDrawingLimits ( _drawlim_right_raster_legend, GRUnits.DEVICE, GRLimits.DEVICE );
+		_da_right_raster_legend.setDataLimits ( _datalim_right_raster_legend );
 	}
 	if ((_da_righty_inside_legend != null) && (_drawlim_righty_inside_legend != null)) {
 		_da_righty_inside_legend.setDrawingLimits(_drawlim_righty_inside_legend, GRUnits.DEVICE, GRLimits.DEVICE);
