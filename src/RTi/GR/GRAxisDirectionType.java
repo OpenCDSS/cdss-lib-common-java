@@ -44,7 +44,7 @@ public enum GRAxisDirectionType
     private final String displayName;
     
     /**
-     * Construct a time series list type enumeration value.
+     * Construct an enumeration value.
      * @param displayName name that should be displayed in choices, etc.
      */
     private GRAxisDirectionType(String displayName) {
@@ -54,8 +54,8 @@ public enum GRAxisDirectionType
     /**
      * Equals method to prevent common programming error of using the equals method instead of ==.
      */
-    public boolean equals ( String arrowStyleType ) {
-        if ( arrowStyleType.equalsIgnoreCase(this.displayName) ) {
+    public boolean equals ( String displayName ) {
+        if ( displayName.equalsIgnoreCase(this.displayName) ) {
             return true;
         }
         else {

@@ -1203,6 +1203,12 @@ TSProcessor.processProduct() method as time series are read.
 </tr>
 
 <tr>
+<td><b>RasterGraphLegendPosition</b></td>
+<td>Position of the raster graph legend, needed because this legend is in addition to the normal legend.</td>
+<td>Right.</td>
+</tr>
+
+<tr>
 <td><b>RegressionLineEnabled</b></td>
 <td>Indicates whether the regression line should be shown (currently only used
 with the XY-Scatter graph type).  The line is drawn in black (there is currently
@@ -1564,10 +1570,6 @@ public void checkAnnotationProperties(int isub, int iann) {
 		if (getLayeredPropValue("SymbolSize", isub, iann, false, true) == null) {
 		    setPropValue("SymbolSize", getDefaultPropValue("SymbolSize", isub, iann, true), isub, iann, true);
 		}
-
-		if (getLayeredPropValue("SymbolTablePath", isub, iann, false, true) == null) {
-		    setPropValue("SymbolTablePath", getDefaultPropValue("SymbolTablePath", isub, iann, true), isub, iann, true);
-		}
 	}
 }
 
@@ -1629,9 +1631,15 @@ public void checkDataProperties(int isub, int its) {
 	}
 
 	if (graphType == TSGraphType.RASTER) {
-	    // Raster graphs use a symbol table to define value ranges and corresponding color, etc.
+	    // Raster graphs use a symbol table to define value ranges and corresponding color, etc.:
+		// - currently raster graph is only available for a single time series
+		// - in the future may allow multiple time series where each raster row is one time series
 		if (getLayeredPropValue("SymbolTablePath",isub,its,false) == null) {
-			setPropValue("SymbolTablePath",	"", isub, its);
+			setPropValue("SymbolTablePath", "", isub, its);
+		}
+
+		if (getLayeredPropValue("RasterGraphLegendPosition",isub,its,false) == null) {
+			setPropValue("RasterGraphLegendPosition", "", isub, its);
 		}
 	}
 
@@ -1710,6 +1718,10 @@ public void checkDataProperties(int isub, int its) {
 
 	if (getLayeredPropValue("LineWidth", isub, its, false) == null) {
 		setPropValue("LineWidth", getDefaultPropValue("LineWidth",isub,its, false, graphType),	isub, its);
+	}
+
+	if (getLayeredPropValue("RasterGraphLegendPosition", isub, its, false) == null) {
+		setPropValue("RasterGraphLegendPosition",getDefaultPropValue("RasterGraphLegendPosition", isub,its,false,graphType),isub, its);
 	}
 
 	if (graphType == TSGraphType.XY_SCATTER
@@ -2656,14 +2668,11 @@ boolean isAnnotation, TSGraphType graphType) {
 		else if (param.equalsIgnoreCase("SymbolPosition")) {
 			return "Center";
 		}
-		else if (param.equalsIgnoreCase("SymbolTablePath")) {
-			return "";
-		}
 		return null;
 	}
 
 	if ( subproduct < 0 ) {
-		// Product property...
+		// Product property.
         if ( param.equalsIgnoreCase("CurrentDateTime") ) {
             return "None";
         }
@@ -2745,7 +2754,7 @@ boolean isAnnotation, TSGraphType graphType) {
 	}
 
 	//
-	// Subproduct properties
+	// Subproduct (graph) properties.
 	//
 
 	else if ( (subproduct >= 0) && (its < 0) ) {
@@ -3101,6 +3110,11 @@ boolean isAnnotation, TSGraphType graphType) {
 			}
 		}
 		// PeriodEnd, PeriodStart set at runtime
+		// Raster legend default is Right so it will always show up when graph originates from TSTool UI.
+		else if (param.equalsIgnoreCase("RasterGraphLegendPosition")) {
+			return "Right";
+			//return "None";
+		}
 		// This should only be called for XY-Scatter plots...
 		else if ( param.equalsIgnoreCase("RegressionLineEnabled") ){
 			return "true";

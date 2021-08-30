@@ -221,6 +221,18 @@ public Object clone() {
 }
 
 /**
+ * Return the color opacity as floating point number 0.0 (transparent) to 1.0 (opaque).
+ * @return the color opacity
+ */
+public float getOpacityFloat () {
+	// Get the opacity as alpha 0 to 255.
+	float opacity = (float)getAlpha();
+	// Translate to 0.0 to 1.0.
+	opacity = opacity/(float)255.0;
+	return opacity;
+}
+
+/**
 Indicate whether color is transparent (no color).
 This corresponds to an opacity (alpha) of 0.
 @return true if transparent.

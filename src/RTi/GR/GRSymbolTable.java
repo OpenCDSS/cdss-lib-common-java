@@ -67,6 +67,56 @@ public class GRSymbolTable {
 	}
 
 	/**
+	 * Create a symbol table for a color ramp.
+	 * This is useful if a custom symbol table is not provided.
+	 * Nice labels will be determined.
+	 * @minValue the minimum data value, as a hint for determining nice breaks
+	 * @maxValue the maximum data value, as a hint for determining nice breaks
+	 * @param nRowsMin minimum number of rows in the table
+	 * @param nRowsMax maximum number of rows in the table
+	 * @param rampType the color ramp type
+	 * @param precision of the numbers in the legend - currently ignored
+	 * @param noDataColor if not null, include a NoData color at the end
+	 */
+	public static GRSymbolTable createForColorRamp (
+		double minValue, double maxValue,
+		int nRowsMin, int nRowsMax,
+		GRColorRampType rampType,
+		int precision,
+		GRColor noDataColor) {
+		GRSymbolTable symtable = new GRSymbolTable();
+		boolean includeEndPoints = false; // Will bounding nice end points with infinity.
+		String [] labelValues = GRAxis.formatLabels(
+			GRAxis.findNLabels ( minValue, maxValue, includeEndPoints, nRowsMin, nRowsMax ));
+		int nRows = labelValues.length - 1;
+		GRColor [] colors = GRColorTable.createColorTable(GRColorRampType.BLUE_TO_RED, nRows, true).toArray(new GRColor[nRows]);
+		double opacity = 1.0;
+		double fillOpacity = 1.0;
+		for ( int iRow = 0; iRow < nRows; iRow++ ) {
+			// Format hole values as integers because the legend should be uncluttered.
+			symtable.addRow ( new GRSymbolTableRow(
+				">=" + labelValues[iRow],
+				"<" + labelValues[iRow + 1],
+				colors[iRow].toHex(),
+				opacity,
+				colors[iRow].toHex(),
+				fillOpacity
+			) );
+		}
+		if ( noDataColor != null ) {
+			symtable.addRow ( new GRSymbolTableRow(
+				"NoData",
+				"NoData",
+				noDataColor.toHex(),
+				noDataColor.getOpacityFloat(),
+				noDataColor.toHex(),
+				noDataColor.getOpacityFloat()
+			) );
+		}
+		return symtable;
+	}
+	
+	/**
 	 * Get color for a data value.  Only valid values can be processed.
 	 * Infinity and -Infinity are handled.
 	 * Calling code must detect missing values.
@@ -89,6 +139,15 @@ public class GRSymbolTable {
 	 */
 	public GRSymbolTableRow getNoDataSymbolTableRow () {
 		return this.nodataRow;
+	}
+
+	/**
+	 * Get the symbol table row.
+	 * @param row symbol table row (0+)
+	 * @return the requested symbol table row
+	 */
+	public GRSymbolTableRow getSymbolTableRow ( int row ) {
+		return this.symbolTableRows.get(row);
 	}
 
 	/**
