@@ -30,7 +30,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Date;
 
-import RTi.DMI.DMI;
+import RTi.DMI.DMIDatabaseType;
 import RTi.DMI.DMIUtil;
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
@@ -51,12 +51,12 @@ public ResultSetToDataTableFactory ()
 
 /**
 Create a DataTable from a ResultSet.
-@param dbengineType a value from DMI.DBENGINE_*, used for fine-grain handling
+@param dbengineType a value from DMIDatabaseType._*, used for fine-grain handling
 of column data type mapping.  Specify as -1 to ignore.
 @param rs the ResultSet from an SQL query
 @param tableID the identifier to use for the table
 */
-public DataTable createDataTable ( int dbengineType, ResultSet rs, String tableID )
+public DataTable createDataTable ( DMIDatabaseType dbengineType, ResultSet rs, String tableID )
 throws SQLException
 {   String routine = getClass().getSimpleName() + ".createDataTable";
     DataTable table = new DataTable();
@@ -82,13 +82,13 @@ throws SQLException
         // still shows digits after the decimal point.  None of the properties on a column appear to be usable
         // to determine the number of digits to display.  To compensate, for now set the scale to 6 if
         // floating point and not specified
-        if ( dbengineType == DMI.DBENGINE_SQLSERVER ) {
+        if ( dbengineType == DMIDatabaseType.SQLSERVER ) {
 	        if ( ((columnType == TableField.DATA_TYPE_DOUBLE) || (columnType == TableField.DATA_TYPE_FLOAT)) &&
 	            (scale == 0) ) {
 	            scale = 6;
 	        }
         }
-        else if ( dbengineType == DMI.DBENGINE_ORACLE ) {
+        else if ( dbengineType == DMIDatabaseType.ORACLE ) {
         	// If the column type is NUMBER rather than NUMBER(5,0), for example, scale may be -127 and precision 0
 	        if ( ((columnType == TableField.DATA_TYPE_DOUBLE) || (columnType == TableField.DATA_TYPE_FLOAT)) &&
 	            (scale == -127) ) {
@@ -96,7 +96,7 @@ throws SQLException
 	            precision = -1; // Allow any width
 	        }
         }
-        else if ( dbengineType == DMI.DBENGINE_SQLITE ) {
+        else if ( dbengineType == DMIDatabaseType.SQLITE ) {
         	// Column width is not restricted and comes back as a large number
         	precision = meta.getColumnDisplaySize(i);
         }
@@ -349,14 +349,14 @@ Lookup the SQL column type to the DataTable type.
 @param sqlColumnType SQL column type from Types
 @return DataTable column type from TableField
 */
-private int sqlToDMIColumnType(int dbengineType, int sqlColumnType)
+private int sqlToDMIColumnType(DMIDatabaseType dbengineType, int sqlColumnType)
 {
     switch ( sqlColumnType ) {
     	case Types.ARRAY: return TableField.DATA_TYPE_ARRAY;
         case Types.BIGINT: return TableField.DATA_TYPE_LONG;
         // BINARY not handled
         case Types.BIT:
-        	if ( dbengineType == DMI.DBENGINE_POSTGRESQL ) {
+        	if ( dbengineType == DMIDatabaseType.POSTGRESQL ) {
         		// Database can have t or f as boolean
         		return TableField.DATA_TYPE_BOOLEAN;
         	}

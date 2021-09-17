@@ -120,7 +120,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 	// because the connection is going through ODBC, in which case the 
 	// name of the ODBC source will be used.
 	String dbName = dmi.getDatabaseName();
-	if ( dmi.getDatabaseEngineType() == DMI.DBENGINE_SQLITE ) {
+	if ( dmi.getDatabaseEngineType() == DMIDatabaseType.SQLITE ) {
 		// Database name is not specified in the name
 		// - use the filename
 		File f = new File(dmi.getDatabaseServer());
@@ -189,7 +189,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 	Message.printStatus(2, routine, "Getting list of tables and views");
 	ResultSet rs = null;
     String [] tableTypes = { "TABLE", "VIEW" };
-    if ( dmi.getDatabaseEngineType() == DMI.DBENGINE_SQLSERVER ) {
+    if ( dmi.getDatabaseEngineType() == DMIDatabaseType.SQLSERVER ) {
         // SQL Server does not seem to recognize the type array so get all and then filter below
         tableTypes = null;
     }
@@ -323,7 +323,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 	// Remove the list of system tables for each kind of database (all database types have certain system tables)
 	boolean isSQLServer = false;
 	//String databaseEngine = dmi.getDatabaseEngine();
-	int databaseEngineType = dmi.getDatabaseEngineType();
+	DMIDatabaseType databaseEngineType = dmi.getDatabaseEngineType();
 	Message.printStatus(2, routine, "Removing tables that should be skipped");
 	String [] systemTablePatternsToRemove = DMIUtil.getSystemTablePatternsToRemove (databaseEngineType);
     for ( int i = 0; i < systemTablePatternsToRemove.length; i++ ) {

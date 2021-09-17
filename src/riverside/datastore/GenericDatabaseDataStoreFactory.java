@@ -23,6 +23,7 @@ NoticeEnd */
 
 package riverside.datastore;
 
+import RTi.DMI.DMI;
 import RTi.DMI.GenericDMI;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
@@ -43,6 +44,7 @@ Create an ODBCDataStore instance and open the encapsulated DMI using the specifi
 public DataStore create ( PropList props )
 {   String routine = getClass().getName() + ".create";
     String name = props.getValue ( "Name" );
+    String connectionProperties = IOUtil.expandPropertyForEnvironment("ConnectionProperties",props.getValue ( "ConnectionProperties" ));
     String description = props.getValue ( "Description" );
     if ( description == null ) {
         description = "";
@@ -63,6 +65,13 @@ public DataStore create ( PropList props )
     String odbcName = IOUtil.expandPropertyForEnvironment("OdbcName",props.getValue ( "OdbcName" ));
     String systemLogin = IOUtil.expandPropertyForEnvironment("SystemLogin",props.getValue ( "SystemLogin" ));
     String systemPassword = IOUtil.expandPropertyForEnvironment("SystemPassword",props.getValue ( "SystemPassword" ));
+
+    // Additionally, expand the password property since it might be specified in a file:
+    // - for example, ${pgpass:password} is used with PostgreSQL
+    Message.printStatus(2, "", "systemPassword before expansion=" + systemPassword);
+    systemPassword = DMI.expandDatastoreConfigurationProperty(props, "SystemPassword", systemPassword);
+    Message.printStatus(2, "", "systemPassword after expansion=" + systemPassword);
+
     try {
         GenericDMI dmi = null;
         if ( (odbcName != null) && !odbcName.equals("") ) {
@@ -82,6 +91,9 @@ public DataStore create ( PropList props )
         ds.setProperties(props);
         // Now try to open the database connection, which may generate an exception
         ds.setStatus(0);
+        // Set additional connection properties if specified, for example the login timeout:
+        // - the properties will depend on the database but usually is ?prop1=value1&prop2=value2
+        dmi.setAdditionalConnectionProperties(connectionProperties);
         try {
         	dmi.open();
         }

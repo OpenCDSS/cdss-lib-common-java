@@ -228,7 +228,7 @@ public String toString() {
 	StringBuffer statement = new StringBuffer("SELECT ");
 
     if ( _top > 0 ) {
-        if ( _dmi.getDatabaseEngineType() == DMI.DBENGINE_SQLSERVER ) {
+        if ( _dmi.getDatabaseEngineType() == DMIDatabaseType.SQLSERVER ) {
             statement.append ( "TOP " + _top + " " );
         }
     }
@@ -285,7 +285,7 @@ public String toString() {
 		}
 	}
     if ( _top > 0 ) {
-        if ( _dmi.getDatabaseEngineType() == DMI.DBENGINE_ORACLE ) {
+        if ( _dmi.getDatabaseEngineType() == DMIDatabaseType.ORACLE ) {
             if ( whereSize == 0 ) {
                 statement.append ( " WHERE " );
             }
@@ -310,7 +310,7 @@ public String toString() {
 	}
 	
     if ( _top > 0 ) {
-        if ( _dmi.getDatabaseEngineType() == DMI.DBENGINE_MYSQL ) {
+        if ( _dmi.getDatabaseEngineType() == DMIDatabaseType.MYSQL ) {
             statement.append ( " LIMIT " + _top );
         }
     }
