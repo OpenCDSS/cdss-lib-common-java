@@ -1335,7 +1335,7 @@ throws Exception {
 	String minute = null;
 	String second = null;
 	String databaseEngine = dmi.getDatabaseEngine();
-	int databaseEngineType = dmi.getDatabaseEngineType();
+	DMIDatabaseType databaseEngineType = dmi.getDatabaseEngineType();
 	StringBuffer formatted = new StringBuffer();
 
 	if ( precision == -1 ) {
@@ -1355,7 +1355,7 @@ throws Exception {
 	// There are just enough differences between database engines to make
 	// reusing code difficult.  Just handle separately for each engine.
 
-	if ( databaseEngineType == DMI.DBENGINE_ACCESS ) {
+	if ( databaseEngineType == DMIDatabaseType.ACCESS ) {
 		// TODO How to handle month or year precision?
 		if (escapeChar) {
 			formatted.append ( "#" );
@@ -1379,7 +1379,7 @@ throws Exception {
 		}
 		return formatted.toString();
 	}
-	else if ( databaseEngineType == DMI.DBENGINE_INFORMIX ) {
+	else if ( databaseEngineType == DMIDatabaseType.INFORMIX ) {
 		// TODO Need to check the INFORMIX documentation for all the variations on this...
 		if (escapeChar) {
 			formatted.append ( "DATETIME (");
@@ -1405,9 +1405,9 @@ throws Exception {
 		}
 		return formatted.toString();
 	}
-	//else if ( databaseEngineType == DMI.DBENGINE_ORACLE ) {
+	//else if ( databaseEngineType == DMIDatabaseType.ORACLE ) {
 	//}
-	else if ( databaseEngineType == DMI.DBENGINE_SQLSERVER ) {
+	else if ( databaseEngineType == DMIDatabaseType.SQLSERVER ) {
 		if (escapeChar) {
 			formatted.append ( "'" );
 		}
@@ -1432,8 +1432,8 @@ throws Exception {
 		}
 		return formatted.toString();
 	}
-	else if ( (databaseEngineType == DMI.DBENGINE_MYSQL) ||
-		(databaseEngineType == DMI.DBENGINE_POSTGRESQL) ) {
+	else if ( (databaseEngineType == DMIDatabaseType.MYSQL) ||
+		(databaseEngineType == DMIDatabaseType.POSTGRESQL) ) {
 		// PostgreSQL datetimes must have at least year-month-day
 		if (escapeChar) {
 			formatted.append("'");
@@ -2265,7 +2265,7 @@ throws SQLException
     Message.printStatus(2, routine, "Getting list of procedures");
     ResultSet rs = null;
     DatabaseMetaData metadata = null;
-    int databaseEngineType = dmi.getDatabaseEngineType();
+    DMIDatabaseType databaseEngineType = dmi.getDatabaseEngineType();
     try {
     	metadata = dmi.getConnection().getMetaData();
         Message.printStatus(2,routine,"Database " + dbName + " supports catalogs in procedure calls:" +
@@ -2275,7 +2275,7 @@ throws SQLException
         	Message.printStatus(2, routine, "Database " + dbName + " driver does not support procedures");
         	return procNames;
         }
-    	if ( databaseEngineType == DMI.DBENGINE_SQLSERVER ) {
+    	if ( databaseEngineType == DMIDatabaseType.SQLSERVER ) {
     		// TODO SAM 2016-03-25 Seems like this does not work the same but cannot get it to work
     		rs = metadata.getProcedures( dbName, null, null);
     	}
@@ -2316,7 +2316,7 @@ throws SQLException
     // Strip out system stored procedures that a user should not run.
     // TODO SAM 2013-04-10 Need to figure out a more elegant way to do this.
     String [] systemProcPatternsToRemove = new String[0];
-    if ( databaseEngineType == DMI.DBENGINE_SQLSERVER ) {
+    if ( databaseEngineType == DMIDatabaseType.SQLSERVER ) {
         String [] systemProcPatternsToRemove0 = {
             "dm.*",
             "dt.*",
@@ -2375,7 +2375,7 @@ public static List<String> getDatabaseSchemaNames(DMI dmi, String catalog, boole
     try {
         metadata = dmi.getConnection().getMetaData();
         // TODO SAM 2013-07-22 SQL Server does not implement completely so just brute force below
-        //if ( dmi.getDatabaseEngineType() == DMI.DBENGINE_SQLSERVER ) {
+        //if ( dmi.getDatabaseEngineType() == DMIDatabaseType.SQLSERVER ) {
         //    // Have to make the call without the catalog...
         if ( metadata.supportsSchemasInTableDefinitions() ) {
         	// Schemas are not supported by all databases
@@ -2405,7 +2405,7 @@ public static List<String> getDatabaseSchemaNames(DMI dmi, String catalog, boole
                 // Schema name...
                 schema = rs.getString(1);
                 if ( !rs.wasNull()) {
-                    if ( (catalog == null) || (dmi.getDatabaseEngineType() == DMI.DBENGINE_SQLSERVER) ) {
+                    if ( (catalog == null) || (dmi.getDatabaseEngineType() == DMIDatabaseType.SQLSERVER) ) {
                         schemas.add(schema.trim());
                     }
                     else {
@@ -2479,11 +2479,11 @@ public static List<String> getDatabaseTableNames(DMI dmi, String catalog, String
 	Message.printStatus(2, routine, "Getting list of tables");
 	ResultSet rs = null;
 	DatabaseMetaData metadata = null;
-	int databaseEngineType = dmi.getDatabaseEngineType();
+	DMIDatabaseType databaseEngineType = dmi.getDatabaseEngineType();
 	try {	
 		metadata = dmi.getConnection().getMetaData();
 		String [] typeArray = { "TABLE", "VIEW" };
-		if ( databaseEngineType == DMI.DBENGINE_SQLSERVER ) {
+		if ( databaseEngineType == DMIDatabaseType.SQLSERVER ) {
 		    // SQL Server does not seem to recognize the type array so get all and then filter below
 		    typeArray = null;
 		}
@@ -2514,7 +2514,7 @@ public static List<String> getDatabaseTableNames(DMI dmi, String catalog, String
     				tableName = null;
     			}
     			else {
-    			    if ( databaseEngineType == DMI.DBENGINE_ORACLE ) {
+    			    if ( databaseEngineType == DMIDatabaseType.ORACLE ) {
     			        if ( tableName.startsWith("/") ) {
     			            // See large number of tables with names like "/f1892dbb_LogicalBasicNetwork", type is "SYNONYM"
     			            continue;
@@ -2779,10 +2779,10 @@ throws Exception {
 /**
 Return a list of system table name patterns to remove.  These are internal tables that should not be visible to users.
 */
-public static String [] getSystemTablePatternsToRemove ( int databaseEngineType )
+public static String [] getSystemTablePatternsToRemove ( DMIDatabaseType databaseEngineType )
 {
     String [] systemTablePatternsToRemove = new String[0];
-    if ( databaseEngineType == DMI.DBENGINE_ACCESS ) {
+    if ( databaseEngineType == DMIDatabaseType.ACCESS ) {
         String [] systemTablePatternsToRemove0 = {
             "MSysAccessObjects",
             "MSysACEs",
@@ -2793,7 +2793,7 @@ public static String [] getSystemTablePatternsToRemove ( int databaseEngineType 
         };
         systemTablePatternsToRemove = systemTablePatternsToRemove0;
     }
-    else if ( databaseEngineType == DMI.DBENGINE_SQLSERVER ) {
+    else if ( databaseEngineType == DMIDatabaseType.SQLSERVER ) {
         String [] systemTablePatternsToRemove0 = {
         // Older SQL Server (pre 2005 ?)...
         // Use .* for regex when glob * is needed - the following deals with ignoring case
@@ -3558,9 +3558,9 @@ throws Exception {
 	String SQL = null;
 
 	String databaseEngine = dmi.getDatabaseEngine();
-	int databaseEngineType = dmi.getDatabaseEngineType();
+	DMIDatabaseType databaseEngineType = dmi.getDatabaseEngineType();
 
-	if ( databaseEngineType == DMI.DBENGINE_SQLSERVER ) {
+	if ( databaseEngineType == DMIDatabaseType.SQLSERVER ) {
 		SQL = "DROP TABLE " + tableName;
 	}
 	else {

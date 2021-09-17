@@ -119,13 +119,14 @@ Factory method to construct a data store connection from a properties file.
 public static GenericDatabaseDataStore createFromFile ( String filename )
 throws IOException, Exception
 {
-    // Read the properties from the file
+    // Read the properties from the file.
     PropList props = new PropList ("");
     props.setPersistentName ( filename );
     props.readPersistent ( false );
-    // Set a property for the configuration filename because it is used later
+    // Set a property for the configuration filename because it is used later.
     props.set("DataStoreConfigFile="+filename);
     String name = IOUtil.expandPropertyForEnvironment("Name",props.getValue("Name"));
+    String connectionProperties = IOUtil.expandPropertyForEnvironment("ConnectionProperties",props.getValue("ConnectionProperties"));
     String description = IOUtil.expandPropertyForEnvironment("Description",props.getValue("Description"));
     String databaseEngine = IOUtil.expandPropertyForEnvironment("DatabaseEngine",props.getValue("DatabaseEngine"));
     String databaseServer = IOUtil.expandPropertyForEnvironment("DatabaseServer",props.getValue("DatabaseServer"));
@@ -143,21 +144,34 @@ throws IOException, Exception
     String odbcName = props.getValue ( "OdbcName" );
     String systemLogin = IOUtil.expandPropertyForEnvironment("SystemLogin",props.getValue("SystemLogin"));
     String systemPassword = IOUtil.expandPropertyForEnvironment("SystemPassword",props.getValue("SystemPassword"));
+
+    // Additionally, expand the password property since it might be specified in a file:
+    // - for example, ${pgpass:password} is used with PostgreSQL
+    systemPassword = DMI.expandDatastoreConfigurationProperty(props, "SystemPassword", systemPassword);
     
-    // Get the properties and create an instance
+    // Get the properties and create an instance.
     GenericDMI dmi = null;
-    if ( (odbcName != null) && !odbcName.equals("") ) {
-        // An ODBC connection is configured so use it
+    if ( (odbcName != null) && !odbcName.isEmpty() ) {
+        // An ODBC connection is configured so use it.
         dmi = new GenericDMI (
-            databaseEngine, // Needed for internal SQL handling
-            odbcName, // Must be configured on the machine
-            systemLogin, // OK if null - use read-only guest
-            systemPassword ); // OK if null - use read-only guest
+            databaseEngine, // Needed for internal SQL handling.
+            odbcName, // Must be configured on the machine.
+            systemLogin, // OK if null - use read-only guest.
+            systemPassword ); // OK if null - use read-only guest.
     }
     else {
-        // Use the parts and create the connection string on the fly
-        dmi = new GenericDMI( databaseEngine, databaseServer, databaseName, port, systemLogin, systemPassword );
+        // Use the parts and create the connection string on the fly.
+        dmi = new GenericDMI(
+        	databaseEngine,
+        	databaseServer,
+        	databaseName,
+        	port,
+        	systemLogin,
+        	systemPassword );
     }
+    // Set additional connection properties if specified, for example the login timeout:
+    // - the properties will depend on the database but usually is ?prop1=value1&prop2=value2
+    dmi.setAdditionalConnectionProperties(connectionProperties);
     dmi.open();
     GenericDatabaseDataStore ds = new GenericDatabaseDataStore( name, description, dmi );
     // Save all the properties generically for use later.  This defines tables for time series meta and data mapping.

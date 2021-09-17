@@ -434,8 +434,8 @@ throws Exception {
 	}
 	else {
 	    if (value.indexOf('\'') > -1) {
-    		if ( (_dmi.getDatabaseEngineType() == DMI.DBENGINE_SQLSERVER) ||
-    		    (_dmi.getDatabaseEngineType() == DMI.DBENGINE_ACCESS) ) {
+    		if ( (_dmi.getDatabaseEngineType() == DMIDatabaseType.SQLSERVER) ||
+    		    (_dmi.getDatabaseEngineType() == DMIDatabaseType.ACCESS) ) {
     		    // Handle specifically because the following '' is documented
 				_values_Vector.add("'" + StringUtil.replaceString(value, "'", "''") + "'");
 			}	
@@ -461,7 +461,7 @@ throws Exception {
         //setValue(value, __paramNum++);
     }
     else {
-        if ( _dmi.getDatabaseEngineType() == DMI.DBENGINE_SQLSERVER ) {
+        if ( _dmi.getDatabaseEngineType() == DMIDatabaseType.SQLSERVER ) {
             // TODO SAM 2013-02-03 Need to evaluate whether any specific cleanup needs to be done internally
             // as in the following code so that the embedded select statement is properly formatted
             //if (value.indexOf('\'') > -1) {

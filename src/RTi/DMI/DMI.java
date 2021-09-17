@@ -298,10 +298,13 @@ NoticeEnd */
 package RTi.DMI;
 
 import RTi.Util.IO.IOUtil;
+import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 
 import RTi.Util.String.StringUtil;
 
+import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -377,73 +380,6 @@ catch ( Exception e ) {
 public abstract class DMI {
 
 public final static String CLASS = "DMI";
-
-// Integer constants for database engine types, to formalize the engines that
-// are supported and to streamline internal processing.
-// TODO SAM 2015-02-16 Need to convert to an enumeration
-
-/**
-Database engine corresponding to "Access" database engine (Jet).
-*/
-public static final int DBENGINE_ACCESS = 10;
-
-/**
-Database engine corresponding to "Derby" database engine (Oracle implementation of Apache Derby).
-*/
-public static final int DBENGINE_DERBY = 15;
-
-/**
-Database engine corresponding to "Informix" database engine (no distinction about version?).
-*/
-public static final int DBENGINE_INFORMIX = 20;
-
-/**
-Database engine corresponding to "MySQL" database engine (no distinction about version?).
-*/
-public static final int DBENGINE_MYSQL = 30;
-
-/**
-Database engine corresponding to "Oracle" database engine (no distinction about version?).
-*/
-public static final int DBENGINE_ORACLE = 40;
-
-/**
-Database engine corresponding to "SQL Server" database engine (2000, 2005, or 2008).
-Previously had definitions for the following but the current 2008 JDBC driver is advertised to be
-backward compatible so only use the one value now:
-<pre>
-protected final int _DBENGINE_SQLSERVER7 = 50;
-protected final int _DBENGINE_SQLSERVER2000 = 60;
-protected final int _DBENGINE_SQLSERVER_2005 = 61;
-</pre>
-*/
-public static final int DBENGINE_SQLSERVER = 62;
-
-/**
-Database engine corresponding to "PostgreSQL" database engine (no distinction about version?).
-*/
-public static final int DBENGINE_POSTGRESQL = 70;
-
-/**
-Database engine corresponding to "H2" database engine
- */
-public static final int DBENGINE_H2 = 80;
-
-/**
-Database engine corresponding to "Excel" database engine (no distinction about version?).
-*/
-public static final int DBENGINE_EXCEL = 90;
-
-/**
-Database engine corresponding to ODBC DSN database connection but engine type is not
-specifically known to this code.  Useful for generic connections.
-*/
-public static final int DBENGINE_ODBC = 100;
-
-/**
-Database engine corresponding to SQLite database.
-*/
-public static final int DBENGINE_SQLITE = 110;
 
 ///////////////////////////////////////////////////////////
 //  Commit / Rollback constants
@@ -625,10 +561,9 @@ This is used in auto-generated internal SQL.
 private String __statementEnd = "";
 
 /**
-Database engine as integer, to improve performance.  The protected value is
-used directly in DMIStatement and other classes in this package to improve performance.
+Database engine as enumeration.
 */
-protected int _database_engine;
+protected DMIDatabaseType _database_engine;
 
 /**
 Database version.  This should be set by calling determineDatabaseVersion(),
@@ -847,7 +782,7 @@ throws Exception {
 		__stringDelim = "'";
 		__statementEnd = "";
 		__database_server = "Local";
-		_database_engine = DBENGINE_ACCESS;
+		_database_engine = DMIDatabaseType.ACCESS;
 	}
 	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("Derby")) {
         __fieldLeftEscape = "";
@@ -857,7 +792,7 @@ throws Exception {
         if ( __database_server.equalsIgnoreCase("memory") ) {
             __database_server = "localhost";
         }
-        _database_engine = DBENGINE_DERBY;
+        _database_engine = DMIDatabaseType.DERBY;
     }
 	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("Excel")) {
 	    // TODO SAM 2012-11-09 Need to confirm how Excel queries behave, for now use Access settings
@@ -866,14 +801,14 @@ throws Exception {
         __stringDelim = "'";
 		__statementEnd = "";
         __database_server = "Local";
-        _database_engine = DBENGINE_EXCEL;
+        _database_engine = DMIDatabaseType.EXCEL;
     }
 	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("Informix")) {
 		__fieldLeftEscape = "\"";
 		__fieldRightEscape = "\"";	
 		__stringDelim = "'";
 		__statementEnd = "";
-		_database_engine = DBENGINE_INFORMIX;
+		_database_engine = DMIDatabaseType.INFORMIX;
 		if ( port <= 0 ) {
 			setDefaultPort ();
 		}
@@ -883,7 +818,7 @@ throws Exception {
 		__fieldRightEscape = "";	
 		__stringDelim = "'";
 		__statementEnd = "";
-		_database_engine = DBENGINE_MYSQL;
+		_database_engine = DMIDatabaseType.MYSQL;
 		if ( port <= 0 ) {
 			setDefaultPort ();
 		}
@@ -893,7 +828,7 @@ throws Exception {
 		__fieldRightEscape = "\"";	
 		__stringDelim = "'";
 		__statementEnd = "";
-		_database_engine = DBENGINE_ORACLE;
+		_database_engine = DMIDatabaseType.ORACLE;
 		if ( port <= 0 ) {
 			setDefaultPort ();
 		}
@@ -909,7 +844,7 @@ throws Exception {
 		__fieldRightEscape = "";
 		__stringDelim = "'";
 		__statementEnd = "";
-		_database_engine = DBENGINE_POSTGRESQL;
+		_database_engine = DMIDatabaseType.POSTGRESQL;
 		if ( port <= 0 ) {
 			setDefaultPort ();
 		}
@@ -921,7 +856,7 @@ throws Exception {
 		__fieldRightEscape = "\"";
 		__stringDelim = "'";
 		__statementEnd = ";";
-		_database_engine = DBENGINE_SQLITE;
+		_database_engine = DMIDatabaseType.SQLITE;
 		if ( port <= 0 ) {
 			setDefaultPort ();
 		}
@@ -933,7 +868,7 @@ throws Exception {
 		__fieldRightEscape = "]";		
 		__stringDelim = "'";
 		__statementEnd = "";
-		_database_engine = DBENGINE_SQLSERVER;
+		_database_engine = DMIDatabaseType.SQLSERVER;
 		if ( port <= 0 ) {
 			setDefaultPort ();
 		} else {
@@ -950,7 +885,7 @@ throws Exception {
 		__fieldRightEscape = "";	
 		__stringDelim = "'";
 		__statementEnd = "";
-		_database_engine = DBENGINE_H2;
+		_database_engine = DMIDatabaseType.H2;
     }
 	else {
 	    if ( (__odbc_name != null) && !__odbc_name.equals("") ) {
@@ -959,7 +894,7 @@ throws Exception {
 	        __fieldRightEscape = "";    
 	        __stringDelim = "'";
 	        __statementEnd = "";
-	        _database_engine = DBENGINE_ODBC;
+	        _database_engine = DMIDatabaseType.ODBC;
 	    }
 	    else {
 	        // Using a specific driver but don't know which one, which is problematic for internals
@@ -1382,8 +1317,9 @@ public Object dmiRunLastSQL() throws SQLException, Exception {
 			return new Integer(dmiDelete((DMIDeleteStatement)__lastSQL));
 		case COUNT:
 			return new Integer(dmiCount((DMISelectStatement)__lastSQL));
+		default:
+			return null;
 	}
-	return null;
 }
 
 /** 
@@ -1552,7 +1488,7 @@ throws SQLException, Exception {
 	// Enable the following to troubleshoot but normally should be false.
 	//__dumpSQLOnExecution = true;
 	if (!__connected) {
-		throw new SQLException ("Database not connected.  Cannot make call to DMI.dmiWriteStatement()");
+		throw new SQLException ("Database not connected.  Cannot make call to DMI.dmiWrite()");
 	}
 	if (!__editable) {
 		throw new SQLException("Database is in read-only mode");
@@ -1602,7 +1538,7 @@ throws SQLException, Exception {
 			testAndSetDirty();				
 		} 
 		catch (SQLException e) {
-			if (_database_engine == DBENGINE_ACCESS ) {
+			if (_database_engine == DMIDatabaseType.ACCESS ) {
 				if (e.getSQLState() == "S1000" && e.getErrorCode() == 0) {
 				    // The Insert failed because a record with the existing key data already exists.
 					// That record will be updated, instead.
@@ -1634,7 +1570,7 @@ throws SQLException, Exception {
 				}
 			}
 			// TODO SAM 2009-05-14 Evaluate whether this code is needed/fragile/etc.
-			else if ( (_database_engine == DBENGINE_SQLSERVER) ){
+			else if ( (_database_engine == DMIDatabaseType.SQLSERVER) ){
 				if (e.getSQLState() == "23000" && e.getErrorCode() == 2627) {
 				    // The Insert failed because a record with the existing key data already exists.
 					// That record will be updated, instead.
@@ -1789,7 +1725,7 @@ escaping full SQL strings (e.g., to add [] around parameter names that may be re
 */
 public String escape(String str) {
 	String workStr = new String(str);
-	if ( _database_engine == DBENGINE_SQLSERVER ) {	
+	if ( _database_engine == DMIDatabaseType.SQLSERVER ) {	
 		if (workStr.indexOf('\'') > -1) {
 			workStr = StringUtil.replaceString(str, "'", "''");
 		}	
@@ -1800,8 +1736,129 @@ public String escape(String str) {
 	return workStr;
 }
 
+// TODO smalers 2021-09-15 might make sense to move this elsewhere, but put here for now.
+// TODO smalers 2021-09-15 need to make more generic but not sure what parts are modular yet.
+// TODO smalers 2021-09-15 currently does a full replacement of the property but need to add substring replace.
 /**
-Clean up memory for garbage collection.
+ * Expand a property such as ${pgpass:password} to its expanded value.
+ * The properties that are supported are documented in datastore documentation.
+ * Any property that is unrecognized is expanded
+ * Currently this is only enabled for PostgreSQL password.
+ * @param props datastore properties, used to retrieve the "DatabaseEngine" and other properties 
+ * @param propName name of property that is being expanded
+ * @param propValue value of property that is being expanded, can include with ${Property}.
+ * This should be passed in as the current value corresponding to 'propName',
+ * such as from the configuration file or expanded by another method.
+ * If no expansion occurs, the value is returned without modification.
+ * @return the expanded property, or the original property value if expansion is not required
+ */
+public static String expandDatastoreConfigurationProperty ( PropList props, String propName, String propValue ) {
+	String routine = DMI.class.getSimpleName() + ".expandDatastoreConfigurationProperty";
+	// Get properties that are used below.
+	String databaseEngine = props.getValue("DatabaseEngine");
+	DMIDatabaseType databaseType = DMIDatabaseType.valueOfIgnoreCase(databaseEngine);
+	String databaseServer = props.getValue("DatabaseServer");
+	String databaseName = props.getValue("DatabaseName");
+	String databasePort = props.getValue("DatabasePort");
+	if ( (databasePort == null) || databasePort.isEmpty() ) {
+		// Database port was not specified in the configuration file so get the default for use below.
+		databasePort = "" + DMI.getDefaultPort(databaseType);
+	}
+	String systemLogin = props.getValue("SystemLogin");
+	if ( databaseType == DMIDatabaseType.POSTGRESQL ) {
+		Message.printWarning(2, routine, "PostgreSQL detected." );
+		if ( propName.equalsIgnoreCase("SystemPassword") ) {
+			//Message.printStatus(2, routine, "Getting SystemPassword." );
+			// Supported syntax:
+			//   ${pgpass:password}
+			int pos = StringUtil.indexOfIgnoreCase(propValue,"${pgpass:",0);
+			if ( (pos >= 0) && (propValue.length() > (pos + 9)) ) {
+				//Message.printStatus(2, routine, "Detected request for pgpass password." );
+				if ( propValue.substring(pos + 9).trim().toUpperCase().startsWith("PASSWORD") ) {
+					// Matched ${pgpass:password so requesting password:
+					// - read the password from user's '.pgpass' file
+					// - see: https://www.postgresql.org/docs/14/libpq-pgpass.html
+					// - on Windows, the file is %APPDATA%\postgresql\pgpass.conf
+					// - on Linux, the file is ~/.pgpass
+					//Message.printStatus(2, routine, "Getting pgpass password." );
+					String pgpassPath = null;
+					if ( IOUtil.isUNIXMachine() ) {
+							pgpassPath = System.getProperty("user.home") + "/.pgpass";
+					}
+					else {
+						// Windows.
+						String appData = System.getenv("APPDATA");
+						if ( appData != null ) {
+							pgpassPath = appData + "\\postgresql\\pgpass.conf";
+						}
+						else {
+							Message.printWarning(2, routine, "Windows APPDATA environment variable is not set.  Cannot determine 'pgpass' file location." );
+						}
+					}
+					//Message.printStatus(2, routine, "Path to pgpass file: " + pgpassPath );
+					if ( pgpassPath != null ) {
+						// Read the .pgpass file into a list of strings.
+						String [] parts;
+						try {
+							File f = new File(pgpassPath);
+							if ( !f.exists() ) {
+								Message.printWarning(2, routine, "PostgreSQL pgpass password file does not exist: " + pgpassPath );
+							}
+							else {
+								Message.printStatus(2, routine, "Reading PostgreSQL pgpass password file: " + pgpassPath );
+								List<String> pgpassLines = IOUtil.fileToStringList(pgpassPath);
+								// Loop through the .pgpass lines:
+								// - the format is:  hostname:port:database:username:password
+								for ( String pgpassLine : pgpassLines ) {
+									pgpassLine = pgpassLine.trim();
+									// DO NOT print the line in production systems because password is shown.
+									//Message.printStatus(2, routine, "Processing line: " + pgpassLine );
+									if ( pgpassLine.length() == 0 ) {
+										continue;
+									}
+									else if ( pgpassLine.charAt(0) == '#' ) {
+										// Comment.
+										continue;
+									}
+									else {
+										parts = pgpassLine.split(":");
+										// DO NOT print the line in production systems because password is shown.
+										Message.printStatus(2, routine, "Comparing server " + parts[0] + " with " + databaseServer );
+										Message.printStatus(2, routine, "Comparing port " + parts[1] + " with " + databasePort );
+										Message.printStatus(2, routine, "Comparing databaseName " + parts[2] + " with " + databaseName );
+										Message.printStatus(2, routine, "Comparing systemLogin " + parts[3] + " with " + systemLogin );
+										if ( parts.length == 5 ) {
+											// Match the parts in order to find the password.
+											if ( parts[0].equals(databaseServer) && parts[1].equals(databasePort)
+												&& parts[2].equals(databaseName) && parts[3].equals(systemLogin) ) {
+												// The database and account parts match.  Return the password.
+												// DO NOT print the line in production systems because password is shown.
+												return parts[4];
+											}
+										}
+										Message.printWarning(2, routine, "No pgpass entry matches requested information.  Did not find the password.");
+									}
+								}
+							}
+						}
+						catch ( IOException e ) {
+							Message.printWarning(3, routine, "Exception reading .pgpass file: " + pgpassPath );
+						}
+					}
+					else {
+						Message.printWarning(3, routine, "Could not detemine path to pgpass file.");
+					}
+				}
+			}
+		}
+    }
+	// No additional expansion was found.  Return the original value.
+	return propValue;
+}
+
+/**
+Clean up memory for garbage collection.:w
+
 @exception Throwable if an error occurs.
 */
 protected void finalize() 
@@ -1961,11 +2018,10 @@ public String getDatabaseEngine() {
 }
 
 /**
-TODO SAM 2009-05-20 Evaluate using an object to hold the type and string representation.
-Return the database engine type as an integer.
-@return the database engine type as a integer.
+Return the database engine type.
+@return the database engine type.
 */
-public int getDatabaseEngineType() {
+public DMIDatabaseType getDatabaseEngineType() {
 	return _database_engine;
 }
 
@@ -1986,6 +2042,37 @@ Return the database version number.
 */
 public long getDatabaseVersion () {
 	return __database_version;
+}
+
+/**
+ * Get the default port to use for a database engine.
+ * @param databaseType the database type of interest
+ * @return the default database port or -1 if not applicable
+ */
+public static int getDefaultPort( DMIDatabaseType databaseType ) {
+	switch ( databaseType ) {
+		case ACCESS:
+			// Port not used.
+			return -1;
+		case H2:
+			// Port not used.
+			return -1;
+		case INFORMIX:
+			return 1526;
+		case MYSQL:
+			return 3306;
+		case ORACLE:
+			return 1521;
+		case POSTGRESQL:
+			return 5432;
+		case SQLITE:
+			// Not used since a file database
+			return -1;
+		case SQLSERVER:
+			return 1433;
+		default:
+			return -1;
+	}
 }
 
 /**
@@ -2053,8 +2140,9 @@ public String getLastSQLString() {
 		case DELETE:
 			DMIDeleteStatement d = (DMIDeleteStatement)__lastSQL;
 			return d.toString();
+		default:
+			return "";
 	}
-	return "";
 }
 
 /**
@@ -2308,8 +2396,8 @@ throws SQLException, Exception {
 	if ( __jdbc_odbc ) {
 		printStatusOrDebug(dl, routine, "Using JDBC ODBC connection.");
 		// The URL is formed using several pieces of information...
-		if (_database_engine == DBENGINE_ACCESS ) {
-			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_ACCESS'");
+		if (_database_engine == DMIDatabaseType.ACCESS ) {
+			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.ACCESS'");
 			// Always require an ODBC DSN (although this may be
 			// a problem with some config files and software where
 			// an MDB file is allowed for the database name).  This
@@ -2322,8 +2410,8 @@ throws SQLException, Exception {
 			Message.printStatus(2, routine,
 				"Opening ODBC connection for Microsoft Access JDBC/ODBC and \"" + connUrl + "\"");
 		}
-		else if (_database_engine == DBENGINE_DERBY ) {
-            printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_DERBY'");
+		else if (_database_engine == DMIDatabaseType.DERBY ) {
+            printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.DERBY'");
             // If the server name is "memory" then the in-memory URL is used
             // TODO SAM 2014-04-22 Figure out how to handle better
             // TODO SAM 2014-04-22 Figure out how to open vs create
@@ -2342,8 +2430,8 @@ throws SQLException, Exception {
             Message.printStatus(2, routine,
                 "Opening ODBC connection for Derby JDBC/ODBC and \"" + connUrl + "\"");
         } 
-		else if (_database_engine == DBENGINE_INFORMIX ) {
-			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_INFORMIX'");
+		else if (_database_engine == DMIDatabaseType.INFORMIX ) {
+			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.INFORMIX'");
 			// Use the free driver that comes from Informix...
 			// If Informix is ever enabled, also need to add a
 			// property to the configuration which is the "online
@@ -2362,8 +2450,8 @@ throws SQLException, Exception {
 			// +";user=" + login + ";password=" + password;
 			Message.printStatus(2, routine, "Opening ODBC connection for Informix using \"" + connUrl + "\"");
 		}
-		else if (_database_engine == DBENGINE_MYSQL ) {
-			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_MYSQL'");
+		else if (_database_engine == DMIDatabaseType.MYSQL ) {
+			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.MYSQL'");
 			// Use the public domain driver that comes with MySQL...
 			connUrl = "jdbc:mysql://" 
 				+ __database_server + ":" 
@@ -2374,8 +2462,8 @@ throws SQLException, Exception {
 			Message.printStatus(2, routine,
 				"Opening ODBC connection for MySQL using \"" + connUrl + "\"" );
 		}
-		else if (_database_engine == DBENGINE_POSTGRESQL ) {
-			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_POSTGRESQL'");
+		else if (_database_engine == DMIDatabaseType.POSTGRESQL ) {
+			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.POSTGRESQL'");
 			connUrl = "jdbc:postgresql://" 
 				+ __database_server + ":" 
 				+ __port + "/" + __database_name;
@@ -2384,10 +2472,10 @@ throws SQLException, Exception {
 		    }
 			Message.printStatus(2, routine, "Opening ODBC connection for PostgreSQL using \"" + connUrl + "\"" );
 		}
-		else if (_database_engine == DBENGINE_SQLITE ) {
+		else if (_database_engine == DMIDatabaseType.SQLITE ) {
 			// Database is a file, not via port connection
 			// See:  https://www.sqlitetutorial.net/sqlite-java/sqlite-jdbc-driver/
-			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_SQLITE'");
+			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.SQLITE'");
 			if ( __database_server.equalsIgnoreCase("memory") ) {
 				// Open an in-memory database
 				connUrl = "jdbc:sqlite::memory:";
@@ -2407,7 +2495,7 @@ throws SQLException, Exception {
 		}
 		// All the SQL Server connections are now concentrated into one code block as using the SQL Server
 		// 2008 JDBC (jdbc4) driver.  Comments are included below in case troubleshooting needs to occur.
-		else if ( _database_engine == DBENGINE_SQLSERVER ) {
+		else if ( _database_engine == DMIDatabaseType.SQLSERVER ) {
             // http://msdn.microsoft.com/en-us/library/ms378428%28SQL.90%29.aspx
             connUrl = "jdbc:sqlserver://" + __database_server;
 		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
@@ -2427,8 +2515,8 @@ throws SQLException, Exception {
 				"Opening ODBC connection for SQLServer using \"" + connUrl + "\"");
 		}
 		/*
-		else if (_database_engine == _DBENGINE_SQLSERVER2000 ) {
-			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_SQLSERVER2000'");
+		else if (_database_engine == DMIDatabaseType.SQLSERVER2000 ) {
+			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.SQLSERVER2000'");
 			// Use the driver distributed by Microsoft...
 			Class.forName( "com.microsoft.jdbc.sqlserver.SQLServerDriver");
 			connUrl = "jdbc:microsoft:sqlserver://"
@@ -2440,8 +2528,8 @@ throws SQLException, Exception {
 			Message.printStatus(2, routine,
 				"Opening ODBC connection for SQLServer2000 using \"" + connUrl + "\"");
 		} 
-        else if (_database_engine == _DBENGINE_SQLSERVER_2005 ) {
-			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_SQLSERVER 2005'");
+        else if (_database_engine == DMIDatabaseType.SQLSERVER_2005 ) {
+			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.SQLSERVER 2005'");
 			// Use the driver distributed by Microsoft...
             // note the slight differences in class name...
             // other than that, they behave the same?
@@ -2454,8 +2542,8 @@ throws SQLException, Exception {
 		    }
 			Message.printStatus(2, routine, "Opening ODBC connection for SQLServer using \"" + connUrl + "\"");
 		} 
-		else if (_database_engine == _DBENGINE_SQLSERVER7 ) {
-			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_SQLSERVER7'");
+		else if (_database_engine == DMIDatabaseType.SQLSERVER7 ) {
+			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.SQLSERVER7'");
 			// This is the older UNA2000 driver...
 
 			// NOTE:
@@ -2480,8 +2568,8 @@ throws SQLException, Exception {
 				"Opening ODBC connection for SQLServer7 using \"" + connUrl + "\"" );
 		}
 		*/
-        else if (_database_engine == DBENGINE_H2 ) {
-			printStatusOrDebug(dl, routine, "Database engine is type 'DBENGINE_H2'");
+        else if (_database_engine == DMIDatabaseType.H2 ) {
+			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.H2'");
             // Load the database driver class into memory...
 			Class.forName( "org.h2.Driver");
             java.io.File f = new java.io.File(__database_server);
@@ -2491,7 +2579,7 @@ throws SQLException, Exception {
 		    }
 			Message.printStatus(2, routine, "Opening JDBC connection for H2 using \"" + connUrl + "\"" );
 		}
-        else if (_database_engine == DBENGINE_ORACLE ) {
+        else if (_database_engine == DMIDatabaseType.ORACLE ) {
 			printStatusOrDebug(dl, routine, "Database engine is type 'ORACLE'");
             // Load the database driver class into memory...
 			Class.forName( "oracle.jdbc.driver.OracleDriver");
@@ -2540,7 +2628,7 @@ throws SQLException, Exception {
     }
     
 	/* TODO SAM 2013-10-07 This seems to be old so commenting out
-    if (_database_engine == DBENGINE_ORACLE && __database_name != null ) {
+    if (_database_engine == DMIDatabaseType.ORACLE && __database_name != null ) {
         __connection.createStatement().execute("alter session set current_schema = " + __database_name );
     }
     */
@@ -2604,7 +2692,7 @@ public void rollback() throws SQLException {
 }
 
 /**
-Set additional connection URL properties.
+Set additional connection URL properties to be appended to the connection string.
 @param additionalConnectionProperties a string of form ";prop1=value1;prop2=value2",
 where the semi-colon represents a delimiter.
 Use the appropriate delimiter character for the database technology being used.
@@ -2702,33 +2790,33 @@ throws Exception {
 	__database_engine_String = database_engine;
 	if (__database_engine_String.equalsIgnoreCase("Access")) {
 		__database_server = "Local";
-		_database_engine = DBENGINE_ACCESS;
+		_database_engine = DMIDatabaseType.ACCESS;
 	}
 	else if (__database_engine_String.equalsIgnoreCase("Derby")) {
         __database_server = "myhost";
-        _database_engine = DBENGINE_DERBY;
+        _database_engine = DMIDatabaseType.DERBY;
     }
 	else if (__database_engine_String.equalsIgnoreCase("Informix")) {
-		_database_engine = DBENGINE_INFORMIX;
+		_database_engine = DMIDatabaseType.INFORMIX;
 	}
 	else if (__database_engine_String.equalsIgnoreCase("MySQL")) {
-		_database_engine = DBENGINE_MYSQL;
+		_database_engine = DMIDatabaseType.MYSQL;
 	}
 	else if (__database_engine_String.equalsIgnoreCase("Oracle")) {
-		_database_engine = DBENGINE_ORACLE;
+		_database_engine = DMIDatabaseType.ORACLE;
 	}
 	else if (__database_engine_String.equalsIgnoreCase("PostgreSQL")) {
-		_database_engine = DBENGINE_POSTGRESQL;
+		_database_engine = DMIDatabaseType.POSTGRESQL;
 	}
 	else if (__database_engine_String.equalsIgnoreCase("SQLite")) {
-		_database_engine = DBENGINE_SQLITE;
+		_database_engine = DMIDatabaseType.SQLITE;
 	}
 	else if (StringUtil.startsWithIgnoreCase(__database_engine_String,"SQL_Server") ||
 		StringUtil.startsWithIgnoreCase(__database_engine_String,"SQLServer")) {
-		_database_engine = DBENGINE_SQLSERVER;
+		_database_engine = DMIDatabaseType.SQLSERVER;
 	}
     else if (__database_engine_String.equalsIgnoreCase("H2")) {
-		_database_engine = DBENGINE_H2;
+		_database_engine = DMIDatabaseType.H2;
 	}
 	else {
 		throw new Exception("Trying to use unknown database engine: " + __database_engine_String + " in DMI()");
@@ -3083,28 +3171,28 @@ public String toString() {
 Sets the DMI to use the default port for the database engine that the DMI
 was set up to connect to.  Only works currently for true client-server type databases.
 */
-public void setDefaultPort() {
-	if ( _database_engine == DBENGINE_ACCESS ) {
+private void setDefaultPort() {
+	if ( _database_engine == DMIDatabaseType.ACCESS ) {
 	}
-	else if ( _database_engine == DBENGINE_H2 ) {
+	else if ( _database_engine == DMIDatabaseType.H2 ) {
 	}
-	else if ( _database_engine == DBENGINE_INFORMIX ) {
+	else if ( _database_engine == DMIDatabaseType.INFORMIX ) {
 		__port = 1526;
 	}
-	else if ( _database_engine == DBENGINE_MYSQL ) {
+	else if ( _database_engine == DMIDatabaseType.MYSQL ) {
 		__port = 3306;
 	}
-	else if ( _database_engine == DBENGINE_ORACLE ) {
+	else if ( _database_engine == DMIDatabaseType.ORACLE ) {
 		__port = 1521;
 	}
-	else if ( _database_engine == DBENGINE_POSTGRESQL ) {
+	else if ( _database_engine == DMIDatabaseType.POSTGRESQL ) {
 		__port = 5432;
 	}
-	else if ( _database_engine == DBENGINE_SQLITE ) {
+	else if ( _database_engine == DMIDatabaseType.SQLITE ) {
 		// Not used since a file database
 		__port = -1;
 	}
-	else if ( _database_engine == DBENGINE_SQLSERVER ) {
+	else if ( _database_engine == DMIDatabaseType.SQLSERVER ) {
 		__port = 1433;
 	}
 	else {	
