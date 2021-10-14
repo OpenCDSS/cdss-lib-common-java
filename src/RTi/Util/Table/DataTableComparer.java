@@ -142,13 +142,13 @@ public DataTableComparer ( DataTable table1, List<String>compareColumns1, List<S
     // Get the column names to compare, which will either be those passed in by calling code, or if not specified
     // will be the full list.
     if ( (compareColumns1 == null) || (compareColumns1.size() == 0) ) {
-        // Get the columns from the first table
+        // Get all the columns from the first table.
         compareColumns1 = new ArrayList<>(Arrays.<String>asList(table1.getFieldNames()));
-        // Remove the columns to be ignored
+        // Remove the columns to be ignored.
         StringUtil.removeMatching(compareColumns1, excludeColumns1, true);
     }
     else {
-        // Confirm that the columns exist
+        // Confirm that the requested columns exist.
         StringBuffer warning = new StringBuffer();
         for ( String column: compareColumns1 ) {
             try {
@@ -164,12 +164,12 @@ public DataTableComparer ( DataTable table1, List<String>compareColumns1, List<S
         }
     }
     setCompareColumns1 ( compareColumns1 );
-    if ( compareColumns2 == null ) {
-        // Get the columns from the second table
+    if ( (compareColumns2 == null) || (compareColumns2.size() == 0) ) {
+        // Get all the columns from the second table.
         compareColumns2 = new ArrayList<>(Arrays.<String>asList(table2.getFieldNames()));
     }
     else {
-        // Confirm that the columns exist
+        // Confirm that the requested columns exist.
         StringBuffer warning = new StringBuffer();
         for ( String column: compareColumns2 ) {
             try {
@@ -243,13 +243,13 @@ throws Exception
     }
     else {
         // Make sure that the second table column number array has at least as many elements as
-        // the first table array
+        // the first table array and use -1 for the array positions.
         if ( columnNumbers2.length < columnNumbers1.length ) {
             int [] columnNumbersTemp = new int[columnNumbers1.length];
             for ( int i = 0; i < columnNumbers1.length; i++ ) {
                 columnNumbersTemp[i] = -1; // default
             }
-            // Copy original shorter array into first part of new array
+            // Copy original shorter array into first part of new array.
             System.arraycopy(columnNumbers2, 0, columnNumbersTemp, 0, columnNumbers2.length);
             columnNumbers2 = columnNumbersTemp;
         }
@@ -290,21 +290,21 @@ throws Exception
     // Create an int array to track whether the cells are different (initial value is 0)
     // This is used as a style mask when formatting the HTML (where value of 1 indicates difference)
     int [][] differenceArray = new int[table1.getNumberOfRecords()][compareColumns1.size()];
-    // Loop through the column lists, which should be the same size and define columns
+    // Loop through the column lists, which should be the same size and define columns.
     for ( int icol = 0; icol < compareColumns1.size(); icol++ ) {
         // Define columns of type string (no width specified), where the column name will be a simple
-        // concatenation of both column names, or one name if the column names for table1 and table2 match
+        // concatenation of both column names, or one name if the column names for table1 and table2 match.
         String colName1 = table1.getFieldName(columnNumbers1[icol]);
-        String colName2 = ""; // Default for unmatched column - / will indicate difference in table names
+        String colName2 = ""; // Default for unmatched column - / will indicate difference in table names.
         if ( columnNumbers2[icol] >= 0 ) {
             colName2 = table2.getFieldName(columnNumbers2[icol]);
         }
         if ( !colName1.equalsIgnoreCase(colName2)) {
-            // Show the column names from both tables
+            // Show the column names from both tables.
             colName1 += " / " + colName2;
         }
         int newField = comparisonTable.addField(new TableField(TableField.DATA_TYPE_STRING, colName1,-1), "");
-        // Also set the column descriptions so the final results are easier to interpret
+        // Also set the column descriptions so the final results are easier to interpret.
         String desc1 = table1.getTableField(columnNumbers1[icol]).getDescription();
         String desc2 = "";
         if ( columnNumbers2[icol] >= 0 ) {
@@ -315,10 +315,10 @@ throws Exception
         }
         comparisonTable.getTableField(newField).setDescription(desc1);
     }
-    // Now loop through the records in table 1 and compare
+    // Now loop through the records in table 1 and compare.
     String formattedValue1;
     String formattedValue2;
-    String formattedValue = null; // The comparison output
+    String formattedValue = null; // The comparison output.
     Object value1;
     Object value2;
     String format1, format2;
@@ -328,7 +328,7 @@ throws Exception
         		Message.printStatus ( 2, routine, "Comparing row [" + irow + "] columns [" +
                     columnNumbers1[icol] + "] / [" + columnNumbers2[icol] + "]" );
         	}
-            // Get the value from the first table and format as a string for comparisons...
+            // Get the value from the first table and format as a string for comparisons.
             value1 = null;
             if ( columnNumbers1[icol] >= 0 ) {
                 try {
@@ -343,10 +343,10 @@ throws Exception
                 formattedValue1 = "";
             }
             else {
-                // TODO SAM 2010-12-18 Evaluate why trim is needed
+                // TODO SAM 2010-12-18 Evaluate why trim is needed.
                 format1 = fieldFormats1[columnNumbers1[icol]];
                 // Check for integer to format without trailing 0's.
-                // First check for number, then for integer or infinity
+                // First check for number, then for integer or infinity.
                 if (((table1.getFieldDataType(columnNumbers1[icol]) == TableField.DATA_TYPE_DOUBLE) ||
                     (table1.getFieldDataType(columnNumbers1[icol]) == TableField.DATA_TYPE_FLOAT)) &&
                     (value1.getClass().getName() == "Integer" || (Double) value1 == Double.POSITIVE_INFINITY ||
@@ -358,7 +358,7 @@ throws Exception
                 }
 
             }
-            // Get the value from the second table and format as a string for comparisons...
+            // Get the value from the second table and format as a string for comparisons.
             // The rows in the second table must be in the same order
             // TODO SAM 2012-05-30 Enable sorting on table rows before comparison?
             value2 = null;
@@ -377,8 +377,8 @@ throws Exception
             }
             else {
                 format2 = fieldFormats2[columnNumbers2[icol]];
-                // Check for integer to format without trailing 0's
-                // First check for number, then for integer
+                // Check for integer to format without trailing 0's.
+                // First check for number, then for integer.
                 if (((table2.getFieldDataType(columnNumbers2[icol]) == TableField.DATA_TYPE_DOUBLE) ||
                     (table2.getFieldDataType(columnNumbers2[icol]) == TableField.DATA_TYPE_FLOAT)) &&
                     (value2.getClass().getName() == "Integer" || (Double) value2 == Double.POSITIVE_INFINITY ||
@@ -391,16 +391,16 @@ throws Exception
             }
             // Default behavior is to compare strings so do this check first.
             if ( formattedValue1.equals(formattedValue2) ) {
-                // Formatted values are the same so the output table value is just the formatted value
+                // Formatted values are the same so the output table value is just the formatted value.
                 formattedValue = formattedValue1;
             }
             else {
-                // Show both values as "value1 / value2" and set the boolean indicating a difference
+                // Show both values as "value1 / value2" and set the boolean indicating a difference.
                 if ( ((table1.getFieldDataType(columnNumbers1[icol]) == TableField.DATA_TYPE_DOUBLE) ||
                     (table1.getFieldDataType(columnNumbers1[icol]) == TableField.DATA_TYPE_FLOAT)) &&
                     (tolerance != null) &&
                     StringUtil.isDouble(formattedValue1) && StringUtil.isDouble(formattedValue2)) {
-                    // Convert the formatted strings to doubles and compare the difference against the tolerance
+                    // Convert the formatted strings to doubles and compare the difference against the tolerance.
                     double dvalue1 = Double.parseDouble(formattedValue1);
                     double dvalue2 = Double.parseDouble(formattedValue2);
                     if ( Math.abs(dvalue1 - dvalue2) >= tolerance ) {
@@ -415,12 +415,12 @@ throws Exception
                 }
                 else {
                     // Not floating point or floating point and no tolerance is specified so no need to do
-                    // additional comparison
+                    // additional comparison.
                     formattedValue = formattedValue1 + " / " + formattedValue2;
                     differenceArray[irow][icol] = 1;
                 }
             }
-            // Set the field value, creating the row if necessary
+            // Set the field value, creating the row if necessary.
             comparisonTable.setFieldValue(irow, icol, formattedValue, true);
             //Message.printStatus(2, "", "formattedValue1=\"" + formattedValue1 + "\" (format=" + format1 +
             //    ") formattedValue2=\"" + formattedValue2 + "\" (format=" + format2 +
