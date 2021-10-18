@@ -39,12 +39,16 @@ import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
+import javax.swing.BorderFactory;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.JTextPane;
+import javax.swing.border.Border;
 
 import java.util.List;
 import java.util.Vector;
@@ -65,32 +69,61 @@ where processing is halted until a response occurs (the dialog is modal).
 The user response is returned through the response() method.
 */
 @SuppressWarnings("serial")
-public class ResponseJDialog extends JDialog 
-implements ActionListener, KeyListener, WindowListener {
+public class ResponseJDialog extends JDialog implements ActionListener, KeyListener, WindowListener {
 
-private String
-	__BUTTON_CANCEL = "Cancel",
-	__BUTTON_NO = "No",
-	__BUTTON_OK = "OK",
-	__BUTTON_YES = "Yes";
+	/**
+	 * Possible buttons for the dialog.
+	 */
+	private String
+		__BUTTON_CANCEL = "Cancel",
+		__BUTTON_CONTINUE = "Continue",
+		__BUTTON_NO = "No",
+		__BUTTON_OK = "OK",
+		__BUTTON_YES = "Yes";
 
-private SimpleJButton	__yes_JButton,	// Yes Button				
-                       	__no_JButton,  	// No Button
-			__cancel_JButton,// Cancel Button
-			__ok_JButton;	// Ok Button
-private int		__mode,		// mode in which class was
-					// instantiated
-			__response;	// user selected response as
-					// identified by the return status
-					// public final statics below
+/**
+ *  "Yes" button.
+ */
+private SimpleJButton __yes_JButton = null;
+
+/**
+ * "No" button.
+ */
+private SimpleJButton __no_JButton = null;
+
+/**
+ *  "Cancel" button.
+ */
+private SimpleJButton __cancel_JButton = null;
+
+/**
+ *  Continue button.
+ */
+private SimpleJButton __continue_JButton = null;
+
+/**
+ *  Ok Button.
+ */
+private SimpleJButton __ok_JButton = null;
+
+/**
+ *  Mask for buttons.
+ */
+private int	__mode = 0;
+
+/**
+ * User-selected response as identified by the return status public final statics below.
+ */
+private int __response = 0;
 
 /**
 ResponseJDialog modes, which can be ORed together.
 */
-public final static int		YES	= 0x1,
-				NO	= 0x2,
-				OK	= 0x4,
-				CANCEL	= 0x8;
+public final static int YES = 0x1;
+public final static int NO = 0x2;
+public final static int OK = 0x4;
+public final static int CANCEL = 0x8;
+public final static int CONTINUE = 0x10;
 
 /**
 ResponseJDialog constructor.
@@ -98,7 +131,7 @@ ResponseJDialog constructor.
 @param label Label to display in the GUI.  Newlines result in line breaks in the dialog.
 */
 public ResponseJDialog ( JFrame parent, String label )
-{	// Call the full version with no title and ok Button
+{	// Call the full version with no title and ok Button.
 	super(parent, true);
 	initialize ( null, label, OK, GridBagConstraints.WEST );
 }
@@ -109,7 +142,7 @@ ResponseJDialog constructor.
 @param label Label to display in the GUI.  Newlines result in line breaks in the dialog.
 */
 public ResponseJDialog ( JDialog parent, String label )
-{	// Call the full version with no title and ok Button
+{	// Call the full version with no title and ok Button.
 	super(parent, true);
 	initialize ( null, label, OK, GridBagConstraints.WEST );
 }
@@ -121,7 +154,7 @@ ResponseJDialog constructor.
 @param modal whether the dialog is modal or not.
 */
 public ResponseJDialog ( JFrame parent, String label, boolean modal )
-{	// Call the full version with no title and ok Button
+{	// Call the full version with no title and ok Button.
 	super(parent, modal);
 	initialize ( null, label, OK, GridBagConstraints.WEST );
 }
@@ -157,7 +190,7 @@ process different types of yes responses from the calling form.
 @param modal whether the dialog is modal or not.
 */
 public ResponseJDialog ( JFrame parent, String label, int mode, boolean modal )
-{	// Call the full version with no title...
+{	// Call the full version with no title.
 	super(parent, modal);
 	initialize ( null, label, mode, GridBagConstraints.WEST );
 }
@@ -170,7 +203,7 @@ ResponseJDialog constructor.
 process different types of yes responses from the calling form.
 */
 public ResponseJDialog ( JDialog parent, String label, int mode )
-{	// Call the full version with no title...
+{	// Call the full version with no title.
 	super(parent, true);
 	initialize ( null, label, mode, GridBagConstraints.WEST );
 }
@@ -206,8 +239,7 @@ public ResponseJDialog ( JFrame parent, String title, String label, int mode, bo
 ResponseJDialog constructor.
 @param parent JDialog class instantiating this class.
 @param title Dialog title.
-@param label Label to display in the GUI.  Newlines result in line breaks in
-the dialog.
+@param label Label to display in the GUI.  Newlines result in line breaks in the dialog.
 @param mode mode in which this UI is to be used (i.e., YES|NO|CANCEL)
 process different types of yes responses from the calling form.
 */
@@ -274,23 +306,13 @@ public void actionPerformed( ActionEvent event )
 	else if ( s.equals(__BUTTON_CANCEL) ) {
 		__response = CANCEL;
 	}
+	else if ( s.equals(__BUTTON_CONTINUE) ) {
+		__response = CONTINUE;
+	}
 	else if ( s.equals(__BUTTON_OK) ) {
 		__response = OK;
 	}
 	response();
-}
-
-/**
-Clean up for garbage collection.
-@exception Throwable if an error.
-*/
-protected void finalize()
-throws Throwable
-{	__yes_JButton = null;
-	__no_JButton = null;
-	__cancel_JButton = null;
-	__ok_JButton = null;
-	super.finalize();
 }
 
 /**
@@ -306,10 +328,9 @@ private void initialize ( String title, String label, int mode, int alignment )
 {	__mode = mode;
 	addWindowListener( this );
 
-	// Split the text based on the new-line delimiter (we use \n, not the
-	// platform's separator!
-	List<String> vec = StringUtil.breakStringList ( label, "\n", 0 );
-	int size = vec.size();
+	// Split the text based on the new-line delimiter (use \n, not the operating system separator)
+	List<String> stringList = StringUtil.breakStringList ( label, "\n", 0 );
+	int size = stringList.size();
     // North Panel
 	JPanel north_JPanel = new JPanel();
 	if ( alignment == GridBagConstraints.CENTER ) {
@@ -319,11 +340,11 @@ private void initialize ( String title, String label, int mode, int alignment )
 		if ( size > 20 ) {
 			//add message String to a JList that is within a JScrollPane
 			JList<String> list = null;
-			if ( vec instanceof Vector ) {
-				list = new JList<String>( (Vector<String>)vec );
+			if ( stringList instanceof Vector ) {
+				list = new JList<String>( (Vector<String>)stringList );
 			}
 			else {
-				list = new JList<String>(new Vector<String>(vec) );
+				list = new JList<String>(new Vector<String>(stringList) );
 			}
 			list.setBackground(Color.LIGHT_GRAY);
 			JScrollPane pane = new JScrollPane( list );
@@ -341,7 +362,7 @@ private void initialize ( String title, String label, int mode, int alignment )
 			// Add each string as a JLabel...
 			for ( int i = 0; i < size; i++ ) {
     			JGUIUtil.addComponent(north_JPanel,
-    				new JLabel( (String)vec.get(i)),
+    				new JLabel( stringList.get(i)),
     				0,i,1,1,0,0,insets,
     				GridBagConstraints.NONE, alignment );
 			}
@@ -355,11 +376,11 @@ private void initialize ( String title, String label, int mode, int alignment )
     		north_JPanel.setLayout(new GridLayout( 1, 1));
 			//add message String to a JList that is within a JScrollPane
 			JList<String> list = null;
-			if ( vec instanceof Vector ) {
-				list = new JList<String>( (Vector<String>)vec );
+			if ( stringList instanceof Vector ) {
+				list = new JList<String>( (Vector<String>)stringList );
 			}
 			else {
-				list = new JList<String>(new Vector<String>(vec) );
+				list = new JList<String>(new Vector<String>(stringList) );
 			}
 			list.setBackground(Color.LIGHT_GRAY);
 			JScrollPane pane = new JScrollPane( list );
@@ -372,11 +393,23 @@ private void initialize ( String title, String label, int mode, int alignment )
     		north_JPanel.add( pane );
 		}
 		else {
+			// Just use JLabel to display:
+			// - looks like normal dialog without scrolling
     		north_JPanel.setLayout( 
-			new GridLayout ( vec.size(), 1));
-			// Add each string...
+			new GridLayout ( stringList.size(), 1));
+    		//Border border = BorderFactory.createEmptyBorder();
+    		// top, left, bottom right
+    		Border border = BorderFactory.createEmptyBorder(1, 4, 1, 4);
+			// Add each string.
 			for ( int i = 0; i < size; i++ ) {
-    			north_JPanel.add( new JLabel( "    " +vec.get(i) + "     " ) );
+				// The problem with JLabel is that can't copy/paste.
+				//north_JPanel.add( new JLabel( "    " + stringList.get(i) + "     " ) );
+				// Instead, use a JTextField.
+				JTextField field = new JTextField(stringList.get(i));
+				field.setEditable(false);
+				field.setBackground(null);
+				field.setBorder(border);
+				north_JPanel.add( field );
 			}
 		}
 	}
@@ -412,6 +445,12 @@ private void initialize ( String title, String label, int mode, int alignment )
         __ok_JButton = new SimpleJButton(__BUTTON_OK, this);
 		__ok_JButton.addKeyListener(this);
 	    southNorth_JPanel.add(__ok_JButton);
+	}
+
+	if ( (__mode & CONTINUE) != 0 ) {
+        __continue_JButton = new SimpleJButton(__BUTTON_CONTINUE, this);
+		__continue_JButton.addKeyListener(this);
+	    southNorth_JPanel.add(__continue_JButton);
 	}
 
 	if ( (__mode & CANCEL) != 0 ) {
