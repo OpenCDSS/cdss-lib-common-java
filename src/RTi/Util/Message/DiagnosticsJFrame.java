@@ -21,73 +21,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
 
 NoticeEnd */
 
-//------------------------------------------------------------------------------
-// DiagnosticsJFrame - generic diagnostic preferences window.
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// History:
-// 
-// 07 Oct 1997	Catherine E.		Created initial version of class
-//		Nutting-Lane, RTi	for StateModGUI.
-// 14 Nov 1997	CEN, RTi		Moved to message class for global use
-// 16 Mar 1998	Steven A. Malers, RTi	Add javadoc.
-// 14 Apr 1998	SAM, RTi		Change the menu to Diagnostics...
-// 27 Apr 1998	SAM, RTi		Add option for a help button.
-//					Simplify some of the button code by
-//					using SimpleButton.
-// 12 Oct 1998	SAM, RTi		Add View Log File button but do not
-//					enable.
-// 07 Dec 1998	SAM, RTi		Enable View Log File.  Do some other
-//					clean-up.
-// 15 Mar 2001	SAM, RTi		Change IO to IOUtil and GUI to JGUIUtil.
-//					Clean up imports, javadoc and memory
-//					management.  Check for platform when
-//					editing the log file.
-// 2001-11-27	SAM, RTi		Overload attachMainMenu() to allow a
-//					CheckboxMenu to be used.
-// 2001-12-03	SAM, RTi		Begin conversion to Swing.  Do enough to
-//					get it to hook into JMenuBar but need to
-//					complete the port to Swing.
-// 2002-09-11	SAM, RTi		Synchronize with DiagnosticsGUI and the
-//					version used on Unix.  This
-//					DiagnosticsJFrame should be used with
-//					Swing from this time forward.
-//					STILL NEED TO FULLY CONVERT TO A JFrame.
-// 2002-10-11	SAM, RTi		Change ProcessManager to
-//					ProcessManager1.
-// 2002-10-16	SAM, RTi		Change back to ProcessManager since the
-//					improved version seems to work under
-//					1.1.8 and 1.4.0!  Use a thread to run
-//					the editor.
-// 2002-11-03	SAM, RTi		Don't set the background - let the look
-//					and feel default handle.  In order to
-//					do this, had to do the full conversion
-//					to Swing.
-// 2003-09-30	SAM, RTi		Use the icon and title from the
-//					application if available.
-// 2004-01-31	SAM, RTi		Fix bug where "Close" was applying the
-//					settings.
-// 2005-03-14	J. Thomas Sapienza, RTi	* Added code for displaying the
-//					  new MessageLogJFrame.
-//					* The old View Log File button is now
-//					  labelled "Launch Log File Viewer."
-//					* The help button was removed.
-//					* Put tool tips on all the buttons.
-//					* Added the Restart and New buttons.
-// 2005-03-15	JTS, RTi		* Added a column for setting debug
-//					  levels for messages sent to the
-//					  console.
-// 2005-03-24	JTS, RTi		When the user presses "Restart Log File"
-//					they are now prompted to make sure that
-//					is what they want to do.
-// 2005-08-03	SAM, RTi		* Check for a blank string for the
-//					  application name when setting the
-//					  title.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//------------------------------------------------------------------------------
-// EndHeader
-
 package RTi.Util.Message;
 
 import java.awt.Component;
@@ -139,16 +72,8 @@ the component):
 </pre>
 <p>
 
-The resulting GUI looks as follows:
-<p>
-
-<center>
-<img src="DiagnosticsGUI.gif"><p>
-</center>
-<p>
-
-The GUI provides access to various methods of the Message class.  It is assumed
-that the log file has been set.
+The GUI provides access to various methods of the Message class.
+It is assumed that the log file has been set.
 <b>In the future, greater control of the log file will be added.</b>
 @see Message
 */
@@ -224,6 +149,12 @@ public void actionPerformed ( ActionEvent e )
 
     if ( command.equals("Apply") ) {
         applySettings();
+    }
+    else if ( command.equals("Cancel") ) {
+        setVisible(false);
+        if ( __menu_JCheckBoxMenuItem != null ) {
+            __menu_JCheckBoxMenuItem.setState ( false );
+        }
     }
     else if ( command.equals("Close") ) {
         applySettings();
@@ -377,7 +308,7 @@ private void applySettings () {
 }
 
 /**
-Attach the DiagnosticsGUI menus to the given menu.  The menu will be labelled "Diagnostics Preferences...".
+Attach the DiagnosticsGUI menus to the given menu.  The menu will be labeled "Diagnostics Preferences...".
 @param menu Menu to attach to.
 */
 public void attachMainMenu ( JMenu menu )
@@ -386,7 +317,7 @@ public void attachMainMenu ( JMenu menu )
 }
 
 /**
-Attach the DiagnosticsGUI menus to the given menu.  The menu will be labelled "Diagnostics Preferences...".
+Attach the DiagnosticsGUI menus to the given menu.  The menu will be labeled "Diagnostics Preferences...".
 @param menu Menu to attach to.
 @param use_checkbox If true, use a CheckboxMenuItem.  If false, use a normal MenuItem.
 */
@@ -504,9 +435,6 @@ public void openGUI ( int mode )
     p1.add ( __debug_JCheckBox );
 
     JPanel p2 = new JPanel();
-    SimpleJButton applyButton = new SimpleJButton("Apply",this);
-    applyButton.setToolTipText("Apply changes to the logging levels.");
-    p2.add(applyButton);
     SimpleJButton launch_button = new SimpleJButton("Launch Log File Viewer", "LaunchLogFileViewer", this);
     launch_button.setToolTipText("Use " + getExternalFileViewerProgram() + " to view the log file.");
     // Disable if the log file is not known to the Message class or does not exist...
@@ -524,9 +452,18 @@ public void openGUI ( int mode )
     p2.add(viewButton);
     p2.add ( launch_button );
     launch_button = null;
+
+    SimpleJButton applyButton = new SimpleJButton("Apply",this);
+    applyButton.setToolTipText("Apply changes to the logging levels.");
+    p2.add(applyButton);
+
     SimpleJButton closeButton = new SimpleJButton("Close",this);
-    closeButton.setToolTipText("Close the window, losing any changes made without pressing 'Apply'.");
+    closeButton.setToolTipText("Apply changes to the logging levels and close the window.");
     p2.add(closeButton);
+
+    SimpleJButton cancelButton = new SimpleJButton("Cancel",this);
+    cancelButton.setToolTipText("Close the window, losing any changes unless 'Apply' has been pressed.");
+    p2.add(cancelButton);
 
     int y=0;
     JPanel main_JPanel = new JPanel();

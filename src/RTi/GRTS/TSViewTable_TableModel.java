@@ -1131,17 +1131,16 @@ public int[] getColumnWidths() {
 }
 
 /**
-Returns whether the cell is editable or not.  Returns false.
+Returns whether the cell is editable or not.  Currently always returns false.
 @param rowIndex unused.
 @param columnIndex unused.
 @return whether the cell is editable or not.
 */
 public boolean isCellEditable(int rowIndex, int columnIndex) {
 	if (columnIndex > 0) {
-		if (1 == 1) {
-			// TODO (JTS - 2004-01-22) no editing supported yet
-			return false;
-		}
+		// TODO (JTS - 2004-01-22) no editing supported yet
+		return false;
+		/*
 		if ( __dataFlagVisualizationType != TSDataFlagVisualizationType.NOT_SHOWN) {
     		// FIXME SAM (2010-07-15) Figure this out - we added some editing.
     		TS ts = (TS)_data.get(columnIndex - 1);
@@ -1151,6 +1150,7 @@ public boolean isCellEditable(int rowIndex, int columnIndex) {
 		    // TODO SAM 2012-04-16 Editing when flags are shown is not yet implemented
 		    return false;
 		}
+		*/
 	}
 	return false;
 }

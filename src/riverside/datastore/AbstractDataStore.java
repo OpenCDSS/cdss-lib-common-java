@@ -77,6 +77,7 @@ public String getName()
 
 /**
 Return the string property list for the datastore configuration.
+The datastore property list is returned, not a copy.
 @return the string property list for the datastore configuration, guaranteed to be non-null.
 @param propertyName name of the property
 */

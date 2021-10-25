@@ -85,7 +85,7 @@ The parameter and result names/contents should be well documented by specific pr
 @param parameters Input to the request, as a PropList.
 @exception Exception if there is an error processing the request.
 */
-public CommandProcessorRequestResultsBean processRequest ( String request, PropList parameters ) throws Exception ;
+public CommandProcessorRequestResultsBean processRequest ( String request, PropList parameters ) throws Exception;
 
 /**
 Set a property given the property.
