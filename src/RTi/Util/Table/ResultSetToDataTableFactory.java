@@ -97,8 +97,13 @@ throws SQLException
 	        }
         }
         else if ( dbengineType == DMIDatabaseType.SQLITE ) {
-        	// Column width is not restricted and comes back as a large number
+        	// Column width is not restricted and comes back as a large number:
+        	// - check for for the large number below
         	precision = meta.getColumnDisplaySize(i);
+        	// Number of digits is often 0 for floating point so set to 6.
+	        if ( (columnType == TableField.DATA_TYPE_DOUBLE) || (columnType == TableField.DATA_TYPE_FLOAT) ) {
+	        	scale = 6;
+	        }
         }
         Message.printStatus(2, routine, "Adding column \"" + columnNames[i - 1] + "\" SQLType=" + meta.getColumnType(i) + " columnType=" + columnType +
         	" width (metadata precision)=" + precision + ", precision (metadata scale) = " + scale);

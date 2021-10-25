@@ -91,7 +91,7 @@ public class HelpViewer {
 		    	"Unable to display documentation for group \"" + group + "\" and item \"" + item + "\" - no URL formatter defined." );
 		}
 		else {
-			// Format the URL for the item
+			// Format the URL for the item.
 			String docUri = this.urlFormatter.formatHelpViewerUrl(group, item);
 			if ( docUri == null ) {
 				Message.printWarning(1, "", "Unable to determine documentation URL for group=\"" + group + "\", item=\"" + item + "\"." );
@@ -101,7 +101,7 @@ public class HelpViewer {
 			// Use the desktop to display documentation
 			if ( !Desktop.isDesktopSupported() ) {
 				if ( IOUtil.isUNIXMachine() ) {
-					// Only try on Linux since Windows Desktop seems to work OK
+					// Only try on Linux since Windows Desktop seems to work OK.
 					showHelpRunBrowserUnix(docUri);
 				}
 				else {
@@ -111,14 +111,14 @@ public class HelpViewer {
 			else {
 		        // The Desktop.browse() method will always open, even if the page does not exist,
 		        // and it won't return the HTTP error code in this case.
-		        // Therefore, do a check to see if the URI is available before opening in a browser
+		        // Therefore, do a check to see if the URI is available before opening in a browser.
 		        try {
 		            Desktop desktop = Desktop.getDesktop();
 		            desktop.browse ( new URI(docUri) );
 		        }
 		        catch ( Exception e ) {
 		        	if ( IOUtil.isUNIXMachine() ) {
-					   	// Only try on Linux since Windows Desktop seems to work OK
+					   	// Only try on Linux since Windows Desktop seems to work OK.
 					   	showHelpRunBrowserUnix(docUri);
 				    }
 		        	else {
@@ -169,7 +169,7 @@ public class HelpViewer {
 						break;
 					}
 					catch ( Exception e ) {
-						Message.printWarning(3, "",  "Error running: " + browser + " " + docUri);
+						Message.printWarning(3, "", "Error running: " + browser + " " + docUri);
 						browserOk = false;
 					}
 				}

@@ -49,6 +49,11 @@ public class RequirementCheck {
 	private String failReason = "";
 	
 	/**
+	 * Whether processing should exit if the requirement is not met.
+	 */
+	private boolean shouldExitIfRequirementNotMet = false;
+	
+	/**
 	 * Constructor.
 	 */
 	public RequirementCheck ( String requirementText ) {
@@ -101,5 +106,20 @@ public class RequirementCheck {
 		this.isRequirementMet = isRequirementMet;
 		this.failReason = failReason;
 	}
+
+	/**
+	 * Set whether should exit if requirement is not met.
+	 * @param exitIfRequirementNotMet whether or not to exit if the requirement is not met
+	 */
+	public void setShouldExitIfRequirementNotMet ( boolean exitIfRequirementNotMet ) {
+		this.shouldExitIfRequirementNotMet = exitIfRequirementNotMet;
+	}
+
+	/**
+	 * Indicate whether processing should exit if the requirement is not met.
+	 */
+    public boolean shouldExitIfRequirementNotMet() {
+    	return this.shouldExitIfRequirementNotMet;
+    }
 	
 }

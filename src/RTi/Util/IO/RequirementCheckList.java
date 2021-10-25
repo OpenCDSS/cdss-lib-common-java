@@ -96,4 +96,13 @@ public class RequirementCheckList {
 		}
 		return b.toString();
 	}
+	
+	/**
+	 * Return the RequirementCheck at the requested position.
+	 * @param pos position for the check, 0+
+	 * @return RequirementCheck instance at requested position
+	 */
+	public RequirementCheck get ( int pos ) {
+		return this.requirementCheckList.get(pos);
+	}
 }

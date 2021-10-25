@@ -5128,7 +5128,7 @@ performance hit and mask data issues so the default is to NOT replace newlines.
 public void writeDelimitedFile(String filename, String delimiter, boolean writeColumnNames, List<String> comments,
     String commentLinePrefix, boolean alwaysQuoteStrings, String newlineReplacement, String NaNValue ) 
 throws Exception {
-	HashMap<String,String> writeProps = new HashMap<>();
+	HashMap<String,Object> writeProps = new HashMap<>();
 	if ( alwaysQuoteStrings ) {
 		writeProps.put("AlwaysQuoteStrings", "True");
 	}
@@ -5142,8 +5142,7 @@ throws Exception {
 		writeProps.put("NaNValue", NaNValue);
 	}
 	// Call the generic version that takes list of properties
-	writeDelimitedFile(filename, delimiter, writeColumnNames, comments,
-		commentLinePrefix, writeProps );
+	writeDelimitedFile(filename, delimiter, writeColumnNames, comments, commentLinePrefix, writeProps );
 }
 
 // TODO SAM 2006-06-21
@@ -5158,14 +5157,15 @@ they will be written surrounded by double quotes.
 and written as a one-line header of field names.  The headers are double-quoted.
 If all headers are missing, then the header line will not be written.
 @param comments a list of Strings to put at the top of the file as comments, 
-@param commentLinePrefix prefix string for comment lines specify if incoming comment strings have not already been
-prefixed.
+@param commentLinePrefix prefix string for comment lines specify if incoming comment strings have not already been prefixed.
 @param writeProps additional properties to control writing:
 <ul>
 <li>AlwaysQuoteDateTimes - if true, then always surround date/times with double quotes;
 if false date/times will only be quoted when they include the delimiter</li>
 <li>AlwaysQuoteStrings - if true, then always surround strings with double quotes;
 if false strings will only be quoted when they include the delimiter</li>
+<li>IncludeColumns - array of String containing column names to include</li>
+<li>ExcludeColumns - array of String containing column names to exclude</li>
 <li>NaNValue - value to replace NaN in output (no property or null will result in NaN being written).</li>
 <li>NewlineReplacement - if not null, replace newlines in string table values with this replacement string
 (which can be an empty string).  This is needed to ensure that the delimited file does not include unexpected
@@ -5174,7 +5174,7 @@ performance hit and mask data issues so the default is to NOT replace newlines.<
 </ul>
 */
 public void writeDelimitedFile(String filename, String delimiter, boolean writeColumnNames, List<String> comments,
-    String commentLinePrefix, HashMap<String,String> writeProps )
+    String commentLinePrefix, HashMap<String,Object> writeProps )
 throws Exception {
 	String routine = getClass().getSimpleName() + ".writeDelimitedFile";
 	
@@ -5183,47 +5183,72 @@ throws Exception {
 		throw new Exception("Cannot write to file '" + filename + "'");
 	}
 	if ( comments == null ) {
-	    comments = new ArrayList<String>(); // To simplify logic below
+	    comments = new ArrayList<String>(); // To simplify logic below.
 	}
 	String commentLinePrefix2 = commentLinePrefix;
 	if ( !commentLinePrefix.equals("") ) {
-	    commentLinePrefix2 = commentLinePrefix + " "; // Add space for readability
+	    commentLinePrefix2 = commentLinePrefix + " "; // Add space for readability.
 	}
 
-	// Output string to use for NaN values
-	String NaNValue = writeProps.get("NaNValue");
-	if ( NaNValue == null ) {
-	    NaNValue = "NaN";
+	// Output string to use for NaN values.
+	Object propO = writeProps.get("NaNValue");
+	String NaNValue = "NaN"; // Default.
+	if ( propO != null ) {
+	    NaNValue = (String)propO;
 	}
 	
-	// Indicate whether strings should always be quoted
+	// Indicate whether strings should always be quoted:
 	// - default is to not quote date/times
 	boolean alwaysQuoteDateTimes = false;
-	String AlwaysQuoteDateTimes = writeProps.get("AlwaysQuoteDateTimes");
+	propO = writeProps.get("AlwaysQuoteDateTimes");
+	String AlwaysQuoteDateTimes = null;
+	if ( propO != null ) {
+		AlwaysQuoteDateTimes = (String)propO;
+	}
 	if ( (AlwaysQuoteDateTimes != null) && AlwaysQuoteDateTimes.equalsIgnoreCase("true") ) {
 		alwaysQuoteDateTimes = true;
 	}
 
-	// Indicate whether strings should always be quoted
+	// Indicate whether strings should always be quoted:
 	// - default is to only quote if string includes delimiter
 	boolean alwaysQuoteStrings = false;
-	String AlwaysQuoteStrings = writeProps.get("AlwaysQuoteStrings");
+	String AlwaysQuoteStrings = null;
+	propO = writeProps.get("AlwaysQuoteStrings");
+	if ( propO != null ) {
+		AlwaysQuoteStrings = (String)propO;
+	}
 	if ( (AlwaysQuoteStrings != null) && AlwaysQuoteStrings.equalsIgnoreCase("true") ) {
 		alwaysQuoteStrings = true;
 	}
 	
-	// String to use for newlines, can be "", by default don't replace 
+	// String to use for newlines, can be "", by default don't replace :
 	// - default is to not replace newlines
-	String NewlineReplacement = writeProps.get("NewlineReplacement");
+	propO = writeProps.get("NewlineReplacement");
+	String NewlineReplacement = null;
+	if ( propO != null ) {
+		NewlineReplacement = (String)propO;
+	}
 	String newlineReplacement = null;
 	if ( NewlineReplacement != null ) {
 		newlineReplacement = NewlineReplacement;
 	}
-
+	
+	// Check whether include and exclude columns are indicated.
+	String [] includeColumns = new String[0];
+	String [] excludeColumns = new String[0];
+	propO = writeProps.get("IncludeColumns");
+	if ( propO != null ) {
+		includeColumns = (String [])propO;
+	}
+	propO = writeProps.get("ExcludeColumns");
+	if ( propO != null ) {
+		excludeColumns = (String [])propO;
+	}
+	
 	PrintWriter out = new PrintWriter( new BufferedWriter(new FileWriter(filename)));
-	int row = 0, col = 0;
+	int irow = 0, icol = 0;
 	try {
-    	// If any comments have been passed in, print them at the top of the file
+    	// If any comments have been passed in, print them at the top of the file.
     	if (comments != null && comments.size() > 0) {
     		int size = comments.size();
     		for (int i = 0; i < size; i++) {
@@ -5236,23 +5261,66 @@ throws Exception {
     		Message.printWarning(3, routine, "Table has 0 columns!  Nothing will be written.");
     		return;
     	}
+
+    	// Determine which columns should be written:
+    	// - default is to write all
+       	boolean [] columnOkToWrite = new boolean[cols];
+        for ( icol = 0; icol < cols; icol++) {
+        	if ( includeColumns.length == 0 ) {
+        		// Initialize all columns will be written.
+        		columnOkToWrite[icol] = true;
+        	}
+        	else {
+        		// Initialize all to false and only include columns that are requested, checked below.
+        		columnOkToWrite[icol] = false;
+        	}
+        }
+        // Loop through the table columns and check whether any are specifically included or excluded.
+       	if ( (includeColumns.length != 0) || (excludeColumns.length != 0) ) {
+       		for ( icol = 0; icol < cols; icol++) {
+       			// First check included names.
+       			for ( String includeColumn : includeColumns ) {
+       				if ( includeColumn.equals(getFieldName(icol)) ) {
+       					columnOkToWrite[icol] = true;
+       				}
+       			}
+       			for ( String excludeColumn : excludeColumns ) {
+       				if ( excludeColumn.equals(getFieldName(icol)) ) {
+       					columnOkToWrite[icol] = false;
+       				}
+       			}
+       		}
+       	}
     
     	StringBuffer line = new StringBuffer();
     
-        int nonBlank = 0; // Number of non-blank table headings
+        int nonBlank = 0; // Number of non-blank table headings.
     	if (writeColumnNames) {
-    	    // First determine if any headers are non blank
-            for ( col = 0; col < cols; col++) {
-                if ( getFieldName(col).length() > 0 ) {
-                    ++nonBlank;
-                }
+    	    // First determine if any headers are non blank:
+    		// - only write headers if requested and have at least one non-blank header
+    		// - TODO smalers 2021-10-24 is this left over?  All columns should typically have names for lookups.
+            for ( icol = 0; icol < cols; icol++) {
+            	if ( columnOkToWrite[icol] ) {
+            		if ( getFieldName(icol).length() > 0 ) {
+            			++nonBlank;
+            		}
+            	}
             }
             if ( nonBlank > 0 ) {
+            	// Write the column headings.
         		line.setLength(0);
-        		for ( col = 0; col < (cols - 1); col++) {
-        			line.append( "\"" + getFieldName(col) + "\"" + delimiter);
+        		int iColOut = 0; // Count of columns written.
+        		for ( icol = 0; icol < cols; icol++) {
+        			if ( columnOkToWrite[icol] ) {
+        				// Count of output columns, so know when to print the delimiter.
+        				++iColOut;
+        				if ( iColOut > 1 ) {
+        					// Add a delimiter after the first column.
+        					line.append(delimiter);
+        				}
+        				line.append( "\"" + getFieldName(icol) + "\"");
+        			}
         		}
-        		line.append( "\"" + getFieldName((cols - 1)) + "\"");
         		out.println(line);
             }
     	}
@@ -5264,31 +5332,37 @@ throws Exception {
     	Object fieldValue;
     	Double fieldValueDouble;
     	Float fieldValueFloat;
-    	boolean doQuoteCell = false; // Whether a single cell should have surrounding quotes
-    	for ( row = 0; row < rows; row++) {
+    	boolean doQuoteCell = false; // Whether a single cell should have surrounding quotes.
+    	int icolOut = 0; // Count of columns actually written.
+    	for ( irow = 0; irow < rows; irow++) {
     		line.setLength(0);
-    		for ( col = 0; col < cols; col++) {
-    		    if ( col > 0 ) {
+    		icolOut = 0;
+    		for ( icol = 0; icol < cols; icol++) {
+       			if ( !columnOkToWrite[icol] ) {
+       				continue;
+       			}
+       			++icolOut;
+    		    if ( icolOut > 1 ) {
     		        line.append ( delimiter );
     		    }
-    		    tableFieldType = getFieldDataType(col);
-    		    precision = getFieldPrecision(col);
-    		    fieldValue = getFieldValue(row,col);
+    		    tableFieldType = getFieldDataType(icol);
+    		    precision = getFieldPrecision(icol);
+    		    fieldValue = getFieldValue(irow,icol);
     		    if ( fieldValue == null ) {
     		        cell = "";
     		    }
     		    else if ( isColumnArray(tableFieldType) ) {
-                	// The following formats the array for display in UI table
-                	cell = formatArrayColumn(row,col);
+                	// The following formats the array for display in UI table.
+                	cell = formatArrayColumn(irow,icol);
                 }
     		    else if ( tableFieldType == TableField.DATA_TYPE_FLOAT ) {
-    		    	// Handle specifically in order to format precision and handle NaN value
+    		    	// Handle specifically in order to format precision and handle NaN value.
                     fieldValueFloat = (Float)fieldValue;
                     if ( fieldValueFloat.isNaN() ) {
                         cell = NaNValue;
                     }
                     else if ( precision >= 0 ) {
-                        // Format according to the precision if floating point
+                        // Format according to the precision if floating point.
                         cell = StringUtil.formatString(fieldValue,"%." + precision + "f");
                     }
                     else {
@@ -5297,13 +5371,13 @@ throws Exception {
                     }
     		    }
     		    else if ( tableFieldType == TableField.DATA_TYPE_DOUBLE ) {
-    		    	// Handle specifically in order to format precision and handle NaN value
+    		    	// Handle specifically in order to format precision and handle NaN value.
     		        fieldValueDouble = (Double)fieldValue;
     		        if ( fieldValueDouble.isNaN() ) {
     		            cell = NaNValue;
     		        }
     		        else if ( precision >= 0 ) {
-                        // Format according to the precision if floating point
+                        // Format according to the precision if floating point.
                         cell = StringUtil.formatString(fieldValue,"%." + precision + "f");
     		        }
     		        else {
@@ -5315,7 +5389,7 @@ throws Exception {
                     // Use default formatting from object toString().
                     cell = "" + fieldValue;
                 }
-    		    // Figure out if the initial cell needs to be quoted
+    		    // Figure out if the initial cell needs to be quoted.
     			// Surround the values with double quotes if:
     		    // 1) the field contains the delimiter
     		    // 2) alwaysQuoteStrings=true
@@ -5323,39 +5397,39 @@ throws Exception {
     		    doQuoteCell = false;
     		    if ( tableFieldType == TableField.DATA_TYPE_STRING ) {
     		    	if ( cell.indexOf("\"") > -1 ) {
-    		    		// Cell includes a double quote so quote the whole thing
+    		    		// Cell includes a double quote so quote the whole thing.
     		    		doQuoteCell = true;
     		    	}
     		    	else if ( alwaysQuoteStrings ) {
-    		    		// Calling code requests quoting strings always
+    		    		// Calling code requests quoting strings always.
     		    		doQuoteCell = true;
     		    	}
     		    }
     		    else if ( tableFieldType == TableField.DATA_TYPE_DATETIME ) {
     		    	if ( cell.indexOf("\"") > -1 ) {
-    		    		// Cell includes a double quote so quote the whole thing
+    		    		// Cell includes a double quote so quote the whole thing.
     		    		doQuoteCell = true;
     		    	}
     		    	else if ( alwaysQuoteDateTimes ) {
-    		    		// Calling code requests quoting date/times always
+    		    		// Calling code requests quoting date/times always.
     		    		doQuoteCell = true;
     		    	}
     		    }
     			if ( (cell.indexOf(delimiter) > -1) ) {
-    				// Always have to protect delimiter character in the cell string
+    				// Always have to protect delimiter character in the cell string.
     				doQuoteCell = true;
     			}
     			if ( doQuoteCell ) {
-    				// First replace all single \" instances with double
+    				// First replace all single \" instances with double.
     				cell = cell.replace("\"", "\"\"");
-    				// Then add quotes around the whole thing
+    				// Then add quotes around the whole thing.
     				cell = "\"" + cell + "\"";
     			}
     			if ( (tableFieldType == TableField.DATA_TYPE_STRING) && (newlineReplacement != null) ) {
-    			    // Replace newline strings with the specified string
-    			    cell = cell.replace("\r\n", newlineReplacement); // Windows/Mac use 2-characters
+    			    // Replace newline strings with the specified string.
+    			    cell = cell.replace("\r\n", newlineReplacement); // Windows/Mac use 2-characters.
     			    cell = cell.replace("\n", newlineReplacement); // *NIX
-    			    cell = cell.replace("\r", newlineReplacement); // to be sure
+    			    cell = cell.replace("\r", newlineReplacement); // To be sure.
     			}
     			line.append ( cell );
     		}
@@ -5363,9 +5437,8 @@ throws Exception {
     	}
 	}
 	catch ( Exception e ) {
-	    // Log and rethrow
-	    Message.printWarning(3, routine, "Unexpected error writing delimited file row [" + row + "][" + col +
-	        "] (" + e + ")." );
+	    // Log and rethrow the exception.
+	    Message.printWarning(3, routine, "Unexpected error writing delimited file row [" + irow + "][" + icol + "] (" + e + ")." );
 	    Message.printWarning(3, routine, e);
 	    throw ( e );
 	}

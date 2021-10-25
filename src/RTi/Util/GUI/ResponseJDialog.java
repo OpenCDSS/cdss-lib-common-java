@@ -395,8 +395,7 @@ private void initialize ( String title, String label, int mode, int alignment )
 		else {
 			// Just use JLabel to display:
 			// - looks like normal dialog without scrolling
-    		north_JPanel.setLayout( 
-			new GridLayout ( stringList.size(), 1));
+    		north_JPanel.setLayout( new GridLayout ( stringList.size(), 1));
     		//Border border = BorderFactory.createEmptyBorder();
     		// top, left, bottom right
     		Border border = BorderFactory.createEmptyBorder(1, 4, 1, 4);
@@ -405,7 +404,7 @@ private void initialize ( String title, String label, int mode, int alignment )
 				// The problem with JLabel is that can't copy/paste.
 				//north_JPanel.add( new JLabel( "    " + stringList.get(i) + "     " ) );
 				// Instead, use a JTextField.
-				JTextField field = new JTextField(stringList.get(i));
+				JTextField field = new JTextField("  " + stringList.get(i) + "  ");
 				field.setEditable(false);
 				field.setBackground(null);
 				field.setBorder(border);

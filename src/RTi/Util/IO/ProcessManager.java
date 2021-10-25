@@ -950,7 +950,7 @@ public void run ()
 	try {
 	    // Might want to put the following in the constructor, but
 		// leave here for now because we can rely on the check for a
-		// non-null interpreter to know if the user has defined...
+		// non-null interpreter to know if the user has defined.
 		if ( __commandInterpreter != null ) {
 			// Assume that the calling code has set
 			// __command_interpreter and
@@ -958,22 +958,21 @@ public void run ()
 			// in the constructor or setCommandInterpreter().
 		}
 		else if ( os_name.equalsIgnoreCase( "Windows 95" )) {
-			// Windows 95/98...
+			// Older Windows 95/98.
 			__commandInterpreter = "command.com /C";
 			__commandInterpreterArray = new String[2];
 			__commandInterpreterArray[0] = "command.com";
 			__commandInterpreterArray[1] = "/C";
 		}
 		else if ( IOUtil.isUNIXMachine() ) {
-			// Unix, including Linux...
+			// Unix, including Linux.
 			__commandInterpreter = "/bin/sh -c";
 			__commandInterpreterArray = new String[2];
 			__commandInterpreterArray[0] = "/bin/sh";
 			__commandInterpreterArray[1] = "-c";
 		}
 		else if ( os_name.startsWith("Windows") ) {
-			// Assume "Windows NT", "Windows 2000", or later so
-			// we don't have to be on the bleeding edge with changes...
+			// Most recent Windows.
 			__commandInterpreter = "cmd.exe /C";
 			__commandInterpreterArray = new String[2];
 			__commandInterpreterArray[0] = "cmd.exe";
@@ -984,11 +983,10 @@ public void run ()
 			setProcessFinished ( 997, "Unknown operating system \""+ os_name + "\"" );
 			return;
 		}
-		// Set up the command string, which is used for messages and
-		// if the command array version is NOT used...
+		// Set up the command string, which is used for messages and if the command array version is NOT used.
 		if ( __isCommandInterpreterUsed ) {
 			if ( !__commandInterpreter.isEmpty() ) {
-				// Command interpreter used and it is not empty...
+				// Command interpreter used and it is not empty:
 				// - when the interpreter is used, the command to run follows an argument,
 				//   and need to encapsulate it in double quotes if necessary to escape content
 				if ( (__command.indexOf(" ") > 0) || (__command.indexOf("\t") > 0) ) {
@@ -1000,17 +998,17 @@ public void run ()
 				}
 			}
 			else {
-			    // Command interpreter used but it is empty...
+			    // Command interpreter used but it is empty.
 				commandString = __command;
 			}
 		}
 		else {
-		    // No interpreter - just use command...
+		    // No interpreter - just use command.
 			commandString = __command;
 		}
 		// Now actually start the process...
 		if ( __commandArray != null ) {
-			// Execute using the array of arguments...
+			// Execute using the array of arguments.
 			String [] array = null;
 			if ( __isCommandInterpreterUsed ) {
 				array = new String[__commandInterpreterArray.length + __commandArray.length];
@@ -1018,7 +1016,7 @@ public void run ()
 			else {
 			    array = new String[__commandArray.length];
 			}
-			// Transfer command interpreter, if the command interpreter is to be used...
+			// Transfer command interpreter, if the command interpreter is to be used.
 			int n = 0;
 			if ( __isCommandInterpreterUsed ) {
 				n = __commandInterpreterArray.length;
@@ -1026,7 +1024,7 @@ public void run ()
 					array[i]=__commandInterpreterArray[i];
 				}
 			}
-			// Transfer command and arguments...
+			// Transfer command and arguments.
 			for ( int i = 0; i < __commandArray.length; i++ ) {
 				array[i + n] = __commandArray[i];
 			}
@@ -1036,19 +1034,18 @@ public void run ()
 		        Message.printStatus ( __processStatusLevel, rtn,
 		            "Array [" + i + "] = \""+ array[i] + "\" (" + array[i].length() + " characters)." );
 		    }
-		    // Use ProcessBuilder to run the process
+		    // Use ProcessBuilder to run the process.
 		    ProcessBuilder pb = new ProcessBuilder ( array );
 		    if ( __workingDir != null ) {
 		        Message.printStatus ( 2, rtn, "Setting ProcessBuilder working directory to \"" + __workingDir + "\".");
 		        pb.directory ( __workingDir );
 		    }
-		    // Add the environment to the process
+		    // Add the environment to the process.
 		    addEnvironmentToProcess(pb);
 		    __process = pb.start();
 		}
 		else {
-		    // Execute using the full command line.  The interpreter
-			// is properly included (or not) in the command_string...
+		    // Execute using the full command line.  The interpreter is properly included (or not) in the command_string.
 		    Message.printStatus ( __processStatusLevel, rtn,
 	            "Running on \"" + os_name + "\".  Executing process using full command line : " + commandString );
 		    Message.printStatus ( __processStatusLevel, rtn,
@@ -1070,7 +1067,8 @@ public void run ()
 		setProcessFinished ( 996, "Security exception (" + se + ")." );
 		return;
 	} catch ( Exception e ) {
-		Message.printWarning ( 1, rtn, "Unable to create process using command \"" + commandString + "\"" );
+		// Do not use quotes here to avoid confusion with whether quotes are in the command string.
+		Message.printWarning ( 1, rtn, "Unable to create process using command: " + commandString );
 		Message.printWarning ( 2, rtn, e );
 		setProcessFinished ( 997, "Error creating process (" + e + ")." );
 		return;

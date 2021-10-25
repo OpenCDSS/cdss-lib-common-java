@@ -43,8 +43,9 @@ import javax.swing.JFrame;	// For the editor
 
 /**
 This class is a generic command, for example to use when editing a command
-that does not have a command editor.  In this case, the GenericCommand_JDialog
-will be used to edit the command.
+that does not have a command editor.
+In this case, the GenericCommand_JDialog will be used to edit the command.
+All known commands should have an editor.
 */
 public class GenericCommand extends AbstractCommand
 {
@@ -62,11 +63,9 @@ Check the command parameter for valid values, combination, etc.
 @param command_tag an indicator to be used when printing messages, to allow a
 cross-reference to the original commands.
 @param warning_level The warning level to use when printing parse warnings
-(recommended is 2 for initialization, and 1 for interactive command editor
-dialogs).
+(recommended is 2 for initialization, and 1 for interactive command editor dialogs).
 */
-public void checkCommandParameters (	PropList parameters, String command_tag,
-					int warning_level )
+public void checkCommandParameters ( PropList parameters, String command_tag, int warning_level )
 throws InvalidCommandParameterException
 {
 }
@@ -97,8 +96,7 @@ syntax of the command are bad.
 @exception InvalidCommandParameterException if during parsing the command
 parameters are determined to be invalid.
 */
-public void initializeCommand ( String command, CommandProcessor processor,
-				boolean full_initialization )
+public void initializeCommand ( String command, CommandProcessor processor, boolean full_initialization )
 throws InvalidCommandSyntaxException, InvalidCommandParameterException
 {	// Save the processor...
 	super.initializeCommand ( command, processor, full_initialization );
@@ -127,8 +125,7 @@ throws InvalidCommandSyntaxException, InvalidCommandParameterException
 Run the command.
 @exception CommandWarningException Thrown if non-fatal warnings occur (the
 command could produce some results).
-@exception CommandException Thrown if fatal warnings occur (the command could
-not produce output).
+@exception CommandException Thrown if fatal warnings occur (the command could not produce output).
 */
 public void runCommand ( int command_number )
 throws InvalidCommandParameterException,
@@ -136,13 +133,17 @@ CommandWarningException, CommandException
 {	// Throw an exception because if something tries to run with this it needs
     // to be made known that nothing is happening.
     Message.printStatus ( 2, "GenericCommand.runCommand", "In runCommand().");
-    throw new CommandException ( getCommandName() + " run() method is not enabled.");
+    if ( getCommandName().isEmpty() ) {
+    	throw new CommandException ( "Unknown command (command name not set) runCommand() method is not enabled.");
+    }
+    else {
+    	throw new CommandException ( getCommandName() + " runCommand() method is not enabled.");
+    }
 }
 
 // TODO SAM 2005-05-31 If the editor is ever implemented with a tabular
-// display for parameters, will need to deal with the parsing.  For now, this
-// will at least allow unrecognized (and therefore unparsable) commands to be
-// edited.
+// display for parameters, will need to deal with the parsing.
+// For now, this will at least allow unrecognized (and therefore unable to parse) commands to be edited.
 /**
 Return the string representation of the command.
 This always returns the command string.

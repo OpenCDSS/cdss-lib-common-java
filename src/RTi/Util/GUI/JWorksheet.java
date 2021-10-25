@@ -6657,13 +6657,12 @@ private void setupPopupMenu(JPopupMenu menu, boolean worksheetHandlePopup) {
 		__calculateStatisticsMenuItem.addActionListener(this);
 		menu.add(__calculateStatisticsMenuItem);
 	}
-	if (1 == 1) {	
-		// TODO (JTS - 2004-10-21) activate with a property later.
-		menu.addSeparator();
-		JMenuItem saveMenuItem = new JMenuItem(__MENU_SAVE_TO_FILE);
-		saveMenuItem.addActionListener(this);
-		menu.add(saveMenuItem);
-	}	
+
+	// TODO (JTS - 2004-10-21) activate with a property later.
+	menu.addSeparator();
+	JMenuItem saveMenuItem = new JMenuItem(__MENU_SAVE_TO_FILE);
+	saveMenuItem.addActionListener(this);
+	menu.add(saveMenuItem);
 
 	__worksheetHandlePopup = worksheetHandlePopup;
 }

@@ -911,10 +911,19 @@ Close the database connection.  If the database is not connected yet, don't do a
 any problems doing a Connection.close()
 */
 public void close() throws SQLException {
+	String routine = getClass().getSimpleName() + ".close";
 	// let the JDBC handle the close
 	if (__connected) {
+		if ( Message.isDebugOn ) {
+			Message.printDebug(1, routine, "DMI database " + getDatabaseName() + " is connected.  Closing the connection.");
+		}
 		__connection.close();
 		__connected = false;
+	}
+	else {
+		if ( Message.isDebugOn ) {
+			Message.printDebug(1, routine, "DMI database " + getDatabaseName() + " is not connected.  No need to close the connection.");
+		}
 	}
 }
 
@@ -2755,14 +2764,36 @@ public void setConnection(Connection c) {
 }
 
 /**
-Set the database connection login timeout, which should be set prior to calling open().
-A call to DriverManager.setLoginTimeout() will occur prior to getting the connection and then the timeout will be set back to
-the previous value.  This ensures that the value is not interpreted globally.
-@param loginTimeout connection login timeout in seconds.
+Sets the DMI to use the default port for the database engine.
+Only works currently for true client-server type databases.
 */
-public void setLoginTimeout ( int loginTimeout )
-{
-    __loginTimeout = loginTimeout;
+private void setDefaultPort() {
+	if ( _database_engine == DMIDatabaseType.ACCESS ) {
+	}
+	else if ( _database_engine == DMIDatabaseType.H2 ) {
+	}
+	else if ( _database_engine == DMIDatabaseType.INFORMIX ) {
+		__port = 1526;
+	}
+	else if ( _database_engine == DMIDatabaseType.MYSQL ) {
+		__port = 3306;
+	}
+	else if ( _database_engine == DMIDatabaseType.ORACLE ) {
+		__port = 1521;
+	}
+	else if ( _database_engine == DMIDatabaseType.POSTGRESQL ) {
+		__port = 5432;
+	}
+	else if ( _database_engine == DMIDatabaseType.SQLITE ) {
+		// Not used since a file database.
+		__port = -1;
+	}
+	else if ( _database_engine == DMIDatabaseType.SQLSERVER ) {
+		__port = 1433;
+	}
+	else {	
+		//
+	}
 }
 
 /**
@@ -2956,6 +2987,17 @@ private void setLastStatement(DMIWriteStatement s) {
 }
 
 /**
+Set the database connection login timeout, which should be set prior to calling open().
+A call to DriverManager.setLoginTimeout() will occur prior to getting the connection and then the timeout will be set back to
+the previous value.  This ensures that the value is not interpreted globally.
+@param loginTimeout connection login timeout in seconds.
+*/
+public void setLoginTimeout ( int loginTimeout )
+{
+    __loginTimeout = loginTimeout;
+}
+
+/**
 TODO SAM 2009-05-20 Evaluate whether the name should be allowed as a longer name compared to the short ID.
 Sets the name of the connection.
 @param name the name of the connection.
@@ -3107,7 +3149,7 @@ public void startTransaction(int action) throws SQLException {
 }
 
 /**
-Sets the dirty flag if autocommit is set to off.  otherwise, does nothing
+Sets the dirty flag if autocommit is set to off.  otherwise, does nothing.
 */
 private void testAndSetDirty() {
 	if (__autoCommit == false) {
@@ -3116,88 +3158,64 @@ private void testAndSetDirty() {
 }
 	
 /** 
-Returns a string of useful information about the DMI
+Returns a string of useful information about the DMI.
+If the connection is secure login information will not be printed.
 @return a string of useful information about the DMI
 */
 public String toString() {
-	String dmiDesc = "";
+	StringBuilder dmiDesc = new StringBuilder();
 
 	if (!__secure) {
-		dmiDesc = 
+		dmiDesc.append(
 			"DMI Information:"
 			+ "\n   System Login: " + __system_login 
 			+ "\n   System Password: " + __system_password
 			+ "\n   User Login: " + __user_login 
 			+ "\n   User Password: " + __user_password
 			+ "\n   Connecting to database '" + __database_name + "' of type '" + __database_engine_String + "'"
-			+ "\n   at '" + __database_server + ":" + __port + "'"
-			+ "\n   Current status is: ";
-			
-			if (__connected == true) {
-				dmiDesc += "CONNECTED";
-			} else {
-				dmiDesc += "NOT CONNECTED";
-			}
-		
-		dmiDesc += "\n   autoCommit is currently: ";
-	
-			if (__autoCommit == true) {
-				dmiDesc += "ON";
-			} else {
-				dmiDesc += "OFF";
-			}
-		
-		dmiDesc += 
-			"\n   The previously executed SQL statement was:"
-			+ "\n   [" + getLastSQLString() + "]";
-	} else {
-		dmiDesc = 
+			+ "\n   at '" + __database_server + ":" + __port + "'");
+	}
+	else {
+		dmiDesc.append(
 			"DMI Information:"
-			+ "\n   Connecting to database '" + __database_name 
-			+ "' of type '" + __database_engine_String + "'"
-			+ "\n   Current status is: ";
-			
-			if (__connected == true) {
-				dmiDesc += "CONNECTED";
-			} else {
-				dmiDesc += "NOT CONNECTED";
+			+ "\n   Connected to database '" + __database_name 
+			+ "' of type '" + __database_engine_String + "'" );
+	}
+	dmiDesc.append( "\n   Current status is: ");
+	if (__connected == true) {
+		dmiDesc.append( "CONNECTED" );
+	} else {
+		dmiDesc.append( "NOT CONNECTED" );
+	}
+	if ( this.__connection == null ) {
+		dmiDesc.append( "\n   JDBC connection is null" );
+	}
+	else {
+		dmiDesc.append( "\n   JDBC connection is not null" );
+		try {
+			if ( this.__connection.isClosed() ) {
+				dmiDesc.append( "\n   JDBC connection is closed." );
 			}
+			else {
+				dmiDesc.append( "\n   JDBC connection is open." );
+			}
+		}
+		catch ( SQLException e ) {
+			dmiDesc.append( "\n   Error checking JDBC connection." );
+		}
+	}
+	dmiDesc.append( "\n   autoCommit is currently: ");
+	if (__autoCommit == true) {
+		dmiDesc.append( "ON" );
+	} else {
+		dmiDesc.append( "OFF" );
+	}
+		
+	if (!__secure) {
+		dmiDesc.append( "\n   The previously executed SQL statement was:\n   [" + getLastSQLString() + "]" );
 	}
 
-	return dmiDesc;
-}
-
-/**
-Sets the DMI to use the default port for the database engine that the DMI
-was set up to connect to.  Only works currently for true client-server type databases.
-*/
-private void setDefaultPort() {
-	if ( _database_engine == DMIDatabaseType.ACCESS ) {
-	}
-	else if ( _database_engine == DMIDatabaseType.H2 ) {
-	}
-	else if ( _database_engine == DMIDatabaseType.INFORMIX ) {
-		__port = 1526;
-	}
-	else if ( _database_engine == DMIDatabaseType.MYSQL ) {
-		__port = 3306;
-	}
-	else if ( _database_engine == DMIDatabaseType.ORACLE ) {
-		__port = 1521;
-	}
-	else if ( _database_engine == DMIDatabaseType.POSTGRESQL ) {
-		__port = 5432;
-	}
-	else if ( _database_engine == DMIDatabaseType.SQLITE ) {
-		// Not used since a file database
-		__port = -1;
-	}
-	else if ( _database_engine == DMIDatabaseType.SQLSERVER ) {
-		__port = 1433;
-	}
-	else {	
-		//
-	}
+	return dmiDesc.toString();
 }
 
 }

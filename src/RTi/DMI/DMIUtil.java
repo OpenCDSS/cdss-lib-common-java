@@ -238,7 +238,7 @@ TODO (JTS - 2004-11-19) this method is VERY out of date, compared to the HTML da
 two methods should either be reconciled, or this one should be removed.
 */
 public static void createDataDictionary ( DMI dmi, String filename, String [] referenceTables )
-{	String routine = "DMIUtil.createDataDictionary";
+{	String routine = DMIUtil.class.getSimpleName() + ".createDataDictionary";
 	// Convert the messages to HTML code after getting the logic to work.
 	// First get a list of tables and print out their information...
 
@@ -449,9 +449,8 @@ ER Diagram.  null is returned if there was an error creating the tables or readi
 */
 public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 	String tablesTableName, String tableField, String erdXField, String erdYField,
-	List<String> notIncluded)
-{
-	String routine = "DMIUtil.createERDiagramTables";
+	List<String> notIncluded) {
+	String routine = DMIUtil.class.getSimpleName() + ".createERDiagramTables";
 	String temp;
 	DatabaseMetaData metadata = null;
 	ResultSet rs = null;
@@ -782,7 +781,7 @@ SQL command is built.
 */
 public static void duplicateTable(DMI dmi, String origTableName, String newTableName, boolean copyData) 
 throws Exception {
-	String routine = "DMIUtil.duplicateTable";
+	String routine = DMIUtil.class.getSimpleName() + ".duplicateTable";
 	StringBuffer SQL = new StringBuffer();
 
 	// Make sure not trying to create a table name that already 
@@ -1009,7 +1008,7 @@ throws Exception, SQLException {
 	}	
 
 	String message;
-	String routine = "DMIUtil.databaseHasStoredProcedure";
+	String routine = DMIUtil.class.getSimpleName() + ".databaseHasStoredProcedure";
 	int dl = 25;
 	
 	String dbName = dmi.getDatabaseName();
@@ -1092,7 +1091,7 @@ Determine whether a database has a table.
 */
 public static boolean databaseHasTable ( DatabaseMetaData metadata, String tableName )
 throws Exception {	
-	String message, routine = "DMI.databaseHasTable";
+	String message, routine = DMIUtil.class.getSimpleName() + ".databaseHasTable";
 	ResultSet rs = null;
 	int dl = 5;
 
@@ -1181,7 +1180,7 @@ Determine whether a table in the database has a column.
 */
 public static boolean databaseTableHasColumn ( DatabaseMetaData metadata, String tableName, String columnName )
 throws Exception, SQLException {	
-	String message, routine = "DMI.databaseTableHasColumn";
+	String message, routine = DMIUtil.class.getSimpleName() + ".databaseTableHasColumn";
 	ResultSet rs = null;
 	int dl = 5;
 
@@ -1952,7 +1951,7 @@ Return the list of column names for a table.
 */
 public static List<String> getTableColumns ( DatabaseMetaData metadata, String tableName )
 throws Exception, SQLException {    
-    String message, routine = "DMI.getTableColumns";
+	String message, routine = DMIUtil.class.getSimpleName() + ".getTableColumns";
     ResultSet rs = null;
 
     // The following can be used to get a full list of columns...
@@ -2018,7 +2017,7 @@ Return the list of columns that are a primary key for a table.
 public static String [] getTableForeignKeyTableAndColumn ( DatabaseMetaData metadata,
     String tableName, String columnName )
 throws Exception, SQLException {    
-    String message, routine = "DMIUtil.getTableForeignKeyTableAndColumn";
+	String message, routine = DMIUtil.class.getSimpleName() + ".getTableForeignKeyTableAndColumn";
     ResultSet rs = null;
 
     try {
@@ -2095,7 +2094,7 @@ Return the list of columns that are a primary key for a table.
 */
 public static List<String> getTablePrimaryKeyColumns ( DatabaseMetaData metadata, String tableName )
 throws Exception, SQLException {    
-    String message, routine = "DMI.getTablePrimaryKeyColumns";
+	String message, routine = DMIUtil.class.getSimpleName() + ".getTablePrimaryKeyColumns";
     ResultSet rs = null;
 
     try {
@@ -2149,7 +2148,7 @@ is returned if there was an error reading from the database.
 */
 public static List<String> getDatabaseCatalogNames(DMI dmi, boolean removeSystemDatabases, List<String> notIncluded)
 {
-    String routine = "getDatabaseCatalogNames";
+	String routine = DMIUtil.class.getSimpleName() + ".getDatabaseCatalogNames";
     // Get the name of the data.  If the name is null, it's most likely
     // because the connection is going through ODBC, in which case the 
     // name of the ODBC source will be used.
@@ -2250,8 +2249,8 @@ is returned if there was an error reading from the database.
 */
 public static List<String> getDatabaseProcedureNames(DMI dmi, boolean removeSystemProcedures,
     List<String> notIncluded, boolean returnNameWithArgs )
-throws SQLException
-{   String routine = "getDatabaseProcedureNames";
+throws SQLException {
+	String routine = DMIUtil.class.getSimpleName() + ".getDatabaseProcedureNames";
     int dl = 25;
     // Get the name of the data.  If the name is null, it's most likely
     // because the connection is going through ODBC, in which case the 
@@ -2360,7 +2359,7 @@ is returned if there was an error reading from the database.
 */
 public static List<String> getDatabaseSchemaNames(DMI dmi, String catalog, boolean removeSystemSchemas, List<String> notIncluded)
 {
-    String routine = "getDatabaseSchemaNames";
+	String routine = DMIUtil.class.getSimpleName() + ".getDatabaseSchemaNames";
     // Get the name of the data.  If the name is null, it's most likely
     // because the connection is going through ODBC, in which case the 
     // name of the ODBC source will be used.
@@ -2369,7 +2368,7 @@ public static List<String> getDatabaseSchemaNames(DMI dmi, String catalog, boole
         dbName = dmi.getODBCName();
     }
 
-    Message.printStatus(2, routine, "Getting schemas");
+    Message.printStatus(2, routine, "Getting schemas.");
     ResultSet rs = null;
     DatabaseMetaData metadata = null;
     try {
@@ -2465,9 +2464,8 @@ in the final list of table names.
 is returned if there was an error reading from the database.
 */
 public static List<String> getDatabaseTableNames(DMI dmi, String catalog, String schema,
-    boolean removeSystemTables, List<String> notIncluded)
-{
-	String routine = "getDatabaseTableNames";
+    boolean removeSystemTables, List<String> notIncluded) {
+	String routine = DMIUtil.class.getSimpleName() + ".getDatabaseTableNames";
 	// Get the name of the data.  If the name is null, it's most likely
 	// because the connection is going through ODBC, in which case the 
 	// name of the ODBC source will be used.
@@ -2476,7 +2474,7 @@ public static List<String> getDatabaseTableNames(DMI dmi, String catalog, String
 		dbName = dmi.getODBCName();
 	}
 
-	Message.printStatus(2, routine, "Getting list of tables");
+	Message.printStatus(2, routine, "Getting list of tables.");
 	ResultSet rs = null;
 	DatabaseMetaData metadata = null;
 	DMIDatabaseType databaseEngineType = dmi.getDatabaseEngineType();
@@ -2489,7 +2487,7 @@ public static List<String> getDatabaseTableNames(DMI dmi, String catalog, String
 		}
 		rs = metadata.getTables(catalog, schema, null, typeArray);
 		if (rs == null) {
-			Message.printWarning(2, routine, "Error getting list of tables.  Aborting");
+			Message.printWarning(2, routine, "Error getting list of tables.  Aborting.");
 			return null;
 		} 
 	} 
@@ -2501,7 +2499,7 @@ public static List<String> getDatabaseTableNames(DMI dmi, String catalog, String
 
 	// Loop through the result set and pull out the list of
 	// all the table names and the table remarks.  
-	Message.printStatus(2, routine, "Building table name list");	
+	Message.printStatus(2, routine, "Building table name list.");	
 	String tableName;
 	String tableType;
 	List<String> tableNames = new ArrayList<String>();
@@ -2565,7 +2563,7 @@ public static List<String> getDatabaseTableNames(DMI dmi, String catalog, String
 	String [] systemTablePatternsToRemove = getSystemTablePatternsToRemove (dmi.getDatabaseEngineType() );
 	
 	if ( removeSystemTables ) {
-	    Message.printStatus(2, routine, "Removing system tables from table list");
+	    Message.printStatus(2, routine, "Removing system tables from table list.");
         for ( int i = 0; i < systemTablePatternsToRemove.length; i++ ) {
             StringUtil.removeMatching(tableNames,systemTablePatternsToRemove[i],true);
         }
@@ -2573,7 +2571,7 @@ public static List<String> getDatabaseTableNames(DMI dmi, String catalog, String
 	
 	// Additionally remove all the tables that were in the notIncluded parameter passed in to this method.
 	if (notIncluded != null) {
-	    Message.printStatus(2, routine, "Removing requested tables from table list");
+	    Message.printStatus(2, routine, "Removing requested tables from table list.");
 		for ( String s : notIncluded ) {
 			StringUtil.removeMatching(tableNames,s,true);
 		}
@@ -2645,8 +2643,7 @@ from the requested table via using max(field) or min(field).
 @param flag "MAX" or "MIN" depending upon which extreme is desired.
 @return returns a int of the extreme record or DMIUtil.MISSING_INT if an error occurred.
 */
-private static int getExtremeRecord(DMI dmi, String table, String field, 
-String flag) {
+private static int getExtremeRecord(DMI dmi, String table, String field, String flag) {
 	try {
 		String query = "select " + flag + "(" + field.trim() + ") from " + table.trim();
 		ResultSet rs = dmi.dmiSelect(query);
@@ -2662,7 +2659,7 @@ String flag) {
         return extreme;
 	}
 	catch (Exception e) {
-		String routine = "DMIUtil.getExtremeRecord";
+		String routine = DMIUtil.class.getSimpleName() + ".getExtremeRecord";
 		Message.printWarning(2, routine, "Error finding extreme.");
 		Message.printWarning(2, routine, e);
 		return DMIUtil.MISSING_INT;
@@ -2988,9 +2985,8 @@ the database table and field names in the internal (non-label) data.
 the SQL upper() function - this is necessary for databases where a global case-insensitive
 option is not available
 */
-public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, String operator,
-    boolean upperCase ) {
-	String routine = "getWhereClauseFromInputFilter";
+public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, String operator, boolean upperCase ) {
+	String routine = DMIUtil.class.getSimpleName() + ".getWhereClauseFromInputFilter";
 	// Get the selected filter for the filter group...
 	if ( filter.getWhereLabel().trim().equals("") ) {
 		// Blank indicates that the filter should be ignored...
@@ -3362,7 +3358,7 @@ now.  Fortunately, such occurrences should be very rare.
 ResultSetMetaData.getColumnCount(), or any of the ResultSet.get[DataType]() methods
 */
 public static List<List<Object>> processResultSet(ResultSet rs) throws SQLException {
-	String routine = "DMI.processResultSet";
+	String routine = DMIUtil.class.getSimpleName() + ".processResultSet";
 	int dl = 25;
 
 	if (Message.isDebugOn) {
@@ -3471,7 +3467,7 @@ ResultSetMetaData.getColumnCount or ResultSetMetaData.getColumnName
 */
 public static List<String> processResultSetColumnNames(ResultSet rs) 
 throws SQLException {
-	String routine = "DMI.processResultSetColumnNames";
+	String routine = DMIUtil.class.getSimpleName() + ".processResultSetColumnNames";
 	int dl = 25;
 
 	if (Message.isDebugOn) {
@@ -3500,14 +3496,15 @@ throws SQLException {
 }
 
 /**
-Remove comments from an SQL statement.  This is needed because some databases such as Microsoft Access
-do not allow comments.  Currently only C-style slash-dot and dot-slash comments are removed.
-@param sql SQL statement to process.
+Remove comments from an SQL statement.
+This is needed because some databases such as Microsoft Access do not allow comments.
+Currently, SQL standard C-style slash-asterisk and asterisk-slash comments and lines beginning with -- are removed.
+Multiple comments are allowed.
+@param sql SQL statement to process, can have embedded newlines ending with \r\n or \n (\n is always at the end of lines).
 */
-public static String removeCommentsFromSql ( String sql )
-{
+public static String removeCommentsFromSql ( String sql ) {
     StringBuilder s = new StringBuilder(sql);
-    // Search for /* */ comments until none are left
+    // Search for /* */ comments until none are left.
     int pos1 = 0;
     int pos2 = 0;
     int lenRemoved;
@@ -3519,12 +3516,14 @@ public static String removeCommentsFromSql ( String sql )
         }
         s.delete(pos1,(pos2 + 2));
         lenRemoved = pos2 - pos1 + 2;
-        pos2 = pos2 - lenRemoved;
-        if ( pos2 > (s.length() - 1) ) {
+        // Reset the search start.
+        pos1 = pos2 - lenRemoved;
+        pos2 = pos1;
+        if ( pos1 > (s.length() - 1) ) {
             break;
         }
     }
-    // Search for -- to newline until none are left
+    // Search for -- to newline until none are left.
     pos1 = 0;
     while ( true ) {
         pos1 = s.indexOf("--",pos1);
@@ -3539,8 +3538,10 @@ public static String removeCommentsFromSql ( String sql )
         // The following should work even if \r\n is used for new lines
         s.delete(pos1,(pos2 + 1));
         lenRemoved = pos2 - pos1 + 1;
-        pos2 = pos2 - lenRemoved;
-        if ( pos2 > (s.length() - 1) ) {
+        // Reset the search start.
+        pos1 = pos2 - lenRemoved;
+        pos2 = pos1;
+        if ( pos1 > (s.length() - 1) ) {
             break;
         }
     }
