@@ -69,6 +69,10 @@ public static final int TYPE_STRING = 5;
 public static final int TYPE_SPACE = 6;
 
 /**
+For use with breakStringList.  No special action for delimiters.
+*/
+public static final int DELIM_DEFAULT = 0x0;
+/**
 For use with breakStringList.  Skip blank fields (adjoining delimiters are merged).
 */
 public static final int DELIM_SKIP_BLANKS = 0x1;
@@ -347,7 +351,7 @@ quoted strings the string "xxxx"yy is returned as xxxxyy because no intervening 
 */
 public static List<String> breakStringList( String string, String delim, int flag )
 {	String routine = "StringUtil.breakStringList";
-	List<String> list = new ArrayList<String>();
+	List<String> list = new ArrayList<>();
 	
 	if ( string == null ) {
 	 	return list;
@@ -3785,18 +3789,33 @@ public static boolean stringsAreEqual(String s1, String s2) {
 }
 
 /**
-Convert a list of strings to an array of strings.
+Convert a list of strings to an array of strings, without trimming the strings.
+@param stringList list of strings to convert.
 @return An array containing the strings.
-@param v list of strings to convert.
 */
-public static String[] toArray ( List<String> v )
-{	if ( v == null ) {
+public static String[] toArray ( List<String> stringList ) {
+	return toArray ( stringList, false );
+}
+
+/**
+Convert a list of strings to an array of strings, optionally trimming the strings.
+@param stringList list of strings to convert.
+@param doTrim if true, trim each string of surrounding whitespace.
+@return An array containing the strings, or null if the original list is null.
+*/
+public static String[] toArray ( List<String> stringList, boolean doTrim ) {
+	if ( stringList == null ) {
 		return null;
 	}
-	int vector_size = v.size();
-	String [] array = new String [vector_size];
-	for ( int i = 0; i < vector_size; i++ ) {
-		array[i] = v.get(i);
+	int size = stringList.size();
+	String [] array = new String [size];
+	for ( int i = 0; i < size; i++ ) {
+		if ( doTrim ) {
+			array[i] = stringList.get(i).trim();
+		}
+		else {
+			array[i] = stringList.get(i);
+		}
 	}
 	return array;
 }
