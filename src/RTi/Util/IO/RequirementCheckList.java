@@ -81,12 +81,13 @@ public class RequirementCheckList {
 	}
 	
 	/**
-	 * Format the check results, for example for use in command status.
+	 * Format the check results, for example for use in command status when checks fail.
 	 * @return a string with each criteria that did not meet the criteria
 	 */
 	public String formatResults () {
 		StringBuilder b = new StringBuilder();
 		for ( RequirementCheck check : this.requirementCheckList ) {
+			// The requirement was not met so add the fail reason.
 			if ( !check.isRequirementMet() ) {
 				if ( b.length() > 0 ) {
 					b.append("\n");

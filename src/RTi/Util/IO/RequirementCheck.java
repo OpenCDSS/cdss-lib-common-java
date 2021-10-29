@@ -40,6 +40,7 @@ public class RequirementCheck {
 	
 	/**
 	 * Whether the requirement is met.
+	 * Default is false until check occurs and passes.
 	 */
 	private boolean isRequirementMet = false;
 	
@@ -63,7 +64,9 @@ public class RequirementCheck {
 	/**
 	 * Return the full check text, for example:
 	 * <pre>
-	 *   @require datastore version >= 1.2.3
+	 *   @require application AppName version >= 1.2.3
+	 *   @require datastore DataStoreName version >= 1.2.3
+	 *   @require user != root
 	 * </pre>
 	 * @return
 	 */

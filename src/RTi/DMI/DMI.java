@@ -1775,7 +1775,7 @@ public static String expandDatastoreConfigurationProperty ( PropList props, Stri
 	}
 	String systemLogin = props.getValue("SystemLogin");
 	if ( databaseType == DMIDatabaseType.POSTGRESQL ) {
-		Message.printWarning(2, routine, "PostgreSQL detected." );
+		Message.printStatus(2, routine, "PostgreSQL detected." );
 		if ( propName.equalsIgnoreCase("SystemPassword") ) {
 			//Message.printStatus(2, routine, "Getting SystemPassword." );
 			// Supported syntax:

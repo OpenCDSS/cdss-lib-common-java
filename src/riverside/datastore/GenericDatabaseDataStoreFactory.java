@@ -68,9 +68,10 @@ public DataStore create ( PropList props )
 
     // Additionally, expand the password property since it might be specified in a file:
     // - for example, ${pgpass:password} is used with PostgreSQL
-    Message.printStatus(2, "", "systemPassword before expansion=" + systemPassword);
+    // DO NOT print the password except when troubleshooting during development.
+    //Message.printStatus(2, "", "systemPassword before expansion=" + systemPassword);
     systemPassword = DMI.expandDatastoreConfigurationProperty(props, "SystemPassword", systemPassword);
-    Message.printStatus(2, "", "systemPassword after expansion=" + systemPassword);
+    //Message.printStatus(2, "", "systemPassword after expansion=" + systemPassword);
 
     try {
         GenericDMI dmi = null;
