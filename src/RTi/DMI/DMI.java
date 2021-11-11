@@ -1395,16 +1395,16 @@ public ResultSet dmiSelect(String sql) throws SQLException {
 }
 
 /**
-Execute an SQL select statement from a DMISelectStatement object.  The SQL
-statement is built from the DMISelectStatement object and the resulting 
-string passed to dmiSelect(String).
+Execute an SQL select statement from a DMISelectStatement object.
+The SQL statement is built from the DMISelectStatement object and the resulting string passed to dmiSelect(String).
+The ResultSet must be closed by the calling code.
 @param select an DMISelectStatement instance specifying the query.
 @return the ResultSet from the select.
 @throws SQLException thrown if there are problems with a 
 Connection.createStatement or Statement.executeQuery()
 */
 public ResultSet dmiSelect ( DMISelectStatement select )
-throws SQLException {	
+throws SQLException {
 	if (!__connected) {
 		throw new SQLException ("Database not connected.  Cannot make call to DMI.dmiSelect()");
 	}
@@ -1417,6 +1417,23 @@ throws SQLException {
 		setLastStatement(select);
 		return dmiSelect(select.toString());
 	}
+}
+
+/**
+Runs an SQL string that contains a <b><code>SELECT</b></code> statement 
+and returns a single value.
+The SELECT statement must return a single value.
+@param sql an SQL statement that contains the <b><code>SELECT</b></code> statement to be executed
+@return the value from a single row single column
+@throws SQLException thrown if there are problems with a 
+Connection.createStatement or Statement.executeQuery(), or if the database is not connected.
+*/
+public Object dmiSelectOneObject ( String sql ) throws SQLException {
+	ResultSet rs = dmiSelect ( sql );
+	rs.next();
+	Object o = rs.getObject(1);
+	rs.close();
+	return o;
 }
 
 /**
@@ -2457,7 +2474,7 @@ throws SQLException, Exception {
 		    }
 			// Login and password specified below.
 			// +";user=" + login + ";password=" + password;
-			Message.printStatus(2, routine, "Opening ODBC connection for Informix using \"" + connUrl + "\"");
+			Message.printStatus(2, routine, "Opening ODBC connection for Informix using (login not shown): " + connUrl);
 		}
 		else if (_database_engine == DMIDatabaseType.MYSQL ) {
 			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.MYSQL'");
@@ -2479,7 +2496,7 @@ throws SQLException, Exception {
 		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
 			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
 		    }
-			Message.printStatus(2, routine, "Opening ODBC connection for PostgreSQL using \"" + connUrl + "\"" );
+			Message.printStatus(2, routine, "Opening ODBC connection for PostgreSQL using (login not shown): " + connUrl );
 		}
 		else if (_database_engine == DMIDatabaseType.SQLITE ) {
 			// Database is a file, not via port connection
@@ -2500,7 +2517,7 @@ throws SQLException, Exception {
 			    	connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
 		    	}
 			}
-			Message.printStatus(2, routine, "Opening ODBC connection for SQLite using \"" + connUrl + "\"" );
+			Message.printStatus(2, routine, "Opening ODBC connection for SQLite using (login not shown): " + connUrl );
 		}
 		// All the SQL Server connections are now concentrated into one code block as using the SQL Server
 		// 2008 JDBC (jdbc4) driver.  Comments are included below in case troubleshooting needs to occur.
@@ -2521,7 +2538,7 @@ throws SQLException, Exception {
             }
             connUrl += ";databaseName=" + __database_name;
 			Message.printStatus(2, routine,
-				"Opening ODBC connection for SQLServer using \"" + connUrl + "\"");
+				"Opening ODBC connection for SQLServer using (login not shown): " + connUrl );
 		}
 		/*
 		else if (_database_engine == DMIDatabaseType.SQLSERVER2000 ) {
@@ -2586,7 +2603,7 @@ throws SQLException, Exception {
 		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
 			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
 		    }
-			Message.printStatus(2, routine, "Opening JDBC connection for H2 using \"" + connUrl + "\"" );
+			Message.printStatus(2, routine, "Opening JDBC connection for H2 using (login not shown): " + connUrl );
 		}
         else if (_database_engine == DMIDatabaseType.ORACLE ) {
 			printStatusOrDebug(dl, routine, "Database engine is type 'ORACLE'");
@@ -2596,12 +2613,11 @@ throws SQLException, Exception {
 		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
 			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
 		    }
-			Message.printStatus(2, routine, "Opening ODBC connection for Oracle using \"" + connUrl + "\"");
+			Message.printStatus(2, routine, "Opening ODBC connection for Oracle using (login not shown): " + connUrl );
         }
 		else {	
 			printStatusOrDebug(dl, routine, "Unknown database engine, throwing exception.");
-			throw new Exception("Don't know what JDBC driver to use for database type " 
-				+ __database_engine_String);
+			throw new Exception("Don't know what JDBC driver to use for database type " + __database_engine_String);
 		}
 	}
 	else {
@@ -2625,18 +2641,18 @@ throws SQLException, Exception {
 	    printStatusOrDebug(dl, routine, "Calling getConnection(" 
 		+ connUrl + ", " + system_login + ", " + "password-not-shown) via the Java DriverManager.");
 	}
-    // Get the login timeout and reset to requested if specified
+    // Get the login timeout and reset to requested if specified.
     int loginTimeout = DriverManager.getLoginTimeout();
     if ( __loginTimeout >= 0 ) {
         DriverManager.setLoginTimeout(__loginTimeout);
     }
 	__connection = DriverManager.getConnection(connUrl, system_login, system_password );
     if ( __loginTimeout >= 0 ) {
-        // Now set back to the original timeout
+        // Now set back to the original timeout.
         DriverManager.setLoginTimeout(loginTimeout);
     }
     
-	/* TODO SAM 2013-10-07 This seems to be old so commenting out
+	/* TODO SAM 2013-10-07 This seems to be old so commenting out.
     if (_database_engine == DMIDatabaseType.ORACLE && __database_name != null ) {
         __connection.createStatement().execute("alter session set current_schema = " + __database_name );
     }

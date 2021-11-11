@@ -144,6 +144,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
@@ -2218,6 +2219,38 @@ public static List<String> getDatabaseCatalogNames(DMI dmi, boolean removeSystem
 }
 
 /**
+Returns the ResultSet for functions.  The ResultSet must be closed in calling code.
+@param dmi an open, connected and not-null DMI connection to a database.
+@return the ResultSet of procedures in the dmi's database.  null
+is returned if there was an error reading from the database.
+*/
+public static ResultSet getDatabaseFunctions(DMI dmi)
+throws SQLException {
+	String routine = DMIUtil.class.getSimpleName() + ".getDatabaseFunctions";
+
+    // Get the database name.  If the name is null, it's most likely
+    // because the connection is going through ODBC, in which case the 
+    // name of the ODBC source will be used.
+    String dbName = dmi.getDatabaseName();
+    if (dbName == null) {
+        dbName = dmi.getODBCName();
+    }
+
+    ResultSet rs = null;
+    try {
+    	DatabaseMetaData metadata = dmi.getConnection().getMetaData();
+        rs = metadata.getFunctions( dbName, null, null);
+        return rs;
+    } 
+    catch (Exception e) {
+        Message.printWarning(2, routine, "Error getting list of functions.  Aborting. (" + e + ").");
+        Message.printWarning(2, routine, e);
+        return null;
+    }
+    // Do not close the ResultSet so it can be processed in the calling code.
+}
+
+/**
 Returns the list of procedure names in the database, excluding known system procedures.
 The list of PROCEDURE_NAME is returned, which may not be unique if overloaded (see overloaded method).
 @param dmi an open, connected and not-null DMI connection to a database.
@@ -2247,12 +2280,14 @@ required when procedure names are overloaded
 @return the list of procedure names in the dmi's database.  null
 is returned if there was an error reading from the database.
 */
-public static List<String> getDatabaseProcedureNames(DMI dmi, boolean removeSystemProcedures,
-    List<String> notIncluded, boolean returnNameWithArgs )
+public static List<String> getDatabaseProcedureNames(DMI dmi,
+	boolean removeSystemProcedures,
+    List<String> notIncluded,
+    boolean returnNameWithArgs )
 throws SQLException {
 	String routine = DMIUtil.class.getSimpleName() + ".getDatabaseProcedureNames";
     int dl = 25;
-    // Get the name of the data.  If the name is null, it's most likely
+    // Get the database name.  If the name is null, it's most likely
     // because the connection is going through ODBC, in which case the 
     // name of the ODBC source will be used.
     String dbName = dmi.getDatabaseName();
@@ -2260,7 +2295,7 @@ throws SQLException {
         dbName = dmi.getODBCName();
     }
 
-    List<String> procNames = new ArrayList<String>();
+    List<String> procNames = new ArrayList<>();
     Message.printStatus(2, routine, "Getting list of procedures");
     ResultSet rs = null;
     DatabaseMetaData metadata = null;
@@ -2295,8 +2330,8 @@ throws SQLException {
     while (rs.next()) {
         String proc = null;
         if ( returnNameWithArgs ) {
-        	proc = rs.getString("PROCEDURE_NAME");
-        	// TODO smalers 2019-09-03 Add the argument list for the procedure
+        	// This should be a unique name that indicates parameters.
+        	proc = rs.getString("SPECIFIC_NAME");
         }
         else {
         	proc = rs.getString("PROCEDURE_NAME");
@@ -2343,6 +2378,45 @@ throws SQLException {
     //DMI.closeResultSet(rs);
     rs.close();
     return procNames;
+}
+
+/**
+Returns the ResultSet for procedures.  The ResultSet must be closed in calling code.
+@param dmi an open, connected and not-null DMI connection to a database.
+@return the ResultSet of procedures in the dmi's database.  null
+is returned if there was an error reading from the database.
+*/
+public static ResultSet getDatabaseProcedures(DMI dmi)
+throws SQLException {
+	String routine = DMIUtil.class.getSimpleName() + ".getDatabaseProcedures";
+
+    // Get the database name.  If the name is null, it's most likely
+    // because the connection is going through ODBC, in which case the 
+    // name of the ODBC source will be used.
+    String dbName = dmi.getDatabaseName();
+    if (dbName == null) {
+        dbName = dmi.getODBCName();
+    }
+
+    ResultSet rs = null;
+    try {
+    	DatabaseMetaData metadata = dmi.getConnection().getMetaData();
+        Message.printStatus(2,routine,"Database " + dbName + " supports catalogs in procedure calls:" +
+            metadata.supportsCatalogsInProcedureCalls());
+        if ( !metadata.supportsStoredProcedures() ) {
+        	// Return empty list
+        	Message.printStatus(2, routine, "Database " + dbName + " driver does not support procedures");
+        	return null;
+        }
+        rs = metadata.getProcedures( dbName, null, null);
+        return rs;
+    } 
+    catch (Exception e) {
+        Message.printWarning(2, routine, "Error getting list of procedures.  Aborting. (" + e + ").");
+        Message.printWarning(2, routine, e);
+        return null;
+    }
+    // Do not close the ResultSet so it can be processed in the calling code.
 }
 
 /**
@@ -2712,6 +2786,27 @@ public static String getOrClause(List<String> or) {
             }
         }
         return "(" + orString + ")";         
+}
+
+/**
+ * Return the map of result set column names and integer columns.
+ * @param rs ResultSet to process
+ * @return a HashMap containing column name and corresponding column number 1+
+ */
+public static HashMap<String,Integer> getResultSetColumns ( ResultSet rs ) throws SQLException {
+	HashMap<String,Integer> columnMap = new HashMap<>();
+	if ( rs == null ) {
+		// Return the empty map.
+		return columnMap;
+	}
+	ResultSetMetaData meta = rs.getMetaData();
+	int columnCount = meta.getColumnCount();
+	String columnName;
+	for ( int i = 1; i <= columnCount; i++ ) {
+		columnName = meta.getColumnName(i);
+		columnMap.put(columnName, new Integer(i));
+	}
+	return columnMap;
 }
 
 /**
