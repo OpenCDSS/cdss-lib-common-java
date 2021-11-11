@@ -126,6 +126,11 @@ Requested dictionary size.
 private int initDictSize = 10;
 
 /**
+ * Whether the number of items in the dictionary can change.
+ */
+private boolean allowResize = true;
+
+/**
 Number of rows in the dictionary (some may be blank).
 The initial number is displayed and then the Add button can add more.
 */
@@ -144,7 +149,7 @@ be null.  If necessary, pass in a new JFrame.
 @param notes information to display at the top of the dialog, to help explain the input
 @param keyLabel label above keys
 @param valueLabel label above values
-@param initDictSize initial number of key/value pairs to show
+@param initDictSize initial number of key/value pairs to show - if negative do not allow additional values
 */
 public DictionaryJDialog(JFrame parent, boolean modal, String dictString, String title, String [] notes,
     String keyLabel, String valueLabel,
@@ -160,6 +165,10 @@ public DictionaryJDialog(JFrame parent, boolean modal, String dictString, String
 	this.keyLabel = keyLabel;
 	this.valueLabel = valueLabel;
 	this.initDictSize = initDictSize;
+	if ( this.initDictSize < 0 ) {
+		this.initDictSize = -this.initDictSize;
+		this.allowResize = false;
+	}
  	setupUI();
 }
 
@@ -488,22 +497,26 @@ private void setupUI()
 	JPanel south = new JPanel();
 	south.setLayout(new FlowLayout(FlowLayout.RIGHT));
 
-    this.insertButton = new SimpleJButton(this.BUTTON_INSERT, this);
-    this.insertButton.setToolTipText("Insert a new row before the row that is currenty selected.");
-    this.insertButton.setEnabled(false);
-    this.addButton = new SimpleJButton(this.BUTTON_ADD, this);
-    this.addButton.setToolTipText("Add a new row at the bottom of the list.");
-    this.removeButton = new SimpleJButton(this.BUTTON_REMOVE, this);
-    this.removeButton.setToolTipText("Remove the row that is currenty selected.");
-    this.removeButton.setEnabled(false);
+	if ( this.allowResize ) {
+		this.insertButton = new SimpleJButton(this.BUTTON_INSERT, this);
+		this.insertButton.setToolTipText("Insert a new row before the row that is currenty selected.");
+		this.insertButton.setEnabled(false);
+		this.addButton = new SimpleJButton(this.BUTTON_ADD, this);
+		this.addButton.setToolTipText("Add a new row at the bottom of the list.");
+		this.removeButton = new SimpleJButton(this.BUTTON_REMOVE, this);
+		this.removeButton.setToolTipText("Remove the row that is currenty selected.");
+		this.removeButton.setEnabled(false);
+	}
 	this.okButton = new SimpleJButton(this.BUTTON_OK, this);
 	this.okButton.setToolTipText("Accept any changes that have been made.");
 	this.cancelButton = new SimpleJButton(this.BUTTON_CANCEL, this);
 	this.cancelButton.setToolTipText("Discard changes.");
 
-	south.add(this.insertButton);
-	south.add(this.addButton);
-	south.add(this.removeButton);
+	if ( this.allowResize ) {
+		south.add(this.insertButton);
+		south.add(this.addButton);
+		south.add(this.removeButton);
+	}
 	south.add(this.okButton);
 	south.add(this.cancelButton);
 
