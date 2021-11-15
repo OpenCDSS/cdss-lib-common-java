@@ -117,6 +117,7 @@ import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 import RTi.DMI.DMIUtil;
 import RTi.Util.IO.IOUtil;
@@ -3181,6 +3182,13 @@ using the following StringUtil.breakStringList() call (the flag can be modified 
 </tr>
 
 <tr>
+<td><b>DoubleColumns</b></td>
+<td>Specify comma-separated column names that should be treated as double precision columns.
+The column names must agree with those determined from the table headings.</td>
+<td>Determine column types from data - date/times are not determined.</td>
+</tr>
+
+<tr>
 <td><b>FixedFormat</b></td>
 <td>"True" or "False".  Currently ignored.</td>
 <td></td>
@@ -3196,6 +3204,13 @@ This will be ignored if ColumnNames is specified.</td>
 </tr>
 
 <tr>
+<td><b>IntegerColumns</b></td>
+<td>Specify comma-separated column names that should be treated as integer columns.
+The column names must agree with those determined from the table headings.</td>
+<td>Determine column types from data - date/times are not determined.</td>
+</tr>
+
+<tr>
 <td><b>MergeDelimiters</b></td>
 <td>"True" or "False".  If true, then adjoining delimiter characters are treated as one by using
 StringUtil.breakStringList(line,delimiters,StringUtil.DELIM_SKIP_BLANKS.</td>
@@ -3208,20 +3223,6 @@ StringUtil.breakStringList(line,delimiters,StringUtil.DELIM_SKIP_BLANKS.</td>
 ranges like 3-6.  Skipped lines are generally information that cannot be parsed.  The lines are skipped after
 the initial read and are not available for further processing.</td>
 <td>Don't skip any lines.</td>
-</tr>
-
-<tr>
-<td><b>DoubleColumns</b></td>
-<td>Specify comma-separated column names that should be treated as double precision columns.
-The column names must agree with those determined from the table headings.</td>
-<td>Determine column types from data - date/times are not determined.</td>
-</tr>
-
-<tr>
-<td><b>IntegerColumns</b></td>
-<td>Specify comma-separated column names that should be treated as integer columns.
-The column names must agree with those determined from the table headings.</td>
-<td>Determine column types from data - date/times are not determined.</td>
 </tr>
 
 <tr>
@@ -3256,9 +3257,9 @@ be trimmed before being placed in the data table (after parsing).</td>
 */
 public static DataTable parseFile(String filename, PropList props) 
 throws Exception
-{   String routine = "DataTable.parseFile";
+{   String routine = DataTable.class.getSimpleName() + ".parseFile";
 	if ( props == null ) {
-		props = new PropList(""); // To simplify code below
+		props = new PropList(""); // To simplify code below.
 	}
 	// TODO SAM 2005-11-16 why is FixedFormat included?  Future feature?
 	/*String propVal = props.getValue("FixedFormat");
@@ -3269,11 +3270,11 @@ throws Exception
 	}
 	*/
    
-	// Default is to treat column types as all strings, which is fastest
+	// Default is to treat column types as all strings, which is fastest:
 	// - setting ColumnDataTypes=Auto will determine column types by data
     boolean ColumnDataTypes_Auto_boolean = false;
-    // TODO SAM 2008-04-15 Evaluate whether the following should be used
-    //String ColumnDataTypes = "AllStrings";  // Default for historical reasons
+    // TODO SAM 2008-04-15 Evaluate whether the following should be used.
+    //String ColumnDataTypes = "AllStrings";  // Default for historical reasons.
     String propVal = props.getValue("ColumnDataTypes");
     if ( propVal != null ) {
     	if ( propVal.equalsIgnoreCase("Auto") ) {      
@@ -3296,62 +3297,63 @@ throws Exception
 	
     propVal = props.getValue("HeaderLines");
     if ( propVal == null ) {
-        // Use older form...
+        // Use older form.
         propVal = props.getValue("HeaderRows");
         if ( propVal != null ) {
             Message.printWarning(3, routine, "Need to convert HeaderRows parameter to HeaderLines in software." );
         }
     }
-    List<Integer> HeaderLineList = new ArrayList<Integer>();
-    int HeaderLinesList_maxval = -1;  // Used to optimize code below
-    boolean HeaderLines_Auto_boolean = false;    // Are header rows to be determined automatically?
+    List<Integer> HeaderLineList = new ArrayList<>();
+    int HeaderLinesList_maxval = -1; // Used to optimize code below.
+    boolean HeaderLines_Auto_boolean = false; // Are header rows to be determined automatically?
     if ( (propVal == null) || (propVal.length() == 0) ) {
-        // Default...
+        // Default is determine header lines automatically.
         HeaderLines_Auto_boolean = true;
     }
     else {
-        // Interpret the property.
+        // Interpret the HeaderLines property.
         Message.printStatus ( 2, routine, "HeaderLines=\"" + propVal + "\"" );
         if ( propVal.equalsIgnoreCase("Auto")) {
             HeaderLines_Auto_boolean = true;
         }
         else {
-            // Determine the list of rows to skip.
-            List<String> v = StringUtil.breakStringList ( propVal, ", ", StringUtil.DELIM_SKIP_BLANKS );
-            int vsize = 0;
-            if ( v != null ) {
-                vsize = v.size();
+            // Determine the list of rows for the header.
+            List<String> headerRowList = StringUtil.breakStringList ( propVal, ", ", StringUtil.DELIM_SKIP_BLANKS );
+            if ( headerRowList.size() > 1 ) {
+            	Message.printWarning(3, routine, "Currently only know how to handle a single header line (headers must be on one line in file).");
+            	// Remove the remaining header line numbers.
+            	for ( int i = (headerRowList.size() - 1); i > 0; --i ) {
+            		headerRowList.remove(i);
+            	}
             }
-            // FIXME SAM 2008-01-27 Figure out how to deal with multi-row headings.  For now only handle first
-            if ( vsize > 1 ) {
-                Message.printWarning ( 3, routine,
-                   "Only know how to handle single-row headings.  Ignoring other heading rows." );
-                vsize = 1;
-            }
-            for ( int i = 0; i < vsize; i++ ) {
-                String vi = v.get(i);
+            // Code below can handle multiple header lines but will only parse one line for now.
+            for ( String vi : headerRowList) {
                 if ( StringUtil.isInteger(vi)) {
+                	// Single integer.
                     int row = Integer.parseInt(vi);
                     Message.printStatus ( 2, routine, "Header row is [" + row + "]");
                     HeaderLineList.add(new Integer(row));
                     HeaderLinesList_maxval = Math.max(HeaderLinesList_maxval, row);
                 }
                 else {
+                	// Check whether a range of integers such as 0-1.
                     int pos = vi.indexOf("-");
                     if ( pos >= 0 ) {
-                        // Specifying a range of values...
-                        int first_to_skip = -1;
-                        int last_to_skip = -1;
+                        // Specifying a range of values.
+                        int first_header = -1;
+                        int last_header = -1;
                         if ( pos == 0 ) {
-                            // First index is 0...
-                            first_to_skip = 0;
+                            // First index is 0.
+                            first_header = 0;
                         }
                         else {
-                            // Get first to skip...
-                            first_to_skip = Integer.parseInt(vi.substring(0,pos).trim());
+                            // Get first header row, zero index.
+                            first_header = Integer.parseInt(vi.substring(0,pos).trim());
                         }
-                        last_to_skip = Integer.parseInt(vi.substring(pos+1).trim());
-                        for ( int is = first_to_skip; is <= last_to_skip; is++ ) {
+                        // Get the last header row, zero index.
+                        last_header = Integer.parseInt(vi.substring(pos+1).trim());
+                        // Add a list of integers corresponding to the header rows, zero index.
+                        for ( int is = first_header; is <= last_header; is++ ) {
                             HeaderLineList.add(new Integer(is));
                             HeaderLinesList_maxval = Math.max(HeaderLinesList_maxval, is);
                         }
@@ -3360,12 +3362,13 @@ throws Exception
             }
         }
     }
-    // Use to speed up code below.
+    // Use to speed up code below when checking for header rows.
     int HeaderLinesList_size = HeaderLineList.size();
 
 	String [] columnNames = new String[0];
     propVal = props.getValue("ColumnNames");
     if ( (propVal != null) && !propVal.isEmpty() ) {
+    	// Use the column names that are specified (otherwise headers may be found below).
 		columnNames = propVal.split(",");
 		for ( int i = 0; i < columnNames.length; i++ ) {
 			columnNames[i] = columnNames[i].trim();
@@ -3409,7 +3412,7 @@ throws Exception
     }
     
     int top = -1;
-    int topm1 = -1; // Used for 0-index comparison
+    int topm1 = -1; // Used for 0-index comparison.
     propVal = props.getValue("Top");
     if ( (propVal != null) && !propVal.isEmpty() ) {
     	try {
@@ -3417,14 +3420,14 @@ throws Exception
     	    topm1 = top - 1;
     	}
     	catch ( NumberFormatException e ) {
-    		// Just process all
+    		// Just process all.
     	}
     }
 
 	int parseFlagHeader = StringUtil.DELIM_ALLOW_STRINGS;
 	// Retain the quotes in data records makes sure that quoted numbers come across as intended as literal strings. 
     // This is important when numbers are zero padded, such as for station identifiers.
-	// The problem is that it will result in embedded escaped quotes "" in the output
+	// The problem is that it will result in embedded escaped quotes "" in the output.
 	int parseFlag = StringUtil.DELIM_ALLOW_STRINGS | StringUtil.DELIM_ALLOW_STRINGS_RETAIN_QUOTES;
 	propVal = props.getValue("MergeDelimiters");
 	if (propVal != null) {		
@@ -3440,13 +3443,13 @@ throws Exception
 
     propVal = props.getValue("SkipLines");
     if ( propVal == null ) {
-        // Try the older form...
+        // Try the older form.
         propVal = props.getValue("SkipRows");
         if ( propVal != null ) {
             Message.printWarning(3, routine, "Need to convert SkipRows parameter to SkipLines in software." );
         }
     }
-    List<Integer> skipLinesList = new ArrayList<Integer>();
+    List<Integer> skipLinesList = new ArrayList<>();
     int skipLinesList_maxval = - 1;
     if ( (propVal != null) && (propVal.length() > 0) ) {
         // Determine the list of rows to skip.
@@ -3465,15 +3468,15 @@ throws Exception
             else {
                 int pos = vi.indexOf("-");
                 if ( pos >= 0 ) {
-                    // Specifying a range of values...
+                    // Specifying a range of values.
                     int first_to_skip = -1;
                     int last_to_skip = -1;
                     if ( pos == 0 ) {
-                        // First index is 0...
+                        // First index is 0.
                         first_to_skip = 0;
                     }
                     else {
-                        // Get first to skip...
+                        // Get first to skip.
                         first_to_skip = Integer.parseInt(vi.substring(0,pos).trim());
                     }
                     last_to_skip = Integer.parseInt(vi.substring(pos+1).trim());
@@ -3489,7 +3492,7 @@ throws Exception
     int skipLinesList_size = skipLinesList.size();
 	
 	propVal = props.getValue("TrimInput");
-	boolean TrimInput_Boolean = false;	// Default
+	boolean TrimInput_Boolean = false; // Default.
 	if ( (propVal != null) && propVal.equalsIgnoreCase("true") ) {
 		TrimInput_Boolean = true;
 	}
@@ -3500,7 +3503,7 @@ throws Exception
 		TrimStrings_boolean = true;
 	}
 
-	List<List<String>> data_record_tokens = new ArrayList<List<String>>();
+	List<List<String>> data_record_tokens = new ArrayList<>();
 	List<String> v = null;
 	int maxColumns = 0;
 	int numColumnsParsed = 0;
@@ -3509,13 +3512,13 @@ throws Exception
 	String line;
 
 	// TODO JTS 2006-06-05
-	// Found a bug in DataTable.  If you attempt to call
-	// parseFile() on a file of size 0 (no lines, no characters)
-	// it will throw an exception.  This should be checked out in the future.
+	// Found a bug in DataTable.
+	// If attempt to call parseFile() on a file of size 0 (no lines, no characters) it will throw an exception.
+	// This should be checked out in the future.
 	
 	// If the column names were specified, set them up front.
-	List<TableField> tableFields = null; // Table fields as controlled by header or examination of data records
-	boolean headers_found = false; // Indicates whether the headers have been found
+	List<TableField> tableFields = null; // Table fields as controlled by header or examination of data records.
+	boolean headers_found = false; // Indicates whether the headers have been found.
 	int numFields = -1; // Number of table fields.
 	if ( columnNames.length > 0 ) {
         tableFields = parseFile_SetColumnNames ( columnNames );
@@ -3523,20 +3526,22 @@ throws Exception
         headers_found = true;
 	}
 	
-	// Read until the end of the file...
+	// Read until the end of the file.
 	
 	int linecount = 0; // linecount = 1 for first line in file, for user perspective.
-	int dataLineCount = 0;
+	int dataLineCount = 0; // Count of data lines (comments and header lines are not included).
 	int linecount0; // linecount0 = linecount - 1 (zero index), for code perspective.
-	TableField tableField = null; // Table field added below
+	int headerLineCount = 0; // Count of header lines.
+	int noncommentLineCount0 = -1; // Count of noncomment lines, could be header or data.
+	TableField tableField = null; // Table field added below.
 	while ( true ) {
 		line = in.readLine();
 		if ( line == null ) {
-		    // End of file...
+		    // End of file.
 		    break;
 		}
 		++linecount;
-		linecount0 = linecount - 1;
+		linecount0 = linecount - 1; // Zero index.
 		
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 10, routine, "Line [" + linecount0 + "]: " + line );
@@ -3546,46 +3551,55 @@ throws Exception
 		if ( (CommentLineIndicator != null) && line.startsWith(CommentLineIndicator) ) {
 		    continue;
 		}
+		++noncommentLineCount0;
 		
 		// Also skip the requested lines to skip linecount is 1+ while lines to skip are 0+
 		
 		if ( linecount0 <= skipLinesList_maxval ) {
-		    // Need to check it...
+		    // Need to check it.
 		    if ( parseFile_LineMatchesLineFromList(linecount0,skipLinesList, skipLinesList_size)) {
-		        // Skip the line as requested
+		        // Skip the line as requested.
                 continue;
 		    }
 		}
 		
-		// "line" now contains the latest non-comment line so evaluate whether
-	    // the line contains the column names.
+		// "line" now contains the latest non-comment line:
+		// - evaluate whether the line contains the column names (header lines)
+		// - header lines MUST come before data lines
+		// - currently only handle one header line
 		
-		if ( !headers_found && (HeaderLines_Auto_boolean ||
-		    ((HeaderLineList != null) && linecount0 <= HeaderLinesList_maxval)) ) {
+		if ( !headers_found && (dataLineCount == 0) &&
+			(HeaderLines_Auto_boolean || ((HeaderLineList != null) && (dataLineCount == 0)) ) ) { //&& (headerLineCount <= HeaderLinesList_maxval)) ) ) {}
 		    if ( HeaderLines_Auto_boolean ) {
-		        // If a quote is detected, then this line is assumed to contain the name of the fields.
+		        // If a quote is detected, then this line is assumed to contain the name of the columns.
         	    if (line.startsWith("\"")) {
+        	    	// HeaderLineCount
         	        tableFields = parseFile_ParseHeaderLine ( line, linecount0, TrimInput_Boolean, Delimiter, parseFlagHeader );
         	        numFields = tableFields.size();
-        	        // Read another line of data to be used below
+        	        // Go to the top of the loop to read another line.
+        	        ++headerLineCount;
         	        headers_found = true;
         	        continue;
         	    }
 		    }
 		    else if ( HeaderLineList != null ) {
-		        // Calling code has specified the header rows.  Check to see if this is a row.
-		        if ( parseFile_LineMatchesLineFromList(linecount0,HeaderLineList, HeaderLinesList_size)) {
+		        // Calling code has specified the header rows.  Check to see if this is a header row:
+		    	// - 'linecount0' is the line position, zero index
+		    	// - the HeaderLines line index is also zero index
+		        if ( parseFile_LineMatchesLineFromList(noncommentLineCount0, HeaderLineList, HeaderLinesList_size)) {
 		            // This row has been specified as a header row so process it.
+		            Message.printStatus(2, routine, "Header line to parse:" + line);
 		            tableFields = parseFile_ParseHeaderLine ( line, linecount0, TrimInput_Boolean, Delimiter, parseFlagHeader );
 		            numFields = tableFields.size();
 		                
-                    //FIXME SAM 2008-01-27 Figure out how to deal with multi-row headings
+                    //FIXME SAM 2008-01-27 Figure out how to deal with multi-row headings.
                     // What is the column name?
 		            // If the maximum header row has been processed, indicate that headers have been found.
 		            //if ( linecount0 == HeaderLines_Vector_maxval ) {
+        	        ++headerLineCount;
 		                headers_found = true;
 		            //}
-		            // Now read another line of data to be used below.
+        	        // Go to the top of the loop to read another line.
 		            continue;
 		        }
 		    }
@@ -3602,7 +3616,7 @@ throws Exception
     	// Now evaluate the data lines.  Parse into tokens to allow evaluation of the number of columns below.
     	
 		++dataLineCount;
-		// If "Top" was specified as a parameter, skip lines after top
+		// If "Top" was specified as a parameter, skip lines after top.
 		if ( (top >= 0) && (dataLineCount > top) ) {
 			break;
 		}
@@ -3620,7 +3634,7 @@ throws Exception
 		// Save the tokens from the data rows - this will NOT include comments, headers, or lines to be excluded.
 		data_record_tokens.add(v);
 	}
-	// Close the file...
+	// Close the file.
 	in.close();
 	
 	// Make sure that the table fields are in place for the maximum number of columns.
@@ -3628,7 +3642,7 @@ throws Exception
 	if (tableFields == null) {
 		tableFields = new ArrayList<TableField>();
 		for (int i = 0; i < maxColumns; i++) {
-			// Default field definition builds String fields
+			// Default field definition builds String fields.
 			tableFields.add(new TableField());
 		}
 	}
@@ -3652,7 +3666,7 @@ throws Exception
 	// columns need to be determined.
 	
 	numFields = tableFields.size();
-	int numRecords = data_record_tokens.size(); // Number of data records
+	int numRecords = data_record_tokens.size(); // Number of data records.
 	int [] count_int = new int[maxColumns];
     int [] count_double = new int[maxColumns];
     int [] count_string = new int[maxColumns];
@@ -3667,14 +3681,14 @@ throws Exception
         lenmax_string[icol] = 0;
         precision[icol] = 0;
     }
-    // Loop through all rows of data that were read
+    // Loop through all rows of data that were read.
     int vsize;
     String cell;
     String cell_trimmed; // Must have when checking for types.
-    int periodPos; // Position of period in floating point numbers
+    int periodPos; // Position of period in floating point numbers.
     boolean isTypeFound = false;
 	for ( int irow = 0; irow < numRecords; irow++ ) {
-		// If "Top" was specified as a parameter, skip lines after top
+		// If "Top" was specified as a parameter, skip lines after top.
 		if ( (top >= 0) && (irow > topm1) ) {
 			break;
 		}
@@ -3686,29 +3700,29 @@ throws Exception
 	        cell_trimmed = cell.trim();
 	        isTypeFound = false;
 	        if ( cell_trimmed.length() == 0 ) {
-	        	// Blank cell - can be any type and should not impact result
+	        	// Blank cell - can be any type and should not impact result.
 	        	++count_blank[icol];
 	        	isTypeFound = true;
 	        }
 	        if ( StringUtil.isInteger(cell_trimmed)) {
 	            ++count_int[icol];
-	            // Length needed in case handled as string data
+	            // Length needed in case handled as string data.
 	            lenmax_string[icol] = Math.max(lenmax_string[icol], cell_trimmed.length());
 	            isTypeFound = true;
 	        }
-	        // TODO SAM 2012-05-31 Evaluate whether this needs a more robust solution
-	        // Sometimes long integers won't parse in the above but do get parsed as doubles below.  This can
-	        // lead to treatment as a floating point number.  Instead, the column likely should be treated as
-	        // strings.  An example is very long identifiers like "394359105411900".  For now the work-around
-	        // is to add quotes in the original data to make sure the column is treated like a string.
-	        // Could add a long but this cascades through a lot of code since the long type is not yet supported
-	        // in DataTable
+	        // TODO SAM 2012-05-31 Evaluate whether this needs a more robust solution.
+	        // Sometimes long integers won't parse in the above but do get parsed as doubles below.
+	        // This can lead to treatment as a floating point number.
+	        // Instead, the column likely should be treated as strings.
+	        // An example is very long identifiers like "394359105411900".
+	        // For now the work-around is to add quotes in the original data to make sure the column is treated like a string.
+	        // Could add a long but this cascades through a lot of code since the long type is not yet supported in DataTable
             if ( StringUtil.isDouble(cell_trimmed)) {
                 ++count_double[icol];
                 isTypeFound = true;
-                // Length needed in case handled as string data
+                // Length needed in case handled as string data.
                 lenmax_string[icol] = Math.max(lenmax_string[icol], cell_trimmed.length());
-                // Precision to help with visualization, such as table views
+                // Precision to help with visualization, such as table views.
                 periodPos = cell_trimmed.indexOf(".");
                 if ( periodPos >= 0 ) {
                     precision[icol] = Math.max(precision[icol], (cell_trimmed.length() - periodPos - 1) );
@@ -3716,7 +3730,7 @@ throws Exception
             }
             // TODO SAM 2008-01-27 Need to handle date/time?
             if ( !isTypeFound ) {
-                // Assume string, but strip off the quotes if necessary
+                // Assume string, but strip off the quotes if necessary.
                 ++count_string[icol];
                 if ( TrimStrings_boolean ) {
                     lenmax_string[icol] = Math.max(lenmax_string[icol], cell_trimmed.length());
@@ -3728,7 +3742,7 @@ throws Exception
 	    }
 	}
 	
-	// TODO SAM 2016-08-25 Could optimize so that if all column types are specified, don't need to scan data for type
+	// TODO SAM 2016-08-25 Could optimize so that if all column types are specified, don't need to scan data for type.
 	
 	// Loop through the table fields and based on the examination of data above,
 	// set the table field type and if a string, max width.
@@ -3773,7 +3787,7 @@ throws Exception
     				}
     			}
     		}
-    		// Set column type based on calling code specified type and then discovery from data
+    		// Set column type based on calling code specified type and then discovery from data.
     	    if ( isDateTime ) {
     	    	tableField.setDataType(TableField.DATA_TYPE_DATETIME);
     	        tableFieldType[icol] = TableField.DATA_TYPE_DATETIME;
@@ -3787,7 +3801,7 @@ throws Exception
     	            "] type is double as determined from specified column type." );
                 tableField.setWidth (lenmax_string[icol] );
                 tableField.setPrecision ( precision[icol] );
-    	        // Default the following
+    	        // Default the following.
                 //tableField.setWidth (-1);
                 //tableField.setPrecision ( 6 );
     	    }
@@ -3801,8 +3815,7 @@ throws Exception
     	    	tableField.setDataType(TableField.DATA_TYPE_STRING);
     	        tableFieldType[icol] = TableField.DATA_TYPE_STRING;
     	        if ( lenmax_string[icol] <= 0 ) {
-    	            // Likely that the entire column of numbers is empty so set the width to the field name
-    	            // width if available)
+    	            // Likely that the entire column of numbers is empty so set the width to the field name width if available).
     	            tableField.setWidth (tableFields.get(icol).getName().length() );
     	        }
     	        else {
@@ -3813,9 +3826,9 @@ throws Exception
     	    }
     	    else if ( (count_int[icol] > 0) && (count_string[icol] == 0) &&
     	        ((count_double[icol] == 0) || (count_int[icol] == count_double[icol])) ) {
-    	        // All data are integers so assume column type is integer
-    	        // Note that integers also meet the criteria of double, hence the extra check above
-    	        // TODO SAM 2013-02-17 Need to handle DATA_TYPE_LONG
+    	        // All data are integers so assume column type is integer.
+    	        // Note that integers also meet the criteria of double, hence the extra check above.
+    	        // TODO SAM 2013-02-17 Need to handle DATA_TYPE_LONG.
     	        tableField.setDataType(TableField.DATA_TYPE_INT);
     	        tableFieldType[icol] = TableField.DATA_TYPE_INT;
     	        tableField.setWidth (lenmax_string[icol] );
@@ -3825,7 +3838,7 @@ throws Exception
                     count_blank[icol] + " blanks).");
     	    }
     	    else if ( (count_double[icol] > 0) && (count_string[icol] == 0) ) {
-    	        // All data are double (integers will also count as double) so assume column type is double
+    	        // All data are double (integers will also count as double) so assume column type is double.
                 tableField.setDataType(TableField.DATA_TYPE_DOUBLE);
                 tableFieldType[icol] = TableField.DATA_TYPE_DOUBLE;
                 tableField.setWidth (lenmax_string[icol] );
@@ -3840,8 +3853,7 @@ throws Exception
     	        tableField.setDataType(TableField.DATA_TYPE_STRING);
     	        tableFieldType[icol] = TableField.DATA_TYPE_STRING;
     	        if ( lenmax_string[icol] <= 0 ) {
-    	            // Likely that the entire column of numbers is empty so set the width to the field name
-    	            // width if available)
+    	            // Likely that the entire column of numbers is empty so set the width to the field name width if available).
     	            tableField.setWidth (tableFields.get(icol).getName().length() );
     	        }
     	        else {
@@ -3856,7 +3868,7 @@ throws Exception
     	}
 	}
 	else {
-	    // All are strings (from above but reset just in case)...
+	    // All are strings (from above but reset just in case).
 	    for ( int icol = 0; icol < maxColumns; icol++ ) {
 	        tableField = (TableField)tableFields.get(icol);
 	        tableField.setDataType(TableField.DATA_TYPE_STRING);
@@ -3866,8 +3878,7 @@ throws Exception
 	            tableField.getDataType() + " all strings assumed, width =" + tableField.getWidth() );
 	    }
 	}
-	// The data fields may have less columns than the headers and if so set the field type of the
-	// unknown columns to string
+	// The data fields may have less columns than the headers and if so set the field type of the unknown columns to string.
 	for ( int icol = maxColumns; icol < tableFields.size(); icol++) {
 	    tableFieldType[icol] = TableField.DATA_TYPE_STRING;
 	}
@@ -3883,7 +3894,7 @@ throws Exception
 	int cols = 0;
 	int errorCount = 0;
 	for (int irow = 0; irow < numRecords; irow++) {
-		// If "Top" was specified as a parameter, skip lines after top
+		// If "Top" was specified as a parameter, skip lines after top.
 		if ( (top >= 0) && (irow > topm1) ) {
 			break;
 		}
@@ -3937,11 +3948,11 @@ throws Exception
 	            }
 			    else if ( tableFieldType[icol] == TableField.DATA_TYPE_STRING ) {
 			    	// Know that it is a string.
-			    	// Could contain embedded "" that need to be replaced with single "
+			    	// Could contain embedded "" that need to be replaced with single ".
 			    	tablerec.addFieldValue( parseFile_ProcessString(cell) );
 			    }
 			    else {
-			        // Add as string
+			        // Add as string.
 	                tablerec.addFieldValue( parseFile_ProcessString(cell) );
 	            }
 			}
@@ -3982,7 +3993,7 @@ throws Exception
 		}
 	}
 	if ( errorCount > 0 ) {
-	    // There were errors processing the data
+	    // There were errors processing the data.
 	    String message = "There were " + errorCount + " errors processing the data.";
 	    Message.printWarning ( 3, routine, message );
 	    throw new Exception ( message );
@@ -4007,13 +4018,12 @@ private static boolean parseFile_CellContentsNull ( String cell ) {
 
 /**
 Determine whether a line from the file matches the list of rows that are of interest.
-@param linecount0
+@param linecount0 line count, zero index, may be full count for (SkipLines) or header count (HeaderLines)
 @param rows_List list of Integer objects that are row numbers (0+) of interest.
 @param rows_List_size Size of rows_List - used to speed up performance.
 @return true if the line matches an item in the list.
 */
-private static boolean parseFile_LineMatchesLineFromList( int linecount0, List<Integer> rows_List, int rows_List_size )
-{
+private static boolean parseFile_LineMatchesLineFromList( int linecount0, List<Integer> rows_List, int rows_List_size ) {
     Integer int_object;
     if ( rows_List != null ) {
         rows_List_size = rows_List.size();
@@ -4021,7 +4031,7 @@ private static boolean parseFile_LineMatchesLineFromList( int linecount0, List<I
     for ( int is = 0; is < rows_List_size; is++ ) {
         int_object = rows_List.get(is);
         if ( linecount0 == int_object.intValue() ) {
-            // Skip the line as requested
+            // Skip the line as requested.
             return true;
         }
     }
@@ -4719,7 +4729,7 @@ Sort the table rows by sorting a column's values.
 (useful if a parallel sort of data needs to occur)
 */
 public int [] sortTable ( String [] sortColumns, int [] sortOrder )
-{	//String routine = getClass().getSimpleName() + ".sortTable";
+{	String routine = getClass().getSimpleName() + ".sortTable";
     int [] sortColumnsNum = new int[sortColumns.length];
     List<String> errors = new ArrayList<String>();
     for ( int i = 0; i < sortColumns.length; i++ ) {
@@ -4746,7 +4756,7 @@ public int [] sortTable ( String [] sortColumns, int [] sortOrder )
     if ( sortOrder[0] < 0 ) {
         sortFlag = StringUtil.SORT_DESCENDING;
     }
-    int [] sortedOrderArray = new int[nrecords]; // Overall sort order different from original
+    int [] sortedOrderArray = new int[nrecords]; // Overall sort order different from original.
     // First sort by the first column.
     int iSort = 0;
     if ( getFieldDataType(sortColumnsNum[iSort]) == TableField.DATA_TYPE_STRING ) {
@@ -4763,11 +4773,32 @@ public int [] sortTable ( String [] sortColumns, int [] sortOrder )
                 }
             }
             catch ( Exception e ) {
-                // Should not happen but if it does it is probably bad
+                // Should not happen but if it does it is probably bad.
                 throw new RuntimeException ( e );
             }
         }
         StringUtil.sortStringList(values, sortFlag, sortedOrderArray, true, true);
+    }
+    else if ( getFieldDataType(sortColumnsNum[iSort]) == TableField.DATA_TYPE_DATE ) {
+    	// Legacy Java Date.
+        Object value;
+        long [] values = new long[nrecords];
+        int irec = -1;
+        for ( TableRecord rec : getTableRecords() ) {
+            ++irec;
+            try {
+                value = rec.getFieldValue(sortColumnsNum[iSort]);
+                if ( value == null ) {
+                    value = -Long.MAX_VALUE;
+                }
+                values[irec] = ((Date)value).getTime();
+            }
+            catch ( Exception e ) {
+                // Should not happen but if it does it is probably bad.
+                throw new RuntimeException ( e );
+            }
+        }
+        MathUtil.sort(values, MathUtil.SORT_QUICK, sortFlag, sortedOrderArray, true);
     }
     else if ( getFieldDataType(sortColumnsNum[iSort]) == TableField.DATA_TYPE_DATETIME ) {
         Object value;
@@ -4783,7 +4814,7 @@ public int [] sortTable ( String [] sortColumns, int [] sortOrder )
                 values[irec] = ((DateTime)value).toDouble();
             }
             catch ( Exception e ) {
-                // Should not happen but if it does it is probably bad
+                // Should not happen but if it does it is probably bad.
                 throw new RuntimeException ( e );
             }
         }
@@ -4813,7 +4844,7 @@ public int [] sortTable ( String [] sortColumns, int [] sortOrder )
                 values[irec] = value;
             }
             catch ( Exception e ) {
-                // Should not happen but if it does it is probably bad
+                // Should not happen but if it does it is probably bad.
                 throw new RuntimeException ( e );
             }
         }
@@ -4833,30 +4864,30 @@ public int [] sortTable ( String [] sortColumns, int [] sortOrder )
                 values[irec] = value;
             }
             catch ( Exception e ) {
-                // Should not happen but if it does it is probably bad
+                // Should not happen but if it does it is probably bad.
                 throw new RuntimeException ( e );
             }
         }
         MathUtil.sort(values, MathUtil.SORT_QUICK, sortFlag, sortedOrderArray, true);
     }
     else {
-        throw new RuntimeException ( "Sorting table only implemented for string, integer, double, float and DateTime columns." );
+        throw new RuntimeException ( "Sorting table only implemented for string, integer, double, float, Date and DateTime columns." );
     }
-    // Shuffle the table's row list according to sortOrder.  Because other objects may have references to
-    // the tables record list, can't create a new list.  Therefore, copy the old list to a backup and then use
-    // that to sort into an updated original list.
-    List<TableRecord> backup = new ArrayList<TableRecord>(nrecords);
+    // Shuffle the table's row list according to sortOrder.
+    // Because other objects may have references to the tables record list, can't create a new list.
+    // Therefore, copy the old list to a backup and then use that to sort into an updated original list.
+    List<TableRecord> backup = new ArrayList<>(nrecords);
     List<TableRecord> records = this.getTableRecords();
     for ( TableRecord rec : records ) {
         backup.add ( rec );
     }
-    // Now set from the backup to the original list
+    // Now set from the backup to the original list.
     for ( int irec = 0; irec < nrecords; irec++ ) {
         records.set(irec, backup.get(sortedOrderArray[irec]) );
     }
     // Now sort by columns [1]+ (zero index).  Only sort the last column being iterated.
-    // The previous columns are used to find blocks of rows to sort.  In other words, if 3 columns are sorted
-    // then columns [0-1] must match and then that block of rows is sorted based on column [2].
+    // The previous columns are used to find blocks of rows to sort.
+    // In other words, if 3 columns are sorted then columns [0-1] must match and then that block of rows is sorted based on column [2].
     int iSort2;
     int lastRec = getNumberOfRecords() - 1;
     for ( iSort = 1; iSort < sortColumnsNum.length; iSort++ ) {
@@ -4871,7 +4902,7 @@ public int [] sortTable ( String [] sortColumns, int [] sortOrder )
             //Message.printStatus(2,routine,"Processing record " + irec );
             // Check the current row's sort columns against the previous row
             if ( sortValuesPrev == null ) {
-            	// Initialize this row with values to be compared with the next row
+            	// Initialize this row with values to be compared with the next row.
             	sortValuesPrev = new Object[iSort];
             	for ( iSort2 = 0; iSort2 < iSort; iSort2++ ) {
             		try {
@@ -4887,7 +4918,7 @@ public int [] sortTable ( String [] sortColumns, int [] sortOrder )
             	continue;
             }
             else {
-            	// Compare this row's values with the previous block of similar values
+            	// Compare this row's values with the previous block of similar values.
             	sortColumnMatchCount = 0;
 	            for ( iSort2 = 0; iSort2 < iSort; iSort2++ ) {
 	            	try {
@@ -4901,22 +4932,22 @@ public int [] sortTable ( String [] sortColumns, int [] sortOrder )
 	            		++sortColumnMatchCount;
 	            	}
 	            	else {
-	            		// The current row did not match so save the current row as the previous and break to indicate that the block needs sorted
+	            		// The current row did not match so save the current row as the previous and break to indicate that the block needs sorted.
 	            		//Message.printStatus(2,routine,"Record " + irec + " compare values did not match previous row." );
 	            		break;
 	            	}
 	            }
-	            // If all the values matched, can process another row before sorting, but check to see if at end of table below
+	            // If all the values matched, can process another row before sorting, but check to see if at end of table below.
 	            if ( sortColumnMatchCount == iSort ) {
 	            	//Message.printStatus(2,routine,"Record " + irec + " sort columns match previous." );
 	            	needToSort = false;
 	            	blockEndRow = irec; // Advance the end of the block
 	            }
 	            else {
-	            	// Current row's sort column values did not match so need to sort the block
+	            	// Current row's sort column values did not match so need to sort the block.
 	            	//Message.printStatus(2,routine,"Record " + irec + " sort columns do not match previous.  Resetting \"previous\" values to this record." );
 	            	needToSort = true;
-	            	// Save the current row to compare with the next row
+	            	// Save the current row to compare with the next row.
             		for ( int iSort3 = 0; iSort3 < iSort; iSort3++ ) {
                 		try {
                 			sortValuesPrev[iSort3] = rec.getFieldValue(sortColumnsNum[iSort3]);
@@ -4927,22 +4958,23 @@ public int [] sortTable ( String [] sortColumns, int [] sortOrder )
                 	}
 	            }
 	            if ( (irec == lastRec) && (blockStartRow != blockEndRow) ) {
-	            	// Need to sort if in the last row unless the block was only one row
+	            	// Need to sort if in the last row unless the block was only one row.
 	            	needToSort = true;
 	            	//Message.printStatus(2, routine, "Need to sort end of table from " + blockStartRow + " to " + blockEndRow );
 	            }
 	            if ( needToSort ) {
-	            	// Need to sort the block of rows using the "rightmost" sort column
+	            	// Need to sort the block of rows using the "rightmost" sort column.
 	            	//Message.printStatus(2, routine, "Need to sort block of rows from " + blockStartRow + " to " + blockEndRow );
 	            	try {
 	            		//Message.printStatus(2, routine, "Sorting rows from " + blockStartRow + " to " + blockEndRow + " based on column " + sortColumnNum[iSort] );
 	            		sortTableSubset(blockStartRow,blockEndRow,sortColumnsNum[iSort],sortOrder[iSort],sortedOrderArray);
 	            	}
 	            	catch ( Exception e ) {
+	            		Message.printWarning(3, routine, e);
 	            		throw new RuntimeException(e);
 	            	}
-	            	// Now that the block has been started, reset for the next block
-	            	// blockStartRow should = irec since rec was different and triggered the sort of the previous block
+	            	// Now that the block has been started, reset for the next block.
+	            	// blockStartRow should = irec since rec was different and triggered the sort of the previous block.
 	            	blockStartRow = blockEndRow + 1;
 	            	blockEndRow = blockStartRow;
 	            }
@@ -4966,11 +4998,11 @@ private void sortTableSubset ( int blockStartRow, int blockEndRow, int iCol, int
 throws Exception
 {
 	if ( blockStartRow == blockEndRow ) {
-		// Only one row to sort
+		// Only one row to sort.
 		return;
 	}
-    int nrecords = blockEndRow - blockStartRow + 1; // Number of records in the block to sort
-    int [] sortOrderArray2 = new int[nrecords]; // Overall sort order different from original
+    int nrecords = blockEndRow - blockStartRow + 1; // Number of records in the block to sort.
+    int [] sortOrderArray2 = new int[nrecords]; // Overall sort order different from original.
     // First sort by the first column.
     int sortFlag = StringUtil.SORT_ASCENDING;
     if ( sortOrder < 0 ) {
@@ -4978,7 +5010,7 @@ throws Exception
     }
     if ( getFieldDataType(iCol) == TableField.DATA_TYPE_STRING ) {
         String value;
-        List<String> values = new ArrayList<String>(nrecords);
+        List<String> values = new ArrayList<>(nrecords);
         TableRecord rec;
         for ( int irec = blockStartRow; irec <= blockEndRow; irec++ ) {
         	rec = getRecord(irec);
@@ -4992,11 +5024,38 @@ throws Exception
                 }
             }
             catch ( Exception e ) {
-                // Should not happen but if it does it is probably bad
+                // Should not happen but if it does it is probably bad.
                 throw new RuntimeException ( e );
             }
         }
         StringUtil.sortStringList(values, sortFlag, sortOrderArray2, true, true);
+    }
+    else if ( getFieldDataType(iCol) == TableField.DATA_TYPE_DATE ) {
+        Object value;
+        double [] values = new double[nrecords];
+        TableRecord rec;
+        DateTime dt = null;
+        for ( int irec = blockStartRow, pos = 0; irec <= blockEndRow; irec++, pos++ ) {
+        	rec = getRecord(irec);
+            try {
+                value = rec.getFieldValue(iCol);
+                if ( value == null ) {
+                    value = -Double.MAX_VALUE;
+                }
+                if ( value instanceof Date ) {
+                	dt = new DateTime((Date)value);
+                	values[pos] = dt.toDouble();
+                }
+                else if ( value instanceof DateTime ) {
+                	values[pos] = ((DateTime)value).toDouble();
+                }
+            }
+            catch ( Exception e ) {
+                // Should not happen but if it does it is probably bad.
+                throw new RuntimeException ( e );
+            }
+        }
+        MathUtil.sort(values, MathUtil.SORT_QUICK, sortFlag, sortOrderArray2, true);
     }
     else if ( getFieldDataType(iCol) == TableField.DATA_TYPE_DATETIME ) {
         Object value;
@@ -5012,7 +5071,7 @@ throws Exception
                 values[pos] = ((DateTime)value).toDouble();
             }
             catch ( Exception e ) {
-                // Should not happen but if it does it is probably bad
+                // Should not happen but if it does it is probably bad.
                 throw new RuntimeException ( e );
             }
         }
@@ -5042,7 +5101,7 @@ throws Exception
                 values[pos] = value;
             }
             catch ( Exception e ) {
-                // Should not happen but if it does it is probably bad
+                // Should not happen but if it does it is probably bad.
                 throw new RuntimeException ( e );
             }
         }
@@ -5062,7 +5121,7 @@ throws Exception
                 values[pos] = value;
             }
             catch ( Exception e ) {
-                // Should not happen but if it does it is probably bad
+                // Should not happen but if it does it is probably bad.
                 throw new RuntimeException ( e );
             }
         }
@@ -5071,17 +5130,17 @@ throws Exception
     else {
         throw new RuntimeException ( "Sorting table only implemented for string, integer, double, float and DateTime columns." );
     }
-    // Shuffle the table's row list according to sortOrder.  Because other objects may have references to
-    // the tables record list, can't create a new list.  Therefore, copy the old list to a backup and then use
-    // that to sort into an updated original list.
-    List<TableRecord> backup = new ArrayList<TableRecord>(nrecords);
+    // Shuffle the table's row list according to sortOrder.
+    // Because other objects may have references to the tables record list, can't create a new list.
+    // Therefore, copy the old list to a backup and then use that to sort into an updated original list.
+    List<TableRecord> backup = new ArrayList<>(nrecords);
     List<TableRecord> records = this.getTableRecords();
     TableRecord rec;
     for ( int irec = blockStartRow; irec <= blockEndRow; irec++ ) {
     	rec = getRecord(irec);
         backup.add ( rec );
     }
-    // Now set from the backup to the original list
+    // Now set from the backup to the original list.
     for ( int irec = blockStartRow; irec <= blockEndRow; irec++ ) {
         records.set(irec, backup.get(sortOrderArray2[irec-blockStartRow]) );
         sortedOrderArray[irec] = sortOrderArray2[irec-blockStartRow];
