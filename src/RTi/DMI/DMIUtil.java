@@ -2239,11 +2239,13 @@ throws SQLException {
     ResultSet rs = null;
     try {
     	DatabaseMetaData metadata = dmi.getConnection().getMetaData();
+    	// TODO smalers 2021-11-16 trying to get the schema can result in an exception.
+        //rs = metadata.getFunctions( dbName, dmi.getConnection().getSchema(), null);
         rs = metadata.getFunctions( dbName, null, null);
         return rs;
     } 
-    catch (Exception e) {
-        Message.printWarning(2, routine, "Error getting list of functions.  Aborting. (" + e + ").");
+    catch (Throwable e) {
+        Message.printWarning(2, routine, "Error getting list of functions for database \"" + dbName + " (" + e + ").");
         Message.printWarning(2, routine, e);
         return null;
     }
@@ -2411,7 +2413,7 @@ throws SQLException {
         rs = metadata.getProcedures( dbName, null, null);
         return rs;
     } 
-    catch (Exception e) {
+    catch (Throwable e) {
         Message.printWarning(2, routine, "Error getting list of procedures.  Aborting. (" + e + ").");
         Message.printWarning(2, routine, e);
         return null;

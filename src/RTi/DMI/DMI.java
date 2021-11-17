@@ -931,23 +931,25 @@ public void close() throws SQLException {
 Closes a result set and frees the resources associated with it.
 @param rs the ResultSet to close.
 */
-public static void closeResultSet(ResultSet rs) 
-{   try {
+public static void closeResultSet(ResultSet rs) {
+    try {
         if (rs != null) {
+        	// Get the statement so that it can be closed after closing the ResultSet.
     		Statement s = rs.getStatement();
+    		// Close the ResultSet.
     		rs.close();
+    		rs = null;
+    		// Close the Statement.
     		if (s != null) {
     			s.close();
     			s = null;
     		}
-    		rs = null;
     	}
     }
     catch ( SQLException e ) {
         // Swallow the exception since this is a utility method that is called to clean-up.
     }
 }
-
 
 /**
 Closes a result set from a stored procedure and frees the resources associated with it.
@@ -957,23 +959,27 @@ Closes a result set from a stored procedure and frees the resources associated w
 public static void closeResultSet(ResultSet rs, DMIStatement select) 
 throws SQLException {
 	if (rs != null) {
+       	// Get the statement so that it can be closed after closing the ResultSet.
 		Statement s = rs.getStatement();
+   		// Close the ResultSet.
 		rs.close();
+		rs = null;
+   		// Close the Statement.
 		if (s != null) {
 			s.close();
 			s = null;
 		}
-		rs = null;
 	}
 
+	// Also call the associated callable statement.
 	if (select.getCallableStatement() != null) {
 		select.getCallableStatement().close();
 	}
 }
 
 /**
-Closes an statements that were opened during a transaction.  Called 
-automatically by commit() and rollback().
+Closes an statements that were opened during a transaction.
+Called automatically by commit() and rollback().
 */
 private void closeStatements() {
 	String routine = "DMI.closeStatements()";
