@@ -1921,6 +1921,10 @@ typically used to create an all-inclusive list of date/times for irregular time 
 such as when comparing or displaying time series.
 Time series do not need to be irregular.
 This code was extracted from TSViewTable_TableModel.java.
+
+Time zone is set to empty in the resulting date/times.
+Code that uses the date/times may need to set the timezone appropriately when used.
+
 @param tslist list of time series to extract date/times from
 @param analysisStart date/time to start extracting date/times (default is full overlapping time series period).
 @param analysisEnd date/time to end extracting date/times (default is full overlapping time series period).
