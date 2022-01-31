@@ -2772,7 +2772,8 @@ public static DateTime parse ( String dateTimeString )
 		int format = FORMAT_ISO_8601;
 		return parse(dateTimeString, format);
 	}
-	// Else parse using code that has worked for a long time below.
+	// Else parse using code that has worked for a long time below:
+	// - TODO smalers 2022-01-30 actually, the following did not work well with the above, remove when ready
 	/*
 	else {
 		// Check for the second form of date/time string.
@@ -3027,7 +3028,7 @@ This routine is the inverse of toString(int format).
 @see #toString
 */
 public static DateTime parse ( String date_string, int format )
-{	// Call the overloaded method with no special flag...
+{	// Call the overloaded method with no special flag.
 	return parse ( date_string, format, 0 );
 }
 
@@ -3376,16 +3377,16 @@ private static DateTime parse ( String date_string, int format, int flag )
 		String d = null;
 		String t = null;
 		if ( posT > 0 ) {
-			// Date and time
-			d = date_string.substring(0, posT); // Before T
-			t = date_string.substring(posT + 1); // After T
+			// Date and time.
+			d = date_string.substring(0, posT); // Before T.
+			t = date_string.substring(posT + 1); // After T.
 		}
 		else {
-			// Only date so no need to deal with time zone
+			// Only date so no need to deal with time zone.
 			d = date_string;
 		}
 		int dateLen = d.length();
-		// Instantiate date/time to full precision, but will set precision more specifically below as it is determined
+		// Instantiate date/time to full precision, but will set precision more specifically below as it is determined.
 		if ( (d != null) && (t != null) ) {
 			// Full date/time
 			date = new DateTime ( PRECISION_HSECOND );
