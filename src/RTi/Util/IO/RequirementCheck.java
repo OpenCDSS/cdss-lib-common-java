@@ -55,10 +55,24 @@ public class RequirementCheck {
 	private boolean shouldExitIfRequirementNotMet = false;
 	
 	/**
+	 * Name of the object that performed the check, useful for troubleshooting when multiple checkers are involved
+	 * for application, datastore, etc.
+	 */
+	private String checkerName = "Unknown";
+	
+	/**
 	 * Constructor.
 	 */
 	public RequirementCheck ( String requirementText ) {
 		this.requirementText = requirementText;
+	}
+
+	/**
+	 * Return the name of the checker, useful in troubleshooting and development.
+	 * @return the name of the checker
+	 */
+	public String getCheckerName () {
+		return this.checkerName;
 	}
 
 	/**
@@ -95,6 +109,7 @@ public class RequirementCheck {
 	/**
 	 * Set whether the requirement is met.
 	 * @param requirementIsMet whether or not the requirement is met
+	 * @deprecated use the version with checkerName
 	 */
 	public void setIsRequirementMet ( boolean isRequirementMet ) {
 		this.setIsRequirementMet ( isRequirementMet, "" );
@@ -102,10 +117,32 @@ public class RequirementCheck {
 
 	/**
 	 * Set whether the requirement is met.
+	 * @param checkerName the name of the checker that performed the check (e.g., datastore type)
+	 * @param requirementIsMet whether or not the requirement is met
+	 */
+	public void setIsRequirementMet ( String checkerName, boolean isRequirementMet ) {
+		this.setIsRequirementMet ( checkerName, isRequirementMet, "" );
+	}
+
+	/**
+	 * Set whether the requirement is met.
+	 * @param requirementIsMet whether or not the requirement is met
+	 * @param failReason the reason the requirement was not met, not required if requirement was met
+	 * @deprecated use the version with checkerName
+	 */
+	public void setIsRequirementMet ( boolean isRequirementMet, String failReason ) {
+		this.isRequirementMet = isRequirementMet;
+		this.failReason = failReason;
+	}
+
+	/**
+	 * Set whether the requirement is met.
+	 * @param checkerName the name of the checker that performed the check (e.g., datastore type)
 	 * @param requirementIsMet whether or not the requirement is met
 	 * @param failReason the reason the requirement was not met, not required if requirement was met
 	 */
-	public void setIsRequirementMet ( boolean isRequirementMet, String failReason ) {
+	public void setIsRequirementMet ( String checkerName, boolean isRequirementMet, String failReason ) {
+		this.checkerName = checkerName;
 		this.isRequirementMet = isRequirementMet;
 		this.failReason = failReason;
 	}
@@ -123,6 +160,18 @@ public class RequirementCheck {
 	 */
     public boolean shouldExitIfRequirementNotMet() {
     	return this.shouldExitIfRequirementNotMet;
+    }
+    
+    /**
+     * Return a formatted version of the requirement check, suitable for command status.
+     */
+    public String toString () {
+    	if ( this.isRequirementMet ) {
+    		return this.checkerName + ": @require condition is met";
+    	}
+    	else {
+    		return this.checkerName + ": @require condition is NOT met\nReason: " + this.failReason;
+    	}
     }
 	
 }
