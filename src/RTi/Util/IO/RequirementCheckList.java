@@ -92,7 +92,7 @@ public class RequirementCheckList {
 				if ( b.length() > 0 ) {
 					b.append("\n");
 				}
-				b.append(check.getFailReason());
+				b.append(check.toString());
 			}
 		}
 		return b.toString();
