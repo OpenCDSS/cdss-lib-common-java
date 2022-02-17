@@ -58,9 +58,15 @@ import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -1197,6 +1203,59 @@ public static List<String> getFilesFromPathList ( List<String> paths, String fil
 
 /**
 Return a list of files matching a pattern.
+@param pattern file pattern to match relative to the starting folder, as "glob:..." string used with java.nio package,
+should be an absolute path with only Linux folder separator (/)
+@return a list of matching File, guaranteed to exist but may be an empty list
+*/
+public static List<File> getFilesMatchingPattern(String pattern) throws IOException {
+	String routine = "getFilesMatchingPattern";
+	if ( Message.isDebugOn ) {
+		Message.printDebug(1, routine, "Getting matching files for: " + pattern);
+	}
+	List<File> files = new ArrayList<>();
+
+	String startingFolder = IOUtil.getPathWithNoGlob(pattern);
+	if ( startingFolder == null ) {
+		// Could not find a starting folder, should not happen.
+		return files;
+	}
+	if ( Message.isDebugOn ) {
+		Message.printDebug(1, routine, "Starting folder is: " + startingFolder);
+	}
+	// Reset pattern to the remainder of the original pattern.
+
+	// The pathMatcher is for the entire absolute path.
+	PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher(pattern);
+
+	// The starting folder limits the paths that are evaluated but each path is still the full absolute path.
+	Path startingFolderPath = Paths.get(startingFolder);
+	Files.walkFileTree(startingFolderPath, new SimpleFileVisitor<Path>() {
+		
+		@Override
+		public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
+			if ( Message.isDebugOn ) {
+				Message.printDebug(1, routine, "Checking path \"" + path + "\" using pattern \"" + pattern + "\"");
+			}
+			if ( pathMatcher.matches(path) ) {
+				if ( Message.isDebugOn ) {
+					Message.printDebug(1, routine, "Matched file \"" + path + "\" using pattern \"" + pattern + "\"");
+				}
+				files.add(path.toFile());
+			}
+			return FileVisitResult.CONTINUE;
+		}
+		
+		@Override
+		public FileVisitResult visitFileFailed(Path file, IOException exc ) throws IOException {
+			return FileVisitResult.CONTINUE;
+		}
+		
+	});
+	return files;
+}
+
+/**
+Return a list of files matching a pattern.
 Currently the folder must exist (no wildcard) and the file part of the path can contain wildcards using
 globbing notation (e.g., *.txt).
 @param folder folder to search for files
@@ -1474,6 +1533,48 @@ public static String getPathUsingWorkingDir ( String path )
 			//return ( _working_dir + "\\" + path );
 		}
 	}
+}
+
+/**
+ * Get the leading part of a path that does not contain glob characters (*, {, ?, or [).
+ * This is used to determine the starting folder for the getFilesMatchingPattern function.
+ * The backslash is not handled because because it may be in a Windows path.
+ * Strings are used as parameter and return value because glob characters are allowed and
+ * may not be handled in a normal path.
+ * @param path a full (absolute) path, starting with / on Linux and \ on Windows,
+ * although both are handled
+ * @return the leading path that DOES NOT contain glob characters, ending in the folder separator,
+ * or null if no glob characters
+ */
+public static String getPathWithNoGlob ( String path ) {
+	// Remove leading "glob:"
+	path = path.replace("glob:", "");
+	int pos = Integer.MAX_VALUE;
+	String searchChars = "*{?[";
+	for ( int i = 0; i < searchChars.length(); i++ ) {
+		int pos0 = path.indexOf(searchChars.charAt(i));
+		if ( pos0 >= 0 ) {
+			if ( pos0 < pos ) {
+				pos = pos0;
+			}
+		}
+	}
+	// If here either found the first occurrence of a glob character or none.
+	if ( pos == Integer.MAX_VALUE ) {
+		// Did not find any glob characters.
+		return null;
+	}
+	// Search backward from the glob character to find / or \.
+	char c;
+	for ( int i = pos; i >= 0; i-- ) {
+		c = path.charAt(i);
+		if ( (c == '/') || (c == '\\') ) {
+			// Found a folder separator.
+			return path.substring(0,i);
+		}
+	}
+	// Should not get here so return null.
+	return null;
 }
 
 /**

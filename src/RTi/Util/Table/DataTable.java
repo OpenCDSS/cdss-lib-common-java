@@ -117,7 +117,6 @@ import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 
 import RTi.DMI.DMIUtil;
 import RTi.Util.IO.IOUtil;
@@ -1313,6 +1312,54 @@ throws Exception {
 	}
 	
 	_table_records.remove(recordNum);
+}
+
+/**
+ * Determine the table columns to include in a processing task.
+ * The list of columns to include is determined first.
+ * Then the list of columns to exclude is removed.
+ * @param includeColumns names of columns to include in a processing task,
+ * can include Java expression, if empty or null include all
+ * @param excludeColumns names of columns to exclude in a processing task,
+ * can include Java expression, if empty or null don't exclude any
+ * @return an array indicating whether the columns in the table should be included in processing (true), or not (false)
+ */
+public boolean[] determineColumnsToInclude(String[] includeColumns, String[] excludeColumns) {
+	int cols = getNumberOfFields();
+	boolean [] columnOk = new boolean[cols];
+    for ( int icol = 0; icol < cols; icol++) {
+    	if ( (includeColumns == null) || (includeColumns.length == 0) ) {
+    		// Initialize to indicate that all columns will be processed.
+    		columnOk[icol] = true;
+    	}
+    	else {
+    		// Initialize all to false and only include columns that are requested, checked below.
+    		columnOk[icol] = false;
+    	}
+    }
+    // Loop through the table columns and check whether any are specifically included or excluded.
+   	if ( ((includeColumns != null) && (includeColumns.length != 0)) || ((excludeColumns != null) && (excludeColumns.length != 0)) ) {
+   		for ( int icol = 0; icol < cols; icol++) {
+   			// First check included names.
+   			if ( (includeColumns != null) && (includeColumns.length != 0) ) {
+   				for ( String includeColumn : includeColumns ) {
+   					if ( getFieldName(icol).matches(includeColumn) ) {
+   						columnOk[icol] = true;
+   						break;
+   					}
+   				}
+   			}
+   			if ( (excludeColumns != null) && (excludeColumns.length != 0) ) {
+   				for ( String excludeColumn : excludeColumns ) {
+   					if ( getFieldName(icol).matches(excludeColumn) ) {
+   						columnOk[icol] = false;
+   						break;
+   					}
+   				}
+   			}
+   		}
+   	}
+   	return columnOk;
 }
 
 /**
@@ -4169,6 +4216,17 @@ public void setComments ( List<String> comments )
 }
 
 /**
+Sets the precision of the field.
+@param col the column (0+) for which to set the precision.
+@param precision the precision to set.
+*/
+public void setFieldPrecision(int col, int precision) 
+throws Exception {
+	TableField field = _table_fields.get(col);
+	field.setPrecision(precision);
+}
+
+/**
 Sets the value of a specific field. 
 @param row the row (0+) in which to set the value.
 @param col the column (0+) in which to set the value.
@@ -4206,7 +4264,7 @@ throws Exception
 
 /**
 Sets the width of the field.
-@param col the column for which to set the width.
+@param col the column (0+) for which to set the width.
 @param width the width to set.
 */
 public void setFieldWidth(int col, int width) 
@@ -5323,33 +5381,7 @@ throws Exception {
 
     	// Determine which columns should be written:
     	// - default is to write all
-       	boolean [] columnOkToWrite = new boolean[cols];
-        for ( icol = 0; icol < cols; icol++) {
-        	if ( includeColumns.length == 0 ) {
-        		// Initialize all columns will be written.
-        		columnOkToWrite[icol] = true;
-        	}
-        	else {
-        		// Initialize all to false and only include columns that are requested, checked below.
-        		columnOkToWrite[icol] = false;
-        	}
-        }
-        // Loop through the table columns and check whether any are specifically included or excluded.
-       	if ( (includeColumns.length != 0) || (excludeColumns.length != 0) ) {
-       		for ( icol = 0; icol < cols; icol++) {
-       			// First check included names.
-       			for ( String includeColumn : includeColumns ) {
-       				if ( includeColumn.equals(getFieldName(icol)) ) {
-       					columnOkToWrite[icol] = true;
-       				}
-       			}
-       			for ( String excludeColumn : excludeColumns ) {
-       				if ( excludeColumn.equals(getFieldName(icol)) ) {
-       					columnOkToWrite[icol] = false;
-       				}
-       			}
-       		}
-       	}
+       	boolean [] columnOkToWrite = determineColumnsToInclude(includeColumns, excludeColumns);
     
     	StringBuffer line = new StringBuffer();
     
