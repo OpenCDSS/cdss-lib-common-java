@@ -598,7 +598,7 @@ throws FileNotFoundException, IOException {
 /**
 Read in a file and store it in a string list (list of String).
 @param filename	File to read and convert to string list.
-@return the file as a string list.
+@return a list of String read from the file, with newlines removed.
 @exception IOException if there is an error.
 */
 public static List<String> fileToStringList ( String filename )
@@ -632,20 +632,20 @@ throws IOException
 		throw new IOException ( message );
 	}
 
-	list = new ArrayList<>(50);
-	while ( true ) {
-		tempstr = fp.readLine();
-		if ( tempstr == null ) {
-			break;
+	try {
+		list = new ArrayList<>(50);
+		while ( true ) {
+			tempstr = fp.readLine();
+			if ( tempstr == null ) {
+				break;
+			}
+			tempstr = StringUtil.removeNewline ( tempstr );
+			list.add (tempstr );
 		}
-		tempstr = StringUtil.removeNewline ( tempstr );
-		list.add (tempstr );
 	}
-	fp.close ();
-	fp = null;
-	tempstr = null;
-	message = null;
-	routine = null;
+	finally {
+		fp.close ();
+	}
 	return list;
 }
 
