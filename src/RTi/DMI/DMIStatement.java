@@ -434,12 +434,18 @@ throws Exception {
 	}
 	else {
 	    if (value.indexOf('\'') > -1) {
-    		if ( (_dmi.getDatabaseEngineType() == DMIDatabaseType.SQLSERVER) ||
-    		    (_dmi.getDatabaseEngineType() == DMIDatabaseType.ACCESS) ) {
-    		    // Handle specifically because the following '' is documented
+	    	// If single quote is in the string, need to escape.
+	    	DMIDatabaseType dmiType = _dmi.getDatabaseEngineType();
+    		if ( (dmiType == DMIDatabaseType.ACCESS) ||
+    		    (dmiType == DMIDatabaseType.ORACLE) ||
+    		    (dmiType == DMIDatabaseType.POSTGRESQL) ||
+    		    (dmiType == DMIDatabaseType.SQLITE) ||
+    			(dmiType == DMIDatabaseType.SQLSERVER) ) {
+    		    // Handle specifically because the following using for '' for single quotes is documented.
 				_values_Vector.add("'" + StringUtil.replaceString(value, "'", "''") + "'");
 			}	
 			else {
+				// Default to using backslash, but need to test.
 				_values_Vector.add("'" + StringUtil.replaceString(value, "'", "\\'") + "'");
 			}
 		}
