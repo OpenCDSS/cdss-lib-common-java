@@ -23,13 +23,11 @@ NoticeEnd */
 
 package riverside.datastore;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import RTi.DMI.DatabaseDataStore;
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
-import RTi.Util.Message.Message;
 
 /**
 Table model for displaying data store data in a JWorksheet.
@@ -48,7 +46,7 @@ private List<DataStore> __dataStoreList = null;
 /**
 Map of datastore name substitutes.
 */
-private HashMap<String,String> __dataStoreSubstituteMap = null;
+private List<DataStoreSubstitute> __dataStoreSubstituteList = null;
 
 /**
 Number of columns in the table model (with the alias).
@@ -85,8 +83,8 @@ public final int COL_PLUGIN_DESCRIPTION = 17;
 public final int COL_PLUGIN_AUTHOR = 18;
 public final int COL_PLUGIN_VERSION = 19;
 // Used for testing.
-public final int COL_SUBSTITUTED_FOR = 20;
-public final int COL_SUBSTITUTED_BY = 21;
+public final int COL_SUBSTITUTE_TO_USE = 20; // Same as COL_NAME
+public final int COL_SUBSTITUTE_IN_COMMANDS = 21;
 
 /**
 Constructor.
@@ -102,10 +100,10 @@ throws Exception {
 /**
 Constructor.
 @param dataStoreList the list of data stores to show in a worksheet.
-@param dataStoreSubstituteMap map of datastore substitutes (old, new names)
+@param dataStoreSubstituteList list of datastore substitutes (old, new names)
 @throws NullPointerException if the dataTable is null.
 */
-public DataStores_TableModel(List<DataStore> dataStoreList, HashMap<String,String> dataStoreSubstituteMap ) 
+public DataStores_TableModel(List<DataStore> dataStoreList, List<DataStoreSubstitute> dataStoreSubstituteList ) 
 throws Exception {
     if ( dataStoreList == null ) {
         _rows = 0;
@@ -113,8 +111,8 @@ throws Exception {
     else {
         _rows = dataStoreList.size();
     }
-    __dataStoreList = dataStoreList;
-    __dataStoreSubstituteMap = dataStoreSubstituteMap;
+    this.__dataStoreList = dataStoreList;
+    this.__dataStoreSubstituteList = dataStoreSubstituteList;
 }
 
 /**
@@ -163,8 +161,8 @@ public String getColumnName(int columnIndex) {
         case COL_PLUGIN_DESCRIPTION: return "Plugin Description";
         case COL_PLUGIN_AUTHOR: return "Plugin Author";
         case COL_PLUGIN_VERSION: return "Plugin Version";
-        case COL_SUBSTITUTED_FOR: return "Substituted For";
-        case COL_SUBSTITUTED_BY: return "Substituted By";
+        case COL_SUBSTITUTE_TO_USE: return "Substitute: Datastore to Use";
+        case COL_SUBSTITUTE_IN_COMMANDS: return "Substitute: Datastore in Commands";
         default: return "";
     }
 }
@@ -194,8 +192,8 @@ public String[] getColumnToolTips() {
     tooltips[COL_PLUGIN_DESCRIPTION] = "Plugin description (if datastore is a plugin)";
     tooltips[COL_PLUGIN_AUTHOR] = "Plugin author (if datastore is a plugin)";
     tooltips[COL_PLUGIN_VERSION] = "Plugin version (if datastore is a plugin)";
-    tooltips[COL_SUBSTITUTED_FOR] = "This datastore will be used instead of the indicated datastore(s))";
-    tooltips[COL_SUBSTITUTED_BY] = "This datastore will not be used - instead, the indicated datastore will be used.)";
+    tooltips[COL_SUBSTITUTE_TO_USE] = "This datastore will be used instead of the 'Substitute: Datastore in Commands'";
+    tooltips[COL_SUBSTITUTE_IN_COMMANDS] = "The datastore used in commands, WILL NOT BE USED, instead use 'Substitute: Datastore to Use'";
     return tooltips;
 }
 
@@ -403,33 +401,90 @@ public Object getValueAt(int row, int col)
         	else {
         		return "";
         	}
-        case COL_SUBSTITUTED_FOR:
-        	// The datastore can be a substitute for one or more original datastores:
-        	// - need to search the new datastore names for any matches
-        	if ( this.__dataStoreSubstituteMap != null ) {
-        		StringBuilder oldNames = new StringBuilder();
-        		for ( Map.Entry<String,String> entry: this.__dataStoreSubstituteMap.entrySet() ) {
-        			String newName = entry.getValue();
-        			if ( newName.equals(dataStore.getName()) ) {
-        				if ( oldNames.length() > 0 ) {
-        					oldNames.append(",");
-        				}
-        				oldNames.append(entry.getKey());
+        case COL_SUBSTITUTE_TO_USE:
+        	// This is informational so make as complete as possible.
+        	
+        	// If the datastore name is involved in a substitute, there are two potential cases:
+        	// - datastore in commands matching this datastore is ignored and a substitute is used
+        	//   (this datastore is the substitute hashmap value)
+        	// - datastore in commands is a placeholder and instead, this datastore will be used
+        	// - typically only one of the above is used for a testing configuration
+        	if ( this.__dataStoreSubstituteList != null ) {
+        		// First check for the case where the datastore is the datastore to use.
+        		// Return this datastore name if a datastore to use with a substitute - can only be one.
+        		for ( DataStoreSubstitute dssub : this.__dataStoreSubstituteList ) {
+        			String dsname = dssub.getDatastoreNameToUse();
+        			if ( dsname.equals(dataStore.getName()) ) {
+        				// This datastore is a "DatastoreNameToUse".
+        				return dsname;
         			}
         		}
-        		return oldNames.toString();
+        		// Check for the case where the datastore is in the commands but will be substituted with another datastore.
+        		for ( DataStoreSubstitute dssub : this.__dataStoreSubstituteList ) {
+        			String dsname = dssub.getDatastoreNameInCommands();
+        			if ( dsname.equals(dataStore.getName()) ) {
+        				// This datastore is a "DatastoreNameToUse":
+        				// - show the datastore to use in the column
+        				return dssub.getDatastoreNameToUse();
+        			}
+        		}
+        	}
+        	// Fall through.
+       		return "";
+        case COL_SUBSTITUTE_IN_COMMANDS:
+        	// This is informational so make as complete as possible.
+
+        	// Determine datastore names used in command files that are in a substitutes:
+        	// - see the comments above
+        	// - need to search the new datastore names for any matches
+        	// - can have more than one substitute datastore name
+        	if ( this.__dataStoreSubstituteList != null ) {
+        		StringBuilder namesInCommands = new StringBuilder();
+        		List<String> addedNames = new ArrayList<>();
+        		for ( DataStoreSubstitute dssub : this.__dataStoreSubstituteList ) {
+        			String nameToUse = dssub.getDatastoreNameToUse();
+        			String nameInCommands = dssub.getDatastoreNameInCommands();
+        			if ( nameToUse.equals(dataStore.getName()) ) {
+        				// The "datastore to use" for the substitute matches this datastore.
+        				// Determine if the command file datastore name has already been added.
+        				boolean added = false;
+        				for ( String addedName : addedNames ) {
+        					if ( nameInCommands.equals(addedName) ) {
+        						added = true;
+        						break;
+        					}
+        				}
+        				if ( !added ) {
+        					// Not previously added so add.
+        					if ( namesInCommands.length() > 0 ) {
+        						namesInCommands.append(",");
+        					}
+        					namesInCommands.append(nameInCommands);
+        					addedNames.add(nameInCommands);
+        				}
+        			}
+        		}
+        		if ( namesInCommands.length() > 0 ) {
+        			return namesInCommands.toString();
+        		}
+        		else {
+        			// Check for the case where the datastore is in the commands but will be substituted with another datastore.
+        			for ( DataStoreSubstitute dssub : this.__dataStoreSubstituteList ) {
+        				String dsname = dssub.getDatastoreNameInCommands();
+        				if ( dsname.equals(dataStore.getName()) ) {
+        					// This datastore is a "DatastoreNameInCommands":
+        					// - show the datastore to use in the column
+        					return dsname;
+        				}
+        			}
+        		}
         	}
         	else {
-        		return "";
+        		// If this datastore name is used in commands
+       		    return "";
         	}
-        case COL_SUBSTITUTED_BY:
-        	if ( this.__dataStoreSubstituteMap != null ) {
-        		// Return the new name (the substitute) - can only be one.
-        		return this.__dataStoreSubstituteMap.get(dataStore.getName());
-        	}
-        	else {
-        		return "";
-        	}
+        	// Fall through.
+   		    return "";
         default:
         	return "";
     }
@@ -461,8 +516,8 @@ public int[] getColumnWidths() {
     widths[COL_PLUGIN_DESCRIPTION] = 30;
     widths[COL_PLUGIN_AUTHOR] = 25;
     widths[COL_PLUGIN_VERSION] = 20;
-    widths[COL_SUBSTITUTED_FOR] = 20;
-    widths[COL_SUBSTITUTED_BY] = 20;
+    widths[COL_SUBSTITUTE_TO_USE] = 20;
+    widths[COL_SUBSTITUTE_IN_COMMANDS] = 20;
     return widths;
 }
 
