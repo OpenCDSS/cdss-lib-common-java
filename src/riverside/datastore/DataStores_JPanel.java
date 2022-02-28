@@ -25,7 +25,6 @@ package riverside.datastore;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -53,7 +52,7 @@ private List<DataStore> __dataStoreList = null;
 /**
  * Map of datastore substitutes.
  */
-private HashMap<String,String> __dataStoreSubstituteMap = null;
+private List<DataStoreSubstitute> __dataStoreSubstituteList = null;
 
 /**
 The parent frame containing this panel.
@@ -84,10 +83,11 @@ Constructor.  This sets up the worksheet with a default set of properties:<br>
 </ul>
 To display with other properties, use the other constructor.
 @param parent the JFrame in which this panel is displayed.
-@param dataStoreList the list of data stores to display in the panel.
+@param dataStoreList the list of datastores to display in the panel.
+@param dataStoreSubstituteList the list of datastore substitutes
 @throws NullPointerException if any of the parameters are null.
 */
-public DataStores_JPanel(DataStores_JFrame parent, List<DataStore> dataStoreList, HashMap<String,String> dataStoreSubstituteMap ) 
+public DataStores_JPanel(DataStores_JFrame parent, List<DataStore> dataStoreList, List<DataStoreSubstitute> dataStoreSubstituteList ) 
 throws Exception
 {
 	if (parent == null || dataStoreList == null) {
@@ -96,7 +96,7 @@ throws Exception
 
 	this.__parent = parent;
 	this.__dataStoreList = dataStoreList;
-	this.__dataStoreSubstituteMap = dataStoreSubstituteMap;
+	this.__dataStoreSubstituteList = dataStoreSubstituteList;
 
 	__props = new PropList("DataTable_JPanel.JWorksheet");
 	__props.add("JWorksheet.ShowPopupMenu=true");
@@ -184,7 +184,7 @@ throws Exception {
 
 	JScrollWorksheet jsw = null;
 	try {
-		DataStores_TableModel tm = new DataStores_TableModel(__dataStoreList, this.__dataStoreSubstituteMap);
+		DataStores_TableModel tm = new DataStores_TableModel(__dataStoreList, this.__dataStoreSubstituteList);
 		DataStores_CellRenderer cr = new DataStores_CellRenderer(tm);
 	
 		jsw = new JScrollWorksheet(cr, tm, __props);

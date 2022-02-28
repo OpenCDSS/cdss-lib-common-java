@@ -210,67 +210,74 @@ public class GRSymbolTableRow {
 	 * @param whichEnd, -1 for minimum, 1 for maximum
 	 */
 	private void parseLimit ( String limitValueString, int whichEnd ) {
+		String routine = getClass().getSimpleName() + ".parseLimit";
 		limitValueString = limitValueString.trim();
-		if ( limitValueString.equalsIgnoreCase("NoData") ) {
-			if ( Message.isDebugOn ) {
-				Message.printStatus(2,"","Parsed NoData row.");
+		try {
+			if ( limitValueString.equalsIgnoreCase("NoData") ) {
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2,"","Parsed NoData row.");
+				}
+				if ( !this.isNoDataRow ) {
+					// Do this to ensure that a single NoData value indicates the row is NoData.
+					this.isNoDataRow = true;
+				}
 			}
-			if ( !this.isNoDataRow ) {
-				// Do this to ensure that a single NoData value indicates the row is NoData.
-				this.isNoDataRow = true;
+			else if ( whichEnd == -1 ) {
+				if ( limitValueString.equalsIgnoreCase("-Infinity") ) {
+					if ( Message.isDebugOn ) {
+						Message.printStatus(2,"","Parsed -Infinity row.");
+					}
+					this.valueMinIsNegativeInfinity = true;
+				}
+				else if ( limitValueString.startsWith(">=") ) {
+					this.valueMinOperator = GE;
+					this.valueMinDouble = Double.parseDouble(limitValueString.substring(2).trim());
+					if ( Message.isDebugOn ) {
+						Message.printStatus(2,"","Parsed min value GE row.");
+					}
+				}
+				else if ( limitValueString.startsWith(">") ) {
+					this.valueMinOperator = GT;
+					this.valueMinDouble = Double.parseDouble(limitValueString.substring(1).trim());
+					if ( Message.isDebugOn ) {
+						Message.printStatus(2,"","Parsed min value GT row.");
+					}
+				}
+				else {
+					// TODO smalers 2021-08-27 need to figure out the best exception.
+					throw new RuntimeException ( "Invalid operator for minimum value: " + limitValueString );
+				}
+			}
+			else if ( whichEnd == 1 ) {
+				if ( limitValueString.equalsIgnoreCase("Infinity") ) {
+					if ( Message.isDebugOn ) {
+						Message.printStatus(2,"","Parsed Infinity row.");
+					}
+					this.valueMaxIsInfinity = true;
+				}
+				else if ( limitValueString.startsWith("<=") ) {
+					this.valueMaxOperator = LE;
+					this.valueMaxDouble = Double.parseDouble(limitValueString.substring(2).trim());
+					if ( Message.isDebugOn ) {
+						Message.printStatus(2,"","Parsed max value LE row.");
+					}
+				}
+				else if ( limitValueString.startsWith("<") ) {
+					this.valueMaxOperator = LT;
+					this.valueMaxDouble = Double.parseDouble(limitValueString.substring(1).trim());
+					if ( Message.isDebugOn ) {
+						Message.printStatus(2,"","Parsed max value LT row.");
+					}
+				}
+				else {
+					// TODO smalers 2021-08-27 need to figure out the best exception.
+					throw new RuntimeException ( "Invalid operator for maximum value: " + limitValueString );
+				}
 			}
 		}
-		else if ( whichEnd == -1 ) {
-			if ( limitValueString.equalsIgnoreCase("-Infinity") ) {
-				if ( Message.isDebugOn ) {
-					Message.printStatus(2,"","Parsed -Infinity row.");
-				}
-				this.valueMinIsNegativeInfinity = true;
-			}
-			else if ( limitValueString.startsWith(">=") ) {
-				this.valueMinOperator = GE;
-				this.valueMinDouble = Double.parseDouble(limitValueString.substring(2).trim());
-				if ( Message.isDebugOn ) {
-					Message.printStatus(2,"","Parsed min value GE row.");
-				}
-			}
-			else if ( limitValueString.startsWith(">") ) {
-				this.valueMinOperator = GT;
-				this.valueMinDouble = Double.parseDouble(limitValueString.substring(1).trim());
-				if ( Message.isDebugOn ) {
-					Message.printStatus(2,"","Parsed min value GT row.");
-				}
-			}
-			else {
-				// TODO smalers 2021-08-27 need to figure out the best exception.
-				throw new RuntimeException ( "Invalid operator for minimum value: " + limitValueString );
-			}
-		}
-		else if ( whichEnd == 1 ) {
-			if ( limitValueString.equalsIgnoreCase("Infinity") ) {
-				if ( Message.isDebugOn ) {
-					Message.printStatus(2,"","Parsed Infinity row.");
-				}
-				this.valueMaxIsInfinity = true;
-			}
-			else if ( limitValueString.startsWith("<=") ) {
-				this.valueMaxOperator = LE;
-				this.valueMaxDouble = Double.parseDouble(limitValueString.substring(2).trim());
-				if ( Message.isDebugOn ) {
-					Message.printStatus(2,"","Parsed max value LE row.");
-				}
-			}
-			else if ( limitValueString.startsWith("<") ) {
-				this.valueMaxOperator = LT;
-				this.valueMaxDouble = Double.parseDouble(limitValueString.substring(1).trim());
-				if ( Message.isDebugOn ) {
-					Message.printStatus(2,"","Parsed max value LT row.");
-				}
-			}
-			else {
-				// TODO smalers 2021-08-27 need to figure out the best exception.
-				throw new RuntimeException ( "Invalid operator for maximum value: " + limitValueString );
-			}
+		catch ( Exception e ) {
+			Message.printWarning(2, routine, "Exception parsing string \"" + limitValueString + "\"");
+			throw e;
 		}
 	}
 
