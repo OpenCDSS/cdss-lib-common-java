@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,86 +20,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// DataTable - class to hold tabular data from a database
-// ----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 23 Jun 1999	Catherine E.
-//		Nutting-Lane, RTi	Initial version
-// 2001-09-17	Steven A. Malers, RTi	Change the name of the class from Table
-//					to DataTable to avoid conflict with the
-//					existing C++ class.  Review code.
-//					Remove unneeded messages to increase
-//					performance.  Add get methods for fields
-//					for use when writing table.  Make data
-//					protected to allow extension to derived
-//					classes (e.g., DbaseDataTable).
-// 2001-10-04	SAM, RTi		Add getFormatFormat(int) to allow
-//					operation on a single field.
-// 2001-10-10	SAM, RTi		Add getFieldNames().
-// 2001-10-12	SAM, RTi		By default, trim character fields.  Add
-//					the trimStrings() method to allow an
-//					override.  This data member should be
-//					checked by the specific read code in
-//					derived classes.  Also change the
-//					format for strings to %- etc. because
-//					strings are normally left justified.
-// 2001-12-06	SAM, RTi		Change so that getNumberOfRecords()
-//					returns the value of _num_records and
-//					not _table_records.size().  The latter
-//					produces errors when records are read
-//					on the fly.  Classes that allow on-the-
-//					fly reads will need to set the number of
-//					records.
-// 2002-07-27	SAM, RTi		Trim the column names when reading the
-//					header.
-// 2003-12-16	J. Thomas Sapienza, RTi	* Added code for writing a table out to
-//					  a delimited file.
-//					* Added code for dumping a table to 
-//					  Status level 1 (for debugging).
-//					* Added code to trim spaces from values
-//					  read in from a table.
-// 2003-12-18	JTS, RTi		Added deleteRecord().
-// 2004-02-25	JTS, RTi		Added parseFile().
-// 2004-03-11	JTS, RTi		Added isDirty().
-// 2004-03-15	JTS, RTi		Commented out the DELIM_SKIP_BLANKS 
-//					from the delimited file read, so to 
-//					allow fields with no data.
-// 2004-04-04	SAM, RTi		Fix bug where the first non-comment line
-//					was being ignored.
-// 2004-08-03	JTS, RTi		Added setFieldValue().
-// 2004-08-05	JTS, RTi		Added version of parseDelimitedFile()
-//					that takes a parameter specifying the 
-//					max number of lines to read from the 
-//					file.
-// 2004-10-21	JTS, RTi		Added hasField().
-// 2004-10-26	JTS, RTi		Added deleteField().
-// 2005-01-03	JTS, RTi		* Added setFieldWidth()
-//					* When a table is read in with
-//					  parseDelimitedFile(), String columns
-//					  are now checked for the longest string
-//					  and the width of that column is set
-//					  so that the entire string will
-//					  be displayed.
-// 2005-01-27	JTS, RTi		Corrected null pointer bug in 
-//					parseDelimitedFile().
-// 2005-11-16	SAM, RTi		Add MergeDelimiters and TrimInput
-//					properties to parseDelimitedFile().
-// 2006-03-02	SAM, RTi		Change so that when on the fly reading
-//					is occurring, getTableRecord() returns
-//					null.
-// 2006-03-13	JTS, RTi		Correct bug so that parsed data tables
-//					have _have_data set to true.
-// 2006-06-21	SAM, RTi		Change so that when writing a delimited
-//					file the contents are quoted if the data
-//					contain the delimiter.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-// EndHeader
 
 package RTi.Util.Table;
 
@@ -130,29 +50,25 @@ import RTi.Util.Time.DateTime;
 // TODO SAM 2010-12-16 Evaluate using a different package for in-memory tables, such as
 // from H2 or other embedded database.
 /**
-This class contains records of data as a table, using a list of TableRecord
-instances.  The format of the table is defined using the TableField class.
-Tables can be used to store record-based data.  This class was originally
-implemented to store Dbase files associated with ESRI shapefile GIS data.
-Consequently, although a data table theoretically can store a variety of
-data types (see TableField), in practice only String and double types are used
-for some applications.
-Full handling of other data types will be added in the future.
+This class contains records of data as a table, using a list of TableRecord instances.
+The format of the table is defined using the TableField class.
+Tables can be used to store record-based data, for common data types.
+Handling additional data types can be added in the future.
 An example of a DataTable instantiation is:
 <p>
 
 <pre>
 try {
-	/// First, create define the table by assembling a list of TableField objects...
-	List<TableField> myTableFields = new ArrayList<TableField>(3);
+	/// First, create define the table by assembling a list of TableField objects.
+	List<TableField> myTableFields = new ArrayList<>(3);
 	myTableFields.add ( new TableField ( TableField.DATA_TYPE_STRING, "id_label_6", 12 ) );
 	myTableFields.add ( new TableField ( TableField.DATA_TYPE_INT, "Basin", 12 ) );
 	myTableFields.add ( new TableField ( TableField.DATA_TYPE_STRING, "aka", 12 ) );
 
-	// Now define table with one simple call...
+	// Now define table with one simple call.
 	DataTable myTable = new DataTable ( myTableFields );
 
-	// Now define a record to be included in the table...
+	// Now define a record to be included in the table.
 	TableRecord contents = new TableRecord (3);
 	contents.addFieldValue ( "123456" );
 	contents.addFieldValue ( new Integer (6));
@@ -160,7 +76,7 @@ try {
 
 	myTable.addRecord ( contents );
 
-	// Get the 2nd field from the first record (fields and records are zero-index based)...
+	// Get the 2nd field from the first record (fields and records are zero-index based).
 	system.out.println ( myTable.getFieldValue ( 0, 1 ));
 
 } catch (Exception e ) {
@@ -190,10 +106,10 @@ protected List<TableRecord> _table_records;
 
 /**
 List of comments for the table.  For example, an analysis that creates a table of results may
-need explanatory comments corresponding to column headings.  The comments can be output when the
-table is written to a file.
+need explanatory comments corresponding to column headings.
+The comments can be output when the table is written to a file.
 */
-private List<String> __comments = new ArrayList<String>();
+private List<String> __comments = new ArrayList<>();
 
 /**
 Number of records in the table (kept for case where records are not in memory).
@@ -214,8 +130,9 @@ are spaces actually actual data values.
 protected boolean _trim_strings = true;
 
 /**
-Indicates whether addRecord() has been called.  If so, assume that the data records
-are in memory for calls to getNumberOfRecords(). Otherwise, just return the _num_records value.
+Indicates whether addRecord() has been called.
+If so, assume that the data records are in memory for calls to getNumberOfRecords().
+Otherwise, just return the _num_records value.
 */
 protected boolean _add_record_called = false;
 
@@ -223,8 +140,8 @@ protected boolean _add_record_called = false;
 Construct a new table.  Use setTableFields() at a later time to define the table.
 */
 public DataTable ()
-{	// Estimate that 100 is a good increment for the data list...
-	initialize ( new ArrayList<TableField>(), 10, 100 );
+{	// Estimate that 100 is a good increment for the data list.
+	initialize ( new ArrayList<>(), 10, 100 );
 }
 
 /**
@@ -232,17 +149,17 @@ Construct a new table.  The list of TableRecord will increment in size by 100.
 @param tableFieldsList a list of TableField objects defining table contents.
 */
 public DataTable ( List<TableField> tableFieldsList )
-{	// Guess that 100 is a good increment for the data list...
+{	// Guess that 100 is a good increment for the data list.
 	initialize ( tableFieldsList, 10, 100 );
 }
 
 /**
 Construct a new table.
 @param tableFieldsList a list of TableField objects defining table contents.
-@param listSize Initial list size for the list holding records.  This
-can be used to optimize performance.
-@param listIncrement Increment for the list holding records.  This
-can be used to optimize performance.
+@param listSize Initial list size for the list holding records.
+This can be used to optimize performance.
+@param listIncrement Increment for the list holding records.
+This can be used to optimize performance.
 */
 public DataTable ( List<TableField> tableFieldsList, int listSize, int listIncrement )
 {	initialize ( tableFieldsList, listSize, listIncrement );
@@ -310,15 +227,15 @@ public int addField ( TableField tableField, Object initValue )
 }
 
 /**
-Add a field to the table and each entry in TableRecord.  The field is added at the specified insert position.
+Add a field to the table and each entry in TableRecord.
+The field is added at the specified insert position.
 The added fields are initialized with blank strings or NaN, as appropriate.
 @param insertPos the column (0+) at which to add the column (-1 or >= the number of existing columns to insert at the end).
 @param tableField information about field to add.
 @param initValue the initial value to set for all the existing rows in the table (can be null).
 @return the field index (0+).
 */
-public int addField ( int insertPos, TableField tableField, Object initValue )
-{
+public int addField ( int insertPos, TableField tableField, Object initValue ) {
 	return addField ( insertPos, tableField, initValue, null );
 }
 
@@ -334,22 +251,22 @@ The added fields are initialized with blank strings or NaN, as appropriate.
 public int addField ( int insertPos, TableField tableField, Object initValue, DataTableFunctionType initFunction )
 {	boolean addAtEnd = false;
     if ( (insertPos < 0) || (insertPos >= _table_fields.size()) ) {
-        // Add at the end
+        // Add at the end.
         _table_fields.add ( tableField );
         addAtEnd = true;
     }
     else {
-        // Insert at the specified column location
+        // Insert at the specified column location.
         _table_fields.add(insertPos,tableField);
     }
-    // Add value to each record in the table to be consistent with the field data
+    // Add value to each record in the table to be consistent with the field data.
 	int num = _table_records.size();
 	TableRecord tableRecord;
 	for ( int i=0; i<num; i++ ) {
 		tableRecord = _table_records.get(i);
-		// Calculate the initial value if a function
-		// Add element and set to specified initial value
-		// These are ordered in the most likely types to optimize
+		// Calculate the initial value if a function.
+		// Add element and set to specified initial value.
+		// These are ordered in the most likely types to optimize.
 		// TODO SAM 2014-05-04 Why are these broken out separately?
 		int dataType = tableField.getDataType();
 		if ( dataType == TableField.DATA_TYPE_STRING ) {
@@ -449,7 +366,7 @@ public int addField ( int insertPos, TableField tableField, Object initValue, Da
             }
         }
         else if ( dataType == TableField.DATA_TYPE_DATE ) {
-        	// Function not relevant
+        	// Function not relevant.
             if ( addAtEnd ) {
                 tableRecord.addFieldValue( initValue );
             }
@@ -458,7 +375,7 @@ public int addField ( int insertPos, TableField tableField, Object initValue, Da
             }
         }
         else if ( dataType == TableField.DATA_TYPE_DATETIME ) {
-        	// Function not relevant
+        	// Function not relevant.
             if ( addAtEnd ) {
                 tableRecord.addFieldValue( initValue );
             }
@@ -468,7 +385,7 @@ public int addField ( int insertPos, TableField tableField, Object initValue, Da
         }
 	}
 	if ( addAtEnd ) {
-	    return getNumberOfFields() - 1; // Zero offset
+	    return getNumberOfFields() - 1; // Zero offset index (0+).
 	}
 	else {
 	    return insertPos;
@@ -490,50 +407,50 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
     Hashtable<String,String> columnMap, Hashtable<String,String> columnData,
     Hashtable<String,String> columnFilters )
 {   String routine = getClass().getSimpleName() + ".appendTable";
-    // List of columns that will be appended
+    // List of columns that will be appended.
     String [] columnNamesToAppend = null;
     String [] firstTableColumnNames = table.getFieldNames();
     if ( (reqIncludeColumns != null) && (reqIncludeColumns.length > 0) ) {
-        // Append only the requested names from the append table
+        // Append only the requested names from the append table.
         columnNamesToAppend = reqIncludeColumns;
     }
     else {
-        // Append all columns from the append table
+        // Append all columns from the append table.
         columnNamesToAppend = appendTable.getFieldNames();
     }
     // Column numbers in the append table to align with the original table.  Any values set to -1 will result in null.
     int [] firstTableColumnNumbersInAppendTable = new int[table.getNumberOfFields()];
-    String [] appendTableColumnNamesOriginal = appendTable.getFieldNames();  // columns from append table
-    String [] appendTableColumnNamesAfterMapping = appendTable.getFieldNames(); // columns from append table after mapping, set below
-    // Replace the append table names using the column map
+    String [] appendTableColumnNamesOriginal = appendTable.getFieldNames();  // Columns from append table.
+    String [] appendTableColumnNamesAfterMapping = appendTable.getFieldNames(); // Columns from append table after mapping, set below.
+    // Replace the append table names using the column map.
     String columnMapped;
     for ( int icol = 0; icol < appendTableColumnNamesAfterMapping.length; icol++ ) {
-    	// If column map is provided, use it
+    	// If column map is provided, use it.
         if ( columnMap != null ) {
-        	// Append column table output name is looked up from append table column original name
+        	// Append column table output name is looked up from append table column original name.
             columnMapped = columnMap.get(appendTableColumnNamesAfterMapping[icol]);
             if ( columnMapped != null ) {
-                // Reset the append column name with the new name, which should match a column name in the first table
+                // Reset the append column name with the new name, which should match a column name in the first table.
                 appendTableColumnNamesAfterMapping[icol] = columnMapped;
             }
         }
     }
-    // Loop through the columns in the original table and match the column numbers in the append table
+    // Loop through the columns in the original table and match the column numbers in the append table.
     boolean appendColumnFound = false;
     int errorCount = 0;
     StringBuffer errorMessage = new StringBuffer();
     for ( int icol = 0; icol < firstTableColumnNumbersInAppendTable.length; icol++ ) {
-        firstTableColumnNumbersInAppendTable[icol] = -1; // No match between first and append table, will result in null in original table
-        // Check each of the column names in the original table to match whether appending from the append table
+        firstTableColumnNumbersInAppendTable[icol] = -1; // No match between first and append table, will result in null in original table.
+        // Check each of the column names in the original table to match whether appending from the append table:
         // - appendTableColumnNamesAfterMapping are names in the original table, achieved through mapping
         // The append table column names will have been mapped to the first table above.
         for ( int i = 0; i < appendTableColumnNamesAfterMapping.length; i++ ) {
-            // First check to see if the column name should be appended by whether append table and original table columns map to same column name
+            // First check to see if the column name should be appended by whether append table and original table columns map to same column name.
             appendColumnFound = false;
             for ( int j = 0; j < columnNamesToAppend.length; j++ ) {
             	// columnNamesToAppend
                 if ( columnNamesToAppend[j].equalsIgnoreCase(appendTableColumnNamesOriginal[i]) ) {
-                	// Found a requested column to append in the append table (using original column names)
+                	// Found a requested column to append in the append table (using original column names).
                     appendColumnFound = true;
                     break;
                 }
@@ -544,7 +461,7 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
                 continue;
             }
             if ( firstTableColumnNames[icol].equalsIgnoreCase(appendTableColumnNamesAfterMapping[i]) ) {
-            	// Have a matching column in first (original) table and the append table
+            	// Have a matching column in first (original) table and the append table:
             	// - this is after append table column names have been mapped (renamed)
             	Message.printStatus(2, routine, "Original table column [" + icol + "] \"" +
             		firstTableColumnNames[icol] + "\" maps to append table column [" + i + "] \"" +
@@ -555,9 +472,9 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
             }
         }
     }
-    int [] tableColumnTypes = table.getFieldDataTypes(); // Original table column types
-    int [] appendTableColumnTypes = appendTable.getFieldDataTypes(); // Append column types, lined up with original table
-    // Get filter columns and glob-style regular expressions
+    int [] tableColumnTypes = table.getFieldDataTypes(); // Original table column types.
+    int [] appendTableColumnTypes = appendTable.getFieldDataTypes(); // Append column types, lined up with original table.
+    // Get filter columns and glob-style regular expressions.
     int [] columnNumbersToFilter = new int[columnFilters.size()];
     String [] columnFilterGlobs = new String[columnFilters.size()];
     Enumeration<String> keys = columnFilters.keys();
@@ -570,7 +487,7 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
             key = keys.nextElement();
             columnNumbersToFilter[ikey] = appendTable.getFieldIndex(key);
             columnFilterGlobs[ikey] = columnFilters.get(key);
-            // Turn default globbing notation into internal Java regex notation
+            // Turn default globbing notation into internal Java regex notation.
             columnFilterGlobs[ikey] = columnFilterGlobs[ikey].replace("*", ".*").toUpperCase();
             Message.printStatus(2, routine, "Filtering column [" + columnNumbersToFilter[ikey] + "] \"" +
                 key + "\" to match \"" + columnFilterGlobs[ikey] + "\"");
@@ -583,7 +500,7 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
             errorMessage.append ( "Filter column \"" + key + "\" not found in table \"" + appendTable.getTableID() + "\".");
         }
     }
-    // If extra column data were provided, parse here so don't have to parse each time added
+    // If extra column data were provided, parse here so don't have to parse each time added:
     // - these are values for the original table columns that are not provided by append table
     Object [] columnDataParsedValues = new Object[columnData.size()];
     int iColumnData = -1;
@@ -591,7 +508,7 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
 		++iColumnData;
 		String column = entry.getKey();
 		String value = entry.getValue();
-		// Get the column
+		// Get the column.
 		try {
 			int iColumn = getFieldIndex(column);
 			int colType = getFieldDataType(iColumn);
@@ -620,7 +537,7 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
       		columnDataParsedValues[iColumnData] = null;
        	}
     }
-    // Loop through all the data records and append records to the table
+    // Loop through all the data records and append records to the table.
     int icol;
     int irowAppended = 0;
     boolean somethingAppended = false;
@@ -628,13 +545,13 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
     String s;
     TableRecord rec;
     for ( int irow = 0; irow < appendTable.getNumberOfRecords(); irow++ ) {
-        somethingAppended = false; // Nothing appended so don't process record below
-        filterMatches = true; // Meaning, include the record, true by default if no filters
+        somethingAppended = false; // Nothing appended so don't process record below.
+        filterMatches = true; // Meaning, include the record, true by default if no filters.
         if ( columnNumbersToFilter.length > 0 ) {
-            // Filters can be done on any columns so loop through to see if row matches before doing append
+            // Filters can be done on any columns so loop through to see if row matches before doing append.
             for ( icol = 0; icol < columnNumbersToFilter.length; icol++ ) {
                 if ( columnNumbersToFilter[icol] < 0 ) {
-                	// Column for filter was not found so cannot apply the filter
+                	// Column for filter was not found so cannot apply the filter.
                     filterMatches = false;
                     Message.printStatus(2, routine, "Column name to filter could not be determined." );
                     break;
@@ -644,12 +561,12 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
                     if ( o == null ) {
                         filterMatches = false;
                         // Message.printStatus(2, routine, "Object is null, cannot check against filter \"" + columnFilterGlobs[icol] + "\"");
-                        break; // Don't include nulls when checking values
+                        break; // Don't include nulls when checking values.
                     }
                     s = ("" + o).toUpperCase();
                     // Message.printStatus(2, routine, "Checking \"" + s + "\" against filter \"" + columnFilterGlobs[icol] + "\"");
                     if ( !s.matches(columnFilterGlobs[icol]) ) {
-                        // A filter did not match so don't copy the record
+                        // A filter did not match so don't copy the record.
                         filterMatches = false;
                         break;
                     }
@@ -664,31 +581,31 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
                         columnNumbersToFilter[icol] + "] for filter (" + e + ")." );
                     ++errorCount;
                 }
-            } // End checking column filters
+            } // End checking column filters.
             if ( !filterMatches ) {
-            	// One or more filters were provided and did not match the record so skip the record.
+            	// One or more filters were provided and did not match the record so skip the record:
             	// - the following generates a lot of output and can fill up the disk - disable for production code
             	//Message.printStatus(2, routine, "Row " + (irow + 1) + " did not match filter...not appending row.");
                 continue;
             }
         }
-        // Loop through columns in the original table and set values from the append table.
+        // Loop through columns in the original table and set values from the append table:
         // - the number of columns will match the first table
-        // Create a record and add values for each column extracted from the append table...
+        // Create a record and add values for each column extracted from the append table.
         rec = new TableRecord();
         for ( icol = 0; icol < firstTableColumnNumbersInAppendTable.length; icol++ ) {
             try {
                 if ( firstTableColumnNumbersInAppendTable[icol] < 0 ) {
-                    // Column in first table was not matched in the append table so set to null
+                    // Column in first table was not matched in the append table so set to null.
                     rec.addFieldValue(null);
                 }
                 else {
-                    // Set the value in the original table, if the type matches
+                    // Set the value in the original table, if the type matches.
                     if ( tableColumnTypes[icol] == appendTableColumnTypes[firstTableColumnNumbersInAppendTable[icol]] ) {
                         rec.addFieldValue(appendTable.getFieldValue(irow, firstTableColumnNumbersInAppendTable[icol]));
                     }
                     else {
-                    	// Types did not match so set to null
+                    	// Types did not match so set to null:
                     	// - TODO smalers 2019-11-05 add intelligent casting
                     	Message.printWarning(3, routine, "Column types do not match for column \"" +
                     		firstTableColumnNames[icol] + "\" - using null value." );
@@ -696,10 +613,10 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
                         rec.addFieldValue(null);
                     }
                 }
-                somethingAppended = true; // Checked below to ensure that empty TableRecord is not added
+                somethingAppended = true; // Checked below to ensure that empty TableRecord is not added.
             }
             catch ( Exception e ) {
-                // Should not happen
+                // Should not happen.
                	if ( errorMessage.length() > 0 ) {
                    	errorMessage.append("\n");
                	}
@@ -714,18 +631,18 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
             // Set the record in the original table.
         	// First see if additional data should be set, as provided by column data.
         	if ( columnData != null ) {
-        		// Iterate through the hash
+        		// Iterate through the hash.
         		iColumnData = -1;
         		for ( Map.Entry<String,String> entry : columnData.entrySet() ) {
         			++iColumnData;
         			String column = entry.getKey();
-        			// Get the column
+        			// Get the column.
         			try {
         				int iColumn = getFieldIndex(column);
         				rec.setFieldValue(iColumn, columnDataParsedValues[iColumnData]);
         			}
         			catch ( Exception e ) {
-        				// Should not happen but print warning if it does
+        				// Should not happen but print warning if it does.
                         ++errorCount;
                         if ( errorMessage.length() > 0 ) {
                             errorMessage.append("\n");
@@ -735,7 +652,7 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
         			}
         		}
         	}
-        	// If here add the record to the original table
+        	// If here add the record to the original table.
             try {
                 table.addRecord(rec);
                 ++irowAppended;
@@ -769,7 +686,7 @@ for example, DBF file floating point column that is actually storing an integer.
 public void changeFieldDataType ( int fieldNum, int newDataType, int newWidth, int newPrecision ) 
 throws Exception {
 	int oldDataType = -1;
-	String format = null; // Used when converting from Float/Double to String
+	String format = null; // Used when converting from Float/Double to String.
 	try {
 		oldDataType = this.getFieldDataType(fieldNum);
 	}
@@ -777,10 +694,10 @@ throws Exception {
         throw new RuntimeException ( "Cannot determine data type for column [" + fieldNum + "]" );
 	}
 	if ( oldDataType == newDataType ) {
-		// Nothing to do
+		// Nothing to do.
 		return;
 	}
-	// Field will be changed below, also need width and precision to format some conversions
+	// Field will be changed below, also need width and precision to format some conversions.
 	TableField field = this.getTableField(fieldNum);
 	if ( (newDataType != TableField.DATA_TYPE_DOUBLE) &&
 	    (newDataType != TableField.DATA_TYPE_FLOAT) &&
@@ -792,7 +709,7 @@ throws Exception {
 	    if ( (newDataType == TableField.DATA_TYPE_STRING) &&
             (oldDataType != TableField.DATA_TYPE_DOUBLE) &&
 	        (oldDataType != TableField.DATA_TYPE_FLOAT) ) {
-	    	// Define output format, necessary to prevent default exponential format from toString()
+	    	// Define output format, necessary to prevent default exponential format from toString().
 	    	format = "%" + field.getWidth() + "." + field.getPrecision() + "f";
 	    }
 	}
@@ -804,7 +721,7 @@ throws Exception {
             TableField.getDataTypeAsString(oldDataType) + "\" to \"" +
             TableField.getDataTypeAsString(newDataType) + "\" is not implemented." );
 	}
-	// Change the table field information
+	// Change the table field information.
 	field.setDataType(newDataType);
 	if ( newWidth > -2 ) {
 	    field.setWidth(newWidth);
@@ -812,7 +729,7 @@ throws Exception {
 	if ( newPrecision > -2 ) {
 	    field.setPrecision(newPrecision);
 	}
-	// Change the data in the table
+	// Change the data in the table.
 	int numRec = getNumberOfRecords();
 	Object o;
 	Float f;
@@ -822,7 +739,7 @@ throws Exception {
 	for ( int irec = 0; irec < numRec; irec++ ) {
 	    o = this.getFieldValue(irec, fieldNum);
 	    if ( o == null ) {
-	    	// Nothing to be done because old and new will both be null
+	    	// Nothing to be done because old and new will both be null.
 	    }
 	    if ( newDataType == TableField.DATA_TYPE_DOUBLE ) {
 	    	if ( o instanceof Float ) {
@@ -866,7 +783,7 @@ throws Exception {
 	    	if ( o instanceof Double ) {
 	    	    d = (Double)o;
 	    		if ( d.isNaN() ) {
-	    		    // Integer does not have equivalent to NaN so use null
+	    		    // Integer does not have equivalent to NaN so use null.
 	        	    this.setFieldValue(irec, fieldNum, null );
 	    		}
 	    		else {
@@ -876,7 +793,7 @@ throws Exception {
 	    	else if ( o instanceof Float ) {
 	    	    f = (Float)o;
 	    		if ( f.isNaN() ) {
-	    		    // Integer does not have equivalent to NaN so use null
+	    		    // Integer does not have equivalent to NaN so use null.
 	        	    this.setFieldValue(irec, fieldNum, null );
 	    		}
 	    		else {
@@ -892,7 +809,7 @@ throws Exception {
 	    	if ( o instanceof Double ) {
 	    	    d = (Double)o;
 	    		if ( d.isNaN() ) {
-	    		    // String does not have equivalent to NaN so use null
+	    		    // String does not have equivalent to NaN so use null.
 	        	    this.setFieldValue(irec, fieldNum, null );
 	    		}
 	    		else {
@@ -902,7 +819,7 @@ throws Exception {
 	    	else if ( o instanceof Float ) {
 	    	    f = (Float)o;
 	    		if ( f.isNaN() ) {
-	    		    // String does not have equivalent to NaN so use null
+	    		    // String does not have equivalent to NaN so use null.
 	        	    this.setFieldValue(irec, fieldNum, null );
 	    		}
 	    		else {
@@ -935,24 +852,24 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
     String [] distinctColumns, Hashtable<String,String> columnMap,
     Hashtable<String,String> columnFilters, StringDictionary columnExcludeFilters )
 {   String routine = getClass().getSimpleName() + ".createCopy";
-    // List of columns that will be copied
+    // List of columns that will be copied.
     String [] columnNamesToCopy = null;
-    // TODO SAM 2013-11-25 Remove code if the functionality works
+    // TODO SAM 2013-11-25 Remove code if the functionality works.
     //if ( (distinctColumns != null) && (distinctColumns.length > 0) ) {
     //    // Distinct overrides requested column names
     //    reqIncludeColumns = distinctColumns;
     //}
     if ( (reqIncludeColumns != null) && (reqIncludeColumns.length > 0) ) {
-        // Copy only the requested names
+        // Copy only the requested names.
         columnNamesToCopy = reqIncludeColumns;
     }
     else {
-        // Copy all
+        // Copy all.
         columnNamesToCopy = table.getFieldNames();
     }
-    /* TODO SAM 2013-11-26 Remove this once tested - distinct columns are NOT required to be in output
+    /* TODO SAM 2013-11-26 Remove this once tested - distinct columns are NOT required to be in output.
     if ( (distinctColumns != null) && (distinctColumns.length > 0) ) {
-        // Add the distinct columns to the requested columns if not already included
+        // Add the distinct columns to the requested columns if not already included.
         boolean [] found = new boolean[distinctColumns.length];
         int foundCount = 0;
         for ( int id = 0; id < distinctColumns.length; id++ ) {
@@ -972,15 +889,15 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
             for ( int id = 0; id < distinctColumns.length; id++ ) {
                 if ( !found[id] ) {
                     tmp[tmp.length + addCount] = distinctColumns[id];
-                    ++addCount; // Do after assignment above
+                    ++addCount; // Do after assignment above.
                 }
             }
             reqIncludeColumns = tmp;
         }
     }
     */
-    // Figure out which columns numbers should be copied.  Initialize an array with -1 and then set to
-    // actual table columns if matching
+    // Figure out which columns numbers should be copied.
+    // Initialize an array with -1 and then set to actual table columns if matching.
     int errorCount = 0;
     StringBuffer errorMessage = new StringBuffer();
     int [] columnNumbersToCopy = new int[columnNamesToCopy.length];
@@ -989,7 +906,7 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
             columnNumbersToCopy[icol] = table.getFieldIndex(columnNamesToCopy[icol]);
         }
         catch ( Exception e ) {
-            columnNumbersToCopy[icol] = -1; // Requested column not matched
+            columnNumbersToCopy[icol] = -1; // Requested column not matched.
             ++errorCount;
             if ( errorMessage.length() > 0 ) {
                 errorMessage.append(" ");
@@ -997,7 +914,7 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
             errorMessage.append ( "Requested column \"" + columnNamesToCopy[icol] + "\" not found in existing table.");
         }
     }
-    // Get (include) filter columns and glob-style regular expressions
+    // Get (include) filter columns and glob-style regular expressions.
     if ( columnFilters == null ) {
         columnFilters = new Hashtable<String,String>();
     }
@@ -1013,7 +930,7 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
             key = keys.nextElement();
             columnNumbersToFilter[ikey] = table.getFieldIndex(key);
             columnFilterGlobs[ikey] = columnFilters.get(key);
-            // Turn default globbing notation into internal Java regex notation
+            // Turn default globbing notation into internal Java regex notation.
             columnFilterGlobs[ikey] = columnFilterGlobs[ikey].replace("*", ".*").toUpperCase();
         }
         catch ( Exception e ) {
@@ -1024,7 +941,7 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
             errorMessage.append ( "ColumnFilters \"" + key + "\" not found in existing table.");
         }
     }
-    // Get exclude filter columns and glob-style regular expressions
+    // Get exclude filter columns and glob-style regular expressions.
     int [] columnExcludeFiltersNumbers = new int[0];
     String [] columnExcludeFiltersGlobs = null;
     if ( columnExcludeFilters != null ) {
@@ -1039,7 +956,7 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
                 key = entry.getKey();
                 columnExcludeFiltersNumbers[ikey] = table.getFieldIndex(key);
                 columnExcludeFiltersGlobs[ikey] = map.get(key);
-                // Turn default globbing notation into internal Java regex notation
+                // Turn default globbing notation into internal Java regex notation.
                 columnExcludeFiltersGlobs[ikey] = columnExcludeFiltersGlobs[ikey].replace("*", ".*").toUpperCase();
             }
             catch ( Exception e ) {
@@ -1060,7 +977,7 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
                 distinctColumnNumbers[id] = table.getFieldIndex(distinctColumns[id]);
             }
             catch ( Exception e ) {
-                distinctColumnNumbers[id] = -1; // Distinct column not matched
+                distinctColumnNumbers[id] = -1; // Distinct column not matched.
                 ++errorCount;
                 if ( errorMessage.length() > 0 ) {
                     errorMessage.append(" ");
@@ -1069,34 +986,34 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
             }
         }
     }
-    // Create a new data table with the requested column names
+    // Create a new data table with the requested column names.
     DataTable newTable = new DataTable();
     newTable.setTableID ( newTableID );
-    // Get the column information from the original table
-    Object newColumnNameO = null; // Used to map column names
-    TableField newTableField; // New table field
-    List<Object []> distinctList = new ArrayList<Object []>(); // Unique combinations of requested distinct column values
-    // Create requested columns in the output table
+    // Get the column information from the original table.
+    Object newColumnNameO = null; // Used to map column names.
+    TableField newTableField; // New table field.
+    List<Object []> distinctList = new ArrayList<Object []>(); // Unique combinations of requested distinct column values.
+    // Create requested columns in the output table.
     for ( int icol = 0; icol < columnNumbersToCopy.length; icol++ ) {
         if ( columnNumbersToCopy[icol] == -1 ) {
-            // Did not find the column in the table so add a String column for null values
+            // Did not find the column in the table so add a String column for null values.
             newTableField = new TableField(TableField.DATA_TYPE_STRING, columnNamesToCopy[icol], -1, -1);
         }
         else {
-            // Copy the data from the original table
-            // First make a copy of the existing table field
+            // Copy the data from the original table.
+            // First make a copy of the existing table field.
             newTableField = new TableField(table.getTableField(columnNumbersToCopy[icol]));
         }
         if ( columnMap != null ) {
             newColumnNameO = columnMap.get(newTableField.getName());
             if ( newColumnNameO != null ) {
-                // Reset the column name with the new name
+                // Reset the column name with the new name.
                 newTableField.setName((String)newColumnNameO);
             }
         }
         newTable.addField(newTableField, null );
     }
-    // Now loop through all the data records and copy to the output table
+    // Now loop through all the data records and copy to the output table.
     int icol;
     int irowCopied = 0;
     boolean somethingCopied = false;
@@ -1107,12 +1024,12 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
         oDistinctCheck = new Object[distinctColumnNumbers.length];
     }
     String s;
-    int distinctMatchesCount = 0; // The number of distinct column value that match the current row
+    int distinctMatchesCount = 0; // The number of distinct column value that match the current row.
     for ( int irow = 0; irow < table.getNumberOfRecords(); irow++ ) {
         somethingCopied = false;
         filterMatches = true;
         if ( columnNumbersToFilter.length > 0 ) {
-            // Filters can be done on any columns so loop through to see if row matches before doing copy
+            // Filters can be done on any columns so loop through to see if row matches before doing copy.
             for ( icol = 0; icol < columnNumbersToFilter.length; icol++ ) {
                 if ( columnNumbersToFilter[icol] < 0 ) {
                     filterMatches = false;
@@ -1122,11 +1039,11 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
                     o = table.getFieldValue(irow, columnNumbersToFilter[icol]);
                     if ( o == null ) {
                         filterMatches = false;
-                        break; // Don't include nulls when checking values
+                        break; // Don't include nulls when checking values.
                     }
                     s = ("" + o).toUpperCase();
                     if ( !s.matches(columnFilterGlobs[icol]) ) {
-                        // A filter did not match so don't copy the record
+                        // A filter did not match so don't copy the record.
                         filterMatches = false;
                         break;
                     }
@@ -1144,29 +1061,29 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
                 continue;
             }
         }
-        // If here need to check the exclude filters on the row
+        // If here need to check the exclude filters on the row.
         if ( columnExcludeFiltersNumbers.length > 0 ) {
             int matchesCount = 0;
-            // Filters can be done on any columns so loop through to see if row matches before doing copy
+            // Filters can be done on any columns so loop through to see if row matches before doing copy.
             for ( icol = 0; icol < columnExcludeFiltersNumbers.length; icol++ ) {
                 if ( columnExcludeFiltersNumbers[icol] < 0 ) {
-                    // Can't do filter so don't try
+                    // Can't do filter so don't try.
                     break;
                 }
                 try {
                     o = table.getFieldValue(irow, columnExcludeFiltersNumbers[icol]);
                     if ( o == null ) {
                     	if ( columnExcludeFiltersGlobs[icol].isEmpty() ) {
-                    		// Trying to match blank cells
+                    		// Trying to match blank cells.
                     		++matchesCount;
                     	}
-                    	else { // Don't include nulls when checking values
+                    	else { // Don't include nulls when checking values.
                     		break;
                     	}
                     }
                     s = ("" + o).toUpperCase();
                     if ( s.matches(columnExcludeFiltersGlobs[icol]) ) {
-                        // A filter matched so don't copy the record
+                        // A filter matched so don't copy the record.
                         ++matchesCount;
                     }
                 }
@@ -1179,21 +1096,21 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
                 }
             }
             if ( matchesCount == columnExcludeFiltersNumbers.length ) {
-                // Skip the record since all filters were matched
+                // Skip the record since all filters were matched.
                 continue;
             }
         }
-        // If here then the row is OK to include
+        // If here then the row is OK to include.
         if ( (distinctColumnNumbers != null) && (distinctColumnNumbers.length > 0) ) {
-            // Distinct columns can be done on any columns so loop through to see if row matches before doing copy
-            // First retrieve the objects and store in an array because a distinct combinations of 1+ values is checked
+            // Distinct columns can be done on any columns so loop through to see if row matches before doing copy.
+            // First retrieve the objects and store in an array because a distinct combinations of 1+ values is checked.
             distinctMatches = false;
             for ( icol = 0; icol < distinctColumnNumbers.length; icol++ ) {
                 if ( distinctColumnNumbers[icol] < 0 ) {
                     break;
                 }
                 try {
-                    // This array is reused but will be copied below if needed to save
+                    // This array is reused but will be copied below if needed to save.
                     oDistinctCheck[icol] = table.getFieldValue(irow, distinctColumnNumbers[icol]);
                 }
                 catch ( Exception e ) {
@@ -1204,14 +1121,14 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
                     ++errorCount;
                 }
             }
-            // Now actually check the values
+            // Now actually check the values.
             for ( Object [] odArray : distinctList ) {
                 distinctMatchesCount = 0;
                 for ( icol = 0; icol < distinctColumnNumbers.length; icol++ ) {
                     if ( (oDistinctCheck[icol] == null) ||
                         ((oDistinctCheck[icol] instanceof String) && ((String)oDistinctCheck[icol]).trim().length() == 0) ) {
-                        // TODO SAM 2013-11-25 Don't include nulls and blank strings in distinct values
-                        // Might need to change this in the future if those values have relevance
+                        // TODO SAM 2013-11-25 Don't include nulls and blank strings in distinct values.
+                        // Might need to change this in the future if those values have relevance.
                         continue;
                     }
                     if ( odArray[icol].equals(oDistinctCheck[icol]) ) {
@@ -1232,26 +1149,26 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
                 // Create a copy of the temporary object to save and use below.
                 Object [] oDistinctCheckCopy = new Object[distinctColumnNumbers.length];
                 System.arraycopy(oDistinctCheck, 0, oDistinctCheckCopy, 0, distinctColumnNumbers.length);
-                distinctList.add(oDistinctCheckCopy); // Have another combination of distinct values to check for other table rows
-                // The row will be added below
+                distinctList.add(oDistinctCheckCopy); // Have another combination of distinct values to check for other table rows.
+                // The row will be added below.
             }
         }
         // If here then the row can be added.
         for ( icol = 0; icol < columnNumbersToCopy.length; icol++ ) {
             try {
                 if ( columnNumbersToCopy[icol] < 0 ) {
-                    // Value in new table is null
+                    // Value in new table is null.
                     newTable.setFieldValue(irowCopied, icol, null, true );
                 }
                 else {
-                    // Value in new table is copied from original
+                    // Value in new table is copied from original.
                     // TODO SAM 2013-08-06 Need to evaluate - following is OK for immutable objects but what about DateTime, etc?
                     newTable.setFieldValue(irowCopied, icol, table.getFieldValue(irow, columnNumbersToCopy[icol]), true );
                 }
                 somethingCopied = true;
             }
             catch ( Exception e ) {
-                // Should not happen
+                // Should not happen.
                 errorMessage.append("Error setting new table data copying [" + irow + "][" +
                     columnNumbersToCopy[icol] + "].");
                 Message.printWarning(3, routine, "Error setting new table data for [" + irow + "][" +
@@ -1422,7 +1339,7 @@ public static DataTable duplicateDataTable(DataTable originalTable, boolean clon
 
 	TableField field = null;
 	TableField newField = null;
-	List<TableField> tableFields = new ArrayList<TableField>();
+	List<TableField> tableFields = new ArrayList<>();
 	for (int i = 0; i < numFields; i++) {
 		field = originalTable.getTableField(i);
 		newField = new TableField(field.getDataType(), 
@@ -1484,8 +1401,7 @@ for inserting new table records where only specific column value is known, in wh
 modified with TableRecord.setFieldValue().
 @return a new record with null objects in each value.
 */
-public TableRecord emptyRecord ()
-{
+public TableRecord emptyRecord () {
     TableRecord newRecord = new TableRecord();
     int nCol = getNumberOfFields();
     for ( int i = 0; i < nCol; i++ ) {
@@ -1534,7 +1450,7 @@ public String formatArrayColumn ( int row, int col ) throws Exception {
 		return null;
 	}
 	// For the purposes of rendering in the table, treat array as formatted string [ val1, val2, ... ]
-	// Where the formatting of the values is for the raw value
+	// Where the formatting of the values is for the raw value.
 	StringBuilder b = new StringBuilder("[");
 	switch ( dataType ) {
 		case TableField.DATA_TYPE_DATETIME:
@@ -1573,7 +1489,7 @@ public String formatArrayColumn ( int row, int col ) throws Exception {
 					b.append(",");
 				}
 				if ( !DMIUtil.isMissing(da[i]) ) {
-					// Need to get the TableField format because the overall column will be string
+					// Need to get the TableField format because the overall column will be string.
 					// TODO SAM 2015-09-06
 					//b.append(StringUtil.formatString(da[i],__fieldFormats[col]));
 					b.append(StringUtil.formatString(da[i],"%.6f"));
@@ -1605,7 +1521,7 @@ public String formatArrayColumn ( int row, int col ) throws Exception {
 					b.append(",");
 				}
 				if ( !DMIUtil.isMissing(fa[i]) ) {
-					// Need to get the TableField format because the overall column will be string
+					// Need to get the TableField format because the overall column will be string.
 					// TODO SAM 2015-09-06
 					//b.append(StringUtil.formatString(da[i],__fieldFormats[col]));
 					b.append(StringUtil.formatString(fa[i],"%.6f"));
@@ -1655,7 +1571,7 @@ public String formatArrayColumn ( int row, int col ) throws Exception {
 					b.append(",");
 				}
 				if ( !DMIUtil.isMissing(ia[i]) ) {
-					// Need to get the TableField format because the overall column will be string
+					// Need to get the TableField format because the overall column will be string.
 					// TODO SAM 2015-09-06
 					//b.append(StringUtil.formatString(da[i],__fieldFormats[col]));
 					b.append(ia[i]);
@@ -1687,7 +1603,7 @@ public String formatArrayColumn ( int row, int col ) throws Exception {
 					b.append(",");
 				}
 				if ( !DMIUtil.isMissing(la[i]) ) {
-					// Need to get the TableField format because the overall column will be string
+					// Need to get the TableField format because the overall column will be string.
 					// TODO SAM 2015-09-06
 					//b.append(StringUtil.formatString(da[i],__fieldFormats[col]));
 					b.append(la[i]);
@@ -1719,7 +1635,7 @@ public String formatArrayColumn ( int row, int col ) throws Exception {
 					b.append(",");
 				}
 				if ( !DMIUtil.isMissing(sa[i]) ) {
-					// Need to get the TableField format because the overall column will be string
+					// Need to get the TableField format because the overall column will be string.
 					// TODO SAM 2015-09-06
 					//b.append(StringUtil.formatString(da[i],__fieldFormats[col]));
 					b.append(sa[i]);
@@ -1727,7 +1643,7 @@ public String formatArrayColumn ( int row, int col ) throws Exception {
 			}
 			break;
 		case TableField.DATA_TYPE_BOOLEAN:
-			Boolean [] Ba = new Boolean[0]; // Use Boolean object array because boolean can't indicate null value
+			Boolean [] Ba = new Boolean[0]; // Use Boolean object array because boolean can't indicate null value.
 			if ( oa instanceof Boolean[] ) {
 				Ba = (Boolean [])oa;
 			}
@@ -1747,7 +1663,7 @@ public String formatArrayColumn ( int row, int col ) throws Exception {
 					b.append(",");
 				}
 				if ( !DMIUtil.isMissing(Ba[i]) ) {
-					// Need to get the TableField format because the overall column will be string
+					// Need to get the TableField format because the overall column will be string.
 					// TODO SAM 2015-09-06
 					//b.append(StringUtil.formatString(da[i],__fieldFormats[col]));
 					b.append(Ba[i]);
@@ -1761,7 +1677,7 @@ public String formatArrayColumn ( int row, int col ) throws Exception {
 					b.append(",");
 				}
 				if ( stra[i] != null ) {
-					// Need to get the TableField format because the overall column will be string
+					// Need to get the TableField format because the overall column will be string.
 					// TODO SAM 2015-09-06
 					//b.append(StringUtil.formatString(da[i],__fieldFormats[col]));
 					// Quote strings to make sure separation of strings is clear
@@ -1770,7 +1686,7 @@ public String formatArrayColumn ( int row, int col ) throws Exception {
 			}
 			break;
 		default:
-			// Don't know the type so don't know how to format the array. Just leave blank
+			// Don't know the type so don't know how to format the array. Just leave blank.
 			break;
 	}
 	b.append("]");
@@ -1815,10 +1731,10 @@ public int[] getFieldDataTypes ()
 }
 
 /**
-Get C-style format specifier that can be used to format field values for
-output.  This format can be used with StringUtil.formatString().  All fields
-formats are set to the full width and precision defined for the field.  Strings
-are left-justified and numbers are right justified.
+Get C-style format specifier that can be used to format field values for output.
+This format can be used with StringUtil.formatString().
+All fields formats are set to the full width and precision defined for the field.
+Strings are left-justified and numbers are right justified.
 @return a String format specifier.
 @param index Field index (zero-based).
 */
@@ -1826,9 +1742,9 @@ public String getFieldFormat ( int index )
 {	int fieldType = getFieldDataType(index);
     int fieldWidth = getFieldWidth(index);
 	if ( fieldType == TableField.DATA_TYPE_STRING ) {
-		// Output left-justified and padded...
+		// Output left-justified and padded.
 	    if ( fieldWidth < 0 ) {
-	        // Variable width strings
+	        // Variable width strings.
 	        return "%-s";
 	    }
 	    else {
@@ -1840,7 +1756,7 @@ public String getFieldFormat ( int index )
             int precision = getFieldPrecision(index);
             if ( fieldWidth < 0 ) {
                 if ( precision < 0 ) {
-                    // No width precision specified - rely on data object representation
+                    // No width precision specified - rely on data object representation.
                     return "%f";
                 }
                 else {
@@ -1858,8 +1774,8 @@ public String getFieldFormat ( int index )
 }
 
 /**
-Get C-style format specifiers that can be used to format field values for
-output.  These formats can be used with StringUtil.formatString().
+Get C-style format specifiers that can be used to format field values for output.
+These formats can be used with StringUtil.formatString().
 @return a new String array with the format specifiers.
 */
 public String[] getFieldFormats()
@@ -1886,13 +1802,13 @@ throws Exception
         }
 	}
 
-	// if this line is reached, the given field was never found
+	// if this line is reached, the given field was never found.
 	throw new Exception( "Unable to find table field with name \"" + field_name + "\" in table \"" + getTableID() + "\"" );
 }
 
 /**
-Return the field indices associated with the given field names.  This method simply
-calls getFieldIndex() for each requested name.
+Return the field indices associated with the given field names.
+This method simply calls getFieldIndex() for each requested name.
 @return array of indices associated with the given field names.
 @param fieldNames Field names to look up.
 @exception Exception if any field name is not found.
@@ -1980,7 +1896,6 @@ throws Exception
 
 	TableRecord tableRecord = _table_records.get((int)record_index);
 	Object o = tableRecord.getFieldValue(field_index);
-	tableRecord = null;
 	return o;
 }
 
@@ -1990,9 +1905,8 @@ Return the field values for all rows in the table for the requested field/column
 @param fieldName name of field for which to return values for all rows
 */
 public List<Object> getFieldValues ( String fieldName )
-throws Exception
-{
-    List<Object> values = new ArrayList<Object>();
+throws Exception {
+    List<Object> values = new ArrayList<>();
     int columnNum = getFieldIndex(fieldName);
     int size = getNumberOfRecords();
     for ( int i = 0; i < size; i++ ) {
@@ -2045,9 +1959,8 @@ Return the TableRecord at a record index.
 public TableRecord getRecord ( int record_index )
 throws Exception
 {	if ( !_haveDataInMemory ) {
-		// Most likely a derived class is not handling on the fly
-		// reading of data and needs more development.  Return null
-		// because the limitation is likely handled elsewhere.
+		// Most likely a derived class is not handling on the fly reading of data and needs more development.
+		// Return null because the limitation is likely handled elsewhere.
 		return null;
 	}
 	if ( _table_records.size() <= record_index ) {
@@ -2070,7 +1983,7 @@ throws Exception
 {
     int [] columnNums = new int[1];
     columnNums[0] = columnNum;
-    List<Object> columnValues = new ArrayList<Object>();
+    List<Object> columnValues = new ArrayList<>();
     columnValues.add(columnValue);
     List<TableRecord> records = getRecords ( columnNums, columnValues );
     if ( records.size() == 0 ) {
@@ -2082,8 +1995,8 @@ throws Exception
 }
 
 /**
-Return the TableRecord for the given column and column value.  If multiple records are matched
-the first record is returned.
+Return the TableRecord for the given column and column value.
+If multiple records are matched the first record is returned.
 @param columnName name of column (field), case-insensitive.
 @param columnValue column value to match in the records.  The first matching record is returned.
 The type of the object will be checked before doing the comparison.
@@ -2092,9 +2005,9 @@ The type of the object will be checked before doing the comparison.
 public TableRecord getRecord ( String columnName, Object columnValue )
 throws Exception
 {
-    List<String> columnNames = new ArrayList<String>();
+    List<String> columnNames = new ArrayList<>();
     columnNames.add(columnName);
-    List<Object> columnValues = new ArrayList<Object>();
+    List<Object> columnValues = new ArrayList<>();
     columnValues.add(columnValue);
     List<TableRecord> records = getRecords ( columnNames, columnValues );
     if ( records.size() == 0 ) {
@@ -2113,15 +2026,14 @@ The type of the object will be checked before doing the comparison.
 @return List of TableRecord matching the specified column value, guaranteed to be non-null but may be empty list.
 */
 public List<TableRecord> getRecords ( List<String> columnNames, List<? extends Object> columnValues )
-throws Exception
-{
-    // Figure out the column numbers that will be checked
+throws Exception {
+    // Figure out the column numbers that will be checked.
     int iColumn = -1;
     int [] columnNumbers = new int[columnNames.size()];
     List<TableRecord> recList = new ArrayList<>();
     for ( String columnName: columnNames ) {
         ++iColumn;
-        // If -1 is returned then a column name does not exist and no matches are possible
+        // If -1 is returned then a column name does not exist and no matches are possible.
         columnNumbers[iColumn] = getFieldIndex ( columnName );
         if ( columnNumbers[iColumn] < 0 ) {
             return recList;
@@ -2153,23 +2065,23 @@ throws Exception
             return recList;
         }
     }
-    // Now search the the records and then the columns in the record
+    // Now search the the records and then the columns in the record.
     Object columnContents;
     int iColumn = -1;
-    for ( TableRecord rec : _table_records ) { // Loop through all table records
-        int matchCount = 0; // How many column values match
+    for ( TableRecord rec : _table_records ) { // Loop through all table records.
+        int matchCount = 0; // How many column values match.
         iColumn = -1;
         for ( Object columnValue: columnValues ) {
             ++iColumn;
             columnContents = rec.getFieldValue(columnNumbers[iColumn]);
             if ( columnContents == null ) {
-                // Only match if both are match
+                // Only match if both are match.
                 if ( columnValue == null ) {
                     ++matchCount;
                 }
             }
             else if ( getFieldDataType(columnNumbers[iColumn]) == TableField.DATA_TYPE_STRING ) {
-                // Do case insensitive comparison
+                // Do case insensitive comparison.
                 if ( ((String)columnValue).equalsIgnoreCase("" + columnContents)) {
                     ++matchCount;
                 }
@@ -2182,7 +2094,7 @@ throws Exception
             }
         }
         if ( matchCount == columnValues.size() ) {
-            // Have matched the requested number of column values so add record to the match list
+            // Have matched the requested number of column values so add record to the match list.
             recList.add(rec);
         }
     }
@@ -2193,8 +2105,7 @@ throws Exception
 Return the table identifier.
 @return the table identifier.
 */
-public String getTableID ()
-{
+public String getTableID () {
     return __table_id;
 }
 
@@ -2230,11 +2141,11 @@ public int getTableFieldType ( int index )
 }
 
 /**
-Return the unique field values for the requested field index.  This is used,
-for example, when displaying unique values on a map display.  The calling code
-will need to cast the returned objects appropriately.  The performance of this
-operation will degrade if a large number of unique values are present.  This
-should not normally be the case if the end-user is intelligent about their
+Return the unique field values for the requested field index.
+This is used, for example, when displaying unique values on a map display.
+The calling code will need to cast the returned objects appropriately.
+The performance of this operation will degrade if a large number of unique values are present.
+This should not normally be the case if the end-user is intelligent about their
 choice of the field that is being analyzed.
 @param field_index zero_based index of desired field
 @return Simple array (e.g., double[]) of unique data values from the field.
@@ -2253,10 +2164,10 @@ throws Exception
 		" are available)." );
 	}
 
-	// Use a temporary list to get the unique values...
+	// Use a temporary list to get the unique values.
 	Vector u = new Vector ( 100, 100 );
 
-	// Determine the field type...
+	// Determine the field type.
 	int field_type = getTableFieldType ( field_index );
 	//String rtn = "getFieldValue";
 	//Message.printStatus ( 10, rtn, "Getting table record " +
@@ -2266,12 +2177,12 @@ throws Exception
 	for ( int i = 0; i < num_recs; i++ ) {
 		tableRecord = (TableRecord)_table_records.elementAt(i);
 		o = tableRecord.getFieldValue(field_index);
-		// Now search through the list of known unique values...
+		// Now search through the list of known unique values.
 		usize = u.size();
 		for ( j = 0; j < usize; j++ ) {
 		}
 	}
-	// Now return the values in an array of the appropriate type...
+	// Now return the values in an array of the appropriate type.
 }
 */
 
@@ -2290,7 +2201,6 @@ public boolean hasField(String fieldName) {
 	return false;
 }
 
-
 /**
 Indicate whether the table has data in memory.  This will be true if any table records
 have been added during a read or write operation.  This method is meant to be called by derived classes
@@ -2308,13 +2218,13 @@ Initialize the data.
 */
 private void initialize ( List<TableField> tableFieldsList, int listSize, int sizeIncrement )
 {	_table_fields = tableFieldsList;
-	_table_records = new ArrayList<TableRecord> ( 10 );
+	_table_records = new ArrayList<> ( 10 );
 }
 
 /**
-Insert a table record into the table.  If inserting at the start or middle, the provided table record will be inserted and
-all other records will be shifted.  If inserting after the existing records, empty records will be added up to the requested
-insert position.
+Insert a table record into the table.
+If inserting at the start or middle, the provided table record will be inserted and all other records will be shifted.
+If inserting after the existing records, empty records will be added up to the requested insert position.
 @param row row position (0+) to insert the record
 @param record table record to insert
 @param doCheck indicate whether the record should be checked against the table for consistency; false inserts with no check
@@ -2324,18 +2234,18 @@ insert position.
 public void insertRecord ( int row, TableRecord record, boolean doCheck )
 throws Exception
 {
-    // TODO SAM 2014-02-01 enable doCheck
+    // TODO SAM 2014-02-01 enable doCheck.
     int nRows = getNumberOfRecords();
     if ( row < nRows ) {
-        // Inserting in the existing table
+        // Inserting in the existing table.
         _table_records.add ( row, record );
     }
     else {
-        // Appending - add blank rows up until the last one
+        // Appending - add blank rows up until the last one.
         for ( int i = nRows; i < row; i++ ) {
             addRecord(emptyRecord());
         }
-        // Now add the final record
+        // Now add the final record.
         addRecord ( record );
     }
 }
@@ -2344,8 +2254,7 @@ throws Exception
 Determine whether the column data type is an array.
 @return true if the column data type is an array (data type is DATA_TYPE_ARRAY_BASE plus primitive type).
 */
-public boolean isColumnArray(int columnType)
-{
+public boolean isColumnArray(int columnType) {
 	if ( ((columnType/100)*100) == TableField.DATA_TYPE_ARRAY_BASE ) {
 		// Data type is 10nn so it is an array.
 		return true;
@@ -2374,7 +2283,7 @@ public boolean isColumnEmpty ( int columnNum )
 			o = rec.getFieldValue(columnNum);
 		}
 		catch ( Exception e ) {
-			// Count as empty
+			// Count as empty.
 			++emptyCount;
 			continue;
 		}
@@ -2434,22 +2343,22 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
     HandleMultipleJoinMatchesHowType handleMultipleMatchesHow, List<String> problems )
 {   String routine = getClass().getSimpleName() + ".joinTable", message;
 
-    // List of columns that will be copied to the first table
+    // List of columns that will be copied to the first table.
     String [] columnNamesToCopy = null;
     if ( (reqIncludeColumns != null) && (reqIncludeColumns.length > 0) ) {
-        // Append only the requested names
+        // Append only the requested names.
         columnNamesToCopy = reqIncludeColumns;
         for ( int icol = 0; icol < reqIncludeColumns.length; icol++ ) {
             Message.printStatus(2,routine,"Will copy table2 column \"" + reqIncludeColumns[icol] + "\"" );
         }
     }
     else {
-        // Append all
+        // Append all.
         Message.printStatus(2,routine,"Copy all columns in table2 to table1.");
         columnNamesToCopy = tableToJoin.getFieldNames();
     }
     // Make sure that the columns to copy do not include the join columns, which should already by in the tables.
-    // Just set to blank so they can be ignored in following logic
+    // Just set to blank so they can be ignored in following logic.
     for ( int icol = 0; icol < columnNamesToCopy.length; icol++ ) {
         Enumeration<String> keys = joinColumnsMap.keys();
         while ( keys.hasMoreElements() ) {
@@ -2462,26 +2371,26 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
         }
     }
     // Column numbers in the copy table to match the original table.  Any values set to -1 will result in null in output.
-    // numberDuplicates will add columns on the fly as they are needed, at end of table
+    // numberDuplicates will add columns on the fly as they are needed, at end of table.
     String [] table1CopyColumnNames = new String[columnNamesToCopy.length];
     int [] table1CopyColumnNumbers = new int[columnNamesToCopy.length];
     int [] table1CopyColumnTypes = new int[columnNamesToCopy.length];
     String [] table2CopyColumnNames = new String[columnNamesToCopy.length];
     int [] table2CopyColumnNumbers = new int[columnNamesToCopy.length];
     int [] table2CopyColumnTypes = new int[columnNamesToCopy.length];
-    List<Integer> matchCountList = new ArrayList<Integer>();
+    List<Integer> matchCountList = new ArrayList<>();
     if ( handleMultipleMatchesHow == HandleMultipleJoinMatchesHowType.NUMBER_COLUMNS ) {
-    	// Create a list to count how many matches have occurred so that duplicates can add new numbered columns
-    	// Will need to be careful if "InsertBeforeColumn" functionality is added
-    	matchCountList = new ArrayList<Integer>(table.getNumberOfRecords());
+    	// Create a list to count how many matches have occurred so that duplicates can add new numbered columns.
+    	// Will need to be careful if "InsertBeforeColumn" functionality is added.
+    	matchCountList = new ArrayList<>(table.getNumberOfRecords());
     }
-    // Replace the copy table names using the column map
+    // Replace the copy table names using the column map.
     Object o;
     for ( int icol = 0; icol < columnNamesToCopy.length; icol++ ) {
-        table1CopyColumnNames[icol] = columnNamesToCopy[icol]; // Default to same as requested
-        table2CopyColumnNames[icol] = columnNamesToCopy[icol]; // Default
+        table1CopyColumnNames[icol] = columnNamesToCopy[icol]; // Default to same as requested.
+        table2CopyColumnNames[icol] = columnNamesToCopy[icol]; // Default.
         if ( table2CopyColumnNames[icol].equals("") ) {
-        	// Column was removed from copy above (typically because it is the join column)
+        	// Column was removed from copy above (typically because it is the join column).
         	table2CopyColumnNumbers[icol] = -1;
         }
         else {
@@ -2497,12 +2406,12 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
         }
         if ( columnMap != null ) {
             // Initialize the table2 column to join from the requested columns, with matching name in both tables.
-            // Rename in output (table1)
+            // Rename in output (table1).
             o = columnMap.get(table2CopyColumnNames[icol]);
             if ( o != null ) {
                 // Reset the copy column name with the new name, which will match a column name in the first table
-                // (or will be created in the new table if necessary)
-                // This column may not yet exist in the joined table so get column number and type below after column is added
+                // (or will be created in the new table if necessary).
+                // This column may not yet exist in the joined table so get column number and type below after column is added.
                 table1CopyColumnNames[icol] = (String)o;
             }
         }
@@ -2510,13 +2419,13 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
             table1CopyColumnNames[icol] + "\"" );
     }
     
-    // Create columns in the output table for the "include columns" (including new column names from the column map)
-    // Use column types that match the copy table's column types
-    // Figure out the column numbers in both tables for the include
+    // Create columns in the output table for the "include columns" (including new column names from the column map).
+    // Use column types that match the copy table's column types.
+    // Figure out the column numbers in both tables for the include.
     for ( int icol = 0; icol < table1CopyColumnNames.length; icol++ ) {
         table1CopyColumnNumbers[icol] = -1;
         if ( table1CopyColumnNames[icol].length() == 0 ) {
-            // Name was removed above because it duplicates the join column, so don't add
+            // Name was removed above because it duplicates the join column, so don't add.
             continue;
         }
         try {
@@ -2526,17 +2435,17 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
              // OK - handle non-existent column below.
         }
         if ( table1CopyColumnNumbers[icol] >= 0 ) {
-            // Already exists so skip because don't want table2 values to overwrite table1 values
+            // Already exists so skip because don't want table2 values to overwrite table1 values.
             message = "Include column \"" + table1CopyColumnNames[icol] +
                 "\" already exists in original table.  Not adding new column.";
             Message.printStatus(2,routine,message);
-            // TODO SAM 2014-04-15 Actually, do want join to overwrite - allows subset of table to be processed
+            // TODO SAM 2014-04-15 Actually, do want join to overwrite - allows subset of table to be processed.
             //table1CopyColumnNumbers[icol] = -1;
             table1CopyColumnTypes[icol] = table.getFieldDataType(table1CopyColumnNumbers[icol]);
         }
         else {
-            // Does not exist in first table so create column with the same properties as the original
-            // Use the original column name to find the property
+            // Does not exist in first table so create column with the same properties as the original.
+            // Use the original column name to find the property.
             try {
                 Message.printStatus(2,routine,"Creating table1 column \"" + table1CopyColumnNames[icol] +
                     "\" type=" + TableColumnType.valueOf(tableToJoin.getFieldDataType(table2CopyColumnNumbers[icol])) +
@@ -2556,9 +2465,9 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
         }
     }
 
-    // Determine the column numbers in the first and second tables for the join columns
-    // Do this AFTER the above checks on output columns because columns may be inserted and change the column order
-    /* TODO SAM 2015-02-03 Does not seem to be needed
+    // Determine the column numbers in the first and second tables for the join columns.
+    // Do this AFTER the above checks on output columns because columns may be inserted and change the column order.
+    /* TODO SAM 2015-02-03 Does not seem to be needed.
     if ( reqIncludeColumns == null ) {
         reqIncludeColumns = new String[0];
     }
@@ -2587,7 +2496,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
             Message.printStatus(2,routine,"Table1 join column \"" + table1JoinColumnNames[ikey] + "\" has table1 column number=" +
                 table1JoinColumnNumbers[ikey]);
             try {
-            	// Look up the column to use in table2 by using a key from table1
+            	// Look up the column to use in table2 by using a key from table1.
                 table2JoinColumnNames[ikey] = joinColumnsMap.get(table1JoinColumnNames[ikey]);
                 table2JoinColumnNumbers[ikey] = tableToJoin.getFieldIndex(table2JoinColumnNames[ikey]);
                 table2JoinColumnTypes[ikey] = tableToJoin.getFieldDataType(table2JoinColumnNumbers[ikey]);
@@ -2608,7 +2517,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
         }
     }
     
-    // Get filter columns and glob-style regular expressions
+    // Get filter columns and glob-style regular expressions.
     int [] columnNumbersToFilter = new int[columnFilters.size()];
     String [] columnFilterGlobs = new String[columnFilters.size()];
     keys = columnFilters.keys();
@@ -2621,7 +2530,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
             key = (String)keys.nextElement();
             columnNumbersToFilter[ikey] = tableToJoin.getFieldIndex(key);
             columnFilterGlobs[ikey] = columnFilters.get(key);
-            // Turn default globbing notation into internal Java regex notation
+            // Turn default globbing notation into internal Java regex notation.
             columnFilterGlobs[ikey] = columnFilterGlobs[ikey].replace("*", ".*").toUpperCase();
         }
         catch ( Exception e ) {
@@ -2631,7 +2540,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
         }
     }
     // Loop through all of the records in the table being joined and check the filters.
-    // Do this up front because the records are checked multiple times during the join
+    // Do this up front because the records are checked multiple times during the join.
     boolean [] joinTableRecordMatchesFilter = new boolean[tableToJoin.getNumberOfRecords()];
     int icol;
     // Number of table 1 rows joined with table2 data.
@@ -2640,7 +2549,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
     for ( int irow = 0; irow < tableToJoin.getNumberOfRecords(); irow++ ) {
         joinTableRecordMatchesFilter[irow] = true;
         if ( columnNumbersToFilter.length > 0 ) {
-            // Filters can be done on any columns so loop through to see if row matches before doing copy
+            // Filters can be done on any columns so loop through to see if row matches before doing copy.
             for ( icol = 0; icol < columnNumbersToFilter.length; icol++ ) {
                 if ( columnNumbersToFilter[icol] < 0 ) {
                     joinTableRecordMatchesFilter[irow] = false;
@@ -2650,12 +2559,12 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                     o = tableToJoin.getFieldValue(irow, columnNumbersToFilter[icol]);
                     if ( o == null ) {
                         joinTableRecordMatchesFilter[irow] = false;
-                        break; // Don't include nulls when checking values
+                        break; // Don't include nulls when checking values.
                     }
-                    // Do filter on strings only using uppercase
+                    // Do filter on strings only using uppercase.
                     s = ("" + o).toUpperCase();
                     if ( !s.matches(columnFilterGlobs[icol]) ) {
-                        // A filter did not match so don't copy the record
+                        // A filter did not match so don't copy the record.
                         joinTableRecordMatchesFilter[irow] = false;
                         break;
                     }
@@ -2674,28 +2583,28 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
     // Keep track of which rows do not match and add at the end.  Otherwise, duplicate rows are added.
     boolean [] joinTableRecordMatchesTable1 = new boolean[tableToJoin.getNumberOfRecords()];
     int tableNumRows = table.getNumberOfRecords();
-    boolean joinColumnsMatch = false; // Indicates whether two tables' join column values match
+    boolean joinColumnsMatch = false; // Indicates whether two tables' join column values match.
     Object table1Value, table2Value;
     String stringTable1Value, stringTable2Value;
     TableRecord recToModify = null;
-    // Loop through all rows in the first table
+    // Loop through all rows in the first table.
     for ( int irow = 0; irow < tableNumRows; irow++ ) {
     	if ( handleMultipleMatchesHow == HandleMultipleJoinMatchesHowType.NUMBER_COLUMNS ) {
-    		// Initialize the number of matches for this row
+    		// Initialize the number of matches for this row.
     		matchCountList.add(new Integer(0));
     	}
         // Loop through all rows in the second table
         for ( int irowJoin = 0; irowJoin < tableToJoin.getNumberOfRecords(); irowJoin++ ) {
             if ( !joinTableRecordMatchesFilter[irowJoin] ) {
-                // Join row did not match filter so no need to process it
+                // Join row did not match filter so no need to process it.
                 continue;
             }
             else {
                 // Join table record matched filter so evaluate if the join column values match in the two tables.
                 // If there is a match, the join will be done in-line with an existing record.
-                // If not, the join will only occur if the join method is JOIN_ALWAYS and in this case the join column values
+                // If not, the join will only occur if the join method is JOIN_ALWAYS and in this case the join column values.
                 // and all append values will be added to the main table in a new row.
-                joinColumnsMatch = true; // Set to false in checks below
+                joinColumnsMatch = true; // Set to false in checks below.
                 table1Value = null;
                 table2Value = null;
                 for ( icol = 0; icol < table1JoinColumnNumbers.length; icol++ ) {
@@ -2719,7 +2628,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                         problems.add ( message );
                         Message.printWarning(3, routine, message );
                     }
-                    // For now if either is null do not add the record
+                    // For now if either is null do not add the record.
                     if ( (table1Value == null) || (table2Value == null) ) {
                         joinColumnsMatch = false;
                         break;
@@ -2732,7 +2641,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                             break;
                         }
                     }
-                    // All other data types use equals
+                    // All other data types use equals.
                     else if ( !table1Value.equals(table2Value) ) {
                         joinColumnsMatch = false;
                         break;
@@ -2743,7 +2652,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                     //Message.printStatus(2,routine,"Setting in existing row.");
                     joinTableRecordMatchesTable1[irowJoin] = true;
                     try {
-                        recToModify = table.getRecord(irow); // Modify existing row in table
+                        recToModify = table.getRecord(irow); // Modify existing row in table.
                     }
                     catch ( Exception e ) {
                         message = "Error getting existing joined record to modify (" + e + ").";
@@ -2751,41 +2660,41 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                         Message.printWarning(3, routine, message );
                     }
                     // Loop through the columns to copy and set the values from
-                    // the second table into the first table (which previously had columns added)
+                    // the second table into the first table (which previously had columns added).
                     for ( icol = 0; icol < table2CopyColumnNumbers.length; icol++ ) {
                         try {
                             if ( table1CopyColumnNumbers[icol] < 0 ) {
-                                // There was an issue with the column to add so skip
+                                // There was an issue with the column to add so skip.
                                 //Message.printStatus(2,routine,"Don't have column number for table1 column \"" +
                                 //     table1CopyColumnNames[icol] + "\"");
                                 continue;
                             }
                             else if ( table2CopyColumnNumbers[icol] < 0 ) {
-                                // There was an issue with the column to add so skip
+                                // There was an issue with the column to add so skip.
                                 //Message.printStatus(2,routine,"Don't have column number for table2 column \"" +
                                 //     table2CopyColumnNames[icol] + "\"");
                                 continue;
                             }
                             else {
-                                // Set the value in the original table, if the type matches
-                                // TODO SAM 2013-08-19 Check that the column types match
+                                // Set the value in the original table, if the type matches.
+                                // TODO SAM 2013-08-19 Check that the column types match.
                                 if ( table1CopyColumnTypes[icol] == table2CopyColumnTypes[icol] ) {
                                 	if ( handleMultipleMatchesHow == HandleMultipleJoinMatchesHowType.NUMBER_COLUMNS ) {
-                                        // Increment the match counter
+                                        // Increment the match counter.
                                 		if ( icol == 0 ) {
                                 			matchCountList.set(irow,new Integer(matchCountList.get(irow) + 1));
                                 			Message.printStatus(2, routine, "Incremented match counter [" + irow +
                                 				"] to " + matchCountList.get(irow) + " for column \"" + table2CopyColumnNames[icol] + "\"");
                                 		}
                                 		if ( matchCountList.get(irow) == 1 ) {
-                                			// This is the first match so do simple set on requested output columns
-                                			// Set the column values in the joined table
+                                			// This is the first match so do simple set on requested output columns.
+                                			// Set the column values in the joined table.
     	                                    recToModify.setFieldValue(table1CopyColumnNumbers[icol],
     	                                        tableToJoin.getFieldValue(irowJoin, table2CopyColumnNumbers[icol]));
                                 		}
                                 		else {
-                                			// Else, need to add output columns that have number appended
-                                			// For now look up the column
+                                			// Else, need to add output columns that have number appended.
+                                			// For now look up the column.
                                 			// TODO SAM 2015-03-04 add column to the existing column number array to increase performance
                                 			int icol1 = -1;
                                 			String duplicateColumn = table1CopyColumnNames[icol] + "_" + matchCountList.get(irow);
@@ -2797,24 +2706,24 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                                 			}
                                 			catch ( Exception e ) {
                                 				// Add the column if it has not been added by a previous duplicate.
-                                				// First get the column used for the first match, which will not have a trailing number
+                                				// First get the column used for the first match, which will not have a trailing number.
                                 				Message.printStatus(2,routine,"It does not, need to add new column to table1.");
                                 				Message.printStatus(2,routine,"Getting table2 column to copy properties [" + table2CopyColumnNumbers[icol] + "]");
                                 				TableField tf = tableToJoin.getTableField(table2CopyColumnNumbers[icol]);
-                                				// Keep everything the same except change the column name
+                                				// Keep everything the same except change the column name.
                                 				Message.printStatus(2,routine,"Adding table1 column \"" + duplicateColumn + "\" with properties from \"" + tf.getName() + "\"");
                                 				icol1 = table.addField(
                                 					new TableField(tf.getDataType(), duplicateColumn, tf.getWidth(), tf.getPrecision()), null);
                                 				Message.printStatus(2,routine,"Added table1 column \"" + duplicateColumn + "\" [" + icol1 + "]");
                                 			}
-                                			// Set in new column number, using table2 column number to copy
+                                			// Set in new column number, using table2 column number to copy.
                                 			Message.printStatus(2,routine,"Setting table1 col \"" + duplicateColumn + "\" [" + icol1 + "] from table1 [" +irowJoin +
                                 				"][" + icol + "] value " + tableToJoin.getFieldValue(irowJoin, table2CopyColumnNumbers[icol]));
                                 			recToModify.setFieldValue(icol1,tableToJoin.getFieldValue(irowJoin, table2CopyColumnNumbers[icol]));
                                 		}
                                 	}
                                 	else {
-                                		// Set the column values in the joined table
+                                		// Set the column values in the joined table.
 	                                    recToModify.setFieldValue(table1CopyColumnNumbers[icol],
 	                                        tableToJoin.getFieldValue(irowJoin, table2CopyColumnNumbers[icol]));
                                 	}
@@ -2826,7 +2735,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                             }
                         }
                         catch ( Exception e ) {
-                            // Should not happen
+                            // Should not happen.
                             message = "Error setting [" + irow + "][" + table1CopyColumnNumbers[icol] + "] (" + e + ").";
                             problems.add(message);
                             Message.printWarning(3, routine, message );
@@ -2836,8 +2745,8 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
             }
         }
     }
-    // Now add any rows that were not matched - add at the end so as to not upset the original sequence and lists used above
-    // TODO SAM 2015-03-05 Need to enable for NUMBER_COLUMNS
+    // Now add any rows that were not matched - add at the end so as to not upset the original sequence and lists used above.
+    // TODO SAM 2015-03-05 Need to enable for NUMBER_COLUMNS.
     if ( joinMethod == DataTableJoinMethodType.JOIN_ALWAYS ) {
     	if ( handleMultipleMatchesHow == HandleMultipleJoinMatchesHowType.NUMBER_COLUMNS ) {
     		problems.add("Requested NumberColumns for multiple join matches but not suported "
@@ -2849,7 +2758,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                 continue;
             }
             // Add a row to the table, containing only the join column values from the second table
-            // and nulls for all the other values
+            // and nulls for all the other values.
             try {
                 recToModify = table.addRecord(table.emptyRecord());
             }
@@ -2858,17 +2767,17 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                 problems.add ( message );
                 Message.printWarning(3, routine, message );
             }
-            // A new record was added.  Also include the join column values using the table1 names
-            // TODO SAM 2013-08-19 Evaluate whether table2 names should be used (or option to use)
+            // A new record was added.  Also include the join column values using the table1 names.
+            // TODO SAM 2013-08-19 Evaluate whether table2 names should be used (or option to use).
             for ( icol = 0; icol < table2JoinColumnNumbers.length; icol++ ) {
                 try {
                     if ( table2JoinColumnNumbers[icol] < 0 ) {
-                        // There was an issue with the column to add so skip
+                        // There was an issue with the column to add so skip.
                         continue;
                     }
                     else {
-                        // Set the value in the original table, if the type matches
-                        // TODO SAM 2013-08-19 Check that the column types match
+                        // Set the value in the original table, if the type matches.
+                        // TODO SAM 2013-08-19 Check that the column types match.
                         if ( table1JoinColumnTypes[icol] == table2JoinColumnTypes[icol] ) {
                             recToModify.setFieldValue(table1JoinColumnNumbers[icol],
                                 tableToJoin.getFieldValue(irowJoin, table2JoinColumnNumbers[icol]));
@@ -2877,7 +2786,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                     }
                 }
                 catch ( Exception e ) {
-                    // Should not happen
+                    // Should not happen.
                     message = "Error setting row value for column [" + table1JoinColumnNumbers[icol] + "] (" + e + ").";
                     problems.add(message);
                     Message.printWarning(3, routine, message );
@@ -2885,24 +2794,24 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                 }
             }
             // Loop through the columns to include and set the values from
-            // the second table into the first table (which previously had columns added)
+            // the second table into the first table (which previously had columns added).
             for ( icol = 0; icol < table2CopyColumnNumbers.length; icol++ ) {
                 try {
                     if ( table1CopyColumnNumbers[icol] < 0 ) {
-                        // There was an issue with the column to add so skip
+                        // There was an issue with the column to add so skip.
                         Message.printStatus(2,routine,"Don't have column number for table1 column \"" +
                              table1CopyColumnNames[icol]);
                         continue;
                     }
                     else if ( table2CopyColumnNumbers[icol] < 0 ) {
-                        // There was an issue with the column to add so skip
+                        // There was an issue with the column to add so skip.
                         Message.printStatus(2,routine,"Don't have column number for table2 column \"" +
                              table2CopyColumnNames[icol] + "\"");
                         continue;
                     }
                     else {
-                        // Set the value in the original table, if the type matches
-                        // TODO SAM 2013-08-19 Check that the column types match
+                        // Set the value in the original table, if the type matches.
+                        // TODO SAM 2013-08-19 Check that the column types match.
                         if ( table1CopyColumnTypes[icol] == table2CopyColumnTypes[icol] ) {
                             recToModify.setFieldValue(table1CopyColumnNumbers[icol],
                                 tableToJoin.getFieldValue(irowJoin, table2CopyColumnNumbers[icol]));
@@ -2914,7 +2823,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                     }
                 }
                 catch ( Exception e ) {
-                    // Should not happen
+                    // Should not happen.
                     message = "Error adding new row, column [" + table1CopyColumnNumbers[icol] + "] (" + e + ").";
                     problems.add(message);
                     Message.printWarning(3, routine, message );
@@ -2926,7 +2835,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
         throw new RuntimeException ( "There were " + problems.size() + " errors joining table \"" + tableToJoin.getTableID() + "\" to \"" +
             table.getTableID() + "\"" );
     }
-    // TODO smalers 2020-10-19 ignore the nrowsJoined from above and compute from the tracking array.
+    // TODO smalers 2020-10-19 ignore the nrowsJoined from above and compute from the tracking array:
     // - need to further clean this up
     int nrowsJoined2 = 0;
     for ( int i = 0; i < joinTableRecordMatchesTable1.length; i++ ) {
@@ -2939,8 +2848,8 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
 }
 
 /**
-Given a definition of what data to expect, read a simple delimited file and
-store the data in a table.  Comment lines start with # and are not considered part of the header.
+Given a definition of what data to expect, read a simple delimited file and store the data in a table.
+Comment lines start with # and are not considered part of the header.
 @return new DataTable containing data.
 @param filename name of file containing delimited data.
 @param delimiter string representing delimiter in data file (typically a comma).
@@ -2956,14 +2865,14 @@ throws Exception {
 }
 
 /**
-Given a definition of what data to expect, read a simple delimited file and
-store the data in a table.  Comment lines start with # and are not considered part of the header.
+Given a definition of what data to expect, read a simple delimited file and store the data in a table.
+Comment lines start with # and are not considered part of the header.
 @return new DataTable containing data.
 @param filename name of file containing delimited data.
 @param delimiter string representing delimiter in data file (typically a comma).
 @param tableFields list of TableField objects defining data expectations.
-@param num_lines_header number of lines in header (typically 1).  The header
-lines are read and ignored.
+@param num_lines_header number of lines in header (typically 1).
+The header lines are read and ignored.
 @param trim_spaces if true, then when a column value is read between delimiters,
 it will be .trim()'d before being parsed into a number or String. 
 @exception Exception if there is an error parsing the file.
@@ -3028,7 +2937,7 @@ throws Exception
 	int length = 0;
 
 	while (( iline = in.readLine ()) != null ) {
-		// check if read comment or empty line
+		// Check if read comment or empty line.
 		if ( iline.startsWith("#") || iline.trim().length()==0) {
 			continue;
 		}
@@ -3037,7 +2946,7 @@ throws Exception
 		// way to treat the column as strings.  This may be problematic if the string is zero-padded.
 		columns = StringUtil.breakStringList ( iline, delimiter, StringUtil.DELIM_ALLOW_STRINGS);
 
-		// line is part of header ... 
+		// Line is part of header.
 		if ( !processed_header ) {
 			num_fields = columns.size();
 			if ( num_fields < tableFields.size() ) {
@@ -3051,7 +2960,7 @@ throws Exception
 			}
 		}
 		else {
-		    // line contains data - store in table as record
+		    // Line contains data - store in table as record.
 			TableRecord contents = new TableRecord(num_fields);
 			try {						
     			for ( int i=0; i<num_fields; i++ ) {
@@ -3095,8 +3004,7 @@ throws Exception
 		if (maxLines > 0 && lineCount >= maxLines) {
 			in.close();
 
-			// Set the widths of the string fields to the length
-			// of the longest strings within those fields
+			// Set the widths of the string fields to the length of the longest strings within those fields.
 			for (int i = 0; i < num_fields; i++) {
 				col = columns.get(i);
 				if (field_types[i] == TableField.DATA_TYPE_STRING) {
@@ -3143,7 +3051,7 @@ throws Exception
 	try {
     	while (( iline = in.readLine ()) != null ) {
     
-    		// check if read comment or empty line
+    		// Check whether read a comment or empty line.
     		if ( iline.startsWith("#") || iline.trim().length()==0) {
     			continue;
     		}
@@ -3152,7 +3060,7 @@ throws Exception
     //			StringUtil.DELIM_SKIP_BLANKS );
     
     		num_fields = columns.size();
-    		tableFields = new ArrayList<TableField> ( num_fields );
+    		tableFields = new ArrayList<> ( num_fields );
     		for ( int i=0; i<num_fields; i++ ) {
     			newTableField = new TableField ( );
     			newTableField.setName (	columns.get(i).trim());
@@ -3172,7 +3080,7 @@ throws Exception
 
 // TODO SAM 2012-01-09 Need to handle doubled and tripled quotes as per:
 // http://en.wikipedia.org/wiki/Comma-separated_values
-// For now assume no embedded quotes in quoted strings
+// For now assume no embedded quotes in quoted strings.
 /**
 Parses a file and returns the DataTable for the file.  Currently only does
 delimited files, and the data type for a column must be consistent.
@@ -3600,7 +3508,7 @@ throws Exception
 		}
 		++noncommentLineCount0;
 		
-		// Also skip the requested lines to skip linecount is 1+ while lines to skip are 0+
+		// Also skip the requested lines to skip linecount is 1+ while lines to skip are 0+.
 		
 		if ( linecount0 <= skipLinesList_maxval ) {
 		    // Need to check it.
@@ -3687,7 +3595,7 @@ throws Exception
 	// Make sure that the table fields are in place for the maximum number of columns.
 
 	if (tableFields == null) {
-		tableFields = new ArrayList<TableField>();
+		tableFields = new ArrayList<>();
 		for (int i = 0; i < maxColumns; i++) {
 			// Default field definition builds String fields.
 			tableFields.add(new TableField());
@@ -3763,7 +3671,7 @@ throws Exception
 	        // Instead, the column likely should be treated as strings.
 	        // An example is very long identifiers like "394359105411900".
 	        // For now the work-around is to add quotes in the original data to make sure the column is treated like a string.
-	        // Could add a long but this cascades through a lot of code since the long type is not yet supported in DataTable
+	        // Could add a long but this cascades through a lot of code since the long type is not yet supported in DataTable.
             if ( StringUtil.isDouble(cell_trimmed)) {
                 ++count_double[icol];
                 isTypeFound = true;
@@ -4108,7 +4016,7 @@ private static List<TableField> parseFile_ParseHeaderLine (
     }
     
     int numFields = columns.size();
-    List<TableField> tableFields = new ArrayList<TableField>();
+    List<TableField> tableFields = new ArrayList<>();
     TableField tableField = null;
     String temp = null;
     for (int i = 0; i < numFields; i++) {
@@ -4137,14 +4045,14 @@ private static String parseFile_ProcessString ( String cell )
     int len = cell.length();
     char c2 = cell.charAt(len - 1);
     if ( (c1 == '"') || (c1 == '\'') ) {
-        // Have a quoted string.  Remove the quotes from each end (but not the middle)
-        // Embedded quotes will typically be represented as double quote "" or '' so replace
+        // Have a quoted string.  Remove the quotes from each end (but not the middle).
+        // Embedded quotes will typically be represented as double quote "" or '' so replace.
         if ( (c2 == c1) && (len > 1) ) {
             return cell.substring(1,len - 1).replace("\"\"", "\"");
-            // Add single quotes later if necessary...seem to mainly deal with double quotes
+            // Add single quotes later if necessary...seem to mainly deal with double quotes.
         }
         else {
-            // Truncated field or error in input?  Unlikely case
+            // Truncated field or error in input?  Unlikely case.
             return cell.substring(1);
         } 
     }
@@ -4190,7 +4098,7 @@ public void renameFields ( DataTable table, Hashtable<String,String> columnMap, 
 	for ( Map.Entry<String,String> entry: columnMap.entrySet() ) {
 		String name = entry.getKey();
 		String newName = entry.getValue();
-		// Get the existing column by searching 
+		// Get the existing column by searching.
 		int colNum = -1;
 		try {
 			colNum = getFieldIndex(name);
@@ -4200,7 +4108,7 @@ public void renameFields ( DataTable table, Hashtable<String,String> columnMap, 
 			continue;
 		}
 		TableField field = _table_fields.get(colNum);
-		// Rename the column
+		// Rename the column.
 		field.setName(newName);
 	}
 }
@@ -4252,12 +4160,12 @@ throws Exception
 {
     int nRows = getNumberOfRecords();
     if ( (row > (nRows - 1)) && createIfNecessary ) {
-        // Create empty rows
+        // Create empty rows.
         for ( int i = nRows; i <= row; i++ ) {
             addRecord(emptyRecord());
         }
     }
-    // Now set the value (will throw ArrayIndexOutOfBoundsException if row is out of range)...
+    // Now set the value (will throw ArrayIndexOutOfBoundsException if row is out of range).
     TableRecord record = _table_records.get(row);
     record.setFieldValue(col, value);
 }
@@ -4365,10 +4273,10 @@ public void setTableRecordValues ( List<TableRecord> tableRecords, HashMap<Strin
 	if ( tableRecords == null ) {
 		return;
 	}
-    // List of columns that will be set, taken from keys in the column values
+    // List of columns that will be set, taken from keys in the column values.
     int errorCount = 0;
     StringBuffer errorMessage = new StringBuffer();
-    // Get the column numbers and values to to set
+    // Get the column numbers and values to to set.
     String [] columnNamesToSet = new String[columnValues.size()];
     String [] columnValuesToSet = new String[columnValues.size()];
     int [] columnNumbersToSet = new int[columnValues.size()];
@@ -4384,47 +4292,47 @@ public void setTableRecordValues ( List<TableRecord> tableRecords, HashMap<Strin
             //Message.printStatus(2,routine,"Setting column \"" + columnNamesToSet[ikey] + " " + columnNumbersToSet[ikey] + "\"");
         }
         catch ( Exception e ) {
-            // OK, will add the column below
+            // OK, will add the column below.
         }
     }
-    // If necessary, add columns to the table and records.  For now, always treat as strings
-    // TODO SAM 2013-08-06 Evaluate how to handle other data types in set
+    // If necessary, add columns to the table and records.  For now, always treat as strings.
+    // TODO SAM 2013-08-06 Evaluate how to handle other data types in set.
     //TableField newTableField;
-    // Create requested columns in the output table
+    // Create requested columns in the output table.
     for ( int icol = 0; icol < columnNumbersToSet.length; icol++ ) {
         if ( (columnNumbersToSet[icol] < 0) && createColumns ) {
         	errorMessage.append("  createColumns=true is not yet supported.");
         	/*
-            // Did not find the column in the table so add a String column for null values
+            // Did not find the column in the table so add a String column for null values.
             newTableField = new TableField(TableField.DATA_TYPE_STRING, columnNamesToSet[icol], -1, -1);
-            // Add to the full table
+            // Add to the full table.
             columnNumbersToSet[icol] = addField(newTableField, null );
             columnTypesToSet[icol] = getFieldDataType(columnNumbersToSet[icol]);
             */
         }
     }
-    // Now loop through all the provided data records and set values
+    // Now loop through all the provided data records and set values.
     int icol;
     for ( TableRecord rec : tableRecords ) {
-        String columnValueToSet = null; // A single value to set, may contain formatting such as ${Property} when used with TSTool
+        String columnValueToSet = null; // A single value to set, may contain formatting such as ${Property} when used with TSTool.
         for ( icol = 0; icol < columnNumbersToSet.length; icol++ ) {
             try {
-                // OK if setting to null value, but hopefully should not happen
-                // TODO SAM 2013-08-06 Handle all column types
+                // OK if setting to null value, but hopefully should not happen.
+                // TODO SAM 2013-08-06 Handle all column types.
                 //Message.printStatus(2,routine,"Setting ColNum=" + columnNumbersToSet[icol] + " RowNum=" + irow + " value=" +
                 //    columnValues.get(columnNamesToSet[icol]));
                 if ( columnNumbersToSet[icol] >= 0 ) {
                 	columnValueToSet = columnValuesToSet[icol];
                 	if ( getter != null ) {
-                		// columnValueToSet will initially have formatting information like ${Property}
+                		// columnValueToSet will initially have formatting information like ${Property}.
                 		columnValueToSet = getter.getTableCellValueAsString(columnValueToSet);
                 	}
                     if ( columnTypesToSet[icol] == TableField.DATA_TYPE_INT ) {
-                        // TODO SAM 2013-08-26 Should parse the values once rather than each time set to improve error handling and performance
+                        // TODO SAM 2013-08-26 Should parse the values once rather than each time set to improve error handling and performance.
                         rec.setFieldValue(columnNumbersToSet[icol], Integer.parseInt(columnValueToSet) );
                     }
                     else if ( columnTypesToSet[icol] == TableField.DATA_TYPE_DOUBLE ) {
-                        // TODO SAM 2013-08-26 Should parse the values once rather than each time set to improve error handling and performance
+                        // TODO SAM 2013-08-26 Should parse the values once rather than each time set to improve error handling and performance.
                         rec.setFieldValue(columnNumbersToSet[icol], Double.parseDouble(columnValueToSet) );
                     }
                     else if ( columnTypesToSet[icol] == TableField.DATA_TYPE_STRING ) {
@@ -4438,7 +4346,7 @@ public void setTableRecordValues ( List<TableRecord> tableRecords, HashMap<Strin
                 }
             }
             catch ( Exception e ) {
-                // Should not happen
+                // Should not happen.
                 errorMessage.append("Error setting table record [" + columnNumbersToSet[icol] + "] (" + e + ").");
                 Message.printWarning(3, routine, "Error setting new table data for [" + columnNumbersToSet[icol] + "] (" + e + ")." );
                 Message.printWarning(3, routine, e);
@@ -4465,10 +4373,10 @@ used to provide ability to dynamically format the values being set in the table
 public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<String,String> columnValues,
 	DataTableValueStringProvider getter, boolean createColumns )
 {   String routine = getClass().getSimpleName() + ".setTableValues";
-    // List of columns that will be set, taken from keys in the column values
+    // List of columns that will be set, taken from keys in the column values.
     int errorCount = 0;
     StringBuffer errorMessage = new StringBuffer();
-    // Get filter columns and glob-style regular expressions
+    // Get filter columns and glob-style regular expressions.
     int [] columnNumbersToFilter = new int[columnFilters.size()];
     String [] columnFilterGlobs = new String[columnFilters.size()];
     Enumeration<String> keys = columnFilters.keys();
@@ -4481,7 +4389,7 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
             key = keys.nextElement();
             columnNumbersToFilter[ikey] = getFieldIndex(key);
             columnFilterGlobs[ikey] = columnFilters.get(key);
-            // Turn default globbing notation into internal Java regex notation
+            // Turn default globbing notation into internal Java regex notation.
             columnFilterGlobs[ikey] = columnFilterGlobs[ikey].replace("*", ".*").toUpperCase();
         }
         catch ( Exception e ) {
@@ -4492,12 +4400,12 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
             errorMessage.append ( "Filter column \"" + key + "\" not found in table.");
         }
     }
-    // Get the column numbers and values to to set
+    // Get the column numbers and values to to set.
     String [] columnNamesToSet = new String[columnValues.size()];
-    String [] columnValuesToSet = new String[columnValues.size()]; // Values as strings, to be parsed
-    Object [] columnObjectsToSet = new Object[columnValues.size()]; // Values as objects, after parsing, set on first row with set
+    String [] columnValuesToSet = new String[columnValues.size()]; // Values as strings, to be parsed.
+    Object [] columnObjectsToSet = new Object[columnValues.size()]; // Values as objects, after parsing, set on first row with set.
     int [] columnNumbersToSet = new int[columnValues.size()];
-    int [] columnTypesToSet = new int[columnValues.size()]; // Can be array type with specific type extractec below
+    int [] columnTypesToSet = new int[columnValues.size()]; // Can be array type with specific type extracted below.
     ikey = -1;
     for ( Map.Entry<String,String> pairs: columnValues.entrySet() ) {
         columnNumbersToSet[++ikey] = -1;
@@ -4509,34 +4417,34 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
             //Message.printStatus(2,routine,"Setting column \"" + columnNamesToSet[ikey] + " " + columnNumbersToSet[ikey] + "\"");
         }
         catch ( Exception e ) {
-            // OK, will add the column below
+            // OK, will add the column below.
         }
     }
-    // If necessary, add columns to the table.  For now, always treat as strings
-    // TODO SAM 2013-08-06 Evaluate how to handle other data types in set
+    // If necessary, add columns to the table.  For now, always treat as strings.
+    // TODO SAM 2013-08-06 Evaluate how to handle other data types in set.
     TableField newTableField;
-    // Create requested columns in the output table
+    // Create requested columns in the output table.
     for ( int icol = 0; icol < columnNumbersToSet.length; icol++ ) {
         if ( (columnNumbersToSet[icol] < 0) && createColumns ) {
-            // Did not find the column in the table so add a String column for null values
+            // Did not find the column in the table so add a String column for null values.
             newTableField = new TableField(TableField.DATA_TYPE_STRING, columnNamesToSet[icol], -1, -1);
             columnNumbersToSet[icol] = addField(newTableField, null );
             columnTypesToSet[icol] = getFieldDataType(columnNumbersToSet[icol]);
         }
     }
-    // Now loop through all the data records and set values if rows are matched
+    // Now loop through all the data records and set values if rows are matched.
     int icol;
     boolean filterMatches;
     Object o = null;
     String s;
-    // Number of rows that have been set, useful for troubleshooting and used to control parsing
+    // Number of rows that have been set, useful for troubleshooting and used to control parsing:
     // - do not "continue" or "break" in logic below in a way that interferes with this counter
     // - process each row completely or not all all to increment counter
     int rowSetCount = 0;
     for ( int irow = 0; irow < getNumberOfRecords(); irow++ ) {
-        filterMatches = true; // Default to matching the column and set to false with checks below
+        filterMatches = true; // Default to matching the column and set to false with checks below.
         if ( columnNumbersToFilter.length > 0 ) {
-            // Filters can be done on any columns so loop through to see if row matches before doing set
+            // Filters can be done on any columns so loop through to see if row matches before doing set>
             for ( icol = 0; icol < columnNumbersToFilter.length; icol++ ) {
                 if ( columnNumbersToFilter[icol] < 0 ) {
                     filterMatches = false;
@@ -4546,11 +4454,11 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                     o = getFieldValue(irow, columnNumbersToFilter[icol]);
                     if ( o == null ) {
                         filterMatches = false;
-                        break; // Don't include nulls when checking values
+                        break; // Don't include nulls when checking values.
                     }
                     s = ("" + o).toUpperCase();
                     if ( !s.matches(columnFilterGlobs[icol]) ) {
-                        // A filter did not match so don't process the record
+                        // A filter did not match so don't process the record.
                         filterMatches = false;
                         break;
                     }
@@ -4569,39 +4477,39 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                 continue;
             }
         }
-        String columnValueToSet = null; // A single value to set, may contain formatting such as ${Property} when used with TSTool
+        String columnValueToSet = null; // A single value to set, may contain formatting such as ${Property} when used with TSTool.
         for ( icol = 0; icol < columnNumbersToSet.length; icol++ ) {
             try {
-                // OK if setting to null value, but hopefully should not happen
+                // OK if setting to null value, but hopefully should not happen.
                 //Message.printStatus(2,routine,"Setting ColNum=" + columnNumbersToSet[icol] + " RowNum=" + irow + " value=" +
                 //    columnValues.get(columnNamesToSet[icol]));
                 if ( columnNumbersToSet[icol] >= 0 ) {
-                	// The column number was determined above so can set
+                	// The column number was determined above so can set.
                 	columnValueToSet = columnValuesToSet[icol];
                 	if ( getter != null ) {
-                		// columnValueToSet may initially have formatting information like ${Property}
+                		// columnValueToSet may initially have formatting information like ${Property}:
                 		// - using local variable will cause reevaluation if necessary
                 		// - TODO smalers 2019-10-02 need to evaluate how this impacts (re)parsing logic below
                 		columnValueToSet = getter.getTableCellValueAsString(columnValueToSet);
                 	}
                		if ( rowSetCount == 0 ) {
-               			// First row has not been processed so need to determine the objects to set
+               			// First row has not been processed so need to determine the objects to set.
                         if ( isColumnArray(columnTypesToSet[icol]) ) {
                     	    // Array string will have format "[value1,value2,...]"
-                    	    // Since an array type the actual data type is determined by subtracting the array type
+                    	    // Since an array type the actual data type is determined by subtracting the array type.
                     	    int dataTypeForArray = columnTypesToSet[icol] - TableField.DATA_TYPE_ARRAY;
                     	    // For now only handle simple formats and assume no special characters
                     	    // (e.g., commas are delimiters but not included in data values).
-                    	    // Strip the array brackets
+                    	    // Strip the array brackets.
                     	    String arrayValue = columnValueToSet.replace("[", "").replace("]", "");
                     	    String[] arrayValueParts = arrayValue.split(",");
-                    	    Object [] arrayValueO = null; // Array that is parsed from input strings, used to avoid re-parsing
-                    	    // Allocate the correct array type below because instanceOf may be used elsewhere to check type
+                    	    Object [] arrayValueO = null; // Array that is parsed from input strings, used to avoid re-parsing.
+                    	    // Allocate the correct array type below because instanceOf may be used elsewhere to check type:
                     	    // - in other words don't allocate array of Object
                     	    for ( int ia = 0; ia < arrayValueParts.length; ia++ ) {
                     	    	if ( dataTypeForArray == TableField.DATA_TYPE_BOOLEAN ) {
                                 	if ( ia == 0 ) {
-                                		// Allocate array of the correct type
+                                		// Allocate array of the correct type.
                                 		arrayValueO = new Boolean[arrayValueParts.length];
                                 	}
                                 	if ( (arrayValueParts[ia] == null) || arrayValueParts[ia].isEmpty() || arrayValueParts[ia].equalsIgnoreCase("null") ) {
@@ -4613,7 +4521,7 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                                 }
                                 else if ( dataTypeForArray == TableField.DATA_TYPE_DATETIME ) {
                                 	if ( ia == 0 ) {
-                                		// Allocate array of the correct type
+                                		// Allocate array of the correct type.
                                 		arrayValueO = new DateTime[arrayValueParts.length];
                                 	}
                                 	if ( (arrayValueParts[ia] == null) || arrayValueParts[ia].isEmpty() || arrayValueParts[ia].equalsIgnoreCase("null") ) {
@@ -4625,7 +4533,7 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                                 }
                                 else if ( dataTypeForArray == TableField.DATA_TYPE_DOUBLE ) {
                                 	if ( ia == 0 ) {
-                                		// Allocate array of the correct type
+                                		// Allocate array of the correct type.
                                 		arrayValueO = new Double[arrayValueParts.length];
                                 	}
                                 	if ( arrayValueParts[ia] == null ) {
@@ -4643,7 +4551,7 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                                 }
                                 else if ( dataTypeForArray == TableField.DATA_TYPE_FLOAT ) {
                                 	if ( ia == 0 ) {
-                                		// Allocate array of the correct type
+                                		// Allocate array of the correct type.
                                 		arrayValueO = new Float[arrayValueParts.length];
                                 	}
                                 	if ( arrayValueParts[ia] == null ) {
@@ -4661,7 +4569,7 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                                 }
                                 else if ( dataTypeForArray == TableField.DATA_TYPE_INT ) {
                                 	if ( ia == 0 ) {
-                                		// Allocate array of the correct type
+                                		// Allocate array of the correct type.
                                 		arrayValueO = new Integer[arrayValueParts.length];
                                 	}
                                 	if ( (arrayValueParts[ia] == null) || arrayValueParts[ia].isEmpty() || arrayValueParts[ia].equalsIgnoreCase("null") ) {
@@ -4673,7 +4581,7 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                                 }
                                 else if ( dataTypeForArray == TableField.DATA_TYPE_LONG ) {
                                 	if ( ia == 0 ) {
-                                		// Allocate array of the correct type
+                                		// Allocate array of the correct type.
                                 		arrayValueO = new Long[arrayValueParts.length];
                                 	}
                                 	if ( (arrayValueParts[ia] == null) || arrayValueParts[ia].isEmpty() || arrayValueParts[ia].equalsIgnoreCase("null") ) {
@@ -4685,7 +4593,7 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                                 }
                                 else if ( dataTypeForArray == TableField.DATA_TYPE_SHORT ) {
                                 	if ( ia == 0 ) {
-                                		// Allocate array of the correct type
+                                		// Allocate array of the correct type.
                                 		arrayValueO = new Short[arrayValueParts.length];
                                 	}
                                 	if ( (arrayValueParts[ia] == null) || arrayValueParts[ia].isEmpty() || arrayValueParts[ia].equalsIgnoreCase("null") ) {
@@ -4697,7 +4605,7 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                                 }
                                 else if ( dataTypeForArray == TableField.DATA_TYPE_STRING ) {
                                 	if ( ia == 0 ) {
-                                		// Allocate array of the correct type
+                                		// Allocate array of the correct type.
                                 		arrayValueO = new String[arrayValueParts.length];
                                 	}
                                 	if ( (arrayValueParts[ia] == null) || arrayValueParts[ia].equalsIgnoreCase("null") ) {
@@ -4714,7 +4622,7 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                                     ++errorCount;
                                 }
                     	    }
-                    	    // The field value is the array of objects
+                    	    // The field value is the array of objects:
                     	    // - to ensure that data are separate, create a new instance of the array each time
                     	    // - TODO smalers 2019-10-02 if the column getter/formatter will change each time due to property evaluations,
                     	    //   need to use a dynamic array, maybe check for a non-null dynamic array in this case?
@@ -4750,7 +4658,7 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                             ++errorCount;
                         }
                		}
-           			// The value to set will be defined from above so set
+           			// The value to set will be defined from above so set.
                     if ( isColumnArray(columnTypesToSet[icol]) ) {
                     	// TODO smalers 2019-10-02 Arrays are not immutable, so need to clone the arrays.
                         setFieldValue(irow, columnNumbersToSet[icol], columnObjectsToSet[icol], true );
@@ -4762,7 +4670,7 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                 }
             }
             catch ( Exception e ) {
-                // Should not happen
+                // Should not happen.
                 errorMessage.append("Error setting table data [" + irow + "][" + columnNumbersToSet[icol] + "] (" + e + ").");
                 Message.printWarning(3, routine, "Error setting new table data for [" + irow + "][" +
                     columnNumbersToSet[icol] + "] (" + e + ")." );
@@ -4770,7 +4678,7 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                 ++errorCount;
             }
         }
-        // If here the row was processed for setting
+        // If here the row was processed for setting.
         ++rowSetCount;
     }
     Message.printStatus(2, routine, "Updated " + rowSetCount + " rows with new values.");
@@ -4789,7 +4697,7 @@ Sort the table rows by sorting a column's values.
 public int [] sortTable ( String [] sortColumns, int [] sortOrder )
 {	String routine = getClass().getSimpleName() + ".sortTable";
     int [] sortColumnsNum = new int[sortColumns.length];
-    List<String> errors = new ArrayList<String>();
+    List<String> errors = new ArrayList<>();
     for ( int i = 0; i < sortColumns.length; i++ ) {
     	sortColumnsNum[i] = -1;
 	    try {
@@ -4819,7 +4727,7 @@ public int [] sortTable ( String [] sortColumns, int [] sortOrder )
     int iSort = 0;
     if ( getFieldDataType(sortColumnsNum[iSort]) == TableField.DATA_TYPE_STRING ) {
         String value;
-        List<String> values = new ArrayList<String>(nrecords);
+        List<String> values = new ArrayList<>(nrecords);
         for ( TableRecord rec : getTableRecords() ) {
             try {
                 value = rec.getFieldValueString(sortColumnsNum[iSort]);
@@ -5258,7 +5166,7 @@ throws Exception {
 	if ( NaNValue != null ) {
 		writeProps.put("NaNValue", NaNValue);
 	}
-	// Call the generic version that takes list of properties
+	// Call the generic version that takes list of properties.
 	writeDelimitedFile(filename, delimiter, writeColumnNames, comments, commentLinePrefix, writeProps );
 }
 
@@ -5300,7 +5208,7 @@ throws Exception {
 		throw new Exception("Cannot write to file '" + filename + "'");
 	}
 	if ( comments == null ) {
-	    comments = new ArrayList<String>(); // To simplify logic below.
+	    comments = new ArrayList<>(); // To simplify logic below.
 	}
 	String commentLinePrefix2 = commentLinePrefix;
 	if ( !commentLinePrefix.equals("") ) {
@@ -5338,7 +5246,7 @@ throws Exception {
 		alwaysQuoteStrings = true;
 	}
 	
-	// String to use for newlines, can be "", by default don't replace :
+	// String to use for newlines, can be "", by default don't replace:
 	// - default is to not replace newlines
 	propO = writeProps.get("NewlineReplacement");
 	String NewlineReplacement = null;

@@ -303,20 +303,19 @@ import RTi.Util.Time.TimeInterval;
 import RTi.Util.Time.TimeUtil;
 
 /**
-The TSGraph class manages the drawing areas for displaying one or more time
-series in a single graph.   The drawing areas are set up by specifying a
-GRJComponentDevice and information about how much of the device should be used
-for this graph.  Drawing properties are retrieved from a TSProduct, where this
-graph is identified as a sub-product of the entire product.
-This class also implements TSViewListener, which is
-typically used to allow a reference other TSGraph so that zooming can occur similarly for all graphs.
-The layout of the graph is as follows (see TSGraphJComponent for other layout
-features like the main title).  Because the AWT Canvas and Graphics do not allow
-for vertical text, the Y axis label is currently added at the top of the axis.
+The TSGraph class manages the drawing areas for displaying one or more time series in a single graph.
+The drawing areas are set up by specifying a
+GRJComponentDevice and information about how much of the device should be used for this graph.
+Drawing properties are retrieved from a TSProduct,
+where this graph is identified as a sub-product of the entire product.
+This class also implements TSViewListener,
+which is typically used to allow a reference other TSGraph so that zooming can occur similarly for all graphs.
+The layout of the graph is as follows (see TSGraphJComponent for other layout features like the main title).
+Because the AWT Canvas and Graphics do not allow for vertical text,
+the Y axis label is currently added at the top of the axis.
 This may change in the future.
-Currently only one legend can be present and the position can be either the
-bottom (default, left, right, or top).  The following figure shows the placement
-of all the legends, although only one will be used.
+Currently only one legend can be present and the position can be either the bottom (default, left, right, or top).
+The following figure shows the placement of all the legends, although only one will be used.
 <pre>
 ------------------------------------------------------------------------------------------------------------------------
 |                                               Full graph (_da_page)                                                  |
@@ -1735,17 +1734,18 @@ public boolean canZoom() {
 }
 
 /**
-Check properties that may change dynamically and, if necessary, reset internal
-variables that correspond to properties.  Internal data are used to increase
-performance, especially for data that are used often (e.g., the axis precision
-and units, which are used for the mouse tracker).  This method should be called immediately before drawing.
+Check properties that may change dynamically and, if necessary,
+reset internal variables that correspond to properties.
+Internal data are used to increase performance, especially for data that are used often
+(e.g., the axis precision and units, which are used for the mouse tracker).
+This method should be called immediately before drawing.
 */
 private void checkInternalProperties ()
 {	// "BottomXAxisLabelFormat" = _bottomx_date_format;
 
 	String prop_val = _tsproduct.getLayeredPropValue ( "BottomXAxisLabelFormat", _subproduct, -1, false );
 	if ( prop_val != null ) {
-		// Currently only handle special cases...
+		// Currently only handle special cases.
 		if ( prop_val.equalsIgnoreCase("MM-DD") ) {
 			_bottomx_date_format = DateTime.FORMAT_MM_DD;
 		}
@@ -8397,19 +8397,19 @@ public String formatMouseTrackerDataPoint ( GRPoint devpt, GRPoint datapt )
         }
     }
 	else {
-		// Simple graph type
+		// Simple graph type.
 	    DateTime mouse_date = new DateTime(datapt.x, true);
 		mouse_date.setPrecision ( _xaxis_date_precision );
 		GRPoint dataptRightYAxis = null;
 		if ( __rightYAxisGraphType != TSGraphType.NONE ) {
-			// Look up data point from the device coordinates
+			// Look up data point from the device coordinates.
 			dataptRightYAxis = _da_righty_graph.getDataXY( devpt.getX(), devpt.getY(), GRDrawingArea.COORD_DEVICE );
 		}
 		if ( _bottomx_date_format > 0 ) {
 			String leftYString = "X:  " + mouse_date.toString(_bottomx_date_format) + ",  Y:  "
 				+ StringUtil.formatString(datapt.y,"%." + _lefty_precision + "f");
 			if ( (__rightYAxisGraphType != TSGraphType.NONE) && (dataptRightYAxis != null) ) {
-				// Need to also show right y-axis
+				// Need to also show right y-axis.
 				String rightYString = "X:  " + mouse_date.toString(_bottomx_date_format) + ",  Y:  "
 						+ StringUtil.formatString(dataptRightYAxis.y,"%." + _righty_precision + "f");
 				return "LEFT: " + leftYString + " / RIGHT: " + rightYString;
@@ -8422,7 +8422,7 @@ public String formatMouseTrackerDataPoint ( GRPoint devpt, GRPoint datapt )
 		    String leftYString = "X:  " + mouse_date.toString() + ",  Y:  "
 		    	+ StringUtil.formatString(datapt.y,"%." + _lefty_precision + "f");
 			if ( (__rightYAxisGraphType != TSGraphType.NONE) && (dataptRightYAxis != null) ) {
-				// Need to also show right y-axis
+				// Need to also show right y-axis.
 				String rightYString = "X:  " + mouse_date.toString() + ",  Y:  "
 					+ StringUtil.formatString(dataptRightYAxis.y,"%." + _righty_precision + "f");
 				return "LEFT: " + leftYString + " / RIGHT: " + rightYString;

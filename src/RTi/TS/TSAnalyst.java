@@ -1734,7 +1734,7 @@ private void processStatistic (	TS ts, YearTS yearts,
                         "Will end processing in year on AnalysisWindowEnd: " + AnalysisWindowEndInYear_DateTime );
                     }
 				}
-				data = tsi.goTo ( date_search, false );
+				data = tsi.goTo ( date_search );
 				if ( data == null ) {
 					// Did not find the requested starting date so must have run out of data.
 					// The original date still applies in some cases.

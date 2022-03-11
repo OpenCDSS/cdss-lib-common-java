@@ -32,39 +32,33 @@ import RTi.TS.TSException;
 import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
 /**
- *  Provides a table model for displaying irregular TS.
- *  <p>
- *  
+ *  Table model for displaying irregular TS.
  *  @see TSViewTable_TableModel for displaying regular TS. 
  */
 public class TSViewTable_Irregular_TableModel extends TSViewTable_TableModel
 {
 
   /**
-	 * 
+	 * Hash for serialization and to avoid Java warning.
 	 */
 	private static final long serialVersionUID = 1L;
+
   List<TSData> dataPoints;
   IrregularTS irrTS = null;
   
   public TSViewTable_Irregular_TableModel(List<TS> data, DateTime start,
           int intervalBase, int intervalMult, int dateFormat,
           String[] dataFormats, boolean useExtendedLegend)
-          throws Exception
-    {
-      this(data, start, intervalBase, intervalMult, dateFormat,
-              dataFormats, useExtendedLegend, 50);
-      // TODO Auto-generated constructor stub
-    }
+          throws Exception {
+      this(data, start, intervalBase, intervalMult, dateFormat, dataFormats, useExtendedLegend, 50);
+  }
 
   public TSViewTable_Irregular_TableModel(List<TS> data, DateTime start,
           int intervalBase, int intervalMult, int dateFormat,
           String[] dataFormats, boolean useExtendedLegend,
-          int cacheInterval) throws Exception
-    {
-      super(data, start, intervalBase, intervalMult, dateFormat,
-              dataFormats, useExtendedLegend, cacheInterval);
-    }
+          int cacheInterval) throws Exception {
+      super(data, start, intervalBase, intervalMult, dateFormat, dataFormats, useExtendedLegend, cacheInterval);
+  }
 
   /**
    * Determine the number of rows for the table model.
@@ -72,20 +66,15 @@ public class TSViewTable_Irregular_TableModel extends TSViewTable_TableModel
    * @param data 
    * @throws TSException
    */
-  protected void calcRowCount(List<IrregularTS> data) throws TSException
-  {
+  protected void calcRowCount(List<IrregularTS> data) throws TSException {
     String routine = "calcRowCount";
-    if (data.get(0) instanceof IrregularTS)
-      {
+    if (data.get(0) instanceof IrregularTS) {
         irrTS = data.get(0);
-      }
-    else
-      {       
+    }
+    else {       
         Message.printWarning(3, routine, "Not a irregularTS: " + irrTS.getIdentifierString() );
-      }
+    }
     dataPoints = irrTS.getData();
-   //TODO: dre verify right start & end dates
-   // _rows = irrTS.calculateDataSize(__start, irrTS.getDate2());
     _rows = dataPoints.size();
   }
   
@@ -95,20 +84,16 @@ public class TSViewTable_Irregular_TableModel extends TSViewTable_TableModel
   @param col the column for which to return data.
   @return the data that should be placed in the JTable at the given row and col.
   */
-  public Object getValueAt(int row, int col) 
-  {
+  public Object getValueAt(int row, int col) {
     TSData d = (TSData)dataPoints.get(row);
     
-    if (col == 0)
-      {
+    if (col == 0) {
         return d.getDate();
-      }
-    else
-      {
+    }
+    else {
         return new Double(d.getDataValue());
-      }
+    }
   }
-  
   
   /**
    * Initialize the dates for cache.
@@ -122,7 +107,7 @@ public class TSViewTable_Irregular_TableModel extends TSViewTable_TableModel
     __cachedDates = new DateTime[(_rows / __cacheInterval) + 1];
 
     // Cache the dates of each __cacheInterval row through the time series.
-    Vector dataPoints = irrTS.getData();
+    List dataPoints = irrTS.getData();
 
     int index = 0;
     for (int i = 0; i < __cachedDates.length; i++)
@@ -134,4 +119,4 @@ public class TSViewTable_Irregular_TableModel extends TSViewTable_TableModel
       }
   }
   */
-} // eof class TSViewTable_Irregular_TableModel
+}

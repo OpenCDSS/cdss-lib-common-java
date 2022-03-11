@@ -33,7 +33,6 @@ import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -104,8 +103,7 @@ been enabled for parsing
 (only used for output)
 */
 public DateTimeFormatterSpecifiersJPanel ( int width, boolean includeFormatterType, boolean includeBlankFormatterType,
-    DateTimeFormatterType defaultFormatter, boolean forOutput, boolean includeProps )
-{
+    DateTimeFormatterType defaultFormatter, boolean forOutput, boolean includeProps ) {
     if ( defaultFormatter == null ) {
         defaultFormatter = DateTimeFormatterType.C;
     }
@@ -121,14 +119,14 @@ public DateTimeFormatterSpecifiersJPanel ( int width, boolean includeFormatterTy
         __formatterTypeJComboBox = new SimpleJComboBox ( false );
         __formatterTypeJComboBox.setToolTipText( "Select the formatter type to use." );
         __formatterTypeJComboBox.setPrototypeDisplayValue(""+DateTimeFormatterType.ISO);
-        List<String> choicesList = new Vector<String>();
+        List<String> choicesList = new ArrayList<>();
         if ( includeBlankFormatterType ) {
             choicesList.add("");
         }
         choicesList.add("" + DateTimeFormatterType.C);
-        // TODO SAM 2012-04-10 Need to add other formatter types
+        // TODO SAM 2012-04-10 Need to add other formatter types.
         __formatterTypeJComboBox.setData(choicesList);
-        // Don't select choice here.  Do it below so that event will trigger populating specifier choices
+        // Don't select choice here.  Do it below so that event will trigger populating specifier choices.
         __formatterTypeJComboBox.addItemListener ( this );
         JGUIUtil.addComponent(this, __formatterTypeJComboBox,
             x++, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -137,16 +135,16 @@ public DateTimeFormatterSpecifiersJPanel ( int width, boolean includeFormatterTy
     __specifierJComboBox = new SimpleJComboBox ( false );
     __specifierJComboBox.setToolTipText(
         "Selecting a specifier will insert at the cursor position in the format string." );
-    __specifierJComboBox.setPrototypeDisplayValue(__hint+"WWWWWWWW"); // Biggest formatter name
+    __specifierJComboBox.setPrototypeDisplayValue(__hint+"WWWWWWWWWW"); // Biggest formatter name.
     __specifierJComboBox.addItemListener ( this );
     JGUIUtil.addComponent(this, __specifierJComboBox,
         x++, y, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
     if ( includeFormatterType ) {
         __formatterTypeJComboBox.select(null);
-        __formatterTypeJComboBox.select(0); // Do this here to trigger population of the format specifier choices
+        __formatterTypeJComboBox.select(0); // Do this here to trigger population of the format specifier choices.
     }
     if ( __specifierJComboBox.getItemCount() > 0 ) {
-        __specifierJComboBox.select(0); // Now select the specifier corresponding to the formatter
+        __specifierJComboBox.select(0); // Now select the specifier corresponding to the formatter.
     }
     
     JGUIUtil.addComponent(this, new JLabel(" => "),
@@ -160,7 +158,7 @@ public DateTimeFormatterSpecifiersJPanel ( int width, boolean includeFormatterTy
     }
     __inputJTextField.setToolTipText(
         "Enter a combination of literal strings and/or format specifiers from the list on the left.");
-    // Make sure caret stays visible even when not in focus
+    // Make sure caret stays visible even when not in focus.
     __inputJTextField.setCaretColor( Color.lightGray );
     __inputJTextField.getCaret().setVisible ( true );
     __inputJTextField.getCaret().setSelectionVisible ( true );
@@ -171,8 +169,7 @@ public DateTimeFormatterSpecifiersJPanel ( int width, boolean includeFormatterTy
 /**
 Add a DocumentListener for the text field.
 */
-public void addDocumentListener ( DocumentListener listener )
-{
+public void addDocumentListener ( DocumentListener listener ) {
     __inputJTextField.getDocument().addDocumentListener ( listener );
 }
 
@@ -180,16 +177,14 @@ public void addDocumentListener ( DocumentListener listener )
 Add an ItemListener for the formatter type combo box.  A listener for the format specifier combo box is not added
 because its selections result in document events, which can be listed to by calling addDocumentListener().
 */
-public void addFormatterTypeItemListener ( ItemListener listener )
-{
+public void addFormatterTypeItemListener ( ItemListener listener ) {
     __formatterTypeJComboBox.addItemListener ( listener );
 }
 
 /**
 Add a KeyListener for the text field.
 */
-public void addKeyListener ( KeyListener listener )
-{
+public void addKeyListener ( KeyListener listener ) {
     __inputJTextField.addKeyListener ( listener );
 }
 
@@ -200,24 +195,23 @@ prefix a format string to indicate the formatter type.  The value returned shoul
 @param onlyIfVisible if false and no formatter is shown in the choice, return null; if true and no formatter is shown,
 return the default
 */
-public DateTimeFormatterType getDateTimeFormatterType ( boolean onlyIfVisible )
-{
+public DateTimeFormatterType getDateTimeFormatterType ( boolean onlyIfVisible ) {
     if ( onlyIfVisible ) {
         if ( (__formatterTypeJComboBox == null) || __formatterTypeJComboBox.getSelected().equals("") ) {
-            return null; // No formatter visible in interface
+            return null; // No formatter visible in interface.
         }
         else {
-            // Get formatter that corresponds to what is shown
+            // Get formatter that corresponds to what is shown.
             return DateTimeFormatterType.valueOfIgnoreCase(__formatterTypeJComboBox.getSelected());
         }
     }
     else {
-        // Return the formatter that is in effect, whether visibly shown or not
+        // Return the formatter that is in effect, whether visibly shown or not.
         if ( (__formatterTypeJComboBox == null) || __formatterTypeJComboBox.getSelected().equals("") ) {
-            return DateTimeFormatterType.C; // Default when not visible
+            return DateTimeFormatterType.C; // Default when not visible.
         }
         else {
-            // Get formatter that corresponds to what is shown
+            // Get formatter that corresponds to what is shown.
             return DateTimeFormatterType.valueOfIgnoreCase(__formatterTypeJComboBox.getSelected());
         }
     }
@@ -226,16 +220,14 @@ public DateTimeFormatterType getDateTimeFormatterType ( boolean onlyIfVisible )
 /**
 Return the Document associated with the text field.
 */
-public Document getDocument()
-{
+public Document getDocument() {
     return __inputJTextField.getDocument();
 }
 
 /**
 Return the selected formatter type (e.g., "C").
 */
-public String getSelectedFormatterType()
-{
+public String getSelectedFormatterType() {
     if ( __formatterTypeJComboBox == null ) {
         return "";
     }
@@ -247,8 +239,7 @@ public String getSelectedFormatterType()
 /**
 Return the text in the text field and do not prepend the formatter type.
 */
-public String getText()
-{
+public String getText() {
     return getText(false,false);
 }
 
@@ -259,10 +250,9 @@ prepend the formatter display name (e.g., "C:xxxx").
 @param onlyIfVisible if true, only include the formatter type prefix if the formatter is visible; if false,
 always include the formatter type
 */
-public String getText( boolean includeFormatterType, boolean onlyIfVisible )
-{
+public String getText( boolean includeFormatterType, boolean onlyIfVisible ) {
     if ( includeFormatterType ) {
-        // Get the formatter for what is visible
+        // Get the formatter for what is visible.
         DateTimeFormatterType t = getDateTimeFormatterType(onlyIfVisible);
         if ( t == null ) {
             return __inputJTextField.getText();
@@ -280,19 +270,17 @@ public String getText( boolean includeFormatterType, boolean onlyIfVisible )
 Return the text field component, for example to allow tool tips to be set.
 @return the text field component.
 */
-public JTextField getTextField ()
-{
+public JTextField getTextField () {
 	return __inputJTextField;
 }
 
 /**
-Respond to ItemEvents - user has selected from the list so insert into the cursor position in the
-text field.
+Respond to ItemEvents - user has selected from the list so insert into the cursor position in the text field.
 @param evt Item event due to list change, etc.
 */
 public void itemStateChanged ( ItemEvent evt )
 {   Object source = evt.getSource();
-    // Only insert on select..
+    // Only insert on select.
     if ( evt.getStateChange() == ItemEvent.SELECTED ) {
         if ( source == __specifierJComboBox ) {
             String selection = StringUtil.getToken ( __specifierJComboBox.getSelected(), "-", 0, 0 ).trim();
@@ -301,7 +289,7 @@ public void itemStateChanged ( ItemEvent evt )
                 String text = __inputJTextField.getText();
                 String newText = text.substring(0,pos) + selection + text.substring(pos);
                 __inputJTextField.setText ( newText );
-                // Make sure caret stays visible even when not in focus
+                // Make sure caret stays visible even when not in focus.
                 __inputJTextField.getCaret().setVisible ( true );
                 __inputJTextField.getCaret().setSelectionVisible ( true );
             }
@@ -326,9 +314,9 @@ private void populateFormatSpecifiers()
         formatterType = null;
     }
     List<String> choicesList = null;
-    // Because the choices get reset there is a chance that this will cause layout problems.  Consequently, it is
-    // best to make sure that the hint takes up enough space that the choice width does not change when repopulated
-    choicesList = new ArrayList<String>();
+    // Because the choices get reset there is a chance that this will cause layout problems.
+    // Consequently, it is best to make sure that the hint takes up enough space that the choice width does not change when repopulated.
+    choicesList = new ArrayList<>();
     if ( (formatterType == null) && (__defaultFormatter != null) ) {
         formatterType = __defaultFormatter;
     }
@@ -350,8 +338,7 @@ private void populateFormatSpecifiers()
 /**
 Select the formatter type.  Select the empty string if formatterType=null.
 */
-public void selectFormatterType ( DateTimeFormatterType formatterType )
-{
+public void selectFormatterType ( DateTimeFormatterType formatterType ) {
     if ( formatterType == null ) {
         __formatterTypeJComboBox.selectIgnoreCase("");
     }
@@ -362,8 +349,7 @@ public void selectFormatterType ( DateTimeFormatterType formatterType )
 Set the text in the text field.
 @param text text to set in the textfield
 */
-public void setText( String text )
-{
+public void setText( String text ) {
     __inputJTextField.setText ( text );
 }
 

@@ -129,7 +129,7 @@ The DataFlavor for transferring this specific class.
 */
 public static DataFlavor tsIdentFlavor = new DataFlavor(TSIdent.class, "TSIdent");
 
-// Data members...
+// Data members.
 
 /**
 The whole identifier, including the input type.
@@ -392,13 +392,13 @@ comparison.  If false, only the 5-part TSID are checked.
 public boolean equals ( String id, boolean include_input )
 {	boolean is_equal = false;
 	if ( include_input ) {
-		// Do a full comparison...
+		// Do a full comparison.
 		if ( __identifier.equalsIgnoreCase(id) ) {
-			// Simple compare...
+			// Simple compare.
 			is_equal = true;
 		}
 		else {
-		    // Compare parts to be sure...
+		    // Compare parts to be sure.
 			try {
 			    TSIdent ident = new TSIdent ( id );
 				if ( ident.getLocation().equalsIgnoreCase(__full_location) &&
@@ -413,25 +413,25 @@ public boolean equals ( String id, boolean include_input )
 				}
 			}
 			catch ( Exception e ) {
-				// Usually because the interval is bad...
+				// Usually because the interval is bad.
 				is_equal = false;
 			}
 		}
 	}
 	else {
-	    // Only compare the 5-part identifier...
-		// Get the part of the identifier before the first ~
+	    // Only compare the 5-part identifier.
+		// Get the part of the identifier before the first ~.
 		int pos = id.indexOf('~');
 		if ( pos >= 0 ) {
-			// Has a ~ so get the leading part for the remainder of the comparison...
+			// Has a ~ so get the leading part for the remainder of the comparison.
 			id = id.substring(0,pos);
 		}
 		if ( __identifier.equalsIgnoreCase(id) ) {
-			// Simple compare...
+			// Simple compare.
 			is_equal = true;
 		}
 		else {
-		    // Compare parts to be sure...
+		    // Compare parts to be sure.
 			try {
 			    TSIdent ident = new TSIdent ( id );
 				if ( ident.getLocation().equalsIgnoreCase(__full_location) &&
@@ -444,7 +444,7 @@ public boolean equals ( String id, boolean include_input )
 				}
 			}
 			catch ( Exception e ) {
-				// Usually because the interval is bad...
+				// Usually because the interval is bad.
 				is_equal = false;
 			}
 		}
@@ -813,9 +813,9 @@ public String getType( )
 Initialize data members.
 */
 private void init ()
-{	__behavior_mask = 0; // Default is to process sub-location and sub-source
+{	__behavior_mask = 0; // Default is to process sub-location and sub-source.
 
-	// Initialize to null strings so that there are not problems with the recursive logic...
+	// Initialize to null strings so that there are not problems with the recursive logic.
 
 	__identifier = null;
 	__full_location = null;
@@ -835,28 +835,28 @@ private void init ()
 
 	setAlias("");
 
-	// Initialize the overall identifier to an empty string...
+	// Initialize the overall identifier to an empty string.
 
 	setFullIdentifier ("");
 
-	// Initialize the location components...
+	// Initialize the location components.
 
 	setMainLocation("");
 
 	setSubLocation("");
 
-	// Initialize the source...
+	// Initialize the source.
 
 	setMainSource("");
 	setSubSource("");
 
-	// Initialize the data type...
+	// Initialize the data type.
 
 	setType("");
 	setMainType("");
 	setSubType("");
 
-	// Initialize the interval...
+	// Initialize the interval.
 
 	__interval_base = TimeInterval.UNKNOWN;
 	__interval_mult = 0;
@@ -868,11 +868,11 @@ private void init ()
 		// Can ignore here.
 	}
 
-	// Initialize the scenario...
+	// Initialize the scenario.
 
 	setScenario("");
 
-	// Initialize the input...
+	// Initialize the input.
 
 	setInputType("");
 	setInputName("");
@@ -928,9 +928,9 @@ identifier string is checked.
 */
 public boolean matches ( String id_regexp, boolean check_alias, boolean include_input )
 {	// Do a comparison on the whole string.  The user may or may not have defined an alias with periods.
-    // Only allow * wildcards when matching the whole string so replace . with literal
+    // Only allow * wildcards when matching the whole string so replace . with literal.
     String java_regexp=StringUtil.replaceString(id_regexp,".","\\.").toUpperCase();
-    // Replace * used in calling code with .* so java string comparison works...
+    // Replace * used in calling code with .* so java string comparison works.
     java_regexp=StringUtil.replaceString(java_regexp,"*",".*").toUpperCase();
     // TODO SAM 2015-06-02 Do all of the following need to be escaped or let some flow through?:  \.[]{}()*+-?^$|
  	//      In particular the period is used in TSID, [] is used for ensembles, and \ could be in file path
@@ -945,7 +945,7 @@ public boolean matches ( String id_regexp, boolean check_alias, boolean include_
     }
     // If here, check to see if the string contains periods that that indicate that identifier parts need checked.
     if ( id_regexp.indexOf(".") >= 0 ) {
-		// Regular expression to match contains parts so compare the parts...
+		// Regular expression to match contains parts so compare the parts.
 		try {
 		    TSIdent tsident = new TSIdent ( id_regexp );
 			return matches ( tsident.getLocation(),
@@ -1062,12 +1062,11 @@ public boolean matches ( String location_regexp, String source_regexp, String da
 		input_type_regexp + "\" inputname=\"" + input_name_regexp +
 		"\" include_input=" +include_input );
 	}
-	// Replace "*" in the regular expressions with ".*", which is necessary
-	// to utilize the Java matches() method...
+	// Replace "*" in the regular expressions with ".*", which is necessary to utilize the Java matches() method.
     // TODO SAM 2015-06-02 Do all of the following need to be escaped or let some flow through?:  \.[]{}()*+-?^$|
- 	//      In particular the period is used in TSID, [] is used for ensembles, and \ could be in file path
+ 	//      In particular the period is used in TSID, [] is used for ensembles, and \ could be in file path.
  	//      The following has generally worked for years.
-    // Also replace ${ from property notation with \$\{ because these characters have meaning in regular expressions
+    // Also replace ${ from property notation with \$\{ because these characters have meaning in regular expressions.
 	String location_regexp_Java = StringUtil.replaceString( location_regexp,"*",".*").replace("${", "\\$\\{").replace("}", "\\}").toUpperCase();
 	String source_regexp_Java = StringUtil.replaceString( source_regexp,"*",".*").replace("${", "\\$\\{").replace("}", "\\}").toUpperCase();
 	String data_type_regexp_Java = StringUtil.replaceString( data_type_regexp,"*",".*").replace("${", "\\$\\{").replace("}", "\\}").toUpperCase();
@@ -1077,7 +1076,7 @@ public boolean matches ( String location_regexp, String source_regexp, String da
 	if ( sequenceID_regexp != null ) {
 	    sequenceID_regexp_Java = StringUtil.replaceString( sequenceID_regexp,"*",".*").replace("${", "\\$\\{").replace("}", "\\}").toUpperCase();
 	}
-	// Compare the 5-part identifier first...
+	// Compare the 5-part identifier first.
 	if ( !__full_location.toUpperCase().matches(location_regexp_Java) ) {
 		return false;
 	}
@@ -1139,7 +1138,7 @@ throws Exception
 {	String routine="TSIdent.parseIdentifier";
 	int	dl = 100;
 	
-	// Declare a TSIdent which we will fill and return...
+	// Declare a TSIdent which we will fill and return.
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine, "Declare TSIdent within this routine..." );
@@ -1149,42 +1148,41 @@ throws Exception
 		Message.printDebug ( dl, routine, "...done declaring TSIdent" );
 	}
 
-	// First parse the datastore and input type information.
+	// First parse the datastore and input type information:
 	// - does not matter if TSID parts are quoted at this point
 
 	String identifierNoInputName = identifier;
 	List<String> inputTypeList = StringUtil.breakStringList ( identifier, "~", 0 );
 	if ( inputTypeList != null ) {
 		int nlist = inputTypeList.size();
-		// Reset to first part for processing below checks below...
+		// Reset to first part for processing below checks below.
 		identifierNoInputName = inputTypeList.get(0);
 		if ( nlist == 2 ) {
 			tsident.setInputType ( inputTypeList.get(1) );
 		}
 		else if ( nlist >= 3 ) {
 			tsident.setInputType ( inputTypeList.get(1) );
-			// File name may have a ~ so find the second instance
-			// of ~ and use the remaining string...
+			// File name may have a ~ so find the second instance of ~ and use the remaining string.
 			int pos = identifier.indexOf ( "~" );
 			if ( (pos >= 0) && identifier.length() > (pos + 1) ) {
-				// Have something at the end...
+				// Have something at the end.
 				String sub = identifier.substring ( pos + 1 );
 				pos = sub.indexOf ( "~" );
 				if ( (pos >= 0) && (sub.length() > (pos + 1))) {
-					// The rest is the file...
+					// The rest is the file.
 					tsident.setInputName ( sub.substring(pos + 1) );
 				}
 			}
 		}
 	}
 
-	// Now parse the 5-part identifier that does not have trailing ~...
+	// Now parse the 5-part identifier that does not have trailing ~.
 
 	String full_location = "", full_source = "", interval_string = "", scenario = "", full_type = "";
 
-	List<String> tsidPartList = null;  // TSID parts, as delimited by .
+	List<String> tsidPartList = null;  // TSID parts, as delimited by period (.).
 	int posQuote = identifierNoInputName.indexOf(PERIOD_QUOTE);
-	// 'list' below are the TSID parts split by periods
+	// 'list' below are the TSID parts split by periods:
 	//   list[0] = location
 	//   list[1] = data source
 	//   list[2] = data type
@@ -1198,7 +1196,7 @@ throws Exception
 		tsidPartList = parseIdentifier_SplitWithQuotes(identifierNoInputName);
 	}
 	else {
-		// No quote in TSID so do simple parse
+		// No quote in TSID so do simple parse.
 		tsidPartList = StringUtil.breakStringList ( identifierNoInputName, ".", 0 );
 	}
 	int tsidPartListSize = tsidPartList.size();
@@ -1212,30 +1210,29 @@ throws Exception
 		Message.printDebug ( dl, routine, "Full TS ID:  \"" + identifier +"\"");
 	}
 
-	// Parse out location and split the rest of the ID...
+	// Parse out location and split the rest of the ID.
 	//
-	// FIXME SAM 2013-06-16 Actually, may need quotes for more new use cases where periods are in identifier parts
-	// This field is allowed to be surrounded by quotes since some
-	// locations cannot be identified by a simple string.  Allow
-	// either ' or " to be used and bracket it.
+	// FIXME SAM 2013-06-16 Actually, may need quotes for more new use cases where periods are in identifier parts.
+	// This field is allowed to be surrounded by quotes since some locations cannot be identified by a simple string.
+	// Allow either ' or " to be used and bracket it.
 
-	// Location type
+	// Location type:
 	// - does not need to be surrounded by single quotes
 	int locationTypeSepPos = -1;
-	String locationPart = tsidPartList.get(0);  // LocationType:FullLocation or FullLocation
-	String locationIdPart = locationPart; // Full string used if location type is not used
+	String locationPart = tsidPartList.get(0);  // LocationType:FullLocation or FullLocation.
+	String locationIdPart = locationPart; // Full string used if location type is not used.
 	locationTypeSepPos = locationPart.indexOf(LOC_TYPE_SEPARATOR);
 	String locationType = "";
 	if ( locationTypeSepPos >= 0 ) {
 	    // Have a location type so split out and set, then treat the rest of the location
-	    // as the location identifier for further processing
+	    // as the location identifier for further processing.
 	    locationType = locationPart.substring(0,locationTypeSepPos);
 	    // Remaining location part is the remainder of the LocType:locationPart string,
 	    // which will be processed below.
 	    locationIdPart = locationPart.substring(locationTypeSepPos + 1);
 	}
 	
-	// Location identifier (without leading LocationType: from above)
+	// Location identifier (without leading LocationType: from above):
 	// - may be surrounded by single quotes (TODO smalers 2020-02-13 double quotes allowed for history)
 	if ( tsidPartListSize >= 1 ) {
 		// TODO smalers 2020-02-13 treat like datatype and keep surrounding quotes
@@ -1248,32 +1245,32 @@ throws Exception
 		//	}
 	}
 
-	// Data source...
+	// Data source.
 	if ( tsidPartListSize >= 2 ) {
 		full_source = tsidPartList.get(1);
 	}
 
-	// Data type...
+	// Data type.
 	if ( tsidPartListSize >= 3 ) {
-		// Data type will include surrounding quotes - otherwise would need to add when rebuilding the full TSID string
+		// Data type will include surrounding quotes - otherwise would need to add when rebuilding the full TSID string.
 		full_type = tsidPartList.get(2);
 	}
 
-	// Data interval...
+	// Data interval.
 	String sequenceId = null;
 	if ( tsidPartListSize >= 4 ) {
 		interval_string = tsidPartList.get(3);
-		// If no scenario is used, the interval string may have the sequence ID on the end, so search for the [ and split the
-		// sequence ID out of the interval string...
+		// If no scenario is used, the interval string may have the sequence ID on the end,
+		// so search for the [ and split the sequence ID out of the interval string.
 		int index = interval_string.indexOf ( SEQUENCE_NUMBER_LEFT );
-		// Get the sequence ID...
+		// Get the sequence ID.
 		if ( index >= 0 ) {
 			if ( interval_string.endsWith(SEQUENCE_NUMBER_RIGHT)){
-				// Should be a properly-formed sequence ID, but need to remove the brackets...
+				// Should be a properly-formed sequence ID, but need to remove the brackets.
 				sequenceId = interval_string.substring( index + 1, interval_string.length() - 1).trim();
 			}
 			if ( index == 0 ) {
-				// There is no interval, just the sequence ID (should not happen)...
+				// There is no interval, just the sequence ID (should not happen).
 				interval_string = "";
 			}
 			else {
@@ -1282,29 +1279,29 @@ throws Exception
 		}
 	}
 
-	// Scenario...  It is possible that the scenario has delimiters
-	// in it.  Therefore, we need to concatenate all the remaining
-	// fields to compose the complete scenario...
+	// Scenario:
+	// - it is possible that the scenario has delimiters in it
+	// - therefore, we need to concatenate all the remaining fields to compose the complete scenario
 	if ( tsidPartListSize >= 5 ) {
 		StringBuffer scenarioBuffer = new StringBuffer();
 		scenarioBuffer.append ( tsidPartList.get(4) );
 		for ( int i = 5; i < tsidPartListSize; i++ ) {
-			// Append the delimiter to create the original un-parsed string
+			// Append the delimiter to create the original un-parsed string.
 			scenarioBuffer.append ( "." );
 			scenarioBuffer.append ( tsidPartList.get(i) );
 		}
 		scenario = scenarioBuffer.toString ();
 	}
-	// The scenario may now have the sequence ID on the end, search for the [ and split out of the scenario...
+	// The scenario may now have the sequence ID on the end, search for the [ and split out of the scenario.
 	int index = scenario.indexOf ( SEQUENCE_NUMBER_LEFT );
-	// Get the sequence ID...
+	// Get the sequence ID.
 	if ( index >= 0 ) {
 		if ( scenario.endsWith(SEQUENCE_NUMBER_RIGHT) ) {
-			// Should be a properly-formed sequence ID...
+			// Should be a properly-formed sequence ID.
 			sequenceId = scenario.substring ( index + 1, scenario.length() - 1 ).trim();
 		}
 		if ( index == 0 ) {
-			// There is no scenario, just the sequence ID...
+			// There is no scenario, just the sequence ID.
 			scenario = "";
 		}
 		else {
@@ -1321,7 +1318,7 @@ throws Exception
 			"\" sequenceId=\"" + sequenceId + "\"" );
 	}
 
-	// Now set the identifier component parts...
+	// Now set the identifier component parts.
 
 	tsident.setLocationType ( locationType );
 	tsident.setLocation ( full_location );
@@ -1331,7 +1328,7 @@ throws Exception
 	tsident.setScenario ( scenario );
 	tsident.setSequenceID ( sequenceId );
 
-	// Return the TSIdent object for use elsewhere...
+	// Return the TSIdent object for use elsewhere.
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine, "Returning local TSIdent..." );
@@ -1345,16 +1342,16 @@ Parse a TSID that has quoted part with periods in one or more parts.
 @return list of parts for TSID
  */
 private static List<String> parseIdentifier_SplitWithQuotes(String identifier) {
-	// Process by getting one token at a time.
-	// -tokens are between periods
-	// -if first character of part is single quote, get to the next single quote
-	List<String> parts = new ArrayList<String>();
-	boolean inPart = true; // should always have a part at the front
+	// Process by getting one token at a time:
+	// - tokens are between periods
+	// - if first character of part is single quote, get to the next single quote
+	List<String> parts = new ArrayList<>();
+	boolean inPart = true; // Should always have a part at the front.
 	boolean inQuote = false;
 	char c;
 	StringBuilder b = new StringBuilder();
 	int ilen = identifier.length();
-	// Use debug messages for now but code seems to be OK
+	// Use debug messages for now but code seems to be OK:
 	// - remove debug messages later.
 	for ( int i = 0; i < ilen; i++ ) {
 		c = identifier.charAt(i);
@@ -1366,39 +1363,39 @@ private static List<String> parseIdentifier_SplitWithQuotes(String identifier) {
 				Message.printDebug(1, "", "Found period" );
 			}
 			if ( inQuote ) {
-				// In a quote so just keep adding characters
+				// In a quote so just keep adding characters.
 				if ( Message.isDebugOn ) {
 					Message.printDebug(1, "", "In quote" );
 				}
 				b.append(c);
 			}
 			else {
-				// Not in quote
+				// Not in quote.
 				if ( Message.isDebugOn ) {
 					Message.printDebug(1, "", "Not in quote" );
 				}
 				if ( inPart ) {
-					// Between periods.  Already in part so end it without adding period
+					// Between periods.  Already in part so end it without adding period.
 					if ( Message.isDebugOn ) {
 						Message.printDebug(1, "", "In part, ending part" );
 					}
 					parts.add(b.toString());
 					b.setLength(0);
-					// Will be in part at top of loop because current period will be skipped
+					// Will be in part at top of loop because current period will be skipped:
 					// - but if last period treat the following part as empty string
 					if ( i == (ilen - 1) ) {
 						// Add an empty string
 						parts.add("");
 					}
 					else {
-						// Keep processing
-						// Set to not be in part
+						// Keep processing.
+						// Set to not be in part.
 						inPart = false;
-						--i; // Re-process period to trigger in a part in next iteration
+						--i; // Re-process period to trigger in a part in next iteration.
 					}
 				}
 				else {
-					// Was not in a part so start it
+					// Was not in a part so start it.
 					if ( Message.isDebugOn ) {
 						Message.printDebug(1, "", "Not in part, starting part" );
 					}
@@ -1414,31 +1411,31 @@ private static List<String> parseIdentifier_SplitWithQuotes(String identifier) {
 			}
 			if ( inQuote ) {
 				// At the end of the quoted part.
-				// Always include the quote in the part
+				// Always include the quote in the part.
 				if ( Message.isDebugOn ) {
 					Message.printDebug(1, "", "In quote, ending quote" );
 				}
 				b.append(c);
 				parts.add(b.toString());
 				b.setLength(0);
-				// Next period immediately following will cause next part to be added, even if period at end of string
+				// Next period immediately following will cause next part to be added, even if period at end of string.
 				inQuote = false;
 				inPart = false;
 			}
 			else {
-				// Need to start a part
+				// Need to start a part.
 				if ( Message.isDebugOn ) {
 					Message.printDebug(1, "", "Not in quote, starting quote" );
 				}
-				b.append(c); // Keep the quote
+				b.append(c); // Keep the quote.
 				inQuote = true;
 			}
 		}
 		else {
-			// Character to add to part
+			// Character to add to part.
 			b.append(c);
 			if ( i == (ilen - 1) ) {
-				// Last part
+				// Last part.
 				parts.add(b.toString());
 			}
 		}
@@ -1541,8 +1538,7 @@ public void setIdentifier ( )
 	int	dl = 100;
 
 	// Assume that all the individual set routines have handled the
-	// __behavior_mask accordingly and therefore we can just concatenate
-	// strings here...
+	// __behavior_mask accordingly and therefore we can just concatenate strings here.
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine,
@@ -1588,17 +1584,16 @@ throws Exception
 	}
 
 	if ( identifier.length() == 0 ) {
-		// Cannot parse the identifier because doing so would result in
-		// an infinite loop.  If this routine is being called with an
-		// empty string, it is a mistake.  The initialization code will
-		// call setFullIdentifier() directly.
+		// Cannot parse the identifier because doing so would result in an infinite loop.
+		// If this routine is being called with an empty string, it is a mistake.
+		// The initialization code will call setFullIdentifier() directly.
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, routine, "Identifier string is empty, not processing!" );
 		}
 		return;
 	}
 
-	// Parse the identifier using the public static function to create a temporary identifier object...
+	// Parse the identifier using the public static function to create a temporary identifier object.
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine, "Done declaring temp TSIdent." );
@@ -1609,7 +1604,7 @@ throws Exception
 		Message.printDebug ( dl, routine, "...back from parsing identifier" );
 	}
 
-	// Now copy the temporary copy into this instance...
+	// Now copy the temporary copy into this instance.
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine, "Setting the individual parts..." );
@@ -1723,7 +1718,7 @@ Set the interval given the interval string.
 public void setInterval ( String interval_string )
 throws Exception
 {	String routine="TSIdent.setInterval(String)";
-	int	dl = 100;
+	int	dl = 10;
 	TimeInterval tsinterval = null;
 
 	if ( interval_string == null ) {
@@ -1735,28 +1730,37 @@ throws Exception
 	}
 
 	if ( !interval_string.equals("*") && interval_string.length() > 0 ) {
-		// First split the string into its base and multiplier...
+		// First split the string into its base and multiplier for regular interval, or detect irregular.
+
+   		if ( Message.isDebugOn ) {
+   			Message.printDebug ( dl, routine, "Parsing interval \"" + interval_string + "\"" );
+   		}
 
         if ( (__behavior_mask & NO_VALIDATION) == 0 ) {
             try {
                 tsinterval = TimeInterval.parseInterval ( interval_string );
             }
             catch ( Exception e ) {
-                // Not validating so let this pass...
+                // Not validating so ignore the exception.
             }
         }
         else {
-            // Want to validate so let this throw an exception...
+            // Want to validate so throw an exception.
             tsinterval = TimeInterval.parseInterval ( interval_string );
         }
 
-		// Now set the base and multiplier...
+		// Now set the base and multiplier.
         if ( tsinterval != null ) {
     		__interval_base = tsinterval.getBase();
     		__interval_mult = tsinterval.getMultiplier();
     		if ( Message.isDebugOn ) {
-    			Message.printDebug ( dl, routine, "Setting interval base to " + __interval_base	+ " mult: " +
-                        __interval_mult );
+    			Message.printDebug ( dl, routine, "Setting interval base to " + __interval_base	+ " (" +
+    				TimeInterval.getName(__interval_base, 0) + ") mult: " + __interval_mult );
+    			if ( tsinterval.isIrregularInterval() ) {
+    				Message.printDebug ( dl, routine, "  Interval is irregular, precision is " +
+    					tsinterval.getIrregularIntervalPrecision()	+ " (" +
+    					TimeInterval.getName(tsinterval.getIrregularIntervalPrecision(), 0) + ")." );
+    			}
     		}
         }
 	}
@@ -1793,7 +1797,7 @@ public void setInterval ( int interval_base, int interval_mult )
 	__interval_base = interval_base;
 	__interval_mult = interval_mult;
 
-	// Now need to set the string representation of the interval...
+	// Now need to set the string representation of the interval.
 
 	StringBuffer interval_string = new StringBuffer ();
 	if ( (interval_base != TimeInterval.IRREGULAR) && (interval_mult != 1) ) {
@@ -1851,25 +1855,25 @@ public void setLocation ()
 		Message.printDebug ( dl, routine, "Resetting full location from parts..." );
 	}
 	if ( (__behavior_mask & NO_SUB_LOCATION) != 0 ) {
-		// Just use the main location as the full location...
+		// Just use the main location as the full location.
 		if ( __main_location != null ) {
-			// There should always be a main location after the object is initialized...
+			// There should always be a main location after the object is initialized.
 			setFullLocation ( __main_location );
 		}
 	}
 	else {
         // Concatenate the main and sub-locations to get the full location.
 		StringBuffer full_location = new StringBuffer ();
-		// We may want to check for __main_location[] also...
+		// We may want to check for __main_location[] also.
 		if ( __main_location != null ) {
-			// This should always be the case after the object is initialized...
+			// This should always be the case after the object is initialized.
 			full_location.append ( __main_location );
 			if ( __sub_location != null ) {
-				// We only want to add the sublocation if it is
+				// We only want to add the sub-location if it is
 				// not an empty string (it will be an empty
 				// string after the object is initialized).
 				if ( __sub_location.length() > 0 ) {
-					// Have a sub_location so append it to the main location...
+					// Have a sub_location so append it to the main location.
 					full_location.append ( LOCATION_SEPARATOR );
 					full_location.append ( __sub_location );
 				}
@@ -1877,7 +1881,7 @@ public void setLocation ()
 			setFullLocation ( full_location.toString() );
 		}
 	}
-	// Now reset the full identifier...
+	// Now reset the full identifier.
 	setIdentifier ();
 }
 
@@ -1909,18 +1913,18 @@ public void setLocation( String full_location )
 	}
 
 	if ( (__behavior_mask & NO_SUB_LOCATION) != 0 ) {
-		// The entire string passed in is used for the main location...
+		// The entire string passed in is used for the main location.
 		setMainLocation ( full_location );
 	}
 	else {
-	    // Need to split the location into main and sub-location...
+	    // Need to split the location into main and sub-location.
 		List<String> list;
 		StringBuffer sub_location = new StringBuffer ();
 		int nlist;
 		list = StringUtil.breakStringList ( full_location, LOCATION_SEPARATOR, 0 );
 		nlist = list.size();
 		if ( nlist >= 1 ) {
-			// Set the main location...
+			// Set the main location.
 			setMainLocation ( list.get(0) );
 		}
 		if ( nlist >= 2 ) {
@@ -1936,7 +1940,7 @@ public void setLocation( String full_location )
 			setSubLocation ( sub_location.toString() );
 		}
 		else {
-		    // Since only setting the main location need to set the sub-location to an empty string...
+		    // Since only setting the main location need to set the sub-location to an empty string.
 			setSubLocation ( "" );
 		}
 	}
@@ -2016,9 +2020,9 @@ Set the full source from its parts.
 */
 public void setSource ( )
 {	if ( (__behavior_mask & NO_SUB_SOURCE) != 0 ) {
-		// Just use the main source as the full source...
+		// Just use the main source as the full source.
 		if ( __main_source != null ) {
-			// There should always be a main source after the object is initialized...
+			// There should always be a main source after the object is initialized.
 			setFullSource ( __main_source );
 		}
 	}
@@ -2026,13 +2030,13 @@ public void setSource ( )
 	    // Concatenate the main and sub-sources to get the full source.
 		StringBuffer full_source = new StringBuffer ();
 		if ( __main_source != null ) {
-			// We only want to add the subsource if it is not an
+			// We only want to add the sub-source if it is not an
 			// empty string (it will be an empty string after the
 			// object is initialized).
 			full_source.append ( __main_source );
 			if ( __sub_source != null ) {
-				// We have sub_source so append it to the main source...
-				// We have a sub_source so append it to the main source...
+				// We have sub_source so append it to the main source.
+				// We have a sub_source so append it to the main source.
 				if ( __sub_source.length() > 0 ) {
 					full_source.append ( SOURCE_SEPARATOR );
 					full_source.append ( __sub_source );
@@ -2041,7 +2045,7 @@ public void setSource ( )
 			setFullSource ( full_source.toString() );
 		}
 	}
-	// Now reset the full identifier...
+	// Now reset the full identifier.
 	setIdentifier ();
 }
 
@@ -2070,11 +2074,11 @@ public void setSource( String source )
 		setSubSource ( "" );
 	}
 	else if ( (__behavior_mask & NO_SUB_SOURCE) != 0 ) {
-		// The entire string passed in is used for the main source...
+		// The entire string passed in is used for the main source.
 		setMainSource ( source );
 	}
 	else {
-	    // Need to split the source into main and sub-source...
+	    // Need to split the source into main and sub-source.
 		List<String> list;
 		StringBuffer sub_source = new StringBuffer ();
 		int nlist;
@@ -2082,11 +2086,11 @@ public void setSource( String source )
 			SOURCE_SEPARATOR, 0 );
 		nlist = list.size();
 		if ( nlist >= 1 )  {
-			// Set the main source...
+			// Set the main source.
 			setMainSource ( list.get(0) );
 		}
 		if ( nlist >= 2 ) {
-			// Now set the sub-source...
+			// Now set the sub-source.
 			int iend = nlist - 1;
 			for ( int i = 1; i <= iend; i++ ) {
 				sub_source.append ( list.get(i) );
@@ -2097,8 +2101,7 @@ public void setSource( String source )
 			setSubSource ( sub_source.toString() );
 		}
 		else {
-		    // Since we are only setting the main location we
-			// need to set the sub-location to an empty string...
+		    // Since we are only setting the main location we need to set the sub-location to an empty string.
 			setSubSource ( "" );
 		}
 	}
@@ -2152,9 +2155,9 @@ public void setType ()
 		Message.printDebug ( dl, routine, "Resetting full type from parts..." );
 	}
 	if ( (__behavior_mask & NO_SUB_TYPE) != 0 ) {
-		// Just use the main type as the full type...
+		// Just use the main type as the full type.
 		if ( __main_type != null ) {
-			// There should always be a main type after the object is initialized...
+			// There should always be a main type after the object is initialized.
 			setFullType ( __main_type );
 		}
 	}
@@ -2162,14 +2165,14 @@ public void setType ()
 	    // Concatenate the main and sub-types to get the full type.
 		StringBuffer full_type = new StringBuffer ();
 		if ( __main_type != null ) {
-			// This should always be the case after the object is initialized...
+			// This should always be the case after the object is initialized.
 			full_type.append ( __main_type );
 			if ( __sub_type != null ) {
-				// We only want to add the subtype if it is
+				// We only want to add the sub-type if it is
 				// not an empty string (it will be an empty
 				// string after the object is initialized).
 				if ( __sub_type.length() > 0 ) {
-					// We have a sub type so append it to the main type...
+					// We have a sub type so append it to the main type.
 					full_type.append ( TYPE_SEPARATOR );
 					full_type.append ( __sub_type );
 				}
@@ -2177,7 +2180,7 @@ public void setType ()
 			setFullType ( full_type.toString() );
 		}
 	}
-	// Now reset the full identifier...
+	// Now reset the full identifier.
 	setIdentifier ();
 }
 
@@ -2198,22 +2201,22 @@ public void setType ( String type )
 	}
 
 	if ( (__behavior_mask & NO_SUB_TYPE) != 0 ) {
-		// The entire string passed in is used for the main data type...
+		// The entire string passed in is used for the main data type.
 		setMainType ( type );
 	}
 	else {
-		// Need to split the data type into main and sub-location...
+		// Need to split the data type into main and sub-location.
 		List<String> list;
 		StringBuffer sub_type = new StringBuffer ();
 		int nlist;
 		list =	StringUtil.breakStringList ( type, TYPE_SEPARATOR, 0 );
 		nlist = list.size();
 		if ( nlist >= 1 ) {
-			// Set the main type...
+			// Set the main type.
 			setMainType ( list.get(0) );
 		}
 		if ( nlist >= 2 ) {
-			// Now set the sub-type...
+			// Now set the sub-type.
 			int iend = nlist - 1;
 			for ( int i = 1; i <= iend; i++ ) {
 				sub_type.append (list.get(i));
@@ -2224,8 +2227,7 @@ public void setType ( String type )
 			setSubType ( sub_type.toString() );
 		}
 		else {
-		    // Since we are only setting the main type we
-			// need to set the sub-type to an empty string...
+		    // Since we are only setting the main type we need to set the sub-type to an empty string.
 			setSubType ( "" );
 		}
 	}
@@ -2256,11 +2258,11 @@ public String toString ( boolean include_input )
 	    locationType = __locationType + LOC_TYPE_SEPARATOR;
 	}
 	if ( (__scenario != null) && (__scenario.length() > 0) ) {
-		// Add the scenario if it is not blank...
+		// Add the scenario if it is not blank.
 	    scenario = "." + __scenario;
 	}
 	if ( (__sequenceID != null) && (__sequenceID.length() > 0) ) {
-		// Add the sequence ID if it is not blank...
+		// Add the sequence ID if it is not blank.
 		sequenceID = SEQUENCE_NUMBER_LEFT + __sequenceID + SEQUENCE_NUMBER_RIGHT;
 	}
 	if ( include_input ) {

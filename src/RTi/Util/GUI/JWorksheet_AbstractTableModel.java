@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@ NoticeEnd */
 
 package RTi.Util.GUI;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.table.AbstractTableModel;
 
@@ -78,17 +78,17 @@ been overridden.  The int[] arrays consist of:<br><pre>
 2 - a 1 if the cell is editable, 0 if it is not
 </pre>
 */
-protected List<int[]> _cellEditOverride = new Vector<int[]>();
+protected List<int[]> _cellEditOverride = new ArrayList<int[]>();
 
 /**
 The data that will be shown in the table.
 */
-protected List<T> _data = new Vector<T>();
+protected List<T> _data = new ArrayList<>();
 
 /**
 The list of table model listeners.
 */
-protected List<JWorksheet_TableModelListener> _listeners = new Vector<JWorksheet_TableModelListener>();
+protected List<JWorksheet_TableModelListener> _listeners = new ArrayList<>();
 
 /**
 Adds the object to the table model.
@@ -96,7 +96,7 @@ Adds the object to the table model.
 */
 public void addRow(T o) {
 	if (_data == null) {
-		_data = new Vector<T>();
+		_data = new ArrayList<>();
 		_data.add(o);
 	}
 	else {
@@ -128,7 +128,7 @@ Removes a row's editability override and lets the normal cell editing rules take
 public void clearOverrideCellEdit(int row) {
 	int size = _cellEditOverride.size();
 
-	List<Integer> removes = new Vector<Integer>();
+	List<Integer> removes = new ArrayList<>();
 	if (size > 0) {
 		int[] temp;
 		for (int i = 0; i < size; i++) {
@@ -163,8 +163,8 @@ public void deleteRow(int row) {
 }
 
 /**
-Dummy version of the method to get column tool tips for a worksheet.  This one
-just returns null, meaning that no tool tips are to be set up.
+Dummy version of the method to get column tool tips for a worksheet.
+This one just returns null, meaning that no tool tips are to be set up.
 */
 public String[] getColumnToolTips() {
 	return null;
@@ -208,7 +208,7 @@ Inserts a row at the specified position.
 */
 public void insertRowAt(T o, int pos) {
 	if (_data == null) {
-		_data = new Vector<T>();
+		_data = new ArrayList<>();
 		_data.add(o);
 	}
 	else {
@@ -293,7 +293,7 @@ Changes a row of data by replacing the old row with the new data.
 */
 public void setRowData(T o, int pos) {
 	if (_data == null) {
-		_data = new Vector<T>();
+		_data = new ArrayList<>();
 		_data.add(o);
 	}
 	else {
@@ -343,7 +343,8 @@ read, the table model is guaranteed that the row in the call to
 getValueAt() is either the same row that was read from last, or one greater
 than the row that was read from last time.
 */
-public void startNewConsecutiveRead() {}
+public void startNewConsecutiveRead() {
+}
 
 /**
 Can be called upon changing values in a table model.  Notifies all

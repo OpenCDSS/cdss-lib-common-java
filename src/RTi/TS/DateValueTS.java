@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,229 +20,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// DateValueTS - class to process date-value format time series
-// ----------------------------------------------------------------------------
-// History:
-//
-// 01 Jan 2000	Steven A. Malers, RTi	Copy and modify DateValueMinuteTS to
-//					evaluate whether static I/O methods are
-//					a good alternative.  Issues to consider
-//					with this approach:
-//					* For some time series, it may be
-//					  appropriate to declare the time series
-//					  in one place and populate data in
-//					  another.  In this case, a pointer to
-//					  a time series may need to be supplied
-//					  to the read method.
-//					* What if there are data specific to the
-//					  time series format that need to be
-//					  carried around between read/write (use
-//					  a PropList in TS base class)?
-//					* What if a connection to the TS file
-//					  is to remain open so that an
-//					  incremental read/write can occur
-//					  (PropList again or add some specific
-//					  data members to TS base class)?
-//					Need to consider these before going to
-//					this approach for everything, but at
-//					the very least, this DateValueTS class
-//					may minimize the amount of code
-//					duplicated in other DateValue* classes.
-// 21 Feb 2000	SAM, RTi		Address a number of feedback issues.
-//					Add ability to handle irregular time
-//					series when writing.  Figure out why
-//					the scenario needs to be specified in
-//					the file ID when writing.  Initialize
-//					the data type and other information to
-//					empty strings when readying.  Add
-//					readTimeSeries that takes a TS* pointer.
-// 18 Mar 2000	SAM, RTi		Updated based on purify of code.
-// 17 Jun 2000	SAM, RTi		Update to use new utility classes.
-// 28 Jul 2000	SAM, RTi		Overload readTimeSeries to make
-//					units and read_data flag optional.
-// 11 Aug 2000	SAM, RTi		Add method to write multiple time
-//					series.  Previously, much of this code
-//					was in the mergets utility program.
-//					Use this method for all writing.  Add
-//					javadoc throughout.  Remove
-//					freeStringList and use delete to avoid
-//					purify PLK messages.
-// 20 Aug 2000	SAM, RTi		Add units conversion on output to get
-//					rid of some warnings at run-time.
-// 03 Oct 2000	SAM, RTi		Port C++
-// 23 Oct 2000	SAM, RTi		Update so NumTS property is recognized
-//					on a read, but only handle cases where
-//					NumTS is 1.
-// 07 Nov 2000	SAM, RTi		Add additional information to header,
-//					including a header line.
-//					Enable reading of multiple time series
-//					with readTimeSeriesList().
-// 23 Nov 2000	SAM, RTi		Change printSample() to getSample() and
-//					return a Vector.
-// 22 Feb 2001	SAM, RTi		Add call to setInputName() when reading.
-//					Change IO to IOUtil.
-// 01 Mar 2001	SAM, RTi		Add call to
-//					IOUtil.getPathUsingWorkingDir() to
-//					allow batch and GUI code to use the
-//					same code.
-// 11 Apr 2001	SAM, RTi		Update to support reading multiple
-//					time series.
-// 25 Apr 2001	SAM, RTi		Use "MissingVal" everywhere and not
-//					"Missing".  Fix so that when a single
-//					time series is read, the time series
-//					identifier that is passed can be either
-//					a filename or a time series identifier
-//					where the filename is in the scenario.
-//					Change so that the readTimeSeriesList()
-//					methods that used to take a TS parameter
-//					now take a String tsident_string
-//					parameter.  Do this because when reading
-//					a single time series from
-//					Add isDateValueFile() method.  This can
-//					be used to determine the file format
-//					without relying on the source.
-// 01 Jun 2001	SAM, RTi		Remove @ when writing data with times -
-//					use a space.  The read code will now
-//					properly handle.
-// 14 Aug 2001	SAM, RTi		Track down problem where some DateValue
-//					time series are not getting read
-//					correctly - data_interval_base was not
-//					being set for requested time series.
-// 28 Aug 2001	SAM, RTi		Track down problem where reading a file
-//					and then writing does not include the
-//					data type - the Java TS class carries
-//					the type independent of the TSIdent so
-//					had to set from the TSIdent.  Also, if
-//					the data type is missing, do not set
-//					when reading.
-// 2001-11-06	SAM, RTi		Review javadoc.  Verify that variables
-//					are set to null when no longer used.
-// 2001-11-20	SAM, RTi		If the start and end dates have a time
-//					zone, set the time zone in the write
-//					code to not have a time zone.  Otherwise
-//					the output will be excessive and
-//					redundant and will foul up the parsing
-//					code.  The start and end dates with time
-//					zones should be enough.  When writing
-//					time series, if time is used, make
-//					separate headers for the date and time
-//					columns.
-// 2002-01-14	SAM, RTi		Add readFromStringList().
-// 2002-01-31	SAM, RTi		Overload readTimeSeries() to take a
-//					requested TSID and a file name.  This
-//					is consistent with new TSTool separate
-//					handling of the TSID and storage path.
-//					Start using the expanded identifier that
-//					includes input type and input name.
-// 2002-02-08	SAM, RTi		Call the new TSIdent.setInputType() and
-//					TSIdent.setInputName() methods.
-// 2002-04-16	SAM, RTi		Write the alias and handle reading the
-//					alias.  This is needed to transfer
-//					TSTool output persistently between runs.
-//					Change the DateValue format version to
-//					1.2.
-// 2002-04-23	SAM, RTi		Fix bug where null time series could
-//					not be written - should now result in
-//					missing data and blanks in header.
-// 2002-04-25	SAM, RTi		Change so when setting the input name
-//					the passed in value is used (not the
-//					full path).  This works better with
-//					dynamic applications where the working
-//					directory is set by the application.
-//					Change all printWarning() calls to level
-//					2.
-// 2002-06-12	SAM, RTi		Fix bug where empty DataType header
-//					information seems to be causing
-//					problems.  In writeTimeSeries(),
-//					surround DataType and Units with
-//					strings.  Change the format version to
-//					1.3.  Fix so that if the data type is
-//					not set in the TS, use the TSIdent
-//					data type on read and write.
-// 2002-07-12	SAM, RTi		Fix problem where descriptions in
-//					header were not being read correctly in
-//					cases where the description contained
-//					equals signs.  Also when reading only
-//					the headers, quit reading if
-//					"# Time series histories" has been
-//					encountered.  Otherwise time series with
-//					very long histories take a long time to
-//					read for just the header.
-// 2002-09-04	SAM, RTi		Update to support input/output of data
-//					quality flags.  For now if a time series
-//					has data flags, write them.  Backtrack
-//					on the UsgsNwis format and only use the
-//					data flags to set the data initially
-//					but don't carry around (need a strategy
-//					for how to handle data flags in
-//					manipulation).  Change the version to
-//					1.4.
-// 2003-02-14	SAM, RTi		Allow NaN to be used as the missing data
-//					value.
-// 2003-06-02	SAM, RTi		Upgrade to use generic classes.
-//					* Change TSDate to DateTime.
-//					* Change TSUnits to DataUnits.
-//					* Change TS.INTERVAL* to TimeInterval.
-// 2003-07-24	SAM, RTi		* Change writeTimeSeries() to
-//					  writeTimeSeriesList() when multiple
-//					  time series are written.
-// 2003-07-31	SAM, RTi		Change so when passing a requested time
-//					series identifier to the read method,
-//					the aliases in the file are checked
-//					first.
-// 2003-08-12	SAM, RTi		* Minor cleanup based on review of C++
-//					  code (which was recently ported from
-//					  this Java code): 1) Initialize some
-//					  size variables to 0 in
-//					  readTimeSeriesList(); 2) Remove check
-//					  for zero year in writeTimeSeriesList()
-//					  - average time series may use zero
-//					  year.
-//					* Update the readTimeSeries() method
-//					  that takes a TSID and file name to
-//					  handle an alias as the TSID.
-//					* When reading the time series, do not
-//					  allow file names to be in the
-//					  scenario.
-//					* Handle sequence number in
-//					  readTimeSeriesList().
-// 2003-08-19	SAM, RTi		* No longer handle time series
-//					  identifiers that have the scenario as
-//					  the scenario.  Instead, rely on the
-//					  full input name.
-//					* Track down a problem apparently
-//					  introduced in the last update - time
-//					  series files without alias were not
-//					  being read.
-// 2003-10-06	SAM, RTi		* After reading the header, check for
-//					  critical information (e.g., TSID) and
-//					  assign defaults.  This will help with
-//					  file problems and will also allow
-//					  files without the properties to be
-//					  read.
-//					* Add time series comments to the
-//					  header.
-// 2003-11-19	SAM, RTi		* Print the time series TSID and alias
-//					  in comments and genesis.
-//					* Throw an exception in
-//					  writeTimeSeriesList() if an error
-//					  occurs.
-//					* For IrregularTS in
-//					  writeTimeSeriesList(), add the units
-//					  conversion in again.
-// 2004-03-01	SAM, RTi		* Format TSID as quoted strings on
-//					  output.
-//					* Some command descriptions now have
-//					  include = so manually parse out the
-//					  header tokens.
-// 2005-08-10	SAM, RTi		Fix bug where bad file was passing a
-//					null file pointer to the read, resulting
-//					in many warnings.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-//EndHeader
 
 package RTi.TS;
 
@@ -300,7 +77,7 @@ public static boolean isDateValueFile ( String filename )
 	String full_fname = IOUtil.getPathUsingWorkingDir ( filename );
 	try {
 		if ( full_fname.toUpperCase().endsWith(".ZIP") ) {
-			// Handle case where DateValue file is compressed (single file in .zip)
+			// Handle case where DateValue file is compressed (single file in .zip).
 			ZipToolkit zt = new ZipToolkit();
 			in = zt.openBufferedReaderForSingleFile(full_fname,0);
 		}
@@ -340,17 +117,17 @@ Parse a data string of the form "{dataflag1:"description",dataflag2:"description
 */
 private static List<TSDataFlagMetadata> parseDataFlagDescriptions(String value)
 {
-	List<TSDataFlagMetadata> metaList = new ArrayList<TSDataFlagMetadata>();
+	List<TSDataFlagMetadata> metaList = new ArrayList<>();
 	value = value.trim().replace("{","").replace("}", "");
 	List<String> parts = StringUtil.breakStringList(value, ",", StringUtil.DELIM_ALLOW_STRINGS | StringUtil.DELIM_ALLOW_STRINGS_RETAIN_QUOTES);
 	for ( String part : parts ) {
-		// Now have flag:description
+		// Now have flag:description.
 		List<String> parts2 = StringUtil.breakStringList(part.trim(), ":", StringUtil.DELIM_ALLOW_STRINGS | StringUtil.DELIM_ALLOW_STRINGS_RETAIN_QUOTES);
 		if ( parts2.size() == 2 ) {
 			String propName = parts2.get(0).trim();
 			String propVal = parts2.get(1).trim();
 			if ( propVal.startsWith("\"") && propVal.endsWith("\"") ) {
-				// Have a quoted string
+				// Have a quoted string.
 				metaList.add(new TSDataFlagMetadata(propName,propVal.substring(1,propVal.length() - 1)));
 			}
 			else if ( propVal.equalsIgnoreCase("null") ) {
@@ -361,7 +138,7 @@ private static List<TSDataFlagMetadata> parseDataFlagDescriptions(String value)
 	return metaList;
 }
 
-// TODO SAM 2015-05-18 This is brute force - need to make more elegant
+// TODO SAM 2015-05-18 This is brute force - need to make more elegant.
 /**
 Parse a properties string of the form "{stringprop:"propval",intprop:123,doubleprop=123.456}"
 */
@@ -371,13 +148,13 @@ private static PropList parseTimeSeriesProperties(String value)
 	value = value.trim().replace("{","").replace("}", "");
 	List<String> parts = StringUtil.breakStringList(value, ",", StringUtil.DELIM_ALLOW_STRINGS | StringUtil.DELIM_ALLOW_STRINGS_RETAIN_QUOTES);
 	for ( String part : parts ) {
-		// Now have Name:value
+		// Now have Name:value.
 		List<String> parts2 = StringUtil.breakStringList(part.trim(), ":", StringUtil.DELIM_ALLOW_STRINGS | StringUtil.DELIM_ALLOW_STRINGS_RETAIN_QUOTES);
 		if ( parts2.size() == 2 ) {
 			String propName = parts2.get(0).trim();
 			String propVal = parts2.get(1).trim();
 			if ( propVal.startsWith("\"") && propVal.endsWith("\"") ) {
-				// Have a quoted string
+				// Have a quoted string.
 				props.setUsingObject(propName,propVal.substring(1,propVal.length() - 1));
 			}
 			else if ( propVal.equalsIgnoreCase("null") ) {
@@ -411,7 +188,7 @@ settings - reset by file contents).
 public static TS readFromStringList ( List<String> strings, String tsident_string,
 					DateTime req_date1, DateTime req_date2, String req_units, boolean read_data )
 throws Exception
-{	// Write the strings to a temporary file...
+{	// Write the strings to a temporary file.
 	String temp = IOUtil.tempFileName();
 	PrintWriter pw = new PrintWriter ( new FileOutputStream(temp) );
 	int size = 0;
@@ -422,12 +199,12 @@ throws Exception
 		pw.println ( strings.get(i) );
 	}
 	pw.close ();
-	// Create a DateValueTS from the temporary file...
+	// Create a DateValueTS from the temporary file.
 	TS ts = readTimeSeries ( temp, req_date1, req_date2, req_units, read_data );
-	// Remove the temporary file...
+	// Remove the temporary file.
 	File tempf = new File ( temp );
 	tempf.delete();
-	// Return...
+	// Return.
 	return ts;
 }
 
@@ -469,7 +246,7 @@ Read a time series from a DateValue format file.
 public static TS readTimeSeries ( BufferedReader in, DateTime req_date1, DateTime req_date2,
 					String req_units, boolean read_data )
 throws Exception
-{	// Call the generic method...
+{	// Call the generic method.
 	return readTimeSeries ( (TS)null, in, req_date1, req_date2, req_units, read_data );
 }
 
@@ -507,16 +284,15 @@ public static TS readTimeSeries ( String tsident_string, DateTime date1,
 			DateTime date2, String units, boolean read_data )
 throws Exception
 {	TS ts = null;
-	boolean	is_file = true;	// Is tsident_string a file?  Assume and check below
+	boolean	is_file = true;	// Is tsident_string a file?  Assume and check below.
 
 	String input_name = tsident_string;
 	String full_fname = IOUtil.getPathUsingWorkingDir ( tsident_string );
 	Message.printStatus(2, "", "Reading \"" + tsident_string + "\"" );
 	if ( !IOUtil.fileReadable(full_fname) && (tsident_string.indexOf("~") > 0) ) {
-	    // The string is a TSID string (implicit read command) with the file name in the
-	    // input type.
+	    // The string is a TSID string (implicit read command) with the file name in the input type.
 		is_file = false;
-		// Try the input name to get the file...
+		// Try the input name to get the file.
 		TSIdent tsident = new TSIdent (tsident_string);
 		full_fname = IOUtil.getPathUsingWorkingDir ( tsident.getInputName() );
 		input_name = full_fname;
@@ -530,7 +306,7 @@ throws Exception
     }
 	BufferedReader in = null;
 	if ( full_fname.toUpperCase().endsWith(".ZIP") ) {
-		// Handle case where DateValue file is compressed (single file in .zip)
+		// Handle case where DateValue file is compressed (single file in .zip).
 		ZipToolkit zt = new ZipToolkit();
 		in = zt.openBufferedReaderForSingleFile(full_fname,0);
 	}
@@ -539,9 +315,9 @@ throws Exception
 	    in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( full_fname )) );
 	}
     try {
-    	// Call the fully-loaded method...
+    	// Call the fully-loaded method.
     	if ( is_file ) {
-    		// Expect that the time series file has one time series and should read it...
+    		// Expect that the time series file has one time series and should read it.
     		ts = readTimeSeries ( (TS)null, in, date1, date2, units, read_data );
     	}
     	else {
@@ -602,7 +378,7 @@ throws Exception
 	}
 	BufferedReader in = null;
 	if ( full_fname.toUpperCase().endsWith(".ZIP") ) {
-		// Handle case where DateValue file is compressed (single file in .zip)
+		// Handle case where DateValue file is compressed (single file in .zip).
 		ZipToolkit zt = new ZipToolkit();
 		in = zt.openBufferedReaderForSingleFile(full_fname,0);
 	}
@@ -620,11 +396,11 @@ throws Exception
 	// into the readTimeSeriesList() method rather than doing it here.
     try {
     	if ( tsident_string.indexOf(".") >= 0 ) {
-    		// Normal time series identifier...
+    		// Normal time series identifier.
     		ts = TSUtil.newTimeSeries ( tsident_string, true );
     	}
     	else {
-            // Assume an alias...
+            // Assume an alias.
     		ts = new DayTS ();
     	}
     	if ( ts == null ) {
@@ -640,9 +416,8 @@ throws Exception
     	}
     	List<TS> v = readTimeSeriesList ( ts, in,	date1, date2, units, read_data );
     	if ( tsident_string.indexOf(".") < 0 ) {
-    		// The time series was specified with an alias so it needs
-    		// to be replaced with what was read.  The alias will have been
-    		// assigned in the readTimeSeriesList() method.
+    		// The time series was specified with an alias so it needs to be replaced with what was read.
+    		// The alias will have been assigned in the readTimeSeriesList() method.
     		ts = v.get(0);
     	}
     	ts.getIdentifier().setInputType("DateValue");
@@ -702,7 +477,7 @@ throws Exception
     }
 	BufferedReader in = null;
 	if ( full_fname.toUpperCase().endsWith(".ZIP") ) {
-		// Handle case where DateValue file is compressed (single file in .zip)
+		// Handle case where DateValue file is compressed (single file in .zip).
 		ZipToolkit zt = new ZipToolkit();
 		in = zt.openBufferedReaderForSingleFile(full_fname,0);
 	}
@@ -774,12 +549,12 @@ throws Exception, IOException, FileNotFoundException
 	BufferedReader in = null;
 	try {
 		if ( full_fname.toUpperCase().endsWith(".ZIP") ) {
-			// Handle case where DateValue file is compressed (single file in .zip)
+			// Handle case where DateValue file is compressed (single file in .zip).
 			ZipToolkit zt = new ZipToolkit();
 			in = zt.openBufferedReaderForSingleFile(full_fname,0);
 		}
 		else if ( full_fname.toUpperCase().endsWith(".GZ") ) {
-			// Handle case where DateValue file is compressed (single file in .gz)
+			// Handle case where DateValue file is compressed (single file in .gz).
 			GzipToolkit zt = new GzipToolkit();
 			in = zt.openBufferedReaderForSingleFile(full_fname,0);
 		}
@@ -809,7 +584,7 @@ throws Exception, IOException, FileNotFoundException
 	return tslist;
 }
 
-// TODO SAM 2008-05-09 Evaluate types of exceptions that are thrown
+// TODO SAM 2008-05-09 Evaluate types of exceptions that are thrown.
 /**
 Read a time series from a DateValue format file.
 @return a List of time series if successful, null if not.  The calling code
@@ -831,11 +606,11 @@ throws Exception
 	int	dl = 10, dl2 = 30, numts = 1;
 	DateTime date1 = new DateTime(), date2 = new DateTime();
 	// Do not allow consecutive delimiters in header or data values.  For example:
-	// 1,,2 will return
-	// 2 values for version 1.3 and 3 values for version 1.4 (middle value is missing).
+	//   1,,2 will return
+	//   2 values for version 1.3 and 3 values for version 1.4 (middle value is missing).
 	int delimParseFlag = 0;
 
-	// Always read the header.  Optional is whether the data are read...
+	// Always read the header.  Optional is whether the data are read.
 
 	int line_count = 0;
 	if ( Message.isDebugOn ) {
@@ -865,7 +640,7 @@ throws Exception
 	try {
 	while( (string = in.readLine()) != null ) {
 		++line_count;
-		// Trim the line to better deal with blank lines...
+		// Trim the line to better deal with blank lines.
 		string = string.trim();
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, routine,"Processing: \"" + string + "\"" );
@@ -877,7 +652,7 @@ throws Exception
 			break;
 		}
 		if ( (string.equals(""))  ) {
-			// Skip comments and blank lines for now...
+			// Skip comments and blank lines for now.
 			continue;
 		}
 		else if ( string.charAt(0) == '#' ) {
@@ -888,7 +663,7 @@ throws Exception
 	            double version_double =
 	                StringUtil.atod ( StringUtil.getToken(string," ",StringUtil.DELIM_SKIP_BLANKS, 2) );
 	            if ( (version_double > 0.0) && (version_double < 1.4) ) {
-	                // Older settings...
+	                // Older settings.
 	                delimParseFlag = StringUtil.DELIM_SKIP_BLANKS;
 	            }
 	            else {
@@ -900,18 +675,18 @@ throws Exception
 		}
 
 		if ( (equal_pos = string.indexOf('=')) == -1 ) {
-			// Assume this not a header definition variable and that we are done with the header...
+			// Assume this not a header definition variable and that we are done with the header.
 			if ( Message.isDebugOn ) {
 				Message.printDebug( 10, routine, "Detected end of header." );
 			}
 			break;
 		}
 
-		// Else, process the header string...
+		// Else, process the header string.
 
-		// Don't parse out quoted strings here.  If any tokens use
-		// quoted strings, they need to be processed below.  Because
-		// some property values now contain the =, parse out manually..
+		// Don't parse out quoted strings here.
+		// If any tokens use quoted strings, they need to be processed below.
+		// Because some property values now contain the =, parse out manually.
 
 		if ( equal_pos == 0 ) {
 			if ( Message.isDebugOn ) {
@@ -921,7 +696,7 @@ throws Exception
 			continue;
 		}
 
-		// Now the first token is the left side and the second token is the right side...
+		// Now the first token is the left side and the second token is the right side.
 
 		variable = string.substring(0,equal_pos).trim();
 		if ( equal_pos == (string.length() - 1) ) {
@@ -932,12 +707,11 @@ throws Exception
 		    value = string.substring(equal_pos + 1).trim();
 		}
 
-		// Deal with the tokens...
+		// Deal with the tokens.
 		if ( variable.equalsIgnoreCase("Alias") ) {
-			// Have the alias...
+			// Have the alias.
 			alias = value;
-			alias_v = StringUtil.breakStringList (
-			        value, delimiter, delimParseFlag | StringUtil.DELIM_ALLOW_STRINGS );
+			alias_v = StringUtil.breakStringList ( value, delimiter, delimParseFlag | StringUtil.DELIM_ALLOW_STRINGS );
 			size = 0;
 			if ( alias_v != null ) {
 				size = alias_v.size();
@@ -954,13 +728,13 @@ throws Exception
 		else if ( variable.toUpperCase().startsWith("DATAFLAGDESCRIPTIONS_") ) {
 			// Found a properties string of the form DataFlagDescriptions_NN = { ... }
 			if ( dataFlagMetadataList == null ) {
-				// Create a list of data flag metadata for each time series
+				// Create a list of data flag metadata for each time series.
 				dataFlagMetadataList = new ArrayList<List<TSDataFlagMetadata>>(numts);
 				for ( int i = 0; i < numts; i++ ) {
-					dataFlagMetadataList.add(new ArrayList<TSDataFlagMetadata>());
+					dataFlagMetadataList.add(new ArrayList<>());
 				}
 			}
-			// Now parse out the properties for this time series and set in the list
+			// Now parse out the properties for this time series and set in the list.
 			int pos1 = variable.indexOf("_");
 			if ( pos1 > 0 ) {
 				int iprop = Integer.parseInt(variable.substring(pos1+1).trim());
@@ -968,7 +742,7 @@ throws Exception
 			}
 		}
 		else if ( variable.equalsIgnoreCase("DataFlags") ) {
-			// Have the data flags indicator which may or may not be surrounded by quotes...
+			// Have the data flags indicator which may or may not be surrounded by quotes.
 			dataflag = value;
 			dataflag_v = StringUtil.breakStringList (
 			        dataflag, delimiter,delimParseFlag|StringUtil.DELIM_ALLOW_STRINGS );
@@ -984,8 +758,8 @@ throws Exception
 					dataflag_v.add ( "false" );
 				}
 			}
-			// Now further process the data flag indicators.  Need a boolean for each time series to indicate whether
-			// data flags are used and need a width for the data flags
+			// Now further process the data flag indicators.
+			// Need a boolean for each time series to indicate whether data flags are used and need a width for the data flags.
 			ts_has_data_flag = new boolean[numts];
 			ts_data_flag_length = new int[numts];
 			for ( int ia = 0; ia < numts; ia++ ) {
@@ -996,26 +770,26 @@ throws Exception
 					size = v.size();
 				}
 				if ( size == 0 ) {
-					// Assume no data flag...
+					// Assume no data flag.
 					ts_has_data_flag[ia] = false;
 					continue;
 				}
-				// If the first value is "true", assume that the data flag is used...
+				// If the first value is "true", assume that the data flag is used.
 				if ( v.get(0).trim().equalsIgnoreCase("true") ) {
 					ts_has_data_flag[ia] = true;
 				}
 				else {
 				    ts_has_data_flag[ia] = false;
 				}
-				// Now set the length...
-				ts_data_flag_length[ia] = 2; // Default
+				// Now set the length.
+				ts_data_flag_length[ia] = 2; // Default.
 				if ( size > 1 ) {
 					ts_data_flag_length[ia] = StringUtil.atoi(((String)v.get(1)).trim());
 				}
 			}
 		}
 		else if ( variable.equalsIgnoreCase("DataType") ) {
-			// Have the data type...
+			// Have the data type.
 			datatype = value;
 			datatype_v = StringUtil.breakStringList (
 			        datatype, delimiter, delimParseFlag|StringUtil.DELIM_ALLOW_STRINGS );
@@ -1044,7 +818,7 @@ throws Exception
 			        "\" for remaining properties and data columns (previously was \"" + delimiter_previous + "\").");
 		}
 		else if ( variable.equalsIgnoreCase("Description") ) {
-			// Have the description.  The description may contain "=" so get the second token manually...
+			// Have the description.  The description may contain "=" so get the second token manually.
 			description = value;
 			description_v = StringUtil.breakStringList (
 			        description, delimiter, delimParseFlag|StringUtil.DELIM_ALLOW_STRINGS );
@@ -1062,11 +836,11 @@ throws Exception
 			}
 		}
 		else if ( variable.equalsIgnoreCase("End") ) {
-			// Have the ending date.  This may be reset below by the requested end date..
+			// Have the ending date.  This may be reset below by the requested end date.
 			date2 = DateTime.parse ( value );
 		}
 		else if ( variable.equalsIgnoreCase("IncludeCount") ) {
-			// Will have data column for the count...
+			// Will have data column for the count.
 			if ( value.equalsIgnoreCase("true") ) {
 				include_count = true;
 			}
@@ -1075,7 +849,7 @@ throws Exception
 			}
 		}
 		else if ( variable.equalsIgnoreCase("IncludeTotalTime") ) {
-			// Will have data column for the total time...
+			// Will have data column for the total time.
 			if ( value.equalsIgnoreCase("true") ) {
 				include_total_time = true;
 			}
@@ -1084,7 +858,7 @@ throws Exception
 			}
 		}
 		else if ( variable.equalsIgnoreCase("MissingVal") ) {
-			// Have the missing data value...
+			// Have the missing data value.
 			missing = value;
 			missing_v = StringUtil.breakStringList (
 				missing, delimiter,	delimParseFlag|StringUtil.DELIM_ALLOW_STRINGS );
@@ -1102,19 +876,19 @@ throws Exception
 			}
 		}
 		else if ( variable.equalsIgnoreCase("NumTS") ) {
-			// Have the number of time series...
+			// Have the number of time series.
 			numts = StringUtil.atoi(value);
 		}
 		else if ( variable.toUpperCase().startsWith("PROPERTIES_") ) {
 			// Found a properties string of the form Properties_NN = { ... }
 			if ( propertiesList == null ) {
 				// Create a PropList for each time series
-				propertiesList = new ArrayList<PropList>(numts);
+				propertiesList = new ArrayList<>(numts);
 				for ( int i = 0; i < numts; i++ ) {
 					propertiesList.add(new PropList(""));
 				}
 			}
-			// Now parse out the properties for this time series and set in the list
+			// Now parse out the properties for this time series and set in the list.
 			int pos1 = variable.indexOf("_");
 			if ( pos1 > 0 ) {
 				int iprop = Integer.parseInt(variable.substring(pos1+1).trim());
@@ -1122,7 +896,7 @@ throws Exception
 			}
 		}
 		else if ( variable.equalsIgnoreCase("SequenceNum") || variable.equalsIgnoreCase("SequenceID")) {
-			// Have sequence numbers...
+			// Have sequence numbers.
 			seqnum = value;
 			seqnum_v = StringUtil.breakStringList (
 				seqnum, delimiter, delimParseFlag|StringUtil.DELIM_ALLOW_STRINGS );
@@ -1146,11 +920,11 @@ throws Exception
 			}
 		}
 		else if ( variable.equalsIgnoreCase("Start") ) {
-			// Have the starting date.  This may be reset below by the requested start date....
+			// Have the starting date.  This may be reset below by the requested start date.
 			date1 = DateTime.parse ( value );
 		}
 		else if ( variable.equalsIgnoreCase("TSID") ) {
-			// Have the TSIdent...
+			// Have the TSIdent.
 			identifier = value;
 			identifier_v = StringUtil.breakStringList (
 				identifier, delimiter, delimParseFlag|StringUtil.DELIM_ALLOW_STRINGS );
@@ -1168,7 +942,7 @@ throws Exception
 			}
 		}
 		else if ( variable.equalsIgnoreCase("Units") ) {
-			// Have the data units...
+			// Have the data units.
 			units = value;
 			units_v = StringUtil.breakStringList (
 				units, delimiter, delimParseFlag|StringUtil.DELIM_ALLOW_STRINGS );
@@ -1205,7 +979,7 @@ throws Exception
 	// Reset for below.
 	warning_count = 0;
 
-	// Make sure the data flag boolean array is allocated.  This simplifies the logic below...
+	// Make sure the data flag boolean array is allocated.  This simplifies the logic below.
 
 	if ( ts_has_data_flag == null ) {
 		ts_has_data_flag = new boolean[numts];
@@ -1214,10 +988,10 @@ throws Exception
 		}
 	}
 
-	// Check required data lists and assign defaults if necessary...
+	// Check required data lists and assign defaults if necessary.
 
 	if ( identifier_v == null ) {
-		identifier_v = new ArrayList<String>(numts);
+		identifier_v = new ArrayList<>(numts);
 		// TODO SAM 2008-04-14 Evaluate tightening this constraint - throw exception?
 		Message.printWarning ( 2, routine, "TSID property in file is missing.  Assigning default TS1, TS2, ..." );
 		for ( int i = 0; i < numts; i++ ) {
@@ -1226,7 +1000,7 @@ throws Exception
 	}
 
 	// Declare the time series of the proper type based on the interval.
-	// Use a TSIdent to parse out the interval information...
+	// Use a TSIdent to parse out the interval information.
 
 	TSIdent ident = null;
 	int data_interval_base = 0;
@@ -1243,8 +1017,8 @@ throws Exception
 	// given but only its alias is available, create a new time series
 	// using the matching TSID, which will contain the interval, etc.
 	if ( req_ts != null ) {
-		req_ts_i = -1;	// Index of found time series...
-		// If there is only one time series in the file, assume it should be used, regardless...
+		req_ts_i = -1;	// Index of found time series.
+		// If there is only one time series in the file, assume it should be used, regardless.
 		if ( numts == 1 ) {
 			//Message.printStatus ( 1, "", "Using only TS because only one TS in file." );
 			req_ts_i = 0;
@@ -1257,16 +1031,16 @@ throws Exception
 				if ( alias_v != null ) {
 					alias = alias_v.get(i).trim();
 					if ( !alias.equals("") && req_ts.getAlias().equalsIgnoreCase( alias) ) {
-						// Found a matching time series...
+						// Found a matching time series.
 						req_ts_i = i;
 						//Message.printStatus ( 1, "", "Found matching TS "+req_ts_i+ " based on alias." );
 						break;
 					}
 				}
-				// Now check the identifier...
+				// Now check the identifier.
 				identifier = identifier_v.get(i).trim();
 				if ( req_ts.getIdentifierString().equalsIgnoreCase( identifier) ) {
-					// Found a matching time series...
+					// Found a matching time series.
 					req_ts_i = i;
 					//Message.printStatus ( 1, "", "SAMX Found matching TS " + req_ts_i + " based on full TSID." );
 					break;
@@ -1274,14 +1048,14 @@ throws Exception
 			}
 		}
 		if ( req_ts_i < 0 ) {
-			// Did not find the requested time series...
+			// Did not find the requested time series.
 		    message = "Did not find the requested time series \"" + req_ts.getIdentifierString() + "\" Alias \"" +
                 req_ts.getAlias() + "\"";
 			Message.printWarning ( 2, routine, message );
 			throw new Exception ( message );
 		}
 		// If here a requested time series was found.  However, if the requested TSID used the
-		// alias only, need to create a time series of the correct type using the header information...
+		// alias only, need to create a time series of the correct type using the header information.
 		if ( req_ts.getLocation().equals("") && !req_ts.getAlias().equals("") ) {
 			// The requested time series is only identified by the alias and needs to be recreated for the full
 			// identifier.  This case is configured in the calling public readTimeSeries() method.
@@ -1290,20 +1064,19 @@ throws Exception
 			//identifier + "\" alias \"" + req_ts.getAlias() +"\"");
 			ts = TSUtil.newTimeSeries ( identifier, true );
 			ts.setIdentifier ( identifier );
-			// Reset the requested time series to the new one because req_ts is checked below...
+			// Reset the requested time series to the new one because req_ts is checked below.
 			ts.setAlias ( req_ts.getAlias() );
 			req_ts = ts;
 		}
 		else {
-		    // A full TSID was passed in for the requested time series and there is no need to reassign the requested
-			// time series...
+		    // A full TSID was passed in for the requested time series and there is no need to reassign the requested time series.
 			//Message.printStatus ( 1, routine, "SAMX using existing ts for \"" +
 			//identifier + "\" alias \"" + req_ts.getAlias() +"\"");
 			ts = req_ts;
 			// Identifier is assumed to have been set previously.
 		}
-		// Remaining logic is the same...
-		tslist = new ArrayList<TS>(1);
+		// Remaining logic is the same.
+		tslist = new ArrayList<>(1);
 		tslist.add ( ts );
 		ts_array = new TS[1];
 		ts_array[0] = ts;
@@ -1312,14 +1085,14 @@ throws Exception
 		}
 		ident = new TSIdent ( ts.getIdentifier() );
 		data_interval_base = ident.getIntervalBase();
-		// Offset other information because of extra columns...
-		// Make sure to set the interval for use below...
+		// Offset other information because of extra columns.
+		// Make sure to set the interval for use below.
 		identifier = identifier_v.get( req_ts_i).trim();
 		ident = new TSIdent( identifier );
 		// Set the data type in the TS header using the information in the identifier.
-		// It may be overwritten below if the DataType property is specified...
+		// It may be overwritten below if the DataType property is specified.
 		ts.setDataType ( ident.getType() );
-		// Reset the column to account for the date...
+		// Reset the column to account for the date.
 		req_ts_column = req_ts_i + 1;	// 1 is date.
 		if ( include_count ) {
 			++req_ts_column;
@@ -1329,7 +1102,7 @@ throws Exception
 		}
 		if ( dataflag_v != null ) {
 			// At least one of the time series in the file uses data flags so adjust the column for
-			// time series that may be before the requested time series...
+			// time series that may be before the requested time series.
 			for ( int ia = 0; ia < req_ts_i; ia++ ) {
 				if ( ts_has_data_flag[ia] ) {
 					++req_ts_column;
@@ -1342,8 +1115,8 @@ throws Exception
 		}
 	}
 	else {
-	    // Allocate here as many time series as indicated by numts...
-		tslist = new ArrayList<TS>(numts);
+	    // Allocate here as many time series as indicated by numts.
+		tslist = new ArrayList<>(numts);
 		ts_array = new TS[numts];
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine, "Allocated space for " + numts + " time series in list." );
@@ -1351,7 +1124,7 @@ throws Exception
 		for ( int i = 0; i < numts; i++ ) {
 			identifier = identifier_v.get(i).trim();
 			ident = new TSIdent( identifier );
-			// Need this to check whether time may be specified on data line...
+			// Need this to check whether time may be specified on data line.
 			data_interval_base = ident.getIntervalBase();
 			ts = TSUtil.newTimeSeries ( identifier, true );
 			if ( ts == null ) {
@@ -1371,7 +1144,7 @@ throws Exception
 	}
 
 	// Set the parameters from the input variables and override with the
-	// parameters in the file if necessary...
+	// parameters in the file if necessary.
 
 	if ( req_date1 != null ) {
 		date1 = req_date1;
@@ -1387,14 +1160,16 @@ throws Exception
 		for ( int i = 0; i < numts; i++ ) {
 			if ( req_ts != null ) {
 				if ( req_ts_i != i ) {
-					// A time series was requested but does not match so continue...
+					// A time series was requested but does not match so continue.
 					continue;
 				}
-				else {	// Found the matching requested time series...
+				else {
+					// Found the matching requested time series.
 					ts = ts_array[0];
 				}
 			}
-			else {	// Reading a list...
+			else {
+				// Reading a list.
 				ts = ts_array[i];
 			}
 			if ( Message.isDebugOn ) {
@@ -1476,7 +1251,7 @@ throws Exception
 	warning_count = 0; // Reset for reading data section below.
 
 	// Check the header information.  If the data type has not been
-	// specified but is included in the time series identifier, set in the data type...
+	// specified but is included in the time series identifier, set in the data type.
 
 	size = 0;
 	if ( tslist != null ) {
@@ -1493,7 +1268,7 @@ throws Exception
 	}
 
 	// Allocate the memory for the data array.  This needs to be done
-	// whether a requested time series or list is being done...
+	// whether a requested time series or list is being done.
 
 	if ( req_ts != null ) {
 		ts = ts_array[0];
@@ -1514,7 +1289,7 @@ throws Exception
 		}
 	}
 
-	// Now read the data.  Need to monitor if this is a real hog and optimize if so...
+	// Now read the data.  Need to monitor if this is a real hog and optimize if so.
 	warning_count = 0;
 
 	if ( Message.isDebugOn ) {
@@ -1523,8 +1298,8 @@ throws Exception
 
 	DateTime date;
 	List<String> strings;
-	double dvalue;	// Double data value
-	String svalue;	// String data value
+	double dvalue;	// Double data value.
+	String svalue;	// String data value.
 	boolean first = true;
 	int nstrings = 0;
 	boolean use_time = false;
@@ -1535,26 +1310,23 @@ throws Exception
 		}
 		use_time = true;
 	}
-	// Compute the number of expected columns...
-	int num_expected_columns = numts + 1;	// Number of expected columns
-						// given the number of time
-						// series, extra columns at the
-						// front, data flag columns, and
-						// a column for times
-						// Column 1 is the date
-	int num_extra_columns = 0;		// Number of extra columns at
-						// the front of the data
-						// (record count and total
-						// time).
-	if ( include_count ) {			// Record count
+	// Compute the number of expected columns.
+	// Number of expected columns.
+	// Given the number of time series, extra columns at the front, data flag columns,
+	// and a column for times.
+	// Column 1 is the date.
+	int num_expected_columns = numts + 1;
+	// Number of extra columns at the front of the data (record count and total time).
+	int num_extra_columns = 0;
+	if ( include_count ) {  // Record count.
 		++num_expected_columns;
 		++num_extra_columns;
 	}
-	if ( include_total_time ) {		// Total time...
+	if ( include_total_time ) {  // Total time.
 		++num_expected_columns;
 		++num_extra_columns;
 	}
-	// Adjust the number of expected columns if data flags are included...
+	// Adjust the number of expected columns if data flags are included.
 	int its = 0, i = 0;
 	for ( its = 0; its < numts; its++ ) {
 		if ( ts_has_data_flag[its] ) {
@@ -1563,25 +1335,22 @@ throws Exception
 	}
 	int first_data_column = 0;
 	int num_expected_columns_p1 = num_expected_columns + 1;
-	// Read lines until the end of the file...
+	// Read lines until the end of the file.
 	while ( true ) {
 		try {
 		if ( first ) {
-			// Have read in the line above so process it in the
-			// following code.  The line will either start with
-			// "Date" or a date (e.g., MM/DD/YYYY), or will be
-			// invalid.  Note that for some programs, the date and
-			// all other columns actually have a suffix.  This may
-			// be phased out at some time but is the reason why the
-			// first characters are checked...
+			// Have read in the line above so process it in the following code.
+			// The line will either start with "Date" or a date (e.g., MM/DD/YYYY), or will be invalid.
+			// Note that for some programs, the date and all other columns actually have a suffix.
+			// This may be phased out at some time but is the reason why the first characters are checked.
 			first = false;
 			if ( string.regionMatches(true,0,"date",0,4) ) {
-				// Can ignore because it is the header line for columns...
+				// Can ignore because it is the header line for columns.
 				continue;
 			}
 		}
 		else {
-		    // Need to read a line...
+		    // Need to read a line.
 			string = in.readLine();
 			++line_count;
 			if ( string == null ) {
@@ -1591,32 +1360,32 @@ throws Exception
 				break;
 			}
 		}
-		// Remove whitespace at front and back...
+		// Remove whitespace at front and back.
 		string = string.trim();
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl2, routine, "Processing: \"" + string + "\"" );
 		}
 		if ( (string.length() == 0) || ((string.length() > 0) && (string.charAt(0) == '#')) ) {
-			// Skip comments and blank lines for now...
+			// Skip comments and blank lines for now.
 			continue;
 		}
 		if ( !Character.isDigit(string.charAt(0)) ) {
-			// Not a data line...
+			// Not a data line.
 			Message.printWarning ( 2, routine,
 			"Error in data format for line " + line_count + ". Expecting number at start: \"" + string + "\"" );
 			++warning_count;
 			continue;
 		}
-		// Now parse the string...
+		// Now parse the string.
 		// If hour, or minute data, expect data line to be YYYY-MM-DD HH:MM Value
 		// If there is a space between date and time, assume that the first two need to be concatenated.
 		string = string.trim();
 		if ( dataflag_v == null ) {
-			// No data flags so parse without handling quoted strings.  This will in general be faster...
+			// No data flags so parse without handling quoted strings.  This will in general be faster.
 			strings = StringUtil.breakStringList ( string, delimiter, delimParseFlag );
 		}
 		else {
-		    // Expect to have data flags so parse WITH handling quoted strings.  This will generally be slower...
+		    // Expect to have data flags so parse WITH handling quoted strings.  This will generally be slower.
 			strings = StringUtil.breakStringList ( string,
 			delimiter, delimParseFlag|StringUtil.DELIM_ALLOW_STRINGS );
 		}
@@ -1625,9 +1394,9 @@ throws Exception
 			nstrings = strings.size();
 		}
 		if ( nstrings == num_expected_columns ) {
-			// Assume that there is NO space between date and time or that time field is not used...
+			// Assume that there is NO space between date and time or that time field is not used.
 			date_str = ((String)strings.get(0)).trim();	
-			// Date + extra columns...
+			// Date + extra columns.
 			first_data_column = 1 + num_extra_columns;
 			req_ts_column2 = req_ts_column;
 		}
@@ -1635,9 +1404,9 @@ throws Exception
 			// Assume that there IS a space between the date and
 			// time.  Concatenate together so that the DateTime.parse will work.
 			date_str = ((String)strings.get(0)).trim() + " " + ((String)strings.get(1)).trim();	
-			// Date + time + extra column...
+			// Date + time + extra column.
 			first_data_column = 2 + num_extra_columns;
-			// Adjusted requested time series column...
+			// Adjusted requested time series column.
 			req_ts_column2 = req_ts_column + 1;
 		}
 		else {
@@ -1647,11 +1416,11 @@ throws Exception
 		    ++warning_count;
 			//Message.printStatus ( 1, routine, "use_time=" + use_time + " num_expected_columns_p1=" +
 			//num_expected_columns_p1 );
-			// Ignore the line...
+			// Ignore the line.
 			strings = null;
 			continue;
 		}
-		// Allow all common date formats, even if not the right precision...
+		// Allow all common date formats, even if not the right precision.
 		date = DateTime.parse(date_str);
 		// The input line date may not have the proper resolution, so
 		// set to the precision of the time series defined in the header.
@@ -1671,7 +1440,7 @@ throws Exception
 			date.setPrecision ( DateTime.PRECISION_YEAR );
 		}
 		if ( date.lessThan(date1) ) {
-			// No data of interest yet...
+			// No data of interest yet.
 			strings = null;
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( 1, routine, "Ignoring data - before start date" );
@@ -1679,7 +1448,7 @@ throws Exception
 			continue;
 		}
 		else if ( date.greaterThan(date2) ) {
-			// No need to keep reading...
+			// No need to keep reading.
 			strings = null;
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( 1, routine, "Stop reading data - after start date" );
@@ -1687,10 +1456,10 @@ throws Exception
 			break;
 		}
 
-		// Else, save the data for each column...
+		// Else, save the data for each column.
 
 		if ( req_ts != null ) {
-			// Just have to process one column...
+			// Just have to process one column.
 			svalue = ((String)strings.get(req_ts_column2)).trim();
 			// This introduces a performance hit - maybe need to add a boolean array for each time series
 			// to be able to check whether NaN is the missing - then can avoid the check.
@@ -1704,7 +1473,7 @@ throws Exception
 			    dvalue = StringUtil.atod ( svalue );
 			}
 			if ( ts_has_data_flag[req_ts_i] ) {
-				// Has a data flag...
+				// Has a data flag.
 				dataflag = ((String)strings.get( req_ts_column2 + 1)).trim();
 				ts_array[0].setDataValue ( date, dvalue, dataflag, 1 );
 				if ( Message.isDebugOn ) {
@@ -1712,7 +1481,7 @@ throws Exception
 					", value=" + dvalue + ", flag=\"" +	dataflag + "\"" );
 				}
 			}
-			else {	// No data flag...
+			else {	// No data flag.
 				ts_array[0].setDataValue ( date, dvalue );
 				if ( Message.isDebugOn ) {
 					Message.printDebug ( dl2, routine, "For date " + date.toString() + ", value=" + dvalue );
@@ -1720,11 +1489,11 @@ throws Exception
 			}
 		}
 		else {
-		    // Loop through all the columns...
+		    // Loop through all the columns.
 			for ( i = first_data_column, its = 0; i < nstrings; i++, its++ ) {
 				// Set the data value in the requested time series.  If a requested time series is
 				// being used, the array will only contain one time series, which is the requested time
-				// series (SAMX 2002-09-05 so why the code above???)...
+				// series (SAMX 2002-09-05 so why the code above???).
 				//
 				// This introduces a performance hit - maybe need to add a boolean array for each time
 				// series to be able to check whether NaN is the missing - then can avoid the check.  For
@@ -1746,7 +1515,7 @@ throws Exception
 					}
 				}
 				else {
-				    // No data flag...
+				    // No data flag.
 					ts_array[its].setDataValue ( date, dvalue );
 					if ( Message.isDebugOn ) {
 						Message.printDebug ( dl2, routine, "For date " + date.toString() + ", value=" + dvalue );
@@ -1755,7 +1524,7 @@ throws Exception
 			}
 		}
 
-		// Clean up memory...
+		// Clean up memory.
 
 		strings = null;
 		}
@@ -1800,8 +1569,8 @@ Write a time series to a DateValue format file.
 */
 public static void writeTimeSeries ( TS ts, PrintWriter out )
 throws Exception
-{	// Call the fully-loaded method...
-	List<TS> v = new ArrayList<TS>( 1 );
+{	// Call the fully-loaded method.
+	List<TS> v = new ArrayList<>( 1 );
 	v.add ( ts );
 	writeTimeSeriesList(v, out, (DateTime)null, (DateTime)null, null, true);
 }
@@ -1817,7 +1586,7 @@ Write a list of time series to a DateValue format file.
 */
 public static void writeTimeSeries ( TS ts, PrintWriter out, DateTime date1, DateTime date2, String units, boolean writeData )
 throws Exception
-{	List<TS> v = new ArrayList<TS>( 1 );
+{	List<TS> v = new ArrayList<>( 1 );
 	v.add ( ts );
 	writeTimeSeriesList ( v, out, date1, date2, units, writeData );
 }
@@ -1930,7 +1699,7 @@ throws Exception
 {	String message, routine = "DateValueTS.writeTimeSeriesList";
 	DateTime outputStart = null, outputEnd = null, t = new DateTime( DateTime.DATE_FAST );
 
-	// Check for a null time series list...
+	// Check for a null time series list.
 
 	if ( tslist == null ) {
 		message = "Null time series list.  Output will be empty.";
@@ -1946,24 +1715,23 @@ throws Exception
 		Message.printWarning ( 2, routine, message );
 	}
 	
-	// Make sure that a non-null properties list is available
+	// Make sure that a non-null properties list is available.
 	if ( props == null ) {
 	    props = new PropList ( "DateValueTS" );
 	}
 
-	// TODO SAM 2012-04-04 Eventually need to support intervals like IrregularMinute
+	// TODO SAM 2012-04-04 Eventually need to support intervals like IrregularMinute.
 	// Interval used with irregular time series.
 	// This is needed because depending on how the irregular time series was initialized, its dates may
 	// not properly indicate the precision.  For example, a DateTime precision (and interval) of IRREGULAR
-	// may be used in cases where the data were read from a data format where the precision could not be
-	// determined.
+	// may be used in cases where the data were read from a data format where the precision could not be determined.
 	TimeInterval irregularInterval = null;
 	Object obj = props.getContents( "IrregularInterval" );
 	if ( obj != null ) {
 	    irregularInterval = (TimeInterval)obj;
 	}
     String version = props.getValue( "Version" );
-    boolean version14 = false; // Currently the only version that is supported other than current version
+    boolean version14 = false; // Currently the only version that is supported other than current version.
     int versionInt = __VERSION_CURRENT_INT;
     if ( version != null ) {
         if ( version.equals("1.4") ) {
@@ -1972,19 +1740,19 @@ throws Exception
         versionInt = Integer.parseInt(version.trim().replace(".","")) * 1000;
     }
 
-	// Set the parameters for output..
+	// Set the parameters for output.
 
 	TSLimits limits = new TSLimits ();
 	if ( size > 0 ) {
     	if ( (date1 == null) || (date2 == null) ) {
-    		// Get the limits...
+    		// Get the limits.
     		try {
     		    limits = TSUtil.getPeriodFromTS ( tslist, TSUtil.MAX_POR );
     		}
     		catch ( Exception e ) {}
     	}
     	if ( date1 == null ) {
-    		// Use the maximum period in the time series list...
+    		// Use the maximum period in the time series list.
     		outputStart = new DateTime ( limits.getDate1() );
     	}
     	else {
@@ -1992,7 +1760,7 @@ throws Exception
     	}
     
     	if ( date2 == null ) {
-    		// Use the time series value...
+    		// Use the time series value.
     		outputEnd = new DateTime ( limits.getDate2() );
     	}
     	else {
@@ -2000,7 +1768,7 @@ throws Exception
     	}
 	}
 
-	// Loop through the time series and make sure they have the same interval...
+	// Loop through the time series and make sure they have the same interval.
 
  	int dataIntervalBase = TimeInterval.UNKNOWN;
 	int dataIntervalMult = 0;
@@ -2009,7 +1777,7 @@ throws Exception
 
 	TS ts = null;
 	// Set up conversion factors for units (apparently some compilers don't
-	// like allocating one slot so always make it more and ignore the extra value)...
+	// like allocating one slot so always make it more and ignore the extra value).
 	double mult[] = new double[size + 1];
 	double add[] = new double[size + 1];
 	DataUnitsConversion conversion;
@@ -2023,7 +1791,7 @@ throws Exception
 			iDataIntervalBase = ts.getDataIntervalBase();
 			iDataIntervalMult = ts.getDataIntervalMult();
     		if ( nonNullCount == 1 ) {
-    		    // First non-null time series so initialize interval
+    		    // First non-null time series so initialize interval.
     			dataIntervalBase = iDataIntervalBase;
     			dataIntervalMult = iDataIntervalMult;
     		}
@@ -2033,8 +1801,8 @@ throws Exception
     			throw new UnequalTimeIntervalException ( message );
     		}
 		}
-		// Get the conversion factors to use for output.  Don't call
-		// TSUtil.convertUnits because we don't want to alter the time series itself...
+		// Get the conversion factors to use for output.
+		// Don't call TSUtil.convertUnits because we don't want to alter the time series itself.
 		if ( (ts != null) && (units != null) && (units.length() != 0) &&
 			!units.equalsIgnoreCase(ts.getDataUnits()) ) {
 			try {
@@ -2049,7 +1817,7 @@ throws Exception
 		}
 	}
 
-    // Write header.  See the printSample() method for an example string...
+    // Write header.  See the printSample() method for an example string.
 
 	String delim = " ";
 	String propval = props.getValue ( "Delimiter" );
@@ -2061,25 +1829,25 @@ throws Exception
     if ( (propval != null) && StringUtil.isInteger(propval) ) {
         precision = Integer.parseInt(propval);
     }
-    // Override of missing value in the time series
+    // Override of missing value in the time series.
     String missingValueString = props.getValue ( "MissingValue" );
     if ( (missingValueString != null) && !StringUtil.isDouble(missingValueString) ) {
         Message.printWarning ( 3, routine,
             "Specified missing value \"" + missingValueString + "\" is not a number - ignoring." );
         missingValueString = null;
     }
-    // Indicate which properties should be written
+    // Indicate which properties should be written.
     Object includePropertiesProp = props.getContents ( "IncludeProperties" );
     String [] includeProperties = null;
     if ( includePropertiesProp != null ) {
     	includeProperties = (String [])includePropertiesProp;
     	for ( int i = 0; i < includeProperties.length; i++ ) {
-    		includeProperties[i] = includeProperties[i].replace("*", ".*"); // Change glob notation to Java regular expression
+    		includeProperties[i] = includeProperties[i].replace("*", ".*"); // Change glob notation to Java regular expression.
     	}
     }
-    // Indicate whether data flag descriptions should be written
+    // Indicate whether data flag descriptions should be written.
     String writeDataFlagDescriptions0 = props.getValue ( "WriteDataFlagDescriptions" );
-    boolean writeDataFlagDescriptions = false; // default
+    boolean writeDataFlagDescriptions = false; // Default.
     if ( (writeDataFlagDescriptions0 != null) && writeDataFlagDescriptions0.equalsIgnoreCase("true") ) {
     	writeDataFlagDescriptions = true;
     }
@@ -2097,8 +1865,8 @@ throws Exception
 	StringBuffer unitsBuffer = new StringBuffer();
 
 	if ( dataIntervalBase == TimeInterval.IRREGULAR ) {
-	    // Check the start date/time to see if the data precision includes time.  If no start is
-	    // defined, assume no time - will not matter since no data
+	    // Check the start date/time to see if the data precision includes time.
+		// If no start is defined, assume no time - will not matter since no data.
 	    String header = "Date" + delim;
 	    if ( size == 1 ) {
 	        ts = tslist.get(0);
@@ -2121,12 +1889,12 @@ throws Exception
 	else {
 	    columnsBuffer.append ( "Date" + delim );
 	}
-	boolean hasDataFlags = false; // Only include data flags in output if
-					// at least one time series actually has the flag.
+	// Only include data flags in output if at least one time series actually has the flag.
+	boolean hasDataFlags = false;
 	for ( int i = 0; i < size; i++ ) {
 		ts = tslist.get(i);
 		if ( i != 0 ) {
-			// Append the delimiter...
+			// Append the delimiter.
 			aliasBuffer.append ( delim );
 			seqnumBuffer.append ( delim );
 			columnsBuffer.append ( delim );
@@ -2137,7 +1905,7 @@ throws Exception
 			tsidBuffer.append ( delim );
 			unitsBuffer.append ( delim );
 		}
-		// Now add the data...
+		// Now add the data.
 		if ( ts == null ) {
 			aliasBuffer.append ( "\"" + nodataString + "\"" );
 			seqnumBuffer.append ( "\"" + nodataString + "\"" );
@@ -2166,7 +1934,7 @@ throws Exception
 			}
 			else {
 			    if ( version14 ) {
-			        // Used integer sequence numbers, so output -1 if not an integer
+			        // Used integer sequence numbers, so output -1 if not an integer.
 			        try {
 			            Integer.parseInt(ts.getSequenceID());
 			            seqnumBuffer.append ( ts.getSequenceID() );
@@ -2180,7 +1948,7 @@ throws Exception
 			    }
 			}
 			if ( !ts.getDataUnits().trim().equals("") ) {
-				// Has units so display in column heading...
+				// Has units so display in column heading.
 			    if ( alias.length() > 0 ) {
 			        // Use the alias.
     				columnsBuffer.append ( "\"" + alias + ", " + ts.getDataUnits() + "\"" );
@@ -2213,10 +1981,10 @@ throws Exception
 			    datatypeBuffer.append("\"" + ts.getDataType() + "\"" );
 			}
 			descriptionBuffer.append (	"\"" + ts.getDescription() + "\"" );
-			// If the missing value is NaN, just print NaN.  Otherwise the %.Nf results in NaN.000...
-			// The following is a trick to check for NaN...
+			// If the missing value is NaN, just print NaN.  Otherwise the %.Nf results in NaN.000.
+			// The following is a trick to check for NaN.
 			if ( missingValueString != null ) {
-			    // Property has specified the missing value to use
+			    // Property has specified the missing value to use.
 			    missingvalBuffer.append ( missingValueString );
 			}
 			else {
@@ -2224,7 +1992,7 @@ throws Exception
     				missingvalBuffer.append ("NaN" );
     			}
     			else {
-    			    // Assume that missing is indicated by a number...
+    			    // Assume that missing is indicated by a number.
     				missingvalBuffer.append ( StringUtil.formatString(	ts.getMissing(),outputFormat));
     			}
 			}
@@ -2233,7 +2001,7 @@ throws Exception
 		}
 	}
 
-	// Print the standard header...
+	// Print the standard header.
 
 	if ( version14 ) {
 	    out.println ( "# DateValueTS 1.4 file" );
@@ -2244,7 +2012,7 @@ throws Exception
 	IOUtil.printCreatorHeader ( out, "#", 80, 0 );
 	Object o = props.getContents("OutputComments");
 	if ( o != null ) {
-	    // Write additional comments that were passed in
+	    // Write additional comments that were passed in.
 	    @SuppressWarnings("unchecked")
 		List<String> comments = (List<String>)o;
 	    int commentSize = comments.size();
@@ -2261,11 +2029,11 @@ throws Exception
 	out.println ( "Alias       = " + aliasBuffer.toString() );
 	if ( hasSeqnum ) {
 	    if ( version14 ) {
-	        // Format 1.4, where sequence number is an integer, with -1 indicating no sequence number
+	        // Format 1.4, where sequence number is an integer, with -1 indicating no sequence number.
 	        out.println ( "SequenceNum = " + seqnumBuffer.toString() );
 	    }
 	    else {
-	        // Format as of 1.5, where sequence ID is a string
+	        // Format as of 1.5, where sequence ID is a string.
 	        out.println ( "SequenceID  = " + seqnumBuffer.toString() );
 	    }
 	}
@@ -2275,11 +2043,10 @@ throws Exception
 	out.println ( "MissingVal  = " + missingvalBuffer.toString() );
 	if ( hasDataFlags ) {
 		// At least one of the time series in the list has data flags
-		// so output the data flags information for all the time series...
+		// so output the data flags information for all the time series.
 		out.println ( "DataFlags   = " + dataflagBuffer.toString() );
 	}
 	if ( versionInt >= 16000 ) {
-		// Writing time series properties and data flag descriptions was added to version 1.6
 		if ( includeProperties != null ) {
 			for ( int its = 0; its < tslist.size(); its++ ) {
 				ts = tslist.get(its);
@@ -2287,7 +2054,7 @@ throws Exception
 					continue;
 				}
 				else {
-					// Output the properties
+					// Output the properties.
 					writeTimeSeriesProperties(out,ts,its,includeProperties);
 				}
 			}
@@ -2312,7 +2079,7 @@ throws Exception
         out.println ( "End         = " + outputEnd.toString() );
 	}
 
-	// Print the comments/genesis information...
+	// Print the comments/genesis information.
 
 	out.println ( "#" );
 	out.println ( "# Time series comments/histories:" );
@@ -2365,26 +2132,26 @@ throws Exception
 	out.println ( "#EndHeader" );
 
 	if ( !writeData ) {
-		// Don't want to write the data...
+		// Don't want to write the data.
 		return;
 	}
 
-	// Header line indicating data columns....
+	// Header line indicating data columns.
 
 	out.println ( columnsBuffer.toString() );
 	
 	double value = 0.0;
 	String string_value;
 
-	// Need to add iterator at some point - could use this to test performance...
+	// Need to add iterator at some point - could use this to test performance.
 	StringBuffer buffer = new StringBuffer();
 	TSData datapoint = new TSData(); // Data point associated with a date - used to get flags.
 	String dataflag; // Data flag associated with a data point.
 	if ( dataIntervalBase == TimeInterval.IRREGULAR ) {
-		// Irregular interval... loop through all of the values...
+		// Irregular interval... loop through all of the values.
 		// This assumes that _date1 and _date2 have been set.
 	    if ( size == 1 ) {
-	        // Legacy logic that works with one irregular time series (should be fast)
+	        // Legacy logic that works with one irregular time series (should be fast).
     		IrregularTS its = null;
     		List<TSData> alldata = null;
     		if ( ts != null ) {
@@ -2411,11 +2178,11 @@ throws Exception
     			else if ( date.greaterThan(outputEnd) ) {
     				break;
     			}
-    			// Else print the record...
+    			// Else print the record.
     			value = tsdata.getDataValue();
     			if ( ts.isDataMissing(value) ) {
     		         if ( missingValueString != null ) {
-    	                // Property has specified the missing value to use
+    	                // Property has specified the missing value to use.
     	                string_value = missingValueString;
     		         }
     		         else {
@@ -2428,17 +2195,17 @@ throws Exception
     		        }
     			}
     			else {
-    			    // Convert the units...
+    			    // Convert the units.
     				string_value = StringUtil.formatString( (tsdata.getDataValue()*mult[0] + add[0]), outputFormat );
     			}
-    			// Use the precision of the dates in the data - ISO formats will be used by default...
+    			// Use the precision of the dates in the data - ISO formats will be used by default.
     			buffer.append ( date.toString() );
     			buffer.append ( delim );
     			buffer.append ( string_value );
-                // Now print the data flag...
+                // Now print the data flag.
                 if ( ts.hasDataFlags() ) {
                     dataflag = tsdata.getDataFlag();
-                    // Always enclose the data flag in quotes because it may contain white space...
+                    // Always enclose the data flag in quotes because it may contain white space.
                     buffer.append ( delim );
                     buffer.append ( "\"" );
                     buffer.append ( dataflag );
@@ -2454,7 +2221,7 @@ throws Exception
 	        int irrPrecision = -1;
 	        int tsPrecision;
 	        if ( irregularInterval != null ) {
-	            // Use the precision that was specified
+	            // Use the precision that was specified.
 	            irrPrecision = irregularInterval.getBase();
 	        }
 	        else {
@@ -2468,15 +2235,15 @@ throws Exception
                     }
                     tsPrecision = ts.getDate1().getPrecision();
                     if ( tsPrecision == TimeInterval.IRREGULAR ) {
-                        // Treat as minute
+                        // Treat as minute.
                         tsPrecision = DateTime.PRECISION_MINUTE;
                     }
                     if ( irrPrecision == -1 ) {
-                        // Just assign
+                        // Just assign.
                         irrPrecision = tsPrecision;
                     }
                     else if ( irrPrecision != tsPrecision ) {
-                        // This will be a problem in processing the data
+                        // This will be a problem in processing the data.
                         message = "Irregular time series do not have the same date/time precision.  Can't write";
                         Message.printWarning ( 2, routine, message );
                         throw new UnequalTimeIntervalException ( message );
@@ -2484,12 +2251,12 @@ throws Exception
     	        }
 	        }
 	        if ( irrPrecision == -1 ) {
-	            // Apparently no non-null time series with data
+	            // Apparently no non-null time series with data.
                 message = "Irregular time series do not have data to determine date/time precision (all empty?).  Can't write";
                 Message.printWarning ( 2, routine, message );
                 throw new IllegalArgumentException ( message );
 	        }
-            // Was able to determine the precision of data so can continue
+            // Was able to determine the precision of data so can continue.
 	        // The logic works as follows:
 	        // 0) Advance the iterator for each time series to initialize
 	        // 1) Find the earliest date/time in the iterator current position
@@ -2498,30 +2265,30 @@ throws Exception
 	        //    - values not at the same date/time result in blanks for the other time series
 	        // 3) For any values printed, advance that time series' iterator
 	        // 4) Go to step 1
-	        // Create iterators for each time series
-	        List<TSIterator> tsIteratorList = new ArrayList<TSIterator>(size);
+	        // Create iterators for each time series.
+	        List<TSIterator> tsIteratorList = new ArrayList<>(size);
 	        for ( int its = 0; its < size; its++ ) {
 	            if ( tslist.get(its) == null ) {
-	                tsIteratorList.add(null); // Keep same order as time series
+	                tsIteratorList.add(null); // Keep same order as time series.
 	            }
 	            ts = (IrregularTS)tslist.get(its);
 	            try {
 	                tsIteratorList.add(ts.iterator(outputStart,outputEnd));
 	            }
 	            catch ( Exception e ) {
-	                tsIteratorList.add(null); // Keep same order as time series
+	                tsIteratorList.add(null); // Keep same order as time series.
 	            }
             }
 	        int its;
 	        TSIterator itsIterator;
 	        DateTime dtEarliest;
-	        // Use the following to extract data from each time series
-	        // A call to the iterator next() method will return null when no more data, which is
-	        // the safest way to process the data
+	        // Use the following to extract data from each time series.
+	        // A call to the iterator next() method will return null when no more data,
+	        // which is the safest way to process the data.
 	        TSData [] tsdata = new TSData[size];
 	        DateTime dt;
 	        int loopCount = 0;
-	        DateTime dtEarliestOutput = new DateTime(irrPrecision); // Use for output to ensure precision
+	        DateTime dtEarliestOutput = new DateTime(irrPrecision); // Use for output to ensure precision.
 	        while ( true ) {
 	            // Using the current date/time, output the earliest value for all time series that have the value and
 	            // increment the iterator for each value that is output.
@@ -2538,7 +2305,7 @@ throws Exception
                         }
                     }
                 }
-                // Figure out the earliest date/time to output from the current iterator data
+                // Figure out the earliest date/time to output from the current iterator data.
                 for ( its = 0; its < size; its++ ) {
                     if ( tsdata[its] == null ) {
                         continue;
@@ -2554,13 +2321,13 @@ throws Exception
                     }
                 }
                 if ( dtEarliest == null ) {
-                    // Done printing data records
+                    // Done printing data records.
                     break;
                 }
-                // Make sure the date/time for output is set the proper precision for equals() calls and formatting
+                // Make sure the date/time for output is set the proper precision for equals() calls and formatting.
                 dtEarliestOutput.setDate(dtEarliest);
                 dtEarliestOutput.setPrecision(irrPrecision);
-	            // First print the date/time
+	            // First print the date/time.
 	            buffer.setLength(0);
 	            buffer.append ( "" + dtEarliestOutput );
 	            for ( its = 0; its < size; its++ ) {
@@ -2569,13 +2336,13 @@ throws Exception
 	                    dt = tsdata[its].getDate();
 	                }
 	                if ( (dt != null) && dtEarliestOutput.equals(dt) ) {
-	                    // Output the value and if requested the flag (this copied from below for regular time series)
+	                    // Output the value and if requested the flag (this copied from below for regular time series).
 	                    if ( ts != null ) {
 	                        value = tsdata[its].getDataValue();
 	                    }
 	                    if ( (ts == null) || ts.isDataMissing(value) ) {
 	                        if ( missingValueString != null ) {
-	                            // Property has specified the missing value to use
+	                            // Property has specified the missing value to use.
 	                            string_value = missingValueString;
 	                        }
 	                        else {
@@ -2583,13 +2350,13 @@ throws Exception
 	                                string_value = "NaN";
 	                            }
 	                            else {
-	                                // Format the missing value number
+	                                // Format the missing value number.
 	                                string_value = StringUtil.formatString( value, outputFormat);
 	                            }
 	                        }
 	                    }
 	                    else {
-	                        // Format the data value
+	                        // Format the data value.
 	                        string_value = StringUtil.formatString( (value*mult[its] + add[its]),outputFormat );
 	                    }
 	                    if ( its == 0 ) {
@@ -2598,35 +2365,35 @@ throws Exception
 	                    else {
 	                        buffer.append ( delim + string_value );
 	                    }
-	                    // Now print the data flag...
+	                    // Now print the data flag.
 	                    if ( ts.hasDataFlags() ) {
 	                        dataflag = tsdata[its].getDataFlag();
-	                        // Always enclose the data flag in quotes because it may contain white space...
+	                        // Always enclose the data flag in quotes because it may contain white space.
 	                        buffer.append ( delim + "\""+ dataflag + "\"");
 	                    }
-	                    // Get the next value since this time series was able to output
+	                    // Get the next value since this time series was able to output.
 	                    // Advancing past data will result in null for calls to request the date, etc.
 	                    itsIterator = tsIteratorList.get(its);
 	                    tsdata[its] = itsIterator.next();
 	                }
 	                else {
-	                    // Output blanks (quoted blanks for illustration)
+	                    // Output blanks (quoted blanks for illustration).
 	                    buffer.append ( delim + "" );
 	                    if ( ts.hasDataFlags() ) {
 	                        buffer.append ( delim + "\"" + "" + "\"" );
 	                    }
-	                    // Keep the iterator at the same spot so that the value will be tested for order
+	                    // Keep the iterator at the same spot so that the value will be tested for order.
 	                }
 	            }
-	            // Output the line
+	            // Output the line.
 	            out.println ( buffer.toString () );
 	        }
         }
 	}
 	else if ( (dataIntervalBase != TimeInterval.IRREGULAR) && (outputStart != null) && (outputEnd != null) ) {
-	    // Regular interval and have period to output...
+	    // Regular interval and have period to output.
 		t = new DateTime ( outputStart);
-		// Make sure no time zone is set to minimize output...
+		// Make sure no time zone is set to minimize output.
 		t.setTimeZone ("");
 		int its;
 		for ( ;	t.lessThanOrEqualTo(outputEnd); t.addInterval(dataIntervalBase, dataIntervalMult)) {
@@ -2635,14 +2402,14 @@ throws Exception
 			buffer.append( t.toString() + delim );
 			for ( its = 0; its < size; its++ ) {
 				ts = tslist.get(its);
-				// Need to work on formatting number to a better precision.  For now just get to
-				// output without major loss in precision...
+				// Need to work on formatting number to a better precision.
+				// For now just get to output without major loss in precision.
 				if ( ts != null ) {
 					value = ts.getDataValue(t);
 				}
 				if ( (ts == null) || ts.isDataMissing(value) ) {
 		            if ( missingValueString != null ) {
-		                // Property has specified the missing value to use
+		                // Property has specified the missing value to use.
 		                string_value = missingValueString;
 		            }
 		            else {
@@ -2650,13 +2417,13 @@ throws Exception
     						string_value = "NaN";
     					}
     					else {
-    					    // Format the missing value number
+    					    // Format the missing value number.
     					    string_value = StringUtil.formatString( value, outputFormat);
     					}
 		            }
 				}
 				else {
-				    // Format the data value
+				    // Format the data value.
 				    string_value = StringUtil.formatString(	(value*mult[its] + add[its]),outputFormat );
 				}
 				if ( its == 0 ) {
@@ -2665,11 +2432,11 @@ throws Exception
 				else {
 				    buffer.append ( delim + string_value );
 				}
-				// Now print the data flag...
+				// Now print the data flag.
 				if ( ts.hasDataFlags() ) {
 					datapoint = ts.getDataPoint ( t, datapoint );
 					dataflag = datapoint.getDataFlag();
-					// Always enclose the data flag in quotes because it may contain white space...
+					// Always enclose the data flag in quotes because it may contain white space.
 					buffer.append ( delim +	"\""+ dataflag + "\"");
 				}
 			}
@@ -2801,7 +2568,7 @@ throws Exception
 		}
 	}
 	catch ( UnequalTimeIntervalException e ) {
-	    // Just rethrow because message will be specific
+	    // Just rethrow because message will be specific.
 	    throw e;
 	}
 	catch ( Exception e ) {
@@ -2817,14 +2584,14 @@ Write the properties for a time series.
 */
 private static void writeTimeSeriesProperties ( PrintWriter out, TS ts, int its, String [] includeProperties )
 {
-	// Get the list of matching properties
-	// TODO SAM 2015-05-18 Add support for wildcards - for now must match exactly
+	// Get the list of matching properties.
+	// TODO SAM 2015-05-18 Add support for wildcards - for now must match exactly.
 	Object o;
 	StringBuilder b = new StringBuilder ( "Properties_" + (its + 1) + " = {");
-	// Get all the properties.  Then extract the properties that match the IncludeProperties list
+	// Get all the properties.  Then extract the properties that match the IncludeProperties list.
 	HashMap<String,Object> props = ts.getProperties();
 	List<String> matchedProps = new ArrayList<>();
-	// Loop through the full list of properties and get those that match the pattern
+	// Loop through the full list of properties and get those that match the pattern.
 	for ( int iprop = 0; iprop < includeProperties.length; iprop++ ) {
 		for ( String key: props.keySet() ) {
 			if ( key.matches(includeProperties[iprop]) ) {
@@ -2860,11 +2627,11 @@ private static void writeTimeSeriesProperties ( PrintWriter out, TS ts, int its,
 			b.append("null");
 		}
 		else if ( o instanceof Double ) {
-			// Don't want default of exponential notation so always format
+			// Don't want default of exponential notation so always format.
 			b.append(StringUtil.formatString((Double)o,"%.6f"));
 		}
 		else if ( o instanceof Float ) {
-			// Don't want default of exponential notation so always format
+			// Don't want default of exponential notation so always format.
 			b.append(StringUtil.formatString((Float)o,"%.6f"));
 		}
 		else if ( o instanceof Integer ) {
@@ -2878,7 +2645,7 @@ private static void writeTimeSeriesProperties ( PrintWriter out, TS ts, int its,
 		}
 		else {
 			// Don't specifically handle the type so treat as a string.
-			// TODO SAM 2015-05-18 this may cause problems if it contains newlines
+			// TODO SAM 2015-05-18 this may cause problems if it contains newlines.
 			b.append("\""+o+"\"");
 		}
 	}
