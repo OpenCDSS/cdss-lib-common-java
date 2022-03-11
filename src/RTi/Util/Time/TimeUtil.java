@@ -217,13 +217,12 @@ Days in months (non-leap year).
 public static final int MONTH_DAYS[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
 /**
-For a month, the number of days in the year passed on the first day of the
-month (non-leap year).
+For a month, the number of days in the year passed on the first day of the month (non-leap year).
 */
 public static final int MONTH_YEARDAYS[] = {	0, 31, 59, 90, 120, 151,
 						181, 212, 243, 273, 304, 334 };
 
-// Static data shared in package (so DateTime can get to easily)...
+// Static data shared in package (so DateTime can get to easily).
 
 protected static TimeZone _local_time_zone = null;
 protected static String _local_time_zone_string = "";
@@ -244,14 +243,14 @@ public static int absoluteDay ( int year, int month, int day )
 		leap = 1;
 	}
 	int aday =
-		day // day of month
-		+ numDaysInMonths (1, year, (month-1)) // days in previous months
-		+ 365*year // days in previous years
-		+ year/4 // 1 if leap year
-		- year/100 // -3 every 400 years
-		+ year/400 // 1 every 400 years
-		- ABSOLUTE_DAY_DATUM // Jan 1, 1800
-		- leap; // cancel /4 term - will be added by numDaysInMonths
+		day // Day of month.
+		+ numDaysInMonths (1, year, (month-1)) // Days in previous months.
+		+ 365*year // Days in previous years.
+		+ year/4 // 1 if leap year.
+		- year/100 // -3 every 400 years.
+		+ year/400 // 1 every 400 years.
+		- ABSOLUTE_DAY_DATUM // Jan 1, 1800.
+		- leap; // Cancel /4 term - will be added by numDaysInMonths.
 	return aday;
 }
 
@@ -310,8 +309,7 @@ but does not check the multiplier.
 1 if the precision value of the DateTime is greater than the interval (date/time is less precise),
 and null if the input is invalid.
 */
-public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, String intervalString )
-{
+public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, String intervalString ) {
     TimeInterval ti = null;
     try {
         ti = TimeInterval.parseInterval(intervalString);
@@ -334,8 +332,7 @@ but does not check the multiplier.
 1 if the precision value of the DateTime is greater than the interval (date/time is less precise),
 and null if the input is invalid.
 */
-public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, TimeInterval interval )
-{
+public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, TimeInterval interval ) {
     int precision = dt.getPrecision();
     int intervalBase = interval.getBase();
     if ( intervalBase == TimeInterval.IRREGULAR ) {
@@ -369,17 +366,16 @@ allowed as long as the higher precision values are zeros.
 1 if the precision value of the DateTime is greater than the interval (date/time is less precise),
 and null if the input is invalid.
 */
-public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, TimeInterval interval, boolean checkParts )
-{
+public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, TimeInterval interval, boolean checkParts ) {
     int intervalBase = interval.getBase();
     int intervalMult = interval.getMultiplier();
     Integer compare = compareDateTimePrecisionToTimeInterval(dt, interval);
     if ( (compare == null) || (compare == 1) || (intervalBase == TimeInterval.IRREGULAR) ) {
-        // Cases that are independent of checkParts value
+        // Cases that are independent of checkParts value.
         return compare;
     }
     if ( !checkParts ) {
-        // No need to check parts
+        // No need to check parts.
         return compare;
     }
     else {
@@ -392,7 +388,7 @@ public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, Time
         // Numerical value of the interval is bigger for larger intervals (e.g., YEAR > MONTH)
         int dtMorePrecise = -1;
         if ( compare == dtMorePrecise ) {
-            // Date/time precision is greater than the interval so need to check if the end parts 
+            // Date/time precision is greater than the interval so need to check if the end parts.
             if ( intervalBase >= TimeInterval.MINUTE ) {
                 if ( dt.getSecond() != 0 ) {
                     return dtMorePrecise;
@@ -419,7 +415,7 @@ public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, Time
                 }
             }
         }
-        // Now check the multiplier on the date/time part of the interval base...
+        // Now check the multiplier on the date/time part of the interval base.
         if ( intervalBase == TimeInterval.MINUTE ) {
             if ( (dt.getMinute() % intervalMult) != 0 ) {
                 return dtMorePrecise;
@@ -445,7 +441,7 @@ public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, Time
                 return dtMorePrecise;
             }
         }
-        // More detailed parts do not introduce any additional data
+        // More detailed parts do not introduce any additional data.
         return 0;
     }
 }
@@ -466,12 +462,12 @@ public static int convertCalendarMonthToCustomMonth ( int cal_month, int first_c
 {	if ( cal_month >= first_cal_month_in_year ) {
 		// This is the only clause that is processed for calendar year
 		// and is used for high calendar months in custom calendars.
-		// For example for water year (first_cal_month_in_year = 10), return cal_month - 3
+		// For example for water year (first_cal_month_in_year = 10), return (cal_month - 3).
 		return (cal_month - (first_cal_month_in_year - 1) );
 	}
 	else {
 		// This will be processed for non-calendar year for early months in the calendar year.
-		// For example for water year, return cal_month + 3
+		// For example for water year, return (cal_month + 3).
 		return (cal_month + (12 - first_cal_month_in_year + 1) );
 	}
 }
@@ -490,10 +486,10 @@ public static boolean dateTimeIntervalsAlign ( DateTime dt1, DateTime dt2, TimeI
 		return false;
 	}
 	if ( interval.isRegularInterval() ) {
-		// Irregular is not checked by this method
+		// Irregular is not checked by this method.
 		return true;
 	}
-	// List in likely order of occurrence, for example 6Hour, 3min are more likely
+	// List in likely order of occurrence, for example 6Hour, 3min are more likely.
 	if ( precision == DateTime.PRECISION_HOUR ) {
 		if ( ((dt1.getHour() - dt2.getHour() ) % interval.getMultiplier()) != 0 ) {
 			return false;
@@ -535,7 +531,7 @@ public static boolean dateTimeIntervalsAlign ( DateTime dt1, DateTime dt2, TimeI
 		}
 	}
 	else {
-		// Interval is not handled
+		// Interval is not handled.
 		throw new InvalidTimeIntervalException("Interval " + interval + " is not handled");
 	}
 }
@@ -550,9 +546,9 @@ public static int dayOfYear ( Date d )
 {	if ( d == null ) {
 		return -1;
 	}
-	// First get a string...
+	// First get a string.
 	String s = formatTimeString ( d, "%j" );
-	// Now convert to an integer...
+	// Now convert to an integer.
 	Integer i = new Integer (s);
 	int day = i.intValue();
 	s = null;
@@ -571,11 +567,11 @@ public static int dayOfYear ( DateTime d )
 		return -1;
 	}
 	int days = 0;
-	// Days in previous months...
+	// Days in previous months.
 	if ( d.getMonth() > 1 ) {
 		days += numDaysInMonths ( 1, d.getYear(), (d.getMonth() - 1) );
 	}
-	// Add the days from this month...
+	// Add the days from this month.
 	days += d.getDay();
 	return days;
 }
@@ -592,34 +588,34 @@ public static int dayOfYear ( DateTime d, YearType yearType )
 {   if ( (yearType == YearType.CALENDAR) || (yearType == null) ) {
         return dayOfYear ( d );
     }
-    // Else have non-calendar year so evaluation is a bit more complex
+    // Else have non-calendar year so evaluation is a bit more complex.
     if ( d == null ) {
         throw new IllegalArgumentException ( "Date is null - cannot calculate day of year.");
     }
     int days = 0;
-    // Else have non-calendar year so evaluation is a bit more complex
+    // Else have non-calendar year so evaluation is a bit more complex.
     int calMonth = d.getMonth();
     int startMonth = yearType.getStartMonth();
     if ( calMonth < startMonth ) {
-        // First add the number of days in the months in the previous year
+        // First add the number of days in the months in the previous year.
         days += numDaysInMonths ( startMonth, d.getYear() + yearType.getStartYearOffset(),
             (12 - startMonth + 1) );
-        // Add the days in previous months of the current year
+        // Add the days in previous months of the current year.
         if ( calMonth > 1 ) {
-            // Add the days from the previous months...
+            // Add the days from the previous months.
             days += numDaysInMonths ( 1, d.getYear(), (calMonth -1) );
         }
-        // Add the days from the current month...
+        // Add the days from the current month.
         days += d.getDay();
     }
     else {
-        // At the start of the year (previous calendar year)
+        // At the start of the year (previous calendar year).
         if ( calMonth > startMonth ) {
-            // Add the days from the previous months...
+            // Add the days from the previous months.
             days += numDaysInMonths ( startMonth, d.getYear() + yearType.getStartYearOffset(),
                 (calMonth - startMonth) );
         }
-        // Add the days from the current month...
+        // Add the days from the current month.
         days += d.getDay();
     }
     return days;
@@ -635,12 +631,12 @@ public static DateTimeRange determineOutputYearTypeRange ( DateTime start, DateT
     DateTime outputEnd = new DateTime(end);
     outputEnd.setPrecision(DateTime.PRECISION_YEAR);
     if ( (outputYearType == YearType.CALENDAR) ) {
-        // Just return the original dates...
+        // Just return the original dates.
         return new DateTimeRange ( outputStart, outputEnd );
     }
-    // Otherwise, deal with offsets
+    // Otherwise, deal with offsets.
     
-    // Start offset will be either 0 or -1
+    // Start offset will be either 0 or -1.
     if ( outputYearType.getStartYearOffset() < 0 ) {
         // Year types where the year starts in the previous calendar year and ends in the current calendar year.
         if (start.getMonth() >= outputYearType.getStartMonth() ) {
@@ -653,9 +649,9 @@ public static DateTimeRange determineOutputYearTypeRange ( DateTime start, DateT
             // Water
             outputStart.addYear ( 1 );
         }
-        // Else the start is within the output year so no need to adjust the output year
+        // Else the start is within the output year so no need to adjust the output year.
         if ( end.getMonth() >= outputYearType.getStartMonth() ) {
-            // The old time series ends after the beginning of the next output year so increment the year
+            // The old time series ends after the beginning of the next output year so increment the year.
             //
             //               ++++++++++++  Calendar +++++++++++++++++++++
             //               Jan                             end      Dec
@@ -665,7 +661,7 @@ public static DateTimeRange determineOutputYearTypeRange ( DateTime start, DateT
         }
     }
     else {
-        // Year types where the year starts in the current calendar year and ends in the next calendar year
+        // Year types where the year starts in the current calendar year and ends in the next calendar year.
         if ( start.getMonth() < outputYearType.getStartMonth() ) {
             // The old time series starts before the beginning of the output year and would result
             // in a missed year at the start so decrement the first year, as shown in the following example:
@@ -739,12 +735,11 @@ throws Exception
 	offset.setHSecond ( 0 );
 	DateTime datecopy = new DateTime ( date2 );
 
-	// First see if we need to add or subtract...
+	// First see if we need to add or subtract.
 
 	if ( datecopy.equals(date1) ) {
-		// Special case is no difference in the dates so the offset
-		// date must be handled accordingly. This means setting the
-		// month and day to zero instead month 1 and day 1 for a
+		// Special case is no difference in the dates so the offset date must be handled accordingly.
+		// This means setting the month and day to zero instead month 1 and day 1 for a
 		// DateTime(DateTime.DATE_ZERO) object.
 
 		offset.setMonth ( 0 );
@@ -752,19 +747,18 @@ throws Exception
 		return offset;
 	}
 
-	// Handle some special cases that are often encountered and handled the
-	// others generically...
+	// Handle some special cases that are often encountered and handled the others generically.
 
 	if ( date1.getPrecision() == DateTime.PRECISION_DAY ) {
-		// If Day and month are the same, return the year as the offset...
+		// If Day and month are the same, return the year as the offset.
 		if ( (date1.getDay() == date2.getDay()) && (date1.getMonth() == date2.getMonth()) ) {
 			offset.setYear ( date1.getYear() - date2.getYear() );
 		}
 	}
 	else {
-        // All other cases...
-		// For the moment, ignore the old logic and use floating
-		// point numbers to do the offset.  Test to see if it works...
+        // All other cases.
+		// For the moment, ignore the old logic and use floating point numbers to do the offset.
+		// Test to see if it works.
 		double date_copy_double = datecopy.toDouble();
 		double this_double = date1.toDouble();
 		double offset_double = this_double - date_copy_double;
@@ -778,8 +772,7 @@ Format a DateTime using the given format.  The year type defaults to CALENDAR.
 @param dt DateTime object to format
 @param format format string (see overloaded version for details)
 */
-public static String formatDateTime ( DateTime dt, String format )
-{
+public static String formatDateTime ( DateTime dt, String format ) {
     return formatDateTime ( dt, YearType.CALENDAR, format );
 }
 
@@ -836,6 +829,11 @@ C "strftime" routine, as follows:
 </tr>
 
 <tr>
+<td><b>%h</b></td>
+<td>Hundreds, factional part of second 0-99, padded to 2 digits.</td>
+</tr>
+
+<tr>
 <td><b>%I</b></td>
 <td>Hour of day in range 0-12.</td>
 </tr>
@@ -846,6 +844,12 @@ C "strftime" routine, as follows:
 </tr>
 
 <tr>
+<td><b>%l</b></td>
+<td>Milliseconds, fractional part of second 0-999, padded to 3 digits.</td>
+</tr>
+
+
+<tr>
 <td><b>%m</b></td>
 <td>Month of year in range 1-12.</td>
 </tr>
@@ -853,6 +857,11 @@ C "strftime" routine, as follows:
 <tr>
 <td><b>%M</b></td>
 <td>Minute of hour in range 0-59.</td>
+</tr>
+
+<tr>
+<td><b>%n</b></td>
+<td>Nanoseconds, fractional part of second 0-999999999, zero-padded to 9 digits.</td>
 </tr>
 
 <tr>
@@ -868,6 +877,11 @@ C "strftime" routine, as follows:
 <tr>
 <td><b>%U</b> or <b>%W</b></td>
 <td>Week of year in range 1-52.</td>
+</tr>
+
+<tr>
+<td><b>%u</b></td>
+<td>Microseconds, fractional part of second 0-999999, zero-padded to 6 digits.</td>
 </tr>
 
 <tr>
@@ -918,27 +932,27 @@ public static String formatDateTime ( DateTime d0, YearType yearType, String for
 
 	DateTime dateTime;
 	if ( d0 == null ) {
-		// Get the current time...
+		// Get the current time.
 		dateTime = new DateTime(DateTime.DATE_CURRENT);
 	}
 	else {
         dateTime = d0;
 	}
-	// Use the date to format and then use DateTime time zone
+	// Use the date to format and then use DateTime time zone.
 	Date date = null;
-	// TODO SAM 2016-05-02 really need to handle time zone more explicitly here
+	// TODO SAM 2016-05-02 really need to handle time zone more explicitly here.
 	// Get the date using the DateTime's time zone or if not specified use the local time
-	// This matches legacy behavior
+	// This matches legacy behavior.
 	date = dateTime.getDate(TimeZoneDefaultType.LOCAL);
 
 	if ( format.equals("datum_seconds") ) {
-		// Want the number of seconds since the standard time datum	
-		// Need to work on this...
+		// Want the number of seconds since the standard time datum.
+		// TODO 2022-03-05 Old comment: need to work on this.
 		//long seconds = d.getTime ();
 		//return Long.toString ( seconds/1000 );
 		return "0";
 	}
-	// Convert format to string...
+	// Convert format to string.
 	GregorianCalendar cal = new GregorianCalendar ();
 	cal.setTime ( date );
 	SimpleDateFormat sdf = new SimpleDateFormat();
@@ -964,14 +978,14 @@ public static String formatDateTime ( DateTime d0, YearType yearType, String for
 	// DayOfWeek: 0 to 7 with 0     same
 	//            being Sunday
 	//            in U.S.
-	// First go through the % format specifiers
+	// First go through the % format specifiers.
 	for ( int i = 0; i < len; i++ ) {
 		c = format.charAt(i);
 		if ( c == '%' ) {
-			// We have a format character...
+			// Have a format specifier character.
 			++i;
 			if ( i >= len ) {
-				break;	// this will exit the whole loop
+				break;	// This will exit the whole loop.
 			}
 			c = format.charAt(i);
 			if ( c == 'a' ) {
@@ -998,15 +1012,19 @@ public static String formatDateTime ( DateTime d0, YearType yearType, String for
 				formatted_string.append( "%c not supported" );
 			}
 			else if ( c == 'd' ) {
-				// Day of month
+				// Day of month.
 				formatted_string.append( StringUtil.formatString(dateTime.getDay(),"%02d"));
 			}
 			else if ( c == 'H' ) {
-				// Hour of day...
+				// Hour of day.
 				formatted_string.append( StringUtil.formatString(dateTime.getHour(),"%02d"));
 			}
+			else if ( c == 'h' ) {
+				// Hundredths of second.
+				formatted_string.append( StringUtil.formatString(dateTime.getHSecond(),"%02d"));
+			}
 			else if ( c == 'I' ) {
-				// Hour of day 1-12
+				// Hour of day 1-12.
 				if ( dateTime.getHour() > 12 ) {
 					formatted_string.append(StringUtil.formatString((dateTime.getHour() - 12),"%02d"));
 				}
@@ -1015,19 +1033,27 @@ public static String formatDateTime ( DateTime d0, YearType yearType, String for
 				}
 			}
 			else if ( c == 'j' ) {
-				// Day of year...
+				// Day of year.
 				formatted_string.append( StringUtil.formatString(dateTime.getYearDay(),"%03d"));
 			}
+			else if ( c == 'l' ) {
+				// Millisecond of second.
+				formatted_string.append( StringUtil.formatString(dateTime.getNanoSecond()/1000000,"%03d"));
+			}
 			else if ( c == 'm' ) {
-				// Month of year...
+				// Month of year.
 				formatted_string.append( StringUtil.formatString( dateTime.getMonth(),"%02d"));
 			}
 			else if ( c == 'M' ) {
-				// Minute of hour...
+				// Minute of hour.
 				formatted_string.append( StringUtil.formatString( dateTime.getMinute(),"%02d"));
 			}
+			else if ( c == 'n' ) {
+				// Nanosecond of second.
+				formatted_string.append( StringUtil.formatString(dateTime.getNanoSecond(),"%09d"));
+			}
 			else if ( c == 'p' ) {
-				// AM or PM...
+				// AM or PM.
 				if ( dateTime.getHour() < 12 ) {
 					formatted_string.append("AM");
 				}
@@ -1036,17 +1062,21 @@ public static String formatDateTime ( DateTime d0, YearType yearType, String for
 				}
 			}
 			else if ( c == 's' ) {
-				// Seconds since 1970-01-01 00:00:00+0000 (UTC)...
+				// Seconds since 1970-01-01 00:00:00+0000 (UTC).
 				formatted_string.append(""+date.getTime()/1000);
 			}
 			else if ( c == 'S' ) {
-				// Seconds of minute...
+				// Seconds of minute.
 				formatted_string.append(StringUtil.formatString( dateTime.getSecond(),"%02d"));
 			}
 			else if ( (c == 'U') || (c == 'W')) {
-				// Week of year...
+				// Week of year.
 				ifield = cal.get(Calendar.WEEK_OF_YEAR);
 				formatted_string.append( StringUtil.formatString(ifield,"%02d"));
+			}
+			else if ( c == 'u' ) {
+				// Microsecond of second.
+				formatted_string.append( StringUtil.formatString(dateTime.getNanoSecond()/1000,"%06d"));
 			}
 			else if ( c == 'x' ) {
 				formatted_string.append( "%x not supported" );
@@ -1055,7 +1085,7 @@ public static String formatDateTime ( DateTime d0, YearType yearType, String for
 				formatted_string.append( "%X not supported" );
 			}
 			else if ( c == 'y' ) {
-				// Two digit year...
+				// Two digit year.
 				formatted_string.append(StringUtil.formatString(formatYear(dateTime.getYear(),2,true),"%02d"));
 			}
 			else if ( c == 'Y' ) {
@@ -1065,12 +1095,11 @@ public static String formatDateTime ( DateTime d0, YearType yearType, String for
 				formatted_string.append ( dateTime.getTimeZoneAbbreviation() );
 			}
 			else if ( c == '%' ) {
-				// Literal percent...
+				// Literal percent.
 				formatted_string.append ( '%' );
 			}
 			else {
-				// Go ahead and add the % and the character
-				// (e.g., so the format can be passed to a secondary formatter).
+				// Go ahead and add the % and the character (e.g., so the format can be passed to a secondary formatter).
 				formatted_string.append ( '%' );
 				formatted_string.append ( c );
 			}
@@ -1085,24 +1114,24 @@ public static String formatDateTime ( DateTime d0, YearType yearType, String for
 		        if ( format.substring(i,iEnd).equalsIgnoreCase(prop) ) {
 		            year = "" + TimeUtil.getYearForYearType(dateTime, yearType);
 	                formatted_string.append(year);
-	                i = i + prop.length() - 1; // -1 because the iterator will increment by one
+	                i = i + prop.length() - 1; // -1 because the iterator will increment by one.
 		        }
 		        else {
-		            // Just add the $ and march on
+		            // Just add the $ and march on.
 	                formatted_string.append ( c );
 		        }
 		    }
 		    else {
-		        // Just add the $ and march on
+		        // Just add the $ and march on.
 		        formatted_string.append ( c );
 		    }
 		}
 		else {
-			// Just add the character to the string...
+			// Just add the character to the string.
 			formatted_string.append ( c );
 		}
 	}
-	// Next go through the ${dt:property} specifiers
+	// Next go through the ${dt:property} specifiers.
 
 	return formatted_string.toString();
 }
@@ -1269,7 +1298,7 @@ public static String formatTimeString ( Date d0, String format0 )
 
 	Date d;
 	if ( d0 == null ) {
-		// Get the current time...
+		// Get the current time.
 		d = new Date();
 	}
 	else {
@@ -1281,24 +1310,21 @@ public static String formatTimeString ( Date d0, String format0 )
 	}
 
 	if ( format.equals("datum_seconds") ) {
-		/*
-		** Want the number of seconds since the standard time datum	
-		*/
+		// Want the number of seconds since the standard time datum.
 		long seconds = d.getTime ();
 		return Long.toString ( seconds/1000 );
 	}
-	else {	//
-		// Convert format to string...
-		//
+	else {
+		// Convert format to string.
 
-		// First we get a Gregorian Calendar from the date...
+		// First we get a Gregorian Calendar from the date.
 
 		GregorianCalendar cal = new GregorianCalendar ();
 		cal.setTime ( d );
 		int len = format.length();
 		StringBuffer formatted_string = new StringBuffer ();
 		char c = '\0';
-		int ifield;	// integer field value
+		int ifield;	// Integer field value.
 		SimpleDateFormat sdf = new SimpleDateFormat();
 		DateFormatSymbols dfs = sdf.getDateFormatSymbols();
 		String[] short_weekdays = dfs.getShortWeekdays();
@@ -1322,10 +1348,10 @@ public static String formatTimeString ( Date d0, String format0 )
 		for ( int i = 0; i < len; i++ ) {
 			c = format.charAt(i);
 			if ( c == '%' ) {
-				// We have a format character...
+				// We have a format character.
 				++i;
 				if ( i >= len ) {
-					break;	// this will exit the whole loop
+					break;	// This will exit the whole loop.
 				}
 				c = format.charAt(i);
 				if ( c == 'a' ) {
@@ -1368,7 +1394,7 @@ public static String formatTimeString ( Date d0, String format0 )
 					formatted_string.append("%c not supported" );
 				}
 				else if ( c == 'd' ) {
-					// Day of month
+					// Day of month.
 					ifield = cal.get(Calendar.DAY_OF_MONTH);
 					formatted_string.append(StringUtil.formatString(ifield,"%02d"));
 					if ( Message.isDebugOn ) {
@@ -1376,7 +1402,7 @@ public static String formatTimeString ( Date d0, String format0 )
 					}
 				}
 				else if ( c == 'H' ) {
-					// Hour of day...
+					// Hour of day.
 					ifield = cal.get(Calendar.HOUR_OF_DAY);
 					formatted_string.append(StringUtil.formatString(ifield,"%02d"));
 					if ( Message.isDebugOn ) {
@@ -1384,7 +1410,7 @@ public static String formatTimeString ( Date d0, String format0 )
 					}
 				}
 				else if ( c == 'I' ) {
-					// Hour of day 1-12
+					// Hour of day 1-12.
 					ifield = cal.get(Calendar.HOUR);
 					formatted_string.append(StringUtil.formatString(ifield,"%02d"));
 					if ( Message.isDebugOn ) {
@@ -1392,7 +1418,7 @@ public static String formatTimeString ( Date d0, String format0 )
 					}
 				}
 				else if ( c == 'j' ) {
-					// Day of year...
+					// Day of year.
 					ifield = cal.get(Calendar.DAY_OF_YEAR);
 					formatted_string.append(StringUtil.formatString(ifield,"%03d"));
 					if ( Message.isDebugOn ) {
@@ -1400,7 +1426,7 @@ public static String formatTimeString ( Date d0, String format0 )
 					}
 				}
 				else if ( c == 'm' ) {
-					// Month of year...
+					// Month of year.
 					ifield = cal.get(Calendar.MONTH) + 1;
 					formatted_string.append(StringUtil.formatString(ifield,"%02d"));
 					if ( Message.isDebugOn ) {
@@ -1408,7 +1434,7 @@ public static String formatTimeString ( Date d0, String format0 )
 					}
 				}
 				else if ( c == 'M' ) {
-					// Minute of hour...
+					// Minute of hour.
 					ifield = cal.get(Calendar.MINUTE);
 					formatted_string.append(StringUtil.formatString(ifield,"%02d"));
 					if ( Message.isDebugOn ) {
@@ -1416,7 +1442,7 @@ public static String formatTimeString ( Date d0, String format0 )
 					}
 				}
 				else if ( c == 'p' ) {
-					// AM or PM...
+					// AM or PM.
 					ifield = cal.get(Calendar.AM_PM);
 					formatted_string.append(am_pm[ifield]);
 					if ( Message.isDebugOn ) {
@@ -1424,7 +1450,7 @@ public static String formatTimeString ( Date d0, String format0 )
 					}
 				}
 				else if ( c == 'S' ) {
-					// Seconds of minute...
+					// Seconds of minute.
 					ifield = cal.get(Calendar.SECOND);
 					formatted_string.append(StringUtil.formatString(ifield,"%02d"));
 					if ( Message.isDebugOn ) {
@@ -1432,7 +1458,7 @@ public static String formatTimeString ( Date d0, String format0 )
 					}
 				}
 				else if ( (c == 'U') || (c == 'W')) {
-					// Week of year...
+					// Week of year.
 					// Don't worry now about whether Sunday or Monday are the start of the week.
 					ifield = cal.get(Calendar.WEEK_OF_YEAR);
 					formatted_string.append(StringUtil.formatString(ifield,"%02d"));
@@ -1449,10 +1475,10 @@ public static String formatTimeString ( Date d0, String format0 )
 					formatted_string.append("%X not supported" );
 				}
 				else if ( c == 'y' ) {
-					// Two digit year...
+					// Two digit year.
 					ifield = cal.get(Calendar.YEAR);
 					if ( ifield > 60000 ) {
-						// Borland database bug...
+						// Borland database bug.
 						ifield -= 65536;
 					}
 					ifield = formatYear ( ifield, 2, true );
@@ -1462,10 +1488,10 @@ public static String formatTimeString ( Date d0, String format0 )
 					}
 				}
 				else if ( c == 'Y' ) {
-					// Four digit year...
+					// Four digit year.
 					ifield = cal.get(Calendar.YEAR);
 					if ( ifield > 60000 ) {
-						// Borland database bug...
+						// Borland database bug.
 						ifield -= 65536;
 					}
 					ifield = formatYear ( ifield, 4, true );
@@ -1475,17 +1501,17 @@ public static String formatTimeString ( Date d0, String format0 )
 					}
 				}
 				else if ( c == 'Z' ) {
-					// Time zone offset from GMT to local time, in milliseconds...
+					// Time zone offset from GMT to local time, in milliseconds.
 					formatted_string.append (
 					cal.getTimeZone().getID() );
 				}
 				else if ( c == '%' ) {
-					// Literal percent...
+					// Literal percent.
 					formatted_string.append ( '%' );
 				}
 			}
 			else {
-				// Just add the character to the string...
+				// Just add the character to the string.
 				formatted_string.append ( c );
 			}
 		}
@@ -1516,36 +1542,36 @@ public static int formatYear ( int year0, int len, boolean allow_future )
 {	int	year;
 	int	year_offset;
 
-	// Initialize return value...
+	// Initialize return value.
 
 	year = year0;
 	
 	if ( len == 2 ) {
 		if ( year0 < 100 ) {
-			// OK as is...
+			// OK as is.
 			year = year0;
 			return year;
 		}
 		else {
-			// Truncate the year to return only the last 2 digits...
+			// Truncate the year to return only the last 2 digits.
 			year = (year0 - ((year0/100)*100));
 			return year;
 		}
 	}
 	else if ( len == 4 ) {
 		if ( year0 > 100 ) {
-			// OK as is...
+			// OK as is.
 			year = year0;
 			return year;
 		}
 		else {
-			// Get the year offset from the system (have to assume this so old data may have problems!).
+			// Get the year offset from the system (have to assume this so old data may have problems).
 			year_offset = getYearOffset ();
 			if ( year_offset < 0 ) {
 				Message.printWarning ( 3, "TimeUtil.formatYear", "Unable to get system year offset" );
 				return -1;
 			}
-			// Get the current system year...
+			// Get the current system year.
 			// This does not seem to work well - it converts to Pacific time.
 			//String message = "{0,date,yyyy}";
 			//MessageFormat mf = new MessageFormat ( message );
@@ -1555,22 +1581,18 @@ public static int formatYear ( int year0, int len, boolean allow_future )
 			year = year0 + year_offset;
 			if ( (year > t_year) && !allow_future ) {
 				// Don't allow future years so subract 100.
-				// This comes up, for example, if the input
-				// is 70 and the current year is 2002.  In this
-				// case, using the system offset would give a
-				// year 2070, which is in the future.  Instead,
-				// we actually want 1970.  There is no simple
-				// way to deal with data that is older than
-				// 100 years (the user would have to supply
-				// some extra information and in that case this
-				// routine is pretty worthless)!
+				// This comes up, for example, if the input is 70 and the current year is 2002.
+				// In this case, using the system offset would give a year 2070, which is in the future.
+				// Instead, actually want 1970.
+				// There is no simple way to deal with data that is older than 100 years
+				// (extra information would need to be supplied and in that case this routine is limited).
 				year -= 100;
 			}
 			return year;
 		}
 	}
 	else {
-		// Unknown format request...
+		// Unknown format request.
 		Message.printWarning ( 3, "TimeUtil.formatYear", "Year ndigits " + len + " not 2 or 4!" );
 		return -1;
 	}
@@ -1589,7 +1611,7 @@ A new instance will have the time zone set to GMT.
 public static DateTime fromUnixTime ( long unixTimeMs, DateTime dt )
 throws RuntimeException
 {
-	// For now do not support negative
+	// For now do not support negative.
 	if ( unixTimeMs < 0 ) {
 		throw new RuntimeException("Negative UNIX time is not supported." );
 	}
@@ -1601,12 +1623,12 @@ throws RuntimeException
 		dtout = new DateTime();
 		dtout.setTimeZone("GMT");
 	}
-	// Number of seconds
+	// Number of seconds.
 	long unixTimeSeconds = unixTimeMs/1000;
 	long seconds = 0;
 	int year = 1970;
 	int month = 1, day = 1, hour = 0, minute = 0, second = 0;
-	// For now loop, but could improve performance
+	// For now loop, but could improve performance.
 	for ( int i = 1970; ; i++ ) {
 		if ( isLeapYear(i) ) {
 			seconds = seconds + 366*86400;
@@ -1615,27 +1637,27 @@ throws RuntimeException
 			seconds = seconds + 365*86400;
 		}
 		if ( seconds > unixTimeSeconds ) {
-			// Have gone too many years
+			// Have gone too many years.
 			if ( isLeapYear(i) ) {
 				seconds = seconds - 366*86400;
 			}
 			else {
 				seconds = seconds - 365*86400;
 			}
-			// Don't adjust year because time is in this year
+			// Don't adjust year because time is in this year.
 			break;
 		}
 		else {
-			// Add another year because time is in next year
+			// Add another year because time is in next year.
 			++year;
 		}
 	}
-	// Loop through months of year
+	// Loop through months of year.
 	boolean foundDay = false;
 	for ( month = 1; month <= 12; month++ ) {
 		for ( day = 1; day <= numDaysInMonth(month,year); day++ ) {
 			if ( (unixTimeSeconds - seconds) < 86400 ) {
-				// Need to break because time is in previous day
+				// Need to break because time is in previous day.
 				foundDay = true;
 				break;
 			}
@@ -1665,12 +1687,12 @@ Get the current day of the week as a number.
 Sunday.  The system clock is used to get the current time.  Return -1 if an error.
 */
 public int getCurrentDayOfWeek ()
-{	// First get the day of week as a string...
+{	// First get the day of week as a string.
 	String day = formatTimeString ( "%a" );
-	// Now loop through and figure out the day...
+	// Now loop through and figure out the day.
 	for ( int i = 0; i < 7; i++ ) {
 		if ( day.equalsIgnoreCase(DAY_ABBREVIATIONS[i]) ) {
-			// Have a match...
+			// Have a match.
 			return i;
 		}
 	}
@@ -1678,9 +1700,10 @@ public int getCurrentDayOfWeek ()
 }
 
 /**
-Return an array of valid format specifiers for the formatDateTime() method, in
-the format "%X - Description" where X is the format specifier.  The specifiers correspond to the strftime
-formatting routine.
+Return an array of valid format specifiers for the formatDateTime() method,
+in the format "%X - Description" where X is the format specifier.
+The specifiers correspond to the strftime formatting routine,
+with the addition of %h, %l, %u.
 @return an array of format specifiers.
 @param includeDescription If false, only the %X specifiers are returned.  if
 True, the description is also returned.
@@ -1692,7 +1715,8 @@ public static String[] getDateTimeFormatSpecifiers(boolean includeDescription, b
     if ( forOutput && includeProps ) {
         nProps = 1;
     }
-    String [] formats = new String[16 + nProps];
+    int nSpecifiers = 20; // Number of specifiers below.
+    String [] formats = new String[nSpecifiers + nProps];
     int i = -1;
 	formats[++i] = "%a - Weekday, abbreviation";
 	formats[++i] = "%A - Weekday, full";
@@ -1701,14 +1725,18 @@ public static String[] getDateTimeFormatSpecifiers(boolean includeDescription, b
 	//formats[++i] = "%c - Not supported";
 	formats[++i] = "%d - Day (01-31)";
 	formats[++i] = "%H - Hour (00-23)";
+	formats[++i] = "%h - Hundredths of second (00-99)";
 	formats[++i] = "%I - Hour (01-12)";
 	formats[++i] = "%j - Day of year (001-366)";
+	formats[++i] = "%l - Milliseconds of second (00-999)";
 	formats[++i] = "%m - Month (01-12)";
 	formats[++i] = "%M - Minute (00-59)";
+	formats[++i] = "%n - Nanoseconds of second (00-999999999)";
 	formats[++i] = "%p - AM, PM";
 	formats[++i] = "%s - seconds since Jan 1, 1970 UTC";
 	formats[++i] = "%S - Second (00-59)";
 	//formats[++i] = "%U, %W - not supported";
+	formats[++i] = "%u - Microseconds of second (00-999999)";
 	//formats[++i] = "%x - not supported";
 	//formats[++i] = "%X - not supported";
 	formats[++i] = "%y - Year (00-99)";
@@ -1718,7 +1746,8 @@ public static String[] getDateTimeFormatSpecifiers(boolean includeDescription, b
 	    formats[++i] = "${dt:YearForYearType} - year for year type";
 	}
 	if ( !forOutput ) {
-	    // Only include formats suitable for parsing
+	    // Only include formats suitable for parsing:
+		// - TODO smalers 2022-03-05 need to implement sub-second formats
 	    String [] formats2 = {
 	    	"%S - Second (00-59)",
 	    	"%M - Minute (00-59)",
@@ -1733,7 +1762,7 @@ public static String[] getDateTimeFormatSpecifiers(boolean includeDescription, b
 	    formats = formats2;
 	}
 	if ( !includeDescription ) {
-        // Remove the text including and after the dash
+        // Remove the text including and after the dash.
         for ( int j = 0; j < formats.length; j++ ) {
             formats[j] = formats[j].substring(0,formats[j].indexOf("-")).trim();
         }
@@ -1742,75 +1771,9 @@ public static String[] getDateTimeFormatSpecifiers(boolean includeDescription, b
 }
 
 /**
-Return an array of valid format specifiers for the strftime formatter in
-the format "%X - Description" where X is the format specifier.  This is useful
-for building graphical interfaces.
-@return an array of format specifiers.
-@param includeDescription If false, only the %X specifiers are returned.  if
-True, the description is also returned.
-*/
-/* TODO SAM 2011-11-14 Merge with the above method
-public static String[] getStrftimeFormatSpecifiers(boolean includeDescription )
-{   String [] formats = new String[23];
-    int i = 0;
-    // These are from Linux strftime
-    formats[i++] = "%a - abbreviated weekday name"; // Should depend on locale
-    formats[i++] = "%A - full weekday name"; // Should depend on locale
-    formats[i++] = "%b - abbreviated month name"; // Should depend on locale
-    formats[i++] = "%B - full month name"; // Should depend on locale
-    //formats[i++] = "%c - preferred date and time representation"; // Not supported here
-    formats[i++] = "%C - century number (year/100)r";
-    formats[i++] = "%d - day of month (01-31)";
-    formats[i++] = "%D - %m/%d/%y";
-    formats[i++] = "%e - like %d but pad with space";
-    //formats[i++] = "%E - modifier"; // Not supported here
-    formats[i++] = "%F - %Y-%m-%d";
-    //formats[i++] = "%G - week-based year"; // Not supported here
-    //formats[i++] = "%g - like %G but without century"; // Not supported here
-    //formats[i++] = "%h - equivalent to %b"; // Redundant, not used
-    formats[i++] = "%H - hour (00-23)";
-    //formats[i++] = "%I - hour (01-12)"; // TODO SAM 2011-11-14 add later
-    formats[i++] = "%j - day of year (001-366)";
-    //formats[i++] = "%l - hour (1-12)"; // TODO SAM 2011-11-14 add later
-    formats[i++] = "%m - month (01-12)";
-    formats[i++] = "%M - minute (00-59)";
-    formats[i++] = "%n - newline";
-    //formats[i++] = "%O - modifier"; // Not supported here
-    formats[i++] = "%p - AM or PM (noon=PM, midnight=AM)";
-    formats[i++] = "%P - am or pm (noon=pm, midnight=am)";
-    //formats[i++] = "%r - time as %I:%M:%S %p";
-    formats[i++] = "%R - time as %H:%M";
-    //formats[i++] = "%s - seconds since 1970-01-01 00:00:00"; // Not supported here
-    formats[i++] = "%S - seconds (00-59)";
-    formats[i++] = "%t - tab";
-    formats[i++] = "%T - time as %H:%M:%S";
-    //formats[i++] = "%u - day of week (1-7, Monday=1)";
-    //formats[i++] = "%U - week number (00-53, 1st Sunday=week 01)";
-    //formats[i++] = "%V - week number (01-53, 1st week has > 4 days)";
-    //formats[i++] = "%w - day of week (0-6, Sunday=0)";
-    //formats[i++] = "%W - week number (00-53, 1st Monday=week 01)";
-    //formats[i++] = "%x - preferred local date";
-    //formats[i++] = "%X - preferred local time";
-    formats[i++] = "%y - year (00-99)";
-    formats[i++] = "%Y - year (YYYY)";
-    //formats[i++] = "%z - +hhmm or -hhmm offset from UTC";
-    //formats[i++] = "%Z - time zone";
-    //formats[i++] = "%+ - date(1) format";
-    formats[i++] = "%% - literal %";
-    if ( !includeDescription ) {
-        // Remove the text including and after the dash
-        for ( int j = 0; j < formats.length; j++ ) {
-            formats[j] = formats[j].substring(0,formats[j].indexOf("-")).trim();
-        }
-    }
-    return formats;
-}
-*/
-
-/**
 Return the local time zone abbreviation.
-The method of lookup is either LOOKUP_TIME_ZONE_ONCE (default) or
-LOOKUP_TIME_ZONE_ALWAYS.  The method can be changed by calling the overloaded method.
+The method of lookup is either LOOKUP_TIME_ZONE_ONCE (default) or LOOKUP_TIME_ZONE_ALWAYS.
+The method can be changed by calling the overloaded method.
 @return the local time zone abbreviation.
 */
 public static String getLocalTimeZoneAbbr ()
@@ -1833,15 +1796,7 @@ public static String getLocalTimeZoneAbbr ( int time_zone_lookup_method )
 	if ( _time_zone_lookup_method == LOOKUP_TIME_ZONE_ONCE ) {
 		if ( !_local_time_zone_retrieved ) {
 			_local_time_zone = TimeZone.getDefault();
-			_local_time_zone_string = _local_time_zone.getID(); // Use this because zones like MDT are not actually valid for some code
-			// The following commented out as of TSTool 11.09.02
-			/*
-			//String date_as_string = new Date().toString();
-			//_local_time_zone_string =
-			//	date_as_string.substring(
-			//	(date_as_string.length() - 8),
-			//	(date_as_string.length() - 5) );
-			 */
+			_local_time_zone_string = _local_time_zone.getID(); // Use this because zones like MDT are not actually valid for some code.
 			_local_time_zone_retrieved = true;
 		}
 		else {
@@ -1849,17 +1804,9 @@ public static String getLocalTimeZoneAbbr ( int time_zone_lookup_method )
 		}
 	}
 	else if ( _time_zone_lookup_method == LOOKUP_TIME_ZONE_ALWAYS ) {
-		// Look up each time...
+		// Look up each time.
 		_local_time_zone = TimeZone.getDefault();
-		_local_time_zone_string = _local_time_zone.getID(); // Use this because zones like MDT are not actually valid for some code
-		// The following commented out as of TSTool 11.09.02
-		/*
-		String date_as_string = new Date().toString();
-		_local_time_zone_string =
-			date_as_string.substring(
-			(date_as_string.length() - 8),
-			(date_as_string.length() - 5) );
-			*/
+		_local_time_zone_string = _local_time_zone.getID(); // Use this because zones like MDT are not actually valid for some code.
 		_local_time_zone_retrieved = true;
 	}
 	return _local_time_zone_string;
@@ -1883,21 +1830,20 @@ public static int [] getMonthAndDayFromDayOfYear ( int year, int julian_day )
 			month_day[0] = 31;
 		}
 		else {
-			// Loop forwards subtracting the days for each month until
-			// have only one complete or partial month.
+			// Loop forwards subtracting the days for each month until have only one complete or partial month.
 			int	daysleft = julian_day;
 			int	monthdays;
 			for ( int i = 0; i < 12; i++ ) {
 				if ( (i == 1) && isleap ) {
-					// Set the offset to 1 to account for extra days in February...
+					// Set the offset to 1 to account for extra days in February.
 					monthdays = MONTH_DAYS[i] + 1;
 				}
 				else {
-					// All other months...
+					// All other months.
 					monthdays = MONTH_DAYS[i];
 				}
 				if ( daysleft <= monthdays ) {
-					// We have found our month...
+					// We have found the month.
 					month_day[0] = i + 1;
 					month_day[1] = daysleft;
 					break;
@@ -1925,8 +1871,7 @@ Zero is returned if the end date equals the start date since no interval will be
 @param base The time series base interval.
 @param mult The time series interval multiplier.
 */
-public static int getNumIntervals (	DateTime t1, DateTime t2, int base, int mult )
-{
+public static int getNumIntervals (	DateTime t1, DateTime t2, int base, int mult ) {
 	if( t2.lessThan(t1) ) {
 		Message.printWarning( 3, "TimeUtil.getNumIntervals", 
 		"End " + t2 + " is before start " + t1 + ".  Returning 0." );
@@ -1973,7 +1918,7 @@ public static ZoneOffset getTimeZoneOffset(String timeZone) {
 		return zdt.getOffset();
 	}
 	catch ( DateTimeException e1 ) {
-		// Time zone abbreviation is not recognized
+		// Time zone abbreviation is not recognized.
 		return null;
 	}
 }
@@ -1990,21 +1935,21 @@ public static int getYearForYearType ( DateTime dt, YearType yt )
     int y = dt.getYear();
     int m = dt.getMonth();
     if ( (m >= yt.getStartMonth()) && (m <= 12) ) {
-        // Month is in the start of the year
+        // Month is in the start of the year.
         if ( yt.yearMatchesStart() ) {
             return y;
         }
         else {
-            return y - yt.getStartYearOffset(); // Subtract because offset is negative
+            return y - yt.getStartYearOffset(); // Subtract because offset is negative.
         }
     }
     else {
-        // Month is in the end of the year
+        // Month is in the end of the year.
         if ( yt.yearMatchesStart() ) {
-            return y + yt.getStartYearOffset(); // Add because offset is negative
+            return y + yt.getStartYearOffset(); // Add because offset is negative.
         }
         else {
-            // Year matches the end
+            // Year matches the end.
             return y;
         }
     }
@@ -2027,13 +1972,14 @@ public static int[] getYearMonthDayFromAbsoluteDay ( int aday )
 		day,
 		dl = 10,
 		i, id1,
-		jd = aday,	// So we don't have to change original logic...
+		jd = aday,	// So don't have to change original logic.
 		leap,
 		month,
 		year;
 
-	// First guess at the year.  146097 is the number of days in 400 years,
-	// accounting for leap years.  Take an initial guess at the year...
+	// First guess at the year.
+	// 146097 is the number of days in 400 years, accounting for leap years.
+	// Take an initial guess at the year.
 
 	year = (jd*400)/146097 + 1800;
 
@@ -2079,7 +2025,7 @@ public static int[] getYearMonthDayFromAbsoluteDay ( int aday )
 		Message.printDebug ( dl, routine, "After second pass, found year to be: " + year );
 	}
 
-	// Find month...
+	// Find month.
 
 	month = 0;
 	if ( day <= 31 ) {
@@ -2102,7 +2048,7 @@ public static int[] getYearMonthDayFromAbsoluteDay ( int aday )
 		Message.printDebug ( 1, routine, "Found month to be: " + month );
 	}
 
-	//  Month known, compute day offset from month
+	//  Month known, compute day offset from month.
 
 	day -= MONTH_YEARDAYS[month - 1];
 	if ( month >= 3 ) {
@@ -2116,7 +2062,6 @@ public static int[] getYearMonthDayFromAbsoluteDay ( int aday )
 	date_info[0] = year;
 	date_info[1] = month;
 	date_info[2] = day;
-	routine = null;
 	return date_info;
 }
 
@@ -2128,13 +2073,8 @@ two-digit year is passed in, the offset is determined using the current system c
 */
 public static int getYearOffset ( )
 {	if ( _offset_year == -10000 ) {
-		// This routine really only needs to be called once per run!
-		// We are now using the C version...
-		//string = getSystemTimeString ( "yyyy" );
+		// This routine really only needs to be called once per run.
 		String string = getSystemTimeString ( "%Y" );
-			//HMPrintWarning ( 2, routine,
-			//"Trouble getting year offset" );
-			//return HMSTATUS_FAILURE;
 		int year = Integer.parseInt ( string );
 		string = null;
 		year = year - (year/100)*100;
@@ -2297,7 +2237,7 @@ Determine whether the day is valid.
 @param year Year corresponding to day to check.
 */
 public static boolean isValidDay ( int day, int month, int year )
-{	// First check month and year...
+{	// First check month and year.
 
 	if ( !isValidMonth(month) ) {
 		return false;
@@ -2306,7 +2246,7 @@ public static boolean isValidDay ( int day, int month, int year )
 		return false;
 	}
 
-	// Now check day, accounting for leap years...
+	// Now check day, accounting for leap years.
 
 	int daysinmonth = MONTH_DAYS[month - 1];
 	if ( (month == 2) && isLeapYear(year) ) {
@@ -2453,11 +2393,11 @@ public static boolean isValidTimeZone ( String timeZone ) {
 			return true;
 		}
 	}
-	// Next check the full list
+	// Next check the full list.
 	String[] validIDs = java.util.TimeZone.getAvailableIDs();
 	for (String str : validIDs) {
 	    if ( str.equals(timeZone) ) {
-	    	// Add to the valid list by resizing the array and adding the new value
+	    	// Add to the valid list by resizing the array and adding the new value.
 	    	String [] validTimeZones2 = new String[__validTimeZones.length + 1];
 	    	System.arraycopy(__validTimeZones, 0, validTimeZones2, 0, __validTimeZones.length);
 	    	__validTimeZones = validTimeZones2;
@@ -2489,7 +2429,7 @@ Determine whether a year is valid.
 */
 public static boolean isValidYear ( String year )
 {	try {
-    int iyear = Integer.parseInt ( year );
+    	int iyear = Integer.parseInt ( year );
 		return isValidYear ( iyear );
 	}
 	catch ( Exception e ) {
@@ -2529,8 +2469,8 @@ throws Exception
 }
 
 /**
-Return the maximum of two DateTime instances.  If one is null, return the
-non-null value.  If both are null, return null.  The comparison is made as follows:
+Return the maximum of two DateTime instances.  If one is null, return the non-null value.
+If both are null, return null.  The comparison is made as follows:
 <pre>
 if ( dt1.greaterThan(dt2) ) {
 	return dt1;
@@ -2559,8 +2499,9 @@ public static DateTime max ( DateTime dt1, DateTime dt2 )
 }
 
 /**
-Return the minimum of two DateTime instances.  If one is null, return the
-non-null value.  If both are null, return null.  The comparison is made as follows:
+Return the minimum of two DateTime instances.
+If one is null, return the non-null value.  If both are null, return null.
+The comparison is made as follows:
 <pre>
 if ( dt1.lessThan(dt2) ) {
 	return dt1;
@@ -2657,7 +2598,7 @@ public static int monthOfYear ( DateTime d, YearType yearType )
     if ( yearType == YearType.CALENDAR ) {
         return calMonth;
     }
-    // Else have non-calendar year so evaluation is a bit more complex
+    // Else have non-calendar year so evaluation is a bit more complex.
     if ( calMonth < yearType.getStartMonth() ) {
         return 12 - yearType.getStartMonth() + 1 + calMonth;
     }
@@ -2685,15 +2626,15 @@ public static int numDaysInMonth ( int month, int year )
 {	int	ndays;
 
 	if ( month < 1 ) {
-		// Assume that something is messed up...
+		// Assume that something is messed up.
 		ndays = 0;
 	}
 	else if ( month > 12 ) {
-		// Project out into the future...
+		// Project out into the future.
 		return numDaysInMonth ( (month%12), (year + month/12) );
 	}
 	else {
-		// Usual case...
+		// Usual case.
 		ndays = MONTH_DAYS[month - 1];
 		if ( (month == 2) && isLeapYear(year) ) {
 			++ndays;
@@ -2762,8 +2703,8 @@ Parse a 4-digit military time into its hour and minute and return in an array of
 */
 public static int [] parseMilitaryTime ( int time )
 {	int [] hour_min = new int[2];
-	hour_min[0] = time/100; // the hour
-	hour_min[1] = time - hour_min[0]*100; // the minutes
+	hour_min[0] = time/100; // The hour.
+	hour_min[1] = time - hour_min[0]*100; // The minutes.
 	return hour_min;
 }
 
@@ -2776,27 +2717,12 @@ public static void sleep ( long milliseconds )
 {	if ( milliseconds == 0 ) {
         return;
     }
-    // TODO SAM 2014-05-12 Figure out how to handle exception
+    // TODO SAM 2014-05-12 Figure out how to handle exception.
     try {
         Thread.sleep(milliseconds);
     } catch(InterruptedException ex) {
         //Thread.currentThread().interrupt();
     }
-    /*
-    // Get the current date...
-	Date now = new Date ();
-
-	// Loop until we have slept long enough...
-
-	Date newnow;
-	for ( ;; ) {
-		// Get the new date...
-		newnow = new Date ();
-		if ( (newnow.getTime() - now.getTime()) > milliseconds ) {
-			break;
-		} 
-	}
-	*/
 }
 
 /**
@@ -2809,15 +2735,14 @@ and use the date/time values directly to compute UNIX time, equivalent to using 
 @exception RuntimeException if there is an error computing the UNIX time
 */
 public static long toUnixTime ( DateTime dt, boolean ignoreTimeZone )
-throws RuntimeException
-{
+throws RuntimeException {
 	long seconds = 0;
 	int year = dt.getYear();
 	if ( (year < 1970) || (year > 2036) ) {
 		throw new RuntimeException ( "Year (" + year + ") is not between 1970 and 2036");
 	}
-	// For now loop, but could save a static array to improve performance
-	// Consider 1970 through previous year
+	// For now loop, but could save a static array to improve performance.
+	// Consider 1970 through previous year.
 	for ( int i = 1970; i < year; i++ ) {
 		if ( isLeapYear(i) ) {
 			seconds = seconds + 366*86400;
@@ -2826,18 +2751,18 @@ throws RuntimeException
 			seconds = seconds + 365*86400;
 		}
 	}
-	// Days of year...
+	// Days of year.
 	int daysPrev = dt.getYearDay() - 1;
 	if ( daysPrev > 0 ) {
 		seconds = seconds + daysPrev*86400;
 	}
-	// Hours in current day
+	// Hours in current day.
 	seconds = seconds + dt.getHour()*3600;
-	// Minutes in current day
+	// Minutes in current day.
 	seconds = seconds + dt.getMinute()*60;
-	// Seconds in current day
+	// Seconds in current day.
 	seconds = seconds + dt.getSecond();
-	// Now multiply by 1000;
+	// Multiply by 1000.
 	return seconds*1000;
 }
 

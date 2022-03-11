@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -105,8 +105,9 @@ implements ActionListener, ItemListener, MouseListener, PropertyChangeListener, 
 
 /**
 The number of characters in the table double values.
+- TODO smalers 2022-03-05 does not seem to be necessary and constrains formatting, especially numbers with high precision
 */
-private final int __OUTPUT_WIDTH = 10;
+//private final int __OUTPUT_WIDTH = 10;
 
 /**
 JButton and JPopupMenu Strings.
@@ -117,7 +118,7 @@ private final String
 	__BUTTON_HELP = "Help",
 	__BUTTON_SAVE = "Save",
 	__BUTTON_SUMMARY = "Summary",
-	// Below are popup menu events delegated to here from main JWorksheet
+	// Below are popup menu events delegated to here from main JWorksheet.
 	__MENU_CALCULATE_STATISTICS = "Calculate Statistics",
 	__MENU_COPY = "Copy",
 	__MENU_PASTE = "Paste";
@@ -289,9 +290,9 @@ private List<List<MouseListener>>
 	__irregularYearMouseListeners;
 
 /**
-List of Time Series to be displayed in the GUI.  __tslist is set from a 
-list passed in to this GUI at construction, and then the other lists are
-formed from the TS split out of __tslist.
+List of Time Series to be displayed in the GUI.
+__tslist is set from a list passed in to this GUI at construction,
+and then the other lists are formed from the TS split out of __tslist.
 */
 private List<TS> __day;
 private List<TS> __hour;
@@ -369,9 +370,9 @@ public void actionPerformed(ActionEvent event) {
 		saveClicked();
 	}
 	else if (command.equals(__MENU_CALCULATE_STATISTICS) ) {
-		// An event was generated in a JWorksheet requesting that statistics be calculated
-		// -assume that the event originated from the last selected worksheet
-		//  (not sure otherwise how to get the worksheet)
+		// An event was generated in a JWorksheet requesting that statistics be calculated:
+		// - assume that the event originated from the last selected worksheet
+		//   (not sure otherwise how to get the worksheet)
 		try {
 			calculateAndDisplayStatistics(__lastSelectedWorksheet);
 		}
@@ -431,8 +432,8 @@ JWorksheet[] headers, JScrollPane[] scrollPanes, List<List<MouseListener>> mouse
 	GridBagLayout gbl = new GridBagLayout();
 	subPanel.setLayout(gbl);
 
-	// For each worksheet, create its scrollpane and add the scrollpane
-	// to the panel.  Also add mouse listeners to the scrollpane and its
+	// For each worksheet, create its scrollpane and add the scrollpane to the panel.
+	// Also add mouse listeners to the scrollpane and its
 	// scrollbars so that it can be determined after a mouse click which
 	// worksheet (or worksheet's scrollpane components) was clicked on.
 	// Put the registered mouse listeners into a list for this purpose.
@@ -458,7 +459,7 @@ JWorksheet[] headers, JScrollPane[] scrollPanes, List<List<MouseListener>> mouse
 
 		List<MouseListener> worksheetMouseListeners = new ArrayList<MouseListener>();
 		if ( scrollPanes[i] instanceof MouseListener ) {
-			// TODO sam 2017-04-01 The following will throw a ClassCastException if now wrapped in the "if"
+			// TODO sam 2017-04-01 The following will throw a ClassCastException if now wrapped in the "if".
 			// Similar checks below for the scrollbars behave the same.
 			// Maybe this is old code that is ineffective and can be removed.
 			// The underlying UI components check for whether the object implements MouseListener
@@ -519,7 +520,7 @@ private List<List<MouseListener>> buildMouseListeners(JWorksheet[] worksheets) {
 	// Fill in the listeners with null so there is at least a slot.
 	// - this was the behavior in legacy code that used an array of List
 	for ( int i = 0; i < numWorksheets; i++ ) {
-		mouseListenerList.add(null); // Other code will set the list at this position
+		mouseListenerList.add(null); // Other code will set the list at this position.
 	}
 	return mouseListenerList;
 }
@@ -553,7 +554,7 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 			visibleCols[icol] = worksheet.getVisibleColumn(selectedCols[icol]);
 		}
 	
-		// No data to process
+		// No data to process.
 		if (numSelectedCols == 0 || numSelectedRows == 0) {
 			JGUIUtil.setWaitCursor(worksheet.getHourglassJFrame(), false);
 			return;
@@ -591,21 +592,21 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 		@SuppressWarnings("rawtypes")
 		Class[] classes = new Class[numColumns];
 		boolean [] canCalcStats = new boolean[numColumns];
-		// Arrays for statistics
+		// Arrays for statistics.
 		int count [] = new int[numColumns];
-		// Allocate arrays for all columns, but only some will be used
+		// Allocate arrays for all columns, but only some will be used.
 		// Use highest precision types and then cast to lower if needed
-		// For floating point results...
-		// Time series will generally only have double values but leave other
+		// For floating point results,
+		// time series will generally only have double values but leave other
 		// cases in order to handle separate columns for flags, etc. that may be added to table.
 		double min [] = new double[numColumns];
 		double max [] = new double[numColumns];
 		double sum [] = new double[numColumns];
-		// For integer results...
+		// For integer results.
 		long imin [] = new long[numColumns];
 		long imax [] = new long[numColumns];
 		long isum [] = new long[numColumns];
-		// Time series are needed to determine the missing data value
+		// Time series are needed to determine the missing data value.
 		TS[] ts = new TS[numColumns];
 		int [] tsPrec = new int[numColumns];
 		List<TS> tslist = (List<TS>)((TSViewTable_TableModel)worksheet.getTableModel()).getData();
@@ -620,16 +621,16 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 			isum[icol] = 0;
 			imin[icol] = Long.MAX_VALUE;
 			imax[icol] = Long.MIN_VALUE;
-			// There are no hidden columns but need to align the time series with selected columns
+			// There are no hidden columns but need to align the time series with selected columns:
 			// - First column is date/time
 			// - Therefore time series 0 is actually in column 1
 			int absCol = worksheet.getAbsoluteColumn(selectedCols[icol]);
 			ts[icol] = null;
 			if ( absCol != 0 ) {
-				// If 0 need to skip the date/time column
+				// If 0 need to skip the date/time column.
 				ts[icol] = tslist.get(absCol - 1);
 				if ( ts[icol] != null ) {
-					// Calculate the output precision of the current TS's data
+					// Calculate the output precision of the current TS's data.
 					tsPrec[icol] = 2;
 					if (precisionProp != null) {
 						tsPrec[icol] = StringUtil.atoi(precisionProp);
@@ -640,7 +641,7 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 							tsPrec[icol] = units.getOutputPrecision();
 						}
 						catch (Exception e) {
-							// Use the default...
+							// Use the default.
 							tsPrec[icol] = 2;
 						}
 					}
@@ -651,11 +652,11 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 		// Initialize the list of table fields that contains a leftmost column "Statistic".
 		List<TableField> tableFieldList = new Vector<TableField>();
 		tableFieldList.add(new TableField(TableField.DATA_TYPE_STRING, "Statistic", -1, -1));
-		// Add columns for the selected columns
+		// Add columns for the selected columns.
 		boolean copyHeader = true;
 		if (copyHeader) {
 			int width = -1;
-			// Determine the precision from the time series
+			// Determine the precision from the time series.
 			for (int icol = 0; icol < numSelectedCols; icol++) {
 				if ( classes[icol] == Double.class) {
 					tableFieldList.add(new TableField(TableField.DATA_TYPE_DOUBLE,
@@ -678,7 +679,7 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 					canCalcStats[icol] = true;
 				}
 				else {
-					// Add a string class
+					// Add a string class.
 					tableFieldList.add(new TableField(TableField.DATA_TYPE_STRING,
 						worksheet.getColumnName(selectedCols[icol], true), width, -1));
 					canCalcStats[icol] = false;
@@ -686,21 +687,21 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 			}
 		}
 		
-		// Create the table
+		// Create the table.
 		DataTable table = new DataTable(tableFieldList);
 
 		JWorksheet_AbstractTableModel tableModel = worksheet.getTableModel();
-		// Transfer the data from the worksheet to the subset table
+		// Transfer the data from the worksheet to the subset table.
 		Object cellContents;
 		for (int irow = 0; irow < numSelectedRows; irow++) {
 			TableRecord rec = table.emptyRecord();
-			rec.setFieldValue(0, ""); // Blanks for most rows until the statistics added at the end
+			rec.setFieldValue(0, ""); // Blanks for most rows until the statistics added at the end.
 			for (int icol = 0; icol < numSelectedCols; icol++) {
 				cellContents = tableModel.getValueAt(selectedRows[irow],selectedCols[icol]);
 				if ( cellContents instanceof Double ) {
 					Double d = (Double)cellContents;
 					if ( (ts[icol] != null) && ts[icol].isDataMissing(d) ) {
-						// Set to null to let the worksheet handle generically - NaN displays as NaN
+						// Set to null to let the worksheet handle generically - NaN displays as NaN.
 						//rec.setFieldValue((icol + 1), Double.NaN);
 						rec.setFieldValue((icol + 1), null);
 					}
@@ -711,29 +712,29 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 				else {
 					rec.setFieldValue((icol + 1), cellContents);
 				}
-				// Transfer values to the output cells and calculate the statistics
+				// Transfer values to the output cells and calculate the statistics.
 				if ( cellContents != null ) {
-					// Column type allows calculating statistics so do some basic math
+					// Column type allows calculating statistics so do some basic math.
 					if ( canCalcStats[icol] ) {
 						if ( (classes[icol] == Double.class) ) {
 							Double d = (Double)cellContents;
 							if ( !d.isNaN() && (ts[icol] != null) && !ts[icol].isDataMissing(d) ) {
 								++count[icol];
-								// Sum, used directly and for mean
+								// Sum, used directly and for mean.
 								if ( Double.isNaN(sum[icol]) ) {
 									sum[icol] = d;
 								}
 								else {
 									sum[icol] += d;
 								}
-								// Min statistic
+								// Min statistic.
 								if ( Double.isNaN(min[icol]) ) {
 									min[icol] = d;
 								}
 								else if ( d < min[icol] ){
 									min[icol] = d;
 								}
-								// Max statistic
+								// Max statistic.
 								if ( Double.isNaN(max[icol]) ) {
 									max[icol] = d;
 								}
@@ -746,21 +747,21 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 							Float f = (Float)cellContents;
 							if ( !f.isNaN() ) {
 								++count[icol];
-								// Sum, used directly and for mean
+								// Sum, used directly and for mean.
 								if ( Double.isNaN(sum[icol]) ) {
 									sum[icol] = f;
 								}
 								else {
 									sum[icol] += f;
 								}
-								// Min statistic
+								// Min statistic.
 								if ( Double.isNaN(min[icol]) ) {
 									min[icol] = f;
 								}
 								else if ( f < min[icol] ){
 									min[icol] = f;
 								}
-								// Max statistic
+								// Max statistic.
 								if ( Double.isNaN(max[icol]) ) {
 									max[icol] = f;
 								}
@@ -771,19 +772,18 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 						}
 						else if ( (classes[icol] == Integer.class) ) {
 							Integer i = (Integer)cellContents;
-							// No concept of NaN so previous null check is
-							// main check for missing
+							// No concept of NaN so previous null check is main check for missing.
 							++count[icol];
-							// Sum, used directly and for mean
+							// Sum, used directly and for mean.
 							sum[icol] += i;
-							// Min statistic
+							// Min statistic.
 							if ( imin[icol] == Long.MAX_VALUE ) {
 								imin[icol] = i;
 							}
 							else if ( i < imin[icol] ){
 								imin[icol] = i;
 							}
-							// Max statistic
+							// Max statistic.
 							if ( imax[icol] == Long.MIN_VALUE ) {
 								imax[icol] = i;
 							}
@@ -793,19 +793,18 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 						}
 						else if ( (classes[icol] == Long.class) ) {
 							Long i = (Long)cellContents;
-							// No concept of NaN so previous null check is
-							// main check for missing
+							// No concept of NaN so previous null check is main check for missing.
 							++count[icol];
-							// Sum, used directly and for mean
+							// Sum, used directly and for mean.
 							sum[icol] += i;
-							// Min statistic
+							// Min statistic.
 							if ( imin[icol] == Long.MAX_VALUE ) {
 								imin[icol] = i;
 							}
 							else if ( i < imin[icol] ){
 								imin[icol] = i;
 							}
-							// Max statistic
+							// Max statistic.
 							if ( imax[icol] == Long.MIN_VALUE ) {
 								imax[icol] = i;
 							}
@@ -818,12 +817,12 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 			}
 			table.addRecord(rec);
 		}
-		// Add statistics at the bottom
+		// Add statistics at the bottom.
 		TableRecord rec = table.emptyRecord();
 		rec.setFieldValue(0, "Count");
 		for ( int icol = 0; icol < numSelectedCols; icol++ ) {
 			// TODO sam 2017-04-01 Worksheet should handle case even when object
-			// is a different type than the column, but this is generally not done in tables
+			// is a different type than the column, but this is generally not done in tables.
 			if ( canCalcStats[icol]) {
 				rec.setFieldValue((icol+1), new Integer(count[icol]));
 			}
@@ -944,11 +943,11 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 		worksheetProps.add("JWorksheet.ShowPopupMenu=true");
 		worksheetProps.add("JWorksheet.SelectionMode=ExcelSelection");
 		worksheetProps.add("JWorksheet.AllowCopy=true");
-		// The following will be default center on its parent and be shown in front
+		// The following will be default center on its parent and be shown in front.
 		TableModel_JFrame f = new TableModel_JFrame(dttm, scr, frameProps, worksheetProps);
 		JGUIUtil.center(f,this);
-		f.toFront(); // This does not seem to always work
-		f.setAlwaysOnTop(true); // TODO sam 2017-04-01 don't like to do this but seems necessary
+		f.toFront(); // This does not seem to always work.
+		f.setAlwaysOnTop(true); // TODO sam 2017-04-01 don't like to do this but seems necessary.
 	}
 	catch ( Exception e ) {
 		new ResponseJDialog(worksheet.getHourglassJFrame(),
@@ -1016,7 +1015,7 @@ that can tell exactly how many worksheets are in each panel.
 */
 private int[] calculateVisibleWorksheetsByPanel() {
 	int[] array = new int[12];
-	// Regular interval
+	// Regular interval.
 	if (__minuteWorksheets == null || !__minuteJCheckBox.isSelected()) {
 		array[0] = 0;
 	}
@@ -1047,7 +1046,7 @@ private int[] calculateVisibleWorksheetsByPanel() {
 	else {
 		array[4] = __yearWorksheets.length;
 	}
-	// Irregular
+	// Irregular interval.
     if (__irregularMinuteWorksheets == null || !__irregularMinuteJCheckBox.isSelected()) {
         array[5] = 0;
     }
@@ -1118,8 +1117,8 @@ private int[] calculateVisibleWorksheetsByPanel() {
 }
 
 /**
-Checks to see if only a single worksheet is displayed in the GUI.  If so, it
-is selected and the save button is set to always be enabled.
+Checks to see if only a single worksheet is displayed in the GUI.
+If so, it is selected and the save button is set to always be enabled.
 */
 private void checkForSingleWorksheet() {
 	JWorksheet worksheet = null;
@@ -1199,23 +1198,23 @@ private void checkForSingleWorksheet() {
 /**
 Takes the Time Series from the __tslist list and puts each one into a list
 specific to its data interval (e.g., Day time series go into __day, 
-minute time series go into __minute, etc).  Different multipliers are all 
-lumped together, as long as they have the same data interval.  Irregular time series
-are split out by the interval of the starting date/time.
+minute time series go into __minute, etc).
+Different multipliers are all lumped together, as long as they have the same data interval.
+Irregular time series are split out by the interval of the starting date/time.
 */
 private void createSeparateTimeSeries()
 {   String routine = getClass().getSimpleName() + ".createSeparateTimeSeries";
 	int interval;
-	__minute = new ArrayList<TS>();
-	__hour = new ArrayList<TS>();
-	__day = new ArrayList<TS>();
-	__month = new ArrayList<TS>();
-	__year = new ArrayList<TS>();
-	__irregularMinute = new ArrayList<TS>();
-	__irregularHour = new ArrayList<TS>();
-	__irregularDay = new ArrayList<TS>();
-	__irregularMonth = new ArrayList<TS>();
-	__irregularYear = new ArrayList<TS>();
+	__minute = new ArrayList<>();
+	__hour = new ArrayList<>();
+	__day = new ArrayList<>();
+	__month = new ArrayList<>();
+	__year = new ArrayList<>();
+	__irregularMinute = new ArrayList<>();
+	__irregularHour = new ArrayList<>();
+	__irregularDay = new ArrayList<>();
+	__irregularMonth = new ArrayList<>();
+	__irregularYear = new ArrayList<>();
 
 	for ( TS ts : __tslist ) {
 		if (ts == null) {
@@ -1239,15 +1238,15 @@ private void createSeparateTimeSeries()
 			__year.add(ts);
 		}
         else if (interval == TimeInterval.IRREGULAR) {
-            // Put in the appropriate list based on the date/time of the period start
+            // Put in the appropriate list based on the date/time of the period start.
             DateTime d = ts.getDate1();
             if ( d == null ) {
                 d = ts.getDate1Original();
             }
             if ( d != null ) {
                 int precision = d.getPrecision();
-                if ( precision == DateTime.PRECISION_SECOND ) {
-                    // Include second precision here because most likely it is minute precision with seconds = 0
+                if ( (precision >= DateTime.PRECISION_NANOSECOND) && (precision <= DateTime.PRECISION_SECOND) ) {
+                    // Include (sub)second precision here because most likely it is minute precision with seconds = 0.
                     __irregularMinute.add(ts);
                     Message.printStatus(2,routine,"Date/time precision is second, but treating as minute for table \"" +
                         ts.getIdentifierString() + "\"");
@@ -1268,7 +1267,7 @@ private void createSeparateTimeSeries()
                     __irregularYear.add(ts);
                 }
                 else {
-                    // Don't handle the precision
+                    // Don't handle the precision.
                     Message.printWarning(3,routine,"Don't know how to handle time series interval in table for \"" +
                         ts.getIdentifierString() + "\"");
                 }
@@ -1279,26 +1278,24 @@ private void createSeparateTimeSeries()
 
 /**
 Create the table models with the same interval base for all of the worksheets for the given list of time series.
-The time series will have the same base interval but if regular may have different interval multiplers.
+The time series will have the same base interval but if regular may have different interval multipliers.
 If irregular, the time series will have been grouped by the precision of the period date.
 @param tslist list of time series for which to create table models.
 @return an array of TSViewTable_TableModel object, one for each worksheet
 that needs to be created, or a zero-element array if no worksheets need be created for the ts type.
 */
-private TSViewTable_TableModel[] createTableModels(List<TS> tslist)
-{
+private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
 	String routine = "createTableModels";
 
-	// If there is no data in the tslist list, there is no need to create the table models
+	// If there is no data in the tslist list, there is no need to create the table models.
 	if ((tslist == null)|| tslist.size() == 0) {
 		return new TSViewTable_TableModel[0];
 	}
 
 	int numts = tslist.size();
 
-	// The following arrays are used to match up time series with 
-	// the same interval multipliers.  The arrays are sized to the 
-	// maximum size necessary and won't necessarily be filled completely.
+	// The following arrays are used to match up time series with the same interval multipliers.
+	// The arrays are sized to the maximum size necessary and won't necessarily be filled completely.
 	int[] mults = new int[numts];
 	int[] matches = new int[numts];
 	String[] tsFormatString = new String[numts];
@@ -1306,13 +1303,14 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist)
 	int count = 0;
 	boolean hit = false;
 	
-	// Get the first TS in the list and get the interval base.  All other
-	// TS in the list must have the same interval base
+	// Get the first TS in the list and get the interval base.
+	// All other TS in the list must have the same interval base.
 	TS ts = tslist.get(0);	
 	int interval = ts.getDataIntervalBase();
 
+	// Default format is to minute.
 	int dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH_mm;
-	// Get the proper date format
+	// Get the proper date format.
 	if (interval == TimeInterval.HOUR) {
 		dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH;
 	}
@@ -1329,33 +1327,50 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist)
 		dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH_mm;
 	}
     else if (interval == TimeInterval.IRREGULAR) {
+    	// Get the precision from the first date/time, assuming that all data are treated consistently.
+    	// TODO smalers 2022-03-05 need to get from TimeInterval.getIrregularIntervalPrecision(),
+    	// maybe store in IrregularTS.
         DateTime d = ts.getDate1();
         if ( d == null ) {
             d = ts.getDate1Original();
         }
         if ( d != null ) {
             int precision = d.getPrecision();
-            if ( precision == DateTime.PRECISION_MINUTE ) {
-                dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH_mm;
-            }
-            else if ( precision == DateTime.PRECISION_HOUR ) {
-                dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH;
-            }
-            else if ( precision == DateTime.PRECISION_DAY ) {
-                dateFormat = DateTime.FORMAT_YYYY_MM_DD;
+            if ( precision == DateTime.PRECISION_YEAR ) {
+                dateFormat = DateTime.FORMAT_YYYY;
             }
             else if ( precision == DateTime.PRECISION_MONTH ) {
                 dateFormat = DateTime.FORMAT_YYYY_MM;
             }
-            else if ( precision == DateTime.PRECISION_YEAR ) {
-                dateFormat = DateTime.FORMAT_YYYY;
+            else if ( precision == DateTime.PRECISION_DAY ) {
+                dateFormat = DateTime.FORMAT_YYYY_MM_DD;
+            }
+            else if ( precision == DateTime.PRECISION_HOUR ) {
+                dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH;
+            }
+            else if ( precision == DateTime.PRECISION_MINUTE ) {
+                dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH_mm;
+            }
+            else if ( precision == DateTime.PRECISION_SECOND ) {
+                dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH_mm_SS;
+            }
+            else if ( precision == DateTime.PRECISION_HSECOND ) {
+                dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH_mm_SS_hh;
+            }
+            else if ( precision == DateTime.PRECISION_MILLISECOND ) {
+                dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH_mm_SS_MILLI;
+            }
+            else if ( precision == DateTime.PRECISION_MICROSECOND ) {
+                dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH_mm_SS_MICRO;
+            }
+            else if ( precision == DateTime.PRECISION_NANOSECOND ) {
+                dateFormat = DateTime.FORMAT_YYYY_MM_DD_HH_mm_SS_NANO;
             }
         }
     }
 
 	try {
-	int tsPrecision = 2; // default.
-	DataUnits units = null;
+	int tsPrecision = 2; // Default.
 	String propValue = __props.getValue("OutputPrecision");
 	int multi = 0;
 
@@ -1365,11 +1380,11 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist)
 		ts = tslist.get(i);
 
 	    if ( interval == TimeInterval.IRREGULAR ) {
-	        count = 1; // Only one table model needed because only interval base (from TS dates for irregular) is of concern
+	        count = 1; // Only one table model needed because only interval base (from TS dates for irregular) is of concern.
 	    }
 	    else {
-	        // Regular interval time series
-    		// Get the interval multiplier for the current TS
+	        // Regular interval time series.
+    		// Get the interval multiplier for the current TS.
     		multi = ts.getDataIntervalMult();
     		hit = false;
     
@@ -1386,7 +1401,7 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist)
     
     		// If the interval multiplier was not found, add it to the
     		// list of found multipliers and increment the count of
-    		// different interval multipliers that have been found
+    		// different interval multipliers that have been found.
     		if (!hit) {
     			mults[count] = multi;
     			matches[i] = count;
@@ -1394,27 +1409,23 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist)
     		}
 	    }
 
-		// Calculate the output precision of the current TS's data
+		// Calculate the output precision of the current TS's data.
 		tsPrecision = 2;
 		if (propValue != null) {
+			// Get the precision from the property value.
 			tsPrecision = StringUtil.atoi(propValue);
 		}
 		else {	
-			try {	
-				units = DataUnits.lookupUnits(ts.getDataUnits());
-				tsPrecision = units.getOutputPrecision();
-			}
-			catch (Exception e) {
-				// Use the default...
-				tsPrecision = 2;
-			}
+			// Get the precision from the time series.
+			tsPrecision = ts.getDataPrecision((short)2);
 		}
-		tsFormatString[i] = "%" + __OUTPUT_WIDTH + "." + tsPrecision + "f";
+		//tsFormatString[i] = "%" + __OUTPUT_WIDTH + "." + tsPrecision + "f";
+		tsFormatString[i] = "%." + tsPrecision + "f";
 
 	}
 
 	// Create an array of table models big enough to hold one table
-	// model for every different interval multiplier
+	// model for every different interval multiplier.
 	TSViewTable_TableModel[] models = new TSViewTable_TableModel[count];
 
 	boolean useExtendedLegend = false;	
@@ -1425,7 +1436,7 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist)
 
 	TS tempTS = null;
 
-	// Loop through all of the different interval multipliers
+	// Loop through all of the different interval multipliers.
 	for (int i = 0; i < count; i++) {
 		List<TS> tslistForIntervalMult = new ArrayList<TS>();
 		if ( interval == TimeInterval.IRREGULAR ) {
@@ -1434,7 +1445,7 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist)
 		    }
 		}
 		else {
-    		// Add all the time series with the same interval multiplier to the list
+    		// Add all the time series with the same interval multiplier to the list.
     		for (int j = 0; j < numts; j++) {
     			if (matches[j] == i) {
     				tslistForIntervalMult.add(tslist.get(j));
@@ -1442,7 +1453,7 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist)
     		}
 		}
 
-		// Get all the format precision strings for the TS that were found in the previous loop 
+		// Get all the format precision strings for the TS that were found in the previous loop.
 		String[] formats = new String[tslistForIntervalMult.size()];		
 		int formatCount = 0;
 		for (int j = 0; j < numts; j++) {
@@ -1456,21 +1467,21 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist)
 		    }
 		}		
 
-		// Now get the starting date of data ...
+		// Now get the starting date of data.
 		TSLimits limits = TSUtil.getPeriodFromTS(tslistForIntervalMult, TSUtil.MAX_POR);
 		DateTime start = limits.getDate1();	
 
-		// ... and the interval multiplier ...
+		// ... and the interval multiplier.
         if ( interval == TimeInterval.IRREGULAR ) {
-            // In this case multi is the precision
+            // In this case multi is the precision.
             int datePrecision = ts.getDate1().getPrecision();
             models[i] = new TSViewTable_TableModel(tslistForIntervalMult, start, interval, datePrecision, dateFormat,
                 formats, useExtendedLegend);
         }
         else {
-            // Regular interval
+            // Regular interval.
     		if (tslistForIntervalMult == null || tslistForIntervalMult.size() == 0) {
-    			// (in this case, use a representative TS)
+    			// In this case, use a representative TS.
     			tempTS = tslist.get(i);
     			multi = tempTS.getDataIntervalMult();		
     		}
@@ -1479,7 +1490,7 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist)
     			multi = tempTS.getDataIntervalMult();
     		}
     		// ... and create the table model to display all the time 
-            // series with the same interval base and interval multiplier
+            // series with the same interval base and interval multiplier.
             models[i] = new TSViewTable_TableModel(tslistForIntervalMult, start, interval, multi, dateFormat,
                 formats, useExtendedLegend);
         }
@@ -1500,8 +1511,7 @@ Creates worksheets for all of the table models that were previously-generated.
 @param p PropList defining JWorksheet characteristics.  See the JWorksheet constructors.
 @return an array of JWorksheets, one for each model, or an empty array if no models.
 */
-private JWorksheet[] createWorksheets(TSViewTable_TableModel[] models, PropList p)
-{
+private JWorksheet[] createWorksheets(TSViewTable_TableModel[] models, PropList p) {
 	if ( (models == null) || (models.length == 0)) {
 		return new JWorksheet[0];
 	}
@@ -1520,7 +1530,7 @@ private JWorksheet[] createWorksheets(TSViewTable_TableModel[] models, PropList 
 		model.setWorksheet(worksheets[i]);
 		// Add this class as an action listener on the worksheet so that
 		// "Calculate Statistics" can be handled here.
-		// Otherwise the generic handling won't be able to handle the time series missing value
+		// Otherwise the generic handling won't be able to handle the time series missing value.
 		worksheet.addPopupMenuActionListener(this);
 	}
 	return worksheets;
@@ -1826,7 +1836,7 @@ public void itemStateChanged(ItemEvent evt) {
 	int state = evt.getStateChange();
 	
     if (source == __flagJComboBox) {
-        // Change the data flag visualization for all the table models
+        // Change the data flag visualization for all the table models.
         TSDataFlagVisualizationType vizType =
             TSDataFlagVisualizationType.valueOfIgnoreCase(__flagJComboBox.getSelected());
         if ( vizType != null ) {
@@ -1916,7 +1926,7 @@ public void itemStateChanged(ItemEvent evt) {
 	JPanel panel = findWorksheetsJPanel(__lastSelectedWorksheet);
 	if (panel != null && !panel.isVisible()) {
 		if (__lastSelectedScrollPane != null) {
-			// reset the border to its original state
+			// Reset the border to its original state.
 			__lastSelectedScrollPane.setBorder(__originalScrollPaneBorder);
 		}	
 	
@@ -1950,7 +1960,7 @@ public void itemStateChanged(ItemEvent evt) {
 
 	if (arr[10] == 1) {
 		if (__lastSelectedScrollPane != null) {
-			// reset the border to its original state
+			// Reset the border to its original state.
 			__lastSelectedScrollPane.setBorder((new JScrollPane()).getBorder());
 		}	
 
@@ -1992,12 +2002,12 @@ public void mousePressed(MouseEvent e) {
 	__saveJButton.setEnabled(true);
 
 	if (__lastSelectedScrollPane != null) {
-		// reset the border to its original state
+		// Reset the border to its original state.
 		__lastSelectedScrollPane.setBorder(__originalScrollPaneBorder);
 	}
 
 	JWorksheet last = __lastSelectedWorksheet;
-	// Find the worksheet that was clicked on ...
+	// Find the worksheet that was clicked on.
 
 	selectWorksheet(findClickedOnJWorksheet(e), last);
 }
@@ -2113,10 +2123,10 @@ private void selectWorksheet(JWorksheet selectWorksheet, JWorksheet lastWorkshee
 			lastWorksheet.cancelEditing();
 		}	
 	}
-	// ... and find its scroll pane, too.
+	// Scroll pane for the worksheet.
 	__lastSelectedScrollPane = findWorksheetsScrollPane(selectWorksheet);
 
-	// Back up the scroll pane's current border ...
+	// Back up the scroll pane's current border.
 	__originalScrollPaneBorder = __lastSelectedScrollPane.getBorder();
 	// ... and change the scroll pane's border to represent that its worksheet is selected.
 	if (arr[10] > 1) {
@@ -2151,7 +2161,7 @@ private void selectWorksheet(JWorksheet selectWorksheet, JWorksheet lastWorkshee
 
     String s = "";
 	if ( model.getIntervalBase() == TimeInterval.IRREGULAR ) {
-	    // Returns all upper case so change to be consistent with displays
+	    // Returns all upper case so change to be consistent with displays.
 	    String prec = TimeInterval.getName(model.getIrregularDateTimePrecision(),0);
 	    s = base + " (" + prec + ")";
 	}
@@ -2164,7 +2174,7 @@ private void selectWorksheet(JWorksheet selectWorksheet, JWorksheet lastWorkshee
     	}
 	}
 	
-	__messageJTextField.setText("Currently-selected worksheet interval: " + s);
+	__messageJTextField.setText("Currently-selected worksheet interval: " + s + ", " + model.getRowCount() + " data points.");
 }
 
 /**
@@ -2181,7 +2191,7 @@ private void setColumnWidths(JWorksheet[] worksheets, int precision) {
 
 	int dateWidth = 16;
 
-	// Get the proper date format
+	// Get the proper date format.
 	if (precision == DateTime.PRECISION_HOUR) {
 		dateWidth = 13;
 	}
@@ -2245,23 +2255,23 @@ Sets up the GUI.
 private void setupGUI(boolean mode) {
 	String	routine = "TSViewTableJFrame.setupGUI";
 
-	// Start a big try block to set up the GUI...
+	// Start a big try block to set up the GUI.
 	try {
 
-	// Add a listener to catch window manager events...
+	// Add a listener to catch window manager events.
 	addWindowListener(this);
 
-	// Lay out the main window component by component.  We will start with
-	// the menubar default components.  Then add each requested component
-	// to the menu bar and the interface...
+	// Lay out the main window component by component.
+	// Start with the menubar default components.
+	// Then add each requested component to the menu bar and the interface.
 	GridBagLayout gbl = new GridBagLayout();
 
-	// Add a panel to hold the tables...
+	// Add a panel to hold the tables.
 	__mainJPanel = new JPanel();
 	__mainJPanel.setLayout(gbl);
 	getContentPane().add(__mainJPanel);
 
-	// Create all the JCheckboxes
+	// Create all the JCheckboxes.
 	__minuteJCheckBox = new JCheckBox("Minute Time Series", true);
 	__minuteJCheckBox.addItemListener(this);
 	__hourJCheckBox = new JCheckBox("Hour Time Series", true);
@@ -2283,7 +2293,7 @@ private void setupGUI(boolean mode) {
     __irregularYearJCheckBox = new JCheckBox("Irregular Time Series (Year)", true);
     __irregularYearJCheckBox.addItemListener(this);
 
-	// Create the PropList for the JWorksheets
+	// Create the PropList for the JWorksheets.
 	PropList p = new PropList("TSViewTableJFrame.JWorksheet");
 	p.add("JWorksheet.OneClickColumnSelection=true");
 	p.add("JWorksheet.RowColumnPresent=true");
@@ -2292,7 +2302,7 @@ private void setupGUI(boolean mode) {
 	p.add("JWorksheet.AllowCopy=true");
 	p.add("JWorksheet.AllowPaste=true");
 	p.add("JWorksheet.AllowCalculateStatistics=true");
-	// Handling of "Calculate Statistics" action event will be delegated in JWorksheet to ActionPerformed here
+	// Handling of "Calculate Statistics" action event will be delegated in JWorksheet to ActionPerformed here.
 	p.add("JWorksheet.DelegateCalculateStatistics=true");
 
 	PropList p2 = new PropList("TSViewTableJFrame.JWorksheet");
@@ -2301,10 +2311,10 @@ private void setupGUI(boolean mode) {
 	p2.add("JWorksheet.ShowPopupMenu=true");
 	p2.add("JWorksheet.SelectionMode=ExcelSelection");
 
-	// Separate the __tslist list into lists of like time series (same base interval and irregular 
+	// Separate the __tslist list into lists of like time series (same base interval and irregular.
 	createSeparateTimeSeries();
 
-	// Create all the table models and worksheets
+	// Create all the table models and worksheets.
 	__dayModels = createTableModels(__day);
 	__dayWorksheets = createWorksheets(__dayModels, p);
 	JWorksheet[] dayHeaders = createWorksheets(__dayModels, p2);
@@ -2345,7 +2355,7 @@ private void setupGUI(boolean mode) {
     __irregularYearWorksheets = createWorksheets(__irregularYearModels, p);
     JWorksheet[] irregularYearHeaders = createWorksheets(__irregularYearModels, p2);
 	
-	// Create the panels for the interval bases
+	// Create the panels for the interval bases.
 	__minuteJPanel = new JPanel();
 	__hourJPanel = new JPanel();
 	__dayJPanel = new JPanel();
@@ -2357,7 +2367,7 @@ private void setupGUI(boolean mode) {
     __irregularMonthJPanel = new JPanel();
     __irregularYearJPanel = new JPanel();
 
-	// Create the arrays of scroll panes
+	// Create the arrays of scroll panes.
 	if (__dayWorksheets.length > 0) {
 		__dayScrollPanes = new JScrollPane[__dayWorksheets.length];
 	}
@@ -2389,7 +2399,7 @@ private void setupGUI(boolean mode) {
         __irregularYearScrollPanes = new JScrollPane[__irregularYearWorksheets.length];
     }
 
-	// Add the worksheets to the panels and add the panels to the main panel
+	// Add the worksheets to the panels and add the panels to the main panel.
 
 	if (__reverseNormalOrder) {
 		__minuteMouseListeners = buildMouseListeners(__minuteWorksheets);
@@ -2460,7 +2470,7 @@ private void setupGUI(boolean mode) {
 		*/
 	}
 	
-	// Irregular is always last
+	// Irregular is always last.
     __irregularMinuteMouseListeners = buildMouseListeners(__irregularMinuteWorksheets);
     addWorksheetsToPanel(__mainJPanel, "Irregular (Minute)", __irregularMinuteJPanel, __irregularMinuteJCheckBox,
         __irregularMinuteWorksheets, irregularMinuteHeaders, __irregularMinuteScrollPanes,
@@ -2494,7 +2504,7 @@ private void setupGUI(boolean mode) {
 		0, 1, 7, 1, 1.0, 0.0, 
 		GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
-	// Put the buttons on the bottom of the window...
+	// Put the buttons on the bottom of the window.
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
 
@@ -2527,7 +2537,7 @@ private void setupGUI(boolean mode) {
 	JLabel flagJLabel = new JLabel("Flags:");
 	button_JPanel.add(flagJLabel);
 	button_JPanel.add(__flagJComboBox);
-	// Only enable flags display if at least one displayed time series has flags
+	// Only enable flags display if at least one displayed time series has flags.
 	if ( timeSeriesHaveFlags() ) {
 	    flagJLabel.setEnabled(true);
 	    __flagJComboBox.setEnabled(true);
@@ -2554,9 +2564,9 @@ private void setupGUI(boolean mode) {
 	__messageJTextField.setText("Currently-selected worksheet: (none)");	
 
 	pack();
-	// TODO SAM 2012-04-16 Need to default size based on number of time series
+	// TODO SAM 2012-04-16 Need to default size based on number of time series.
 	setSize(555,500);
-	// Get the UI component to determine screen to display on - needed for multiple monitors
+	// Get the UI component to determine screen to display on - needed for multiple monitors.
 	Object uiComponentO = __props.getContents( "TSViewParentUIComponent" );
 	Component parentUIComponent = null;
 	if ( (uiComponentO != null) && (uiComponentO instanceof Component) ) {
@@ -2566,13 +2576,13 @@ private void setupGUI(boolean mode) {
 	JGUIUtil.center(this,parentUIComponent);
 	setVisible(mode);
 
-	} // end of try
+	} // End of try.
 	catch (Exception e) {
 		Message.printWarning(2, routine, e);
 	}
 
-	// these calls are here because they require a valid graphics 
-	// context to work properly (i.e., setVisible(true) must have already been called)
+	// These calls are here because they require a valid graphics 
+	// context to work properly (i.e., setVisible(true) must have already been called).
 	setColumnWidths(__minuteWorksheets, DateTime.PRECISION_MINUTE);
 	setColumnWidths(__hourWorksheets, DateTime.PRECISION_HOUR);
 	setColumnWidths(__dayWorksheets, DateTime.PRECISION_DAY);
@@ -2700,8 +2710,7 @@ private void writeTextFile(JWorksheet worksheet, char delimiter, String filename
 		double seconds = sw.getSeconds();
 		String plural = "s";
 
-		// Unlikely to happen, but it's just good GUI design to
-		// not have something like "1 seconds" or "2 second(s)".
+		// Unlikely to happen, but it's just good GUI design to not have something like "1 seconds" or "2 second(s)".
 		if (seconds == 1.000) {
 			plural = "";
 		}
@@ -2718,10 +2727,9 @@ private void writeTextFile(JWorksheet worksheet, char delimiter, String filename
  * Listens for property change events (from TSGraphEditor) &
  * Notifies the model listeners (JTables/JWorksheet) that the table model has changed. 
  */
-public void propertyChange(PropertyChangeEvent e)
-{
+public void propertyChange(PropertyChangeEvent e) {
     if (e.getPropertyName().equals("TS_DATA_VALUE_CHANGE")) {
-        // Expecting modified TS object
+        // Expecting modified TS object.
         TSViewTable_TableModel model = findModel(((TS)e.getNewValue()));
         model.fireTableDataChanged();
     }
@@ -2732,9 +2740,8 @@ public void propertyChange(PropertyChangeEvent e)
  * @param ts
  * @return model containing specified TS, or null
  */
-private TSViewTable_TableModel findModel(TS ts)
-{
-    // TODO: Order search so that most likely models are searched first!
+private TSViewTable_TableModel findModel(TS ts) {
+    // TODO: Order search so that most likely models are searched first.
     
     TSViewTable_TableModel target = null;
       
@@ -2777,8 +2784,7 @@ private TSViewTable_TableModel findModel(TS ts)
  * @param ts
  * @return model containing specified TS, or null
  */
-private TSViewTable_TableModel findModel(TSViewTable_TableModel[] models, TS ts)
-{
+private TSViewTable_TableModel findModel(TSViewTable_TableModel[] models, TS ts) {
     if ( models != null) {
         int nModels = models.length;
         for( int iModel = 0; iModel < nModels; iModel++) {

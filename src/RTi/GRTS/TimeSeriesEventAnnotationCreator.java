@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,11 +23,11 @@ NoticeEnd */
 
 package RTi.GRTS;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
 
 import RTi.TS.TS;
 import RTi.Util.Table.DataTable;
@@ -56,8 +56,7 @@ Constructor.
 @param eventTable the data table containing events
 @param ts time series to associate events
 */
-public TimeSeriesEventAnnotationCreator ( DataTable eventTable, TS ts )
-{
+public TimeSeriesEventAnnotationCreator ( DataTable eventTable, TS ts ) {
     this.eventTable = eventTable;
     this.ts = ts;
 }
@@ -85,14 +84,14 @@ public List<TimeSeriesEvent> createTimeSeriesEvents ( List<String> eventTypes,
     String eventLabelColumn, String eventDescriptionColumn,
     HashMap<String,String> eventLocationColumnMap, HashMap<String,String> tsLocationMap,
     DateTime start, DateTime end )
-{   // Get the primary data
+{   // Get the primary data.
     DataTable table = getEventTable();
     TS ts = getTimeSeries();
-    // If event types are not specified, will return all
+    // If event types are not specified, will return all.
     if ( eventTypes == null ) {
-        eventTypes = new Vector<String>();
+        eventTypes = new ArrayList<>();
     }
-    // Determine the column numbers for the table data
+    // Determine the column numbers for the table data.
     int eventIDColumnNum = -1;
     try {
         eventIDColumnNum = table.getFieldIndex(eventIDColumn);
@@ -159,7 +158,7 @@ public List<TimeSeriesEvent> createTimeSeriesEvents ( List<String> eventTypes,
                 eventLocationColumns[ikey] + "\" not found in table." );
         }
     }
-    // Determine the location types and ID values from the time series
+    // Determine the location types and ID values from the time series.
     ikey = -1;
     String [] tsLocationTypes = new String[tsLocationMap.size()];
     String [] tsLocationIDs = new String[tsLocationTypes.length];
@@ -174,14 +173,14 @@ public List<TimeSeriesEvent> createTimeSeriesEvents ( List<String> eventTypes,
     Object eventStartO = null, eventEndO = null;
     DateTime eventStart = null, eventEnd = null;
     boolean includeEvent;
-    List<TimeSeriesEvent> tsEventList = new Vector<TimeSeriesEvent>();
+    List<TimeSeriesEvent> tsEventList = new ArrayList<>();
     for ( TableRecord rec : table.getTableRecords() ) {
-        // Skip records that are not the correct event type
+        // Skip records that are not the correct event type.
         try {
             eventType = rec.getFieldValueString(eventTypeColumnNum);
         }
         catch ( Exception e ) {
-            // Should not happen since valid index checked above
+            // Should not happen since valid index checked above.
             continue;
         }
         includeEvent = false;
@@ -199,23 +198,23 @@ public List<TimeSeriesEvent> createTimeSeriesEvents ( List<String> eventTypes,
         if ( !includeEvent ) {
             continue;
         }
-        // Reset because need to check for location type match
+        // Reset because need to check for location type match.
         includeEvent = false;
-        // Loop through the location data for the record
+        // Loop through the location data for the record.
         for ( int iloc = 0; iloc < eventLocationColumnNum.length; iloc++ ) {
             try {
                 eventLocationType = eventLocationTypes[iloc];
             }
             catch ( Exception e ) {
-                // Should not happen since column verified above
+                // Should not happen since column verified above.
             }
             try {
                 eventLocationID = rec.getFieldValueString(eventLocationColumnNum[iloc]);
             }
             catch ( Exception e ) {
-                // Should not happen since column verified above
+                // Should not happen since column verified above.
             }
-            // Loop through the location information for the time series and see if the table record matches...
+            // Loop through the location information for the time series and see if the table record matches.
             for ( int itsloc = 0; itsloc < tsLocationTypes.length; itsloc++ ) {
                 //Message.printStatus(2,"","Comparing event record location type \"" + eventLocationType +
                 //    "\" with time series location type \"" + tsLocationTypes[itsloc] +
@@ -223,7 +222,7 @@ public List<TimeSeriesEvent> createTimeSeriesEvents ( List<String> eventTypes,
                 //    "\"" );
                 if ( (eventLocationType != null) && eventLocationType.equalsIgnoreCase(tsLocationTypes[itsloc]) &&
                     (eventLocationID != null) && eventLocationID.equalsIgnoreCase(tsLocationIDs[itsloc]) ) {
-                    // Event location type and location ID match the time series
+                    // Event location type and location ID match the time series.
                     includeEvent = true;
                     //Message.printStatus(2,"","Found matching event record location type \"" + eventLocationType +
                     //"\" with time series location type \"" + tsLocationTypes[itsloc] +
@@ -237,7 +236,7 @@ public List<TimeSeriesEvent> createTimeSeriesEvents ( List<String> eventTypes,
             }
         }
         if ( !includeEvent ) {
-            // Location did not match
+            // Location did not match.
             continue;
         }
         // If here the event type was matched and the event location match the time series location.
@@ -249,7 +248,7 @@ public List<TimeSeriesEvent> createTimeSeriesEvents ( List<String> eventTypes,
             }
             else {
                 if ( eventStartO instanceof DateTime ) {
-                    // Just set
+                    // Just set.
                     eventStart = (DateTime)eventStartO;
                 }
                 else if ( eventStartO instanceof Date ) {
@@ -261,8 +260,8 @@ public List<TimeSeriesEvent> createTimeSeriesEvents ( List<String> eventTypes,
             }
         }
         catch ( Exception e ) {
-            // Should not happen since valid index checked above
-            // TODO Handle date/time parsing exceptions
+            // Should not happen since valid index checked above.
+            // TODO Handle date/time parsing exceptions.
             continue;
         }
         try {
@@ -272,7 +271,7 @@ public List<TimeSeriesEvent> createTimeSeriesEvents ( List<String> eventTypes,
             }
             else {
                 if ( eventEndO instanceof DateTime ) {
-                    // Just set
+                    // Just set.
                     eventEnd = (DateTime)eventEndO;
                 }
                 else if ( eventEndO instanceof Date ) {
@@ -284,29 +283,29 @@ public List<TimeSeriesEvent> createTimeSeriesEvents ( List<String> eventTypes,
             }
         }
         catch ( Exception e ) {
-            // Should not happen since valid index checked above
-            // TODO Handle date/time parsing exceptions
+            // Should not happen since valid index checked above.
+            // TODO Handle date/time parsing exceptions.
             continue;
         }
         try {
             eventID = rec.getFieldValueString(eventIDColumnNum);
         }
         catch ( Exception e ) {
-            // Should not happen since valid index checked above
+            // Should not happen since valid index checked above.
             continue;
         }
         try {
             label = rec.getFieldValueString(eventLabelColumnNum);
         }
         catch ( Exception e ) {
-            // Should not happen since valid index checked above
+            // Should not happen since valid index checked above.
             continue;
         }
         try {
             description = rec.getFieldValueString(eventDescriptionColumnNum);
         }
         catch ( Exception e ) {
-            // Should not happen since valid index checked above
+            // Should not happen since valid index checked above.
             continue;
         }
         tsEventList.add ( new TimeSeriesEvent(ts,
@@ -319,16 +318,14 @@ public List<TimeSeriesEvent> createTimeSeriesEvents ( List<String> eventTypes,
 /**
 Return the event table.
 */
-public DataTable getEventTable ()
-{
+public DataTable getEventTable () {
     return this.eventTable;
 }
 
 /**
 Return the time series being associated with events.
 */
-public TS getTimeSeries()
-{
+public TS getTimeSeries() {
     return this.ts;
 }
 

@@ -3791,8 +3791,7 @@ works for AbstractExcelCellRenderers
 @return the format for the data in the specified column.
 */
 public String getColumnFormat(int absoluteColumn) {
-	JWorksheet_AbstractExcelCellRenderer renderer = 
-		(JWorksheet_AbstractExcelCellRenderer)getCellRenderer();
+	JWorksheet_AbstractExcelCellRenderer renderer = (JWorksheet_AbstractExcelCellRenderer)getCellRenderer();
 	return renderer.getFormat(absoluteColumn);
 }
 
@@ -6810,9 +6809,9 @@ private void sortColumn(int order) {
 		}
 		MathUtil.sort(unsorted, MathUtil.SORT_QUICK, order, sortOrder, true);		
 	}
-	// Sort Dates by turning them into Strings first and sorting with StringUtil.sort()
+	// Sort Dates by turning them into Strings first and sorting with StringUtil.sort().
 	else if (getColumnClass(absColumn) == Date.class) {
-	    // Since sorting by dates, handle the dates generically.  This allows Date and DateTime to be used
+	    // Since sorting by dates, handle the dates generically.  This allows Date and DateTime to be used.
 		List<String> v = new Vector<String>(size);
 		Object o = null;
 		for (int i = 0; i < size; i++) {
@@ -6828,7 +6827,7 @@ private void sortColumn(int order) {
 		StringUtil.sortStringList(v, order, sortOrder, true, true);
 	}
 	// Sort booleans by converting to numbers and sorting with quick sort.
-	// trues are turned into -1s and falses into 0s so that trues sort
+	// trues are turned into -1 and false into 0 so that trues sort
 	// to the top when doing sort ascending, like in Microsoft Access.
 	else if (getColumnClass(absColumn) == Boolean.class) {
 		int[] unsorted = new int[size];

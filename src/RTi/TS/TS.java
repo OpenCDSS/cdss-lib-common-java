@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -68,205 +68,7 @@ NoticeEnd */
 //
 // New code does not have 3 layers.  Instead, I/O classes should have static
 // methods like readTimeSeries, writeTimeSeries that operate on time series
-// instances.  See DateValueTS for an example.  Older code may not follow this
-// approach.
-// ----------------------------------------------------------------------------
-// History:
-//
-// Apr, May 96	Steven A. Malers, RTi	Start developing the library based on
-//					the C version of the TS library.
-// 10 Sep 96	SAM, RTi		Formalize the class enough so that we
-//					can begin to use with the Operation
-//					class to work on the DSS.
-// 05 Feb 97	SAM, RTi		Add allocateDataSpace and setDataValue
-//					virtual functions.  Add _dirty
-//					so that we know when data has been
-//					set (to indicate that we need to redo
-//					calcMaxMin).  Add getDataPosition and
-//					freeDataSpace.
-// 26 May 97	SAM, RTi		Add writePersistentHeader.  To increase
-//					performance in derived classes, make
-//					more data members protected.  Also add
-//					_data_date1 and _data_date2 to hold the
-//					dates where we actually have data.
-// 06 Jun 1997	SAM, RTi		Add a third position argument to
-//					getDataPosition to work with the
-//					MinuteTS data.  Other intervals will not
-//					use the 2nd or 3rd positions.
-//					Add TSIntervalFromString.
-// 16 Jun 1997	MJR, RTi		Overloaded calcMaxMinValues to 
-//					find and return max and min between
-//					two dates that are passed in.
-// 03 Nov 1997  Daniel Weiler, RTi	Added GetPeriodFromTS function
-// 26 Nov 1997	SAM, DKW, RTi		Add getValidPeriod.
-// 14 Dec 1997	SAM, RTi		Add copyHeader.
-// 06 Jan 1998	SAM, RTi		Update to use getDataLimits,
-//					setDataLimits, refresh(), and change
-//					data limits to _data_limits.  Put all
-//					but the original dates and overal date
-//					limits in _data_limits.
-//					Add _sequence_number.
-// 22 Feb 1998	SAM, RTi		Add _data_size to hold the total number
-//					of elements allocated for data.
-// 31 Mar 1998	SAM, DLG, RTi		Add _legend for use with output plots,
-//					reports, etc.
-// 28 Apr 1998	SAM, RTi		Add _status to allow general use by
-//					other programs (e.g., to indicate that
-//					the TS should not be used in a later
-//					computation).
-// 01 May 1998	SAM, RTi		Add _extended_legend for use with output
-//					reports, etc.  Change so that
-//					setComments resets the comments.
-// 07 May 1998	SAM, RTi		Add formatHeader.
-// 13 Jul 1998	SAM, RTi		Update copyHeader documentation.
-// 23 Jul 1998	SAM, RTi		Add changePeriodOfRecord as "virtual"
-//					function.  This needs to be implemented
-//					at the storage level (next level of
-//					extension).
-// 06 Aug 1998	SAM, RTi		Remove getDataPosition, getDataPointer
-//					from this class.  Those routines are
-//					often not needed and should be private
-//					to the derived classes.
-// 20 Aug 1998	SAM, RTi		OK, realized that getDataPosition is
-//					valuable for derived classes, but change
-//					to return an array of integers with the
-//					positions.  Make class abstract to
-//					pass compile with 1.2.
-// 18 Nov 1998	SAM, RTi		Add copyData method.
-// 11 Jan 1998	SAM, RTi		Add routine name to virtual functions
-//					so we can track down problems.
-// 13 Apr 1999	SAM, RTi		Add finalize.  Add genesis format flag.
-//					Change so addToGenesis does not
-//					include routine name.
-// 28 Jan 2000	SAM, RTi		Add setMissingRange() to allow handling
-//					of -999 and -998 missing data values
-//					in NWS work.
-// 11 Oct 2000	SAM, RTi		Add iterator(), getDataPoint().
-// 16 Oct 2000	SAM, RTi		Add _enabled, _selected, and _plot*
-//					data to work with visualization.
-// 13 Nov 2000	SAM, RTi		copyHeader() was not copying the
-//					interval base.
-// 20 Dec 2000	SAM, RTi		Add _data_limits_original, which is
-//					currently just a convenience for code
-//					(like tstool) so the original data
-//					limits can be saved for use with
-//					filling.  This may actually be a good
-//					way to compare before and after data
-//					statistics.  This data item is not a
-//					copy of the limits (whereas the current
-//					data limits object is a copy - the old
-//					convention may be problematic).
-// 28 Jan 2001	SAM, RTi		Update javadoc to not rely on @return.
-//					Add checks for null strings when adding
-//					to comments/genesis.  Add
-//					allocateDataSpace() that takes period,
-//					consistent with C++.  Make sure methods
-//					are alphabetized.  Change so setDate*
-//					methods set the precision of the date
-//					to be appropriate for the time series
-//					interval.
-// 21 Feb 2001	SAM, RTi		Implement clone().  Add getInputName()
-//					and setInputName().
-// 31 May 2001	SAM, RTi		Use TSDate.setPrecision(TS) to ensure
-//					start and end dates are the correct
-//					precision in set*Date() methods.
-// 28 Aug 2001	SAM, RTi		Fix the clone() method to be a deep
-//					copy.
-// 2001-11-05	SAM, RTi		Full review of javadoc.  Verify that
-//					variables are set to null when no longer
-//					used.  Change methods to have return
-//					type of void where appropriate.
-//					Change calculateDataSize() to be a
-//					static method.  Remove the deprecated
-//					readPersistent(), writePersistent()
-//					methods.
-// 2002-01-21	SAM, RTi		Remove the plot data.  This is now
-//					handled in the TSGraph* code.  By
-//					removing here, we decouple the plot
-//					properties from the TS, eliminating
-//					problems.
-// 2002-01-30	SAM, RTi		Add _has_data_flags, _data_flag_length,
-//					hasDataFlags(), and setDataValue(with
-//					data flag and duration) to support data
-//					flags and duration.  Flags should be
-//					returned by using the getDataPoint()
-//					method in derived classes.  Remove the
-//					input stream flags and data - this has
-//					never been used.  Fix copyHeader() to
-//					do a deep copy on the TSIdent.
-// 2002-02-17	SAM, RTi		Change the sequence number initial value
-//					to -1.
-// 2002-04-17	SAM, RTi		Update setGenesis() to have append flag.
-// 2002-04-23	SAM, RTi		Deprecated getSelected() and
-//					setSelected() in favor of isSelected().
-//					Add %z to formatLegend() to use the
-//					sequence number.
-// 2002-06-03	SAM, RTi		Add support for NaN as missing data
-//					value.
-// 2002-06-16	SAM, RTi		Add isDirty() to help IrregularTS.
-// 2002-08-12	J. Thomas Sapienza, RTi	Added calcDataDate for use with JTable
-//					models.
-// 2002-09-04	SAM, RTi		Remove calcDataDate() - same effect
-//					can occur by a call to a TSDate.
-//					Add getDataFlagLength() to allow
-//					DateValueTS to output the flags.
-//					Update javadoc to explain that
-//					allocateDataSpace() and
-//					changePeriodOfRecord() should handle the
-//					data flag - previously hasDataFlag.
-// 2002-11-25	SAM, RTi		Change getDate*() methods to return null
-//					if the requested data are null.
-// 2003-01-08	SAM, RTi		Add a hasData() method to indicate
-//					whether the time series has data.
-// 2003-06-02	SAM, RTi		Upgrade to use generic classes.
-//					* Change TSDate to DateTime.
-//					* Change TSUnits to DataUnits.
-//					* Remove INTERVAL_* - TS package classes
-//					  should use TimeInterval.* instead.
-//					* Remove _date_type data member and
-//					  associated DATES_* - they have never
-//					  been used.
-//					* Remove FORMAT_ since other classes
-//					  handle formatting themselves.
-//					* Remove the _data_type because it is
-//					  stored in the TSIdent.
-// 2003-07-24	SAM, RTi		* Fully remove commented out code for
-//					  getDataDate() - it is not used by
-//					  TSIterator any more and no other code
-//					  uses.
-//					* TSIterator constructor now throws an
-//					  exception so declare throws here.
-// 2003-08-21	SAM, RTi		* Change isSelected(boolean) back to
-//					  setSelected() - ARG!
-//					* Add isEditable() and setEditable().
-//					* Remove deprecated constructor to take
-//					  a String (filename) - extended classes
-//					  should handle I/O.
-//					* Remove deprecated addToGenesis() that
-//					  took a routine name.
-//					* Remove deprecated INFINITY - not used.
-// 2004-01-28	SAM, RTi		* Change wording in text format header
-//					  to more clearly identify original and
-//					  current data period.
-// 2004-03-04	J. Thomas Sapienza, RTi	* Class now implements serializable.
-//					* Class now implements transferable.
-// 2004-04-14	SAM, RTi		* Fix so that when setting the dates
-//					  the original time zone precision
-//					  information is not clobbered.
-// 2004-11-23	SAM, RTi		* Move the sequence number to TSIdent
-//					  since it is now part of the TSID.
-//					* In formatLegend(), use instance data
-//					  members instead of calling get()
-//					  methods - performance increases.
-// 2005-05-12	SAM, RTi		* Add allocateDataFlagSpace() to support
-//					  enabling data flags after the initial
-//					  allocation.
-// 2006-10-03	SAM, RTi		* Add %p to formatLegend() for period.
-// 2006-11-22	SAM, RTi		Fix but in addToComments() where the
-//					wrong Vector was being used.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-// EndHeader
+// instances.  See DateValueTS for an example.  Older code may not follow this approach.
 
 package RTi.TS;
 
@@ -276,11 +78,12 @@ import java.awt.datatransfer.Transferable;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.lang.String;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Vector;
 
+import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
@@ -355,6 +158,14 @@ protected int _data_interval_base_original;
 The data interval multiplier in the original data source.
 */
 protected int _data_interval_mult_original;
+
+/**
+The precision used to format data values,
+can be used to override the precision if data units are not specified.
+The default behavior is to determine the precision from units.
+-1 indicates that no precision is set so use units or other default.
+*/
+protected short dataPrecision = -1;
 
 /**
 Number of data values inclusive of _date1 and _date2.  Set in the
@@ -437,7 +248,7 @@ protected List<String> _comments;
 List of metadata about data flags.  This provides a description about flags
 encountered in the time series.
 */
-private List<TSDataFlagMetadata> __dataFlagMetadataList = new Vector<TSDataFlagMetadata>();
+private List<TSDataFlagMetadata> __dataFlagMetadataList = new ArrayList<>();
 
 /**
 History of time series.  This is not the same as the comments but instead
@@ -610,13 +421,13 @@ class (the allocateDataSpace(void) method of the derived class will be called).
 @return 1 if there is an error allocating the data space, 0 if success.
 */
 public int allocateDataSpace ( DateTime date1, DateTime date2 )
-{	//Set data
+{	// Set data.
     setDate1 ( date1 );
     setDate1Original ( date1 );
     setDate2 ( date2 );
     setDate2Original ( date2 );
 
-   // Now allocate memory for the new data space...
+   // Allocate memory for the new data space.
 	if ( allocateDataSpace() != 0 ) {
 		Message.printWarning ( 3, "TS.allocateDataSpace(DateTime,DateTime)",
 		"Error allocating data space for " + date1 + " to " + date2 );
@@ -663,9 +474,9 @@ TS objects are cloned.  The result is a complete deep copy.
 */
 public Object clone ()
 {	try {
-        // Clone the base class...
+        // Clone the base class.
 		TS ts = (TS)super.clone();
-		// Now clone mutable objects..
+		// Clone mutable objects.
 		if ( _date1 != null ) {
 			ts._date1 = (DateTime)_date1.clone();
 		}
@@ -684,14 +495,14 @@ public Object clone ()
 		int size = 0;
 		int i = 0;
 		if ( _comments != null ) {
-			ts._comments = new Vector<String>(_comments.size());
+			ts._comments = new ArrayList<>(_comments.size());
 			size = _comments.size();
 			for ( i = 0; i < size; i++ ) {
 				ts._comments.add( new String(_comments.get(i)));
 			}
 		}
 		if ( _genesis != null ) {
-			ts._genesis = new Vector<String>(_genesis.size());
+			ts._genesis = new ArrayList<>(_genesis.size());
 			size = _genesis.size();
 			for ( i = 0; i < size; i++ ) {
 				ts._genesis.add(new String(_genesis.get(i)));
@@ -879,9 +690,10 @@ public void copyHeader ( TS ts )
 
 	setInputName ( ts.getInputName() );
 
-	// Copy TSIdent...
+	// Copy TSIdent.
 
-	try {	setIdentifier ( new TSIdent(ts.getIdentifier()) );
+	try {
+		setIdentifier ( new TSIdent(ts.getIdentifier()) );
 	}
 	catch ( Exception e ) {
 		// Should not happen.
@@ -889,7 +701,7 @@ public void copyHeader ( TS ts )
 
 	// Need to initialize DateTime somehow, but how do you pick defaults?
 
-	// THIS IS DATA RELATED 13 JUL 1998
+	// TODO smalers 2022-03-04 can the following be removed?
 	//_data_limits = new TSLimits ( ts.getDataLimits() );
 	_date1 = new DateTime ( ts.getDate1() );
 	_date2 = new DateTime ( ts.getDate2() );
@@ -905,27 +717,27 @@ public void copyHeader ( TS ts )
 
 	setDescription( ts.getDescription() );
 
-	_comments = new Vector<String>(2,1);
+	_comments = new ArrayList<>();
 	_comments = StringUtil.addListToStringList ( _comments, ts.getComments() );
-	_genesis = new Vector<String>(2,1);
+	_genesis = new ArrayList<>();
 	_genesis = StringUtil.addListToStringList ( _genesis, ts.getGenesis() );
 
 	setDataUnits( ts.getDataUnits() );
 	setDataUnitsOriginal( ts.getDataUnitsOriginal() );
 
-	// First set the missing data value...
+	// First set the missing data value.
 	setMissing( ts.getMissing() );
-	// Now set the range itself in case it has been reset...
+	// Now set the range itself in case it has been reset.
 	setMissingRange ( ts.getMissingRange() );
 
-	// THIS IS DATA RELATED 13 Jul 1998
-	//_dirty = true;// We need to recompute limits when we get the chance
+	// TODO smalers 2022-03-04 can the following be removed?
+	//_dirty = true; // Need to recompute limits when we get the chance.
 
-	// Copy legend information...
+	// Copy legend information.
 	_legend = ts.getLegend();
 	_extended_legend = ts.getExtendedLegend();
 
-	// Data flags...
+	// Data flags.
 
 	_has_data_flags = ts._has_data_flags;
 }
@@ -951,9 +763,9 @@ The format is the same as for formatLegend().
 @see #formatLegend
 */
 public String formatExtendedLegend ( String format, boolean flag )
-{	// First format using the normal legend string...
+{	// First format using the normal legend string.
 	String extended_legend = formatLegend ( format );
-	// Now, if desired, save the legend...
+	// Now, if desired, save the legend.
 	if ( flag ) {
 		setExtendedLegend ( extended_legend );
 	}
@@ -966,7 +778,7 @@ Format a standard time series header, for use with formatOutput.
 and end of the header are not included.
 */
 public List<String> formatHeader ()
-{	List<String> header = new Vector<String>( 10, 5 );
+{	List<String> header = new ArrayList<>( 10 );
 
     header.add ( "Time series alias       = " + getAlias() );
     header.add ( "Time series identifier  = " + getIdentifier() );
@@ -1132,109 +944,108 @@ public String formatLegend ( String format, boolean update_ts )
 	for ( int i = 0; i < len; i++ ) {
 		c = format.charAt(i);
 		if ( c == '%' ) {
-			// Format modifier.  Get the next character...
+			// Format modifier.  Get the next character.
 			++i;
 			if ( i >= len ) {
 				break;
 			}
 			c = format.charAt ( i );
 			if ( c == '%' ) {
-				// Literal %...
+				// Literal %.
 				buffer.append ( c );
 			}
 			else if ( c == 'A' ) {
-				// Alias from TSIdent...
+				// Alias from TSIdent.
 				buffer.append ( _id.getAlias() );
 			}
 			else if ( c == 'b' ) {
-				// Data interval base...
+				// Data interval base.
 				buffer.append ( TimeInterval.getName( _id.getIntervalBase(),1) );
 			}
 			else if ( c == 'D' ) {
-				// Description...
+				// Description.
 				buffer.append ( _description );
 			}
 			else if ( c == 'F' ) {
-				// Full identifier...
+				// Full identifier.
 				//buffer.append ( _id.getIdentifier() );
 				buffer.append ( _id.toString() );
 			}
 			else if ( c == 'I' ) {
-				// Full interval...
+				// Full interval.
 				buffer.append ( _id.getInterval() );
 			}
 	        else if ( c == 'i' ) {
-	            // Input name...
+	            // Input name.
 	            buffer.append ( _id.getInputName() );
 	        }
 	        else if ( c == 'k' ) {
-                // Sub source...
+                // Sub source.
                 buffer.append ( _id.getSubSource() );
             }
 			else if ( c == 'L' ) {
-				// Full location...
+				// Full location.
 				buffer.append ( _id.getLocation() );
 			}
 			else if ( c == 'l' ) {
-				// Main location...
+				// Main location.
 				buffer.append ( _id.getMainLocation() );
 			}
 			else if ( c == 'm' ) {
-				// Data interval multiplier...
+				// Data interval multiplier.
 				buffer.append ( _id.getIntervalMult() );
 			}
 			else if ( c == 'p' ) {
-				// Period...
+				// Period.
 				buffer.append ( "" + _date1 + " - " + _date2 );
 			}
 			else if ( c == 'S' ) {
-				// Full source...
+				// Full source.
 				buffer.append ( _id.getSource() );
 			}
 			else if ( c == 's' ) {
-				// Main source...
+				// Main source.
 				buffer.append ( _id.getMainSource() );
 			}
 			else if ( c == 'U' ) {
-				// Units...
+				// Units.
 				buffer.append ( _data_units );
 			}
 			else if ( c == 'T' ) {
-				// Data type...
+				// Data type.
 				buffer.append ( _id.getType() );
 			}
 			else if ( c == 't' ) {
-				// Data main type (reserved for future use - for
-				// now return the total)...
+				// Data main type (reserved for future use - for now return the total).
 				buffer.append ( _id.getType() );
 			}
 			else if ( c == 'y' ) {
-				// Data sub type (reserved for future use)...
+				// Data sub type (reserved for future use).
 			}
 			else if ( c == 'w' ) {
-				// Sub-location...
+				// Sub-location.
 				buffer.append ( _id.getSubLocation() );
 			}
 			else if ( c == 'x' ) {
-				// Sub source...
+				// Sub source.
 				buffer.append ( _id.getSubSource() );
 			}
 			else if ( c == 'Z' ) {
-				// Scenario...
+				// Scenario.
 				buffer.append ( _id.getScenario() );
 			}
 			else if ( c == 'z' ) {
-				// Sequence ID (old sequence number)...
+				// Sequence ID (old sequence number).
 				buffer.append ( _id.getSequenceID() );
 			}
 			else {
-			    // No match.  Add the % and the character...
+			    // No match.  Add the % and the character.
 				buffer.append ( "%" );
 				buffer.append ( c );
 			}
 		}
 		else {
-		    // Just add the character...
+		    // Just add the character.
 			buffer.append ( c );
 		}
 	}
@@ -1251,27 +1062,27 @@ public String formatLegend ( String format, boolean update_ts )
     while ( pos2 < s2.length() ) {
         int pos1 = StringUtil.indexOfIgnoreCase(s2, startString, start );
         if ( pos1 >= 0 ) {
-            // Find the end of the property
+            // Find the end of the property.
             pos2 = s2.indexOf( endString, pos1 );
             if ( pos2 > 0 ) {
-                // Get the property...
+                // Get the property.
                 String propname = s2.substring(pos1+startStringLength,pos2);
                 //Message.printStatus(2, routine, "Property=\"" + propname + "\" isTSProp=" + isTsProp + " pos1=" + pos1 + " pos2=" + pos2 );
-                // By convention if the property is not found, keep the original string so can troubleshoot property issues
+                // By convention if the property is not found, keep the original string so can troubleshoot property issues.
                 String propvalString = s2.substring(pos1,(pos2 + 1));
-                // Get the property out of the time series
+                // Get the property out of the time series.
                 propO = getProperty(propname);
                 if ( propO != null ) {
-                    // This handles conversion of integers to strings
+                    // This handles conversion of integers to strings.
                     propvalString = "" + propO;
                 }
                 // Replace the string and continue to evaluate s2
                 s2 = s2.substring ( 0, pos1 ) + propvalString + s2.substring (pos2 + 1);
-                // Next search will be at the end of the expanded string (end delimiter will be skipped in any case)
+                // Next search will be at the end of the expanded string (end delimiter will be skipped in any case).
                 start = pos1 + propvalString.length();
             }
             else {
-                // No closing character so leave the property string as is and march on...
+                // No closing character so leave the property string as is and march on.
                 start = pos1 + startStringLength;
                 if ( start > s2.length() ) {
                     break;
@@ -1309,7 +1120,7 @@ throws TSException
 /**
 Format the time series into a general output format and write to an output file.
 This method should be overridden in the derived class.
-@return Formatted output in a Vector, or null.
+@return Formatted output in a list, or null.
 @param out PrintWriter to receive output.
 @param props Modifiers for output.
 @exception RTi.TS.TSException Thrown if low-level formatting code throws an exception.
@@ -1400,7 +1211,7 @@ limits are refreshed.  The refresh() method should be defined in the derived cla
 @see TSLimits
 */
 public TSLimits getDataLimits ()
-{	// Make sure that the limits have been set...
+{	// Make sure that the limits have been set.
 	refresh();
 	if ( _data_limits == null ) {
 		return null;
@@ -1427,24 +1238,70 @@ public TSLimits getDataLimitsOriginal ()
 }
 
 /**
-Return a TSData for a date.  This method should be defined in derived classes,
-especially if data flags are being used.
+Return a TSData for a date.
+This method should be defined in derived classes, especially if data flags are being used.
+If the requested date/time is outside of the available data period,
+the point should use the missing data value and an empty flag string.
 @param date date/time to get data.
-@param tsdata if null, a new instance of TSData will be returned.  If non-null, the provided
-instance will be used (this is often desirable during iteration to decrease memory use and
-increase performance).
+@param tsdata if null, a new instance of TSData will be returned.
+If non-null, the provided instance will be used
+(this is often desirable during iteration to decrease memory use and increase performance).
 @return a TSData for the specified date/time.
 */
 public TSData getDataPoint ( DateTime date, TSData tsdata )
 {	Message.printWarning( 3, "TS.getDataPoint", "This is a virtual function, redefine in child classes" );
-	// Empty point...
+	// Empty point.
 	TSData data = new TSData();
 	return data;
 }
 
 /**
+Return the data precision.
+@return The data precision.
+*/
+public short getDataPrecision() {
+	return this.dataPrecision;
+}
+
+/**
+ * Determine the output precision for a time series.
+ * The internal precision for data is typically not limited.
+ * However, the precision that is appropriate for output is typically limited.
+ * The returned value is determined as follows:
+ * 1. If time series data precision from 'getDataPrecision' is >= 0, use the value.
+ * 2. If time series units are found in DataUnits, use the data units output precision.
+ * 3. Use the default precision passed in.
+ * 4. Return -1 if cannot be determined.
+ *    The calling application will need to use an appropriate default.
+ * @param defaultPrecision default precision to use if precision cannot be determined from time series
+ * @return precision (number of digits after the decimal point) to use when formatting time series values
+ */
+public short getDataPrecision ( short defaultPrecision ) {
+	if ( this.dataPrecision >= 0 ) {
+		return this.dataPrecision;
+	}
+	if ( (this._data_units != null) && !this._data_units.isEmpty() ) {
+		try {
+	    	DataUnits u = DataUnits.lookupUnits ( this._data_units );
+			return (short)u.getOutputPrecision();
+		}
+		catch ( Exception e ) {
+			// No precision from units.
+		}
+	}
+	// Default units.
+	if ( defaultPrecision >= 0 ) {
+		return defaultPrecision;
+	}
+	// Return -1 indicating precision not determined.
+	return -1;
+}
+
+/**
 Return the number of data points that are allocated in memory.
 Zero will be returned if allocateDataSpace() has not been called.
+Regular time series size involves knowing the data array size
+whereas irregular time series overloads this method and returns the size of the TSData list.
 @return The number of data points included in the period.
 */
 public int getDataSize ( )
@@ -1814,28 +1671,28 @@ private void init( )
 
 	_input_name = "";
 
-	// Need to initialize an empty TSIdent...
+	// Need to initialize an empty TSIdent.
 
 	_id = new TSIdent ();
 	_legend = "";
 	_extended_legend = "";
 	_data_size = 0;
-	// DateTime need to be initialized somehow...
+	// DateTime need to be initialized somehow.
     setDataType( "" );
 	_data_interval_base = 0;
 	_data_interval_mult = 1;
 	_data_interval_base_original = 1;
 	_data_interval_mult_original = 0;
 	setDescription( "" );
-	_comments = new Vector<String>(2,2);
-	_genesis = new Vector<String>(2,2);
+	_comments = new ArrayList<>(2);
+	_genesis = new ArrayList<>(2);
 	setDataUnits( "" );
 	setDataUnitsOriginal( "" );
 	setMissing ( -999.0 );
 	_data_limits = new TSLimits();
-	_dirty = true;	// We need to recompute limits when we get the chance
+	_dirty = true;	// Need to recompute limits when we get the chance.
 	_enabled = true;
-	_selected = false;	// Let other code select, e.g., as query result
+	_selected = false;	// Let other code select, e.g., as query result.
 	_editable = false;
 }
 
@@ -2006,6 +1863,15 @@ public void setDataLimitsOriginal ( TSLimits limits )
 }
 
 /**
+Set the number of precision of data (digits after period),
+if set will override precision determined from the data units.
+@param dataPrecision Number of data points in the time series.
+*/
+public void setDataPrecision ( short dataPrecision )
+{	this.dataPrecision = dataPrecision;
+}
+
+/**
 Set the number of data points including the full period.  This should be called by refresh().
 @param data_size Number of data points in the time series.
 */
@@ -2081,7 +1947,7 @@ public void setDate1 ( DateTime t )
 {	if ( t != null ) {
 		_date1 = new DateTime ( t );
 		if ( _data_interval_base != TimeInterval.IRREGULAR ) {
-		    // For irregular, rely on the DateTime precision
+		    // For irregular, rely on the DateTime precision.
 		    _date1.setPrecision ( _data_interval_base );
 		}
 	}
@@ -2097,7 +1963,7 @@ public void setDate1Original( DateTime t )
 {	if ( t != null ) {
 		_date1_original = new DateTime ( t );
 		if ( _data_interval_base != TimeInterval.IRREGULAR ) {
-            // For irregular, rely on the DateTime precision
+            // For irregular, rely on the DateTime precision.
 		    _date1_original.setPrecision ( _data_interval_base );
 		}
 	}
@@ -2113,7 +1979,7 @@ public void setDate2 ( DateTime t )
 {	if ( t != null ) {
 		_date2 = new DateTime ( t );
 		if ( _data_interval_base != TimeInterval.IRREGULAR ) {
-            // For irregular, rely on the DateTime precision
+            // For irregular, rely on the DateTime precision.
 		    _date2.setPrecision ( _data_interval_base );
 		}
 	}
@@ -2129,7 +1995,7 @@ public void setDate2Original( DateTime t )
 {	if ( t != null ) {
 		_date2_original = new DateTime ( t );
 		if ( _data_interval_base != TimeInterval.IRREGULAR ) {
-            // For irregular, rely on the DateTime precision
+            // For irregular, rely on the DateTime precision.
 		    _date2_original.setPrecision ( _data_interval_base );
 		}
 	}
@@ -2175,8 +2041,7 @@ Set the time series extended legend.  This was used at one point to set a
 secondary legend because the Java plotting package did not allow a long legend
 in the graph.  Currently, this data item is being used to set the legend for
 the table time series view.
-@param extended_legend Time series extended legend (can be used for labels on 
-graphs, etc.).
+@param extended_legend Time series extended legend (can be used for labels on graphs, etc.).
 @see #formatExtendedLegend
 */
 public void setExtendedLegend ( String extended_legend )
@@ -2201,16 +2066,15 @@ Set the genesis information.
 public void setGenesis ( List<String> genesis, boolean append )
 {	if ( !append ) {
 		// Don't call removeAllElements() because the genesis may have
-		// been retrieved and then reset using the same Vector!
-		_genesis = new Vector<String>();
+		// been retrieved and then reset using the same list.
+		_genesis = new ArrayList<>();
 	}
 	_genesis = StringUtil.addListToStringList ( _genesis, genesis );
 }
 
 /**
 Set the time series identifier using a TSIdent.
-Note that this only sets the identifier but
-does not set the separate data fields (like data type).
+Note that this only sets the identifier but does not set the separate data fields (like data type).
 @param id Time series identifier.
 @see TSIdent
 @exception Exception If there is an error setting the identifier.
@@ -2224,8 +2088,7 @@ throws Exception
 
 /**
 Set the time series identifier using a string.
-Note that this only sets the identifier but
-does not set the separate data fields (like data type).
+Note that this only sets the identifier but does not set the separate data fields (like data type).
 @param identifier Time series identifier.
 @exception Exception If there is an error setting the identifier.
 */
@@ -2243,8 +2106,7 @@ Set the time series identifier using a individual string parts.
 @param type Data type.
 @param interval Data interval, including base and possibly multiplier.
 @param scenario Scenario for data.
-@exception Exception If there is an error setting the identifier (e.g., interval
-is not recognized).
+@exception Exception If there is an error setting the identifier (e.g., interval is not recognized).
 */
 public void setIdentifier( String location, String source, String type, String interval, String scenario )
 throws Exception
@@ -2304,7 +2166,7 @@ public void setMissing ( double missing )
         _missingu = missing;
 	}
 	else {
-	    // Set a range on the missing value check that is slightly on each side of the value
+	    // Set a range on the missing value check that is slightly on each side of the value.
         _missingl = missing - .001;
         _missingu = missing + .001;
 	}
@@ -2370,8 +2232,8 @@ public void setProperty ( String propertyName, Object property )
 }
 
 /**
-Indicate whether the time series is selected.  This is being phased in and is
-currently only used by graphics code.
+Indicate whether the time series is selected.
+This is used by applications that are working on a list of time series.
 */
 public void setSelected ( boolean selected )
 {	_selected = selected;
@@ -2397,7 +2259,7 @@ public void setSource ( String source )
 
 /**
 Set the status flag for the time series.  This is used by high-level code when
-manipulating time series.  For example, a Vector of time series might be
+manipulating time series.  For example, a list of time series might be
 passed to a routine for graphing.  Additionally, another display component may
 list an extended legend.  The status allows the first component to disable some
 time series because of incompatibility so the second component can detect.

@@ -69,7 +69,6 @@ package RTi.Util.Time;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.Message.Message;
 
@@ -92,8 +91,11 @@ the order.  Flags above >= 256 are reserved for DateTime constructor flags.
 These values are set as the DateTime.PRECISION* values to maintain consistency.
 */
 public static final int UNKNOWN = -1; // Unknown, e.g., for initialization
-public static final int IRREGULAR = 0;
-public static final int HSECOND = 5;
+public static final int IRREGULAR = 0;    // Value is important as 0 to allow checks for regular interval.
+public static final int NANOSECOND = 2;   // 0 - 999999999
+public static final int MICROSECOND = 3;  // 0 - 999999
+public static final int MILLISECOND = 4;  // 0 - 999
+public static final int HSECOND = 5;      // 0 - 99
 public static final int SECOND = 10;
 public static final int MINUTE = 20;
 public static final int HOUR = 30;
@@ -103,22 +105,39 @@ public static final int MONTH = 60;
 public static final int YEAR = 70;
 
 /**
-The string associated with the base interval (e.g, "Month").
+The string associated with the base interval:
+- for regular interval, will be something like "Month" or "1Month"
+- fir irregular interval, will be the entire string like "Irregular", "IrregSecond"
 */
 private String __intervalBaseString;
+
 /**
-The string associated with the interval multiplier (may be "" if
-not specified in string used with the constructor).
+The string associated with the interval multiplier:
+- "15" if the full interval string is "15Minute"
+- may be "" if not specified in string used with the constructor
+- not used for irregular interval
 */
 private String __intervalMultString;
+
 /**
-The base data interval.
+The base data interval:
+- static value such as MONTH, IRREGULAR
+- if IRREGULAR the precision is stored separately as 'irregularPrecision'
 */
 private int	__intervalBase;
+
 /**
 The data interval multiplier.
+- for regular interval time series
+- not used for irregular time series
 */
 private int	__intervalMult;
+
+/**
+ * Precision used with irregular interval:
+ * - for example SECOND for "IrregSecond", MONTH for "IrregMonth"
+ */
+private int irregularPrecision = UNKNOWN;
 
 /**
 Construct and initialize data to zeros and empty strings.
@@ -207,24 +226,13 @@ otherwise.
 */
 /* TODO SAM 2005-03-03 Need to implement when there is time
 public boolean equivalent ( TimeInterval interval )
-{	// Do simple check...
+{	// Do simple check.
 	if ( equals(interval) ) {
 		return true;
 	}
-	// Else check for equivalence...
+	// Else check for equivalence.
 }
 */
-
-/**
-Finalize before garbage collection.
-@exception Throwable if there is an error.
-*/
-protected void finalize()
-throws Throwable
-{	__intervalBaseString = null;
-	__intervalMultString = null;
-	super.finalize();
-}
 
 /**
 Return the interval base (see TimeInterval.INTERVAL*).
@@ -240,6 +248,15 @@ Return the interval base as a string.
 */
 public String getBaseString ()
 {	return __intervalBaseString;
+}
+
+/**
+ * Return the precision for irregular interval time series.
+ * This is more explicit than relying on date/time used in irregular time series.
+ * @return the precision for irregular interval time series, for example SECOND is returned if interval is "IrregSecond"
+ */
+public int getIrregularIntervalPrecision () {
+	return this.irregularPrecision;
 }
 
 /**
@@ -265,9 +282,8 @@ upper-case.  Call the version with the format if other format is desired.
 @param interval Time series interval to look up).
 @deprecated the version that specifies format should be used.
 */
-public static String getName ( int interval )
-{
-	return getName ( interval, 1 ); // Historical default
+public static String getName ( int interval ) {
+	return getName ( interval, 1 ); // Historical default.
 }
 
 /**
@@ -305,8 +321,20 @@ public static String getName ( int interval, int format )
 	else if ( interval == HSECOND ) {
 		name = "Hsecond";
 	}
+	else if ( interval == MILLISECOND ) {
+		name = "Millisecond";
+	}
+	else if ( interval == MICROSECOND ) {
+		name = "Microsecond";
+	}
+	else if ( interval == NANOSECOND ) {
+		name = "Nanosecond";
+	}
 	else if ( interval == IRREGULAR ) {
 		name = "Irregular";
+	}
+	else if ( interval == UNKNOWN ) {
+		name = "Unknown";
 	}
 	if ( format > 0 ) {
 		// Legacy default
@@ -347,16 +375,29 @@ included.  If included, "Irregular" is always at the end of the list.
 */
 public static List<String> getTimeIntervalBaseChoices ( int startInterval, int endInterval,
     int sortOrder, boolean includeIrregular )
-{   // Add in ascending order and sort to descending later if requested...
-    List<String> v = new ArrayList<String>();
+{   // Add in ascending order and sort to descending later if requested.
+    List<String> v = new ArrayList<>();
     if ( startInterval > endInterval ) {
-        // Swap (only rely on sort_order for ordering)...
+        // Swap (only rely on sort_order for ordering).
         int temp = endInterval;
         endInterval = startInterval;
         startInterval = temp;
     }
+    if ( (NANOSECOND >= startInterval) && (NANOSECOND <= endInterval) ) {
+        // TODO SAM 2005-02-16 Probably don't need to support this?
+        //v.add ( "Nanosecond" );
+    }
+    if ( (MICROSECOND >= startInterval) && (MICROSECOND <= endInterval) ) {
+        // TODO SAM 2005-02-16 Probably don't need to support this?
+        //v.add ( "Microsecond" );
+    }
+    if ( (MILLISECOND >= startInterval) && (MILLISECOND <= endInterval) ) {
+        // TODO SAM 2005-02-16 Probably don't need to support this?
+        //v.add ( "Millisecond" );
+    }
     if ( (HSECOND >= startInterval) && (HSECOND <= endInterval) ) {
-        // TODO SAM 2005-02-16 We probably don't need to support this at all.
+        // TODO SAM 2005-02-16 We probably don't need to support this?
+        //v.add ( "Hsecond" );
     }
     if ( (SECOND >= startInterval) && (SECOND <= endInterval) ) {
         v.add ( "Second" );
@@ -386,9 +427,9 @@ public static List<String> getTimeIntervalBaseChoices ( int startInterval, int e
         return v;
     }
     else {
-        // Change to descending order...
+        // Change to descending order.
         int size = v.size();
-        List<String> v2 = new ArrayList<String> ( size );
+        List<String> v2 = new ArrayList<> ( size );
         for ( int i = size -1; i >= 0; i-- ) {
             v2.add ( v.get(i) );
         }
@@ -404,28 +445,40 @@ Return a list of interval strings (e.g., "Year", "6Hour"), optionally
 including the Irregular time step.  Only evenly divisible choices are returned
 (no "5Hour" because it does not divide into the day).
 @return a list of interval strings.
-@param start_interval The starting (smallest) interval base to return.
-@param end_interval The ending (largest) interval base to return.
+@param startInterval The starting (smallest) interval base to return.
+@param endInterval The ending (largest) interval base to return.
 @param pad_zeros If true, pad the strings with zeros (e.g., "06Hour").  If false
 do not pad (e.g., "6Hour").
 @param sort_order Specify zero or 1 to sort ascending (small interval to large), -1 to sort descending.
 @param include_irregular Indicate whether the "Irregular" time step should be
 included.  If included, "Irregular" is always at the end of the list.
 */
-public static List<String> getTimeIntervalChoices ( int start_interval, int end_interval,
+public static List<String> getTimeIntervalChoices ( int startInterval, int endInterval,
 	boolean pad_zeros, int sort_order, boolean include_irregular )
-{	// Add in ascending order and sort to descending later if requested...
-	List<String> v = new Vector<String>();
-	if ( start_interval > end_interval ) {
-		// Swap (only rely on sort_order for ordering)...
-		int temp = end_interval;
-		end_interval = start_interval;
-		start_interval = temp;
+{	// Add in ascending order and sort to descending later if requested.
+	List<String> v = new ArrayList<>();
+	if ( startInterval > endInterval ) {
+		// Swap (only rely on sort_order for ordering).
+		int temp = endInterval;
+		endInterval = startInterval;
+		startInterval = temp;
 	}
-	if ( (HSECOND >= start_interval) && (HSECOND <= end_interval) ) {
-		// TODO SAM 2005-02-16 We probably don't need to support this at all.
+    if ( (NANOSECOND >= startInterval) && (NANOSECOND <= endInterval) ) {
+        // TODO SAM 2005-02-16 Probably don't need to support this?
+        //v.add ( "Nanosecond" );
+    }
+    if ( (MICROSECOND >= startInterval) && (MICROSECOND <= endInterval) ) {
+        // TODO SAM 2005-02-16 Probably don't need to support this?
+        //v.add ( "Microsecond" );
+    }
+    if ( (MILLISECOND >= startInterval) && (MILLISECOND <= endInterval) ) {
+        // TODO SAM 2005-02-16 Probably don't need to support this?
+        //v.add ( "Millisecond" );
+    }
+	if ( (HSECOND >= startInterval) && (HSECOND <= endInterval) ) {
+		// TODO SAM 2005-02-16 Probably don't need to support this.
 	}
-	if ( (SECOND >= start_interval) && (SECOND <= end_interval) ) {
+	if ( (SECOND >= startInterval) && (SECOND <= endInterval) ) {
 	    v.add ( "Second" );
 		if ( pad_zeros ) {
 			v.add ( "01Second" );
@@ -449,7 +502,7 @@ public static List<String> getTimeIntervalChoices ( int start_interval, int end_
 		v.add ( "30Second" );
 		v.add ( "60Second" );
 	}
-	if ( (MINUTE >= start_interval) && (MINUTE <= end_interval) ) {
+	if ( (MINUTE >= startInterval) && (MINUTE <= endInterval) ) {
 	    v.add ( "Minute" );
 		if ( pad_zeros ) {
 			v.add ( "01Minute" );
@@ -473,7 +526,7 @@ public static List<String> getTimeIntervalChoices ( int start_interval, int end_
 		v.add ( "30Minute" );
 		v.add ( "60Minute" );
 	}
-	if ( (HOUR >= start_interval) && (HOUR <= end_interval) ) {
+	if ( (HOUR >= startInterval) && (HOUR <= endInterval) ) {
         v.add ( "Hour" );
 		if ( pad_zeros ) {
 			v.add ( "01Hour" );
@@ -495,16 +548,16 @@ public static List<String> getTimeIntervalChoices ( int start_interval, int end_
         // Add this because often hourly data aggregate up to 24-hour data.
         v.add ( "24Hour" );
 	}
-	if ( (DAY >= start_interval) && (DAY <= end_interval) ) {
+	if ( (DAY >= startInterval) && (DAY <= endInterval) ) {
 		v.add ( "Day" );
 	}
-	// TODO SAM 2005-02-16 Week is not yet supported
+	// TODO SAM 2005-02-16 Week is not yet supported.
 	//if ( (WEEK >= start_interval) && (WEEK <= end_interval) ) {
 	//}
-	if ( (MONTH >= start_interval) && (MONTH <= end_interval) ) {
+	if ( (MONTH >= startInterval) && (MONTH <= endInterval) ) {
 		v.add ( "Month" );
 	}
-	if ( (YEAR >= start_interval) && (YEAR <= end_interval) ) {
+	if ( (YEAR >= startInterval) && (YEAR <= endInterval) ) {
 		v.add ( "Year" );
 	}
 	if ( sort_order >= 0 ) {
@@ -514,9 +567,9 @@ public static List<String> getTimeIntervalChoices ( int start_interval, int end_
 		return v;
 	}
 	else {
-	    // Change to descending order...
+	    // Change to descending order.
 		int size = v.size();
-		List<String> v2 = new Vector<String>( size );
+		List<String> v2 = new ArrayList<>( size );
 		for ( int i = size -1; i >= 0; i-- ) {
 			v2.add ( v.get(i) );
 		}
@@ -539,7 +592,7 @@ public boolean greaterThan ( TimeInterval interval )
 {	int seconds1 = toSeconds();
 	int seconds2 = interval.toSeconds();
 	if ( (seconds1 >= 0) && (seconds2 >= 0) ) {
-		// Intervals are less than month so a simple comparison can be made...
+		// Intervals are less than month so a simple comparison can be made.
 		if ( seconds1 > seconds2 ) {
 			return true;
 		}
@@ -551,8 +604,20 @@ public boolean greaterThan ( TimeInterval interval )
 */
 
 /**
+Determine whether the interval is irregular.
+@return true if the interval is irregular, false if not (unknown or regular).
+*/
+public boolean isIrregularInterval ( ) {
+	if ( __intervalBase == IRREGULAR ) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+/**
 Determine whether the interval is regular.
-@param intervalBase the time interval base to check
 @return true if the interval is regular, false if not (unknown or irregular).
 */
 public boolean isRegularInterval ( )
@@ -593,7 +658,7 @@ public boolean lessThan ( TimeInterval interval )
 {	int seconds1 = toSecondsApproximate();
 	int seconds2 = interval.toSecondsApproximate();
 	if ( (seconds1 >= 0) && (seconds2 >= 0) ) {
-		// Intervals are less than month so a simple comparison can be made...
+		// Intervals are less than month so a simple comparison can be made.
 		if ( seconds1 < seconds2 ) {
 			return true;
 		}
@@ -601,7 +666,7 @@ public boolean lessThan ( TimeInterval interval )
 		    return false;
 		}
 	}
-	// Check comparison between intervals involving only month and year...
+	// Check comparison between intervals involving only month and year.
 	int base1 = interval.getBase();
 	int mult1 = interval.getMultiplier();
 	int base2 = interval.getBase();
@@ -650,7 +715,7 @@ public static int [] multipliersForIntervalBase ( String interval_base, boolean 
 	}
 	int base = interval.getBase();
 	int [] mult = null;
-	int offset = 0;		// Used when include_zero is true
+	int offset = 0;		// Used when include_zero is true.
 	int size = 0;
 	if ( include_zero ) {
 		offset = 1;
@@ -796,47 +861,53 @@ public static int [] multipliersForIntervalBase ( String interval_base, boolean 
 }
 
 /**
-Parse an interval string like "6Day" into its parts and return as a
-TimeInterval.  If the multiplier is not specified, the value returned from
+Parse an interval string like "6Day" into its parts and return as a TimeInterval.
+If the multiplier is not specified, the value returned from
 getMultiplierString() will be "", even if the getMultiplier() is 1.
+The following are example interval strings:
+   Hour
+   1Hour
+   Irregular
+   IrregSecond
+   IrregMillisecond
 @return The TimeInterval that is parsed from the string.
 @param intervalString Time series interval as a string, containing an
 interval string and an optional multiplier.
 @exception InvalidTimeIntervalException if the interval string cannot be parsed.
 */
 public static TimeInterval parseInterval ( String intervalString )
-throws InvalidTimeIntervalException
-{	String routine = "TimeInterval.parseInterval";
-	int	digitCount = 0; // Count of digits at start of the interval string
-	int dl = 50;
+throws InvalidTimeIntervalException {
+	String routine = "TimeInterval.parseInterval";
+	int	digitCount = 0; // Count of digits at start of the interval string.
+	int dl = 10;
 	int i = 0;
 	int length = intervalString.length();
 
+	if ( Message.isDebugOn ) {
+		Message.printDebug ( dl, routine, "Parsing interval \"" + intervalString + "\"." );
+	}
+
 	TimeInterval interval = new TimeInterval ();
 
-	// Need to strip of any leading digits.
+	// Parse the leading digits to get the multiplier.
 
-	while( i < length ){
+	while ( i < length ) {
 		if( Character.isDigit(intervalString.charAt(i)) ){
 			digitCount++;
 			i++;
 		}
 		else {
-		    // We have reached the end of the digit part of the string.
+		    // Have reached the end of the digit part of the string.
 			break;
 		}
 	}
 
-	if( digitCount == 0 ){
-		//
-		// The string had no leading digits, interpret as one.
-		//
+	if ( digitCount == 0 ) {
+		// The string had no leading digits, interpret as multiplier of "1".
 		interval.setMultiplier ( 1 );
 	}
-	else if( digitCount == length ){
-		//
-		// The whole string is a digit, default to hourly (legacy behavior)
-		//
+	else if ( digitCount == length ) {
+		// The whole string is a digit, default to hourly (legacy behavior).
 		interval.setBase ( HOUR );
 		interval.setMultiplier ( Integer.parseInt( intervalString ));
 		if ( Message.isDebugOn ) {
@@ -845,6 +916,7 @@ throws InvalidTimeIntervalException
 		return interval;
 	}
 	else {
+		// Parse the multiplier from the start of the interval string.
 	    String intervalMultString = intervalString.substring(0,digitCount);
 		interval.setMultiplier ( Integer.parseInt((intervalMultString)) );
 		interval.setMultiplierString ( intervalMultString );
@@ -854,51 +926,148 @@ throws InvalidTimeIntervalException
 		Message.printDebug ( dl, routine, "Multiplier: " + interval.getMultiplier() );
 	}
 
-	// Now parse out the Base interval
+	// Now parse out the base interval:
+	// - check for irregular first because substrings may also show up in regular interval
+	// - if irregular can also have a precision
+	// - if regular, will have base and multiplier
 
 	String intervalBaseString = intervalString.substring(digitCount).trim();
 	String intervalBaseStringUpper = intervalBaseString.toUpperCase();
-	if (intervalBaseStringUpper.startsWith("MIN")) {
-		interval.setBaseString ( intervalBaseString );
-		interval.setBase ( MINUTE );
-	}
-	else if(intervalBaseStringUpper.startsWith("HOUR") || intervalBaseStringUpper.startsWith("HR")) {
-		interval.setBaseString ( intervalBaseString );
-		interval.setBase ( HOUR );
-	}
-	else if(intervalBaseStringUpper.startsWith("DAY") || intervalBaseStringUpper.startsWith("DAI")) {
-		interval.setBaseString ( intervalBaseString );
-		interval.setBase ( DAY );
-	}
-	else if(intervalBaseStringUpper.startsWith("SEC")) {
-		interval.setBaseString ( intervalBaseString );
-		interval.setBase ( SECOND );
-	}
-	else if(intervalBaseStringUpper.startsWith("WEEK") || intervalBaseStringUpper.startsWith("WK")) {
-		interval.setBaseString ( intervalBaseString );
-		interval.setBase ( WEEK );
-	}
-	else if(intervalBaseStringUpper.startsWith("MON")) {
-		interval.setBaseString ( intervalBaseString );
-		interval.setBase ( MONTH );
-	}
-	else if(intervalBaseStringUpper.startsWith("YEAR") || intervalBaseStringUpper.startsWith("YR")) {
-		interval.setBaseString ( intervalBaseString );
-		interval.setBase ( YEAR );
-	}
-	else if(intervalBaseStringUpper.startsWith("IRR")) {
+
+	boolean intervalFound = false; // Use this to check for bad interval, more explicit than checking other values.
+	if ( intervalBaseStringUpper.startsWith("IRR") ) {
+		// Handles:
+		//  IRREGULAR
+		//  IrregHsecond
+		//  IrregSecond
+		//  ...
+		//  IrregYear
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( dl, routine, "Detected irregular interval.  Determining precision." );
+		}
 		interval.setBaseString ( intervalBaseString );
 		interval.setBase ( IRREGULAR );
-	}
-	else {
-	    if ( intervalString.length() == 0 ) {
-			Message.printWarning( 2, routine, "No interval specified." );
+		intervalFound = true;
+		// Set the irregular interval precision:
+		// - list date first and then time
+		// - don't allow the modifiers to be at the start of the string so search for index > 0
+		if( (intervalBaseStringUpper.indexOf("YEAR") > 0) || (intervalBaseStringUpper.indexOf("YR") > 0) ) {
+			interval.irregularPrecision = YEAR;
+		}
+		else if ( intervalBaseStringUpper.indexOf("MON") > 0 ) {
+			interval.irregularPrecision = MONTH;
+		}
+		else if ( (intervalBaseStringUpper.indexOf("WEEK") > 0) || (intervalBaseStringUpper.indexOf("WK") > 0) ) {
+			interval.irregularPrecision = WEEK;
+		}
+		else if ( (intervalBaseStringUpper.indexOf("DAY") > 0) ||  (intervalBaseStringUpper.indexOf("DAI") > 0) ) {
+			interval.irregularPrecision = ( DAY );
+		}
+		else if ( (intervalBaseStringUpper.indexOf("HOUR") > 0) || (intervalBaseStringUpper.indexOf("HR") > 0) ) {
+			interval.irregularPrecision = HOUR;
+		}
+		else if ( intervalBaseStringUpper.indexOf("MIN") > 0 ) {
+			interval.irregularPrecision = MINUTE;
+		}
+		else if ( intervalBaseStringUpper.indexOf("NANO") > 0 ) {
+			interval.irregularPrecision = NANOSECOND;
+		}
+		else if ( intervalBaseStringUpper.indexOf("MICRO") > 0 ) {
+			interval.irregularPrecision = MICROSECOND;
+		}
+		else if ( intervalBaseStringUpper.indexOf("MILLI") > 0 ) {
+			interval.irregularPrecision = MILLISECOND;
+		}
+		else if ( intervalBaseStringUpper.indexOf("HSEC") > 0 ) {
+			interval.irregularPrecision = HSECOND;
+		}
+		else if ( intervalBaseStringUpper.indexOf("SEC") > 0 ) {
+			interval.irregularPrecision = SECOND;
 		}
 		else {
-		    Message.printWarning( 2, routine, "Unrecognized interval \"" +
-			intervalString.substring(digitCount) + "\"" );
+			if ( Message.isDebugOn ) {
+				Message.printDebug( dl, routine, "No precision specified for irregular interval \"" + intervalBaseString + "\", defaulting to second." );
+				interval.irregularPrecision = SECOND;
+			}
 		}
-		throw new InvalidTimeIntervalException ( "Unrecognized time interval \"" + intervalString + "\"" );
+	}
+	else {
+		// Regular interval:
+		// - list date first and then time
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( dl, routine, "Detected regular interval.  Determining base interval." );
+		}
+		if ( intervalBaseStringUpper.startsWith("YEAR") || intervalBaseStringUpper.startsWith("YR") ) {
+			interval.setBaseString ( intervalBaseString );
+			interval.setBase ( YEAR );
+			intervalFound = true;
+		}
+		else if ( intervalBaseStringUpper.startsWith("MON") ) {
+			interval.setBaseString ( intervalBaseString );
+			interval.setBase ( MONTH );
+			intervalFound = true;
+		}
+		else if ( intervalBaseStringUpper.startsWith("WEEK") || intervalBaseStringUpper.startsWith("WK") ) {
+			interval.setBaseString ( intervalBaseString );
+			interval.setBase ( WEEK );
+			intervalFound = true;
+		}
+		else if ( intervalBaseStringUpper.startsWith("DAY") || intervalBaseStringUpper.startsWith("DAI") ) {
+			interval.setBaseString ( intervalBaseString );
+			interval.setBase ( DAY );
+			intervalFound = true;
+		}
+		else if ( intervalBaseStringUpper.startsWith("HOUR") || intervalBaseStringUpper.startsWith("HR") ) {
+			interval.setBaseString ( intervalBaseString );
+			interval.setBase ( HOUR );
+			intervalFound = true;
+		}
+		else if ( intervalBaseStringUpper.startsWith("MIN") ) {
+			interval.setBaseString ( intervalBaseString );
+			interval.setBase ( MINUTE );
+			intervalFound = true;
+		}
+		// List times in decreasing size but put seconds at end since test string may show up in other intervals.
+		else if ( intervalBaseStringUpper.indexOf("HSEC") >= 0 ) {
+			interval.setBaseString ( intervalBaseString );
+			interval.setBase ( HSECOND );
+			intervalFound = true;
+		}
+		else if ( intervalBaseStringUpper.indexOf("MILLI") >= 0 ) {
+			interval.setBaseString ( intervalBaseString );
+			interval.setBase ( MILLISECOND );
+			intervalFound = true;
+		}
+		else if ( intervalBaseStringUpper.indexOf("MICRO") >= 0 ) {
+			interval.setBaseString ( intervalBaseString );
+			interval.setBase ( MICROSECOND );
+			intervalFound = true;
+		}
+		else if ( intervalBaseStringUpper.indexOf("NANO") >= 0 ) {
+			interval.setBaseString ( intervalBaseString );
+			interval.setBase ( NANOSECOND );
+			intervalFound = true;
+		}
+		else if ( intervalBaseStringUpper.startsWith("SEC") ) {
+			// Make sure this is after other interval strings that might include "sec"a.
+			interval.setBaseString ( intervalBaseString );
+			interval.setBase ( SECOND );
+			intervalFound = true;
+		}
+		else {
+			// Interval does not match a known regular interval.
+	    	if ( intervalString.length() == 0 ) {
+				Message.printWarning( 2, routine, "No interval specified.  Can't determine if irregular or regular." );
+			}
+			else {
+		    	Message.printWarning( 2, routine, "Unrecognized interval \"" + intervalString.substring(digitCount) + "\"." );
+			}
+			throw new InvalidTimeIntervalException ( "Unrecognized time interval \"" + intervalString + "\"." );
+		}
+	}
+
+	if ( !intervalFound ) {
+		throw new InvalidTimeIntervalException ( "Unrecognized time interval \"" + intervalString + "\"." );
 	}
 
 	if ( Message.isDebugOn ) {
@@ -911,30 +1080,38 @@ throws InvalidTimeIntervalException
 
 /**
 Set the interval base.
-@return Zero if successful, non-zero if not.
 @param base Time series interval.
 */
-public void setBase ( int base )
-{	__intervalBase = base;
+public void setBase ( int base ) {
+	__intervalBase = base;
 }
 
 /**
 Set the interval base string.  This is normally only called by other methods within this class.
-@return Zero if successful, non-zero if not.
 @param base_string Time series interval base as string.
 */
-public void setBaseString ( String base_string )
-{	if ( base_string != null ) {
+public void setBaseString ( String base_string ) {
+	if ( base_string != null ) {
 		__intervalBaseString = base_string;
 	}
+}
+
+/**
+Set the irregular interval precision.
+This method should only be called in particular cases.
+Normally the 'parseInterval' method handles setting.
+@param base Time series interval.
+*/
+public void setIrregularIntervalPrecision ( int precision ) {
+	this.irregularPrecision = precision;
 }
 
 /**
 Set the interval multiplier.
 @param mult Time series interval.
 */
-public void setMultiplier ( int mult )
-{	__intervalMult = mult;
+public void setMultiplier ( int mult ) {
+	__intervalMult = mult;
 }
 
 /**
@@ -976,14 +1153,23 @@ public int toSeconds ()
 }
 
 /**
-Return the number of seconds in an interval, accounting for the base interval
-and multiplier.  For intervals greater than a day, the seconds are computed
-assuming 30 days per month (360 days per year).  Intervals of HSecond will
-return 0.  The result of this method can then be used to perform relative comparisons of intervals.
+Return the number of seconds in an interval, accounting for the base interval and multiplier.
+For intervals greater than a day, the seconds are computed assuming 30 days per month (360 days per year).
+Intervals of HSecond or smaller will return 0.
+The result of this method can then be used to perform relative comparisons of intervals.
 @return Number of seconds in an interval.
 */
-public int toSecondsApproximate ()
-{	if ( __intervalBase == HSECOND ) {
+public int toSecondsApproximate () {
+	if ( __intervalBase == NANOSECOND ) {
+		return 0;
+	}
+	else if ( __intervalBase == MICROSECOND ) {
+		return 0;
+	}
+	else if ( __intervalBase == MILLISECOND ) {
+		return 0;
+	}
+	else if ( __intervalBase == HSECOND ) {
 		return 0;
 	}
 	else if ( __intervalBase == SECOND ) {
@@ -1010,7 +1196,7 @@ public int toSecondsApproximate ()
 		return 31104000*__intervalMult;
 	}
 	else {
-	    // Should not happen...
+	    // Should not happen.
 		return -1;
 	}
 }

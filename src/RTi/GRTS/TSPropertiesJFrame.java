@@ -36,7 +36,6 @@ import java.awt.event.WindowListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -55,6 +54,7 @@ import RTi.TS.TS;
 import RTi.TS.TSUtil;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJButton;
+import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.PrintJGUI;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
@@ -160,11 +160,11 @@ Create a data table that contains time series properties.
 private DataTable createPropertyTable ( TS ts )
 {
     HashMap<String,Object> properties = ts.getProperties();
-    ArrayList<String> keyList = new ArrayList<String>(properties.keySet());
+    ArrayList<String> keyList = new ArrayList<>(properties.keySet());
     // Don't sort because order of properties often has some meaning.  Users can sort displayed table.
     //Collections.sort(keyList);
     // Get the length of the name and values to set the table width.
-    // TODO SAM 2011-04-25 Sure would be nice to not have to do this
+    // TODO SAM 2011-04-25 Sure would be nice to not have to do this.
     int nameLength = 25;
     int valueLength = 25;
     for ( String key : keyList ) {
@@ -175,7 +175,7 @@ private DataTable createPropertyTable ( TS ts )
         }
         valueLength = Math.max(valueLength, ("" + value).length());
     }
-    List<TableField> tableFields = new Vector<TableField>();
+    List<TableField> tableFields = new ArrayList<>();
     nameLength = -1;
     valueLength = -1;
     tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Property Name",nameLength) );
@@ -202,31 +202,15 @@ private DataTable createPropertyTable ( TS ts )
             }
         }
         // TODO SAM 2010-10-08 Should objects be used?
-        rec.addFieldValue( "" + value ); // To force string, no matter the value
+        rec.addFieldValue( "" + value ); // To force string, no matter the value.
         try {
             table.addRecord(rec);
         }
         catch ( Exception e2 ) {
-            // Should not happen
+            // Should not happen.
         }
     }
     return table;
-}
-
-/**
-Clean up before garbage collection.
-@exception Throwable if there is an error.
-*/
-protected void finalize ()
-throws Throwable
-{	__ts = null;
-	__props_JTabbedPane = null;
-	__comments_JTextArea = null;
-	__history_JTextArea = null;
-	__print_JButton = null;
-	__history_JPanel = null;
-	__comments_JPanel = null;
-	super.finalize();
 }
 
 /**
@@ -236,20 +220,20 @@ Open the properties GUI.
 private void openGUI ( boolean mode )
 {	String	routine = "TSViewPropertiesJFrame.openGUI";
 
-	// Start a big try block to set up the GUI...
+	// Start a big try block to set up the GUI.
 	try {
 
-	// Add a listener to catch window manager events...
+	// Add a listener to catch window manager events.
 
 	addWindowListener ( this );
 	GridBagLayout gbl = new GridBagLayout();
-	Insets insetsTLBR = new Insets ( 2, 2, 2, 2 );	// space around text area
+	Insets insetsTLBR = new Insets ( 2, 2, 2, 2 );	// Space around text area.
 	
-	// Font for reports (fixed width)...
+	// Font for reports (fixed width).
 
 	Font report_Font = new Font ( "Courier", Font.PLAIN, 11 );
 	
-	// Add a panel to hold the main components...
+	// Add a panel to hold the main components.
 
 	JPanel display_JPanel = new JPanel ();
 	display_JPanel.setLayout ( gbl );
@@ -262,7 +246,7 @@ private void openGUI ( boolean mode )
 			insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER );
 
 	//
-	// General Tab...
+	// General Tab.
 	//
 
 	JPanel general_JPanel = new JPanel();
@@ -274,6 +258,7 @@ private void openGUI ( boolean mode )
 			0, y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	JTextField identifier_JTextField = new JTextField(__ts.getIdentifierString(), 50);
+	identifier_JTextField.setToolTipText ( "Period-delimited time series identifier (TSID), to uniquely identify the time series." );
 	identifier_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( general_JPanel, identifier_JTextField,
 			1, y, 6, 1, 0.0, 0.0,
@@ -283,8 +268,9 @@ private void openGUI ( boolean mode )
 	JGUIUtil.addComponent ( general_JPanel, new JLabel( "Identifier (with input):"),
 			0, ++y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	// Limit the length of this field...
+	// Limit the length of this field.
 	JTextField input_JTextField = new JTextField( __ts.getIdentifier().toString(true), 50 );
+	input_JTextField.setToolTipText ( "Period-delimited time series identifier, with ~InputName if the time series was read from a file, database, etc." );
 	input_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( general_JPanel, input_JTextField,
 			1, y, 6, 1, 1.0, 0.0,
@@ -294,6 +280,7 @@ private void openGUI ( boolean mode )
 			0, ++y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	JTextField alias_JTextField = new JTextField( __ts.getAlias(), 50 );
+	alias_JTextField.setToolTipText ( "Alternative to the time series identifier." );
 	alias_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( general_JPanel, alias_JTextField,
 			1, y, 2, 1, 0.0, 0.0,
@@ -304,6 +291,7 @@ private void openGUI ( boolean mode )
 			0, ++y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	JTextField seqnum_JTextField = new JTextField("" + __ts.getSequenceID(), 5);
+	seqnum_JTextField.setToolTipText ( "Identifier for the trace in an ensemble, for example the historical year." );
 	seqnum_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( general_JPanel, seqnum_JTextField,
 			1, y, 2, 1, 0.0, 0.0,
@@ -313,67 +301,109 @@ private void openGUI ( boolean mode )
 	JGUIUtil.addComponent ( general_JPanel, new JLabel("Description:"),
 			0, ++y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	// Set a maximum size so this does not get outrageously big...
+	// Set a maximum size so this does not get outrageously big.
 	JTextField description_JTextField=new JTextField(__ts.getDescription(),50);
+	description_JTextField.setToolTipText ( "A short description, typically including the location and data type." );
 	description_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( general_JPanel, description_JTextField,
 			1, y, 6, 1, 1.0, 0.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 	description_JTextField = null;
 
-	JGUIUtil.addComponent ( general_JPanel, new JLabel("Units (Current):"),
+	JGUIUtil.addComponent ( general_JPanel, new JLabel("Units (current):"),
 			0, ++y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	JTextField units_JTextField = new JTextField( __ts.getDataUnits(), 10);
+	units_JTextField.setToolTipText ( "Data units." );
 	units_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( general_JPanel, units_JTextField,
 			1, y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	units_JTextField = null;
 
-	JGUIUtil.addComponent ( general_JPanel, new JLabel("Units (Original):"),
+	JGUIUtil.addComponent ( general_JPanel, new JLabel("Units (original):"),
 			0, ++y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	JTextField unitsorig_JTextField =
-			new JTextField( __ts.getDataUnitsOriginal(), 10);
+	JTextField unitsorig_JTextField = new JTextField( __ts.getDataUnitsOriginal(), 10);
+	unitsorig_JTextField.setToolTipText ( "Data units, from the time series when created or read." );
 	unitsorig_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( general_JPanel, unitsorig_JTextField,
 			1, y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	unitsorig_JTextField = null;
 
-	JCheckBox isselected_JCheckBox = new JCheckBox ( "Is Selected", __ts.isSelected() );
+	String tsUnits = __ts.getDataUnits();
+	String precisionFromUnits = "";
+	if ( (tsUnits != null) && !tsUnits.isEmpty() ) {
+		try {
+		    DataUnits u = DataUnits.lookupUnits ( tsUnits );
+			precisionFromUnits = "" + u.getOutputPrecision();
+		}
+		catch ( Exception e ) {
+			// No precision from units.
+		}
+	}
+	JGUIUtil.addComponent ( general_JPanel, new JLabel("Precision (from units):"),
+			0, ++y, 1, 1, 0.0, 0.0,
+			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
+	JTextField precisionFromUnits_JTextField = new JTextField(precisionFromUnits, 10);
+	precisionFromUnits_JTextField.setToolTipText ( "Data precision (digits after decimal point), determined from data units." );
+	precisionFromUnits_JTextField.setEditable ( false );
+	JGUIUtil.addComponent ( general_JPanel, precisionFromUnits_JTextField,
+			1, y, 1, 1, 0.0, 0.0,
+			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
+	unitsorig_JTextField = null;
+
+	String precisionSpecified = "";
+	if ( __ts.getDataPrecision() >= 0 ) {
+		precisionSpecified = "" + __ts.getDataPrecision();
+	}
+	JGUIUtil.addComponent ( general_JPanel, new JLabel("Precision (specified):"),
+			0, ++y, 1, 1, 0.0, 0.0,
+			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
+	JTextField precisionSpecified_JTextField = new JTextField(precisionSpecified, 10);
+	precisionSpecified_JTextField.setToolTipText ( "Data precision (digits after decimal point) specified directly, overrides precision from units." );
+	precisionSpecified_JTextField.setEditable ( false );
+	JGUIUtil.addComponent ( general_JPanel, precisionSpecified_JTextField,
+			1, y, 1, 1, 0.0, 0.0,
+			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
+	unitsorig_JTextField = null;
+
+	JCheckBox isselected_JCheckBox = new JCheckBox ( "Is selected?", __ts.isSelected() );
 	isselected_JCheckBox.setEnabled ( false );
+	isselected_JCheckBox.setToolTipText ( "Is the time series selected?" );
 	JGUIUtil.addComponent ( general_JPanel, isselected_JCheckBox,
 			1, ++y, 1, 1, 1.0, 0.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 	isselected_JCheckBox = null;
     
-    JCheckBox iseditable_JCheckBox = new JCheckBox ( "Is Editable", __ts.isEditable() );
+    JCheckBox iseditable_JCheckBox = new JCheckBox ( "Is editable?", __ts.isEditable() );
     iseditable_JCheckBox.setEnabled ( false );
+	iseditable_JCheckBox.setToolTipText ( "Is the time series editable when viewed?" );
     JGUIUtil.addComponent ( general_JPanel, iseditable_JCheckBox,
             1, ++y, 1, 1, 1.0, 0.0,
             insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
     iseditable_JCheckBox = null;
 
-	JCheckBox isdirty_JCheckBox = new JCheckBox ( "Is Dirty (data edited without recomputing limits)", __ts.isDirty() );
+	JCheckBox isdirty_JCheckBox = new JCheckBox ( "Is dirty (data edited without recomputing limits)?", __ts.isDirty() );
 	isdirty_JCheckBox.setEnabled ( false );
+	isdirty_JCheckBox.setToolTipText ( "Is the time series dirty?  Data have been modified but limits have not been recomputed." );
 	JGUIUtil.addComponent ( general_JPanel, isdirty_JCheckBox,
 			1, ++y, 1, 1, 1.0, 0.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 	isdirty_JCheckBox = null;
 	
-    // Properties tab...
+    // Properties tab.
 
     JPanel properties_JPanel = new JPanel();
     properties_JPanel.setLayout ( gbl );
-    __props_JTabbedPane.addTab ( "Properties", null, properties_JPanel, "Dynamic properties" );
+    __props_JTabbedPane.addTab ( "Properties", null, properties_JPanel, "Time series properties set during processing." );
     JGUIUtil.addComponent ( properties_JPanel,
             new JScrollPane (new DataTable_JPanel(this, createPropertyTable(__ts))),
             0, y, 6, 1, 1.0, 1.0,
             insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER );
 
-	// Comments Tab...
+	// Comments Tab.
 
 	__comments_JPanel = new JPanel();
 	__comments_JPanel.setLayout ( gbl );
@@ -390,7 +420,7 @@ private void openGUI ( boolean mode )
 			insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER );
 
 	//
-	// Period Tab...
+	// Period Tab.
 	//
 
 	JPanel period_JPanel = new JPanel();
@@ -398,11 +428,11 @@ private void openGUI ( boolean mode )
 	__props_JTabbedPane.addTab ( "Period", null, period_JPanel, "Period" );
 
 	y = 0;
-	JGUIUtil.addComponent ( period_JPanel, new JLabel("Current (reflects manipulation):"),
+	JGUIUtil.addComponent ( period_JPanel, new JLabel("Current (reflects processing):"),
 			0, y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	JTextField period_JTextField = new JTextField( " " + __ts.getDate1() + " to "+
-		__ts.getDate2(), 30);
+	JTextField period_JTextField = new JTextField( " " + __ts.getDate1() + " to "+ __ts.getDate2(), 50 );
+	period_JTextField.setToolTipText ( "Data period (may contain missing values at ends)." );
 	period_JTextField.setEditable(false);
 	JGUIUtil.addComponent ( period_JPanel, period_JTextField,
 		1, y, 2, 1, 0.0, 0.0,
@@ -412,8 +442,8 @@ private void openGUI ( boolean mode )
 	JGUIUtil.addComponent ( period_JPanel, new JLabel(
 		"Original (from input):"), 0, ++y, 1, 1, 0.0, 0.0,
 		insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	JTextField origperiod_JTextField = new JTextField( " " + __ts.getDate1Original() +
-		" to " + __ts.getDate2Original(), 30  );
+	JTextField origperiod_JTextField = new JTextField( " " + __ts.getDate1Original() + " to " + __ts.getDate2Original(), 50 );
+	origperiod_JTextField.setToolTipText ( "Original data period, from input source (may contain missing values at ends)." );
 	origperiod_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( period_JPanel, origperiod_JTextField,
 		1, y, 2, 1, 0.0, 0.0,
@@ -424,6 +454,7 @@ private void openGUI ( boolean mode )
 			0, ++y, 1, 1, 0, 0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	JTextField points_JTextField = new JTextField( " " + __ts.getDataSize());
+	points_JTextField.setToolTipText ( "Number of data points (points may be missing values)." );
 	points_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( period_JPanel, points_JTextField,
 			1, y, 1, 1, 0.0, 0.0,
@@ -431,7 +462,7 @@ private void openGUI ( boolean mode )
 	points_JTextField = null;
 
 	//
-	// Limits Tab...
+	// Limits Tab.
 	//
 
 	JPanel limits_JPanel = new JPanel();
@@ -457,9 +488,10 @@ private void openGUI ( boolean mode )
 				__ts.getDate2())).toString(),15,80 );
 		}
 		catch ( Exception e ) {
-			limits_JTextArea = new JTextArea("No Limits Available",5,80);
+			limits_JTextArea = new JTextArea("No limits available",5,80);
 		}
 	}
+    limits_JTextArea.setToolTipText ( "Data limits (statistics)." );
 	limits_JTextArea.setEditable ( false );
 	limits_JTextArea.setFont ( report_Font );
 	JGUIUtil.addComponent ( limits_JPanel,
@@ -475,13 +507,14 @@ private void openGUI ( boolean mode )
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	JTextArea origlim_JTextArea = null;
 	if ( __ts.getDataLimitsOriginal() == null ) {
-		origlim_JTextArea = new JTextArea( "No Limits Available");
+		origlim_JTextArea = new JTextArea( "No limits available");
 	}
 	else {
 	    origlim_JTextArea = new JTextArea(__ts.getDataLimitsOriginal().toString(),10,80);
 		origlim_JTextArea.setFont ( report_Font );
 		origlim_JTextArea.setEditable ( false );
 	}
+    origlim_JTextArea.setToolTipText ( "Data limits (statistics), from time series when read or created." );
 	origlim_JTextArea.setEditable(false);
 	JGUIUtil.addComponent ( limits_JPanel,
 			new JScrollPane ( origlim_JTextArea ),
@@ -489,16 +522,16 @@ private void openGUI ( boolean mode )
 			insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER );
 
 	//
-	// History Tab...
+	// History Tab.
 	//
 
 	__history_JPanel = new JPanel();
 	__history_JPanel.setLayout ( gbl );
 	__props_JTabbedPane.addTab("History", null, __history_JPanel,"History");
 	y = 0;
-	__history_JTextArea = new JTextArea(
-			StringUtil.toString(__ts.getGenesis(),System.getProperty("line.separator")),5,80);
+	__history_JTextArea = new JTextArea( StringUtil.toString(__ts.getGenesis(),System.getProperty("line.separator")),5,80);
 	__history_JTextArea.setFont ( report_Font );
+    __history_JTextArea.setToolTipText ( "History of how time series has been processed." );
 	__history_JTextArea.setEditable ( false );
 	JGUIUtil.addComponent ( __history_JPanel,
 			new JScrollPane (__history_JTextArea),
@@ -509,6 +542,7 @@ private void openGUI ( boolean mode )
 			0, ++y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	JTextField inputname_JTextField = new JTextField( __ts.getInputName());
+    inputname_JTextField.setToolTipText ( "Original data source (file, database, web service, etc.)." );
 	inputname_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( __history_JPanel, inputname_JTextField,
 			1, y, 6, 1, 1.0, 0.0,
@@ -516,7 +550,7 @@ private void openGUI ( boolean mode )
 	inputname_JTextField = null;
 
 	//
-	// Data Flags Tab...
+	// Data Flags Tab.
 	//
 
 	JPanel dataflags_JPanel = new JPanel();
@@ -527,22 +561,23 @@ private void openGUI ( boolean mode )
 	JGUIUtil.addComponent ( dataflags_JPanel, new JLabel(
 			"Missing Data Value:"), 0, y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	JTextField missing_JTextField = new JTextField( StringUtil.formatString(
-			__ts.getMissing(),"%.4f"), 15);
+	JTextField missing_JTextField = new JTextField( StringUtil.formatString( __ts.getMissing(),"%.4f"), 15);
+    missing_JTextField.setToolTipText ( "Value that indicates missing data." );
 	missing_JTextField.setEditable(false);
 	JGUIUtil.addComponent ( dataflags_JPanel, missing_JTextField,
 			1, y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	missing_JTextField = null;
 
-	JCheckBox hasdataflags_JCheckBox = new JCheckBox ( "Has Data Flags", __ts.hasDataFlags() );
+	JCheckBox hasdataflags_JCheckBox = new JCheckBox ( "Has data flags?", __ts.hasDataFlags() );
 	hasdataflags_JCheckBox.setEnabled ( false );
+    hasdataflags_JCheckBox.setToolTipText ( "Indicates whether data flags are used for values." );
 	JGUIUtil.addComponent ( dataflags_JPanel, hasdataflags_JCheckBox,
 			0, ++y, 2, 1, 1.0, 0.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 	hasdataflags_JCheckBox = null;
 
-	// Put the buttons on the bottom of the window...
+	// Put the buttons on the bottom of the window.
 
 	JPanel button_JPanel = new JPanel ();
 	button_JPanel.setLayout ( new FlowLayout(FlowLayout.CENTER) );
@@ -563,7 +598,7 @@ private void openGUI ( boolean mode )
 	}
 
 	pack ();
-	// Get the UI component to determine screen to display on - needed for multiple monitors
+	// Get the UI component to determine screen to display on - needed for multiple monitors.
 	Object uiComponentO = __props.getContents( "TSViewParentUIComponent" );
 	Component parentUIComponent = null;
 	if ( (uiComponentO != null) && (uiComponentO instanceof Component) ) {
@@ -572,7 +607,7 @@ private void openGUI ( boolean mode )
 	JGUIUtil.center ( this, parentUIComponent );
 	setResizable ( false );
 	setVisible ( mode );
-	} // end of try
+	} // End of try.
 	catch ( Exception e ) {
 		Message.printWarning ( 2, routine, e );
 	}
@@ -583,7 +618,7 @@ React to tab selections.  Currently all that is done is the Print button is enab
 @param e the ChangeEvent that happened.
 */
 public void stateChanged ( ChangeEvent e )
-{	// Check for null because events are sometimes generated at startup...
+{	// Check for null because events are sometimes generated at startup.
 	if ( (__props_JTabbedPane.getSelectedComponent()==__history_JPanel)||
 		(__props_JTabbedPane.getSelectedComponent() == __comments_JPanel)){
 		JGUIUtil.setEnabled ( __print_JButton, true );
@@ -593,7 +628,7 @@ public void stateChanged ( ChangeEvent e )
 	}
 }
 
-// WindowListener functions...
+// WindowListener functions.
 
 public void windowActivated( WindowEvent evt )
 {

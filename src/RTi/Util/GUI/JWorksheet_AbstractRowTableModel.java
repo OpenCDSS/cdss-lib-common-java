@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@ public abstract class JWorksheet_AbstractRowTableModel<T> extends JWorksheet_Abs
 Returns the Object stored in the Table Model data at the given position, or
 null if the given row is out of the range of the rows.
 @param row the row for which to return data.
-@return the Object stored in the _data Vector at the given position.
+@return the Object stored in the _data list at the given position.
 */
 public T getRowData(int row) {
 	if (row > _rows || row < 0) {

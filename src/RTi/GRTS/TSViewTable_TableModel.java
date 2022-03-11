@@ -154,8 +154,9 @@ The time zone for all irregular time series (if __irregularTZSame).
 private String __irregularTZ = "";
 
 /**
-The list of prototype DateTime objects to use for getValue() calls.  This ensures that the timezone is consistent
-with the time series.  All other values will be set before calling getValue().
+The list of prototype DateTime objects to use for getValue() calls.
+This ensures that the timezone is consistent with the time series.
+All other values will be set before calling getValue().
 */
 private DateTime [] __irregularPrototypeDateTime = null;
 
@@ -287,8 +288,8 @@ throws Exception
 	    if ( d != null ) {
 	        __irregularDateTimePrecision = d.getPrecision();
 	    }
-	    // Determine if all the time series have a consistent time zone.  If yes, the time zone will
-	    // be displayed in the date/time column.  If no, the time zone is removed.
+	    // Determine if all the time series have a consistent time zone.
+	    // If yes, the time zone will be displayed in the date/time column.  If no, the time zone is removed.
 	    // Column tool-tips include the time zone.
 	    // Also save a prototype DateTime for each time series that matches Date1, which will be used for getValue()
 	    // to make sure the time zone is handled.
@@ -315,10 +316,10 @@ throws Exception
                 }
     	    }
 	    }
-	    // Cache for irregular time series is handled differently
-	    // Do this AFTER doing the time zone comparison above
+	    // Cache for irregular time series is handled differently.
+	    // Do this AFTER doing the time zone comparison above.
         createIrregularTSDateTimeCache ();
-        __intervalMult = -1; // Should not be used for irregular
+        __intervalMult = -1; // Should not be used for irregular.
 	}
 	else {
 	    __cacheInterval = cacheInterval;
@@ -375,7 +376,7 @@ throws Exception
     		}
     	}
 	}
-	// Adjust columns if the row is being shown for troubleshooting
+	// Adjust columns if the row is being shown for troubleshooting.
     if ( __showRow ) {
         ++__columns;
     }
@@ -388,8 +389,8 @@ The worksheet row=0 will correspond to the first date/time.
 private void createIrregularTSDateTimeCache ()
 throws TSException
 {   String routine = getClass().getSimpleName() + ".createIrregularTSDateTimeCache";
-    // More than one irregular time series.  They at least have to have the same date/time precision
-    // for the period.  Otherwise it will be difficult to navigate the data.
+    // More than one irregular time series.  They at least have to have the same date/time precision for the period.
+	// Otherwise it will be difficult to navigate the data.
     int irrPrecision = __irregularDateTimePrecision;
     int tsPrecision;
     List<TS> tslist = _data;
@@ -405,21 +406,21 @@ throws TSException
         }
         tsPrecision = ts.getDate1().getPrecision();
         if ( tsPrecision == TimeInterval.IRREGULAR ) {
-            // Treat as minute
+            // Treat as minute precision.
             tsPrecision = DateTime.PRECISION_MINUTE;
         }
         if ( irrPrecision == -1 ) {
-            // Just assign
+            // Just assign.
             irrPrecision = tsPrecision;
         }
         else if ( irrPrecision != tsPrecision ) {
-            // This will be a problem in processing the data
+            // This will be a problem in processing the data.
             String message = "Irregular time series do not have the same date/time precision by checking period start and end.  Can't display";
             Message.printWarning ( 2, routine, message );
             throw new UnequalTimeIntervalException ( message );
         }
     }
-    // Was able to determine the precision of data so can continue
+    // Was able to determine the precision of data so can continue.
     // The logic works as follows:
     // 0) Advance the iterator for each time series to initialize
     // 1) Find the earliest date/time in the iterator current position
@@ -430,28 +431,28 @@ throws TSException
     // 4) Go to step 1
     // Create iterators for each time series
     TSIterator [] tsIteratorArray = new TSIterator[tslist.size()];
-    __irregularDateTimeCache = new ArrayList<DateTime>();
+    __irregularDateTimeCache = new ArrayList<>();
     for ( int its = 0; its < size; its++ ) {
         if ( tslist.get(its) == null ) {
-            tsIteratorArray[its] = null; // Keep same order as time series
+            tsIteratorArray[its] = null; // Keep same order as time series.
         }
         ts = (IrregularTS)tslist.get(its);
         try {
-            tsIteratorArray[its] = ts.iterator(); // Iterate through full period
+            tsIteratorArray[its] = ts.iterator(); // Iterate through full period.
         }
         catch ( Exception e ) {
-            tsIteratorArray[its] = null;; // Keep same order as time series
+            tsIteratorArray[its] = null;; // Keep same order as time series.
         }
     }
     int its;
     TSIterator itsIterator;
-    // Use the following to extract dates from each time series
+    // Use the following to extract dates from each time series.
     // A call to the iterator next() method will return null when no more data, which is
-    // the safest way to process the data
+    // the safest way to process the data.
     TSData [] tsdata = new TSData[tslist.size()];
-    TSData tsdataMin = null; // Used to find min date/time for all the iterators
-    DateTime dtMin = null; // Used to compare date/times for all the iterators
-    DateTime dtCached = null; // Cached date/time
+    TSData tsdataMin = null; // Used to find min date/time for all the iterators.
+    DateTime dtMin = null; // Used to compare date/times for all the iterators.
+    DateTime dtCached = null; // Cached date/time.
     int iteratorMin = -1;
     int loopCount = 0;
     while ( true ) {
@@ -486,11 +487,11 @@ throws TSException
                 }
             }
             else {
-                // Have a non-null first date/time to compare to so check this iterator against it
-                // The lessThan() method DOES NOT compare time zone in any case
+                // Have a non-null first date/time to compare to so check this iterator against it.
+                // The lessThan() method DOES NOT compare time zone in any case.
                 if ( (tsdata[its] != null) && tsdata[its].getDate().lessThan(dtMin) ) {
-                    // Have found an earlier date/time to be used in the comparison
-                    // Note - time zone is NOT checked
+                    // Have found an earlier date/time to be used in the comparison.
+                    // Note - time zone is NOT checked.
                     dtMin = tsdata[its].getDate();
                     tsdataMin = tsdata[its];
                     iteratorMin = its;
@@ -498,16 +499,16 @@ throws TSException
                 }
             }
         }
-        // 2) Add to the cache
+        // 2) Add to the cache.
         if ( dtMin == null ) {
-            // Done processing all data
+            // Done processing all data.
             break;
         }
         // Create a new instance so independent of any data manipulations.
-        // Create a fast instance since it will be used for iteration and data access but not be manipulated or checked
+        // Create a fast instance since it will be used for iteration and data access but not be manipulated or checked.
         dtCached = new DateTime(dtMin,DateTime.DATE_FAST);
         if ( !__irregularTZSame ) {
-            // Set the timezone to blank for cached date/times rather than showing wrong time zone that might be misinterpreted
+            // Set the timezone to blank for cached date/times rather than showing wrong time zone that might be misinterpreted.
             dtCached.setTimeZone("");
         }
         __irregularDateTimeCache.add(dtCached);
@@ -515,11 +516,11 @@ throws TSException
         // 3) Advance the iterator for the one with the minimum date/time and all with the same date/time
         // Note - time zone is NOT checked by equals()
         for ( its = 0; its < size; its++ ) {
-            // First check below increases performance a bit
-            // Use the prototype date if available to ensure that time zone is handled
+            // First check below increases performance a bit.
+            // Use the prototype date if available to ensure that time zone is handled.
             if ( (__irregularPrototypeDateTime != null) && (__irregularPrototypeDateTime[its] != null) ) {
-                // Use the prototype DateTime (which has proper time zone) and overwrite the specific date/time values
-                // Do not call setDate() because it will set whether to use time zone and defeat the purpose of the prototype
+                // Use the prototype DateTime (which has proper time zone) and overwrite the specific date/time values.
+                // Do not call setDate() because it will set whether to use time zone and defeat the purpose of the prototype.
                 __irregularPrototypeDateTime[its].setYear(dtMin.getYear());
                 __irregularPrototypeDateTime[its].setMonth(dtMin.getMonth());
                 __irregularPrototypeDateTime[its].setDay(dtMin.getDay());
@@ -534,14 +535,14 @@ throws TSException
             }
         }
     }
-    // Set the number of rows
+    // Set the number of rows.
     _rows = __irregularDateTimeCache.size();
     if ( _rows > 0 ) {
         //Message.printStatus(2, routine, "Number of cached irregular date/times=" + _rows +
         //    " first date/time=" + __irregularDateTimeCache.get(0) +
         //    " last date/time=" + __irregularDateTimeCache.get(_rows - 1) );
     }
-    // Dump out the calls to the table model
+    // Dump out the calls to the table model.
     //for ( int row = 0; row < _rows; row++ ) {
     //    Message.printStatus(2,routine + "2","Row [" + row + "] " + getValueAtIrregular(row, 0));
     //}
@@ -568,14 +569,14 @@ Returns the class of the data stored in a given column.
 */
 public Class<?> getColumnClass (int columnIndex) {
 	if ( columnIndex == 0 ) {
-	    return String.class; // Date/Time
+	    return String.class; // Date/Time.
 	}
     else if ( __showRow && (columnIndex == (__columns - 1)) ) {
         return String.class;
     }
 	else {
-		// TS data
-	    // If data flags are superscripted, return a String
+		// TS data.
+	    // If data flags are superscripted, return a String.
 	    if ( __dataFlagVisualizationType == TSDataFlagVisualizationType.SUPERSCRIPT ) {
 	        return String.class;
 	    }
@@ -600,8 +601,7 @@ be alias (or location), sequence number, data type, units.  If a time series pro
 format will be used to format the string.  The format can contain % and ${ts:Property} specifiers.
 @return the name of the column at the given position.
 */
-public String getColumnName(int columnIndex)
-{
+public String getColumnName(int columnIndex) {
 	if ( columnIndex == 0 ) {
 		if ((__intervalBase == TimeInterval.HOUR) || (__intervalBase == TimeInterval.MINUTE)) {
 			return "DATE/TIME";
@@ -620,7 +620,7 @@ public String getColumnName(int columnIndex)
 	    return "ROW";
 	}
 	
-	// Otherwise the column names depends on time series properties
+	// Otherwise the column names depends on time series properties.
     TS ts = (TS)_data.get(columnIndex - 1);
     
     Object propVal = ts.getProperty("TableViewHeaderFormat");
@@ -629,8 +629,8 @@ public String getColumnName(int columnIndex)
         return ts.formatLegend(format);
     }
 
-	// The following are expensive String operations (concats, etc), but
-	// this method is not called very often (just once when the table is
+	// The following are expensive String operations (concats, etc),
+    // but this method is not called very often (just once when the table is
 	// first displayed?) so this shouldn't be a problem.
 
 	if (__useExtendedLegend && (ts.getExtendedLegend().length() != 0)) {
@@ -668,8 +668,7 @@ public String getColumnName(int columnIndex)
 Returns an array containing the column tool tips.
 @return an array containing the column tool tips.
 */
-public String[] getColumnToolTips()
-{
+public String[] getColumnToolTips() {
     String[] tt = new String[__columns];
     TS ts;
     StringBuilder sb = new StringBuilder (
@@ -679,7 +678,7 @@ public String[] getColumnToolTips()
         	"because all irregular time series have the same time zone.");
     }
     else {
-        // Time zones are not equal and therefore time zone is set to blank for the date/time cache
+        // Time zones are not equal and therefore time zone is set to blank for the date/time cache.
         sb.append("<br>The time zone for the date/time column has been removed because the time zone is different for the time series." );
         sb.append("<br>See column heading tool tips for each time zone.");
         sb.append("<br>If desired, display a table for only time series with the same time zone.");
@@ -842,11 +841,11 @@ public String getFormat(int column) {
     }
 	else {
 	    if ( __dataFlagVisualizationType == TSDataFlagVisualizationType.SUPERSCRIPT ) {
-	        // Data value is represented as string with flag as superscript
+	        // Data value is represented as string with flag as superscript.
 	        return "%s";
 	    }
 	    else {
-	        // Not displaying data flags so format number
+	        // Not displaying data flags so format number.
 	        return __dataFormats[column-1];
 	    }
 	}
@@ -907,10 +906,9 @@ Returns the data that should be placed in the JTable at the given row and column
 @param col the column for which to return data.
 @return the data that should be placed in the JTable at the given row and col.
 */
-public Object getValueAt(int row, int col)
-{
+public Object getValueAt(int row, int col) {
     if ( __intervalBase == TimeInterval.IRREGULAR ) {
-        // Irregular data have all the date/times cached consistent with rows so handle specifically
+        // Irregular data have all the date/times cached consistent with rows so handle specifically.
         return getValueAtIrregular(row,col);
     }
 
@@ -922,15 +920,15 @@ public Object getValueAt(int row, int col)
 	double y = __worksheet.getVisibleRect().getY();	
 	
 	// If it's a new Y point from the last time getValueAt was called,
-	// then that means some scrolling has occurred and the top-most row
-	// is new.  Need to recalculate the date of the top most row
+	// then that means some scrolling has occurred and the top-most row is new.
+	// Need to recalculate the date of the top most row.
 
 	if (__previousTopmostVisibleY != y) {
 		__previousTopmostVisibleY = y;
 		__firstVisibleRow = __worksheet.rowAtPoint(new Point(0,(int)y));
 
 		// Calculate its date time by looking up the nearest 
-		// cached one and adding the remainder of intervals to it
+		// cached one and adding the remainder of intervals to it.
 		__firstVisibleRowDate = new DateTime( __cachedDates[__firstVisibleRow / __cacheInterval]);
 		int precision = 0;
 		if (__intervalBase == TimeInterval.MINUTE) {
@@ -965,13 +963,13 @@ public Object getValueAt(int row, int col)
 		row = _sortOrder[row];
 	}
 
-	// getValueAt is called row-by-row when a worksheet displays its
-	// data, so the current working date (with which data for the current
+	// The getValueAt function is called row-by-row when a worksheet displays its data,
+	// so the current working date (with which data for the current
 	// row is read) only needs to be recalculated when a new row is moved to.
 	if (row != __lastRowRead) {
 		__lastRowRead = row;
 
-		// Quicker than doing a 'new DateTime'
+		// Quicker than doing a 'new DateTime'.
 		__workingDate.setHSecond ( __firstVisibleRowDate.getHSecond() );
 		__workingDate.setSecond ( __firstVisibleRowDate.getSecond() );
 		__workingDate.setMinute ( __firstVisibleRowDate.getMinute() );
@@ -980,7 +978,7 @@ public Object getValueAt(int row, int col)
 		__workingDate.setMonth ( __firstVisibleRowDate.getMonth() );
 		__workingDate.setYear ( __firstVisibleRowDate.getYear() );
 
-		// Calculate the date for the current row read
+		// Calculate the date for the current row read.
 		if (__intervalBase == TimeInterval.MINUTE) {
 			__workingDate.addMinute(((row - __firstVisibleRow)* __intervalMult));
 		}	
@@ -1002,13 +1000,6 @@ public Object getValueAt(int row, int col)
 		return __workingDate.toString();
 	}
 
-	// TODO JTS - 2006-05-24
-	// It's possible that a VERY slight performance gain could be made
-	// by using an array to access the time series, rather than doing a 
-	// cast out of a Vector.  JTS has found that given these two statements:
-	// 	- ts = (TS) vector.elementAt(i);
-	//	- ts = array[i];
-	// the array statement is about 4 times faster.
 	TS ts = (TS)_data.get(col - 1);
 
 	if ( __dataFlagVisualizationType == TSDataFlagVisualizationType.SUPERSCRIPT ) {
@@ -1021,9 +1012,11 @@ public Object getValueAt(int row, int col)
 
 /**
 Format the data value with the flag.
+@param ts time series with data
+@param dt date/time corresponding to data
+@param dataFormat data format to use
 */
-private String getValueAtFormatValueWithFlag ( TS ts, DateTime dt, String dataFormat )
-{
+private String getValueAtFormatValueWithFlag ( TS ts, DateTime dt, String dataFormat ) {
     TSData tsdata = ts.getDataPoint(dt, null);
     double value = tsdata.getDataValue();
     String flag = tsdata.getDataFlag();
@@ -1032,22 +1025,22 @@ private String getValueAtFormatValueWithFlag ( TS ts, DateTime dt, String dataFo
     }
     if ( ts.isDataMissing(value) ) {
         if ( flag.equals("") ) {
-            // No value, no flag
+            // No value, no flag.
             return "";
         }
         else {
-            // No value but have flag
+            // No value but have flag.
             return "^" + flag;
         }
     }
     else {
-        // TODO SAM 2012-04-16 Figure out formatting for value
+        // TODO SAM 2012-04-16 Figure out formatting for value.
         if ( flag.equals("") ) {
-            // Value but no flag
+            // Value but no flag.
             return "" + StringUtil.formatString(value,dataFormat);
         }
         else {
-            // Value and flag
+            // Value and flag.
             return "" + StringUtil.formatString(value,dataFormat) + "^" + flag;
         }
     }
@@ -1065,18 +1058,18 @@ public Object getValueAtIrregular(int row, int col)
         row = _sortOrder[row];
     }
     
-    // Based on the row, determine the date/time for the data
+    // Based on the row, determine the date/time for the data.
     DateTime dt = __irregularDateTimeCache.get(row);
     double value;
     if ( col == 0 ) {
-        // Returning the date
+        // Returning the date.
         return dt.toString();
     }
     else if ( __showRow && (col == (__columns - 1)) ) {
         return "" + row;
     }
     else {
-        // Returning the time series data value
+        // Returning the time series data value.
         TS ts = (TS)_data.get(col - 1);
         if ( (__irregularPrototypeDateTime != null) && (__irregularPrototypeDateTime[col - 1] != null) ) {
             // Use the prototype DateTime (which has proper time zone for the time series)
@@ -1138,7 +1131,7 @@ Returns whether the cell is editable or not.  Currently always returns false.
 */
 public boolean isCellEditable(int rowIndex, int columnIndex) {
 	if (columnIndex > 0) {
-		// TODO (JTS - 2004-01-22) no editing supported yet
+		// TODO (JTS - 2004-01-22) no editing supported yet.
 		return false;
 		/*
 		if ( __dataFlagVisualizationType != TSDataFlagVisualizationType.NOT_SHOWN) {
@@ -1147,7 +1140,7 @@ public boolean isCellEditable(int rowIndex, int columnIndex) {
     		return ts.isEditable();
 		}
 		else {
-		    // TODO SAM 2012-04-16 Editing when flags are shown is not yet implemented
+		    // TODO SAM 2012-04-16 Editing when flags are shown is not yet implemented.
 		    return false;
 		}
 		*/
@@ -1158,8 +1151,7 @@ public boolean isCellEditable(int rowIndex, int columnIndex) {
 /**
 Set how data flags should be visualized.
 */
-public void setDataFlagVisualizationType ( TSDataFlagVisualizationType dataFlagVisualizationType )
-{
+public void setDataFlagVisualizationType ( TSDataFlagVisualizationType dataFlagVisualizationType ) {
     __dataFlagVisualizationType = dataFlagVisualizationType;
 }
 
@@ -1209,8 +1201,8 @@ public void setWorksheet(JWorksheet worksheet) {
 }
 
 /**
-Sets up the table model to prepare for a consecutive read.  For more information
-see the JWorksheet javadoc about consecutive reads.
+Sets up the table model to prepare for a consecutive read.
+For more information see the JWorksheet Javadoc about consecutive reads.
 */
 public void startNewConsecutiveRead() {
 	__priorRow = -1;

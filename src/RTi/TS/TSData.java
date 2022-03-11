@@ -275,7 +275,8 @@ public String getDataFlag()
 
 /**
 Return the data for the data.
-@return The date associated with the value.  A copy is returned.
+@return The date associated with the value.
+A copy is returned to avoid accidentally changing the iterator data.
 */
 public DateTime getDate()
 {	return new DateTime (_date);
@@ -310,7 +311,6 @@ public TSData getPrevious()
 /**
 Return the data units.
 @return The units for the data.
-REVISIT -- Incorrect tag usage: see DataUnits
 */
 public String getUnits()
 {	return _units;

@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -103,7 +103,7 @@ private Class<?>[] determineClasses(int[] dataTypes) {
 		else {
 			switch (dataTypes[i]) {
 				case TableField.DATA_TYPE_ARRAY:
-					// For the purposes of rendering in the table, treat array as formatted string "[ , , , ]"
+					// For the purposes of rendering in the table, treat array as formatted string "[ , , , ]".
 					classes[i] = String.class;
 					break;
 				case TableField.DATA_TYPE_BOOLEAN:
@@ -204,7 +204,7 @@ public int[] getColumnWidths() {
     for (int i = 0; i < __columns; i++) {
         widths[i] = __dataTable.getFieldWidth(i);
         if ( widths[i] < 0 ) {
-            widths[i] = 15; // Default
+            widths[i] = 15; // Default.
         }
     }
     return widths;
@@ -219,7 +219,7 @@ If the column contains an array, the format applies to the individual values in 
 public String getFormat(int column) {
 	switch (__fieldTypes[column]) {
 		case TableField.DATA_TYPE_ARRAY:
-			// For the purposes of rendering in the table, treat array as formatted string
+			// For the purposes of rendering in the table, treat array as formatted string.
 			return "%s";
 		default:
 			return __fieldFormats[column];
@@ -247,7 +247,7 @@ public Object getValueAt(int row, int col) {
 
 	try {
 		if ( __dataTable.isColumnArray(__fieldTypes[col]) ) {
-			// Column is an array of primitive types
+			// Column is an array of primitive types.
 			return __dataTable.formatArrayColumn(row,col);
 		}
 		else {
