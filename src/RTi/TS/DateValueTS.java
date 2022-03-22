@@ -48,8 +48,8 @@ import RTi.Util.Time.TimeInterval;
 
 /**
 Class to read/write RTi DateValue time series files, using static methods.
-The file consists of header information as Property=Value strings and a data
-section that is column based.  Time series must have the same interval.
+The file consists of header information as Property=Value strings and a data section that is column based.
+Time series must have the same interval so that data in columns can align.
 Date/times for each record are parsed so records can be missing.
 */
 public class DateValueTS
@@ -62,15 +62,17 @@ private static String __VERSION_CURRENT = "1.6";
 private static int __VERSION_CURRENT_INT = 16000;
 
 /**
-Determine whether a file is a DateValue file.  This can be used rather than
-checking the source in a time series identifier.  If the file passes any of the
-following conditions, it is assumed to be a DateValue file:
+Determine whether a file is a DateValue file.
+This can be used rather than checking the source in a time series identifier.
+If the file passes any of the following conditions, it is assumed to be a DateValue file:
 <ol>
 <li>	A line starts with "#DateValue".</li>
 <li>	A line starts with "# DateValue".</li>
 <li>	A line starts with "TSID" and includes "=".</li>
 </ol>
 IOUtil.getPathUsingWorkingDir() is called to expand the filename.
+@param filename name of the file to evaluate
+@return true if the file is a DateValue file, false if not
 */
 public static boolean isDateValueFile ( String filename )
 {	BufferedReader in = null;
@@ -114,9 +116,9 @@ public static boolean isDateValueFile ( String filename )
 /**
 Parse a data string of the form "{dataflag1:"description",dataflag2:"description"}"
 @param value the DateValue property value to parse
+@return a list of TSDataFlagMetadata that was read, guaranteed to be non-null but may be empty
 */
-private static List<TSDataFlagMetadata> parseDataFlagDescriptions(String value)
-{
+private static List<TSDataFlagMetadata> parseDataFlagDescriptions(String value) {
 	List<TSDataFlagMetadata> metaList = new ArrayList<>();
 	value = value.trim().replace("{","").replace("}", "");
 	List<String> parts = StringUtil.breakStringList(value, ",", StringUtil.DELIM_ALLOW_STRINGS | StringUtil.DELIM_ALLOW_STRINGS_RETAIN_QUOTES);
@@ -141,9 +143,10 @@ private static List<TSDataFlagMetadata> parseDataFlagDescriptions(String value)
 // TODO SAM 2015-05-18 This is brute force - need to make more elegant.
 /**
 Parse a properties string of the form "{stringprop:"propval",intprop:123,doubleprop=123.456}"
+@param value property value to parse
+@return a PropList containing the parsed properties
 */
-private static PropList parseTimeSeriesProperties(String value)
-{
+private static PropList parseTimeSeriesProperties(String value) {
 	PropList props = new PropList("");
 	value = value.trim().replace("{","").replace("}", "");
 	List<String> parts = StringUtil.breakStringList(value, ",", StringUtil.DELIM_ALLOW_STRINGS | StringUtil.DELIM_ALLOW_STRINGS_RETAIN_QUOTES);
@@ -172,13 +175,12 @@ private static PropList parseTimeSeriesProperties(String value)
 }
 
 /**
-Read at time series from a List of String.  Currently this is accomplished by
-writing the contents to a temporary file and then reading using one of the
-standard methods.  A more efficient method may be added in the future but this
-approach works OK for smaller files.
+Read a single time series from a List of String.  Currently this is accomplished by
+writing the contents to a temporary file and then reading using one of the standard methods.
+A more efficient method may be added in the future but this approach works OK for smaller files.
+The temporary file is deleted after reading.
 @param strings List of String containing data in DateValue file format.
-@param tsident_string Time series identifier as string (used for initial
-settings - reset by file contents).
+@param tsident_string Time series identifier as string (used for initial settings - reset by file contents).
 @param req_date1 Requested starting date to initialize period (or null to read the entire period).
 @param req_date2 Requested ending date to initialize period (or null to read the entire period).
 @param req_units Units to convert to (currently ignored).
@@ -204,17 +206,21 @@ throws Exception
 	// Remove the temporary file.
 	File tempf = new File ( temp );
 	tempf.delete();
-	// Return.
+	// Return the single time series.
 	return ts;
 }
 
 /**
-Read a time series from a DateValue format file.
+Read a single time series from a DateValue format file.
+@param tsident_string One of the following:
+<ol>
+<li> the time series identifier to read (where the scenario is the file name)
+</li>
+<li> the name of a file to read (in which case it is assumed that only one time series exists in the file;
+     otherwise use the readTimeSeriesList() method)
+</li>
+</ol>
 @return time series if successful, or null if not.
-@param tsident_string One of the following:  1) the time series identifier to
-read (where the scenario is the file name) or 2) the name of a file to read
-(in which case it is assumed that only one time series exists in the
-file - otherwise use the readTimeSeriesList() method).
 @exception TSException if there is an error reading the time series.
 */
 public static TS readTimeSeries ( String tsident_string )
@@ -223,9 +229,10 @@ throws Exception
 }
 
 /**
-Read a time series from a DateValue format file.  The entire file is read using the units from the file.
-@return 0 if successful, 1 if not.
+Read a single time series from a DateValue format file.
+The entire file is read using the units from the file.
 @param in Reference to open BufferedReader.
+@return 0 if successful, 1 if not.
 @exception TSException if there is an error reading the time series.
 */
 public static TS readTimeSeries ( BufferedReader in )
@@ -234,13 +241,13 @@ throws Exception
 }
 
 /**
-Read a time series from a DateValue format file.
-@return a time series if successful, null if not.
+Read a single time series from a DateValue format file.
 @param in Reference to open BufferedReader.
 @param req_date1 Requested starting date to initialize period (or null to read the entire period).
 @param req_date2 Requested ending date to initialize period (or null to read the entire period).
 @param req_units Units to convert to (currently ignored).
 @param read_data Indicates whether data should be read (false=no, true=yes).
+@return a time series if successful, null if not.
 @exception Exception if there is an error reading the time series.
 */
 public static TS readTimeSeries ( BufferedReader in, DateTime req_date1, DateTime req_date2,
@@ -251,16 +258,20 @@ throws Exception
 }
 
 /**
-Read a time series from a DateValue format file.
-@return a time series if successful, null if not.  The units are taken from the file and all data are read
-(not just the header).
-@param tsident_string One of the following:  1) the time series identifier to
-read (where the scenario is the file name) or 2) the name of a file to read
+Read a single time series from a DateValue format file.
+@param tsident_string One of the following:
+<ol>
+<li> The time series identifier to read (where the scenario is the file name)
+</li>
+<li> The name of a file to read
 (in which case it is assumed that only one time series exists in the
 file - otherwise use the readTimeSeriesList() method).
+</li>
+</ol>
 @param date1 Starting date to initialize period (or null to read entire time series).
-@param date2 Ending date to initialize period (or null to read entire time
-series).
+@param date2 Ending date to initialize period (or null to read entire time series).
+@return a time series if successful, null if not.  The units are taken from the file and all data are read
+(not just the header).
 */
 public static TS readTimeSeries ( String tsident_string, DateTime date1, DateTime date2 )
 throws Exception
@@ -268,13 +279,18 @@ throws Exception
 }
 
 /**
-Read a time series from a DateValue format file.
+Read a single time series from a DateValue format file.
 The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
 @return a time series if successful, null if not.
-@param tsident_string The full identifier for the time series to
-read with the file name in the ~DateValue~InputName part of the identifier or
-2) the name of a file to read (in which case it is assumed that only one time
-series exists in the file - otherwise use the readTimeSeriesList() method).
+@param tsident_string the time series to read as:
+<ol>
+<li>  The full identifier for the time series to read with the file name in the
+     ~DateValue~InputName part of the identifier or
+</li>
+<li> The name of a file to read (in which case it is assumed that only one time
+     series exists in the file - otherwise use the readTimeSeriesList() method).
+</li>
+</ol>
 @param date1 Starting date to initialize period (null to read the entire time series).
 @param date2 Ending date to initialize period (null to read the entire time series).
 @param units Units to convert to.
@@ -347,15 +363,15 @@ throws Exception
 }
 
 /**
-Read a time series from a DateValue format file.  The TSID string is specified
-in addition to the path to the file.  It is expected that a TSID in the file
-matches the TSID (and the path to the file, if included in the TSID would not
-properly allow the TSID to be specified).  This method can be used with newer
-code where the I/O path is separate from the TSID that is used to identify the time series.
+Read a single time series from a DateValue format file.
+The TSID string is specified in addition to the path to the file.
+It is expected that a TSID in the file matches the TSID (and the path to the file,
+if included in the TSID would not properly allow the TSID to be specified).
+This method can be used with newer code where the I/O path is separate from the TSID that is used to identify the time series.
 The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
 @return a time series if successful, null if not.
-@param tsident_string The full identifier for the time series to
-read.  This string can also be the alias for the time series in the file.
+@param tsident_string The full identifier for the time series to read.
+This string can also be the alias for the time series in the file.
 @param filename The name of a file to read
 (in which case the tsident_string must match one of the TSID strings in the file).
 @param date1 Starting date to initialize period (null to read the entire time series).
@@ -385,12 +401,12 @@ throws Exception
 	else {
 		in = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream ( full_fname )) );
 	}
-	// Pass the file pointer and an empty time series, which
-	// will be used to locate the time series in the file.
+	// Pass the file pointer and an empty time series,
+	// which will be used to locate the time series in the file.
 	// The following is somewhat ugly because if we are using an alias we
 	// cannot get the time series from newTimeSeries() because it does not
-	// have an interval.  In this case, assume daily data.  This requires
-	// special treatment in the readTimeSeriesList() method in order to
+	// have an interval.  In this case, assume daily data.
+	// This requires special treatment in the readTimeSeriesList() method in order to
 	// reset the time series to what is actually found in the file.
 	// TODO - clean this up, perhaps by moving the time series creation
 	// into the readTimeSeriesList() method rather than doing it here.
@@ -414,11 +430,11 @@ throws Exception
     	else {
     	    ts.setAlias ( tsident_string );
     	}
-    	List<TS> v = readTimeSeriesList ( ts, in,	date1, date2, units, read_data );
+    	List<TS> tslist = readTimeSeriesList ( ts, in,	date1, date2, units, read_data );
     	if ( tsident_string.indexOf(".") < 0 ) {
     		// The time series was specified with an alias so it needs to be replaced with what was read.
     		// The alias will have been assigned in the readTimeSeriesList() method.
-    		ts = v.get(0);
+    		ts = tslist.get(0);
     	}
     	ts.getIdentifier().setInputType("DateValue");
     	ts.setInputName ( full_fname );
@@ -434,12 +450,12 @@ throws Exception
 }
 
 /**
-Read a time series from a DateValue format file.  The data units are taken from
-the file and all data are read (not just the header).
+Read a time series from a DateValue format file.
+The data units are taken from the file and all data are read (not just the header).
 @return a time series if successful, null if not.
-@param req_ts time series to fill.  If null,
-return a new time series.  If non-null, all data are reset, except for the
-identifier, which is assumed to have been set in the calling code.
+@param req_ts time series to fill.  If null, return a new time series.
+If non-null, all data are reset, except for the identifier,
+which is assumed to have been set in the calling code.
 @param fname Name of file to read.
 @param date1 Starting date to initialize period to.
 @param date2 Ending date to initialize period to.
@@ -453,9 +469,9 @@ throws Exception
 Read a time series from a DateValue format file.
 The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
 @return a time series if successful, null if not.
-@param req_ts time series to fill.  If null,
-return a new time series.  All data are reset, except for the identifier, which
-is assumed to have been set in the calling code.
+@param req_ts time series to fill.
+If null, return a new time series.
+All data are reset, except for the identifier, which is assumed to have been set in the calling code.
 @param fname Name of file to read.
 @param date1 Starting date to initialize period to.
 @param date2 Ending date to initialize period to.
@@ -587,8 +603,8 @@ throws Exception, IOException, FileNotFoundException
 // TODO SAM 2008-05-09 Evaluate types of exceptions that are thrown.
 /**
 Read a time series from a DateValue format file.
-@return a List of time series if successful, null if not.  The calling code
-is responsible for freeing the memory for the time series.
+@return a List of time series if successful, null if not.
+The calling code is responsible for freeing the memory for the time series.
 @param req_ts time series to fill.  If null, return all new time series in the list.
 All data are reset, except for the identifier, which is assumed to have been set in the calling code.
 @param in Reference to open input stream.
@@ -602,7 +618,7 @@ private static List<TS> readTimeSeriesList ( TS req_ts, BufferedReader in, DateT
 						DateTime req_date2,	String req_units, boolean read_data )
 throws Exception
 {	String date_str, message = null, string = "", value, variable;
-	String routine = "DateValueTS.readTimeSeriesList";
+	String routine = DateValueTS.class.getSimpleName() + ".readTimeSeriesList";
 	int	dl = 10, dl2 = 30, numts = 1;
 	DateTime date1 = new DateTime(), date2 = new DateTime();
 	// Do not allow consecutive delimiters in header or data values.  For example:
@@ -1570,9 +1586,9 @@ Write a time series to a DateValue format file.
 public static void writeTimeSeries ( TS ts, PrintWriter out )
 throws Exception
 {	// Call the fully-loaded method.
-	List<TS> v = new ArrayList<>( 1 );
-	v.add ( ts );
-	writeTimeSeriesList(v, out, (DateTime)null, (DateTime)null, null, true);
+	List<TS> tslist = new ArrayList<>( 1 );
+	tslist.add ( ts );
+	writeTimeSeriesList(tslist, out, (DateTime)null, (DateTime)null, null, true);
 }
 
 /**
@@ -1586,9 +1602,9 @@ Write a list of time series to a DateValue format file.
 */
 public static void writeTimeSeries ( TS ts, PrintWriter out, DateTime date1, DateTime date2, String units, boolean writeData )
 throws Exception
-{	List<TS> v = new ArrayList<>( 1 );
-	v.add ( ts );
-	writeTimeSeriesList ( v, out, date1, date2, units, writeData );
+{	List<TS> tslist = new ArrayList<>( 1 );
+	tslist.add ( ts );
+	writeTimeSeriesList ( tslist, out, date1, date2, units, writeData );
 }
 
 /**
@@ -1607,21 +1623,21 @@ throws Exception
 {   String routine = "DateValueTS.writeTimeSeries";
 
     String full_fname = IOUtil.getPathUsingWorkingDir ( fname );
+    PrintWriter fout = null;
     try {
         FileOutputStream fos = new FileOutputStream( full_fname );
-        PrintWriter fout = new PrintWriter ( fos );
-
-        try {
-            writeTimeSeries ( ts, fout, date1, date2, units, writeData );
-        }
-        finally {
-            fout.close();
-        }
+        fout = new PrintWriter ( fos );
+        writeTimeSeries ( ts, fout, date1, date2, units, writeData );
     }
     catch ( Exception e ) {
         String message = "Error opening \"" + full_fname + "\" for writing.";
         Message.printWarning( 2, routine, message );
         throw new Exception (message);
+    }
+    finally {
+    	if ( fout != null ) {
+    	    fout.close();
+    	}
     }
 }
 
@@ -1642,8 +1658,7 @@ Write the data flag descriptions for a time series.
 @param ts time series for which to write data flag descriptions
 @param its counter for time series (0+) to number the descriptions
 */
-private static void writeTimeSeriesDataFlagDescriptions ( PrintWriter out, TS ts, int its )
-{
+private static void writeTimeSeriesDataFlagDescriptions ( PrintWriter out, TS ts, int its ) {
 	List<TSDataFlagMetadata> metaList = ts.getDataFlagMetadataList();
 	if ( metaList.size() > 0 ) {
 		StringBuilder b = new StringBuilder ( "DataFlagDescriptions_" + (its + 1) + " = {");
@@ -1696,7 +1711,7 @@ Currently there is no way to indicate that the count or total time should be pri
 public static void writeTimeSeriesList (List<TS> tslist, PrintWriter out, DateTime date1,
 	DateTime date2, String units, boolean writeData, PropList props )
 throws Exception
-{	String message, routine = "DateValueTS.writeTimeSeriesList";
+{	String message, routine = DateValueTS.class.getSimpleName() + ".writeTimeSeriesList";
 	DateTime outputStart = null, outputEnd = null, t = new DateTime( DateTime.DATE_FAST );
 
 	// Check for a null time series list.
@@ -1824,9 +1839,12 @@ throws Exception
 	if ( propval != null ) {
 	    delim = propval;
 	}
+	// Default precision for all time series (checked below for each time series).
     int precision = 4;
+    String missingOutputFormat = "%.4f";
     propval = props.getValue ( "Precision" );
     if ( (propval != null) && StringUtil.isInteger(propval) ) {
+    	// Use the specified precision.
         precision = Integer.parseInt(propval);
     }
     // Override of missing value in the time series.
@@ -1851,7 +1869,20 @@ throws Exception
     if ( (writeDataFlagDescriptions0 != null) && writeDataFlagDescriptions0.equalsIgnoreCase("true") ) {
     	writeDataFlagDescriptions = true;
     }
-    String outputFormat = "%." + precision + "f";
+    // Each time series can have a different format based on the time series data precision:
+    // - TODO smalers 2022-03-12 this code currently DOES NOT check the units for output precision,
+    //   and making that change would like require updating many automated tests
+    List<String> outputFormatList = new ArrayList<>();
+    for ( TS tsp : tslist ) {
+    	if ( tsp.getDataPrecision() >= 0 ) {
+    		// Use the precision set for the time series.
+    		outputFormatList.add("%." + ts.getDataPrecision() + "f");
+    	}
+    	else {
+    		// Use the default precision or what was specified with a passed-in property.
+    		outputFormatList.add ("%." + precision + "f");
+    	}
+    }
 	String nodataString = "?";
 	StringBuffer aliasBuffer = new StringBuffer();
 	boolean hasSeqnum = false;
@@ -1992,8 +2023,9 @@ throws Exception
     				missingvalBuffer.append ("NaN" );
     			}
     			else {
-    			    // Assume that missing is indicated by a number.
-    				missingvalBuffer.append ( StringUtil.formatString(	ts.getMissing(),outputFormat));
+    			    // Assume that missing is indicated by a number:
+    				// - use a default precision that should be sufficient for missing values
+    				missingvalBuffer.append ( StringUtil.formatString(	ts.getMissing(), missingOutputFormat));
     			}
 			}
 			tsidBuffer.append ( "\"" +	ts.getIdentifier().toString() + "\"" );
@@ -2190,13 +2222,13 @@ throws Exception
         					string_value = "NaN";
         				}
         				else {
-        				    string_value = StringUtil.formatString( tsdata.getDataValue(), outputFormat );
+        				    string_value = StringUtil.formatString( tsdata.getDataValue(), outputFormatList.get(0) );
         				}
     		        }
     			}
     			else {
     			    // Convert the units.
-    				string_value = StringUtil.formatString( (tsdata.getDataValue()*mult[0] + add[0]), outputFormat );
+    				string_value = StringUtil.formatString( (tsdata.getDataValue()*mult[0] + add[0]), outputFormatList.get(0) );
     			}
     			// Use the precision of the dates in the data - ISO formats will be used by default.
     			buffer.append ( date.toString() );
@@ -2351,13 +2383,13 @@ throws Exception
 	                            }
 	                            else {
 	                                // Format the missing value number.
-	                                string_value = StringUtil.formatString( value, outputFormat);
+	                                string_value = StringUtil.formatString( value, outputFormatList.get(its));
 	                            }
 	                        }
 	                    }
 	                    else {
 	                        // Format the data value.
-	                        string_value = StringUtil.formatString( (value*mult[its] + add[its]),outputFormat );
+	                        string_value = StringUtil.formatString( (value*mult[its] + add[its]),outputFormatList.get(its) );
 	                    }
 	                    if ( its == 0 ) {
 	                        buffer.append ( string_value );
@@ -2418,13 +2450,13 @@ throws Exception
     					}
     					else {
     					    // Format the missing value number.
-    					    string_value = StringUtil.formatString( value, outputFormat);
+    					    string_value = StringUtil.formatString( value, outputFormatList.get(its));
     					}
 		            }
 				}
 				else {
 				    // Format the data value.
-				    string_value = StringUtil.formatString(	(value*mult[its] + add[its]),outputFormat );
+				    string_value = StringUtil.formatString(	(value*mult[its] + add[its]),outputFormatList.get(its) );
 				}
 				if ( its == 0 ) {
 					buffer.append ( string_value );
@@ -2553,19 +2585,15 @@ lines are not added to in any way.</b>
 public static void writeTimeSeriesList (List<TS> tslist, String fname,
 	DateTime date1, DateTime date2, String units, boolean writeData, PropList props )
 throws Exception
-{	String	routine = "DateValueTS.writeTimeSeriesList";
+{	String	routine = DateValueTS.class.getSimpleName() + ".writeTimeSeriesList";
 
 	String full_fname = IOUtil.getPathUsingWorkingDir(fname);
+	PrintWriter fout = null;
 	try {
 	    FileOutputStream fos = new FileOutputStream ( full_fname );
-		PrintWriter fout = new PrintWriter ( fos );
+		fout = new PrintWriter ( fos );
 
-		try {
-		    writeTimeSeriesList ( tslist, fout, date1, date2, units, writeData, props );
-		}
-		finally {
-		    fout.close();
-		}
+		writeTimeSeriesList ( tslist, fout, date1, date2, units, writeData, props );
 	}
 	catch ( UnequalTimeIntervalException e ) {
 	    // Just rethrow because message will be specific.
@@ -2577,13 +2605,22 @@ throws Exception
 		Message.printWarning( 3, routine, e );
 		throw new Exception (message);
 	}
+	finally {
+		if ( fout != null ) {
+			fout.close();
+		}
+	}
 }
 
 /**
-Write the properties for a time series.
+Write the properties for a time series. This is useful for automated testing.
+@param out open PrintWriter to write the time series, which will remain open
+@param ts time series to write
+@param its position of the time series in a loop (0+), used for messages
+@param includeProperties a list of the property names to include when writing,
+must be non-null and include the list of properties to write
 */
-private static void writeTimeSeriesProperties ( PrintWriter out, TS ts, int its, String [] includeProperties )
-{
+private static void writeTimeSeriesProperties ( PrintWriter out, TS ts, int its, String [] includeProperties ) {
 	// Get the list of matching properties.
 	// TODO SAM 2015-05-18 Add support for wildcards - for now must match exactly.
 	Object o;

@@ -3282,7 +3282,6 @@ private static DateTime parse ( String date_string, int format, int flag )
 	else if ( format == FORMAT_ISO_8601 ) {
 		// ISO 8601 formats:
 		// - see:  https://en.wikipedia.org/wiki/ISO_8601
-		// - support up to h-seconds
 		// - do not support weeks
 		// - cannot rely on something like OffsetDateTime to parse because don't know if time zone is included, etc.
 		// Could have a variety of formats:
@@ -3295,6 +3294,7 @@ private static DateTime parse ( String date_string, int format, int flag )
 		// 2017-06-30T23:03:33.123-01:00
 		// 2017-06-30T23:03:33.123456-01:00
 		// 2017-06-30T23:03:33.123456789-01:00
+		// 2017-06-30T23:03:33.123456789
 		// 20170630T230333Z
 		// 20170630T230333+0100
 		// 20170630T230333+01
@@ -3306,7 +3306,7 @@ private static DateTime parse ( String date_string, int format, int flag )
 		String t = null;
 		if ( posT > 0 ) {
 			// Date and time.
-			d = date_string.substring(0, posT); // Before T.
+			d = date_string.substring(0, posT);  // Before T.
 			t = date_string.substring(posT + 1); // After T.
 		}
 		else {
@@ -3449,12 +3449,18 @@ private static DateTime parse ( String date_string, int format, int flag )
 							//Message.printStatus(2, routine, "Setting nanoseconds to \"" + fracsecString + "\" 000000");
 							date.setNanoSecond(Integer.parseInt(fracsecString)*1000000);
 						}
-						else {
-							// One or two digits in the fraction.
+						else if ( fracsecString.length() >= 2 ) {
 							date.setPrecision(DateTime.PRECISION_HSECOND);
-							fracsecString = fracsecString.substring(0, 3);
+							fracsecString = fracsecString.substring(0, 2);
 							//Message.printStatus(2, routine, "Setting hseconds to \"" + fracsecString + "\"");
-							date.setHSecond(Integer.parseInt(fracsecString));
+							date.setHSecond(Integer.parseInt(fracsecString)*10000000);
+						}
+						else if ( fracsecString.length() == 1 ) {
+							// Use hundredths.
+							date.setPrecision(DateTime.PRECISION_HSECOND);
+							fracsecString = fracsecString.substring(0, 1);
+							//Message.printStatus(2, routine, "Setting hseconds to \"" + fracsecString + "\"");
+							date.setHSecond(Integer.parseInt(fracsecString)*100000000);
 						}
 					}
 					else {

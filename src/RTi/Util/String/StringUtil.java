@@ -2104,7 +2104,9 @@ Return a token in a string or null if no token.  This method calls
 breakStringList() and returns the requested token or null if out of range.
 @param string The string to break.
 @param delim A String containing characters to treat as delimiters.
-@param flag Bitmask indicating how to break the string.  Specify
+If the delimiter is multiple characters and starts with "seq:" the entire string is the delimiter.
+Otherwise, if the delimiter is multiple characters, each character is considered to be a delimiter.
+@param flag bitmask indicating how to break the string.  Specify
 DELIM_SKIP_BLANKS to skip blank fields and
 DELIM_ALLOW_STRINGS to allow quoted strings (which may contain delimiters).
 @param token Token to return (starting with 0).
