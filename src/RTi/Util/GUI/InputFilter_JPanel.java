@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,62 +20,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//-----------------------------------------------------------------------------
-// InputFilter_JPanel - class to display and manage a Vector of InputFilter
-//-----------------------------------------------------------------------------
-// Copyright: See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// History: 
-//
-// 2003-12-18	Steven A. Malers, RTi	Initial version, for use with software
-//					that queries databases.
-// 2004-05-19	SAM, RTi		Fix bug where a change in the operator
-//					JComboBox was not causing the entry
-//					component to show the proper component.
-//					Actually - after review it seems OK.
-// 2004-08-26	SAM, RTi		* Add toString() to return a string
-//					  representation of the filter.
-//					* Add addEventListener() to allow
-//					  higher level code when to refresh
-//					  based on a change in the filter panel.
-// 2004-08-28	SAM, RTi		To facilitate this class being a base
-//					class, modify setInputFilters() to
-//					take the list of filters and PropList -
-//					then it can be called separately.
-// 2004-09-10	SAM, RTi		* Add getInput() method to return the
-//					  input that has been entered for a
-//					  requested item.
-// 2005-01-06	J. Thomas Sapienza, RTi	Fixed bugs that were making it so that
-//					single filters could not be displayed in
-//					the panel.
-// 2004-01-11	JTS, RTi		Added the property 
-//					'NumWhereRowsToDisplay'.  If set, it 
-//					specifies the number of rows to be 
-//					displayed when the drop-down list is
-//					opened on one of the combo boxes that
-// 					lists all the fields that a Where clause
-//					can operated on.
-// 2005-01-12	JTS, RTi		Changed slightly the formatting of 
-//					errors in checkInput() to be cleaner.
-// 2005-01-31	JTS, RTi		* fillOperatorJComboBox() now takes 
-//					  another parameter that specifies the
-//					  constraints that should NOT appear in
-//					  the combo box.
-//					* When the input text field is created
-//					  its editability is set according to
-//					  the value stored in the filter in:
-//					  isInputJTextFieldEditable().
-// 2005-02-02	JTS, RTi		When the input JComboBoxes are made
-//					they now have a parameter to set the 
-//					number of visible rows.
-// 2005-04-26	JTS, RTi		Added finalize().
-// 2006-04-25	SAM, RTi		Minor change to better handle input
-//					filter string at initialization - was
-//					having problem with ";Matches;".
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
-// EndHeader
 
 package RTi.Util.GUI;
 
@@ -138,16 +82,16 @@ Number of where choices to display in combobox choices.
 private int __numWhereChoicesToDisplay = -1;
 
 /**
-List of InputFilter to display.  The original input filter that is supplied is copied for as many input
-filter groups as necessary, with the InputFilter instances managing the input field components for the
-specific filter.
+List of InputFilter to display.
+The original input filter that is supplied is copied for as many input filter groups as necessary,
+with the InputFilter instances managing the input field components for the specific filter.
 */
 private List<InputFilter> [] __inputFilterListArray = null;
 
 /**
-List of JComponent that display the "where" label for each filter group that is displayed.  This may be
-a SimpleJComboBox or a JLabel, depending on how many filters are available.  Each item in the list
-corresponds to a different input filter group.
+List of JComponent that display the "where" label for each filter group that is displayed.
+This may be a SimpleJComboBox or a JLabel, depending on how many filters are available.
+Each item in the list corresponds to a different input filter group.
 */
 private List<JComponent> __whereComponentList = new Vector<JComponent>();
 
@@ -163,9 +107,9 @@ Text area to display text (if the text version of constructor is used).
 private JTextArea __textArea = null;
 
 /**
-Construct an input filter panel.  The setInputFilters() method must be called
-at some point during initialization in the calling code.  Or, use an empty input filter
-for cases where the filters do not apply (see also overloaded version with text).
+Construct an input filter panel.
+The setInputFilters() method must be called at some point during initialization in the calling code.
+Or, use an empty input filter for cases where the filters do not apply (see also overloaded version with text).
 */
 public InputFilter_JPanel ()
 {	GridBagLayout gbl = new GridBagLayout();
@@ -174,8 +118,8 @@ public InputFilter_JPanel ()
 
 /**
 Construct an input filter panel that will include a text area for a message.
-This version is used as a place holder with a message, with visibility being swapped with
-standard (or empty input filter panel).
+This version is used as a place holder with a message,
+with visibility being swapped with standard (or empty input filter panel).
 Use setText() to update the text that is displayed.
 @param text text to display in the input filter panel.  Use \n to indicate newline characters.
 */
@@ -187,7 +131,7 @@ public InputFilter_JPanel ( String text )
     JGUIUtil.addComponent(this, __textArea,
         0, 0, 1, 1, 0.0, 0.0, insetsNNNN,
         GridBagConstraints.BOTH, GridBagConstraints.CENTER);
-    // Set the number of filter groups to zero since components are not initialized
+    // Set the number of filter groups to zero since components are not initialized.
     __numFilterGroups = 0;
 }
 
@@ -205,13 +149,13 @@ public InputFilter_JPanel ( List<InputFilter> inputFilters, int numInputFilters,
 }
 
 /**
-Add listeners for events generated in the input components in the input
-filter.  The code must have implemented ItemListener and KeyListener.
+Add listeners for events generated in the input components in the input filter.
+The code must have implemented ItemListener and KeyListener.
 @param component The component that wants to listen for events from InputFilter_JPanel components.
 */
 public void addEventListeners ( Component component )
 {	// Component is used above (instead of JComponent) because JDialog is not derived from JComponent.
-	// Loop through the filter groups...
+	// Loop through the filter groups.
 	boolean isKeyListener = false;
 	boolean isItemListener = false;
 	if ( component instanceof KeyListener ) {
@@ -222,17 +166,17 @@ public void addEventListeners ( Component component )
 	}
 	SimpleJComboBox cb;
 	for ( int ifg = 0; ifg < __numFilterGroups; ifg++ ) {
-		// The where...
+		// The where.
 		if ( isItemListener ) {
 			if ( __whereComponentList.get(ifg) instanceof SimpleJComboBox ) {
 				cb = (SimpleJComboBox)__whereComponentList.get(ifg);
 				cb.addItemListener ( (ItemListener)component );
 			}
-			// The operator...
+			// The operator.
 			cb = (SimpleJComboBox)__operatorComponentList.get(ifg);
 			cb.addItemListener ( (ItemListener)component );
 		}
-		// The input...
+		// The input.
 		int numFilters = 0;
 		if ( __inputFilterListArray[ifg] != null ) {
 			numFilters = __inputFilterListArray[ifg].size();
@@ -250,7 +194,7 @@ public void addEventListeners ( Component component )
 				}
 			}
 			else if ( isItemListener ) {
-				// Combo box...
+				// Combo box.
 				cb = (SimpleJComboBox)input_component;
 				cb.addItemListener ( (ItemListener)component );
 			}
@@ -259,9 +203,9 @@ public void addEventListeners ( Component component )
 }
 
 /**
-Check the input for the current input filter selections.  For example, if an
-input filter is for a text field, verify that the contents of the field are
-appropriate for the type of input.
+Check the input for the current input filter selections.
+For example, if an input filter is for a text field,
+verify that the contents of the field are appropriate for the type of input.
 This version is similar to checkInput except that it returns the warning string
 so that it can be handled in calling code.
 @param displayWarning If true, display a warning dialog if there are errors in the input.
@@ -273,7 +217,7 @@ with newline at front and newlines delimiting each warning.
 */
 public String checkInputFilters ( boolean displayWarning )
 {	String warning = "";
-	// Loop through the filter groups...
+	// Loop through the filter groups.
 	InputFilter filter;
 	String input; // Input string selected by user.
 	String where; // Where label for filter selected by user.
@@ -282,7 +226,7 @@ public String checkInputFilters ( boolean displayWarning )
 		filter = getInputFilter ( ifg );
 		where = filter.getWhereLabel();
 		if ( where.equals("") ) {
-			// Blank where indicates that filter is disabled...
+			// Blank where indicates that filter is disabled.
 			continue;
 		}
 		input = filter.getInput(false).trim();
@@ -309,17 +253,17 @@ public String checkInputFilters ( boolean displayWarning )
 		}
 	}
 	if ( !warning.isEmpty() && displayWarning ) {
-		// Requested to display the warnings
+		// Requested to display the warnings.
 		Message.printWarning ( 1, "InputFilter_JPanel.checkInputFilters", warning );
 	}
-	// Always return the warning string
+	// Always return the warning string.
 	return warning;
 }
 
 /**
-Check the input for the current input filter selections.  For example, if an
-input filter is for a text field, verify that the contents of the field are
-appropriate for the type of input.  This is the legacy version.
+Check the input for the current input filter selections.
+For example, if an input filter is for a text field,
+verify that the contents of the field are appropriate for the type of input.  This is the legacy version.
 See also checkInputFilters(), which returns a string with warnings.
 @param displayWarning If true, display a warning if there are errors in the
 input.  If false, do not display a warning (the calling code should generally display a warning).
@@ -327,7 +271,7 @@ input.  If false, do not display a warning (the calling code should generally di
 */
 public boolean checkInput ( boolean displayWarning )
 {	String warning = "\n";
-	// Loop through the filter groups...
+	// Loop through the filter groups.
 	InputFilter filter;
 	String input; // Input string selected by user.
 	String where; // Where label for filter selected by user.
@@ -336,7 +280,7 @@ public boolean checkInput ( boolean displayWarning )
 		filter = getInputFilter ( ifg );
 		where = filter.getWhereLabel();
 		if ( where.equals("") ) {
-			// Blank where indicates that filter is disabled...
+			// Blank where indicates that filter is disabled.
 			continue;
 		}
 		input = filter.getInput(false).trim();
@@ -391,29 +335,29 @@ Fill a SimpleJComboBox with the appropriate operators for the data type.
 The previous contents are first removed.
 @param cb the SimpleJComboBox to fill.
 @param type See StringUtil.TYPE_*.
-@param constraintsToRemove the constraints that should NOT appear in the 
-combo box.  Can be null, if all the appropriate constraints should be shown.
+@param constraintsToRemove the constraints that should NOT appear in the combo box.
+Can be null, if all the appropriate constraints should be shown.
 */
 private void fillOperatorJComboBox ( SimpleJComboBox cb, int type, List<String> constraintsToRemove )
 {	if ( cb == null ) {
 		return;
 	}
-	// Remove existing...
+	// Remove existing.
 	cb.removeAll();
 	if ( type == StringUtil.TYPE_STRING ) {
 		cb.add ( InputFilter.INPUT_MATCHES );
-		// TODO - add later
+		// TODO - add later.
 		//cb.add ( InputFilter.INPUT_ONE_OF );
 		cb.add ( InputFilter.INPUT_STARTS_WITH );
 		cb.add ( InputFilter.INPUT_ENDS_WITH );
 		cb.add ( InputFilter.INPUT_CONTAINS );
-		// TODO SAM 2010-05-23 Evaluate automatically adding
+		// TODO SAM 2010-05-23 Evaluate automatically adding.
 		//cb.add ( InputFilter.INPUT_IS_EMPTY );
 	}
 	else if ( (type == StringUtil.TYPE_DOUBLE) || (type == StringUtil.TYPE_FLOAT) ||
 		(type == StringUtil.TYPE_INTEGER) ) {
 		cb.add ( InputFilter.INPUT_EQUALS );
-		// TODO - add later
+		// TODO - add later.
 		//cb.add ( InputFilter.INPUT_ONE_OF );
 		//cb.add ( InputFilter.INPUT_BETWEEN );
 		cb.add ( InputFilter.INPUT_LESS_THAN );
@@ -431,11 +375,11 @@ private void fillOperatorJComboBox ( SimpleJComboBox cb, int type, List<String> 
 	}
 	
 	if (cb.getItemCount() > 0) {
-		// Select the first one...
+		// Select the first one.
 		cb.select ( 0 );
 	}
 
-	// TODO - need to handle "NOT" and perhaps null
+	// TODO - need to handle "NOT" and perhaps null.
 }
 
 /**
@@ -453,14 +397,14 @@ throws Throwable {
 Return the input that has been entered in the panel, for a requested parameter.
 If the requested whereLabel is not selected in any of the input filters, a zero length list will be returned.
 @return the input that has been entered in the panel, for a requested parameter, guaranteed to be non-null.
-@param whereLabel The label for the input filter, which is visible to the user for selections (specify this
-OR internalWhereLabel)
-@param internalWhere the internal where label for the input filter, which is not visible to the user
-but is used internally (specify this whereLabel)
+@param whereLabel The label for the input filter,
+which is visible to the user for selections (specify this OR internalWhereLabel)
+@param internalWhere the internal where label for the input filter,
+which is not visible to the user but is used internally (specify this whereLabel)
 @param useWildcards Suitable only for string input (treated as false if numeric input).
-If true, the returned information will be returned using
-wildcards, suitable for "matches" calls (e.g., "*inputvalue*").  If false,
-the returned information will be returned in verbose format as per the
+If true, the returned information will be returned using wildcards,
+suitable for "matches" calls (e.g., "*inputvalue*").
+If false, the returned information will be returned in verbose format as per the
 toString() method (e.g., "contains;inputvalue").
 @param delim Delimiter character to use if use_wildcards=false.  See the toString() method.  If null, use ";".
 */
@@ -472,7 +416,7 @@ public List<String> getInput ( String whereLabel, String internalWhere, boolean 
 	InputFilter filter;
 	String input; // Input string selected by user.
 	String where; // Where label for filter selected by user.
-	String internalWhereString; // Where used internally by the filter
+	String internalWhereString; // Where used internally by the filter.
 	int inputType; // Input type for the filter.
 	for ( int ifg = 0; ifg < __numFilterGroups; ifg++ ) {
 		filter = getInputFilter ( ifg );
@@ -480,13 +424,13 @@ public List<String> getInput ( String whereLabel, String internalWhere, boolean 
 		internalWhereString = filter.getWhereInternal();
 		if ( (whereLabel != null) && (whereLabel.length() > 0) ) {
     		if ( !where.equalsIgnoreCase(whereLabel) || where.equals("") ) {
-    			// No need to evaluate because not the requested input or input is blank...
+    			// No need to evaluate because not the requested input or input is blank.
     			continue;
     		}
 		}
 		else if ( (internalWhere != null) && (internalWhere.length() > 0) ) {
 	          if ( !internalWhereString.equalsIgnoreCase(internalWhere) || internalWhereString.equals("") ) {
-	                // No need to evaluate because not the requested input or input is blank...
+	                // No need to evaluate because not the requested input or input is blank.
 	                continue;
 	            }
 		}
@@ -499,7 +443,7 @@ public List<String> getInput ( String whereLabel, String internalWhere, boolean 
 		}
 		if ( inputType == StringUtil.TYPE_STRING ) {
 			if ( useWildcards ) {
-			    // Insert the wildcard character around the input, as appropriate
+			    // Insert the wildcard character around the input, as appropriate.
 				if ( getOperator(ifg).equals( InputFilter.INPUT_MATCHES) ) {
 					inputList.add( input );
 				}
@@ -514,7 +458,7 @@ public List<String> getInput ( String whereLabel, String internalWhere, boolean 
 				}
 			}
 			else {
-			    // Return the input with operator
+			    // Return the input with operator.
 				inputList.add (getOperator(ifg) + delim + input );
 			}
 		}
@@ -547,12 +491,12 @@ public InputFilter getInputFilter ( int ifg )
 {	int filterPos = 0;
 	if (__whereComponentList.get(ifg) instanceof SimpleJComboBox){
 		// The where lists all the filter where labels so the current
-		// filter is given by the position in the combo box...
+		// filter is given by the position in the combo box.
 		SimpleJComboBox cb = (SimpleJComboBox)__whereComponentList.get(ifg);
 		filterPos = cb.getSelectedIndex();
 	}
 	else {
-	    // A simple JLabel so there is only one item in the filter...
+	    // A simple JLabel so there is only one item in the filter.
 		filterPos = 0;
 	}
 	return (InputFilter)__inputFilterListArray[ifg].get(filterPos);
@@ -572,7 +516,7 @@ public List<InputFilter> getInputFilters ( String whereLabel )
         filter = getInputFilter ( ifg );
         where = filter.getWhereLabel();
         if ( where.equalsIgnoreCase(whereLabel) && !where.equals("") ) {
-            // Requested input name matches so add the filter...
+            // Requested input name matches so add the filter.
             inputFilterList.add(filter);
         }
     }
@@ -589,13 +533,13 @@ null will be returned.
 */
 public InputFilter getInputFilterForWhereLabelPersistent ( int ifg, String whereLabelPersistent )
 {   String where; // whereLabelPersistent for filter selected by user.
-    // First get the list of input filter for the group 
+    // First get the list of input filter for the group.
     List<InputFilter> inputFilters = (List<InputFilter>)__inputFilterListArray[ifg];
     // Loop through the filters and match the whereLabelPersistent
     for ( InputFilter inputFilter : inputFilters ) {
         where = inputFilter.getWhereLabelPersistent();
         if ( where.equalsIgnoreCase(whereLabelPersistent) && !where.equals("") ) {
-            // Requested input name matches so return the filter
+            // Requested input name matches so return the filter.
         	return inputFilter;
         }
     }
@@ -611,13 +555,13 @@ public InputFilter getInputFilterForWhereLabelPersistent ( int ifg, String where
  * or if false, only return values that are non-empty.
  */
 public String getInputValue ( String where, boolean returnEmpty ) {
-	// Loop through the input filter groups and find a matching label
+	// Loop through the input filter groups and find a matching label.
 	for ( int ifg = 0; ifg < __inputFilterListArray.length; ifg++ ) {
 	    InputFilter inputFilter = getInputFilter(ifg);
     	String input = inputFilter.getInput(false).trim();
-    	// Check the displayed where label
+    	// Check the displayed where label.
         String whereFromFilter = inputFilter.getWhereLabel();
-        // and the persistent where label
+        // and the persistent where label.
         String whereFromFilter2 = inputFilter.getWhereLabelPersistent();
         if ( whereFromFilter.equalsIgnoreCase(where) || whereFromFilter2.equalsIgnoreCase(where)) {
         	if ( !input.isEmpty() || (input.equals("") && returnEmpty) ) {
@@ -625,7 +569,7 @@ public String getInputValue ( String where, boolean returnEmpty ) {
         	}
         }
 	}
-	// Fall through is no value
+	// Fall through is no value.
 	return null;
 }
 
@@ -653,12 +597,12 @@ Return the operator for an input filter.
 @param filter input filter.
 */
 public String getOperator ( InputFilter filter )
-{   // First figure out which input filter group the filter is in...
+{   // First figure out which input filter group the filter is in.
     int ifgFound = -1;
     for ( int ifg = 0; ifg < __numFilterGroups; ifg++ ) {
         
     }
-    // Now return the operator that is visible for the filter
+    // Now return the operator that is visible for the filter.
     SimpleJComboBox cb = (SimpleJComboBox)__operatorComponentList.get(ifgFound);
     return cb.getSelected();
 }
@@ -667,8 +611,7 @@ public String getOperator ( InputFilter filter )
 Return the text that is displayed in the panel, when the text constructor is used.
 @return the text displayed in the panel text area.
 */
-public String getText ()
-{
+public String getText () {
     if ( __textArea == null ) {
         return "";
     }
@@ -684,12 +627,12 @@ public void itemStateChanged ( ItemEvent event )
 {	Object o = event.getItemSelectable();
 
 	if ( event.getStateChange() != ItemEvent.SELECTED ) {
-		// No reason to process the event...
+		// No reason to process the event.
 		return;
 	}
 
 	InputFilter filter;
-	// Loop through the filter groups, checking the where component to find the match...
+	// Loop through the filter groups, checking the where component to find the match.
 	SimpleJComboBox where_JComboBox, operator_JComboBox;
 	int filterPos = 0;	// Position of the selected filter in the group.
 	int operatorPos = 0; // Position of the selected operator in the filter group.
@@ -708,38 +651,38 @@ public void itemStateChanged ( ItemEvent event )
 		operator_JComboBox = (SimpleJComboBox)__operatorComponentList.get(ifg);
 		if (where_JComboBox != null && o == where_JComboBox ) {
 			// Found the component, which indicates which filter group was changed.  Update the operator list.
-			// Note that if the original __whereComponentList item was a JLabel, we would not even be here because
-			// no ItemEvent would have been generated.
+			// Note that if the original __whereComponentList item was a JLabel,
+			// we would not even be here because no ItemEvent would have been generated.
 			//Message.printStatus ( 2, "", "SAMX Found where component: " + ifg + " resetting operators..." );
-			// Figure out which filter is selected for the filter group.  Because all groups have the same list of
-			// filters, the absolute position will be the same in all the lists.
+			// Figure out which filter is selected for the filter group.
+			// Because all groups have the same list of filters, the absolute position will be the same in all the lists.
 			filterPos = where_JComboBox.getSelectedIndex();
 			filter = __inputFilterListArray[ifg].get( filterPos);
 			//Message.printStatus ( 2, "", "Where changed." );
 			if ( filter.getChoiceTokenType() > 0 ) {
-				// The input type is a string that has its token parsed out
+				// The input type is a string that has its token parsed out.
 				fillOperatorJComboBox ( (SimpleJComboBox)__operatorComponentList.get(ifg), filter.getChoiceTokenType(),
 				filter.getConstraintsToRemove());
 			}
 			else {
-				// The input type is a basic value, not a string that gets a token split out
+				// The input type is a basic value, not a string that gets a token split out.
 				fillOperatorJComboBox ( (SimpleJComboBox)__operatorComponentList.get(ifg), filter.getInputType(),
 				filter.getConstraintsToRemove());
 			}
 			// Set the appropriate component visible and all others not visible.
-			// There is an input component for each filter for this filter group...
+			// There is an input component for each filter for this filter group.
 			operatorPos = 0;
 			showInputFilterComponent ( ifg, filterPos, operatorPos );
-			// No need to keep searching components...
+			// No need to keep searching components.
 			break;
 		}
 		else if ( o == operator_JComboBox ) {
 			// Set the appropriate component visible and all others not visible.
-		    // There is an input component for each filter for this filter group...
+		    // There is an input component for each filter for this filter group.
 			// filterPos = getInputFilter();
-			// Test...
+			// Test.
 			//Message.printStatus ( 2, "", "Operator changed." );
-			// Figure out which operator...
+			// Figure out which operator.
 			if (where_JComboBox == null) {
 				showInputFilterComponent ( ifg, 0, operator_JComboBox.getSelectedIndex() );
 			}
@@ -747,7 +690,7 @@ public void itemStateChanged ( ItemEvent event )
 				showInputFilterComponent ( ifg, where_JComboBox.getSelectedIndex(),
 					operator_JComboBox.getSelectedIndex() );
 			}
-			// No need to keep searching components...
+			// No need to keep searching components.
 			break;
 		}
 	}
@@ -763,14 +706,14 @@ private void removeInputFilters()
 	}
 	InputFilter filter;
 	for ( int ifg = 0; ifg < __numFilterGroups; ifg++ ) {
-		// Each group contains the same filter information, but using distinct components...
+		// Each group contains the same filter information, but using distinct components.
 		for ( int ifilter = 0; ifilter < size; ifilter++ ) {
 			filter = __inputFilterListArray[ifg].get(ifilter);
-			// Remove the input components for the filter...
+			// Remove the input components for the filter.
 			filter.setInputComponent(null);
 		}
 	}
-	// Remove all the components from this JPanel...
+	// Remove all the components from this JPanel.
 	removeAll();
 	__inputFilterListArray = null;
 	__whereComponentList = null;
@@ -797,9 +740,9 @@ throws Exception
     List<String> v = StringUtil.breakStringList ( inputFilterString, delim, 0 );
 	String where = v.get(0).trim();
 	String operator = v.get(1).trim();
-	// Translate legacy operators to new convention
+	// Translate legacy operators to new convention.
 	// TODO SAM 2010-10-29 Evaluate whether to have a method for this but can
-	// hopefully phase out legacy convention without too much effort
+	// hopefully phase out legacy convention without too much effort.
 	if ( operator.equalsIgnoreCase(InputFilter.INPUT_EQUALS_LEGACY) ) {
 	    operator = InputFilter.INPUT_EQUALS;
 	}
@@ -809,14 +752,13 @@ throws Exception
     else if ( operator.equalsIgnoreCase(InputFilter.INPUT_GREATER_THAN_LEGACY) ) {
         operator = InputFilter.INPUT_GREATER_THAN;
     }
-	// Sometimes during initialization an ending token may not be provided
-	// (e.g., ";Matches;") so handle below...
+	// Sometimes during initialization an ending token may not be provided (e.g., ";Matches;") so handle below.
 	String input = "";
 	if ( v.size() > 2 ) {
 		input = v.get(2).trim();
 	}
 
-	// Set the where...
+	// Set the where.
 
 	JComponent component = __whereComponentList.get ( ifg );
 	SimpleJComboBox cb = null;
@@ -826,18 +768,18 @@ throws Exception
 		cb = (SimpleJComboBox)component;
 		// The Where could match the displayed label or an internal label that is more convenient to save,
 		// such as in a command string.  At this point don't know which so try multiple.
-		// First try exact match of the displayed where clause
+		// First try exact match of the displayed where clause.
 		boolean selectOk = false;
 		try {
 			JGUIUtil.selectIgnoreCase ( cb, where );
 			selectOk = true;
 		}
 		catch ( Exception e ) {
-			// Handle through selectOk
+			// Handle through selectOk.
 		}
 		if ( !selectOk ) {
-			// Look up the choice assuming where is "whereLabelPersistent"
-			// First go through the input filters in the group and search for a whereLabelPersistent that matches the given where
+			// Look up the choice assuming where is "whereLabelPersistent".
+			// First go through the input filters in the group and search for a whereLabelPersistent that matches the given where.
 			InputFilter inputFilter2 = getInputFilterForWhereLabelPersistent(ifg,where);
 			String visibleWhereLabelToUse = null;
 			if ( inputFilter2 != null ) {
@@ -847,12 +789,12 @@ throws Exception
 					selectOk = true;
 				}
 				catch ( Exception e2 ) {
-					// Handle through selectOk
+					// Handle through selectOk.
 				}
 			}
 		}
 		if ( !selectOk ) {
-			// Throw an exception
+			// Throw an exception.
 			throw new RuntimeException("Invalid choice \"" + where + "\" - did not match available choices or persistent label value.");
 		}
 	}
@@ -861,12 +803,12 @@ throws Exception
 		label.setText ( where );
 	}
 
-	// Set the operator...
+	// Set the operator.
 
 	cb = (SimpleJComboBox)__operatorComponentList.get ( ifg );
 	JGUIUtil.selectIgnoreCase ( cb, operator );
 
-	// Set the input...
+	// Set the input.
 
 	InputFilter selectedInputFilter = getInputFilter ( ifg );
 	component = selectedInputFilter.getInputComponent();
@@ -884,8 +826,8 @@ throws Exception
 /**
 Set the input filters.  The previous contents of the panel are removed and new
 contents are created based on the parameters.
-@param inputFilters A list of InputFilter, containing valid data.  The input
-component will be set in each input filter as the GUI is defined.
+@param inputFilters A list of InputFilter, containing valid data.
+The input component will be set in each input filter as the GUI is defined.
 @param numFilterGroups how many filter groups should be displayed.  
 Each group will include all the filters supplied at construction or with a setInputFilters() call.
 This will be reset to zero if no data are available.
@@ -896,15 +838,15 @@ the list.  A list longer than that specified will be scrolled.
 @SuppressWarnings({ "unchecked", "rawtypes" })
 public void setInputFilters ( List<InputFilter> inputFilters, int numFilterGroups, int numWhereChoicesToDisplay )
 {	// First remove the existing input filters (the event generators will also be removed so
-	// listeners will no longer get the events)...
+	// listeners will no longer get the events).
 	removeInputFilters();
-	// Duplicate the input filters for each filter group...
-	int numFilters = inputFilters.size();	// Number of filters in a filter group
+	// Duplicate the input filters for each filter group.
+	int numFilters = inputFilters.size();	// Number of filters in a filter group.
 	if ( inputFilters != null ) {
 		numFilters = inputFilters.size();
 	}
 	if ( (inputFilters == null) || (inputFilters.size() == 0) ) {
-		// Only display if we actually have data...
+		// Only display if we actually have data.
 		setNumFilterGroups ( 0 );
 	}
 	else {
@@ -915,12 +857,12 @@ public void setInputFilters ( List<InputFilter> inputFilters, int numFilterGroup
 	InputFilter filter;
 	for ( int ifg = 0; ifg < __numFilterGroups; ifg++ ) {
 		if ( ifg == 0 ) {
-			// Assign the original...
+			// Assign the original.
 			__inputFilterListArray[0] = inputFilters;
 		}
 		else {
-			// Copy the original...
-			// TODO smalers 2018-09-04 is it necessary to clone the data arrays or can they be reused.
+			// Copy the original.
+			// TODO smalers 2018-09-04 is it necessary to clone the data arrays or can they be reused:
 			// - maybe need a shallower clone?
 			//__inputFilterListArray[ifg] = new Vector<InputFiilter[]>(numFilters);
 			__inputFilterListArray[ifg] = new Vector(numFilters);
@@ -931,11 +873,11 @@ public void setInputFilters ( List<InputFilter> inputFilters, int numFilterGroup
 			}
 		}
 	}
-	// Now add the new input filters...
+	// Now add the new input filters.
 	Insets insetsNNNN = new Insets(0,0,0,0);
 	int x = 0, y = 0;
 	int num = 0;
-	// Layout is as follows...
+	// Layout is as follows:
 	//
 	//      0              1            2         3          4
 	//   where_label   operators   ......SimpleJComboBox............
@@ -944,8 +886,7 @@ public void setInputFilters ( List<InputFilter> inputFilters, int numFilterGroup
 	//
 	//                             JTextField    AND     JTextField
 	//
-	//				Depending on whether the choices are
-	//				provided.
+	//				Depending on whether the choices are provided.
 	//
 	// where positions 2-4 are used as necessary based on the type of the input.
 	__whereComponentList = new Vector<JComponent>(__numFilterGroups);
@@ -957,7 +898,7 @@ public void setInputFilters ( List<InputFilter> inputFilters, int numFilterGroup
 	for ( int ifg = 0; ifg < __numFilterGroups; ifg++, y++ ) {
 		x = 0;
 		if ( numFilters == 1 ) {
-			// Just use a label since the user cannot pick...
+			// Just use a label since the user cannot pick.
 			filter = __inputFilterListArray[ifg].get(0);
 			JLabel where_JLabel = new JLabel ( "Where " + filter.getWhereLabel() + ":" );
         		JGUIUtil.addComponent(this, where_JLabel,
@@ -966,7 +907,7 @@ public void setInputFilters ( List<InputFilter> inputFilters, int numFilterGroup
 			__whereComponentList.add ( where_JLabel );
 		}
 		else {
-		    // Put the labels in a combo box so the user can pick...
+		    // Put the labels in a combo box so the user can pick.
         	JGUIUtil.addComponent(this, new JLabel("Where:"),
 				x++, y, 1, 1, 0.0, 0.0, insetsNNNN,
 				GridBagConstraints.NONE, GridBagConstraints.EAST);
@@ -988,17 +929,17 @@ public void setInputFilters ( List<InputFilter> inputFilters, int numFilterGroup
 			GridBagConstraints.NONE, GridBagConstraints.EAST);
 			__whereComponentList.add (where_JComboBox);
 		}
-		// The operators are reused in the filter group.  Initialize to the first filter...
+		// The operators are reused in the filter group.  Initialize to the first filter.
 		filter = __inputFilterListArray[ifg].get(0);
 		// Initialize operators to the first filter.
 		// This is reused because it is a simple list based on the current input type.
 		SimpleJComboBox operator_JComboBox = new SimpleJComboBox(false);
 		if ( filter.getChoiceTokenType() > 0 ) {
-			// The input type is a string that has its token parsed out
+			// The input type is a string that has its token parsed out.
 			fillOperatorJComboBox(operator_JComboBox, filter.getChoiceTokenType(), filter.getConstraintsToRemove());
 		}
 		else {
-			// The input type is a basic value, not a string that gets a token split out
+			// The input type is a basic value, not a string that gets a token split out.
 			fillOperatorJComboBox(operator_JComboBox, filter.getInputType(), filter.getConstraintsToRemove());
 		}
 		operator_JComboBox.addItemListener ( this );
@@ -1006,11 +947,11 @@ public void setInputFilters ( List<InputFilter> inputFilters, int numFilterGroup
 		JGUIUtil.addComponent(this, operator_JComboBox,
 			x++, y, 1, 1, 0.0, 0.0, insetsNNNN,
 			GridBagConstraints.NONE, GridBagConstraints.WEST);
-		// Now initialize the components used for input, one component per filter in the group...
+		// Now initialize the components used for input, one component per filter in the group.
 		for ( int ifilter = 0; ifilter < numFilters; ifilter++ ) {
 			filter = __inputFilterListArray[ifg].get(ifilter);
 			if ( filter.getChoiceLabels() == null ) {
-				// No choices are provided so use a text field...
+				// No choices are provided so use a text field.
 				num = filter.getInputJTextFieldWidth();
 				JTextField input_JTextField = new JTextField(num);
         		JGUIUtil.addComponent(this, input_JTextField,
@@ -1023,7 +964,7 @@ public void setInputFilters ( List<InputFilter> inputFilters, int numFilterGroup
 						input_JTextField.addMouseListener(listeners.get(l));
 					}
 				}
-				// TODO - need to be distinct for each group, not shared...
+				// TODO - need to be distinct for each group, not shared.
 				//Message.printStatus ( 2, "", "SAMX adding text field as input component ");
 				input_JTextField.setEditable(filter.isInputJTextFieldEditable());
 				filter.setInputComponent( input_JTextField);
@@ -1032,7 +973,7 @@ public void setInputFilters ( List<InputFilter> inputFilters, int numFilterGroup
 				}
 			}
 			else {
-			    // Add the choices...
+			    // Add the choices.
 				SimpleJComboBox input_JComboBox = new SimpleJComboBox ( filter.getChoiceLabels(),
 					filter.areChoicesEditable() );
 				num = filter.getNumberInputJComboBoxRows();
@@ -1040,7 +981,7 @@ public void setInputFilters ( List<InputFilter> inputFilters, int numFilterGroup
 					input_JComboBox.setMaximumRowCount(num);
 				}
 				else if ( num == InputFilter.JCOMBOBOX_ROWS_DISPLAY_DEFAULT) {
-				    // do nothing, display in the default way
+				    // do nothing, display in the default way.
 				}
 				else if ( num == InputFilter.JCOMBOBOX_ROWS_DISPLAY_ALL) {
 					num = input_JComboBox.getItemCount();
@@ -1049,10 +990,10 @@ public void setInputFilters ( List<InputFilter> inputFilters, int numFilterGroup
 				JGUIUtil.addComponent(this, input_JComboBox,
 					x, y, 1, 1, 0.0, 0.0, insetsNNNN,
 					GridBagConstraints.NONE, GridBagConstraints.WEST);
-				// TODO - need to be distinct for each group, not shared...
+				// TODO - need to be distinct for each group, not shared.
 				//Message.printStatus ( 2, "", "SAMX adding combo box as input component ");
 				filter.setInputComponent( input_JComboBox );
-				// Only set the first input component visible...
+				// Only set the first input component visible.
 				if ( ifilter != 0 ) {
 					input_JComboBox.setVisible ( false );
 				}
@@ -1064,8 +1005,8 @@ public void setInputFilters ( List<InputFilter> inputFilters, int numFilterGroup
 					}
 				}				
 			}
-			// Always add a blank panel on the right side that allows expansion, to fill up the right
-			// side of the panel.  Otherwise, each component is not resizable and the filter panel tends
+			// Always add a blank panel on the right side that allows expansion, to fill up the right side of the panel.
+			// Otherwise, each component is not resizable and the filter panel tends
 			// to set centered with a lot of space on either side in container panels.
 			JGUIUtil.addComponent(this, new JPanel(),
                 (x + 1), y, 1, 1, 1.0, 0.0, insetsNNNN,
@@ -1078,8 +1019,7 @@ public void setInputFilters ( List<InputFilter> inputFilters, int numFilterGroup
 Set the number of filter groups to display.
 @param numFilterGroups number of filter groups to display (vertical components).
 */
-public void setNumFilterGroups ( int numFilterGroups )
-{
+public void setNumFilterGroups ( int numFilterGroups ) {
     __numFilterGroups = numFilterGroups;
 }
 
@@ -1087,8 +1027,7 @@ public void setNumFilterGroups ( int numFilterGroups )
 Set the number of where choices in a .
 @param numFilterGroups number of where choices to display.
 */
-public void setNumWhereChoicesToDisplay ( int numWhereChoicesToDisplay )
-{
+public void setNumWhereChoicesToDisplay ( int numWhereChoicesToDisplay ) {
     __numWhereChoicesToDisplay = numWhereChoicesToDisplay;
 }
 
@@ -1096,41 +1035,40 @@ public void setNumWhereChoicesToDisplay ( int numWhereChoicesToDisplay )
 Set the text that is displayed in the panel, when the text constructor is used.
 @param text the text displayed in the panel text area.
 */
-public void setText ( String text )
-{
+public void setText ( String text ) {
     if ( __textArea != null ) {
         __textArea.setText(text);
     }
 }
 
 /**
-Show the appropriate input filter component.  This is the component that the
-user will enter a value to check for.  It can be either a predefined list
-(JComboBox) or a text field, depending on how the InputFilter was initially
+Show the appropriate input filter component.
+This is the component that the user will enter a value to check for.
+It can be either a predefined list (JComboBox) or a text field,
+depending on how the InputFilter was initially
 defined and depending on the current operator that is selected.
 @param ifg the InputFilter group to be updated.
 @param filterPos the input filter component that is currently selected (the where item).
-@param operatorPos the operator item that is currently selected.  The input
-component that matches this criteria is set visible and all others are set to
-not visible.  In actuality, the input component is the same regardless of the
-operator component.  If the input are available as choices, then the operator
-will use these choices.  If the input is a text field, then the operator will
-require user text.  The only limitation is that for a string input type where
-the input choices have been supplied, the user will be limited to only available
-strings and will therefore not be able to do substrings.
+@param operatorPos the operator item that is currently selected.
+The input component that matches this criteria is set visible and all others are set to not visible.
+In actuality, the input component is the same regardless of the operator component.
+If the input are available as choices, then the operator will use these choices.
+If the input is a text field, then the operator will require user text.
+The only limitation is that for a string input type where the input choices have been supplied,
+the user will be limited to only available strings and will therefore not be able to do substrings.
 */
 private void showInputFilterComponent ( int ifg, int filterPos, int operatorPos )
 {	int nfilters = __inputFilterListArray[0].size();
-	InputFilter filter; // Input filter to check
+	InputFilter filter; // Input filter to check.
 	for ( int ifilter = 0; ifilter < nfilters; ifilter++) {
 		filter = __inputFilterListArray[ifg].get(ifilter);
 		if ( ifilter == filterPos ) {
-			// The input component for the selected filter needs to be visible...
+			// The input component for the selected filter needs to be visible.
 			//Message.printStatus ( 2, "","SAMX enabling input component " + ifilter );
 			filter.getInputComponent().setVisible(true);
 		}
 		else {
-		    // All other input components should not be visible...
+		    // All other input components should not be visible.
 			//Message.printStatus ( 2, "","SAMX disabling input component " + ifilter );
 			filter.getInputComponent().setVisible(false);
 		}
@@ -1138,8 +1076,8 @@ private void showInputFilterComponent ( int ifg, int filterPos, int operatorPos 
 }
 
 /**
-Return a string representation of an input filter group.  This can be used, for
-example, with software that may place a filter in a command.
+Return a string representation of an input filter group.
+This can be used, for example, with software that may place a filter in a command.
 The displayed label is used.
 @param ifg the Input filter group
 @param delim Delimiter for the returned filter information.  If null, use ";".
@@ -1149,8 +1087,8 @@ public String toString ( int ifg, String delim )
 }
 
 /**
-Return a string representation of an input filter group.  This can be used, for
-example, with software that may place a filter in a command.
+Return a string representation of an input filter group.
+This can be used, for example, with software that may place a filter in a command.
 @param ifg the Input filter group
 @param delim Delimiter for the returned filter information.  If null, use ";".
 @param valuePos if <= 0, return the where label; if 1, return the internal value; if 2, return the alternate internal value;
@@ -1162,19 +1100,19 @@ public String toString ( int ifg, String delim, int valuePos )
 		delim = ";";
 	}
 	if ( valuePos == 1 ) {
-		// Internal where
+		// Internal where.
 		return filter.getWhereInternal() + delim + getOperator(ifg) + delim + filter.getInput(false);
 	}
 	else if ( valuePos == 2 ) {
-		// Second internal where
+		// Second internal where.
 		return filter.getWhereInternal2() + delim + getOperator(ifg) + delim + filter.getInput(false);
 	}
 	else if ( valuePos == 3 ) {
-		// Persistent label, intended to represent the where criteria in persistent form such as commands
+		// Persistent label, intended to represent the where criteria in persistent form such as commands.
 		return filter.getWhereLabelPersistent() + delim + getOperator(ifg) + delim + filter.getInput(false);
 	}
 	else {
-		// Default behavior for (valuePos < 1) || (valuePos > 3) )
+		// Default behavior for: (valuePos < 1) || (valuePos > 3) )
 		return filter.getWhereLabel() + delim + getOperator(ifg) + delim + filter.getInput(false);
 	}
 }
