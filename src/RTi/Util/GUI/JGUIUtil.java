@@ -1080,8 +1080,10 @@ public static List<String> toList (JTextArea ta) {
 	}
 	List<String> list = StringUtil.breakStringList ( ta.getText(), "\n", 0 );
 	// Just to be sure, remove any trailing carriage-return characters from the end.
-	for ( String string : list ) {
-		list.add(StringUtil.removeNewline(string));
+	String string = null;
+	for ( int i = 0; i < list.size(); i++ ) {
+		string = list.get(i);
+		list.set(i,StringUtil.removeNewline(string));
 	}
 	return list;
 }
