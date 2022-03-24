@@ -1692,6 +1692,7 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 			GRLimits daDataLimits = daGraph.getDataLimits();
 			boolean doDraw = false;
 			if ( (trackerType == TSGraphMouseTrackerType.NEAREST)
+				|| (trackerType == TSGraphMouseTrackerType.NEAREST_WITH_ID)
 				|| (trackerType == TSGraphMouseTrackerType.NEAREST_SELECTED) ) {
 				if ( daDrawLimits.contains(devx, (devHeight - devy)) ) {
 					// Must contain X and Y coordinate.
@@ -1712,7 +1713,7 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 				// Loop through the time series and get the data closest to the horizontal coordinate.
 				// First back-calculate the data x-coordinate (date) so it can be used to look up time series values.
 				GRPoint datapt = daGraph.getDataXY( devx, devy, GRDrawingArea.COORD_DEVICE );
-				// The X coordinate is a floating-point representation of the date/time
+				// The X coordinate is a floating-point representation of the date/time.
 				DateTime dt = new DateTime(datapt.getX(),true);
 				//System.out.println("Mouse date/time=" + dt);
 				// Loop through the time series and find the point that is nearest to the mouse.
@@ -1762,6 +1763,7 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 							searchEnd.addInterval(ts.getDataIntervalBase(), ts.getDataIntervalMult());
 						}
 						if ( (trackerType == TSGraphMouseTrackerType.NEAREST)
+							|| (trackerType == TSGraphMouseTrackerType.NEAREST_WITH_ID)
 							|| (trackerType == TSGraphMouseTrackerType.NEAREST_SELECTED) ) {
 							// Extend the search window on each side a few intervals to try to match rapid jump.
 							searchStart.addInterval(intervalBase, -10*intervalMult);
@@ -1774,6 +1776,11 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 						// 2 data points on each side.
 						IrregularTS irrts = (IrregularTS)ts;
 						TSData tsdataIrr = irrts.findNearestNext ( dt, null, null, true );
+						if ( tsdataIrr == null ) {
+							// Likely that the time series period does not overlap the mouse coordinate.
+							// Skip the time series.
+							continue;
+						}
 						TSData tsdataIrr2 = tsdataIrr;
 						if ( tsdataIrr.getPrevious() != null ) {
 							tsdataIrr = tsdataIrr.getPrevious();
@@ -1790,6 +1797,7 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 						searchStart = new DateTime(tsdataIrr.getDate());
 						searchEnd = new DateTime(tsdataIrr2.getDate());
 						if ( (trackerType == TSGraphMouseTrackerType.NEAREST)
+							|| (trackerType == TSGraphMouseTrackerType.NEAREST_WITH_ID)
 							|| (trackerType == TSGraphMouseTrackerType.NEAREST_SELECTED) ) {
 							// Extend the search window on each side a few intervals to try to match rapid jump.
 							// TODO sam 2017-04-22 need to find a way to iterate back without being a performance hit.
@@ -1832,6 +1840,7 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 							//	" devy=" + devy + " tsValueAsPixel0=" + tsValueAsPixel0 + " tsValueAsPixel=" + tsValueAsPixel + " xDiff="+xDiff + " yDiff="+yDiff + " dist=" + dist );//+ " TrackerType=" + trackerType + " daGraph=" + daGraph.getName());
 							// Make copies of objects when new nearest is found so original instances won't be used (they are dynamic).
 							if ( (trackerType == TSGraphMouseTrackerType.NEAREST)
+								|| (trackerType == TSGraphMouseTrackerType.NEAREST_WITH_ID)
 								|| (trackerType == TSGraphMouseTrackerType.NEAREST_SELECTED) ) {
 								// Only the single nearest point is drawn (multiple axes and graphs can't draw because only one can be nearest).
 								if ( distNearestList == null ) {
@@ -1886,16 +1895,17 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 				|| (trackerType == TSGraphMouseTrackerType.NEAREST_TIME_SELECTED) ) {
 				// Drawing nearest for all time series so draw for the drawing area:
 				// - lists will be sized for the number of time series in the drawing area
-				drawMouseTrackerPoints ( glassPane,
+				drawMouseTrackerPoints ( trackerType, glassPane,
 					distNearestList, tsNearestList, dtNearestList,
 					tsdataNearestList, daGraphNearestList, itsgraphNearestList);
 			}
 		}
 		if ( (trackerType == TSGraphMouseTrackerType.NEAREST)
+			|| (trackerType == TSGraphMouseTrackerType.NEAREST_WITH_ID)
 			|| (trackerType == TSGraphMouseTrackerType.NEAREST_SELECTED)) {
 			// Drawing nearest time series point(s), which could be a time series in left or right y-axis graph:
 			// - lists will only have one item
-			drawMouseTrackerPoints ( glassPane,
+			drawMouseTrackerPoints ( trackerType, glassPane,
 				distNearestList, tsNearestList, dtNearestList,
 				tsdataNearestList, daGraphNearestList, itsgraphNearestList);
 		}
@@ -1950,7 +1960,7 @@ private void drawMouseTrackerCrossHairs ( TSGraphJComponentGlassPane glassPane, 
 /**
  * Determine the label to show for the mouse tracker.
  */
-private String drawMouseTrackerLabel ( TS ts, TSData tsdata ) {
+private String drawMouseTrackerLabel ( TSGraphMouseTrackerType trackerType, TS ts, TSData tsdata ) {
 	DateTime dt = tsdata.getDate();
 	double value = tsdata.getDataValue();
 	String flag = tsdata.getDataFlag();
@@ -1963,15 +1973,36 @@ private String drawMouseTrackerLabel ( TS ts, TSData tsdata ) {
     // TODO SAM 2013-07-31 Need to figure out precision from data, but don't look up each
     // call to this method because a performance hit?
     valueString = StringUtil.formatString(value,"%.2f");
-	String dateTimeString = " " + dt;
+	String dateTimeString = ", " + dt;
 	if ( !ts.getSequenceID().isEmpty() ) {
 		traceString = " [" + ts.getSequenceID() + "]";
 	}
-	String pointLabel = valueString + flagString + dateTimeString + traceString;
+	String idString = "";
+	if ( trackerType == TSGraphMouseTrackerType.NEAREST_WITH_ID ) {
+		if ( (ts.getAlias() != null) && !ts.getAlias().isEmpty() ) {
+			idString = ", " + ts.getAlias();
+		}
+		else {
+			idString = ", " + ts.getIdentifierString();
+		}
+	}
+	String pointLabel = valueString + flagString + dateTimeString + traceString + idString;
 	return pointLabel;
 }
 
-private void drawMouseTrackerPoints ( TSGraphJComponentGlassPane glassPane,
+/**
+ * Draw the mouse tracker points on the tracker glass pane.
+ * @param glassPane glass pane on which the tracker is drawn
+ * @param distNearestList
+ * @param tsNearestList
+ * @param dtNearestList
+ * @param tsdataNearestList
+ * @param daGraphNearestList
+ * @param itsgraphNearestList
+ */
+private void drawMouseTrackerPoints (
+	TSGraphMouseTrackerType trackerType,
+	TSGraphJComponentGlassPane glassPane,
 	List<Double> distNearestList, List<TS> tsNearestList, List<DateTime> dtNearestList,
 	List<TSData> tsdataNearestList, List<GRDrawingArea> daGraphNearestList, List<Integer> itsgraphNearestList ) {
 	if ( distNearestList != null ) {
@@ -1991,7 +2022,7 @@ private void drawMouseTrackerPoints ( TSGraphJComponentGlassPane glassPane,
 			GRDrawingArea daGraphNearest = daGraphNearestList.get(i);
 			Integer itsgraphNearest = itsgraphNearestList.get(i);
 			//System.out.println("Nearest date/time is " + dtNearest + ", value=" + tsdataNearest.getDataValue() );
-			String trackerLabel = drawMouseTrackerLabel ( tsNearest, tsdataNearest );
+			String trackerLabel = drawMouseTrackerLabel ( trackerType, tsNearest, tsdataNearest );
 			// Draw the time series data point as a larger symbol
 			// TODO smalers 2017-03-03 it is tricky to find value of its because sublist of axis time series
 			// is processed rather than full TSProduct list.  For now hard-code size

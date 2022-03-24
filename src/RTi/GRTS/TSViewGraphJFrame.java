@@ -1084,6 +1084,7 @@ private void openGUI ( boolean mode )
 	else {
 		// Normal graph.
 		__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NEAREST);
+		__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NEAREST_WITH_ID);
 		__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NEAREST_SELECTED);
 		__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NEAREST_TIME);
 		__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NEAREST_TIME_SELECTED);

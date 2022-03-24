@@ -325,19 +325,19 @@ public int enforceDataGaps (	int interval_base, int interval_mult,
 
 /**
  * Find nearest data point to the given DateTime.
- * It is assumed that the precision of the DateTime is consistent with the precision
- * of DateTime in the time series.
+ * It is assumed that the precision of the DateTime is consistent with the precision of DateTime in the time series.
  * @param dt DateTime that is is of interest to match
  * @param searchStart a DateTime known to exist in the time series, to start the search
  * @param searchEnd a DateTime known to exist in the time series, to end the search
- * @param returnMatch if true and the requested DateTime matches an existing value, return the data for that point
- * (false will return the next point).
+ * @param returnMatch if true and the requested DateTime matches an existing value,
+ * return the data for that point (false will return the next point).
  * @return a TSData objects containing the nearest future data point to the requested,
  * or null if not found (goes beyond end of data)
  */
 public TSData findNearestNext ( DateTime dt, DateTime searchStart, DateTime searchEnd, boolean returnMatch ) {
 	TSData tsdataNext = null;
 	TSData tsdataLeft, tsdataRight;
+	String routine = null;
 	// Currently search the entire time series and use bisection.
 	if ( searchStart != null ) {
 		// Verify that it exists in the data.
@@ -359,7 +359,7 @@ public TSData findNearestNext ( DateTime dt, DateTime searchStart, DateTime sear
 		}
 	}
 	else {
-		// Search from the start.
+		// Search from the end.
 		searchEnd = new DateTime(getDate2());
 		tsdataRight = this.getDataPoint(searchEnd, null);
 	}
@@ -370,7 +370,9 @@ public TSData findNearestNext ( DateTime dt, DateTime searchStart, DateTime sear
 	if ( dt.greaterThan(searchEnd) ) {
 		return null;
 	}
-	int iLeft = 0, iRight = this.__tsDataList.size() - 1, iMiddle;
+	int iLeft = 0;
+	int iRight = this.__tsDataList.size() - 1;
+	int iMiddle;
 	TSData tsdataMiddle;
 	DateTime dtMiddle;
 	while ( true ) {
@@ -389,6 +391,7 @@ public TSData findNearestNext ( DateTime dt, DateTime searchStart, DateTime sear
 			iLeft = iMiddle;
 		}
 		else {
+			// Reset the right.
 			iRight = iMiddle;
 		}
 		if ( (iRight - iLeft) == 1 ) {
