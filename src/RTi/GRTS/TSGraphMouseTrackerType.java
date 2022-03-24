@@ -32,6 +32,10 @@ public enum TSGraphMouseTrackerType
 	 * Track the single nearest point to the mouse.
 	 */
     NEAREST("Nearest"),
+	/**
+	 * Same as NEAREST, but also label with the Alias or TSID.
+	 */
+    NEAREST_WITH_ID("NearestWithId"),
     /**
      * Track single nearest point to the mouse, for only selected time series.
      */

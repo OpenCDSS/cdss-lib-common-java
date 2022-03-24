@@ -43,31 +43,29 @@ import RTi.Util.String.StringUtil;
 /**
 The DateTime class provides date/time storage and manipulation for general use.
 Unlike the Java Date and Calendar classes, this class allows date/time
-data fields to be easily set and manipulated, for example to allow fast iteration without
-having to recreate DateTime instances.
+data fields to be easily set and manipulated,
+for example to allow fast iteration without having to recreate DateTime instances.
 Specific features of the DateTime class are:
 <ul>
 <li>	An optional bitmask flag can be used at construction to indicate the
-	precision (which matches the TimeInterval values), initialization
-	(to zero or current date/time), and performance (fast or strict).:w
+	precision (which matches the TimeInterval values),
+	initialization (to zero or current date/time), and performance (fast or strict).
 	
 	TimeInterval.YEAR is equal to DateTime.PRECISION_YEAR, etc.</li>
-<li>	The precision values are mutually exclusive; therefore, they can be
-	compared as binary mask values or with ==.</li>
+<li>	The precision values are mutually exclusive; therefore,
+    they can be compared as binary mask values or with ==.</li>
 <li>	By default the time zone is not used in DateTime manipulation or output.
-	However, if the PRECISION_TIME_ZONE flag is set during creation or with
-	a call to setTimeZone(), then the time zone is intended to be used
-	throughout (comparison, output, etc.).  See the getDate*() methods for
-	variations that consider time zone.</li>
+	However, if the PRECISION_TIME_ZONE flag is set during creation or with a call to setTimeZone(),
+	then the time zone is intended to be used throughout (comparison, output, etc.).
+	See the getDate*() methods for variations that consider time zone.</li>
 <li>	DateTime objects can be used in TimeUtil methods in a generic way.</li>
-<li>	Call isZero() to see whether the DateTime has zero values.  A zero
-	DateTime means that the date is not the current time and values have
+<li>	Call isZero() to see whether the DateTime has zero values.
+    A zero DateTime means that the date is not the current time and values have
 	not been reset from the defaults.</li>
-<li>	Precisions allow "abbreviating" a DateTime to consider only certain
-	data fields.  By default, the larger interval data (e.g., year) are
-	included and only smaller data (e.g., seconds) can be cut out of the
-	precision.  If the TIME_ONLY bitmask is used at creation, then the
-	date fields can be ignored.</li>
+<li>	Precisions allow "abbreviating" a DateTime to consider only certain data fields.
+    By default, the larger interval data (e.g., year) are
+	included and only smaller data (e.g., seconds) can be cut out of the precision.
+	If the TIME_ONLY bitmask is used at creation, then the date fields can be ignored.</li>
 </ul>
 */
 @SuppressWarnings("serial")
@@ -2302,7 +2300,7 @@ NamedDateTime - Interval (e.g., "CurrentToHour - 6Hour")
 NamedDateTime + Interval (e.g., "CurrentToHour + 6Hour")
 </pre>
 @return A DateTime corresponding to the date.
-@param date_string Any of the formats supported by parse(String,int).
+@param dtString Any of the formats supported by parse(String,int).
 @param datetime_props Named DateTime instances that are to be recognized when
 parsing the string.  For example, an application may internally have a parameter
 called InputStart, which is referenced in the string.  If parsing only for
@@ -2313,26 +2311,26 @@ The named date/time instances <u>cannot</u> contain "+" or "-" characters.
 interval string or a missing named date/time.
 @see #toString
 */
-public static DateTime parse ( String date_string, PropList datetime_props )
+public static DateTime parse ( String dtString, PropList datetime_props )
 {
-	if (date_string == null) {
+	if (dtString == null) {
 		Message.printWarning(3, "DateTime.parse", "Cannot get DateTime from null string.");
 		throw new IllegalArgumentException("Null DateTime string to parse.");
 	} 
 
-	String str = date_string.trim();
+	String str = dtString.trim();
 
 	if (str.length() == 0) {
 		Message.printWarning(3, "DateTime.parse", "Cannot get DateTime from empty string.");
 		throw new IllegalArgumentException("Empty DateTime string to parse.");
 	}		
 
-	if (Character.isDigit(date_string.charAt(0))) {
+	if (Character.isDigit(dtString.charAt(0))) {
 		// If the first character is a number then assume that this is a
 		// DateTime string that should be parsed as normal.
 		// There is no support for parsing things like:
 		//    "2005-10-12 10:13 + 15Minute"
-		return DateTime.parse(date_string);
+		return DateTime.parse(dtString);
 	}
 	
 	// Else parse special values like CurrentToMinute
@@ -2629,7 +2627,7 @@ public static DateTime parse ( String dateTimeString )
 		Message.printDebug(dl, "DateTime.parse", "Parsing \"" + dateTimeString + "\" length=" + length);
 	}
 
-	// This if-elseif structure is used to determine the format of the date represented by date_string.
+	// This if-elseif structure is used to determine the format of the date represented by dtString.
 	// All of these parse the string without time zone.  If time zone was detected, it is added at the end.
 	// TODO SAM 2016-05-02 need to remove some cases now previously checked for time zone now that
 	// time zone is checked above.  The legacy code assumed 3-digit time zone but now longer time zone is accepted.
@@ -2856,20 +2854,21 @@ public static DateTime parse ( String dateTimeString )
 }
 
 /**
-Parse a string and initialize a DateTime.  The calling code must specify the
-proper format for parsing.  This routine therefore has limited use but is
-relatively fast.  The precision for the date is set according to the format (the
+Parse a string and initialize a DateTime.
+The calling code must specify the proper format for parsing.
+This routine therefore has limited use but is relatively fast.
+The precision for the date is set according to the format (the
 precision is set to the smallest time interval used in the format).
 This routine is the inverse of toString(int format).
 @return A DateTime corresponding to the date.
-@param date_string A string representation of a date/time.
+@param dtString A string representation of a date/time.
 @param format Date format (see FORMAT_*).
 @exception IllegalArgumentException If there is an error parsing the date string.
 @see #toString
 */
-public static DateTime parse ( String date_string, int format )
+public static DateTime parse ( String dtString, int format )
 {	// Call the overloaded method with no special flag.
-	return parse ( date_string, format, 0 );
+	return parse ( dtString, format, 0 );
 }
 
 /**
@@ -2879,7 +2878,7 @@ relatively fast.  The precision for the date is set according to the format (the
 precision is set to the smallest time interval used in the format).
 This routine is the inverse of toString(int format).
 @return A DateTime corresponding to the date.
-@param date_string A string representation of a date/time.
+@param dtString A string representation of a date/time.
 @param format Date format (see FORMAT_*).
 @exception IllegalArgumentException If there is an error parsing the date string.
 @param flag A flag to use internally.  If > 0, this is used by some
@@ -2887,7 +2886,7 @@ internal code to indicate variations in formats.  For example, MM/DD/YYYY,
 MM/D/YYYY, M/DD/YYYY, M/D/YYYY are all variations on the same format.
 @see #toString
 */
-private static DateTime parse ( String date_string, int format, int flag )
+private static DateTime parse ( String dtString, int format, int flag )
 {	int dl = 50;
 	// Use to improve performance of checks at end of the method:
 	// - use booleans rather than doing repeated bit mask checks
@@ -2904,7 +2903,7 @@ private static DateTime parse ( String date_string, int format, int flag )
 	// This allows defaults for the smaller date/time fields.
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug(dl,routine, "Trying to parse string \"" + date_string + "\" using format " + format );
+		Message.printDebug(dl,routine, "Trying to parse string \"" + dtString + "\" using format " + format );
 	}
 
 	if ( format == FORMAT_DD_SLASH_MM_SLASH_YYYY ) {
@@ -2912,16 +2911,16 @@ private static DateTime parse ( String date_string, int format, int flag )
 		is_day = true;
 		// Various flavors of the format based on whether one or two digits are used for the month and day.
 		if ( flag == 0 ) {
-			v = StringUtil.fixedRead ( date_string, "i2x1i2x1i4" );
+			v = StringUtil.fixedRead ( dtString, "i2x1i2x1i4" );
 		}
 		else if ( flag == 8 ) {
-			v = StringUtil.fixedRead ( date_string, "i1x1i1x1i4" );
+			v = StringUtil.fixedRead ( dtString, "i1x1i1x1i4" );
 		}
 		else if ( flag == 9 ) {
-			v = StringUtil.fixedRead ( date_string, "i2x1i1x1i4" );
+			v = StringUtil.fixedRead ( dtString, "i2x1i1x1i4" );
 		}
 		else if ( flag == -9 ) {
-			v = StringUtil.fixedRead ( date_string, "i1x1i2x1i4" );
+			v = StringUtil.fixedRead ( dtString, "i1x1i2x1i4" );
 		}
 		date.__day = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
@@ -2930,27 +2929,27 @@ private static DateTime parse ( String date_string, int format, int flag )
 	else if ( format == FORMAT_HH_mm ) {
 		date = new DateTime ( PRECISION_MINUTE | TIME_ONLY );
 		is_minute = true;
-		v = StringUtil.fixedRead ( date_string, "i2x1i2" );
+		v = StringUtil.fixedRead ( dtString, "i2x1i2" );
 		date.__hour = ((Integer)v.get(0)).intValue();
 		date.__minute = ((Integer)v.get(1)).intValue();
 	}
 	else if ( format == FORMAT_HHmm ) {
 		date = new DateTime ( PRECISION_MINUTE | TIME_ONLY );
 		is_minute = true;
-		v = StringUtil.fixedRead ( date_string, "i2i2" );
+		v = StringUtil.fixedRead ( dtString, "i2i2" );
 		date.__hour = ((Integer)v.get(0)).intValue();
 		date.__minute = ((Integer)v.get(1)).intValue();
 	}
 	else if ( format == FORMAT_MM ) {
 		date = new DateTime ( PRECISION_MONTH );
 		is_month = true;
-		v = StringUtil.fixedRead ( date_string, "i2" );
+		v = StringUtil.fixedRead ( dtString, "i2" );
 		date.__month = ((Integer)v.get(0)).intValue();
 	}
 	else if ( (format == FORMAT_MM_DD) || (format == FORMAT_MM_SLASH_DD) ) {
 		date = new DateTime ( PRECISION_DAY );
 		is_day = true;
-		v = StringUtil.fixedRead ( date_string, "i2x1i2" );
+		v = StringUtil.fixedRead ( dtString, "i2x1i2" );
 		date.__month = ((Integer)v.get(0)).intValue();
 		date.__day = ((Integer)v.get(1)).intValue();
 	}
@@ -2960,16 +2959,16 @@ private static DateTime parse ( String date_string, int format, int flag )
 		// Various flavors of the format based on whether one or two
 		// digits are used for the month and day.
 		if ( flag == 0 ) {
-			v = StringUtil.fixedRead ( date_string, "i2x1i2x1i4" );
+			v = StringUtil.fixedRead ( dtString, "i2x1i2x1i4" );
 		}
 		else if ( flag == 8 ) {
-			v = StringUtil.fixedRead ( date_string, "i1x1i1x1i4" );
+			v = StringUtil.fixedRead ( dtString, "i1x1i1x1i4" );
 		}
 		else if ( flag == 9 ) {
-			v = StringUtil.fixedRead ( date_string, "i2x1i1x1i4" );
+			v = StringUtil.fixedRead ( dtString, "i2x1i1x1i4" );
 		}
 		else if ( flag == -9 ) {
-			v = StringUtil.fixedRead ( date_string, "i1x1i2x1i4" );
+			v = StringUtil.fixedRead ( dtString, "i1x1i2x1i4" );
 		}
 		date.__month = ((Integer)v.get(0)).intValue();
 		date.__day = ((Integer)v.get(1)).intValue();
@@ -2978,7 +2977,7 @@ private static DateTime parse ( String date_string, int format, int flag )
 	else if ( format == FORMAT_MM_SLASH_DD_SLASH_YY ) {
 		date = new DateTime ( PRECISION_DAY );
 		is_day = true;
-		v = StringUtil.fixedRead ( date_string, "i2x1i2x1i2" );
+		v = StringUtil.fixedRead ( dtString, "i2x1i2x1i2" );
 		date.__month = ((Integer)v.get(0)).intValue();
 		date.__day = ((Integer)v.get(1)).intValue();
 		date.__year = ((Integer)v.get(2)).intValue();
@@ -2986,7 +2985,7 @@ private static DateTime parse ( String date_string, int format, int flag )
 	else if ( (format == FORMAT_MM_SLASH_DD_SLASH_YYYY_HH) || (format == FORMAT_MM_DD_YYYY_HH) ) {
 		date = new DateTime (PRECISION_HOUR );
 		is_hour = true;
-		v = StringUtil.fixedRead ( date_string, "i2x1i2x1i4x1i2" );
+		v = StringUtil.fixedRead ( dtString, "i2x1i2x1i4x1i2" );
 		date.__month = ((Integer)v.get(0)).intValue();
 		date.__day = ((Integer)v.get(1)).intValue();
 		date.__year = ((Integer)v.get(2)).intValue();
@@ -2995,11 +2994,11 @@ private static DateTime parse ( String date_string, int format, int flag )
 	else if ( format == FORMAT_MM_SLASH_DD_SLASH_YYYY_HH_mm ) {
 		date = new DateTime ( PRECISION_MINUTE );
 		is_minute = true;
-		if ( date_string.length() < 16 ) {
+		if ( dtString.length() < 16 ) {
 		    // The date string is not padded with zeros.  Parse the string
 		    // into its parts and then reform to a zero-padded string.  Use primitive
 		    // formatting to increase performance.
-		    String [] sarray = date_string.split("[/ :]" );
+		    String [] sarray = dtString.split("[/ :]" );
 		    String monthPad= "", dayPad = "", hourPad = "", minutePad = "";
 		    if ( (sarray != null) && (sarray.length > 4) ) {
 		        // Assume that have all the needed parts
@@ -3015,11 +3014,11 @@ private static DateTime parse ( String date_string, int format, int flag )
                 if ( sarray[4].length() == 1 ) {
                     minutePad = "0";
                 }
-                date_string = monthPad + sarray[0] + "/" + dayPad + sarray[1] + "/" +
+                dtString = monthPad + sarray[0] + "/" + dayPad + sarray[1] + "/" +
                     sarray[2] + " " + hourPad + sarray[3] + ":" + minutePad + sarray[4];
 		    }
 		}
-		v = StringUtil.fixedRead ( date_string, "i2x1i2x1i4x1i2x1i2" );
+		v = StringUtil.fixedRead ( dtString, "i2x1i2x1i4x1i2x1i2" );
 		date.__month = ((Integer)v.get(0)).intValue();
 		date.__day = ((Integer)v.get(1)).intValue();
 		date.__year = ((Integer)v.get(2)).intValue();
@@ -3029,7 +3028,7 @@ private static DateTime parse ( String date_string, int format, int flag )
     else if (format == FORMAT_MM_SLASH_DD_SLASH_YYYY_HH_mm_SS) {
 		date = new DateTime (PRECISION_SECOND );
 		is_minute = true;
-		v = StringUtil.fixedRead ( date_string, "i2x1i2x1i4x1i2x1i2x1i2" );
+		v = StringUtil.fixedRead ( dtString, "i2x1i2x1i4x1i2x1i2x1i2" );
 		date.__month = ((Integer)v.get(0)).intValue();
 		date.__day = ((Integer)v.get(1)).intValue();
 		date.__year = ((Integer)v.get(2)).intValue();
@@ -3040,12 +3039,12 @@ private static DateTime parse ( String date_string, int format, int flag )
 	else if ( format == FORMAT_MM_SLASH_YYYY ) {
 		date = new DateTime ( PRECISION_MONTH );
 		is_month = true;
-		if ( date_string.length() == 6 ) {
-			v = StringUtil.fixedRead ( date_string, "i1x1i4" );
+		if ( dtString.length() == 6 ) {
+			v = StringUtil.fixedRead ( dtString, "i1x1i4" );
 		} 
 		else {
 			// Expect a length of 7.
-			v = StringUtil.fixedRead ( date_string, "i2x1i4" );
+			v = StringUtil.fixedRead ( dtString, "i2x1i4" );
 		}
 		date.__month = ((Integer)v.get(0)).intValue();
 		date.__year = ((Integer)v.get(1)).intValue();
@@ -3053,20 +3052,20 @@ private static DateTime parse ( String date_string, int format, int flag )
 	else if ( format == FORMAT_YYYY ) {
 		date = new DateTime ( PRECISION_YEAR );
 		is_year = true;
-		v = StringUtil.fixedRead ( date_string, "i4" );
+		v = StringUtil.fixedRead ( dtString, "i4" );
 		date.__year = ((Integer)v.get(0)).intValue();
 	}
 	else if ( format == FORMAT_YYYY_MM ) {
 		date = new DateTime ( PRECISION_MONTH );
 		is_month = true;
-		v = StringUtil.fixedRead ( date_string, "i4x1i2" );
+		v = StringUtil.fixedRead ( dtString, "i4x1i2" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 	}
 	else if ( format == FORMAT_YYYY_MM_DD ) {
 		date = new DateTime ( PRECISION_DAY );
 		is_day = true;
-		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2" );
+		v = StringUtil.fixedRead ( dtString, "i4x1i2x1i2" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
@@ -3074,7 +3073,7 @@ private static DateTime parse ( String date_string, int format, int flag )
 	else if ( format == FORMAT_YYYYMMDD ) {
 		date = new DateTime ( PRECISION_DAY );
 		is_day = true;
-		v = StringUtil.fixedRead ( date_string, "i4i2i2" );
+		v = StringUtil.fixedRead ( dtString, "i4i2i2" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
@@ -3082,7 +3081,7 @@ private static DateTime parse ( String date_string, int format, int flag )
 	else if ( format == FORMAT_YYYY_MM_DD_HH ) {
 		date = new DateTime (PRECISION_HOUR );
 		is_hour = true;
-		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2" );
+		v = StringUtil.fixedRead ( dtString, "i4x1i2x1i2x1i2" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
@@ -3092,17 +3091,17 @@ private static DateTime parse ( String date_string, int format, int flag )
 		// YYYY-MM-DD hh ZZZ...
 		date = new DateTime ( PRECISION_HOUR );
 		is_hour = true;
-		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2" );
+		v = StringUtil.fixedRead ( dtString, "i4x1i2x1i2x1i2" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
 		date.__hour = ((Integer)v.get(3)).intValue();
-		date.setTimeZone ( date_string.substring(13).trim() );
+		date.setTimeZone ( dtString.substring(13).trim() );
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm ) {
 		date = new DateTime ( PRECISION_MINUTE );
 		is_minute = true;
-		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2x1i2" );
+		v = StringUtil.fixedRead ( dtString, "i4x1i2x1i2x1i2x1i2" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
@@ -3112,7 +3111,7 @@ private static DateTime parse ( String date_string, int format, int flag )
 	else if ( format == FORMAT_YYYYMMDDHHmm ) {
 		date = new DateTime (PRECISION_MINUTE );
 		is_minute = true;
-		v = StringUtil.fixedRead ( date_string, "i4i2i2i2i2" );
+		v = StringUtil.fixedRead ( dtString, "i4i2i2i2i2" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
@@ -3122,7 +3121,7 @@ private static DateTime parse ( String date_string, int format, int flag )
 	else if ( format == FORMAT_YYYY_MM_DD_HHmm ) {
 		date = new DateTime ( PRECISION_MINUTE );
 		is_minute = true;
-		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2i2" );
+		v = StringUtil.fixedRead ( dtString, "i4x1i2x1i2x1i2i2" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
@@ -3131,7 +3130,7 @@ private static DateTime parse ( String date_string, int format, int flag )
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_SS ) {
 		date = new DateTime ( PRECISION_SECOND );
-		v = StringUtil.fixedRead ( date_string,"i4x1i2x1i2x1i2x1i2x1i2" );
+		v = StringUtil.fixedRead ( dtString,"i4x1i2x1i2x1i2x1i2x1i2" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
@@ -3141,7 +3140,7 @@ private static DateTime parse ( String date_string, int format, int flag )
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_SS_hh ) {
 		date = new DateTime (PRECISION_HSECOND );
-		v = StringUtil.fixedRead ( date_string,"i4x1i2x1i2x1i2x1i2x1i2x1i2" );
+		v = StringUtil.fixedRead ( dtString,"i4x1i2x1i2x1i2x1i2x1i2x1i2" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
@@ -3154,7 +3153,7 @@ private static DateTime parse ( String date_string, int format, int flag )
 		// YYYY-MM-DDThh:mm:ss:xxx
 		// YYYY-MM-DDThh:mm:ss.xxx
 		date = new DateTime ( PRECISION_MILLISECOND );
-		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2x1i2x1i2x1i3" );
+		v = StringUtil.fixedRead ( dtString, "i4x1i2x1i2x1i2x1i2x1i2x1i3" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
@@ -3167,7 +3166,7 @@ private static DateTime parse ( String date_string, int format, int flag )
 		// YYYY-MM-DDThh:mm:ss:xxxxxx
 		// YYYY-MM-DDThh:mm:ss.xxxxxx
 		date = new DateTime ( PRECISION_MICROSECOND );
-		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2x1i2x1i2x1i6" );
+		v = StringUtil.fixedRead ( dtString, "i4x1i2x1i2x1i2x1i2x1i2x1i6" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
@@ -3180,7 +3179,7 @@ private static DateTime parse ( String date_string, int format, int flag )
 		// YYYY-MM-DDThh:mm:ss:xxxxxxxxx
 		// YYYY-MM-DDThh:mm:ss.xxxxxxxxx
 		date = new DateTime ( PRECISION_NANOSECOND );
-		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2x1i2x1i2x1i9" );
+		v = StringUtil.fixedRead ( dtString, "i4x1i2x1i2x1i2x1i2x1i2x1i9" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
@@ -3188,46 +3187,46 @@ private static DateTime parse ( String date_string, int format, int flag )
 		date.__minute = ((Integer)v.get(4)).intValue();
 		date.__second = ((Integer)v.get(5)).intValue();
 		date.__nano = ((Integer)v.get(6)).intValue();
-		Message.printStatus(2, routine, "Parsing FORMAT_YYYY_MM_DD_HH_mm_SS_NANO: " + date);
+		//Message.printStatus(2, routine, "Parsing FORMAT_YYYY_MM_DD_HH_mm_SS_NANO: " + date);
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_ZZZ ) {
 		// YYYY-MM-DDTHH ZZZ...
 		date = new DateTime ( PRECISION_HOUR );
-		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2" );
+		v = StringUtil.fixedRead ( dtString, "i4x1i2x1i2x1i2" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
 		date.__hour = ((Integer)v.get(3)).intValue();
-		date.setTimeZone ( date_string.substring(13).trim() );
+		date.setTimeZone ( dtString.substring(13).trim() );
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_ZZZ ) {
 		// YYYY-MM-DDThh:mm ZZZ...
 		date = new DateTime ( PRECISION_MINUTE );
-		v = StringUtil.fixedRead ( date_string,"i4x1i2x1i2x1i2x1i2" );
+		v = StringUtil.fixedRead ( dtString,"i4x1i2x1i2x1i2x1i2" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
 		date.__hour = ((Integer)v.get(3)).intValue();
 		date.__minute = ((Integer)v.get(4)).intValue();
-		date.setTimeZone ( date_string.substring(16).trim() );
+		date.setTimeZone ( dtString.substring(16).trim() );
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_SS_ZZZ ) {
 		// YYYY-MM-DDThh:mm:ss ZZZ...
 		date = new DateTime ( PRECISION_SECOND );
-		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2x1i2x1i2" );
+		v = StringUtil.fixedRead ( dtString, "i4x1i2x1i2x1i2x1i2x1i2" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
 		date.__hour = ((Integer)v.get(3)).intValue();
 		date.__minute = ((Integer)v.get(4)).intValue();
 		date.__second = ((Integer)v.get(5)).intValue();
-		date.setTimeZone ( date_string.substring(19).trim() );
+		date.setTimeZone ( dtString.substring(19).trim() );
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_SS_hh_ZZZ ) {
 		// YYYY-MM-DDThh:mm:ss:xx ZZZ...
 		// YYYY-MM-DDThh:mm:ss.xx ZZZ...
 		date = new DateTime ( PRECISION_HSECOND );
-		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2x1i2x1i2x1i2" );
+		v = StringUtil.fixedRead ( dtString, "i4x1i2x1i2x1i2x1i2x1i2x1i2" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
@@ -3235,13 +3234,13 @@ private static DateTime parse ( String date_string, int format, int flag )
 		date.__minute = ((Integer)v.get(4)).intValue();
 		date.__second = ((Integer)v.get(5)).intValue();
 		date.__nano = ((Integer)v.get(6)).intValue()*10000000;
-		date.setTimeZone ( date_string.substring(23).trim() );
+		date.setTimeZone ( dtString.substring(23).trim() );
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_SS_MILLI_ZZZ ) {
 		// YYYY-MM-DDThh:mm:ss:xxx ZZZ...
 		// YYYY-MM-DDThh:mm:ss.xxx ZZZ...
 		date = new DateTime ( PRECISION_MILLISECOND );
-		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2x1i2x1i2x1i3" );
+		v = StringUtil.fixedRead ( dtString, "i4x1i2x1i2x1i2x1i2x1i2x1i3" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
@@ -3249,13 +3248,13 @@ private static DateTime parse ( String date_string, int format, int flag )
 		date.__minute = ((Integer)v.get(4)).intValue();
 		date.__second = ((Integer)v.get(5)).intValue();
 		date.__nano = ((Integer)v.get(6)).intValue()*1000000;
-		date.setTimeZone ( date_string.substring(24).trim() );
+		date.setTimeZone ( dtString.substring(24).trim() );
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_SS_MICRO_ZZZ ) {
 		// YYYY-MM-DDThh:mm:ss:xxxxxx ZZZ...
 		// YYYY-MM-DDThh:mm:ss.xxxxxx ZZZ...
 		date = new DateTime ( PRECISION_MICROSECOND );
-		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2x1i2x1i2x1i6" );
+		v = StringUtil.fixedRead ( dtString, "i4x1i2x1i2x1i2x1i2x1i2x1i6" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
@@ -3263,13 +3262,13 @@ private static DateTime parse ( String date_string, int format, int flag )
 		date.__minute = ((Integer)v.get(4)).intValue();
 		date.__second = ((Integer)v.get(5)).intValue();
 		date.__nano = ((Integer)v.get(6)).intValue()*1000;
-		date.setTimeZone ( date_string.substring(27).trim() );
+		date.setTimeZone ( dtString.substring(27).trim() );
 	}
 	else if ( format == FORMAT_YYYY_MM_DD_HH_mm_SS_NANO_ZZZ ) {
 		// YYYY-MM-DDThh:mm:ss:xxxxxxxxx ZZZ...
 		// YYYY-MM-DDThh:mm:ss.xxxxxxxxx ZZZ...
 		date = new DateTime ( PRECISION_NANOSECOND );
-		v = StringUtil.fixedRead ( date_string, "i4x1i2x1i2x1i2x1i2x1i2x1i9" );
+		v = StringUtil.fixedRead ( dtString, "i4x1i2x1i2x1i2x1i2x1i2x1i9" );
 		date.__year = ((Integer)v.get(0)).intValue();
 		date.__month = ((Integer)v.get(1)).intValue();
 		date.__day = ((Integer)v.get(2)).intValue();
@@ -3277,7 +3276,7 @@ private static DateTime parse ( String date_string, int format, int flag )
 		date.__minute = ((Integer)v.get(4)).intValue();
 		date.__second = ((Integer)v.get(5)).intValue();
 		date.__nano = ((Integer)v.get(6)).intValue();
-		date.setTimeZone ( date_string.substring(30).trim() );
+		date.setTimeZone ( dtString.substring(30).trim() );
 	}
 	else if ( format == FORMAT_ISO_8601 ) {
 		// ISO 8601 formats:
@@ -3300,18 +3299,18 @@ private static DateTime parse ( String date_string, int format, int flag )
 		// 20170630T230333+01
 		// Ordinal date:  2017-181 (not yet supported below)
 		// Date without year:  -06-30 (not yet supported below)
-		//Message.printStatus(2, routine, "Processing date/time string \"" + date_string + "\"");
-		int posT = date_string.indexOf("T");
+		//Message.printStatus(2, routine, "Processing date/time string \"" + dtString + "\"");
+		int posT = dtString.indexOf("T");
 		String d = null;
 		String t = null;
 		if ( posT > 0 ) {
 			// Date and time.
-			d = date_string.substring(0, posT);  // Before T.
-			t = date_string.substring(posT + 1); // After T.
+			d = dtString.substring(0, posT);  // Before T.
+			t = dtString.substring(posT + 1); // After T.
 		}
 		else {
 			// Only date so no need to deal with time zone.
-			d = date_string;
+			d = dtString;
 		}
 		int dateLen = d.length();
 		// Instantiate date/time to full precision, but will set precision more specifically below as it is determined.
@@ -3361,7 +3360,7 @@ private static DateTime parse ( String date_string, int format, int flag )
 				date.setPrecision(DateTime.PRECISION_DAY);
 			}
 			else {
-				throw new IllegalArgumentException ( "Don't know how to parse \"" + date_string + "\" date \"" + d + "\" using ISO 8601." );
+				throw new IllegalArgumentException ( "Don't know how to parse \"" + dtString + "\" date \"" + d + "\" using ISO 8601." );
 			}
 		}
 		if ( t != null ) {
@@ -3395,7 +3394,7 @@ private static DateTime parse ( String date_string, int format, int flag )
 				date.setPrecision(DateTime.PRECISION_HOUR);				
 			}
 			else {
-				throw new IllegalArgumentException ( "Don't know how to parse \"" + date_string + "\" time \"" + t + "\" using ISO 8601." );
+				throw new IllegalArgumentException ( "Don't know how to parse \"" + dtString + "\" time \"" + t + "\" using ISO 8601." );
 			}
 			if ( timeLen > minuteLen ) {
 				// Have to parse seconds and/or time zone.
@@ -3423,7 +3422,7 @@ private static DateTime parse ( String date_string, int format, int flag )
 					secString = secAndTz.substring(0,posZ);
 				}
 				// Figure out the seconds, which will be between the minute and time zone.
-				//Message.printStatus(2, routine, "processing seconds in \"" + secString + "\"");
+				//Message.printStatus(2, routine, "Parsing second string \"" + secString + "\"");
 				if ( !secString.isEmpty() ) {
 					// Have seconds.  Check for fractional seconds.
 					int posPeriod = secString.indexOf(".");
@@ -3431,36 +3430,52 @@ private static DateTime parse ( String date_string, int format, int flag )
 						date.setSecond(Integer.parseInt(secString.substring(0,posPeriod)));
 						// DateTime class recognizes nanoseconds so handle up to 9 digits.
 						String fracsecString = secString.substring(posPeriod + 1);
-						if ( fracsecString.length() >= 9 ) {
+						int fracLen = fracsecString.length();
+						if ( fracLen >= 7 ) {
+							// Anything more precise than microseconds:
+							// - treating as nanoseconds may result in zeros at the end
 							date.setPrecision(DateTime.PRECISION_NANOSECOND);
-							fracsecString = fracsecString.substring(0, 9);
-							//Message.printStatus(2, routine, "Setting nanoseconds to \"" + fracsecString + "\"");
-							date.setNanoSecond(Integer.parseInt(fracsecString));
+							// First get the string from input.
+							String nanoString = fracsecString.substring(0, fracLen);
+							if ( fracLen > 9 ) {
+								// Truncate to 9 digits for nanoseconds, which is the highest precision to handle.
+								nanoString = fracsecString.substring(0,9);
+							}
+							else {
+								// Pad with zeros at the end to indicate nanoseconds.
+								nanoString = StringUtil.pad ( fracsecString, 9, "0", StringUtil.PAD_BACK );
+							}
+							date.setNanoSecond(Integer.parseInt(nanoString));
+							//Message.printStatus(2, routine, "After parsing fractional seconds \"" + fracsecString + "\", nanoseconds = " + date.getNanoSecond());
 						}
-						else if ( fracsecString.length() >= 6 ) {
+						else if ( (fracLen > 3) && (fracLen <= 6) ) {
+							// Anything more precise than milliseconds up to microseconds:
+							// - treating as microseconds may result in zeros at the end
 							date.setPrecision(DateTime.PRECISION_MICROSECOND);
-							fracsecString = fracsecString.substring(0, 6);
-							//Message.printStatus(2, routine, "Setting nanoseconds to 000 \"" + fracsecString + "\" 000");
-							date.setNanoSecond(Integer.parseInt(fracsecString)*1000);
+							String nanoString = fracsecString.substring(0, fracLen);
+							// Pad with zeros at the end to indicate nanoseconds.
+							nanoString = StringUtil.pad ( fracsecString, 9, "0", StringUtil.PAD_BACK );
+							date.setNanoSecond(Integer.parseInt(nanoString));
+							//Message.printStatus(2, routine, "After parsing fractional seconds \"" + fracsecString + "\", nanoseconds = " + date.getNanoSecond());
 						}
-						else if ( fracsecString.length() >= 3 ) {
+						else if ( fracLen == 3 ) {
+							// Handle as exactly millisecond precision.
 							date.setPrecision(DateTime.PRECISION_MILLISECOND);
 							fracsecString = fracsecString.substring(0, 3);
-							//Message.printStatus(2, routine, "Setting nanoseconds to \"" + fracsecString + "\" 000000");
-							date.setNanoSecond(Integer.parseInt(fracsecString)*1000000);
+							// Pad with zeros at the end to indicate nanoseconds.
+							String nanoString = StringUtil.pad ( fracsecString, 9, "0", StringUtil.PAD_BACK );
+							date.setNanoSecond(Integer.parseInt(nanoString));
+							//Message.printStatus(2, routine, "After parsing fractional seconds \"" + fracsecString + "\", nanoseconds = " + date.getNanoSecond());
 						}
-						else if ( fracsecString.length() >= 2 ) {
-							date.setPrecision(DateTime.PRECISION_HSECOND);
-							fracsecString = fracsecString.substring(0, 2);
-							//Message.printStatus(2, routine, "Setting hseconds to \"" + fracsecString + "\"");
-							date.setHSecond(Integer.parseInt(fracsecString)*10000000);
-						}
-						else if ( fracsecString.length() == 1 ) {
+						else {
+							// 1-2 fractional digits.
 							// Use hundredths.
 							date.setPrecision(DateTime.PRECISION_HSECOND);
 							fracsecString = fracsecString.substring(0, 1);
-							//Message.printStatus(2, routine, "Setting hseconds to \"" + fracsecString + "\"");
-							date.setHSecond(Integer.parseInt(fracsecString)*100000000);
+							// Pad with zeros at the end to indicate nanoseconds.
+							String nanoString = StringUtil.pad ( fracsecString, 9, "0", StringUtil.PAD_BACK );
+							date.setNanoSecond(Integer.parseInt(nanoString));
+							//Message.printStatus(2, routine, "After parsing fractional seconds \"" + fracsecString + "\", nanoseconds = " + date.getNanoSecond());
 						}
 					}
 					else {
@@ -3487,14 +3502,14 @@ private static DateTime parse ( String date_string, int format, int flag )
 	// This degrades performance some but not much since all checks are integer based.
 	// Limit year to a reasonable value.
 	if ( (date.__year < -1000) || (date.__year > 10000) ) {
-		throw new IllegalArgumentException ( "Invalid year " + date.__year + " in \"" + date_string + "\"" );
+		throw new IllegalArgumentException ( "Invalid year " + date.__year + " in \"" + dtString + "\"" );
 	}
 	if ( is_year ) {
 		date.reset();
 		return date;
 	}
 	if ( (date.__month < 1) || (date.__month > 12) ) {
-		throw new IllegalArgumentException ( "Invalid month " + date.__month + " in \"" + date_string + "\"" );
+		throw new IllegalArgumentException ( "Invalid month " + date.__month + " in \"" + dtString + "\"" );
 	}
 	if ( is_month ) {
 		date.reset();
@@ -3504,19 +3519,19 @@ private static DateTime parse ( String date_string, int format, int flag )
 	if ( date.__month == 2 ) {
 		if ( TimeUtil.isLeapYear ( date.__year ) ) {
 			if ( (date.__day < 1) || (date.__day > 29) ) {
-				throw new IllegalArgumentException ( "Invalid day " + date.__day +	" in \"" + date_string + "\"" );
+				throw new IllegalArgumentException ( "Invalid day " + date.__day +	" in \"" + dtString + "\"" );
 			}
 		}
 		else {
 		    if ( (date.__day < 1) || (date.__day > 28) ) {
-				throw new IllegalArgumentException ( "Invalid day " + date.__day + " in \"" + date_string + "\"" );
+				throw new IllegalArgumentException ( "Invalid day " + date.__day + " in \"" + dtString + "\"" );
 			}
 		}
 	}
 	else {
 	    // Not a leap year.
 		if ( (date.__day < 1) || (date.__day > TimeUtil.MONTH_DAYS[date.__month - 1]) ) {
-			throw new IllegalArgumentException ( "Invalid day " + date.__day + " in \"" + date_string + "\"" );
+			throw new IllegalArgumentException ( "Invalid day " + date.__day + " in \"" + dtString + "\"" );
 		}
 	}
 	if ( is_day ) {
@@ -3524,14 +3539,14 @@ private static DateTime parse ( String date_string, int format, int flag )
 		return date;
 	}
 	if ( (date.__hour < 0) || (date.__hour > 23) ) {
-		throw new IllegalArgumentException ( "Invalid hour " + date.__hour + " in \"" + date_string + "\"" );
+		throw new IllegalArgumentException ( "Invalid hour " + date.__hour + " in \"" + dtString + "\"" );
 	}
 	if ( is_hour ) {
 		date.reset();
 		return date;
 	}
 	if ( (date.__minute < 0) || (date.__minute > 59) ) {
-		throw new IllegalArgumentException ( "Invalid minute " + date.__minute + " in \"" + date_string + "\"" );
+		throw new IllegalArgumentException ( "Invalid minute " + date.__minute + " in \"" + dtString + "\"" );
 	}
 	if ( is_minute ) {
 		date.reset();
