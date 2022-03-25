@@ -3429,8 +3429,19 @@ private static DateTime parse ( String dtString, int format, int flag )
 					if ( posPeriod > 0 ) { // Not >= because expect seconds in front of decimal so 0 is not allowed.
 						date.setSecond(Integer.parseInt(secString.substring(0,posPeriod)));
 						// DateTime class recognizes nanoseconds so handle up to 9 digits.
-						String fracsecString = secString.substring(posPeriod + 1);
+						String fracsecString = null;
+						if ( posPeriod == (secString.length() - 1) ) {
+							// Special case of decimal but no trailing digits, treat as zero.
+							fracsecString = "0";
+						}
+						else {
+							// Get the string after the period.
+							fracsecString = secString.substring(posPeriod + 1);
+						}
 						int fracLen = fracsecString.length();
+						//if ( Message.isDebugOn ) {
+						//	Message.printDebug(dl,routine, "fracsecString = \"" + fracsecString + "\" fracLen = " + fracLen );
+						//}
 						if ( fracLen >= 7 ) {
 							// Anything more precise than microseconds:
 							// - treating as nanoseconds may result in zeros at the end
@@ -3471,7 +3482,7 @@ private static DateTime parse ( String dtString, int format, int flag )
 							// 1-2 fractional digits.
 							// Use hundredths.
 							date.setPrecision(DateTime.PRECISION_HSECOND);
-							fracsecString = fracsecString.substring(0, 1);
+							fracsecString = fracsecString.substring(0, fracLen);
 							// Pad with zeros at the end to indicate nanoseconds.
 							String nanoString = StringUtil.pad ( fracsecString, 9, "0", StringUtil.PAD_BACK );
 							date.setNanoSecond(Integer.parseInt(nanoString));
@@ -3498,6 +3509,11 @@ private static DateTime parse ( String dtString, int format, int flag )
 		date.__hour = 0;
 		date.addDay(1);
 	}
+
+	if ( Message.isDebugOn ) {
+		Message.printDebug(dl,routine, "After parsing, date/time: " + date );
+	}
+
 	// Verify that the date components are valid.  If not, throw an exception.
 	// This degrades performance some but not much since all checks are integer based.
 	// Limit year to a reasonable value.
