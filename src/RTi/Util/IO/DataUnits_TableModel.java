@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -65,12 +65,12 @@ throws Exception {
     else {
         _rows = dataUnitsList.size();
     }
-    //__dataUnitsList = dataUnitsList;
+    _data = dataUnitsList;
 }
 
 /**
-From AbstractTableModel.  Returns the class of the data stored in a given
-column.  All values are treated as strings.
+From AbstractTableModel.  Returns the class of the data stored in a given column.
+All values are treated as strings.
 @param columnIndex the column for which to return the data class.
 */
 @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -158,7 +158,7 @@ From AbstractTableMode.  Returns the data that should be placed in the JTable at
 @return the data that should be placed in the JTable at the given row and column.
 */
 public Object getValueAt(int row, int col)
-{   // make sure the row numbers are never sorted ...
+{   // Make sure the row numbers are never sorted.
 
     if (_sortOrder != null) {
         row = _sortOrder[row];
