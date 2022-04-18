@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -77,13 +77,24 @@ public class HelpViewer {
 	public void setUrlFormatter(HelpViewerUrlFormatter urlFormatter) {
 		this.urlFormatter = urlFormatter;
 	}
+
+	/**
+	 * Show the help using a web browser, using the default documentation home.
+	 * @param group the group to which the item belongs, will be passed to HelpViewerUrlFormatter().formatUrl().
+	 * @param item the item for which to display help, will be passed to HelpViewerUrlFormatter().formatUrl().
+	 */
+	public void showHelp ( String group, String item ) {
+		showHelp ( group, item, null );
+	}
 	
 	/**
 	 * Show the help using a web browser.
 	 * @param group the group to which the item belongs, will be passed to HelpViewerUrlFormatter().formatUrl().
 	 * @param item the item for which to display help, will be passed to HelpViewerUrlFormatter().formatUrl().
+	 * @param rootUrl the root URL for documentation, can be used for plugins when standard TSTool documentation is not used,
+	 * use null to use the default documentation home
 	 */
-	public void showHelp ( String group, String item ) {
+	public void showHelp ( String group, String item, String rootUrl ) {
 		String routine = "showHelp";
 		// Use the default web browser application to display help.
 		if ( this.urlFormatter == null ) {
@@ -92,7 +103,7 @@ public class HelpViewer {
 		}
 		else {
 			// Format the URL for the item.
-			String docUri = this.urlFormatter.formatHelpViewerUrl(group, item);
+			String docUri = this.urlFormatter.formatHelpViewerUrl(group, item, rootUrl);
 			if ( docUri == null ) {
 				Message.printWarning(1, "", "Unable to determine documentation URL for group=\"" + group + "\", item=\"" + item + "\"." );
 			}
