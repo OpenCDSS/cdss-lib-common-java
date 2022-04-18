@@ -26,7 +26,6 @@ package RTi.Util.Help;
 /**
  * Interface for class that will format a URL for the HelpViewer.
  * @author sam
- *
  */
 public interface HelpViewerUrlFormatter {
 
@@ -38,5 +37,16 @@ public interface HelpViewerUrlFormatter {
 	 * For example, the item might be a command name.
 	 */
 	public String formatHelpViewerUrl ( String group, String item );
+
+	/**
+	 * Format a URL to display help for a topic.
+	 * @param group a group (category) to organize items.
+	 * For example, the group might be "command".
+	 * @param item the specific item for the URL.
+	 * For example, the item might be a command name.
+	 * @param rootUrl root URL that is an alternative to the built-in help location,
+	 * for example used by plugins that provide their own documentation URL
+	 */
+	public String formatHelpViewerUrl ( String group, String item, String rootUrl );
 	
 }
