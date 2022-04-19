@@ -37,9 +37,10 @@ public interface DataStoreRequirementChecker
 	 * Check that a datastore's property adheres to a requirement.
 	 * The requirement string in RequirementCheck is free format and depends on the datastore,
 	 * although standards are being implemented.
-	 * @param requirement the full requirement string such as, the following,
+	 * @param requirement the full requirement command annotation string such as, the following,
 	 * which allows full handling of the syntax and logging messages:
 	 *   "@require datastore DataStoreName version >= 1.1.0"
+	 *   "@enabledif datastore DataStoreName version >= 1.1.0"
 	 * @return true if the requirement is met
 	 */
 	public boolean checkRequirement ( RequirementCheck requirement );

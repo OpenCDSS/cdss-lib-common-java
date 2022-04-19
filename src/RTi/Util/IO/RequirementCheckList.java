@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * This class holds a list of requirement checks and facilitates overall evaluate of whether
  * requirements have passed.
- * For example, this is used with TSTool #@require comments.
+ * For example, this is used with TSTool #@require and #@enabledif comment annotations.
  * See also the RequirementCheck class, which holds a single requirement check.
  * @author sam
  * @see RequirementCheck
@@ -62,21 +62,23 @@ public class RequirementCheckList {
 	 * @return whether the requirements are all met
 	 */
 	public boolean areRequirementsMet () {
-		int metCount = 0;
+		//int metCount = 0;
 		int notMetCount = 0;
 		for ( RequirementCheck check : this.requirementCheckList ) {
 			if ( check.isRequirementMet() ) {
-				++metCount;
+				//++metCount;
 			}
 			else {
 				++notMetCount;
 			}
 		}
-		if ( (metCount > 0) && (notMetCount == 0) ) {
-			return true;
+		if ( notMetCount > 0 ) {
+			// At least one requirement condition was not met.
+			return false;
 		}
 		else {
-			return false;
+			// All requirement conditions (if any) are met.
+			return true;
 		}
 	}
 	

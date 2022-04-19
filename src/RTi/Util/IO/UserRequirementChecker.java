@@ -32,7 +32,8 @@ public class UserRequirementChecker {
 		if ( !verCheck ) {
 			message = "User name (" + userName + ") does not meet the requirement.";
 		}
-		check.setIsRequirementMet(verCheck, message);
+		String checkerName = "UserRequirementChecker";
+		check.setIsRequirementMet(checkerName, verCheck, message);
 		// Indicate whether processing should exit if requirement is not met:
 		// - currently always exit if the user is not as required
 		// - TODO smalers 2021-10-10 in the future add another key word to require comment or set at runtime
