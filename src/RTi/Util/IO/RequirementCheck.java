@@ -25,7 +25,7 @@ package RTi.Util.IO;
 
 /**
  * This class holds input and output from requirements checks.
- * For example, this is used with TSTool #@require comments.
+ * For example, this is used with TSTool #@require and #@enabledif comment annotations.
  * See also the RequirementCheckList class, which manages a list of multiple checks.
  * @author sam
  * @see RequirementCheckList
@@ -61,10 +61,32 @@ public class RequirementCheck {
 	private String checkerName = "Unknown";
 	
 	/**
+	 * Annotation "@require" or "@enabledif" associated with the check, first part of 'requirementText'.
+	 */
+	private String annotation = "@??????";
+	
+	/**
 	 * Constructor.
+	 * @param requirementText the full requirement starting with "@" (but omitting leading # for comment).
 	 */
 	public RequirementCheck ( String requirementText ) {
-		this.requirementText = requirementText;
+		this.requirementText = requirementText.trim();
+		// Also set the annotation associated with the requirement.
+		if ( requirementText.startsWith("@") ) {
+			// Expect a space after the annotation name.
+			int pos = requirementText.indexOf(" ");
+			if ( pos > 0 ) {
+				this.requirementText = requirementText.substring(0,pos);
+			}
+		}
+	}
+
+	/**
+	 * Return the annotation associated with the requirement ("@require" or "@enabledif").
+	 * @return the annotation associated with the requirement
+	 */
+	public String getAnnotation () {
+		return this.annotation;
 	}
 
 	/**
@@ -81,6 +103,10 @@ public class RequirementCheck {
 	 *   @require application AppName version >= 1.2.3
 	 *   @require datastore DataStoreName version >= 1.2.3
 	 *   @require user != root
+	 *
+	 *   @enabledif application AppName version >= 1.2.3
+	 *   @enabledif datastore DataStoreName version >= 1.2.3
+	 *   @enabledif user != root
 	 * </pre>
 	 * @return
 	 */
@@ -167,10 +193,10 @@ public class RequirementCheck {
      */
     public String toString () {
     	if ( this.isRequirementMet ) {
-    		return this.checkerName + ": @require condition is met";
+    		return this.checkerName + ": " + this.annotation + " condition is met";
     	}
     	else {
-    		return this.checkerName + ": @require condition is NOT met\nReason: " + this.failReason;
+    		return this.checkerName + ": " + this.annotation + " condition is NOT met\nReason: " + this.failReason;
     	}
     }
 	

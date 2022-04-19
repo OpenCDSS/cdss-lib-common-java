@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,75 +20,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//------------------------------------------------------------------------------
-// RTi.Util.Message.Message - debug and status message class.
-//------------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// History:
-//
-// 26 Aug 1997  Matthew J. Rutherford,  Created initial version based
-//              RTi                     on HBData C functions.
-// 12 Nov 1997  Steven A. Malers, RTi   Add setDebug(boolean) to allow for
-//                                      more control of debugging.
-// 16 Mar 1998  SAM, RTi                Add javadoc.
-// 10 Aug 1998  SAM, RTi                Update versions that take exceptions
-//                                      to print to open log file.  There is
-//                                      currently no way to get the stack trace
-//                                      as strings.
-// 06 Oct 1998  SAM, RTi                Clean up code in conjunction with C++
-//                                      port.
-// 23 Dec 1998  SAM, RTi                Overload setDebugLevel to take a string.
-// 04 Feb 1999  SAM, RTi                Change so that instead of accepting
-//                                      an Exception, printWarning accepts a
-//                                      Throwable.
-// 20 Feb 1999  SAM, RTi                Check for null Throwable, routine when
-//                                      printing.
-// 17 Sep 1999  SAM, RTi                Add closeLogFile().
-// 15 Mar 2001  SAM, RTi                Add setProp() and
-//                                      getMessageProp() to allow more
-//                                      flexibility in message handling,
-//                                      especially for Warning dialogs.  Change
-//                                      IO to IOUtil.  Clean up javadoc and set
-//                                      unused variables to null.
-// 07 Aug 2001  SAM, RTi                Update so that the output functions can
-//                                      be set to null to stop output
-//                                      redirection.
-// 2002-05-24   SAM, RTi                closeLogFile() was not static and was
-//                                      not able to be called.  Make static so
-//                                      it can be used in TSTool.
-// 2003-04-09   SAM, RTi                Fix bug where initialize() was going
-//                                      into an infinite recursion if the debug
-//                                      flag is already turned on by external
-//                                      code.
-//------------------------------------------------------------------------------
-// 2003-08-22   J. Thomas Sapienza, RTi Switched over to use the Swing
-//                                      MessageJDialog and DiagnosticsJFrame.
-// 2005-03-11   SAM, RTi                * Add a property in setPropValue() to
-//                                        turn on levels for the messages.
-//                                      * Do similar to above for message tags
-//                                        and add __SHOW_MESSAGE_TAG to the
-//                                        options for the behavior flag.
-//                                      * Overload the printWarning() method
-//                                        to take a tag for use in the log file
-//                                        viewer.
-// 2005-03-22   JTS, RTi                * Added addMessageLogListener().
-//                                      * Added getMessageLogListeners().
-//                                      * Added removeMessageLogListener().
-// 2005-05-12   JTS, RTi                * Added restartLogFile().
-//                                      * Added openNewLogFile().
-// 2005-10-19   SAM, RTi                * Change so that the warning dialog is
-//                                        not displayed if running in batch
-//                                        mode.  In this case the GUI would not
-//                                        be visible and the application waits
-//                                        for a response on an invisible dialog.
-// 2005-12-12   JTS, RTi                Changed restartLogFile() because in
-//                                      certain conditions the code was not
-//                                      opening the same log file after it was
-//                                      closed.
-//------------------------------------------------------------------------------
-// EndHeader
 
 package RTi.Util.Message;
 
@@ -126,13 +57,13 @@ formatting messages is a performance hit, debug messages should be wrapped in th
 <p>
 <pre>
 if ( Message.isDebugOn ) {
-  // Debug message...
+  // Debug message.
   Message.printDebug ( ... );
 }
 </pre>
 
 If using messages with a GUI, let the Message class know what the top-level
-component is (for use with the warning dialog, etc.)...
+component is (for use with the warning dialog, etc.).
 <p>
 
 <pre>
@@ -152,7 +83,6 @@ a listener approach may be taken.
 */
 public abstract class Message
 {
-
 
 /**
 The following are used when setting message output locations.  Output to the
@@ -203,7 +133,7 @@ accessed.  To increase performance, all debug messages should be wrapped with
 <p>
 <pre>
 if ( Message.isDebugOn ) {
-  // Do the debug message...
+  // Do the debug message.
   Message.printDebug ( 1, "myroutine", "the message" );
 }
 </pre>
@@ -573,7 +503,12 @@ Set the log file maximum size in bytes.
 public static void setLogFileMaxSize ( long maxSize)
 {	impl.setLogFileMaxSize(maxSize);
 	Message.printStatus(2, "Message", "Set log file maximum size to " + maxSize + " bytes." );
-	Message.printStatus(2, "Message", "Actual maximum may be slightly larger because last full line is printed without truncation.");
+	if ( maxSize < -1 ) {
+		Message.printStatus(2, "Message", "There is no limit on the log file size.");
+	}
+	else {
+		Message.printStatus(2, "Message", "Actual maximum may be slightly larger because last full line is printed without truncation.");
+	}
 }
 
 /**
