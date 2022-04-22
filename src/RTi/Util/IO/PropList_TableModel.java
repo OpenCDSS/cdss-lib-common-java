@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,32 +21,17 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
 
 NoticeEnd */
 
-// ----------------------------------------------------------------------------
-// PropList_TableModel - table model for displaying prop list data.
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-// 2003-10-27	J. Thomas Sapienza, RTi	Initial version.
-// 2004-11-29	JTS, RTi		* Added insertRowAt().
-//					* Added addRow().
-//					* Made the column reference numbers
-//					  public for access in apps.
-//					* Added deleteRow().
-// 2005-04-26	JTS, RTi		Added finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package RTi.Util.IO;
 
 import java.util.List;
 
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 import RTi.Util.GUI.JWorksheet_TableModelListener;
+import RTi.Util.Message.Message;
 
 /**
-This table model displays PropList data.  Currently it only handles PropLists
-that have String key/value pairs.
+This table model displays PropList data.
+Currently it only handles PropLists that have String key/value pairs.
 The data model interactions are fully-handled in this class because PropList is not a simple
 list of data.
 <p>
@@ -64,7 +49,8 @@ private final int __COLUMNS = 3;
 Reference to the column numbers.
 */
 public final int
-	COL_KEY = 1,
+	COL_KEY = 0,
+	COL_TYPE = 1,
 	COL_VAL = 2;
 
 /**
@@ -85,12 +71,13 @@ setValueColumnName(), but this must be done before the worksheet displaying the 
 */
 private String 
 	__keyColName = "KEY",
+	__typeColName = "TYPE",
 	__valColName = "VALUE";
 
 /**
 Constructor.  
-@param props the proplist that will be displayed in the table.  This proplist 
-will be duplicated for display so that changes can be accepted or rejected 
+@param props the proplist that will be displayed in the table.
+This proplist will be duplicated for display so that changes can be accepted or rejected 
 by the user before being committed to the proplist read in from a file.
 @param keyEditable whether the prop keys can be edited
 @param valEditable whether the prop values can be edited
@@ -102,7 +89,9 @@ throws Exception {
 	if (props == null) {
 		throw new Exception ("Invalid proplist data passed to PropList_TableModel constructor.");
 	}
-	__props = new PropList(props);
+	// Attempt to clone the original property contents to protect from modifying.
+	//__props = new PropList(props);
+	__props = new PropList(props, true);
 	/* TODO smalers 2021-07-10 need to implement case-independent sort.
 	if ( sort ) {
 		// Sort the properties by name.
@@ -117,8 +106,8 @@ throws Exception {
 
 /**
 Constructor.  
-@param props the proplist that will be displayed in the table.  This proplist 
-will be duplicated for display so that changes can be accepted or rejected by 
+@param props the proplist that will be displayed in the table.
+This proplist will be duplicated for display so that changes can be accepted or rejected by 
 the user before being committed to the proplist read in from a file.
 @param ignores a list of Strings representing keys that should not be 
 displayed in the table model.  Cannot be null.
@@ -131,7 +120,9 @@ throws Exception {
 	if (props == null) {
 		throw new Exception ("Invalid proplist data passed to PropList_TableModel constructor.");
 	}
-	__props = new PropList(props);
+	// Attempt to clone the original property contents to protect from modifying.
+	//__props = new PropList(props);
+	__props = new PropList(props, true);
 
 	int size = ignores.size();
 	for (int i = 0; i < size; i++) {
@@ -177,25 +168,19 @@ public void deleteRow(int row) {
 }
 
 /**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__props = null;
-	__keyColName = null;
-	__valColName = null;
-	super.finalize();
-}
-
-/**
 Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
 public Class<?> getColumnClass (int columnIndex) {
 	switch (columnIndex) {
-		case COL_KEY:	return String.class;
-		case COL_VAL:	return String.class;
+		case COL_KEY:
+			return String.class;
+		case COL_TYPE:
+			return String.class;
+		case COL_VAL:
+			return String.class;
 	}
+	// Default.
 	return String.class;
 }
 
@@ -214,9 +199,14 @@ Returns the name of the column at the given position.
 */
 public String getColumnName(int columnIndex) {
 	switch (columnIndex) {
-		case COL_KEY:	return __keyColName;
-		case COL_VAL:	return __valColName;
+		case COL_KEY:
+			return __keyColName;
+		case COL_TYPE:
+			return __typeColName;
+		case COL_VAL:
+			return __valColName;
 	}
+	// Default.
 	return " ";
 }
 
@@ -228,6 +218,7 @@ public String[] getColumnToolTips() {
 	String[] tips = new String[__COLUMNS];
 
 	tips[COL_KEY] = "Property name.";
+	tips[COL_KEY] = "Property type.";
 	tips[COL_VAL] = "Property value.";
 	return tips;
 }
@@ -240,10 +231,15 @@ the table is being displayed in the given table format.
 */
 public String getFormat(int column) {
 	switch (column) {
-		case 1: return "%-256s";
-		case 2: return "%-256s";
+		case COL_KEY:
+			return "%-s";
+		case COL_TYPE:
+			return "%-s";
+		case COL_VAL:
+			return "%-s";
 	}
-	return "%8s";
+	// Default.
+	return "%-s";
 }
 
 /**
@@ -275,8 +271,24 @@ public Object getValueAt(int row, int col) {
 
 	Prop p = __props.elementAt(row);
 	switch (col) {
-		case COL_KEY: return p.getKey();
-		case COL_VAL: return p.getValue();
+		case COL_KEY:
+			return p.getKey();
+		case COL_TYPE:
+			// Return the type that is commonly used such as TSTool SetProperty command.
+			Object value = p.getContents();
+			if ( value != null ) {
+				Message.printStatus(2, "", "Property " + p.getKey() + " = " + value);
+				Message.printStatus(2, "", "Property " + p.getKey() + " = " + p.getContents().getClass());
+			}
+			if ( value == null ) {
+				return "";
+			}
+			else {
+				// Return the Java class even though may be long.
+				return value.getClass().getSimpleName();
+			}
+		case COL_VAL:
+			return p.getValue();
 	}
 	return " ";
 }
@@ -291,9 +303,10 @@ public int[] getColumnWidths() {
 	for (int i = 0; i < __COLUMNS; i++) {
 		widths[i] = 0;
 	}
-	// TODO sam 2017-03-15 need to make the widths more intelligent
+	// TODO sam 2017-03-15 need to make the widths more intelligent.
 	widths[COL_KEY] = 20;
-	widths[COL_VAL] = 80; // Make wide to handle long strings
+	widths[COL_TYPE] = 10;
+	widths[COL_VAL] = 80; // Make wide to handle long strings.
 
 	return widths;
 }
@@ -332,6 +345,9 @@ public boolean isCellEditable(int rowIndex, int columnIndex) {
 		}
 		return true;
 	}
+	if (columnIndex == COL_TYPE) {
+		return false;
+	}
 	if (columnIndex == COL_VAL) {
 		if (!__valEditable) {
 			return false;
@@ -348,6 +364,15 @@ THE WORKSHEET IS SHOWN IN THE GUI OR IT WILL NOT WORK.
 */
 public void setKeyColumnName(String name) {
 	__keyColName = name;
+}
+
+/**
+Overrides the default name of the key column ("TYPE") -- THIS MUST BE DONE BEFORE
+THE WORKSHEET IS SHOWN IN THE GUI OR IT WILL NOT WORK.
+@param name the name to give to the column.
+*/
+public void setTypeColumnName(String name) {
+	__typeColName = name;
 }
 
 /**
@@ -374,6 +399,9 @@ public void setValueAt(Object value, int row, int col) {
 				p.setKey((String)value);
 				valueChanged(row, col);		
 			}
+			break;
+		case COL_TYPE:
+			// Returned based on value but nothing done here.
 			break;
 		case COL_VAL:
 			if (!(p.getValue().equals((String)value))) {

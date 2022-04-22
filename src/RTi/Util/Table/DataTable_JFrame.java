@@ -90,8 +90,7 @@ Constructor.
 @throws Exception if table is null.
 */
 public DataTable_JFrame(String title, DataTable table) 
-throws Exception
-{
+throws Exception {
 	this ( null, title, table );
 }
 
