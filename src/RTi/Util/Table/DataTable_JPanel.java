@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,38 +20,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// DataTable_JPanel - panel for displaying a worksheet containing data table
-//	data.
-// ----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2003-08-21	J. Thomas Sapienza, RTi	Initial version.
-// 2004-01-22	JTS, RTi		Revised to use JScrollWorksheet
-//					for displaying row headers.
-// 2004-07-29	JTS, RTi		* In-memory DataTables can now be passed
-//					  in, instead of just files containing
-//					  data tables.
-//					* Fixed bug where some of the 
-//					  constructors were not calling
-//					  setupGUI().
-// 2004-10-13	JTS, RTi		When a the name of the file containing
-//					a datatable is passed in, if the file
-//					cannot be read properly a message
-//					is printed where normally the worksheet
-//					would appear.
-// 2004-10-22	JTS, RTi		Corrected a bug where tables in 
-//					memory (eg, not read from a file)
-//					were not being displayed properly.
-// 2004-10-28	JTS, RTi		When column widths are being set, if
-//					there are no widths in the table model
-//					column widths will now be estimated
-//					using the header column names.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
 
 package RTi.Util.Table;
 
@@ -260,7 +228,7 @@ throws Exception {
 	boolean fileReadOK = false;
 
 	if (__filename == null) {
-		// assume that a table was passed in
+		// Assume that a table was passed in.
 		fileReadOK = true;
 	}
 	else {
@@ -316,26 +284,36 @@ throws Exception {
 }
 
 /**
-Sets the worksheet's column widths.  This should be called after the frame
-in which the panel is found has called setVisible(true).
+Sets the worksheet's column widths.
+Use this when the defaults are not correct.
+This should be called after the frame in which the panel is found has called setVisible(true).
+@param colWidths column widths for each column
+*/
+public void setWorksheetColumnWidths( int [] colWidths ) {
+	__worksheet.setColumnWidths(colWidths);
+}
+
+/**
+Sets the worksheet's column widths using internal defaults.
+This should be called after the frame in which the panel is found has called setVisible(true).
 */
 public void setWorksheetColumnWidths() {
 	if (__worksheet != null) {
 		__worksheet.calculateColumnWidths();
-	}
-	if (__worksheet != null && __widths != null) {
-		// There are cases where the column widths are very large
-		// May need to put the check here to guard against because UI may freeze
-		// For now changed ResultSetToDataTableFactory code to handle better at front end
-		/*
-		for ( int i = 0; i < __widths.length; i++ ) {
-			if ( __widths[i] > 5000 ) {
-				Message.printStatus(2, "", "Column width [" + i + "] \"" + __table.getFieldName(i) + "\" = " + __widths[i] + " resetting to 5000");
-				__widths[i] = 5000;
+		if ( __widths != null ) {
+			// There are cases where the column widths are very large.
+			// May need to put the check here to guard against because UI may freeze.
+			// For now changed ResultSetToDataTableFactory code to handle better at front end.
+			/*
+			for ( int i = 0; i < __widths.length; i++ ) {
+				if ( __widths[i] > 5000 ) {
+					Message.printStatus(2, "", "Column width [" + i + "] \"" + __table.getFieldName(i) + "\" = " + __widths[i] + " resetting to 5000");
+					__widths[i] = 5000;
+				}
 			}
+				*/
+			__worksheet.setColumnWidths(__widths);
 		}
-		*/
-		__worksheet.setColumnWidths(__widths);
 	}
 }
 

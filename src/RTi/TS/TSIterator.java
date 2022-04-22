@@ -166,7 +166,7 @@ throws Exception
 	this._date1 = new DateTime(ts.getDate1());
 	this._date2 = new DateTime(ts.getDate2());
 	if ( this._date2.lessThan(this._date1) ) {
-		throw new InvalidParameterException("The second TSIterator date/time is before the first.");
+		throw new InvalidParameterException("The second TSIterator date/time (" + this._date2 + ") is before the first (" + this._date1 + ").");
 	}
 	
 	// Initialize the current time to the start, assuming next() will be called first:
@@ -220,7 +220,7 @@ throws Exception
 	this._currentDate = new DateTime(this._date1);
 
 	if ( this._date2.lessThan(this._date1) ) {
-		throw new InvalidParameterException("The second TSIterator date/time is before the first.");
+		throw new InvalidParameterException("The second TSIterator date/time (" + this._date2 + ") is before the first (" + this._date1 + ").");
 	}
 }
 

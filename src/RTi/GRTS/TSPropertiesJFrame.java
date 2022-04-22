@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -66,9 +66,9 @@ import RTi.Util.Table.TableRecord;
 import RTi.Util.Time.TimeInterval;
 
 /**
-The TSPropertiesJFrame displays properties for a time series, including
-information from the TSIdent and also basic statistics from TSLimits.  The
-properties are typically shown from a parent JFrame window.
+The TSPropertiesJFrame displays properties for a time series,
+including information from the TSIdent and also basic statistics from TSLimits.
+The properties are typically shown from a parent JFrame window.
 */
 @SuppressWarnings("serial")
 public class TSPropertiesJFrame extends JFrame
@@ -153,12 +153,11 @@ public void actionPerformed ( ActionEvent e )
 }
 
 /**
-Create a data table that contains time series properties.
+Create a data table that contains time series properties string values.
 @param ts time series from which to generate a property table.
 @return a property table
 */
-private DataTable createPropertyTable ( TS ts )
-{
+private DataTable createPropertyTable ( TS ts ) {
     HashMap<String,Object> properties = ts.getProperties();
     ArrayList<String> keyList = new ArrayList<>(properties.keySet());
     // Don't sort because order of properties often has some meaning.  Users can sort displayed table.
@@ -173,12 +172,17 @@ private DataTable createPropertyTable ( TS ts )
         if ( value == null ) {
             value = "";
         }
-        valueLength = Math.max(valueLength, ("" + value).length());
+        valueLength = Math.max(valueLength, value.toString().length());
     }
     List<TableField> tableFields = new ArrayList<>();
-    nameLength = -1;
-    valueLength = -1;
+    // The above computed lengths may be very long so use auto widths or set in the table model that uses the table.
+    //nameLength = -1;
+    //int typeLength = -1;
+    //valueLength = -1;
+    int typeLength = -1;
+    //valueLength = 80;
     tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Property Name",nameLength) );
+    tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Property Type",typeLength) );
     tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Property Value",valueLength) );
     DataTable table = new DataTable ( tableFields );
     TableRecord rec;
@@ -200,6 +204,9 @@ private DataTable createPropertyTable ( TS ts )
             if ( f.isNaN() ) {
                 value = "";
             }
+        }
+        if ( value != null ) {
+        	rec.addFieldValue( value.getClass().getSimpleName() ); // To force string, no matter the value.
         }
         // TODO SAM 2010-10-08 Should objects be used?
         rec.addFieldValue( "" + value ); // To force string, no matter the value.
@@ -398,8 +405,17 @@ private void openGUI ( boolean mode )
     JPanel properties_JPanel = new JPanel();
     properties_JPanel.setLayout ( gbl );
     __props_JTabbedPane.addTab ( "Properties", null, properties_JPanel, "Time series properties set during processing." );
+    DataTable_JPanel panel = new DataTable_JPanel(this, createPropertyTable(__ts));
+    // TODO smalers 2022-04-22 the following does not work - set the widths on the DataTable,
+    // but that does not seem to work either.
+    //int [] columnWidths = {
+    //	30,
+    //	30,
+    //	80
+    //};
+    //panel.setWorksheetColumnWidths(columnWidths);
     JGUIUtil.addComponent ( properties_JPanel,
-            new JScrollPane (new DataTable_JPanel(this, createPropertyTable(__ts))),
+            new JScrollPane (panel),
             0, y, 6, 1, 1.0, 1.0,
             insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER );
 
@@ -630,35 +646,29 @@ public void stateChanged ( ChangeEvent e )
 
 // WindowListener functions.
 
-public void windowActivated( WindowEvent evt )
-{
+public void windowActivated( WindowEvent evt ) {
 }
 
-public void windowClosed( WindowEvent evt )
-{
+public void windowClosed( WindowEvent evt ) {
 }
 
 /**
 Close the GUI.
 */
-public void windowClosing( WindowEvent event )
-{	JGUIUtil.close( this);
+public void windowClosing( WindowEvent event ) {
+	JGUIUtil.close( this);
 }
 
-public void windowDeactivated( WindowEvent evt )
-{
+public void windowDeactivated( WindowEvent evt ) {
 }
 
-public void windowDeiconified( WindowEvent evt )
-{
+public void windowDeiconified( WindowEvent evt ) {
 }
 
-public void windowOpened( WindowEvent evt )
-{
+public void windowOpened( WindowEvent evt ) {
 }
 
-public void windowIconified( WindowEvent evt )
-{
+public void windowIconified( WindowEvent evt ) {
 }
 
 }

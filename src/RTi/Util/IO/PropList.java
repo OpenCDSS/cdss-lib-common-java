@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,111 +21,11 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
 
 NoticeEnd */
 
-// ----------------------------------------------------------------------------
-// PropList - use to hold a list of properties
-// ----------------------------------------------------------------------------
-// Copyright:  See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-//
-// Sep 1997?	Steven A. Malers,	Initial version.
-//		Riverside Technology,
-//		inc.
-// 02 Feb 1998	SAM, RTi		Get all of the Prop* classes working
-//					together.
-// 24 Feb 1998	SAM, RTi		Add the javadoc comments.
-// 02 May 1998	SAM, RTi		Add the getValid function.
-// 13 Apr 1999	SAM, RTi		Add finalize.
-// 17 May 1999	SAM, RTi		Add setUsingObject to avoid overload
-//					conflict.
-// 06 Nov 2000	CEN, RTi		Added read/writePersistent 
-//  					implementation similar to C++ implem.
-//					Included adding clear
-// 14 Jan 2001	SAM, RTi		Overload set to take a Prop.
-// 13 Feb 2001	SAM, RTi		Change readPersistent() and associated
-//					methods return void as per C++.  Fix
-//					bug where readPersistent() was not
-//					handling whitespace correctly.  Add
-//					javadoc to readPersistent().  Add
-//					getValue(key,inst), getProp(key,inst),
-//					findProp(key,inst) to store multiple
-//					instances of properties with the same
-//					key.
-// 27 Apr 2001	SAM, RTi		Change all debug levels to 100.
-// 10 May 2001	SAM, RTi		Testing to get working with embedded
-//					variables like ${...}.  This involves
-//					passing the persistent format to the
-//					Prop.getValue() method so that it can
-//					decide whether to expand the contents.
-//					Move routine names into messages
-//					themselves to limit overhead.  Set
-//					unused variables to null to optimize
-//					memory management.  Change initial
-//					list size from 100 to 20.
-// 14 May 2001	SAM, RTi		Change so that when parsing properties
-//					the = is the only delimiter so that
-//					quotes around arguments with spaces
-//					are not needed.
-// 2001-11-08	SAM, RTi		Synchronize with UNIX.  Changes from
-//					2001-05-14... Add a boolean flag
-//					_literal_quotes to keep the quotes in
-//					the PropList.  This is useful where
-//					commands are saved in PropLists.
-//					Change so when reading a persistent
-//					file, the file can be a regular file or
-//					a URL.
-// 2002-01-20	SAM, RTi		Fix one case where equals() was being
-//					used instead of equalsIgnoreCase() when
-//					finding property names.
-// 2002-02-03	SAM, RTi		Add setHowSet() and getHowSet() to track
-//					how a property is set.  Remove the
-//					*_CONFIG static parameters because
-//					similar values are found in Prop.  The
-//					values were never used.  Change set
-//					methods to be void instead of having a
-//					return type.  The return value is never
-//					used.  Fix bug where setValue() was
-//					replacing the Prop in the PropList with
-//					the given object (rather than the value
-//					in the Prop) - not sure if this code
-//					was ever getting called!  Change
-//					readPersistent() and writePersistent()
-//					to throw an IOException if there is an
-//					error.  Add getPropsMatchingRegExp(),
-//					which is used by TSProduct to help write
-//					properties.
-// 2002-07-01	SAM, RTi		Add elementAt() to get a property at
-//					a position.
-// 2002-12-24	SAM, RTi		Support /* */ comments in Java PropList.
-// 2003-03-27	SAM, RTi		Fix bugs in setContents() and setValue()
-//					methods where when a match was found
-//					the code did not return, resulting in
-//					a new duplicate property also being
-//					appended.
-// 2003-10-27	J. Thomas Sapienza, RTi	Added a very basic copy constructor.
-//					In the future should implement
-//					clone() and a copy constructor that
-//					can handle Props that have data objects.
-// 2003-11-11	JTS, RTi		* Added getPropCount().
-//					* Added the methods with the replace
-//					  parameter.
-//					* Added unSetAll().
-// 2004-02-03	SAM, RTi		* Add parse().
-// 2004-07-15	JTS, RTi		Added sortList().
-// 2004-11-29	JTS, RTi		Added getList().
-// 2005-04-29	SAM, RTi		* Overload the parse method to take a
-//					  "how set" value.
-// 2005-06-09	JTS, RTi		Warnings in readPersistent() are now 
-//					printed at level 2.
-// 2005-12-06	JTS, RTi		Added validatePropNames().
-// 2007-03-02	SAM, RTi		Update setUsingObject() to allow null.
-// ---------------------------------------------------------------------------- 
-// EndHeader
-
 package RTi.Util.IO;
 
 import java.lang.Object;
 import java.lang.String;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Vector;
 import java.io.BufferedReader;
@@ -268,16 +168,17 @@ private int	__howSet = Prop.SET_UNKNOWN;
 
 /**
 Copy constructor for a PropList.  Currently only works with PropLists that store String key/value pairs.<p>
+The output copy has contents that are the from the input getValue() method.
 TODO (JTS - 2003-10-27) Later, add in support for cloning of props that have data objects in the value section.
 @param props the PropList to duplicate.
 */
 public PropList(PropList props) {
-	// in the order of the data members above ...
+	// Copy in the order of the data members above.
 	
 	setPropListName(props.getPropListName());
 
-	__list = new Vector<Prop>();
-	// duplicate all the props
+	this.__list = new Vector<>();
+	// Duplicate all the props.
 	int size = props.size();
 	Prop prop = null;
 	for (int i = 0; i < size; i++) {
@@ -287,7 +188,71 @@ public PropList(PropList props) {
 
 	setPersistentName(new String(props.getPersistentName()));
 	setPersistentFormat(props.getPersistentFormat());
-	// __lastLineNumberRead is ignored (that var probably doesn't need to be private)
+	// __lastLineNumberRead is ignored (that var probably doesn't need to be private).
+	setLiteralQuotes(props.getLiteralQuotes());
+	setHowSet(props.getHowSet());
+}
+
+/**
+Copy constructor for a PropList.
+@param props the PropList to clone.
+@param cloneContents if true, attempt to clone the content objects (if not able, use the original object),
+else if false use the getContents() method to retrieve the property contents.
+Not cloning is safe for immutable properties.
+*/
+public PropList (PropList props, boolean cloneContents) {
+	// The code is the mostly same as the other method but clone the data object.
+	this.__list = new Vector<>();
+	// Duplicate all the props.
+	int size = props.size();
+	Prop prop = null;
+	for (int i = 0; i < size; i++) {
+		prop = props.propAt(i);
+		if ( cloneContents ) {
+			// Do a deep copy on the property contents.
+			Object oClone = null;
+			if ( prop.getContents() == null ) {
+				oClone = null;
+			}
+			else {
+				// Can't call clone() on object because it is a protected method expected to be implemented in subclass,
+				// but don't know that here since the property contents can be any object.
+				if ( prop.getContents().getClass().isEnum() ) {
+					// Enumeration, which is immutable so return the original contents.
+					oClone = prop.getContents();
+				}
+				else {
+					Method method = null;
+					try {
+						Object contents = prop.getContents();
+						method = contents.getClass().getDeclaredMethod("clone");
+						// "clone" method exists so call it.
+						try {
+							oClone = method.invoke(contents);
+						}
+						catch ( Exception e ) {
+							// Unable to clone so just assign.
+							oClone = prop.getContents();
+						}
+					}
+					catch ( NoSuchMethodException e ) {
+						// No Clone method so just use the original object,
+						// such as for Integer and other built-in classes.
+						oClone = prop.getContents();
+					}
+				}
+			}
+			set(new Prop(prop.getKey(), oClone, prop.getValue()), false);
+		}
+		else {
+			// Use the property contents without cloning.
+			set(new Prop(prop.getKey(), prop.getContents(), prop.getValue()), false);
+		}
+	}
+
+	setPersistentName(new String(props.getPersistentName()));
+	setPersistentFormat(props.getPersistentFormat());
+	// __lastLineNumberRead is ignored (that var probably doesn't need to be private).
 	setLiteralQuotes(props.getLiteralQuotes());
 	setHowSet(props.getHowSet());
 }
@@ -328,7 +293,7 @@ If the value string contains an =, surround with double quotes:  "Property=\"Val
 @param prop_string A property string.
 */
 public void add ( String prop_string )
-{	// Just call the set routine...
+{	// Just call the set method.
 	set ( prop_string );
 }
 
@@ -377,18 +342,6 @@ public Prop elementAt(int pos)
 }
 
 /**
-Finalize before garbage collection.
-@exception Throwable if there is an error.
-*/
-protected void finalize()
-throws Throwable
-{	__listName = null;
-	__list = null;
-	__persistentName = null;
-	super.finalize();
-}
-
-/**
 Find a property in the list.
 @return The index position of the property corresponding to the string key, or -1 if not found.
 @param key The string key used to look up the property.
@@ -401,7 +354,7 @@ public int findProp ( String key )
 		prop_i = __list.get(i);
 		propKey = (String)prop_i.getKey();
 		if ( key.equalsIgnoreCase(propKey) ) {
-			// Have a match.  Return the position...
+			// Have a match.  Return the position.
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( 100, "PropList.findProp", "Found property \"" + key + "\" at index " + i);
 			}
@@ -443,7 +396,7 @@ public int findProp ( int intKey )
 		prop_i = __list.get(i);
 		prop_intKey = prop_i.getIntKey();
 		if ( intKey == prop_intKey ) {
-			// Have a match.  Return the position...
+			// Have a match.  Return the position.
 			return i;
 		}
 	}
@@ -458,7 +411,7 @@ Return property contents.
 public Object getContents ( String key )
 {	int	pos = findProp ( key );
 	if ( pos >= 0 ) {
-		// We have a match.  Get the contents...
+		// We have a match.  Return the contents object.
 		return (__list.get(pos)).getContents();
 	}
 	if ( Message.isDebugOn ) {
@@ -531,11 +484,11 @@ public List<Prop> getPropsMatchingRegExp ( String regExp )
 		return null;
 	}
 	int size = __list.size();
-	List<Prop> props = new Vector<Prop>();
+	List<Prop> props = new Vector<>();
 	Prop prop;
 	for ( int i = 0; i < size; i++ ) {
 		prop = __list.get(i);
-		// Do a case-independent comparison...
+		// Do a case-independent comparison.
 		if ( StringUtil.matchesRegExp(true, prop.getKey(), regExp)) {
 			props.add ( prop );
 		}
@@ -617,11 +570,11 @@ null list that may have been passed as input).
 */
 public static PropList getValidPropList ( PropList props, String newName )
 {	if ( props != null ) {
-		// List is not null, so return...
+		// List is not null, so return the PropList.
 		return props;
 	}
 	else {
-	    // List is null, so create a new and return...
+	    // List is null, so create a new and return the PropList.
 		if ( newName == null ) {
 			return new PropList ( "PropList.getValidPropList" );
 		}
@@ -637,7 +590,7 @@ The string value of the property corresponding to the string key, or null if not
 public String getValue ( String key )
 {	int pos = findProp ( key );
 	if ( pos >= 0 ) {
-		// We have a match.  Get the value...
+		// Have a match.  Return the value.
 		String value = (__list.get(pos)).getValue(this);
 		if ( Message.isDebugOn ) {
 			Message.printDebug(100,"PropList.getValue", "Found value of \"" + key + "\" to be \"" + value + "\"" );
@@ -676,7 +629,7 @@ Return the string value of the property corresponding to the integer key, or nul
 public String getValue ( int intKey )
 {	int	pos = findProp ( intKey );
 	if ( pos >= 0 ) {
-		// Have a match.  Get the value...
+		// Have a match.  Return the value.
 		return (__list.get(pos)).getValue( this );
 	}
 	return null;
@@ -702,7 +655,7 @@ private void initialize ( String listName, String persistentName, int persistent
 	    __persistentName = persistentName;
 	}
 	__persistentFormat = persistentFormat;
-	__list = new Vector<Prop>();
+	__list = new Vector<>();
 	__lastLineNumberRead = 0;
 }
 
@@ -739,7 +692,7 @@ public static PropList parse ( int howSet, String string, String listName, Strin
 	if ( string == null ) {
 		return props;
 	}
-	// Allowing quoted strings is necessary because a comma or = could be in a string
+	// Allowing quoted strings is necessary because a comma or = could be in a string.
 	List<String> tokens = StringUtil.breakStringList ( string, delim, StringUtil.DELIM_ALLOW_STRINGS );
 						
 	int size = 0;
@@ -748,17 +701,17 @@ public static PropList parse ( int howSet, String string, String listName, Strin
 	}
 	for ( int i = 0; i < size; i++ ) {
 	    //Message.printStatus ( 2, "PropList.parse", "Parsing parameter string \"" + tokens.elementAt(i));
-		// The above call to breakStringList() may have stripped quotes that would protected "=" in the
-	    // properties.  Therefore just find the first "=" and take the left and right sides.
+		// The above call to breakStringList() may have stripped quotes that would protected "=" in the properties.
+		// Therefore just find the first "=" and take the left and right sides.
 	    String token = tokens.get(i);
 	    int pos = token.indexOf('=');
 	    if ( pos > 0 ) {
-	        // Don't want property names to have spaces
+	        // Don't want property names to have spaces.
 		    String prop = token.substring(0,pos).trim();
-		    // TODO SAM 2008-11-18 Evaluate how to handle whitespace
+		    // TODO SAM 2008-11-18 Evaluate how to handle whitespace.
 		    String value = "";
 		    if ( token.length() > (pos + 1) ) {
-		        // Right side is NOT empty
+		        // Right side is NOT empty.
 		        value = token.substring((pos + 1),token.length());
 		    }
 		    //Message.printStatus ( 2, "PropList.parse", "Setting property \"" + prop + "\"=\"" + value + "\"" );
@@ -798,8 +751,7 @@ Non-property literals like comments will be ignored.
 @exception IOException if there is an error reading the file.
 */
 public void readPersistent ( boolean append )
-throws IOException
-{
+throws IOException {
     readPersistent ( true, false );
 }
 
@@ -900,7 +852,7 @@ throws IOException
         	lineSave = null;
         	if ( line.length() > 0 ) {
         		if ( line.charAt(0) == '#' ) {
-	        	    // Comment line
+	        	    // Comment line.
 	                if ( includeLiterals ) {
 	                    ++literalCount;
 	                    append ( "Literal" + literalCount, line, true );
@@ -908,19 +860,19 @@ throws IOException
 	        	    continue;
         		}
         		else if ( line.startsWith("<#") || line.startsWith("</#") ) {
-        			// Freemarker template syntax
+        			// Freemarker template syntax.
         			// TODO sam 2017-04-08 evaluate whether to handle here by default
-        			// or pass in parameters to ignore line patterns
+        			// or pass in parameters to ignore line patterns.
         			continue;
         		}
         	}
         	if ( (idx = line.indexOf( '#' )) != -1 ) {
-        	    // Remove # comments from the ends of lines
+        	    // Remove # comments from the ends of lines.
         		line = line.substring( 0, idx );
         	}
         	if ( inComment && line.startsWith("*/") ) {
         		inComment = false;
-        		// For now the end of comment must be at the start of the line so ignore the rest of the line...
+        		// For now the end of comment must be at the start of the line so ignore the rest of the line.
         		if ( includeLiterals ) {
         		    ++literalCount;
         		    append ( "Literal" + literalCount, line, true );
@@ -929,7 +881,7 @@ throws IOException
         	}
         	if ( !inComment && line.startsWith("/*") ) {
         		inComment = true;
-        		// For now the end of comment must be at the start of the line so ignore the rest of the line...
+        		// For now the end of comment must be at the start of the line so ignore the rest of the line.
                 if ( includeLiterals ) {
                     ++literalCount;
                     append ( "Literal" + literalCount, line, true );
@@ -937,7 +889,7 @@ throws IOException
         		continue;
         	}
         	if ( inComment ) {
-        		// Did not detect an end to the comment above so skip the line...
+        		// Did not detect an end to the comment above so skip the line.
                 if ( includeLiterals ) {
                     ++literalCount;
                     append ( "Literal" + literalCount, line, true );
@@ -952,10 +904,10 @@ throws IOException
         		continue;
         	}
         	if ( line.charAt( 0 ) == '[') {
-        	    // Block indicator - contents of [] will be prepended to property names
+        	    // Block indicator - contents of [] will be prepended to property names.
         		if ( line.indexOf("${") >= 0 ) {
-        			// Likely a Freemarker template syntax so skip
-        			// TODO sam 2017-04-08 may need to be more specific about this
+        			// Likely a Freemarker template syntax so skip.
+        			// TODO sam 2017-04-08 may need to be more specific about this.
         			continue;
         		}
         		if ( line.indexOf(']') == -1 ) {
@@ -981,7 +933,7 @@ throws IOException
                 }
         		continue;
         	}
-        	v = new Vector<String>(2);
+        	v = new Vector<>(2);
         	v.add ( line.substring(0,pos) );
         	v.add ( line.substring(pos + 1) );
         
@@ -991,10 +943,10 @@ throws IOException
         		length = value.length();
         		if ( (length > 1) && ((value.charAt(0) == '"') || (value.charAt(0) == '\'') &&
         			(value.charAt(0) == value.charAt(length-1))) ) {
-        			// Get rid of bounding quotes because they are not needed...
+        			// Get rid of bounding quotes because they are not needed.
         			value = value.substring(1,(length - 1));
         		}
-        		// Now set in the PropList...
+        		// Now set in the PropList.
         		if ( name.length() > 0 ) {
         			append ( name, value, false );
         		}
@@ -1016,7 +968,7 @@ throws IOException
             in.close();
         }
     }
-	// Clean up...
+	// Clean up.
 	__howSet = howSetPrev;
 }
 
@@ -1058,11 +1010,11 @@ public void set ( String key, String value, boolean replace )
 {	int index = findProp ( key );
 	
 	if ( index < 0 || !replace) {
-		// Not currently in the list so add it...
+		// Not currently in the list so add it.
 		append ( key, (Object)value, value );
 	}
 	else {
-	    // Already in the list so change it...
+	    // Already in the list so change it.
 		Prop prop = __list.get ( index );
 		prop.setKey ( key );
 		prop.setContents ( value );
@@ -1092,15 +1044,15 @@ it will be replaced if the replace parameter is true.  Otherwise, a duplicate pr
 will be replaced.  If false, a duplicate key will be added.
 */
 public void set ( String key, String contents, String value, boolean replace )
-{	// Find if this is already a property in this list...
+{	// Find if this is already a property in this list.
 
 	int index = findProp ( key );
 	if ( index < 0 || !replace ) {
-		// Not currently in the list so add it...
+		// Not currently in the list so add it.
 		append ( key, contents, value );
 	}
 	else {
-	    // Already in the list so change it...
+	    // Already in the list so change it.
 		Prop prop = __list.get ( index );
 		prop.setKey ( key );
 		prop.setContents ( contents );
@@ -1124,17 +1076,17 @@ If the property key exists, reset the property to the new information.
 @param prop The contents of the property.
 */
 public void set ( Prop prop, boolean replace )
-{	// Find if this is already a property in this list...
+{	// Find if this is already a property in this list.
 	if ( prop == null ) {
 		return;
 	}
 	int index = findProp ( prop.getKey() );
 	if ( index < 0 || !replace ) {
-		// Not currently in the list so add it...
+		// Not currently in the list so add it.
 		append ( prop.getKey(), prop.getContents(), prop.getValue(this) );
 	}
 	else {
-	    // Already in the list so change it...
+	    // Already in the list so change it.
 		prop.setHowSet ( __howSet );
 		__list.set ( index, prop );
 	}
@@ -1199,13 +1151,13 @@ determined by calling the object's toString() method.  If contents are null, the
 the String value is also set to null.
 */
 public void setUsingObject ( String key, Object contents )
-{	// Ignore null keys...
+{	// Ignore null keys.
 
 	if ( key == null ) {
 		return;
 	}
 
-	// Find if this is already a property in this list...
+	// Find if this is already a property in this list.
 
 	int index = findProp ( key );
 	String value = null;
@@ -1213,11 +1165,11 @@ public void setUsingObject ( String key, Object contents )
 		contents.toString();
 	}
 	if ( index < 0 ) {
-		// Not currently in the list so add it...
+		// Not currently in the list so add it.
 		append ( key, contents, value );
 	}
 	else {
-	    // Already in the list so change it...
+	    // Already in the list so change it.
 		Prop prop = __list.get ( index );
 		prop.setKey ( key );
 		prop.setContents ( contents );
@@ -1239,12 +1191,12 @@ checks are being added to make setValue more universal).</b>
 public void setValue ( String key, String value )
 {	int pos = findProp(key);
 	if ( pos >= 0 ) {
-		// Have a match.  Reset the value in the corresponding Prop...
+		// Have a match.  Reset the value in the corresponding Prop.
 		Prop prop = __list.get(pos);
 		prop.setValue(value);
 		return;
 	}
-	// If we get to here we did not find a match and need to add a new item to the list...
+	// If we get to here we did not find a match and need to add a new item to the list.
 	append ( key, value, false );
 }
 
@@ -1344,8 +1296,7 @@ See the overloaded method for more information.
 */
 public List<String> validatePropNames(List<String> validProps, List<String> deprecatedProps,
     List<String> deprecatedNotes, String target ) 
-throws Exception
-{
+throws Exception {
     return validatePropNames( validProps, deprecatedProps, deprecatedNotes, target, false );
 }
 
@@ -1442,20 +1393,20 @@ throws Exception {
 	String key = null;
 	String msg = null;
 	String val = null;
-	List<String> warnings = new Vector<String>();
+	List<String> warnings = new Vector<>();
 	
 	// Iterate through all the properties in the PropList and check for
 	// whether they are valid, invalid, or deprecated.
 
-	List<String> invalids = new Vector<String>();
-	List<String> deprecateds = new Vector<String>();
+	List<String> invalids = new Vector<>();
+	List<String> deprecateds = new Vector<>();
 	
 	String removeInvalidString = "";
 	if ( removeInvalid ) {
 	    removeInvalidString = "  Removing invalid property.";
 	}
 	
-	for (int i = 0; i < size(); i++) { // Check size dynamically in case props are removed below
+	for (int i = 0; i < size(); i++) { // Check size dynamically in case props are removed below.
 		p = propAt(i);
 		key = p.getKey();
 
@@ -1486,8 +1437,8 @@ throws Exception {
 					deprecateds.add(msg);
 
 					// Flag valid as true because otherwise this Property will also be reported
-					// as an invalid property below, and that is not technically true.  Nor
-					// is it technically true that the property is valid, strictly-speaking,
+					// as an invalid property below, and that is not technically true.
+					// Nor is it technically true that the property is valid, strictly-speaking,
 					// but this avoids double error messages for the same property.
 
 					valid = true;
@@ -1557,25 +1508,25 @@ throws IOException
 		p = propAt(i);
 		value = p.getValue(this);
 		if ( p.getIsLiteral() ) {
-		    // TODO SAM 2008-11-21 Decide if there needs to be a parameter to control whether these
-		    // are written.  Presumably if they are read from a file they will typically be rewritten to the file.
+		    // TODO SAM 2008-11-21 Decide if there needs to be a parameter to control whether these are written.
+			// Presumably if they are read from a file they will typically be rewritten to the file.
 		    // A literal string.  Just print it.
 		    out.println( value.toString() );
-		    // See if inside a block
+		    // See if inside a block.
 		    if ( value.startsWith("[") ) {
-		        // Have a [Block] in the properties so keep track of it
+		        // Have a [Block] in the properties so keep track of it.
 		        value = value.trim();
 		        blockName = value.trim().substring(1,value.length() - 1);
 		    }
 		}
 		else {
-		    // A normal property.  Format it as Property = Value
+		    // A normal property.  Format it as Property = Value.
     		key = p.getKey();
     		if ( (blockName != null) && key.startsWith(blockName + ".") ) {
     		    // A block name has been detected.  Strip from the key so that the block name is not redundant.
     		    key = key.substring(blockName.length() + 1); // +1 is for "."
     		}
-    		// Do any special character encoding
+    		// Do any special character encoding.
     		gotSpace = false;
     		length = value.length();
     		for ( int j=0; j<length; j++ ) {
