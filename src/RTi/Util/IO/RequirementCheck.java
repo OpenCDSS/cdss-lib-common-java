@@ -67,7 +67,8 @@ public class RequirementCheck {
 	
 	/**
 	 * Constructor.
-	 * @param requirementText the full requirement starting with "@" (but omitting leading # for comment).
+	 * @param requirementText the full requirement starting with "@"
+	 * (but omitting leading # and possibly whitespace before @).
 	 */
 	public RequirementCheck ( String requirementText ) {
 		this.requirementText = requirementText.trim();
@@ -76,7 +77,7 @@ public class RequirementCheck {
 			// Expect a space after the annotation name.
 			int pos = requirementText.indexOf(" ");
 			if ( pos > 0 ) {
-				this.requirementText = requirementText.substring(0,pos);
+				this.annotation = requirementText.substring(0,pos).trim();
 			}
 		}
 	}
