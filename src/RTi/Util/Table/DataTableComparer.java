@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -124,9 +124,8 @@ values must be exact when checked to the precision)
 */
 public DataTableComparer ( DataTable table1, List<String>compareColumns1, List<String> excludeColumns1,
     DataTable table2, List<String> compareColumns2,
-    boolean matchColumnsByName, Integer precision, Double tolerance, String newTableID )
-{
-    // The tables being compared must not be null
+    boolean matchColumnsByName, Integer precision, Double tolerance, String newTableID ) {
+    // The tables being compared must not be null.
     if ( table1 == null ) {
         throw new InvalidParameterException( "The first table to compare is null." );
     }
@@ -186,18 +185,18 @@ public DataTableComparer ( DataTable table1, List<String>compareColumns1, List<S
     }
     setCompareColumns2 ( compareColumns2 );
     setMatchColumnsByName ( matchColumnsByName );
-    // The precision must be 0+
+    // The precision must be 0+.
     if ( (precision != null) && (precision < 0) ) {
         throw new InvalidParameterException( "The precision (" + precision + ") if specified must be >= 0).");
     }
     setPrecision ( precision );
-    // The tolerance must be 0+
+    // The tolerance must be 0+.
     if ( (tolerance != null) && (tolerance < 0.0) ) {
         throw new InvalidParameterException( "The tolerance (" + tolerance + ") if specified must be >= 0).");
     }
     setTolerance ( tolerance );
     // The new table ID must be specified because the table use is controlled by the calling code and
-    // an identifier conflict because of an assumed name should not be introduced here
+    // an identifier conflict because of an assumed name should not be introduced here.
     if ( (newTableID == null) || newTableID.equals("") ) {
         throw new InvalidParameterException( "The new table ID is null or blank." );
     }
@@ -213,21 +212,21 @@ public void compare ()
 throws Exception
 {   String routine = getClass().getSimpleName() + ".compare";
     // At this point the inputs should be OK so create a new table that has columns that
-    // include both of the original column names but are of type string
+    // include both of the original column names but are of type string.
     DataTable table1 = getTable1();
     DataTable table2 = getTable2();
     DataTable comparisonTable = new DataTable ();
     comparisonTable.setTableID ( getNewTableID() );
     List<String> compareColumns1 = getCompareColumns1();
     List<String> compareColumns2 = getCompareColumns2();
-    // Table 1 is the master and consequently its indices will control the comparisons
+    // Table 1 is the master and consequently its indices will control the comparisons.
     int[] columnNumbers1 = table1.getFieldIndices(StringUtil.toArray(compareColumns1));
     // Table 2 column numbers are first determined from the table...
     int[] columnNumbers2 = table2.getFieldIndices(StringUtil.toArray(compareColumns2));
     if ( getMatchColumnsByName() ) {
-        // Order in column2 may not be the same as was originally specified
+        // Order in column2 may not be the same as was originally specified.
         columnNumbers2 = new int[columnNumbers1.length];
-        // Loop through the first tables columns and find the matching column in the second table
+        // Loop through the first tables columns and find the matching column in the second table.
         for ( int i = 0; i < compareColumns1.size(); i++ ) {
             try {
                 columnNumbers2[i] = table2.getFieldIndex(compareColumns1.get(i));
@@ -235,7 +234,7 @@ throws Exception
                     "\" in table 1 matches column [" + columnNumbers2[i] + "] in table 2.");
             }
             catch ( Exception e ) {
-                columnNumbers2[i] = -1; // Column not matched
+                columnNumbers2[i] = -1; // Column not matched.
                 Message.printStatus(2,routine,"Column [" + i + "] \"" + compareColumns1.get(i) +
                     "\" in table 1 does not match any column in table 2.");
             }
@@ -256,9 +255,9 @@ throws Exception
     }
     //setColumnNumbers1 ( columnNumbers1 );
     //setColumnNumbers2 ( columnNumbers2 );
-    String[] fieldFormats1 = table1.getFieldFormats(); // C-style formats to convert data to strings for comparison
-    String[] fieldFormats2 = table2.getFieldFormats(); // These are in the position of the original table
-    // If necessary, extend the array
+    String[] fieldFormats1 = table1.getFieldFormats(); // C-style formats to convert data to strings for comparison.
+    String[] fieldFormats2 = table2.getFieldFormats(); // These are in the position of the original table.
+    // If necessary, extend the array.
     if ( fieldFormats2.length < fieldFormats1.length ) {
         String [] temp = new String[fieldFormats1.length];
         for ( int i = 0; i < fieldFormats1.length; i++ ) {
@@ -270,7 +269,7 @@ throws Exception
     Integer precision = getPrecision();
     Double tolerance = getTolerance();
     if ( (precision != null) && (precision >= 0) ) {
-        // Update the field formats to use the requested precision, if a floating point field
+        // Update the field formats to use the requested precision, if a floating point field.
         String fieldFormat = "%." + precision + "f";
         for ( int i = 0; i < columnNumbers1.length; i++ ) {
             if ( (table1.getFieldDataType(columnNumbers1[i]) == TableField.DATA_TYPE_DOUBLE) ||
@@ -287,8 +286,11 @@ throws Exception
             }
         }
     }
-    // Create an int array to track whether the cells are different (initial value is 0)
-    // This is used as a style mask when formatting the HTML (where value of 1 indicates difference)
+    // Create an int array to track whether the cells are different (initial value is 0).
+    // This is used as a style mask when formatting the HTML:
+    // - value of 0 indicates no difference
+    // - value of 1 indicates difference
+    // - value of -1 indicates error
     int [][] differenceArray = new int[table1.getNumberOfRecords()][compareColumns1.size()];
     // Loop through the column lists, which should be the same size and define columns.
     for ( int icol = 0; icol < compareColumns1.size(); icol++ ) {
@@ -316,115 +318,130 @@ throws Exception
         comparisonTable.getTableField(newField).setDescription(desc1);
     }
     // Now loop through the records in table 1 and compare.
-    String formattedValue1;
-    String formattedValue2;
+    String formattedValue1 = "";
+    String formattedValue2 = "";
     String formattedValue = null; // The comparison output.
     Object value1;
     Object value2;
     String format1, format2;
     for ( int irow = 0; irow < table1.getNumberOfRecords(); ++irow ) {
         for ( int icol = 0; icol < columnNumbers1.length; icol++ ) {
-        	if ( Message.isDebugOn ) {
-        		Message.printStatus ( 2, routine, "Comparing row [" + irow + "] columns [" +
-                    columnNumbers1[icol] + "] / [" + columnNumbers2[icol] + "]" );
+        	try {
+        		if ( Message.isDebugOn ) {
+        			Message.printStatus ( 2, routine, "Comparing row [" + irow + "] columns [" +
+                    	columnNumbers1[icol] + "] / [" + columnNumbers2[icol] + "]" );
+        		}
+            	// Get the value from the first table and format as a string for comparisons.
+            	value1 = null;
+            	if ( columnNumbers1[icol] >= 0 ) {
+                	try {
+                    	value1 = table1.getFieldValue(irow, columnNumbers1[icol]);
+                	}
+                	catch ( Exception e ) {
+                    	value1 = null;
+                	}
+            	}
+            	format1 = "";
+            	if ( (value1 == null) || (columnNumbers1[icol] < 0) ) {
+            		// No value to compare.
+                	formattedValue1 = "";
+            	}
+            	else {
+                	// TODO SAM 2010-12-18 Evaluate why trim is needed.
+            		// FIXME smalers 2022-04-29 the following does not handle Integer because of casting.
+                	format1 = fieldFormats1[columnNumbers1[icol]];
+                	// Check for integer to format without trailing 0's.
+                	// First check for number, then for integer or infinity.
+                    if (((table1.getFieldDataType(columnNumbers1[icol]) == TableField.DATA_TYPE_DOUBLE) ||
+                        (table1.getFieldDataType(columnNumbers1[icol]) == TableField.DATA_TYPE_FLOAT)) &&
+                        (value1.getClass().getName() == "Integer" || (Double) value1 == Double.POSITIVE_INFINITY ||
+                        (Double) value1 - Math.round((Double) value1) == 0)) {
+                        formattedValue1 = StringUtil.formatString(value1,"%.0f").trim();
+                    }
+                	else {
+                		// Format was determined previously and can be used as expected.
+                    	formattedValue1 = StringUtil.formatString(value1,format1).trim();
+                	}
+	
+            	}
+            	// Get the value from the second table and format as a string for comparisons.
+            	// The rows in the second table must be in the same order.
+            	// TODO SAM 2012-05-30 Enable sorting on table rows before comparison?
+            	value2 = null;
+            	if ( columnNumbers2[icol] >= 0 ) {
+                	try {
+                    	value2 = table2.getFieldValue(irow, columnNumbers2[icol]);
+                    	//Message.printStatus(2,routine,"Value 2 from column [" + columnNumbers2[icol] + "] = " + value2);
+                	}
+                	catch ( Exception e ) {
+                    	value2 = null;
+                	}
+            	}
+            	format2 = "";
+            	if ( (value2 == null) || (columnNumbers2[icol] < 0) ) {
+                	formattedValue2 = "";
+            	}
+            	else {
+                	format2 = fieldFormats2[columnNumbers2[icol]];
+                	// Check for integer to format without trailing 0's.
+                	// First check for number, then for integer.
+            		// FIXME smalers 2022-04-29 the following does not handle Integer because of casting.
+                	if (((table2.getFieldDataType(columnNumbers2[icol]) == TableField.DATA_TYPE_DOUBLE) ||
+                    	(table2.getFieldDataType(columnNumbers2[icol]) == TableField.DATA_TYPE_FLOAT)) &&
+                    	(value2.getClass().getName() == "Integer" || (Double) value2 == Double.POSITIVE_INFINITY ||
+                    	(Double) value2 - Math.round((Double) value2) == 0)) {
+                    	formattedValue2 = StringUtil.formatString(value2,"%.0f").trim();
+                	}
+                	else {
+                    	formattedValue2 = StringUtil.formatString(value2,format2).trim();
+                	}
+            	}
+            	// Default behavior is to compare strings so do this check first.
+            	if ( formattedValue1.equals(formattedValue2) ) {
+                	// Formatted values are the same so the output table value is just the formatted value.
+                	formattedValue = formattedValue1;
+            	}
+            	else {
+                	// Show both values as "value1 / value2" and set the boolean indicating a difference.
+                	if ( ((table1.getFieldDataType(columnNumbers1[icol]) == TableField.DATA_TYPE_DOUBLE) ||
+                    	(table1.getFieldDataType(columnNumbers1[icol]) == TableField.DATA_TYPE_FLOAT)) &&
+                    	(tolerance != null) &&
+                    	StringUtil.isDouble(formattedValue1) && StringUtil.isDouble(formattedValue2)) {
+                    	// Convert the formatted strings to doubles and compare the difference against the tolerance.
+                    	double dvalue1 = Double.parseDouble(formattedValue1);
+                    	double dvalue2 = Double.parseDouble(formattedValue2);
+                    	if ( Math.abs(dvalue1 - dvalue2) >= tolerance ) {
+                        	formattedValue = formattedValue1 + " / " + formattedValue2;
+                        	differenceArray[irow][icol] = 1;
+                    	}
+                    	else {
+                        	// Still show both values but don't set the difference flag since tolerance is met.
+                        	// Indicate that values compare within tolerance using ~.
+                        	formattedValue = formattedValue1 + " ~/~ " + formattedValue2;
+                    	}
+                	}
+                	else {
+                    	// Not floating point or floating point and no tolerance is specified so no need to do
+                    	// additional comparison.
+                    	formattedValue = formattedValue1 + " / " + formattedValue2;
+                    	differenceArray[irow][icol] = 1;
+                	}
+            	}
+            	// Set the field value, creating the row if necessary.
+            	comparisonTable.setFieldValue(irow, icol, formattedValue, true);
+            	//Message.printStatus(2, "", "formattedValue1=\"" + formattedValue1 + "\" (format=" + format1 +
+            	//    ") formattedValue2=\"" + formattedValue2 + "\" (format=" + format2 +
+            	//    ") mask=" + differenceArray[irow][icol] );
         	}
-            // Get the value from the first table and format as a string for comparisons.
-            value1 = null;
-            if ( columnNumbers1[icol] >= 0 ) {
-                try {
-                    value1 = table1.getFieldValue(irow, columnNumbers1[icol]);
-                }
-                catch ( Exception e ) {
-                    value1 = null;
-                }
-            }
-            format1 = "";
-            if ( (value1 == null) || (columnNumbers1[icol] < 0) ) {
-                formattedValue1 = "";
-            }
-            else {
-                // TODO SAM 2010-12-18 Evaluate why trim is needed.
-                format1 = fieldFormats1[columnNumbers1[icol]];
-                // Check for integer to format without trailing 0's.
-                // First check for number, then for integer or infinity.
-                if (((table1.getFieldDataType(columnNumbers1[icol]) == TableField.DATA_TYPE_DOUBLE) ||
-                    (table1.getFieldDataType(columnNumbers1[icol]) == TableField.DATA_TYPE_FLOAT)) &&
-                    (value1.getClass().getName() == "Integer" || (Double) value1 == Double.POSITIVE_INFINITY ||
-                    (Double) value1 - Math.round((Double) value1) == 0)) {
-                    formattedValue1 = StringUtil.formatString(value1,"%.0f").trim();
-                }
-                else {
-                    formattedValue1 = StringUtil.formatString(value1,format1).trim();
-                }
-
-            }
-            // Get the value from the second table and format as a string for comparisons.
-            // The rows in the second table must be in the same order
-            // TODO SAM 2012-05-30 Enable sorting on table rows before comparison?
-            value2 = null;
-            if ( columnNumbers2[icol] >= 0 ) {
-                try {
-                    value2 = table2.getFieldValue(irow, columnNumbers2[icol]);
-                    //Message.printStatus(2,routine,"Value 2 from column [" + columnNumbers2[icol] + "] = " + value2);
-                }
-                catch ( Exception e ) {
-                    value2 = null;
-                }
-            }
-            format2 = "";
-            if ( (value2 == null) || (columnNumbers2[icol] < 0) ) {
-                formattedValue2 = "";
-            }
-            else {
-                format2 = fieldFormats2[columnNumbers2[icol]];
-                // Check for integer to format without trailing 0's.
-                // First check for number, then for integer.
-                if (((table2.getFieldDataType(columnNumbers2[icol]) == TableField.DATA_TYPE_DOUBLE) ||
-                    (table2.getFieldDataType(columnNumbers2[icol]) == TableField.DATA_TYPE_FLOAT)) &&
-                    (value2.getClass().getName() == "Integer" || (Double) value2 == Double.POSITIVE_INFINITY ||
-                    (Double) value2 - Math.round((Double) value2) == 0)) {
-                    formattedValue2 = StringUtil.formatString(value2,"%.0f").trim();
-                }
-                else {
-                    formattedValue2 = StringUtil.formatString(value2,format2).trim();
-                }
-            }
-            // Default behavior is to compare strings so do this check first.
-            if ( formattedValue1.equals(formattedValue2) ) {
-                // Formatted values are the same so the output table value is just the formatted value.
-                formattedValue = formattedValue1;
-            }
-            else {
-                // Show both values as "value1 / value2" and set the boolean indicating a difference.
-                if ( ((table1.getFieldDataType(columnNumbers1[icol]) == TableField.DATA_TYPE_DOUBLE) ||
-                    (table1.getFieldDataType(columnNumbers1[icol]) == TableField.DATA_TYPE_FLOAT)) &&
-                    (tolerance != null) &&
-                    StringUtil.isDouble(formattedValue1) && StringUtil.isDouble(formattedValue2)) {
-                    // Convert the formatted strings to doubles and compare the difference against the tolerance.
-                    double dvalue1 = Double.parseDouble(formattedValue1);
-                    double dvalue2 = Double.parseDouble(formattedValue2);
-                    if ( Math.abs(dvalue1 - dvalue2) >= tolerance ) {
-                        formattedValue = formattedValue1 + " / " + formattedValue2;
-                        differenceArray[irow][icol] = 1;
-                    }
-                    else {
-                        // Still show both values but don't set the difference flag since tolerance is met
-                        // Indicate that values compare within tolerance using ~
-                        formattedValue = formattedValue1 + " ~/~ " + formattedValue2;
-                    }
-                }
-                else {
-                    // Not floating point or floating point and no tolerance is specified so no need to do
-                    // additional comparison.
-                    formattedValue = formattedValue1 + " / " + formattedValue2;
-                    differenceArray[irow][icol] = 1;
-                }
-            }
-            // Set the field value, creating the row if necessary.
-            comparisonTable.setFieldValue(irow, icol, formattedValue, true);
-            //Message.printStatus(2, "", "formattedValue1=\"" + formattedValue1 + "\" (format=" + format1 +
-            //    ") formattedValue2=\"" + formattedValue2 + "\" (format=" + format2 +
-            //    ") mask=" + differenceArray[irow][icol] );
+        	catch ( Exception e ) {
+        		// Typically occurs if there is a casting problem.
+        		Message.printWarning(3, routine, "Error comparing cell values at row " + (irow + 1) + " column " + (icol + 1) + ".");
+        		Message.printWarning(3,routine,e);
+               	formattedValue = "ERROR";
+            	comparisonTable.setFieldValue(irow, icol, formattedValue, true);
+            	// Use -1 as to indicate error.
+               	differenceArray[irow][icol] = -1;
+        	}
         }
     }
     setComparisonTable ( comparisonTable );
@@ -450,16 +467,14 @@ Get the column numbers to compare from the second table.
 /**
 Get the list of columns to be compared from the first table.
 */
-private List<String> getCompareColumns1 ()
-{
+private List<String> getCompareColumns1 () {
     return __compareColumns1;
 }
 
 /**
 Get the list of columns to be compared from the second table.
 */
-private List<String> getCompareColumns2 ()
-{
+private List<String> getCompareColumns2 () {
     return __compareColumns2;
 }
 
@@ -467,8 +482,7 @@ private List<String> getCompareColumns2 ()
 Return the comparison table.
 @return the comparison table.
 */
-public DataTable getComparisonTable ()
-{
+public DataTable getComparisonTable () {
     return __comparisonTable;
 }
 
@@ -476,8 +490,7 @@ public DataTable getComparisonTable ()
 Return the difference array.
 @return the difference array.
 */
-private int [][] getDifferenceArray ()
-{
+private int [][] getDifferenceArray () {
     return __differenceArray;
 }
 
@@ -485,8 +498,7 @@ private int [][] getDifferenceArray ()
 Return the count of the differences.
 @return the count of the differences.
 */
-public int getDifferenceCount ()
-{
+public int getDifferenceCount () {
     int [][] differenceArray = getDifferenceArray();
     if ( differenceArray == null ) {
         return 0;
@@ -505,11 +517,32 @@ public int getDifferenceCount ()
 }
 
 /**
+Return the count of the errors.
+@return the count of the errors.
+*/
+public int getErrorCount () {
+    int [][] differenceArray = getDifferenceArray();
+    if ( differenceArray == null ) {
+        return 0;
+    }
+    else {
+        int errorCount = 0;
+        for ( int irow = 0; irow < differenceArray.length; irow++ ) {
+            for ( int icol = 0; icol < differenceArray[irow].length; icol++ ) {
+                if ( differenceArray[irow][icol] < 0 ) {
+                    ++errorCount;
+                }
+            }
+        }
+        return errorCount;
+    }
+}
+
+/**
 Return whether to match the columns by name.
 @return true to match columns by name, false to match by order.
 */
-private boolean getMatchColumnsByName ()
-{
+private boolean getMatchColumnsByName () {
     return __matchColumnsByName;
 }
 
@@ -517,8 +550,7 @@ private boolean getMatchColumnsByName ()
 Return the identifier to be used for the new comparison table.
 @return the identifier to be used for the new comparison table.
 */
-private String getNewTableID ()
-{
+private String getNewTableID () {
     return __newTableID;
 }
 
@@ -526,24 +558,21 @@ private String getNewTableID ()
 Return the precision to use for floating point comparisons.
 @return the precision to use for floating point comparisons.
 */
-private Integer getPrecision ()
-{
+private Integer getPrecision () {
     return __precision;
 }
 
 /**
 Return the first table being compared.
 */
-public DataTable getTable1 ()
-{
+public DataTable getTable1 () {
     return __table1;
 }
 
 /**
 Return the second table being compared.
 */
-public DataTable getTable2 ()
-{
+public DataTable getTable2 () {
     return __table2;
 }
 
@@ -551,8 +580,7 @@ public DataTable getTable2 ()
 Return the tolerance to use for floating point comparisons.
 @return the tolerance to use for floating point comparisons.
 */
-private Double getTolerance ()
-{
+private Double getTolerance () {
     return __tolerance;
 }
 
@@ -578,8 +606,7 @@ Set the column numbers being compared from the second table.
 Set the list of columns being compared from the first table.
 @param compareColumns1 list of columns being compared from the first table.
 */
-private void setCompareColumns1 ( List<String> compareColumns1 )
-{
+private void setCompareColumns1 ( List<String> compareColumns1 ) {
     __compareColumns1 = compareColumns1;
 }
 
@@ -587,8 +614,7 @@ private void setCompareColumns1 ( List<String> compareColumns1 )
 Set the list of columns being compared from the second table.
 @param compareColumns2 list of columns being compared from the second table.
 */
-private void setCompareColumns2 ( List<String> compareColumns2 )
-{
+private void setCompareColumns2 ( List<String> compareColumns2 ) {
     __compareColumns2 = compareColumns2;
 }
 
@@ -596,8 +622,7 @@ private void setCompareColumns2 ( List<String> compareColumns2 )
 Set the comparison table created by this class.
 @param comparisonTable new comparison table.
 */
-private void setComparisonTable ( DataTable comparisonTable )
-{
+private void setComparisonTable ( DataTable comparisonTable ) {
     __comparisonTable = comparisonTable;
 }
 
@@ -605,8 +630,7 @@ private void setComparisonTable ( DataTable comparisonTable )
 Set the difference array.
 @param differenceArray the difference array.
 */
-private void setDifferenceArray ( int [][] differenceArray )
-{
+private void setDifferenceArray ( int [][] differenceArray ) {
     __differenceArray = differenceArray;
 }
 
@@ -614,8 +638,7 @@ private void setDifferenceArray ( int [][] differenceArray )
 Set whether to match columns by name.
 @param matchColumnsByName true to match by name, false to match by order.
 */
-private void setMatchColumnsByName ( boolean matchColumnsByName )
-{
+private void setMatchColumnsByName ( boolean matchColumnsByName ) {
     __matchColumnsByName = matchColumnsByName;
 }
 
@@ -623,8 +646,7 @@ private void setMatchColumnsByName ( boolean matchColumnsByName )
 Set the name of the new comparison table being created.
 @param newTableID name of the new comparison table being compared.
 */
-private void setNewTableID ( String newTableID )
-{
+private void setNewTableID ( String newTableID ) {
     __newTableID = newTableID;
 }
 
@@ -632,8 +654,7 @@ private void setNewTableID ( String newTableID )
 Set the precision for floating point comparisons.
 @param precision the precision for floating point comparisons.
 */
-private void setPrecision ( Integer precision )
-{
+private void setPrecision ( Integer precision ) {
     __precision = precision;
 }
 
@@ -641,8 +662,7 @@ private void setPrecision ( Integer precision )
 Set the first table being compared.
 @param table1 first table being compared.
 */
-private void setTable1 ( DataTable table1 )
-{
+private void setTable1 ( DataTable table1 ) {
     __table1 = table1;
 }
 
@@ -650,8 +670,7 @@ private void setTable1 ( DataTable table1 )
 Set the second table being compared.
 @param table1 second table being compared.
 */
-private void setTable2 ( DataTable table2 )
-{
+private void setTable2 ( DataTable table2 ) {
     __table2 = table2;
 }
 
@@ -659,12 +678,11 @@ private void setTable2 ( DataTable table2 )
 Set the tolerance for floating point comparisons.
 @param tolerance the tolerance for floating point comparisons.
 */
-private void setTolerance ( Double tolerance )
-{
+private void setTolerance ( Double tolerance ) {
     __tolerance = tolerance;
 }
 
-// TODO SAM 2011-12-23 Enable colors that indicate amount of difference
+// TODO SAM 2011-12-23 Enable colors that indicate amount of difference.
 // Could be two colors (positive difference, negative difference) or shades based on degree of difference
 // (based on tolerance?).
 /**
@@ -672,14 +690,13 @@ Write an HTML representation of the comparison table in which different cells ar
 This uses the generic DataTableHtmlWriter with a style mask for the different cells.
 */
 public void writeHtmlFile ( String htmlFile )
-throws Exception, IOException
-{
+throws Exception, IOException {
     DataTableHtmlWriter tableWriter = new DataTableHtmlWriter(getComparisonTable());
     String [] styles = { "", "diff" };
     String customStyleText = ".diff { background-color:yellow; }\n";
     tableWriter.writeHtmlFile(htmlFile,
         true,
-        null, // No comments
+        null, // No comments.
         getDifferenceArray(),
         styles,
         customStyleText );

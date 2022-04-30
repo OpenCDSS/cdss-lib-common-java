@@ -1730,8 +1730,10 @@ public int[] getFieldDataTypes ()
 	return types;
 }
 
+// TODO smalers 2022-04-29 how does this work with boolean, DateTime, etc?
 /**
 Get C-style format specifier that can be used to format field values for output.
+This method handles string, float, double, and integer column types.
 This format can be used with StringUtil.formatString().
 All fields formats are set to the full width and precision defined for the field.
 Strings are left-justified and numbers are right justified.
@@ -1752,6 +1754,7 @@ public String getFieldFormat ( int index )
 	    }
 	}
 	else {
+		// Numbers are right justified so they line up to indicate magnitude.
         if ( (fieldType == TableField.DATA_TYPE_FLOAT) || (fieldType == TableField.DATA_TYPE_DOUBLE) ) {
             int precision = getFieldPrecision(index);
             if ( fieldWidth < 0 ) {
@@ -1774,8 +1777,12 @@ public String getFieldFormat ( int index )
 }
 
 /**
-Get C-style format specifiers that can be used to format field values for output.
+Get C-style format specifiers that can be used to format field values for output,
+handles string, float, double, and integer column types.
 These formats can be used with StringUtil.formatString().
+The format depends on the column type.
+It is possible that objects other than the expected type will be stored in a column,
+in which case there could be a formatting problem.
 @return a new String array with the format specifiers.
 */
 public String[] getFieldFormats()
