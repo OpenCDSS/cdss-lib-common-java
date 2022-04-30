@@ -503,7 +503,7 @@ Set the log file maximum size in bytes.
 public static void setLogFileMaxSize ( long maxSize)
 {	impl.setLogFileMaxSize(maxSize);
 	Message.printStatus(2, "Message", "Set log file maximum size to " + maxSize + " bytes." );
-	if ( maxSize < -1 ) {
+	if ( maxSize < 0 ) {
 		Message.printStatus(2, "Message", "There is no limit on the log file size.");
 	}
 	else {
