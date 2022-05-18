@@ -2311,8 +2311,7 @@ The named date/time instances <u>cannot</u> contain "+" or "-" characters.
 interval string or a missing named date/time.
 @see #toString
 */
-public static DateTime parse ( String dtString, PropList datetime_props )
-{
+public static DateTime parse ( String dtString, PropList datetime_props ) {
 	if (dtString == null) {
 		Message.printWarning(3, "DateTime.parse", "Cannot get DateTime from null string.");
 		throw new IllegalArgumentException("Null DateTime string to parse.");

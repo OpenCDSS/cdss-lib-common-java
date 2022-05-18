@@ -3465,8 +3465,10 @@ throws Exception
 		TrimStrings_boolean = true;
 	}
 
+	// 'data_record_tokens' is all strings from the initial read:
+	// - TODO smalers 2022-05-11 evaluate using string arrays to use less memory, especially for tokens in a row
 	List<List<String>> data_record_tokens = new ArrayList<>();
-	List<String> v = null;
+	List<String> tokens = null;
 	int maxColumns = 0;
 	int numColumnsParsed = 0;
 
@@ -3584,17 +3586,17 @@ throws Exception
 		}
 		
         if ( TrimInput_Boolean ) {
-			v = StringUtil.breakStringList(line.trim(), Delimiter, parseFlag );
+			tokens = StringUtil.breakStringList(line.trim(), Delimiter, parseFlag );
 		}
 		else {
-            v = StringUtil.breakStringList(line, Delimiter, parseFlag );
+            tokens = StringUtil.breakStringList(line, Delimiter, parseFlag );
 		}
-		numColumnsParsed = v.size();
+		numColumnsParsed = tokens.size();
 		if (numColumnsParsed > maxColumns) {
 			maxColumns = numColumnsParsed;
 		}
 		// Save the tokens from the data rows - this will NOT include comments, headers, or lines to be excluded.
-		data_record_tokens.add(v);
+		data_record_tokens.add(tokens);
 	}
 	// Close the file.
 	in.close();
@@ -3644,9 +3646,10 @@ throws Exception
         precision[icol] = 0;
     }
     // Loop through all rows of data that were read.
-    int vsize;
+    int numTokens;
     String cell;
-    String cell_trimmed; // Must have when checking for types.
+    String cellTrimmed; // Must have when checking for types.
+    String cellTrimmed2; // Used if string is quoted.
     int periodPos; // Position of period in floating point numbers.
     boolean isTypeFound = false;
 	for ( int irow = 0; irow < numRecords; irow++ ) {
@@ -3654,23 +3657,32 @@ throws Exception
 		if ( (top >= 0) && (irow > topm1) ) {
 			break;
 		}
-	    v = data_record_tokens.get(irow);
-	    vsize = v.size();
+	    tokens = data_record_tokens.get(irow);
+	    numTokens = tokens.size();
 	    // Loop through all columns in the row.
-	    for ( int icol = 0; icol < vsize; icol++ ) {
-	        cell = v.get(icol);
-	        cell_trimmed = cell.trim();
+	    for ( int icol = 0; icol < numTokens; icol++ ) {
+	        cell = tokens.get(icol);
+	        cellTrimmed = cell.trim();
+    		// Some data has quotes so remove for the purpose of checking precision, etc.:
+	        // - quoted strings are treated as string column data unless overruled
+	    	cellTrimmed2 = cellTrimmed.replace("\"", "");
 	        isTypeFound = false;
-	        if ( cell_trimmed.length() == 0 ) {
+	        if ( Message.isDebugOn ) {
+	        	//Message.printStatus(2, routine, "Checking irow=" + irow + " icol=" + icol + " cellTrimmed=" + cellTrimmed);
+	        }
+	        if ( cellTrimmed.length() == 0 ) {
 	        	// Blank cell - can be any type and should not impact result.
 	        	++count_blank[icol];
 	        	isTypeFound = true;
 	        }
-	        if ( StringUtil.isInteger(cell_trimmed)) {
-	            ++count_int[icol];
+	        if ( StringUtil.isInteger(cellTrimmed2)) {
+	        	if ( StringUtil.isInteger(cellTrimmed)) {
+	        		// Only count as an integer if not quoted.
+	        		++count_int[icol];
+	        		isTypeFound = true;
+	        	}
 	            // Length needed in case handled as string data.
-	            lenmax_string[icol] = Math.max(lenmax_string[icol], cell_trimmed.length());
-	            isTypeFound = true;
+	            lenmax_string[icol] = Math.max(lenmax_string[icol], cellTrimmed2.length());
 	        }
 	        // TODO SAM 2012-05-31 Evaluate whether this needs a more robust solution.
 	        // Sometimes long integers won't parse in the above but do get parsed as doubles below.
@@ -3679,15 +3691,21 @@ throws Exception
 	        // An example is very long identifiers like "394359105411900".
 	        // For now the work-around is to add quotes in the original data to make sure the column is treated like a string.
 	        // Could add a long but this cascades through a lot of code since the long type is not yet supported in DataTable.
-            if ( StringUtil.isDouble(cell_trimmed)) {
-                ++count_double[icol];
-                isTypeFound = true;
-                // Length needed in case handled as string data.
-                lenmax_string[icol] = Math.max(lenmax_string[icol], cell_trimmed.length());
+            if ( StringUtil.isDouble(cellTrimmed2)) {
+            	if ( StringUtil.isDouble(cellTrimmed) ) {
+	        		// Only count as a double if not quoted.
+            		++count_double[icol];
+            		isTypeFound = true;
+            	}
+                // Length needed in case handled as string data and also to format the double.
+                lenmax_string[icol] = Math.max(lenmax_string[icol], cellTrimmed2.length());
                 // Precision to help with visualization, such as table views.
-                periodPos = cell_trimmed.indexOf(".");
+                periodPos = cellTrimmed2.indexOf(".");
                 if ( periodPos >= 0 ) {
-                    precision[icol] = Math.max(precision[icol], (cell_trimmed.length() - periodPos - 1) );
+                	// String cell has a period so process the precision:
+                	// - precision is the number of digits after the decimal
+                	// - TODO smalers 2022-05-11 what if in scientific notation?
+                    precision[icol] = Math.max(precision[icol], (cellTrimmed2.length() - periodPos - 1) );
                 }
             }
             // TODO SAM 2008-01-27 Need to handle date/time?
@@ -3695,7 +3713,7 @@ throws Exception
                 // Assume string, but strip off the quotes if necessary.
                 ++count_string[icol];
                 if ( TrimStrings_boolean ) {
-                    lenmax_string[icol] = Math.max(lenmax_string[icol], cell_trimmed.length());
+                    lenmax_string[icol] = Math.max(lenmax_string[icol], cellTrimmed.length());
                 }
                 else {
                     lenmax_string[icol] = Math.max(lenmax_string[icol], cell.length());
@@ -3754,13 +3772,17 @@ throws Exception
     	    	tableField.setDataType(TableField.DATA_TYPE_DATETIME);
     	        tableFieldType[icol] = TableField.DATA_TYPE_DATETIME;
     	        Message.printStatus ( 2, routine, "Column [" + icol +
-    	            "] type is date/time as determined from specified column type." );
+    	            "] type is date/time as determined from specified column type (" + count_int[icol] +
+                    " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings, " +
+                    count_blank[icol] + " blanks, width=" + lenmax_string[icol] + ", precision=" + precision[icol] + ".");
     	    }
     	    else if ( isDouble ) {
     	    	tableField.setDataType(TableField.DATA_TYPE_DOUBLE);
     	        tableFieldType[icol] = TableField.DATA_TYPE_DOUBLE;
     	        Message.printStatus ( 2, routine, "Column [" + icol +
-    	            "] type is double as determined from specified column type." );
+    	            "] type is double as determined from specified column type (" + count_int[icol] +
+                    " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings, " +
+                    count_blank[icol] + " blanks, width=" + lenmax_string[icol] + ", precision=" + precision[icol] + ".");
                 tableField.setWidth (lenmax_string[icol] );
                 tableField.setPrecision ( precision[icol] );
     	        // Default the following.
@@ -3771,7 +3793,9 @@ throws Exception
     	    	tableField.setDataType(TableField.DATA_TYPE_INT);
     	        tableFieldType[icol] = TableField.DATA_TYPE_INT;
     	        Message.printStatus ( 2, routine, "Column [" + icol +
-    	            "] type is integer as determined from specified column type." );
+    	            "] type is integer as determined from specified column type (" + count_int[icol] +
+                    " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings, " +
+                    count_blank[icol] + " blanks, width=" + lenmax_string[icol] + ", precision=" + precision[icol] + ".");
     	    }
     	    else if ( isString ) {
     	    	tableField.setDataType(TableField.DATA_TYPE_STRING);
@@ -3784,7 +3808,9 @@ throws Exception
     	            tableField.setWidth (lenmax_string[icol] );
     	        }
     	        Message.printStatus ( 2, routine, "Column [" + icol +
-    	            "] type is string as determined from specified column type." );
+    	            "] type is string as determined from specified column type (" + count_int[icol] +
+                    " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings, " +
+                    count_blank[icol] + " blanks, width=" + lenmax_string[icol] + ", precision=" + precision[icol] + ".");
     	    }
     	    else if ( (count_int[icol] > 0) && (count_string[icol] == 0) &&
     	        ((count_double[icol] == 0) || (count_int[icol] == count_double[icol])) ) {
@@ -3860,16 +3886,16 @@ throws Exception
 		if ( (top >= 0) && (irow > topm1) ) {
 			break;
 		}
-		v = data_record_tokens.get(irow);
+		tokens = data_record_tokens.get(irow);
 
 		tablerec = new TableRecord(maxColumns);
-		cols = v.size();
+		cols = tokens.size();
 		for (int icol = 0; icol < cols; icol++) {
 			if (TrimStrings_boolean) {
-			    cell = v.get(icol).trim();
+			    cell = tokens.get(icol).trim();
 			}
 			else {
-				cell = v.get(icol);
+				cell = tokens.get(icol);
 			}
 			if ( ColumnDataTypes_Auto_boolean ) {
 			    // Set the data as an object of the column type.

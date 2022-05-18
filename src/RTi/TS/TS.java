@@ -82,6 +82,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.PropList;
@@ -1529,7 +1530,8 @@ public HashMap<String,Object> getProperties()
 /**
 Get a time series property's contents (case-specific).
 The surrounding ${ts:} used in TSTool should have been removed before calling.
-The following built-in properties are checked in addition to dynamic properties:
+The following built-in properties are checked in addition to dynamic properties
+(case of name is ignored):
 <ul>
 <li>alias</li>
 <li>description</li>
@@ -1537,14 +1539,14 @@ The following built-in properties are checked in addition to dynamic properties:
 @param propertyName name of property being retrieved.
 @return property object corresponding to the property name.
 */
-public Object getProperty ( String propertyName )
-{
+public Object getProperty ( String propertyName ) {
 	Object propertyValue = null;
-    if ( __property_HashMap != null ) {
+    if ( this.__property_HashMap != null ) {
     	// First check dynamic property.
-    	propertyValue = __property_HashMap.get ( propertyName );
+    	propertyValue = this.__property_HashMap.get ( propertyName );
     }
     if ( propertyValue == null ) {
+    	// Have not found the property from dynamic properties.
     	// Also check built-in properties - the surrounding ${ts:} should have been removed before call.
     	if ( propertyName.equalsIgnoreCase("alias") ) {
     		// Null is allowed.

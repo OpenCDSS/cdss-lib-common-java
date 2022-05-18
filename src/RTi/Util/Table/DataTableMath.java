@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,16 +43,14 @@ private DataTable table = null;
 /**
 Construct an instance using the table to operate on.
 */
-public DataTableMath ( DataTable table )
-{
+public DataTableMath ( DataTable table ) {
     this.table = table;
 }
 
 /**
 Get the list of operators that can be used.
 */
-public static List<DataTableMathOperatorType> getOperatorChoices()
-{
+public static List<DataTableMathOperatorType> getOperatorChoices() {
     List<DataTableMathOperatorType> choices = new ArrayList<>();
     // Put symbol operators at the front, grouped logically.
     choices.add ( DataTableMathOperatorType.ASSIGN );
@@ -64,6 +62,8 @@ public static List<DataTableMathOperatorType> getOperatorChoices()
     // Put word operators at the end.
     choices.add ( DataTableMathOperatorType.CUMULATE );
     choices.add ( DataTableMathOperatorType.DELTA );
+    choices.add ( DataTableMathOperatorType.MAX );
+    choices.add ( DataTableMathOperatorType.MIN );
     choices.add ( DataTableMathOperatorType.TO_INTEGER );
     return choices;
 }
@@ -72,8 +72,7 @@ public static List<DataTableMathOperatorType> getOperatorChoices()
 Get the list of operators that can be performed.
 @return the operator display names as strings.
 */
-public static List<String> getOperatorChoicesAsStrings()
-{
+public static List<String> getOperatorChoicesAsStrings() {
     List<DataTableMathOperatorType> choices = getOperatorChoices();
     List<String> stringChoices = new ArrayList<>();
     for ( int i = 0; i < choices.size(); i++ ) {
@@ -96,7 +95,7 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
 	TableRowConditionEvaluator evaluator,
     List<String> problems )
 {   String routine = getClass().getSimpleName() + ".math" ;
-    // Look up the columns for input and output
+    // Look up the columns for input and output.
     int input1Field = -1;
     int input1FieldType = -1;
     int input2FieldType = -1;
@@ -201,7 +200,9 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
         else if (
         	(operator == DataTableMathOperatorType.ASSIGN) ||
         	(operator == DataTableMathOperatorType.CUMULATE) ||
-        	(operator == DataTableMathOperatorType.DELTA) ) {
+        	(operator == DataTableMathOperatorType.DELTA) ||
+        	(operator == DataTableMathOperatorType.MAX) ||
+        	(operator == DataTableMathOperatorType.MIN)) {
         	// Output field type is the same as input.
             outputFieldType = input1FieldType;
         }
@@ -498,7 +499,7 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
         }
         else if ( operator == DataTableMathOperatorType.TO_INTEGER ) {
         	// Output should be set as an integer.
-    		// TODO smalers 2021-09-20 output field was determined above
+    		// TODO smalers 2021-09-20 output field was determined above.
             //outputFieldType = TableField.DATA_TYPE_INT;
 			// Only need the first input:
 			// - set integer and double in case output table column is not configured properly as integer
@@ -572,7 +573,7 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
 	    	if ( outputFieldType == TableField.DATA_TYPE_DOUBLE) {
 	    		// Do math as doubles.
 	    		// Double input and double output (or mixed in which case double values were set above).
-	    		// TODO smalers 2021-09-20 output field was determined above
+	    		// TODO smalers 2021-09-20 output field was determined above.
 	    		//outputFieldType = TableField.DATA_TYPE_DOUBLE;
 	    		// If mixed input types, use integer values if double is missing.
                 if ( ((input1ValDouble == null) || input1ValDouble.isNaN()) && input1ValInteger != null ) {
@@ -605,6 +606,12 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
                         outputValDouble = input1ValDouble / input2ValDouble;
                     }
                 }
+                else if ( operator == DataTableMathOperatorType.MAX ) {
+                	outputValDouble = Math.max(input1ValDouble, input2ValDouble);
+                }
+                else if ( operator == DataTableMathOperatorType.MIN ) {
+                	outputValDouble = Math.min(input1ValDouble, input2ValDouble);
+                }
                 else {
         		    problems.add("Don't understand how to calculate row " + (irec + 1) + " double output.");
         	    }
@@ -614,7 +621,7 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
 	    		// Do math as integer.
 	    		// Integer input and integer output:
 	    		// - both inputs must be consistent
-	    		// TODO smalers 2021-09-20 output field was determined above
+	    		// TODO smalers 2021-09-20 output field was determined above.
 	    		//outputFieldType = TableField.DATA_TYPE_INT;
                 if ( (input1ValInteger == null) && ((input1ValDouble != null) && !input1ValDouble.isNaN()) ) {
                 	// Mixed case so get input from double.
@@ -645,11 +652,17 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
                         outputValInteger = input1ValInteger / input2ValInteger;
                     }
                 }
-                else if ( operator == DataTableMathOperatorType.SUBTRACT ) {
-                	outputValInteger = input1ValInteger - input2ValInteger;
+                else if ( operator == DataTableMathOperatorType.MAX ) {
+                	outputValInteger = Math.max(input1ValInteger, input2ValInteger);
+                }
+                else if ( operator == DataTableMathOperatorType.MIN ) {
+                	outputValInteger = Math.min(input1ValInteger, input2ValInteger);
                 }
                 else if ( operator == DataTableMathOperatorType.MULTIPLY ) {
                 	outputValInteger = input1ValInteger * input2ValInteger;
+                }
+                else if ( operator == DataTableMathOperatorType.SUBTRACT ) {
+                	outputValInteger = input1ValInteger - input2ValInteger;
                 }
                 else {
         		    problems.add("Don't understand how to calculate row " + (irec + 1) + " integer output for operator: " + operator);
@@ -706,9 +719,11 @@ public static boolean requiresInput2 ( DataTableMathOperatorType operator ) {
     	(operator == DataTableMathOperatorType.CUMULATE) ||
         (operator == DataTableMathOperatorType.DELTA) ||
     	(operator == DataTableMathOperatorType.TO_INTEGER) ) {
+    	// Only one input value is required.
     	return false;
     }
     else {
+    	// Two input values are required.
     	return true;
     }
 }

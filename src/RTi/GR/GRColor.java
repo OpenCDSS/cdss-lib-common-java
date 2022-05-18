@@ -47,6 +47,7 @@ package RTi.GR;
 import java.awt.Color;
 import java.util.List;
 
+import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
 /**
@@ -369,7 +370,9 @@ public static GRColor parseColor ( String color )
 		return grc;
 	}
 	catch ( Exception e ) {
-		//Message.printWarning ( 1, "", e );
+		String routine = GRColor.class.getSimpleName() + ".parse";
+		Message.printWarning ( 3, routine, "Error parsing color string \"" + color + "\"" );
+		Message.printWarning ( 3, routine, e );
 		; // just return black below
 	}
 	// Fall through is black.

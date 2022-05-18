@@ -258,7 +258,6 @@ import RTi.GR.GRAxis;
 import RTi.GR.GRAxisDirectionType;
 import RTi.GR.GRColor;
 import RTi.GR.GRColorRampType;
-import RTi.GR.GRColorTable;
 import RTi.GR.GRDrawingArea;
 import RTi.GR.GRDrawingAreaUtil;
 import RTi.GR.GRJComponentDrawingArea;
@@ -5287,6 +5286,9 @@ private void drawLegend ( int axis )
 			}
 			prop_value = _tsproduct.getLayeredPropValue("Color", _subproduct, imatch, false);
 			try {
+				if ( Message.isDebugOn ) {
+					Message.printDebug(1, routine, "Color from property is \"" + prop_value + "\"");
+				}
 				da_legend.setColor(GRColor.parseColor(prop_value));
 			}
 			catch (Exception e) {

@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -71,15 +71,13 @@ the bearing from one point to another
 @param y1 y-coordinate of second point
 @return the angle in radians or NaN if the points are the same
 */
-public static double angleFromPoints ( double x0, double y0, double x1, double y1 )
-{
-	// Find the angle at which the line leaves the center
+public static double angleFromPoints ( double x0, double y0, double x1, double y1 ) {
+	// Find the angle at which the line leaves the center.
 	double xDiff = x1 - x0;
 	double yDiff = y1 - y0;
 	double angle = Double.NaN;
-	// Do the computations going counter-clockwise from zero angle
-	// Special cases first in each condition.  Note that the "opposite" and "adjacent" change depending
-	// on the quadrant
+	// Do the computations going counter-clockwise from zero angle.
+	// Special cases first in each condition.  Note that the "opposite" and "adjacent" change depending on the quadrant.
 	if ( (xDiff == 0.0) && (yDiff == 0.0) ) {
 		angle = Double.NaN;
 	}
@@ -88,7 +86,7 @@ public static double angleFromPoints ( double x0, double y0, double x1, double y
 	}
 	else if ( yDiff > 0.0 ) {
 		if ( xDiff > 0.0 ){
-			// First quadrant
+			// First quadrant.
 			angle = Math.atan(yDiff/xDiff);
 		}
 		else if ( xDiff == 0.0 ) {
@@ -96,7 +94,7 @@ public static double angleFromPoints ( double x0, double y0, double x1, double y
 		}
 		else {
 			// Second quadrant - atan will be negative with angle measured counter-clockwise from vertical
-			// so subtract result
+			// so subtract result.
 			angle = Math.PI/2.0 - Math.atan(xDiff/yDiff);
 		}
 	}
@@ -106,7 +104,7 @@ public static double angleFromPoints ( double x0, double y0, double x1, double y
 	else if ( yDiff < 0.0 ) {
 		if ( xDiff < 0.0 ){
 			// Third quadrant - atan will be positive when measured counter-clockwise from horizontal left
-			// so add result
+			// so add result.
 			angle = Math.PI + Math.atan(yDiff/xDiff);
 		}
 		else if ( xDiff == 0.0 ) {
@@ -114,7 +112,7 @@ public static double angleFromPoints ( double x0, double y0, double x1, double y
 		}
 		else {
 			// Fourth quadrant - atan will be negative when measured counter-clockwise from vertical down
-			// so subtract result
+			// so subtract result.
 			angle = Math.PI*1.5 - Math.atan(xDiff/yDiff);
 		}
 	}
@@ -139,7 +137,7 @@ public static int[] commonDenominators ( int values[], int return_num )
 	if ( nvalues == 0 ) {
 		return null;
 	}
-	// Don't really know a better way to do it, so just use the brute force method...
+	// Don't really know a better way to do it, so just use the brute force method.
 	int max_value = 0;
 	try {
 	    max_value = max ( values );
@@ -154,17 +152,17 @@ public static int[] commonDenominators ( int values[], int return_num )
 		divisible = true;
 		for ( j = 0; j < nvalues; j++ ) {
 			if ( (values[j]%i) != 0 ) {
-				// Not evenly divisible...
+				// Not evenly divisible.
 				divisible = false;
 				break;
 			}
 		}
 		if ( divisible ) {
-			// Save the value...
+			// Save the value.
 			common_denominators.add ( new Integer(i) );
 		}
 	}
-	// Now return...
+	// Now return.
 	if ( common_denominators.size() == 0 ) {
 		return null;
 	}
@@ -180,7 +178,7 @@ public static int[] commonDenominators ( int values[], int return_num )
 		iarray[0] = j;
 		return iarray;
 	}
-	// Return all...
+	// Return all.
 	int size = common_denominators.size();
 	int [] iarray = new int[size];
 	for ( int i = 0; i < size; i++ ) {
@@ -246,21 +244,21 @@ public static double exceedanceProbability ( int n, double x[], double xi )
         Message.printWarning ( 10, routine, message );
         throw new IllegalArgumentException ( message );
     }
-    // First sort the numbers into descending order (largest value in data array will be first)...
+    // First sort the numbers into descending order (largest value in data array will be first).
     double [] x2 = new double[x.length];
     System.arraycopy(x, 0, x2, 0, n);
     sort(x2, SORT_QUICK, SORT_DESCENDING, null, false);
     
-    // Find the first matching value and return the exceedance probability using the plotting position
+    // Find the first matching value and return the exceedance probability using the plotting position:
     // = rank/(n + 1), where largest value = position 1
     for ( int i = 0; i < n; i++ ) {
         if ( x2[i] == xi ) {
-            // Value is in sample so return the plotting position
+            // Value is in sample so return the plotting position.
             return (i + 1)/(double)(n + 1);
         }
         else if ( (xi > x2[0]) || (xi < x2[n - 1]) ) {
             // Don't want to guess about exceedance probability and doing a linear interpolation may give
-            // probability < 0 or > 1 so just don't handle this case
+            // probability < 0 or > 1 so just don't handle this case.
             String message =
                 "Value (" + xi + ") is outside sample range (" + x2[n - 1] + " to " + x2[0] +
                 ") - not extrapolating exceedance probability";
@@ -272,7 +270,7 @@ public static double exceedanceProbability ( int n, double x[], double xi )
             // Often the value passed in will be the same as one of the array values but off by a very
             // small amount so this interpolation introduces minor error.
             double epHigh = i/(double)(n + 1); // For previous value (i + 1 - 1 = i)
-            double epLow = (i + 1)/(double)(n + 1); // For current value
+            double epLow = (i + 1)/(double)(n + 1); // For current value.
             return interpolate(xi, x2[i - 1], x2[i], epHigh, epLow);
         }
     }
@@ -297,12 +295,12 @@ public static double exceedanceProbabilityValue ( int n, double x[], double prob
         Message.printWarning ( 10, routine, message );
         throw new IllegalArgumentException ( message );
     }
-    // First sort the numbers into ascending order...
+    // First sort the numbers into ascending order.
     double [] x2 = new double[x.length];
     System.arraycopy(x, 0, x2, 0, n);
     sort(x2, SORT_QUICK, SORT_ASCENDING, null, false);
     
-    // Calculate the distribution information
+    // Calculate the distribution information.
     double [] eProb = new double[n];
     int n1 = n + 1;
     for ( int i = 0; i < n; i++ ) {
@@ -314,12 +312,11 @@ public static double exceedanceProbabilityValue ( int n, double x[], double prob
         }
     }
     
-    // Calculate the value for the requested probability.  Do so by going
-    // past the value and then interpolating back to the value using
-    // bracketing points.  If the requested probability is outside the
+    // Calculate the value for the requested probability.
+    // Do so by going past the value and then interpolating back to the value using bracketing points.
+    // If the requested probability is outside the
     // range of the data use the appropriate endpoint (this is conservative).
-    // The data values are in ascending order, so the exceedance probabilities
-    // will be in descending order.
+    // The data values are in ascending order, so the exceedance probabilities will be in descending order.
     // Do not extrapolate past the ends of the data (will be conservative
     // on the high data end and inaccurate on the low data end).
     int n0  = n - 1;
@@ -345,8 +342,7 @@ Calculate the exp() of each value in the array, returning a new array with the e
 @return an array of exp() values, calculated from the original array
 @param x array of values to transform
 */
-public static double[] exp ( double [] x )
-{
+public static double[] exp ( double [] x ) {
     double [] xt = new double[x.length];
     for ( int i = 0; i < x.length; i++ ) {
         x[i] = Math.exp(x[i]);
@@ -392,24 +388,24 @@ Perform integration for a function.
 @param nseg Number of segments to divide interval (use higher number for functions that are not smooth).
 */
 public static double integrate ( int method, Function func, double a0, double b0, int nseg )
-{	double a, b; // End-points used for integration
-	double dx; // increment to map "gx" values to real values
-	double s; // integration value
-	double seglen; // segment length
-	double stot; // total for all segments
-	double xm; // point in center of "a" and "b"
-	double xr; // length of "a" to "b"
-	int i; // counter for integration points
-	int j; // counter for segments
-	int ng = 5; // number of integration points
+{	double a, b; // End-points used for integration.
+	double dx; // Increment to map "gx" values to real values.
+	double s; // Integration value.
+	double seglen; // Segment length.
+	double stot; // Total for all segments.
+	double xm; // Point in center of "a" and "b".
+	double xr; // Length of "a" to "b".
+	int i; // Counter for integration points.
+	int j; // Counter for segments.
+	int ng = 5; // Number of integration points.
 	double gx[] = {
-	            0.1488743389, // unit-interval points to evaluate function
+	            0.1488743389, // Unit-interval points to evaluate function.
 				0.4333953941,
 				0.6794095682,
 				0.8650633666,
 				0.9739065285 },
 		gw[] = {
-	            0.2955242247, // Gauss weights corresponding to "gx"
+	            0.2955242247, // Gauss weights corresponding to "gx".
 				0.2692667193,
 				0.2190863625,
 				0.1494513491,
@@ -420,7 +416,7 @@ public static double integrate ( int method, Function func, double a0, double b0
 	}
 
 	// Divide the interval into segments and integrate each (helps with
-	// functions that are not smooth, and long intervals)...
+	// functions that are not smooth, and long intervals).
 
 	seglen = (b0 - a0)/nseg;
 	stot = 0.0;
@@ -459,8 +455,7 @@ Do a linear interpolation/extrapolation.
 @param ymin "Left" value on "Y" axis.
 @param ymax "Right" value on "Y" axis.
 */
-public static double interpolate ( double x, double xmin, double xmax, double ymin, double ymax )
-{
+public static double interpolate ( double x, double xmin, double xmax, double ymin, double ymax ) {
 	if ( (xmax - xmin) == 0.0 ) {
 		return ymin;
 	}
@@ -502,8 +497,7 @@ Calculate the log10 of each value in the array, returning a new array with the l
 @param x array of values to transform
 @param leZeroLog10 the value to assign when the input data are <= 0 (e.g., .001 or Double.NaN).
 */
-public static double[] log10 ( double [] x, double leZeroLog10 )
-{
+public static double[] log10 ( double [] x, double leZeroLog10 ) {
     double [] xt = new double[x.length];
     for ( int i = 0; i < x.length; i++ ) {
         if ( x[i] <= 0.0 ) {
@@ -522,8 +516,7 @@ Find the maximum of two values.
 @param x First value to check.
 @param y Second value to check.
 */
-public static double max ( double x, double y )
-{
+public static double max ( double x, double y ) {
 	if ( x >= y ) {
 		return x;
 	}
@@ -539,18 +532,17 @@ Find the maximum of two values but ignore missing.
 @param y Second value to check.
 @param missing Value to consider missing.
 */
-public static double max ( double x, double y, double missing )
-{
+public static double max ( double x, double y, double missing ) {
 	if ( (x == missing) && (y == missing) ) {
 		// Both are missing so return missing.
 		return missing;
 	}
 	else if ( x == missing ) {
-		// Only x is missing...
+		// Only x is missing.
 		return y;
 	}
 	else if ( y == missing ) {
-		// Only y is missing...
+		// Only y is missing.
 		return x;
 	}
 	return max ( x, y );
@@ -561,8 +553,7 @@ Find the maximum in an array.
 @return the maximum value.
 @param x Array of values to compare.
 */
-public static double max ( double x[] )
-{
+public static double max ( double x[] ) {
     return max ( x.length, x );
 }
 
@@ -597,8 +588,7 @@ Find the maximum of two integer values
 @param x one integer value
 @param y another integer value
 */
-public static int max ( int x, int y )
-{
+public static int max ( int x, int y ) {
 	if ( x > y ) {
 	    return x;
 	}
@@ -611,8 +601,7 @@ public static int max ( int x, int y )
 @return The maximum value in an array.
 @param x Array of values.
 */
-public static int max ( int x[] )
-{
+public static int max ( int x[] ) {
     return max ( x.length, x );
 }
 
@@ -646,8 +635,7 @@ Compute the mean of an array of values.
 @return The mean of the array of values
 @param x array of values
 */
-public static double mean ( double x[] )
-{
+public static double mean ( double x[] ) {
     return mean ( x.length, x );
 }
 
@@ -709,8 +697,7 @@ Find the median value in an array.  If the number of values is even, the average
 @param x The array to evaluate.
 @return the median value from x
 */
-public static double median(int n, double x[])
-{
+public static double median(int n, double x[]) {
     double[] b = new double[n];
     System.arraycopy(x, 0, b, 0, n);
     Arrays.sort(b);
@@ -740,11 +727,11 @@ public static double min ( double x, double y, double missing )
 		return missing;
 	}
 	else if ( x == missing ) {
-		// Only x is missing...
+		// Only x is missing.
 		return y;
 	}
 	else if ( y == missing ) {
-		// Only y is missing...
+		// Only y is missing.
 		return x;
 	}
 	return min ( x, y );
@@ -756,8 +743,7 @@ Find the minimum of two values.
 @param x First value to check.
 @param y Second value to check.
 */
-public static double min ( double x, double y )
-{
+public static double min ( double x, double y ) {
 	if ( x < y ) {
 		return x;
 	}
@@ -771,8 +757,7 @@ Find the minimum value in an array.
 @return Minimum value in an array.
 @param x Array of values to compare.
 */
-public static double min ( double x[] )
-{
+public static double min ( double x[] ) {
     return min ( x.length, x );
 }
 
@@ -807,8 +792,7 @@ Find the minimum of two integer values
 @param x one integer value
 @param y another integer value
 */
-public static int min ( int x, int y )
-{
+public static int min ( int x, int y ) {
     if ( x < y ) {
         return x;
     }
@@ -822,8 +806,7 @@ Find the minimum value in an array
 @return the minimum value
 @param x array of integer values to check
 */
-public static int min ( int x[] )
-{
+public static int min ( int x[] ) {
     return min ( x.length, x );
 }
 
@@ -861,8 +844,7 @@ Values are sorted in descending order (position 1 is largest value and largest n
 (must be within the range of the values in x array)
 @exception IllegalArgumentException If the number of points is <= 0 or xi is outside the range of the data array
 */
-public static double nonexceedanceProbability ( int n, double x[], double xi )
-{   
+public static double nonexceedanceProbability ( int n, double x[], double xi ) {
     return 1.0 - exceedanceProbability(n, x, xi);
 }
 
@@ -873,8 +855,7 @@ public static double nonexceedanceProbability ( int n, double x[], double xi )
 @param neprobability the nonexceedance probability to consider (0.0 to 1.0)
 @exception IllegalArgumentException If the number of points is <= 0
 */
-public static double nonexceedanceProbabilityValue ( int n, double x[], double neprobability )
-{
+public static double nonexceedanceProbabilityValue ( int n, double x[], double neprobability ) {
 	return exceedanceProbabilityValue ( n, x, (1.0 - neprobability) );
 }
 
@@ -930,8 +911,8 @@ public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData 
     }
     
     // TODO SAM 2012-12-15 Logic was kept migrating legacy code and consequently
-    // the math does not simply use standard deviation, etc.  This adds a little
-    // inefficiency computing statistics below.  For now leave as is.
+    // the math does not simply use standard deviation, etc.
+    // This adds a little inefficiency computing statistics below.  For now leave as is.
 
     // correlationCoeff, R ...
     //
@@ -999,7 +980,7 @@ public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData 
     		b = r*data.getStandardDeviationY1()/data.getStandardDeviationX1();
     	}
     	catch (NullPointerException e) {
-    		//standard deviation could not be calculated, set b to null
+    		// Standard deviation could not be calculated, set b to null.
     		String message = "Standard deviation of x ("+data.getStandardDeviationY1()+") or y ("+
     			data.getStandardDeviationX1()+") could not be calculated, setting b=null";
     		Message.printWarning ( 3, rtn, message );
@@ -1022,7 +1003,7 @@ public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData 
         a = forcedIntercept;
     }
     else {
-        // Compute...
+        // Compute.
         if ( b == null ) {
             a = null;
         }
@@ -1038,7 +1019,7 @@ public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData 
             "Regression analysis results: n=" + n1 + ", a=" + a + ", b=" + b + ", R=" + r );
     }
 
-    // Save in Regression object (null are OK because they will be checked later)...
+    // Save in Regression object (null are OK because they will be checked later).
 
     return ( new RegressionResults ( data, forcedIntercept, a, b, r ) );
 }
@@ -1046,8 +1027,7 @@ public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData 
 public static PrincipalComponentAnalysis performPrincipalComponentAnalysis (
     double[] dependentArray, double[][] independentMatrix,
     double missingDependentValue, double missingIndependentValue, int maximumCombinations )
-throws Exception
-{
+throws Exception {
     PrincipalComponentAnalysis pca = new PrincipalComponentAnalysis(
         dependentArray, independentMatrix, missingDependentValue, missingIndependentValue, maximumCombinations );
     return pca;
@@ -1072,16 +1052,16 @@ public static double plottingPosition ( int n, double x[], SortOrderType sortOrd
         Message.printWarning ( 10, routine, message );
         throw new IllegalArgumentException ( message );
     }
-    // First determine the rank
+    // First determine the rank.
     double rank = rank(n, x, sortOrderType, xi);
-    // The plotting position is calculated based on the distribution
+    // The plotting position is calculated based on the distribution.
     if ( distributionType == DistributionType.WEIBULL ) {
         return rank/(n + 1.0);
     }
     else if ( distributionType == DistributionType.GRINGORTEN ) {
         // TODO SAM 2013-12-09 need to extract the parameter and have a distribution object so the
-        // following does not have to be repeated every time this method is called
-        // Expect "a" to be in parameters
+        // following does not have to be repeated every time this method is called.
+        // Expect "a" to be in parameters.
         Object o = distributionParameters.get("a");
         double a;
         if ( o == null ) {
@@ -1129,7 +1109,7 @@ public static double rank ( int n, double x[], SortOrderType sortOrderType, doub
         Message.printWarning ( 10, routine, message );
         throw new IllegalArgumentException ( message );
     }
-    // First sort the numbers into descending order (largest value in data array will be first)...
+    // First sort the numbers into descending order (largest value in data array will be first).
     double [] x2 = new double[x.length];
     System.arraycopy(x, 0, x2, 0, n);
     if ( (sortOrderType == null) || (sortOrderType == SortOrderType.HIGH_TO_LOW) ) {
@@ -1139,11 +1119,11 @@ public static double rank ( int n, double x[], SortOrderType sortOrderType, doub
         sort(x2, SORT_QUICK, SORT_ASCENDING, null, false);
     }
     
-    // Find the first matching value and return the position
+    // Find the first matching value and return the position.
     for ( int i = 0; i < n; i++ ) {
         if ( x2[i] == xi ) {
             // Value is in sample - search adjoining values to see if there are additional matches and if so
-            // return the average of the ranks
+            // return the average of the ranks.
             int count = 1;
             double rank = (double)(i + 1);
             for ( int j = (i + 1); j < n; j++ ) {
@@ -1161,20 +1141,19 @@ public static double rank ( int n, double x[], SortOrderType sortOrderType, doub
 }
 
 /**
-Perform an ordinary least squares regression on two arrays of data.  See the
-Regression class methods for more information.  Analysis results are saved and
-can be retrieved using Regression class methods.  If no regression can be
-performed, the limits are set to the missing data value indicator.
+Perform an ordinary least squares regression on two arrays of data.
+See the Regression class methods for more information.
+Analysis results are saved and can be retrieved using Regression class methods.
+If no regression can be performed, the limits are set to the missing data value indicator.
 In addition to the results needed for the regression, additional statistics are
-computed and are available in the Regression object.  Statistics that cannot be
-computed are set to -999 (e.g., when N2 is 0, the X2 mean is set to -999).
+computed and are available in the Regression object.
+Statistics that cannot be computed are set to -999 (e.g., when N2 is 0, the X2 mean is set to -999).
 @return a Regression object for the analysis.
 @param xArray Array of independent (X) values.
 @param yArray Array of dependent (Y) values.
 @param useMissing true indicates to use "missingx" and "missingy" in
-calculations (if false, the data values are not checked against "missingx" and
-"missingy").  Using false increases performance but the calling code must itself
-strip out missing data values.
+calculations (if false, the data values are not checked against "missingx" and "missingy").
+Using false increases performance but the calling code must itself strip out missing data values.
 @param missingx Missing data value indicator for "xArray".
 @param missingy Missing data value indicator for "yArray".
 @exception java.lang.Exception If no data are available to be regressed (e.g.,
@@ -1187,27 +1166,26 @@ public static Regression regress ( double [] xArray, double [] yArray, boolean u
 }
 
 /**
-Perform an ordinary least squares regression on two arrays of data.  See the
-Regression class methods for more information.  Analysis results are saved and
-can be retrieved using Regression class methods.  If no regression can be
-performed, the limits are set to the missing data value indicator.
+Perform an ordinary least squares regression on two arrays of data.
+See the Regression class methods for more information.
+Analysis results are saved and can be retrieved using Regression class methods.
+If no regression can be performed, the limits are set to the missing data value indicator.
 In addition to the results needed for the regression, additional statistics are
-computed and are available in the Regression object.  Statistics that cannot be
-computed are set to -999 (e.g., when N2 is 0, the X2 mean is set to -999).
+computed and are available in the Regression object.
+Statistics that cannot be computed are set to -999 (e.g., when N2 is 0, the X2 mean is set to -999).
 @return a Regression object for the analysis.
 @param xArray Array of independent (X) values.
 @param yArray Array of dependent (Y) values.
 @param useMissing true indicates to use "missingx" and "missingy" in
-calculations (if false, the data values are not checked against "missingx" and
-"missingy").  Using false increases performance but the calling code must itself
-strip out missing data values.
+calculations (if false, the data values are not checked against "missingx" and "missingy").
+Using false increases performance but the calling code must itself strip out missing data values.
 @param missingx Missing data value indicator for "xArray".
 @param missingy Missing data value indicator for "yArray".
-@param data_transformed Indicates whether the data being passed in have been
-transformed (e.g., log10).  If so the RMSE are saved in the transformed RMSE data member.
+@param data_transformed Indicates whether the data being passed in have been transformed (e.g., log10).
+If so the RMSE are saved in the transformed RMSE data member.
 @param intercept the intercept to force (currently the intercept must be zero) or null to not force intercept.
-@exception IllegalArgumentException If no data are available to be regressed (e.g.,
-all missing), or data array lengths are unequal.
+@exception IllegalArgumentException If no data are available to be regressed (e.g., all missing),
+or data array lengths are unequal.
 */
 private static Regression regress (	double [] xArray, double [] yArray, boolean useMissing, double missingx,
 	double missingy, boolean data_transformed, Double intercept )
@@ -1235,53 +1213,53 @@ private static Regression regress (	double [] xArray, double [] yArray, boolean 
 	double maxY1 = missingy, maxX1 = missingx, minY1 = missingy, minX1 = missingx;
 	boolean limits_found = false;
 
-	// To analyze the data, non-missing data are required for both X and
-	// Y.  Create arrays for the N1 and N2 data...
+	// To analyze the data, non-missing data are required for both X and // Y.
+	// Create arrays for the N1 and N2 data.
 
 	for ( int i = 0; i < N; i++ ) {
 		if ( useMissing ) {
 			if ((xArray[i] != missingx) && (yArray[i] != missingy)){
-				// Both are not missing...
+				// Both are not missing.
 				++n1;
 			}
 			else if ( xArray[i] != missingx ) {
-				// Have x but not y...
+				// Have x but not y.
 				++n2;
 			}
 		}
 	}
 
-	// Allocate the arrays for X1, X2 and Y1...
+	// Allocate the arrays for X1, X2 and Y1.
 
 	double [] X1 = null;
 	double [] X2 = null;
 	double [] Y1 = null;
 
 	if ( useMissing ) {
-		// Allocate new sub-arrays for the analysis...
+		// Allocate new sub-arrays for the analysis.
 		X1 = new double[n1];
 		Y1 = new double[n1];
 		if ( n2 != 0 ) {
 			X2 = new double[n2];
 		}
-		n1 = 0;	// Re-use
+		n1 = 0;	// Re-use.
 		n2 = 0;
 		for ( int i = 0; i < N; i++ ) {
 			if ((xArray[i] != missingx) && (yArray[i] != missingy)){
-				// Both are not missing...
+				// Both are not missing.
 				X1[n1] = xArray[i];
 				Y1[n1] = yArray[i];
 				++n1;
 			}
 			else if ( xArray[i] != missingx ) {
-				// Have x but not y...
+				// Have x but not y.
 				X2[n2] = xArray[i];
 				++n2;
 			}
 		}
 	}
 	else {
-	    // Use the original arrays...
+	    // Use the original arrays.
 		X1 = xArray;
 		Y1 = yArray;
 		n1 = xArray.length;
@@ -1294,7 +1272,7 @@ private static Regression regress (	double [] xArray, double [] yArray, boolean 
 		throw new IllegalArgumentException ( message );
 	}
 
-	// For now use the original logic (SAMX need to optimize some)...
+	// For now use the original logic (SAMX need to optimize some).
 
 	for ( int i = 0; i < n1; i++ ) {
 		totalX1minusY1_sq += ((X1[i] - Y1[i] )*(X1[i] - Y1[i]));
@@ -1307,7 +1285,7 @@ private static Regression regress (	double [] xArray, double [] yArray, boolean 
 			Message.printDebug ( 50, rtn, "X1: " + X1[i] + ", Y1: " + Y1[i] );
 		}
 		if ( !limits_found ) {
-			// Initialize
+			// Initialize.
 			minX1 = maxX1 = X1[i];
 			minY1 = maxY1 = Y1[i];
 			limits_found = true;
@@ -1320,7 +1298,7 @@ private static Regression regress (	double [] xArray, double [] yArray, boolean 
 		}
 	}
 
-	// now calculate rmsError, correlationCoeff, a and b
+	// Calculate rmsError, correlationCoeff, a and b.
 	//
 	// rmsError ...
 	rmse = Math.sqrt ( totalX1minusY1_sq / (double)n1 );
@@ -1409,7 +1387,7 @@ private static Regression regress (	double [] xArray, double [] yArray, boolean 
 		a = intercept;
 	}
 	else {
-	    // Compute...
+	    // Compute.
 		a = (totalY1/(double)n1) - (b*totalX1/(double)n1);
 	}
 
@@ -1418,7 +1396,7 @@ private static Regression regress (	double [] xArray, double [] yArray, boolean 
 		"a: " + a + ", " + "b: " + b + ", " + "rmsError: " + rmse + ", " + "R: " + r );
 	}
 
-	// Save in Regression object...
+	// Save in Regression object.
 
 	Regression rd = new Regression();
 	rd.setA ( a );
@@ -1443,9 +1421,9 @@ private static Regression regress (	double [] xArray, double [] yArray, boolean 
 	rd.setMaxY1 ( maxY1 );
 	rd.setMinY1 ( minY1 );
 
-	// Save values not computed above...
+	// Save values not computed above.
 
-	// Assume for now that Y and Y1 are the same...
+	// Assume for now that Y and Y1 are the same.
 
 	rd.setMeanY ( rd.getMeanY1() );
 	rd.setStandardDeviationY ( rd.getStandardDeviationY1() );
@@ -1483,10 +1461,10 @@ private static Regression regress (	double [] xArray, double [] yArray, boolean 
 
 /**
 Perform an ordinary least squares regression on two arrays of data, by first
-transforming the data using log10().  See the
-Regression class methods for more information.  Analysis results are saved and
-can be retrieved using Regression class methods.  If no regression can be
-performed, the limits are set to the missing data value indicator.
+transforming the data using log10().
+See the Regression class methods for more information.
+Analysis results are saved and can be retrieved using Regression class methods.
+If no regression can be performed, the limits are set to the missing data value indicator.
 @return a Regression instance containing the results of the analysis.
 @param xArray Array of independent (X) values.
 @param yArray Array of dependent (Y) values.
@@ -1506,8 +1484,8 @@ throws Exception
 		throw new IllegalArgumentException ( message );
 	}
 
-	// move all the information in each array into a new array which
-	// is the log10 value for each item in the respective arrays
+	// Move all the information in each array into a new array which
+	// is the log10 value for each item in the respective arrays.
 
 	int length = xArray.length;
 
@@ -1541,13 +1519,13 @@ throws Exception
 		}
 	}
 
-	// Do the regression on the transformed data.  The RMSE will be saved in the transformed data member...
+	// Do the regression on the transformed data.  The RMSE will be saved in the transformed data member.
 
 	Regression rd = regress ( logArrayX, logArrayY, useMissing, missingx, missingy, true, null );
-	// Also compute the RMSE for the untransformed data...
+	// Also compute the RMSE for the untransformed data.
 	rd.setRMSE ( RMSError(xArray.length, xArray, yArray, useMissing, missingx, missingy) );
 
-	// Reset with the actual limits (not the log values)...
+	// Reset with the actual limits (not the log values).
 
 	if ( rd.getMaxX1() != missingx ) {
 		rd.setMaxX1 ( Math.pow(10.0,rd.getMaxX1()) );
@@ -1665,8 +1643,8 @@ Compute the RMS error between two sets as sqrt(sum((y - x)^2)/n).
 @param n Number of points to consider (typically the length of the arrays).
 @param x Independent data.
 @param y Dependent data corresponding to x.
-@param use_missing Indicates whether the missing data flags should be used to
-ignore data.  If true, then having missing data in either array causes both array values to be ignored.
+@param use_missing Indicates whether the missing data flags should be used to ignore data.
+If true, then having missing data in either array causes both array values to be ignored.
 @param xmissing Missing data value for x.
 @param ymissing Missing data value for y.
 @return the RMS error for the data set.  Return 0 if the number of points considered is 0.
@@ -1710,7 +1688,7 @@ public static double roundToPercent ( double x, double interval, int mflag, int 
 	double xs; // Data in units of "interval100".
 
 	xr = 0.0;
-	// Figure out factors, etc. to convert everything to 100.0 scale...
+	// Figure out factors, etc. to convert everything to 100.0 scale.
 	if ( mflag > 0 ) {
 		if ( (x < 0.0) || (x > 1.0) ) {
 			message = "" + x + " cannot be rounded because it is not > 0.0, < 1.0";
@@ -1772,7 +1750,7 @@ public static double skew ( int n, double x[] )
         Message.printWarning ( 3, routine, message );
         throw new IllegalArgumentException ( message );
     }
-    // Sample standard deviation
+    // Sample standard deviation.
     double stddev = standardDeviation ( n, x );
     if ( stddev == 0.0 ) {
         message = "Standard dev = 0.  Cannot compute skew.";
@@ -1816,7 +1794,7 @@ public static int sort(double[] data, int method, int order, int[] sort_order, b
 		return 1;
 	}
 
-	// Initialize "sort_order" to sequential numbers...
+	// Initialize "sort_order" to sequential numbers.
 	
 	if ( sflag ) {
 		for ( i = 0; i < ndata; i++ ) {
@@ -1824,7 +1802,7 @@ public static int sort(double[] data, int method, int order, int[] sort_order, b
 		}
 	}
 
-	// Now sort into ascending order...
+	// Now sort into ascending order.
 
 	if ( method == SORT_QUICK ) {
 		if ( sortDQuick(data, sort_order, sflag) == 1 ) {
@@ -1836,14 +1814,14 @@ public static int sort(double[] data, int method, int order, int[] sort_order, b
 		return 1;
 	}
 	else {
-	    // Quick sort is default...
+	    // Quick sort is default.
 		Message.printWarning ( 2, routine, "Sort method " + method + " not supported.  Using quick sort" );
 		if ( sortDQuick(data, sort_order, sflag) == 1 ) {
 			return 1;
 		}
 	}
 
-	// Now check to see if the arrays need to be reversed for descending order...
+	// Now check to see if the arrays need to be reversed for descending order.
 
 	if ( order == SORT_DESCENDING ) {
 		if ( reverseArray(data ) == 1 ) {
@@ -1883,7 +1861,7 @@ public static int sort (int[] data, int method, int order, int[] sort_order, boo
 		return 1;
 	}
 
-	// Initialize "sort_order" to sequential numbers...
+	// Initialize "sort_order" to sequential numbers.
 	
 	if ( sflag ) {
 		for ( i = 0; i < ndata; i++ ) {
@@ -1891,7 +1869,7 @@ public static int sort (int[] data, int method, int order, int[] sort_order, boo
 		}
 	}
 
-	// Now sort into ascending order...
+	// Now sort into ascending order.
 
 	if ( method == SORT_QUICK ) {
 		if ( sortIQuick(data, sort_order, sflag) == 1 ) {
@@ -1903,14 +1881,14 @@ public static int sort (int[] data, int method, int order, int[] sort_order, boo
 		return 1;
 	}
 	else {
-	    // Quick sort is default...
+	    // Quick sort is default.
 		Message.printWarning ( 2, routine, "Sort method " + method + " not supported.  Using quick sort" );
 		if ( sortIQuick(data, sort_order, sflag) == 1 ) {
 			return 1;
 		}
 	}
 
-	// Now check to see if the arrays need to be reversed for descending order...
+	// Now check to see if the arrays need to be reversed for descending order.
 
 	if ( order == SORT_DESCENDING ) {
 		if ( reverseArray(data ) == 1 ) {
@@ -1950,7 +1928,7 @@ public static int sort (long[] data, int method, int order, int[] sort_order, bo
         return 1;
     }
 
-    // Initialize "sort_order" to sequential numbers...
+    // Initialize "sort_order" to sequential numbers.
     
     if ( sflag ) {
         for ( i = 0; i < ndata; i++ ) {
@@ -1958,7 +1936,7 @@ public static int sort (long[] data, int method, int order, int[] sort_order, bo
         }
     }
 
-    // Now sort into ascending order...
+    // Now sort into ascending order.
 
     if ( method == SORT_QUICK ) {
         if ( sortLQuick(data, sort_order, sflag) == 1 ) {
@@ -1970,14 +1948,14 @@ public static int sort (long[] data, int method, int order, int[] sort_order, bo
         return 1;
     }
     else {
-        // Quick sort is default...
+        // Quick sort is default.
         Message.printWarning ( 2, routine, "Sort method " + method + " not supported.  Using quick sort" );
         if ( sortLQuick(data, sort_order, sflag) == 1 ) {
             return 1;
         }
     }
 
-    // Now check to see if the arrays need to be reversed for descending order...
+    // Now check to see if the arrays need to be reversed for descending order.
 
     if ( order == SORT_DESCENDING ) {
         if ( reverseArray(data ) == 1 ) {
@@ -1995,29 +1973,32 @@ public static int sort (long[] data, int method, int order, int[] sort_order, bo
 
 /**
 Sort an array of doubles into ascending order using the quick sort method.
+If included in the data array, the value NaN is treated as the smallest value (same as -Infinity).
 @return Zero if successful and 1 if not successful.
 @param data Array of doubles to sort.
 @param sort_order Original locations of data after sort (array needs to be allocated before calling routine).
 @param sflag Indicates whether "sort_order" is to be filled.
 */
-public static int sortDQuick ( double[] data, int[] sort_order, boolean sflag )
-{	int	i, ia=0, insertmax = 7, ndata=data.length, ir = ndata - 1, 
+public static int sortDQuick ( double[] data, int[] sort_order, boolean sflag ) {
+	String routine = MathUtil.class.getSimpleName() + ".sortDQuick";
+	int	i, ia=0, insertmax = 7, ndata=data.length, ir = ndata - 1,
 		itemp, j, jstack = 0, k, l = 0, NSTACK = 500;
 	int[] istack;
 	double a, temp;
-	String routine="MathUtil.sortDQuick";
 
 	istack = new int [ NSTACK ];
 
 	while ( true ) {
 		if ( (ir - l) < insertmax ) {
 			for ( j = (l + 1); j <= ir; j++ ) {
-				a	= data[j];
+				a = data[j];
 				if ( sflag ) {
-					ia	= sort_order[j];
+					ia = sort_order[j];
 				}
 				for ( i = (j - 1); i >= 0; i-- ) {
 					if ( data[i] <= a ) {
+					//if ( Double.isNaN(data[i]) || (data[i] <= a) ) {
+						// Treat NaN as smallest value.
 						break;
 					}
 					data[i + 1] = data[i];
@@ -2047,6 +2028,9 @@ public static int sortDQuick ( double[] data, int[] sort_order, boolean sflag )
 				sort_order[l+1] = itemp;
 			}
 			if ( data[l + 1] > data[ir] ) {
+			//if ( !Double.isNaN(data[l + 1]) && (data[l + 1] > data[ir]) ) {
+			//if ( Double.isNaN(data[ir]) || (data[ir] <= data[l + 1]) ) {
+				// Treat NaN as smallest number.
 				temp = data[l + 1];
 				data[l + 1] = data[ir];
 				data[ir] = temp;
@@ -2057,6 +2041,9 @@ public static int sortDQuick ( double[] data, int[] sort_order, boolean sflag )
 				}
 			}
 			if ( data[l] > data[ir] ) {
+			//if ( !Double.isNaN(data[l]) && (data[l] > data[ir]) ) {
+			//if ( Double.isNaN(data[ir]) || (data[ir] <= data[l]) ) {
+				// Treat NaN as smallest number.
 				temp = data[l];
 				data[l] = data[ir];
 				data[ir] = temp;
@@ -2067,6 +2054,9 @@ public static int sortDQuick ( double[] data, int[] sort_order, boolean sflag )
 				}
 			}
 			if ( data[l + 1] > data[l] ) {
+			//if ( !Double.isNaN(data[l + 1]) && (data[l + 1] > data[l]) ) {
+			//if ( Double.isNaN(data[l]) || (data[l] <= data[l + 1]) ) {
+				// Treat NaN as smallest number.
 				temp = data[l + 1];
 				data[l + 1] = data[l];
 				data[l] = temp;
@@ -2085,10 +2075,13 @@ public static int sortDQuick ( double[] data, int[] sort_order, boolean sflag )
 			while ( true ) {
 				do {
 				    i++;
+				//} while ( Double.isNaN(data[i]) || (data[i] < a) );
 				} while ( data[i] < a );
 				do {
 				    j--;
 				} while ( data[j] > a );
+				//} while ( !Double.isNaN(data[j]) && (data[j] > a) );
+				//} while ( Double.isNaN(a) || (a <= data[j]) );
 				if ( j < i ) {
 					break;
 				}
@@ -2404,8 +2397,7 @@ Compute the sample standard deviation (square root of the sample variance).
 @param x array of values to process
 @return the sample standard deviation
 */
-public static double standardDeviation ( double x[] )
-{
+public static double standardDeviation ( double x[] ) {
     return standardDeviation ( x.length, x );
 }
 
