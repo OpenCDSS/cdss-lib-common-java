@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,142 +20,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// TSProduct - define a time series product
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2001-11-09	Steven A. Malers, RTi	Initial version.  For now use to define
-//					graph products but in the future may
-//					use for report products also.
-// 2002-01-18	SAM, RTi		Add getNumSubProducts().  Add a
-//					constructor that takes no arguments, for
-//					use with TSGraphCanvas.
-//					Add setPropValue() to simplify setting
-//					TSProduct properties.  Fix a number of
-//					bugs found while testing.  Add _tslist
-//					to carry around the time series for
-//					the product so we have less things to
-//					pass around.  Move checkTSProduct()
-//					from TSGraphCanvas() to
-//					checkProperties() in this class.  Add
-//					getDefaultPropValue().
-//					Move the graph type static data here
-//					to be more generic (work with Swing and
-//					NonSwing).  Add writeFile() to save the
-//					file.
-// 2002-02-06	SAM, RTi		Add grid properties.
-// 2002-04-25	SAM, RTi		Add TSAlias property in cases where a
-//					time series has an alias.  This allows
-//					better interfacing with TSEngine.
-//					Fix so default graph title is "" (was
-//					null before).
-//					Add LegendPosition property to position
-//					the legend on the page.
-//					Change default fonts to Arial.
-// 2002-05-20	SAM, RTi		Update to include XYScatter properties
-//					for changing the analysis properties.
-//					Later these may be switched to time
-//					series properties but currently the
-//					analysis applies to the graph.  Add
-//					DataLabelFormat, DataLabelPosition, and
-//					DataLabelFont* properties for the graph
-//					and data, similar to the legend.
-//					Add XYScatterConfidenceInterval
-//					property.
-// 2003-05-08	SAM, RTi		Override the constructor to take a
-//					PropList to facilitate in-memory
-//					creation of TSProducts.
-// 2003-05-14	SAM, RTi		* Add the XYScatterIntercept property.
-//					* Add the XYScatterAnalyzeForFilling
-//					  property.
-//					* Add the XYScatterFillPeriodStart and
-//					  XYScatterFillPeriodEnd properties.
-//					* Add the
-//				 	 XYScatterIndependentAnalysisPeriodStart
-//					  and
-//					  XYScatterIndependentAnalysisPeriodEnd
-//					  properties.
-//					* Add the
-// 				 	  XYScatterDependentAnalysisPeriodStart
-//					  and
-//					  XYScatterDependentAnalysisPeriodEnd
-//					  properties.
-// 2003-06-04	SAM, RTi		* Change TSGraphCanvas reference to
-//					  TSGraphJComponent for Swing update.
-//					* Update to handle templates in
-//					  getNumSubProducts().
-// 2004-02-24	J. Thomas Sapienza, RTi	Added methods, including:
-//					* showProps()
-//					* removeSubProduct()
-//					* renameSubProductProps()
-//					* sortProps()
-//					* swapSubProducts()
-// 2004-03-02	JTS, RTi		Added methods, including:
-//					* showProps(String)
-//					* removeData()
-//					* renameDataProps()
-//					* swapData()
-// 2004-04-20	JTS, RTi		* Added default properties for 
-//					  annotations.
-//					* Layered properties can now be 
-//					  specified to search for annotations.
-//					* Added checkAnnotationProperties().
-//					* Changed getDefaultProperty() to 
-//					  recognize annotations.
-//					* Changed setPropValue() to recognize
-//					  annotations.
-//					* Added getNumAnnotations().
-//					* Changed writeFile() and 
-//					  writeDataTableFile() to write
-//					  annotation properties.
-// 2004-04-21	JTS, RTi		* Added swapAnnotations().
-//					* Added renameAnnotationProps().
-//					* Added removeAnnotation().
-//					* Removed swapData().
-//					* Removed removeData().
-// 2004-04-27	JTS, RTi		Added property defaults for 
-//					shapetype, points, and point.
-// 2004-05-03	JTS, RTi		* Added __dirty and isDirty().
-//					* Added setDirty().
-//					* Added the ProductID property.
-//					* Added getAllProps().
-//					* Added setPropsHowSet().
-// 2004-05-13	JTS, RTi		Added the ProductName property.
-// 2004-05-25	JTS, RTi		Added unSet().
-// 2004-06-09	JTS, RTi		Change removeSubProduct() so that now
-//					when a subproduct is removed, its time
-//					series are also removed from the
-//					__tslist Vector.
-// 2004-07-26	JTS, RTi		Added propsSaved() so that properties
-//					are marked not dirty properly once 
-//					a product is saved.
-// 2005-04-29	JTS, RTi		* Added GRAPH_TYPE_POINT.
-// 2005-05-02	JTS, RTi		Added another version of 
-//					getDefaultPropValue() that takes a 
-//					parameter called graphType, in order
-//					to easily allow defaulting different
-//					values for different graph types.
-// 2005-05-04	JTS, RTi		* Added GRAPH_TYPE_PREDICTED_VALUE.
-//					* Added 
-//					  GRAPH_TYPE_PREDICTED_VALUE_RESIDUAL.
-// 2005-06-09	JTS, RTi		LegendPosition now includes "None"
-// 2005-10-05	JTS, RTi		Added default values for Symbol 
-//					annotations.
-// 2005-10-18	JTS, RTi		Added "AnnotationProvider" property.
-// 2005-10-20	JTS, RTi		* Added "LayoutYPercent" property.
-//					* Corrected some code for saving symbol
-//					  annotations.
-//					* Added code to support adding hidden
-//					  properties.
-//					* Made the code that saves to a TSP
-//					  more verbose, as it was getting 
-//					  too tight and unreadable.
-// 2005-10-26	JTS, RTi		Added support for the "XInputFormat"
-//					annotation property.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
 
 package RTi.GRTS;
 
@@ -188,8 +52,8 @@ import RTi.Util.Time.DateTime;
 
 /**
 The TSProduct class provides methods to read a time series product (tsp) file,
-store, and manipulate the properties of the product.  Each product is defined
-in a product file as follows:
+store, and manipulate the properties of the product.
+Each product is defined in a product file as follows:
 <pre>
 #
 # Comments start with #
@@ -223,8 +87,8 @@ xxxxx=xxxxxx
 
 <br>
 <p>
-The properties for each section are defined in the following table.  Most of
-the properties are recognized in some form in the TSViewFrame class properties.
+The properties for each section are defined in the following table.
+Most of the properties are recognized in some form in the TSViewFrame class properties.
 Properties will be enabled as development continues.  Unless specifically noted,
 all properties can be overridden (e.g., a product file can be read and then
 a dynamic property like CurrentDateTime can be set at run-time by the
@@ -232,9 +96,9 @@ application before processing the product).
 </p>
 
 <p>
-All colors can be specified using formats compatible with the
-GRColor.parseColor() method.  Examples are common named colors (e.g., "red"),
-RGB triplets (e.g., "255,128,0"), and hexadecimal RGB colors (e.g., "0xRRGGBB").
+All colors can be specified using formats compatible with the GRColor.parseColor() method.
+Examples are common named colors (e.g., "red"),
+RGB triplets (e.g., "255,128,0"), and hexadecimal RGB colors (e.g., "0xRRGGBB" or "#RRGGBB", upper or lower case).
 </p>
 
 <table width=100% cellpadding=10 cellspacing=0 border=2>
@@ -249,11 +113,11 @@ RGB triplets (e.g., "255,128,0"), and hexadecimal RGB colors (e.g., "0xRRGGBB").
 
 <tr>
 <td><b>CurrentDateTime</b></td>
-<td>The current date and time to be drawn as a vertical line on all graphs.  If
-the property is not specified, no current
-date/time line will be drawn.  If specified as "Auto", the current system time
-will be used for the date/time.  If specified as a valid date/time string (e.g.,
-"2002-02-05 15"), the string will be parsed to obtain the date/time (in this
+<td>The current date and time to be drawn as a vertical line on all graphs.
+If the property is not specified, no current date/time line will be drawn.
+If specified as "Auto", the current system time will be used for the date/time.
+If specified as a valid date/time string (e.g., "2002-02-05 15"),
+the string will be parsed to obtain the date/time (in this
 case the date/time is often specified by the application at run time).
 A vertical line will be drawn on the graph to indicate the current time.</td>
 <td>Not drawn</td>
@@ -707,14 +571,12 @@ support is being phased in.</b>  See also "LeftYAxisIgnoreUnits".
 
 <tr>
 <td><b>LegendFormat</b></td>
-<td>Legend format using the formats recognized by the TS.formatLegend() method,
-as follows:
+<td>Legend format using the formats recognized by the TS.formatLegend() method, as follows:
 <ul>
 <li>	%% = literal percent</li>
 <li>	%A = time series alias</li>
 <li>	%D = description (e.g., "RED RIVER BELOW MY TOWN")</li>
-<li>	%F = full time series identifier (e.g.,
-	<font size=-2>"XX_FREE.HydroBase_USGS.QME.24HOUR.Trace1</font>)</li>
+<li>	%F = full time series identifier (e.g., <font size=-2>"XX_FREE.HydroBase_USGS.QME.24HOUR.Trace1</font>)</li>
 <li>	%I = Full interval part of the identifier (e.g., "24Hour").</li>
 <li>    %i = input name part of the identifier (e.g., filename).</li>
 <li>	%b = base part of the interval (e.g., "24").</li>
@@ -722,13 +584,11 @@ as follows:
 <li>	%L = full location part of the identifier (e.g., "XX_FREE").</li>
 <li>	%l = main part of the location (e.g., "XX").</li>
 <li>	%w = sub-location (e.g., "FREE").</li>
-<li>	%S = The full source part of the identifier (e.g.,
-	HydroBase_USGS).</li>
+<li>	%S = The full source part of the identifier (e.g., HydroBase_USGS).</li>
 <li>	%s = main data source (e.g., "HydroBase").</li>
 <li>	%x = sub-source (e.g., "USGS").</li>
 <li>	%T = Full data type (e.g., "QME").</li>
-<li>	%t = Main data source (currently same as full source, reserved for
-	future use).</li>
+<li>	%t = Main data source (currently same as full source, reserved for future use).</li>
 <li>	%y = Sub-source (reserved for future use).</li>
 <li>	%U = Data units (e.g., "CFS").</li>
 <li>	%Z = scenario part of identifier (e.g., "Trace1").</li>
@@ -746,8 +606,7 @@ If a blank legend format is specified, no legend will be displayed.
 
 <tr>
 <td><b>MainTitleFontName</b></td>
-<td>Name of font to use for graph main title (see
-Product.MainTitleFontName)</td>
+<td>Name of font to use for graph main title (see Product.MainTitleFontName).</td>
 <td>Arial</td>
 </tr>
 
@@ -771,12 +630,10 @@ Product.MainTitleFontName)</td>
 
 <tr>
 <td><b>PeriodEnd</b></td>
-<td>Ending date for time series data in the sub-product.  The date should be
-formatted according
-to common conventions (e.g., YYYY-MM-DD HH:mm), and should ideally be of
-appropriate precision for the data being queried.
-This property is currently applied in the
-TSProcessor.processProduct() method as time series are read.
+<td>Ending date for time series data in the sub-product.
+The date should be formatted according to common conventions (e.g., YYYY-MM-DD HH:mm),
+and should ideally be of appropriate precision for the data being queried.
+This property is currently applied in the TSProcessor.processProduct() method as time series are read.
 <b>This property is often set at run time.</b>
 </td>
 <td>Full period is read.</td>
@@ -784,12 +641,10 @@ TSProcessor.processProduct() method as time series are read.
 
 <tr>
 <td><b>PeriodStart</b></td>
-<td>Starting date for time series data in the sub-product.  The date should be
-formatted according
-to common conventions (e.g., YYYY-MM-DD HH:mm), and should ideally be of
-appropriate precision for the data being queried.
-This property is currently applied in the
-TSProcessor.processProduct() method as time series are read.
+<td>Starting date for time series data in the sub-product.
+The date should be formatted according to common conventions (e.g., YYYY-MM-DD HH:mm),
+and should ideally be of appropriate precision for the data being queried.
+This property is currently applied in the TSProcessor.processProduct() method as time series are read.
 <b>This property is often set at run time.</b>
 </td>
 <td>Full period is read.</td>
@@ -805,12 +660,12 @@ for graph types where it goes the other way) and
 
 <tr>
 <td><b>RightYAxisIgnoreUnits</b></td>
-<td>Indicates whether to ignore units for the right Y axis.  Normally, units
-are checked to make sure that data can be plotted consistently.  If this
-property is set, then the user will not be prompted at run-time to make a decision.</td>
-<td>If not specified, the units will be checked at run-time and, if not
-compatible, the user will be prompted to indicate whether to ignore units in
-the graphs.  The property will not be reset automatically but will be handled
+<td>Indicates whether to ignore units for the right Y axis.
+Normally, units are checked to make sure that data can be plotted consistently.
+If this property is set, then the user will not be prompted at run-time to make a decision.</td>
+<td>If not specified, the units will be checked at run-time and,
+if not compatible, the user will be prompted to indicate whether to ignore units in the graphs.
+The property will not be reset automatically but will be handled
 internally using the interactively supplied value.</td>
 </tr>
 
@@ -834,8 +689,7 @@ internally using the interactively supplied value.</td>
 
 <tr>
 <td><b>RightYAxisLabelPrecision</b></td>
-<td>If numeric data, the number of digits after the decimal point in
-labels.</td>
+<td>If numeric data, the number of digits after the decimal point in labels.</td>
 <td>Automatically determined from graph type and/or data units.
 </td>
 </tr>
@@ -861,15 +715,13 @@ labels.</td>
 <tr>
 <td><b>RightYAxisMax</b></td>
 <td>Maximum value for the right Y Axis.</td>
-<td>"Auto", automatically determined.  If the actual data exceed the value, the
-property will be ignored.</td>
+<td>"Auto", automatically determined.  If the actual data exceed the value, the property will be ignored.</td>
 </tr>
 
 <tr>
 <td><b>RightYAxisMin</b></td>
 <td>Minimum value for the right Y Axis.</td>
-<td>"Auto", automatically determined.  If the actual data exceed the value, the
-property will be ignored.</td>
+<td>"Auto", automatically determined.  If the actual data exceed the value, the property will be ignored.</td>
 </tr>
 
 <tr>
@@ -901,8 +753,8 @@ property will be ignored.</td>
 <td><b>RightYAxisTitleString</b></td>
 <td>Right y axis title string.  <b>Note that due to limitations in Java graphics,
 the right y-axis title is placed at the top of the right y-axis so that it takes
-up roughly the same space as the y-axis labels.  The top-most label is shifted
-down to make room for the title.</b></td>
+up roughly the same space as the y-axis labels.
+The top-most label is shifted down to make room for the title.</b></td>
 <td>As appropriate for the graph type (often the data units).</td>
 </tr>
 
@@ -989,8 +841,7 @@ support is being phased in.</b>  See also "RightYAxisIgnoreUnits".
 <tr>
 <td><b>XYScatterAnalyzeForFilling</b></td>
 <td>For XY Scatter Graph, if true, then the RMSE value that is reported is
-calculated using the difference between Y and Y estimated from the best-fit
-equation.</td>
+calculated using the difference between Y and Y estimated from the best-fit equation.</td>
 <td>false</td>
 </tr>
 
@@ -1028,16 +879,14 @@ start of the fill period as a standard date/time string.
 
 <tr>
 <td><b>XYScatterIndependentAnalysisPeriodEnd</b></td>
-<td>For XY Scatter Graph, indicate the
-end of the period used to analyze the independent time series.
+<td>For XY Scatter Graph, indicate the end of the period used to analyze the independent time series.
 </td>
 <td>Blank (analyze the full period).</td>
 </tr>
 
 <tr>
 <td><b>XYScatterIndependentAnalysisPeriodStart</b></td>
-<td>For XY Scatter Graph, indicate the
-start of the period used to analyze the independent time series.
+<td>For XY Scatter Graph, indicate the start of the period used to analyze the independent time series.
 </td>
 <td>Blank (analyze the full period).</td>
 </tr>
@@ -1051,16 +900,15 @@ This is only valid with Linear transformation.</td>
 
 <tr>
 <td><b>XYScatterMethod</b></td>
-<td>For XY Scatter Graph, method used to determine curve fit (OLSRegression or
-MOVE2).</td>
+<td>For XY Scatter Graph, method used to determine curve fit (OLSRegression or MOVE2).</td>
 <td>OLSRegression</td>
 </tr>
 
 <tr>
 <td><b>XYScatterMonth</b></td>
 <td>For XY Scatter Graph, month(s) of data used to determine curve fit.
-If one equation is used, zero or more months can be specified.  If monthly
-equations are used, only one month currently can be specified.</td>
+If one equation is used, zero or more months can be specified.
+If monthly equations are used, only one month currently can be specified.</td>
 <td>Blank</td>
 </tr>
 
@@ -1074,8 +922,7 @@ curve fit (OneEquation or MonthlyEquations).
 
 <tr>
 <td><b>XYScatterTransformation</b></td>
-<td>For XY Scatter Graph, transformation that is applied to the data for the
-curve fit (None or Log).
+<td>For XY Scatter Graph, transformation that is applied to the data for the curve fit (None or Log).
 </td>
 <td>None</td>
 </tr>
@@ -1090,11 +937,11 @@ XY-Scatter and Duration graphs are not zoomable.
 
 <tr>
 <td><b>ZoomGroup</b></td>
-<td>Indicate a group identifier that is used to associate graphs for zooming
-purposes.  For example, there may be more than one distinct group of graphs,
-each with its own overall period or data limits.  The graph types may also
-be incompatible for zooming.  <b>This is an experimental feature and should
-currently not be specified in product files.</b></td>
+<td>Indicate a group identifier that is used to associate graphs for zooming purposes.
+For example, there may be more than one distinct group of graphs,
+each with its own overall period or data limits.
+The graph types may also be incompatible for zooming.
+<b>This is an experimental feature and should currently not be specified in product files.</b></td>
 <td>All graphs are assigned to group "1".</td>
 </tr>
 
@@ -1108,16 +955,16 @@ currently not be specified in product files.</b></td>
 
 <tr>
 <td><b>Color</b></td>
-<td>Color to use when drawing the data, as allowed by the GRColor.parse()
-method.  Examples are named colors (e.g., "red"), RGB triplets (e.g.,
-"255,0,128"), and hexadecimal RGB (e.g., "0xFF0088").</td>
+<td>Color to use when drawing the data, as allowed by the GRColor.parse() method.
+Examples are named colors (e.g., "red"), RGB triplets (e.g., "255,0,128"),
+and hexadecimal RGB (e.g., "0xFF0088" or "#FF0088", upper or lower case).</td>
 <td>Repeating, using common colors.</td>
 </tr>
 
 <tr>
 <td><b>DataLabelFormat</b></td>
-<td>Format for data point labels.  Currently only %D (date/time), %v (data
-value, formatted based on units), and string literals are recognized.
+<td>Format for data point labels.  Currently only %D (date/time), %v (data value,
+formatted based on units), and string literals are recognized.
 </td>
 <td>None (no label)</td>
 </tr>
@@ -1132,8 +979,7 @@ LowerLeft, Left, UpperLeft, Above, Center.
 
 <tr>
 <td><b>Enabled</b></td>
-<td>Indicates whether the data should be processed.  Specify as "true" or
-"false".</td>
+<td>Indicates whether the data should be processed.  Specify as "true" or "false".</td>
 <td>true</td>
 </tr>
 
@@ -1145,10 +991,10 @@ LowerLeft, Left, UpperLeft, Above, Center.
 
 <tr>
 <td><b>GraphType</b></td>
-<td>Indicates the graph type for the data in a graph product.  Available
-options are: "Bar", "Duration", "Line", "PeriodOfRecord", "XY-Scatter", "Point".
-<b>Currently the sub-product property is used for all data.  It is envisioned
-that this property will be enabled in the future to allow different data
+<td>Indicates the graph type for the data in a graph product.
+Available options are: "Bar", "Duration", "Line", "PeriodOfRecord", "XY-Scatter", "Point".
+<b>Currently the sub-product property is used for all data.
+It is envisioned that this property will be enabled in the future to allow different data
 representations to be plotted together (e.g., monthly as bars, daily as line).
 </b>
 </td>
@@ -1165,8 +1011,7 @@ If a blank legend format is specified, no legend will be displayed.
 
 <tr>
 <td><b>LineStyle</b></td>
-<td>Line style.  Currently only "None" (e.g., for symbols only) and "Solid"
-are allowed.</td>
+<td>Line style.  Currently only "None" (e.g., for symbols only) and "Solid" are allowed.</td>
 <td>"Solid"</td>
 </tr>
 
@@ -1178,12 +1023,10 @@ are allowed.</td>
 
 <tr>
 <td><b>PeriodEnd</b></td>
-<td>Ending date for time series data in the data item.  The date should be
-formatted according
-to common conventions (e.g., YYYY-MM-DD HH:mm), and should ideally be of
-appropriate precision for the data being queried.
-This property is currently applied in the
-TSProcessor.processProduct() method as time series are read.
+<td>Ending date for time series data in the data item.
+The date should be formatted according to common conventions (e.g., YYYY-MM-DD HH:mm),
+and should ideally be of appropriate precision for the data being queried.
+This property is currently applied in the TSProcessor.processProduct() method as time series are read.
 <b>This property is often set at run time.</b>
 </td>
 <td>Full period is read.</td>
@@ -1191,10 +1034,9 @@ TSProcessor.processProduct() method as time series are read.
 
 <tr>
 <td><b>PeriodStart</b></td>
-<td>Starting date for time series data in the data item.  The date should be
-formatted according
-to common conventions (e.g., YYYY-MM-DD HH:mm), and should ideally be of
-appropriate precision for the data being queried.
+<td>Starting date for time series data in the data item.
+The date should be formatted according to common conventions (e.g., YYYY-MM-DD HH:mm),
+and should ideally be of appropriate precision for the data being queried.
 This property is currently applied in the
 TSProcessor.processProduct() method as time series are read.
 <b>This property is often set at run time.</b>
@@ -1210,9 +1052,8 @@ TSProcessor.processProduct() method as time series are read.
 
 <tr>
 <td><b>RegressionLineEnabled</b></td>
-<td>Indicates whether the regression line should be shown (currently only used
-with the XY-Scatter graph type).  The line is drawn in black (there is currently
-not a property to set the line color).</td>
+<td>Indicates whether the regression line should be shown (currently only used with the XY-Scatter graph type).
+The line is drawn in black (there is currently not a property to set the line color).</td>
 <td>true (if an XY scatter plot)</td>
 </tr>
 
@@ -1254,37 +1095,31 @@ Recognized symbols are:
 
 <tr>
 <td><b>TSAlias</b></td>
-<td>Time series alias.  The alias is read by calling the
-readTimeSeries() method in registered TSSupplier objects (see
-TSProcessor.addTSSupplier()).
-The TSSuppliers can provide very specific functionality to read time series
-from a variety of sources.
+<td>Time series alias.
+The alias is read by calling the readTimeSeries() method in registered TSSupplier objects (see TSProcessor.addTSSupplier()).
+The TSSuppliers can provide very specific functionality to read time series from a variety of sources.
 </td>
 <td>Must specify either a TSAlias and/or TSID.</td>
 </tr>
 
 <tr>
 <td><b>TSID</b></td>
-<td>Time series identifier.  The identifier is read by calling the
-readTimeSeries() method in registered TSSupplier objects (see
-TSProcessor.addTSSupplier()).
-The TSSuppliers can provide very specific functionality to read time series
-from a variety of sources.
+<td>Time series identifier.
+The identifier is read by calling the readTimeSeries() method in registered TSSupplier objects (see TSProcessor.addTSSupplier()).
+The TSSuppliers can provide very specific functionality to read time series from a variety of sources.
 </td>
 <td>Must specify a TSID.</td>
 </tr>
 
 <tr>
 <td><b>XAxis</b></td>
-<td>X-axis to use (Bottom or Top).  <b>This currently always defaults to
-bottom.</b></td>
+<td>X-axis to use (Bottom or Top).  <b>This currently always defaults to bottom.</b></td>
 <td>Bottom</td>
 </tr>
 
 <tr>
 <td><b>YAxis</b></td>
-<td>Y-axis to use (Left or Right).  <b>This currently always defaults to
-left.</b></td>
+<td>Y-axis to use (Left or Right).  <b>This currently always defaults to left.</b></td>
 <td>Left</td>
 </tr>
 
@@ -1299,8 +1134,8 @@ Main property list describing the product.
 private PropList __proplist = null;
 
 /**
-Run-time properties that will override the file properties.  These are specified as simple strings
-with no layering information (e.g., "InitialView").
+Run-time properties that will override the file properties.
+These are specified as simple strings with no layering information (e.g., "InitialView").
 */
 private PropList __override_proplist = null;
 
@@ -1321,21 +1156,21 @@ being made to startAddingHiddenProps().
 private int __howSet = -1;
 
 /**
-A dirty flag used for checking if anything has been deleted, or added, or the
-order has been changed -- these are things that can't be checked by looking at the proplist.
+A dirty flag used for checking if anything has been deleted, or added, or the order has been changed.
+These are things that can't be checked by looking at the proplist.
 */
 private boolean __dirty = false;
 
 /**
-The annotation providers that will be used to generate annotations on a
-graph.  An element in this list at position X corresponds to the
+The annotation providers that will be used to generate annotations on a graph.
+An element in this list at position X corresponds to the
 element in the __annotationsProvidersPropLists Vector at position X.
 */
 private List<TSProductAnnotationProvider> __annotationProviders = null;
 
 /**
-Control properties that determine how the annotation providers put annotations
-on a graph.  An element in this list at position X corresponds to the
+Control properties that determine how the annotation providers put annotations on a graph.
+An element in this list at position X corresponds to the
 element in the __annotationsProviders Vector at position X.
 */
 private List<PropList> __annotationProviderPropLists = null;
@@ -1344,16 +1179,16 @@ private List<PropList> __annotationProviderPropLists = null;
 Checks for the annotation providers that were already used on this product,
 so that they can be checked and not used twice.
 */
-private List<TSProductAnnotationProvider> __usedProviders = new Vector<TSProductAnnotationProvider>();
+private List<TSProductAnnotationProvider> __usedProviders = new Vector<>();
 
 /**
-Construct a blank TSProduct.  It is assumed that properties will be added by
-getting the PropList and adding to it.
+Construct a blank TSProduct.
+It is assumed that properties will be added by getting the PropList and adding to it.
 @exception Exception if there is an error processing the file.
 */
 public TSProduct ()
 throws Exception
-{	// Just read in as a simple PropList...
+{	// Just read in as a simple PropList.
 	__proplist = new PropList ( "TSProduct" );
 	__override_proplist = new PropList ( "override" );
 }
@@ -1366,7 +1201,7 @@ Construct a TSProduct from a product file (.tsp).  The product file is read into
 */
 public TSProduct ( String filename, PropList overridePropList )
 throws Exception
-{	// Just read in as a simple PropList...
+{	// Just read in as a simple PropList.
 	__proplist = new PropList ( "TSProduct" );
 	__proplist.setPersistentName ( filename );
 	__proplist.readPersistent ();
@@ -1384,7 +1219,7 @@ PropList (e.g., display properties).  Specify as null if no override properties 
 */
 public TSProduct ( PropList proplist, PropList override_proplist )
 throws Exception
-{	// Just read in as a simple PropList...
+{	// Just read in as a simple PropList.
 	__proplist = proplist;
 	__override_proplist = override_proplist;
 	transferPropList();
@@ -1414,8 +1249,8 @@ public void addTSProductAnnotationProvider(TSProductAnnotationProvider provider,
 	}
 	else {
 		if (__annotationProviders == null) {
-			__annotationProviders = new Vector<TSProductAnnotationProvider>();
-			__annotationProviderPropLists = new Vector<PropList>();
+			__annotationProviders = new Vector<>();
+			__annotationProviderPropLists = new Vector<>();
 		}
 	
 		__annotationProviders.add(provider);
@@ -1583,14 +1418,14 @@ public void checkDataProperties(int isub, int its) {
 //	Message.printStatus ( 1, "", "Checking TS [" + its+"]");
 	// List alphabetically other than exceptions.
 	
-	// "YAxis" - need to get first
+	// "YAxis" - need to get first.
 	String yaxis = getLayeredPropValue ("YAxis", isub, its, false );
 	if ( yaxis == null ) {
 		yaxis = getDefaultPropValue("YAxis",isub,its);
 		setPropValue ( "YAxis",yaxis,isub, its);
 	}
 	
-	// "GraphType" for the graph (not time series)...
+	// "GraphType" for the graph (not time series):
 	// - used for some decisions below, such as bar graph position
 	// - this is for the left y-axis
 	String prop_val = getLayeredPropValue("GraphType", isub, -1, false);
@@ -1599,7 +1434,7 @@ public void checkDataProperties(int isub, int its) {
 	}
 	TSGraphType graphType = TSGraphType.valueOfIgnoreCase(prop_val);
 	
-	// "RightYAxisGraphType" for the graph (not time series)...
+	// "RightYAxisGraphType" for the graph (not time series):
 	// - used for some decisions below, such as bar graph position
 	// - this is for the right y-axis
 	prop_val = getLayeredPropValue("RightYAxisGraphType", isub, -1, false);
@@ -1608,23 +1443,23 @@ public void checkDataProperties(int isub, int its) {
 	}
 	//TSGraphType rightYAxisGraphType = TSGraphType.valueOfIgnoreCase(prop_val);
 
-	// "Color"...
+	// "Color"
 
 	int nts = getNumData(isub);
 	if (getLayeredPropValue("Color",isub,its,false) == null) {
 		if ( (graphType == TSGraphType.XY_SCATTER) && (nts <= 2) ) {
-			// Force black to be used...
+			// Force black to be used.
 			setPropValue ( "Color", "black", isub, its );
 		}
 		else {	
-			// Use colors for time series...
-			// All time series on the graph are processed so "its" includes left and right y-axis
+			// Use colors for time series.
+			// All time series on the graph are processed so "its" includes left and right y-axis.
 			setPropValue("Color", TSGraphJComponent.lookupTSColor(its),	isub, its);
 		}
 	}
 
 	if (graphType == TSGraphType.POINT) {
-	    // Point graphs are required to have a symbol
+	    // Point graphs are required to have a symbol.
 		if (getLayeredPropValue("SymbolStyle",isub,its,false) == null) {
 			setPropValue("SymbolStyle",	TSGraphJComponent.lookupTSSymbol(its),isub, its);
 		}
@@ -1643,26 +1478,26 @@ public void checkDataProperties(int isub, int its) {
 		}
 	}
 
-	// "DataLabelFormat"...
+	// "DataLabelFormat"
 
 	if ( getLayeredPropValue ( "DataLabelFormat", isub, its, false ) == null ){
 		setPropValue ( "DataLabelFormat",getDefaultPropValue("DataLabelFormat",isub,its),isub, its);
 	}
 
-	// "DataLabelPosition"...
+	// "DataLabelPosition"
 
 	if ( getLayeredPropValue ( "DataLabelPosition", isub, its, false ) ==null){
 		setPropValue ( "DataLabelPosition",	getDefaultPropValue("DataLabelPosition",isub,its), isub, its);
 	}
 
-	// "Enabled"...
+	// "Enabled"
 
 	if ( getLayeredPropValue ("Enabled", isub, its, false ) == null ) {
 		setPropValue ( "Enabled", getDefaultPropValue("Enabled",isub,its), isub, its);
 	}
 	
     if (getLayeredPropValue("FlaggedDataSymbolStyle", isub, its, false) == null) {
-        // Use the SymbolStyle value if specified
+        // Use the SymbolStyle value if specified.
         String symbolStyle = getLayeredPropValue("SymbolStyle", isub, its, false);
         if ( symbolStyle == null ) {
             setPropValue("FlaggedDataSymbolStyle",
@@ -1675,12 +1510,12 @@ public void checkDataProperties(int isub, int its) {
 
 	if ( getLayeredPropValue ( "GraphType", isub, its, false ) == null ) {
 		//setPropValue ( "GraphType", getDefaultPropValue("GraphType",isub,its), isub, its);
-		// First see if the graph type is already set and if so use it.
+		// First see if the graph type is already set and if so use it:
 		// - for example this would be the case when a line is draw on an area graph
-		// If the time series does not have a graph type, set too that of the graph.
+		// If the time series does not have a graph type, set too that of the graph:
 	    // - to do this need to check which axis is used for the graph
 	    String tsGraphType = getLayeredPropValue("GraphType", isub, its, false);
-	    // If not available for the graph, get for the time series
+	    // If not available for the graph, get for the time series.
 	    if ( tsGraphType != null ) {
 	    	// The graph type will have been set from reading the original TSProduct file
 	    	// or by defaulting in a previous round of checks.
@@ -1702,7 +1537,7 @@ public void checkDataProperties(int isub, int its) {
 		    	setPropValue ( "GraphType", tsGraphType, isub, its );
 		    }
 		    else {
-		    	// Final default, generally "Line", but should never get to this point
+		    	// Final default, generally "Line", but should never get to this point.
 		    	setPropValue ( "GraphType", getDefaultPropValue("GraphType",isub,its), isub, its);
 		    }
 	    }
@@ -1741,7 +1576,7 @@ public void checkDataProperties(int isub, int its) {
 		setPropValue("SymbolSize",getDefaultPropValue("SymbolSize", isub,its, false,graphType),isub, its);
 	}
 
-	// PeriodEnd, Period Start set at run-time
+	// PeriodEnd, Period Start set at run-time.
 
 	if (getLayeredPropValue("SymbolStyle", isub, its, false) == null) {
 		setPropValue("SymbolStyle",getDefaultPropValue("SymbolStyle", isub,its,false,graphType),isub, its);
@@ -1781,7 +1616,7 @@ public void checkProperties ()
 	__proplist.setHowSet ( Prop.SET_AS_RUNTIME_DEFAULT );
 
 	//---------------------------------------------------------------------
-	// Product properties
+	// Product properties.
 	//---------------------------------------------------------------------
 	
     if (getLayeredPropValue("CurrentDateTime", -1, -1, false) == null) {
@@ -1796,7 +1631,7 @@ public void checkProperties ()
 		setPropValue("Enabled",getDefaultPropValue("Enabled",-1,-1), -1, -1);
 	}
 
-	// Product MainTitle properties...
+	// Product MainTitle properties.
 
 	if (getLayeredPropValue("MainTitleFontName", -1, -1, false) == null) {
 		setPropValue("MainTitleFontName",getDefaultPropValue("MainTitleFontName",-1,-1), -1, -1);
@@ -1811,20 +1646,20 @@ public void checkProperties ()
 		setPropValue("MainTitleString",getDefaultPropValue("MainTitleString",-1,-1), -1, -1);
 	}
 
-	// OutputFile
+	// OutputFile.
 
 	if (getLayeredPropValue("OutputFile", -1, -1, false) == null) {
 		setPropValue("OutputFile",getDefaultPropValue("OutputFile",-1,-1), -1, -1);
 	}
 
-	// PeriodEnd, PeriodStart - set at run time
+	// PeriodEnd, PeriodStart - set at run time.
 
-	// ProductID
+	// ProductID.
 	if (getLayeredPropValue("ProductID", -1, -1, false) == null) {
 		setPropValue("ProductID",getDefaultPropValue("ProductID", -1, -1), -1, -1);
 	}
 
-	// ProductName
+	// ProductName.
 	if (getLayeredPropValue("ProductName", -1, -1, false) == null) {
 		setPropValue("ProductName",getDefaultPropValue("ProductName", -1, -1), -1, -1);
 	}
@@ -1850,7 +1685,7 @@ public void checkProperties ()
 		setPropValue("SubTitleString",getDefaultPropValue("SubTitleString",-1,-1), -1, -1);
 	}
 
-	// Product dimensions...
+	// Product dimensions.
 
 	if (getLayeredPropValue("TotalHeight", -1, -1, false) == null) {
 		setPropValue("TotalHeight",getDefaultPropValue("TotalHeight",-1,-1),-1,-1);
@@ -1859,7 +1694,7 @@ public void checkProperties ()
 		setPropValue("TotalWidth",getDefaultPropValue("TotalWidth",-1,-1),-1,-1);
 	}
 
-	// Layout ...
+	// Layout.
 
 	if (getLayeredPropValue("LayoutType", -1, -1, false) == null) {
 		setPropValue("LayoutType", getDefaultPropValue("LayoutType",-1, -1), -1, -1);
@@ -1871,7 +1706,7 @@ public void checkProperties ()
 		setPropValue("LayoutNumberOfCols",getDefaultPropValue("LayoutNumberOfCols", -1, -1),-1, -1);
 	}
 	
-	// Develop...
+	// Develop.
 	
 	if (getLayeredPropValue("ShowDrawingAreaOutline", -1, -1, false) == null) {
 		setPropValue("ShowDrawingAreaOutline", getDefaultPropValue("ShowDrawingAreaOutline",-1, -1), -1, -1);
@@ -1903,7 +1738,7 @@ public void checkGraphProperties ( int nsubs )
 	__proplist.setHowSet ( Prop.SET_AS_RUNTIME_DEFAULT );
 	for ( int isub = 0; isub < nsubs; isub++ ) {
 		//Message.printStatus ( 1, "", "Checking subproduct [" + isub + "]" );
-		// Check "GraphType" property because its value is used below to make decisions
+		// Check "GraphType" property because its value is used below to make decisions.
 
 		prop_val = getLayeredPropValue ( "GraphType", isub, -1, false );
 		if ( prop_val == null ) {
@@ -1912,7 +1747,7 @@ public void checkGraphProperties ( int nsubs )
 		}
 		graphType = TSGraphType.valueOfIgnoreCase(prop_val);
 
-		// Now alphabetize the properties...
+		// Now alphabetize the properties.
 
         if ( (graphType == TSGraphType.BAR) && getLayeredPropValue("BarOverlap",isub, -1, false ) == null ) {
             setPropValue ( "BarOverlap", getDefaultPropValue("BarOverlap",isub,-1), isub, -1 );
@@ -1939,11 +1774,11 @@ public void checkGraphProperties ( int nsubs )
 		// BottomXAxisTitleString is checked in
 		// TSGraphJComponent.checkTSProductGraphs()
 
-		// "BottomXAxisMajorGridColor"...
+		// "BottomXAxisMajorGridColor".
 
 		if ( getLayeredPropValue("BottomXAxisMajorGridColor", isub, -1, false ) == null ) {
 			if ( graphType == TSGraphType.PERIOD ) {
-				// Don't usually draw the horizontal grid...
+				// Don't usually draw the horizontal grid.
 				setPropValue ( "BottomXAxisMajorGridColor", "None",isub,-1);
 			}
 			else {
@@ -1952,11 +1787,11 @@ public void checkGraphProperties ( int nsubs )
 			}
 		}
 
-		// "BottomXAxisMinorGridColor"...
+		// "BottomXAxisMinorGridColor".
 
 		if ( getLayeredPropValue("BottomXAxisMinorGridColor", isub, -1, false ) == null ) {
 			if ( graphType == TSGraphType.PERIOD ) {
-				// Don't usually draw the horizontal grid...
+				// Don't usually draw the horizontal grid.
 				setPropValue ( "BottomXAxisMinorGridColor","None",isub,-1);
 			}
 			else {
@@ -1978,53 +1813,53 @@ public void checkGraphProperties ( int nsubs )
 			getDefaultPropValue("BottomXAxisTitleFontSize",isub,-1), isub, -1 );
 		}
 
-		// "DataLabelFontName" property...
+		// "DataLabelFontName" property.
 
 		if ( getLayeredPropValue("DataLabelFontName", isub, -1, false ) == null ) {
 			setPropValue ( "DataLabelFontName",
 			getDefaultPropValue("DataLabelFontName",isub,-1),isub, -1);
 		}
 
-		// "DataLabelFontSize" property...
+		// "DataLabelFontSize" property.
 
 		if ( getLayeredPropValue("DataLabelFontSize", isub, -1, false ) == null ) {
 			setPropValue ( "DataLabelFontSize",
 			getDefaultPropValue("DataLabelFontSize",isub,-1),isub, -1);
 		}
 
-		// "DataLabelFontStyle" property...
+		// "DataLabelFontStyle" property.
 
 		if ( getLayeredPropValue("DataLabelFontStyle", isub, -1, false ) == null ) {
 			setPropValue ( "DataLabelFontStyle",
 			getDefaultPropValue("DataLabelFontStyle",isub,-1),isub, -1);
 		}
 
-		// "DataLabelFormat" property...
+		// "DataLabelFormat" property.
 
 		if ( getLayeredPropValue("DataLabelFormat", isub, -1, false ) == null ) {
 			setPropValue ( "DataLabelFormat", getDefaultPropValue("DataLabelFormat",isub,-1),isub,-1);
 		}
 
-		// "DataLabelPosition" property...
+		// "DataLabelPosition" property.
 
 		if ( getLayeredPropValue("DataLabelPosition", isub, -1, false ) == null ) {
 			setPropValue ( "DataLabelPosition", getDefaultPropValue("DataLabelPosition",isub,-1), isub,-1);
 		}
 
-		// "Enabled" property...
+		// "Enabled" property.
 
 		if ( getLayeredPropValue("Enabled", isub, -1, false ) == null ){
 			setPropValue ( "Enabled",
 			getDefaultPropValue("Enabled",isub,-1), isub, -1);
 		}
 
-		// GraphHeight, GraphWidth calculated
+		// GraphHeight, GraphWidth calculated.
 		
         if ( getLayeredPropValue("LeftYAxisDirection", isub, -1, false ) == null ) {
             setPropValue ( "LeftYAxisDirection", getDefaultPropValue("LeftYAxisDirection",isub,-1), isub, -1 );
         }
 
-		// LeftYAxisIgnoreUnits calculated
+		// LeftYAxisIgnoreUnits calculated.
 
 		if ( getLayeredPropValue("LeftYAxisLabelFontName", isub, -1, false ) == null ) {
 			setPropValue ( "LeftYAxisLabelFontName",
@@ -2042,17 +1877,17 @@ public void checkGraphProperties ( int nsubs )
 			isub, -1 );
 		}
 
-		// "LeftYAxisLabelPrecision" determined at run-time
+		// "LeftYAxisLabelPrecision" determined at run-time.
 		
 		if ( getLayeredPropValue("LeftYAxisLegendPosition", isub, -1, false ) == null ) {
 			setPropValue ( "LeftYAxisLegendPosition", getDefaultPropValue("LeftYAxisLegendPosition",isub,-1),isub, -1);
 		}
 
-		// "LeftYAxisMajorGridColor"...
+		// "LeftYAxisMajorGridColor".
 
 		if ( getLayeredPropValue("LeftYAxisMajorGridColor", isub, -1, false ) == null ) {
 			if ( graphType == TSGraphType.PERIOD ) {
-				// Don't usually draw the horizontal grid...
+				// Don't usually draw the horizontal grid.
 				setPropValue ( "LeftYAxisMajorGridColor", "None",isub,-1);
 			}
 			else {
@@ -2074,11 +1909,11 @@ public void checkGraphProperties ( int nsubs )
 			setPropValue ( "LeftYAxisMin", getDefaultPropValue("LeftYAxisMin",isub,-1), isub, -1 );
 		}
 
-		// "LeftYAxisMinorGridColor"...
+		// "LeftYAxisMinorGridColor".
 
 		if ( getLayeredPropValue("LeftYAxisMinorGridColor", isub, -1, false ) == null ) {
 			if ( graphType == TSGraphType.PERIOD ) {
-				// Don't usually draw the horizontal grid...
+				// Don't usually draw the horizontal grid.
 				setPropValue ( "LeftYAxisMinorGridColor", "None",isub,-1);
 			}
 			else {
@@ -2103,25 +1938,25 @@ public void checkGraphProperties ( int nsubs )
 		// Check LeftYAxisTitleString in in
 		// TSGraphJComponent.checkTSProductGraphs().
 		
-		// Left y axis position...
+		// Left y axis position.
 		
 		if ( getLayeredPropValue("LeftYAxisTitlePosition", isub, -1, false ) == null ) {
 			setPropValue ( "LeftYAxisTitlePosition", getDefaultPropValue("LeftYAxisTitlePosition",isub,-1), isub, -1 );
 		}
 		
-		// Left y axis rotation...
+		// Left y axis rotation.
 		
 		if ( getLayeredPropValue("LeftYAxisTitleRotation", isub, -1, false ) == null ) {
 			setPropValue ( "LeftYAxisTitleRotation", getDefaultPropValue("LeftYAxisTitleRotation",isub,-1), isub, -1 );
 		}
 
-		// Left Y axis type...
+		// Left Y axis type.
 
 		if ( getLayeredPropValue("LeftYAxisType", isub, -1, false ) == null ) {
 			setPropValue ( "LeftYAxisType", getDefaultPropValue("LeftYAxisType",isub,-1), isub, -1 );
 		}
 
-		// LeftYAxisUnits determined at run time
+		// LeftYAxisUnits determined at run time.
 
 		if ( getLayeredPropValue("LegendFontName", isub, -1, false ) == null ) {
 			setPropValue ( "LegendFontName", getDefaultPropValue("LegendFontName",isub,-1), isub, -1 );
@@ -2152,7 +1987,7 @@ public void checkGraphProperties ( int nsubs )
 		}
 
 		if ( getLayeredPropValue("MainTitleString", isub, -1, false ) == null ) {
-			// Assign a default based on the graph type...
+			// Assign a default based on the graph type.
 			if ( graphType == TSGraphType.DURATION ) {
 				setPropValue ( "MainTitleString", "Duration Curve", isub, -1);
 			}
@@ -2162,7 +1997,7 @@ public void checkGraphProperties ( int nsubs )
 			else if ( graphType == TSGraphType.XY_SCATTER ) {
 				setPropValue ( "MainTitleString", "XY-Scatter Plot", isub, -1);
 			}
-			// No general title.  If needed, pass in from the application...
+			// No general title.  If needed, pass in from the application.
 			else {
 			    setPropValue ( "MainTitleString", "", isub, -1);
 			}
@@ -2174,7 +2009,7 @@ public void checkGraphProperties ( int nsubs )
             setPropValue ( "RightYAxisDirection", getDefaultPropValue("RightYAxisDirection",isub,-1), isub, -1 );
         }
 
-		// RightYAxisIgnoreUnits calculated
+		// RightYAxisIgnoreUnits calculated.
 
 		if ( getLayeredPropValue("RightYAxisLabelFontName", isub, -1, false ) == null ) {
 			setPropValue ( "RightYAxisLabelFontName",
@@ -2192,17 +2027,17 @@ public void checkGraphProperties ( int nsubs )
 			isub, -1 );
 		}
 
-		// "RightYAxisLabelPrecision" determined at run-time
+		// "RightYAxisLabelPrecision" determined at run-time.
 		
 		if ( getLayeredPropValue("RightYAxisLegendPosition", isub, -1, false ) == null ) {
 			setPropValue ( "RightYAxisLegendPosition", getDefaultPropValue("RightYAxisLegendPosition",isub,-1),isub, -1);
 		}
 
-		// "RightYAxisMajorGridColor"...
+		// "RightYAxisMajorGridColor".
 
 		if ( getLayeredPropValue("RightYAxisMajorGridColor", isub, -1, false ) == null ) {
 			if ( graphType == TSGraphType.PERIOD ) {
-				// Don't usually draw the horizontal grid...
+				// Don't usually draw the horizontal grid.
 				setPropValue ( "RightYAxisMajorGridColor", "None",isub,-1);
 			}
 			else {
@@ -2224,11 +2059,11 @@ public void checkGraphProperties ( int nsubs )
 			setPropValue ( "RightYAxisMin", getDefaultPropValue("RightYAxisMin",isub,-1), isub, -1 );
 		}
 
-		// "RightYAxisMinorGridColor"...
+		// "RightYAxisMinorGridColor".
 
 		if ( getLayeredPropValue("RightYAxisMinorGridColor", isub, -1, false ) == null ) {
 			if ( graphType == TSGraphType.PERIOD ) {
-				// Don't usually draw the horizontal grid...
+				// Don't usually draw the horizontal grid.
 				setPropValue ( "RightYAxisMinorGridColor", "None",isub,-1);
 			}
 			else {
@@ -2252,25 +2087,25 @@ public void checkGraphProperties ( int nsubs )
 
 		// Check RightYAxisTitleString in TSGraphJComponent.checkTSProductGraphs().
 		
-		// Right Y axis position...
+		// Right Y axis position.
 
 		if ( getLayeredPropValue("RightYAxisTitlePosition", isub, -1, false ) == null ) {
 			setPropValue ( "RightYAxisTitlePosition", getDefaultPropValue("RightYAxisTitlePosition",isub,-1), isub, -1 );
 		}
 		
-		// Right Y axis rotation...
+		// Right Y axis rotation.
 
 		if ( getLayeredPropValue("RightYAxisTitleRotation", isub, -1, false ) == null ) {
 			setPropValue ( "RightYAxisTitleRotation", getDefaultPropValue("RightYAxisTitleRotation",isub,-1), isub, -1 );
 		}
 
-		// Right Y axis type...
+		// Right Y axis type.
 
 		if ( getLayeredPropValue("RightYAxisType", isub, -1, false ) == null ) {
 			setPropValue ( "RightYAxisType", getDefaultPropValue("RightYAxisType",isub,-1), isub, -1 );
 		}
 
-		// RightYAxisUnits determined at run time
+		// RightYAxisUnits determined at run time.
 		
 		if (getLayeredPropValue("SelectedTimeSeriesLineWidth", isub, -1, false) == null) {
 			setPropValue("SelectedTimeSeriesLineWidth", getDefaultPropValue("SelectedTimeSeriesLineWidth", isub, -1), isub, -1);
@@ -2324,14 +2159,14 @@ public void checkGraphProperties ( int nsubs )
 			getDefaultPropValue("TopXAxisLabelFontName",isub,-1), isub, -1 );
 		}
 
-		// Zoom features...
+		// Zoom features.
 		if ( getLayeredPropValue("ZoomEnabled", isub, -1, false ) == null ) {
 			setPropValue ( "ZoomEnabled",
 			getDefaultPropValue("ZoomEnabled",isub,-1), isub, -1 );
 		}
 		if ( (graphType == TSGraphType.XY_SCATTER) || (graphType == TSGraphType.DURATION) ||
 		    (graphType == TSGraphType.RASTER)) {
-			// For now disable zooming on these graph types...
+			// For now disable zooming on these graph types.
 			setPropValue ( "ZoomEnabled", "False", isub, -1 );
 		}
 
@@ -2355,7 +2190,7 @@ public void checkGraphProperties ( int nsubs )
 			// Should not happen.
 		}
 
-		// Analysis for XY-Scatter...
+		// Analysis for XY-Scatter.
 
 		if (graphType == TSGraphType.XY_SCATTER
 		    || graphType == TSGraphType.PREDICTED_VALUE
@@ -2429,24 +2264,24 @@ public void checkGraphProperties ( int nsubs )
 }
 
 /**
-Expand a parameter value to recognize processor-level properties.  For example, a parameter value like
-"${WorkingDir}/morepath" will be expanded to include the working directory.
+Expand a property value to recognize processor-level properties.
+For example, a property value like "${WorkingDir}/morepath" will be expanded to include the working directory.
 @param processor the CommandProcessor that has a list of named properties.
 @param command the command that is being processed (may be used later for context sensitive values).
-@param propertyValue the parameter value being expanded.
+@param propertyValue the property value being expanded.
 */
 public String expandPropertyValue( String propertyValue )
-{   String routine = "TSCommandProcessorUtil.expandParameterValue";
+{   String routine = getClass().getSimpleName() + ".expandPropertyValue";
     if ( (propertyValue == null) || (propertyValue.length() == 0) ) {
         // Just return what was provided.
         return propertyValue;
     }
-    // Else see if the parameter value can be expanded to replace $ symbolic references with other values
-    // Search the parameter string for $ until all processor parameters have been resolved
-    int searchPos = 0;  // Position in the "parameter_val" string to search for $ references
-    int foundPos;       // Position when leading ${ is found
-    int foundPosEnd;   // Position when ending } is found
-    String foundProp = null;    // Whether a property is found that matches the $ symbol
+    // Else see if the parameter value can be expanded to replace $ symbolic references with other values.
+    // Search the parameter string for $ until all processor parameters have been resolved.
+    int searchPos = 0;  // Position in the "parameter_val" string to search for $ references.
+    int foundPos;       // Position when leading ${ is found.
+    int foundPosEnd;   // Position when ending } is found.
+    String propName = null; // Name of property in ${}, used to look up the property value.
     String delimStart = "${";
     String delimEnd = "}";
     while ( searchPos < propertyValue.length() ) {
@@ -2456,19 +2291,19 @@ public String expandPropertyValue( String propertyValue )
             // No more $ property names, so return what we have.
             return propertyValue;
         }
-        // Else found the delimiter so continue with the replacement
+        // Else found the delimiter so continue with the replacement.
         Message.printStatus ( 2, routine, "Found " + delimStart + " at position [" + foundPos + "]");
-        // Get the name of the property
-        foundProp = propertyValue.substring((foundPos+2),foundPosEnd);
-        // Try to get the property from the processor
+        // Get the name of the property.
+        propName = propertyValue.substring((foundPos+2),foundPosEnd);
+        // Try to get the property from the processor.
         // TODO SAM 2007-12-23 Evaluate whether to skip null.  For now show null in result.
         Object propval = null;
         String propvalString = null;
         try {
             //propval = processor.getPropContents ( foundProp );
-            // Look up known properties.  For now define them here also
-            // FIXME SAM 2009-01-15 Figure out a more generic way to do this
-            // Also need to standarize these, add to the documentation, and to the properties editor
+            // Look up known properties.  For now define them here also.
+            // FIXME SAM 2009-01-15 Figure out a more generic way to do this.
+            // Also need to standardize these, add to the documentation, and to the properties editor.
             PropList props = new PropList("props");
             DateTime now = new DateTime(DateTime.DATE_CURRENT);
             props.set( "CurrentToYear",now.toString(DateTime.FORMAT_YYYY));
@@ -2477,29 +2312,34 @@ public String expandPropertyValue( String propertyValue )
             props.set( "CurrentToHour",now.toString(DateTime.FORMAT_YYYY_MM_DD_HH));
             props.set( "CurrentToMinute",now.toString(DateTime.FORMAT_YYYY_MM_DD_HH_mm));
             props.set( "CurrentToSecond",now.toString(DateTime.FORMAT_YYYY_MM_DD_HH_mm_SS));
-            propval = props.getValue(foundProp);
+            propval = props.getValue(propName);
             if ( propval != null ) {
-                propvalString = "" + propval;
+            	// Found the property so use its string equivalent.
+                propvalString = propval.toString();
+            }
+            else {
+            	// Did not find the property so insert the property name.
+                propvalString = delimStart + propName + delimEnd;
             }
         }
         catch ( Exception e ) {
-            // Keep the original value
-            propvalString = delimStart + propval + delimEnd;
+            // Keep the original ${Property} string in output as an indicator that it was not found.
+            propvalString = delimStart + propName + delimEnd;
         }
         StringBuffer b = new StringBuffer();
-        // Append the start of the string
+        // Append the start of the string.
         if ( foundPos > 0 ) {
             b.append ( propertyValue.substring(0,foundPos) );
         }
-        // Now append the value of the property...
+        // Now append the value of the property, may be ${...} if it was not found.
         b.append ( propvalString );
-        // Now append the end of the original string if anything is at the end...
+        // Now append the end of the original string if anything is at the end.
         if ( propertyValue.length() > (foundPosEnd + 1) ) {
             b.append ( propertyValue.substring(foundPosEnd + 1) );
         }
         // Now reset the search position to finish evaluating whether to expand the string.
         propertyValue = b.toString();
-        searchPos = foundPos + propvalString.length();   // Expanded so no need to consider delim*
+        searchPos = foundPos + propvalString.length();   // Expanded so no need to consider start and end delimiters.
         Message.printStatus( 2, routine, "Expanded property value is \"" + propertyValue +
                 "\" searchpos is now " + searchPos + " in string \"" + propertyValue + "\"" );
     }
@@ -2507,24 +2347,11 @@ public String expandPropertyValue( String propertyValue )
 }
 
 /**
-Clean up for garbage collection.
-@exception Throwable if an error occurs.
-*/
-protected void finalize()
-throws Throwable
-{	__override_proplist = null;
-	__proplist = null;
-	__tslist = null;
-	super.finalize();
-}
-
-/**
-Returns all the properties in the TSProduct (from both the regular and the
-override proplist) as a sorted List.
+Returns all the properties in the TSProduct (from both the regular and the override proplist) as a sorted List.
 @return a sorted list of all the properties in the TSProduct.
 */
 public List<Prop> getAllProps() {
-	List<Prop> v = new ArrayList<Prop>();
+	List<Prop> v = new ArrayList<>();
 	
 	int size = __proplist.size();
 	for (int i = 0; i < size; i++) {
@@ -2543,16 +2370,16 @@ public List<Prop> getAllProps() {
 }
 
 /**
-Return the default value for a property.  This can be used to internally
-assign properties.  Currently the defaults are hard-coded.  At some point code
-may be added to get the defaults from a database, etc.
+Return the default value for a property.
+This can be used to internally assign properties.  Currently the defaults are hard-coded.
+At some point code may be added to get the defaults from a database, etc.
 @param param Property to get value for.
-@param subproduct Sub-product number (starting at zero).  A prefix of
-"SubProduct X." will be used for the property, where X is (subproduct.
+@param subproduct Sub-product number (starting at zero).
+A prefix of "SubProduct X." will be used for the property, where X is the subproduct.
 If negative, the sub-product property will not be checked.
-@param its Time series number within a sub-product (starting at zero).  A
-prefix of "Data X.Y." will be used for the property, where X is
-(subproduct) and Y is (its).  If negative, the data item property will not be checked.
+@param its Time series number within a sub-product (starting at zero).
+A prefix of "Data X.Y." will be used for the property, where X is (subproduct) and Y is (its).
+If negative, the data item property will not be checked.
 @return value of property or null if not found.
 */
 public String getDefaultPropValue ( String param, int subproduct, int its ) {
@@ -2560,17 +2387,17 @@ public String getDefaultPropValue ( String param, int subproduct, int its ) {
 }
 
 /**
-Return the default value for a property.  This can be used to internally
-assign properties.  Currently the defaults are hard-coded.  At some point code
-may be added to get the defaults from a database, etc.
+Return the default value for a property.
+This can be used to internally assign properties.  Currently the defaults are hard-coded.
+At some point code may be added to get the defaults from a database, etc.
 @param param Property to get value for.
-@param subproduct Sub-product number (starting at zero).  A prefix of
-"SubProduct X." will be used for the property, where X is (subproduct.
+@param subproduct Sub-product number (starting at zero).
+A prefix of "SubProduct X." will be used for the property, where X is the subproduct.
 If negative, the sub-product property will not be checked.
-@param its Time series number within a sub-product (starting at zero).  A
-prefix of "Data X.Y." will be used for the property, where X is
-(subproduct) and Y is (its).  If negative, the data item property will
-not be checked.  This is also used for annotations -- see the isAnnotation property.
+@param its Time series number within a sub-product (starting at zero).
+A prefix of "Data X.Y." will be used for the property, where X is (subproduct) and Y is (its).
+If negative, the data item property will not be checked.
+This is also used for annotations -- see the isAnnotation property.
 @param isAnnotation is true, then its will be treated as the number of an 
 annotation under the given subproduct, rather than a time series under the given subproduct.
 @return value of property or null if not found.
@@ -2580,29 +2407,28 @@ public String getDefaultPropValue ( String param, int subproduct, int its, boole
 }
 
 /**
-Return the default value for a property.  This can be used to internally
-assign properties.  Currently the defaults are hard-coded.  At some point code
-may be added to get the defaults from a database, etc.
+Return the default value for a property.
+This can be used to internally assign properties.  Currently the defaults are hard-coded.
+At some point code may be added to get the defaults from a database, etc.
 @param param Property to get value for.
-@param subproduct Sub-product number (starting at zero).  A prefix of
-"SubProduct X." will be used for the property, where X is (subproduct.
+@param subproduct Sub-product number (starting at zero).
+A prefix of "SubProduct X." will be used for the property, where X is the subproduct.
 If negative, the sub-product property will not be checked.
-@param its Time series number within a sub-product (starting at zero).  A
-prefix of "Data X.Y." will be used for the property, where X is
-(subproduct) and Y is (its).  If negative, the data item property will
+@param its Time series number within a sub-product (starting at zero).
+A prefix of "Data X.Y." will be used for the property, where X is (subproduct) and Y is (its).
+If negative, the data item property will
 not be checked.  This is also used for annotations -- see the isAnnotation property.
 @param isAnnotation is true, then its will be treated as the number of an 
 annotation under the given subproduct, rather than a time series under the given subproduct.
 @param graphType the kind of graph for which the default prop is being 
-returned.  Certain properties have different default values for certain kinds
-of graphs.  If null, then the value will be ignored.
+returned.  Certain properties have different default values for certain kinds of graphs.
+If null, then the value will be ignored.
 @return value of property or null if not found.
 */
 public String getDefaultPropValue ( String param, int subproduct, int its,
 boolean isAnnotation, TSGraphType graphType) {
 	//
-	//
-	// Annotation properties
+	// Annotation properties.
 	//
 	if (isAnnotation) {
 		if (param.equalsIgnoreCase("AnnotationID")) {
@@ -2705,15 +2531,15 @@ boolean isAnnotation, TSGraphType graphType) {
 		}
 		else if ( param.equalsIgnoreCase("OutputFile") ) {
 			if ( IOUtil.isUNIXMachine() ) {
-				// TODO SAM
+				// TODO SAM ? what?
 				return "/tmp/tmp.jpg";
 			}
 			else {
 			    return "C:\\temp\\tmp.jpg";
 			}
 		}
-		// "PeriodEnd" set at run-time
-		// "PeriodStart" set at run-time
+		// "PeriodEnd" set at run-time.
+		// "PeriodStart" set at run-time.
 		else if ( param.equalsIgnoreCase("PreviewOutput") ) {
 			return "False";
 		}
@@ -2743,7 +2569,7 @@ boolean isAnnotation, TSGraphType graphType) {
 		}
 		else if ( param.equalsIgnoreCase("TotalHeight") ) {
 			//return "400";
-			// 2017-04-08 Make larger
+			// 2017-04-08 Make larger.
 			return "600";
 		}
 		else if ( param.equalsIgnoreCase("TotalWidth") ) {
@@ -2758,7 +2584,7 @@ boolean isAnnotation, TSGraphType graphType) {
 	//
 
 	else if ( (subproduct >= 0) && (its < 0) ) {
-		// Subproduct property...
+		// Subproduct property.
         if ( param.equalsIgnoreCase("BarOverlap") ) {
             return "False";
         }
@@ -2836,7 +2662,7 @@ boolean isAnnotation, TSGraphType graphType) {
 		else if ( param.equalsIgnoreCase("LeftYAxisLabelFontSize") ){
 			return "10";
 		}
-        // "LegendPosition" is being replaced by "LeftYAxisLegendPosition"
+        // "LegendPosition" is being replaced by "LeftYAxisLegendPosition".
 		else if ( param.equalsIgnoreCase("LeftYAxisLegendPosition") ){
 			return "BottomLeft";
 		}
@@ -2846,7 +2672,7 @@ boolean isAnnotation, TSGraphType graphType) {
 		else if ( param.equalsIgnoreCase("LeftYAxisMajorTickColor") ){
 			return "None";
 		}
-		// "LeftYAxisLabelPrecision" determined at run-time
+		// "LeftYAxisLabelPrecision" determined at run-time.
 		else if ( param.equalsIgnoreCase("LeftYAxisMax") ) {
 			return "Auto";
 		}
@@ -2877,7 +2703,7 @@ boolean isAnnotation, TSGraphType graphType) {
 		else if ( param.equalsIgnoreCase("LeftYAxisType") ){
 			return "Linear";
 		}
-		// "LeftYAxisUnits" determined at run-time
+		// "LeftYAxisUnits" determined at run-time.
 		else if ( param.equalsIgnoreCase("LegendFontName") ) {
 			return "Arial";
 		}
@@ -2890,7 +2716,7 @@ boolean isAnnotation, TSGraphType graphType) {
 		else if ( param.equalsIgnoreCase("LegendFormat") ){
 			return "Auto";
 		}
-        // "LegendPosition" is being replaced by "LeftYAxisLegendPosition"
+        // "LegendPosition" is being replaced by "LeftYAxisLegendPosition".
 		else if ( param.equalsIgnoreCase("LegendPosition") ){
 			return "BottomLeft";
 		}
@@ -2906,7 +2732,7 @@ boolean isAnnotation, TSGraphType graphType) {
 		else if ( param.equalsIgnoreCase("MainTitleString") ){
 			return "";
 		}
-		// "PeriodStart", "PeriodEnd" set at runtime
+		// "PeriodStart", "PeriodEnd" set at runtime.
         else if ( param.equalsIgnoreCase("RightYAxisDirection") ) {
             return "" + GRAxisDirectionType.NORMAL;
         }
@@ -2932,9 +2758,9 @@ boolean isAnnotation, TSGraphType graphType) {
 			return "None";
 		}
 		else if ( param.equalsIgnoreCase("RightYAxisMajorTickColor") ){
-			return "None"; // Default for now to be consistent with left, but may change to black
+			return "None"; // Default for now to be consistent with left, but may change to black.
 		}
-		// "RightYAxisLabelPrecision" determined at run-time
+		// "RightYAxisLabelPrecision" determined at run-time.
 		else if ( param.equalsIgnoreCase("RightYAxisMax") ) {
 			return "Auto";
 		}
@@ -3024,7 +2850,7 @@ boolean isAnnotation, TSGraphType graphType) {
 			return "";
 		}
 		else if ( param.equalsIgnoreCase("XYScatterIntercept") ) {
-			return "";	// No intercept - calculate it
+			return "";	// No intercept - calculate it.
 		}
 		else if ( param.equalsIgnoreCase("XYScatterMethod") ) {
 			return "OLSRegression";
@@ -3047,11 +2873,11 @@ boolean isAnnotation, TSGraphType graphType) {
 	}
 
 	//
-	// Data properties
+	// Data properties.
 	//
 
 	else if ( (subproduct >= 0) && (its >= 0) ) {
-		// Data property...
+		// Data property.
 		if ( param.equalsIgnoreCase("Color") ){
 			return "black";
 		}
@@ -3065,15 +2891,15 @@ boolean isAnnotation, TSGraphType graphType) {
 			return "True";
 		}
         else if ( param.equalsIgnoreCase("FlaggedDataSymbolStyle") ){
-            // Same as "SymbolStyle"
+            // Same as "SymbolStyle".
             return getDefaultPropValue ( "SymbolStyle", subproduct, its, isAnnotation, graphType );
         }
 		else if ( param.equalsIgnoreCase("GraphType") ){
 			return "Line";
 		}
 		else if ( param.equalsIgnoreCase("LegendFormat") ){
-		    // If the time series property tsp:LegendFormat is set, use it
-		    // TODO SAM 2014-04-14 If this works, evaluate making generic for every property
+		    // If the time series property tsp:LegendFormat is set, use it.
+		    // TODO SAM 2014-04-14 If this works, evaluate making generic for every property.
 		    Object o = null;
 		    TS ts = getTS(its);
 		    if ( ts != null ) {
@@ -3083,7 +2909,7 @@ boolean isAnnotation, TSGraphType graphType) {
 		        return "Auto";
 		    }
 		    else {
-		        // TS property specifies the format
+		        // TS property specifies the format.
 		        return "" + o;
 		    }
 		}
@@ -3109,13 +2935,13 @@ boolean isAnnotation, TSGraphType graphType) {
 				return "1";
 			}
 		}
-		// PeriodEnd, PeriodStart set at runtime
+		// PeriodEnd, PeriodStart set at runtime.
 		// Raster legend default is Right so it will always show up when graph originates from TSTool UI.
 		else if (param.equalsIgnoreCase("RasterGraphLegendPosition")) {
 			return "Right";
 			//return "None";
 		}
-		// This should only be called for XY-Scatter plots...
+		// This should only be called for XY-Scatter plots.
 		else if ( param.equalsIgnoreCase("RegressionLineEnabled") ){
 			return "true";
 		}
@@ -3164,43 +2990,41 @@ boolean isAnnotation, TSGraphType graphType) {
 }
 
 /**
-Return the property value for a requested property.  This first searches the
-override properties and then the main properties.  The main properties are
-searched in layered fashion, starting with the product, then the sub-product,
-and then the time series.  The last value specified will be used (but will
-always be override if an override property is specified.
+Return the property value for a requested property.
+This first searches the override properties and then the main properties.
+The main properties are searched in layered fashion, starting with the product, then the sub-product, and then the time series.
+The last value specified will be used (but will always be override if an override property is specified.
 @param property Property to get value for.
-@param subproduct Sub-product number (starting at zero).  A prefix of
-"SubProduct X." will be used for the property, where X is (subproduct.
+@param subproduct Sub-product number (starting at zero).
+A prefix of "SubProduct X." will be used for the property, where X is the subproduct.
 If negative, the sub-product property will not be checked.
-@param its Time series number within a sub-product (starting at zero).  A
-prefix of "Data X.Y." will be used for the property, where X is
-(subproduct) and Y is (its).  If negative, the data item property will not be checked.
+@param its Time series number within a sub-product (starting at zero).
+A prefix of "Data X.Y." will be used for the property, where X is (subproduct) and Y is (its).
+If negative, the data item property will not be checked.
 @return value of property or null if not found.
-TODO SAM make sure that override properties can contain annotations.  Problem: how to
-dynamically add annotations without conflict.
+TODO SAM make sure that override properties can contain annotations.
+Problem: how to dynamically add annotations without conflict.
 */
 public String getLayeredPropValue ( String property, int subproduct, int its )
 {	return getLayeredPropValue ( property, subproduct, its, true );
 }
 
 /**
-Return the property value for a requested property.  This first searches the
-override properties and then the main properties.  The main properties are
-searched in layered fashion, starting with the product, then the sub-product,
-and then the time series.  The last value specified will be used (but will
-always be overridden if an override property is specified).
-@param subproduct Sub-product number (starting at zero).  A prefix of
-"SubProduct X." will be used for the property, where X is (subproduct.
+Return the property value for a requested property.
+This first searches the override properties and then the main properties.
+The main properties are searched in layered fashion, starting with the product, then the sub-product, and then the time series.
+The last value specified will be used (but will always be overridden if an override property is specified).
+@param subproduct Sub-product number (starting at zero).
+A prefix of "SubProduct X." will be used for the property, where X is the subproduct.
 If negative, the sub-product property will not be checked.
-@param its Time series number within a sub-product (starting at zero).  A
-prefix of "Data X.Y." will be used for the property, where X is
-(subproduct) and Y is (its).  If negative, the data item property will not be checked.  
+@param its Time series number within a sub-product (starting at zero).
+A prefix of "Data X.Y." will be used for the property, where X is (subproduct) and Y is (its).
+If negative, the data item property will not be checked.  
 @param property Property to get value for.
 @param allowLayeredProps If true, properties are allowed to be layered, with
 determination of the property starting with the most general scope, through the most specific scope.
-If false, only properties at the requested level of the finest detail are used (no
-layering).  An example of a property that may occur in several layers is "Enabled".
+If false, only properties at the requested level of the finest detail are used (no layering).
+An example of a property that may occur in several layers is "Enabled".
 @return value of property or null if not found.
 */
 public String getLayeredPropValue (	String property, int subproduct, int its, boolean allowLayeredProps ) {
@@ -3208,27 +3032,24 @@ public String getLayeredPropValue (	String property, int subproduct, int its, bo
 }
 
 /**
-Return the property value for a requested property.  This first searches the
-override properties and then the main properties.  The main properties are
-searched in layered fashion, starting with the product, then the sub-product,
-and then the time series.  The last value specified will be used (but will
-always be overridden if an override property is specified).
-@param subproduct Sub-product number (starting at zero).  A prefix of
-"SubProduct X." will be used for the property, where X is (subproduct.
+Return the property value for a requested property.
+This first searches the override properties and then the main properties.
+The main properties are searched in layered fashion, starting with the product, then the sub-product, and then the time series.
+The last value specified will be used (but will always be overridden if an override property is specified).
+@param subproduct Sub-product number (starting at zero).
+A prefix of "SubProduct X." will be used for the property, where X is the subproduct.
 If negative, the sub-product property will not be checked.
-@param its Time series number within a sub-product (starting at zero).  A
-prefix of "Data X.Y." will be used for the property, where X is
-(subproduct) and Y is (its).  If negative, the data item property will
-not be checked.  This is also used for specifying annotations.  See the
-isAnnotation parameter for more info.
+@param its Time series number within a sub-product (starting at zero).
+A prefix of "Data X.Y." will be used for the property, where X is (subproduct) and Y is (its).
+If negative, the data item property will not be checked.  This is also used for specifying annotations.
+See the isAnnotation parameter for more info.
 @param property Property to get value for.
-@param allowLayeredProps If true, properties are allowed to be layered, with
-the most general scope property applying to the most specific if not overridden.
-If false, only properties at the level of the finest detail are used (no
-layering).  An example of a property that may occur in several layers is "Enabled".
-@param isAnnotation if true, then its will be treated as the number of an
-annotation under the given subproduct, rather than the number of a time series
-under the given subproduct.
+@param allowLayeredProps If true, properties are allowed to be layered,
+with the most general scope property applying to the most specific if not overridden.
+If false, only properties at the level of the finest detail are used (no layering).
+An example of a property that may occur in several layers is "Enabled".
+@param isAnnotation if true, then its will be treated as the number of an annotation under the given subproduct,
+rather than the number of a time series under the given subproduct.
 @return value of property or null if not found.
 */
 public String getLayeredPropValue (	String property, int subproduct,
@@ -3236,7 +3057,7 @@ public String getLayeredPropValue (	String property, int subproduct,
 {	String value = null;
 	String value2 = null;
 	//Message.printStatus ( 2, "", "Looking up \"" + property + "\" " + subproduct + " " + its );
-	// First search the override properties...
+	// First search the override properties.
 	if ( __override_proplist != null ) {
 		value = __override_proplist.getValue ( property );
 		if ( value != null ) {
@@ -3244,19 +3065,17 @@ public String getLayeredPropValue (	String property, int subproduct,
 		}
 	}
 
-	// Next search the main proplist...
+	// Next search the main proplist.
 
 	if ( allowLayeredProps ) {
-		// Search to find the most specific property...
+		// Search to find the most specific property.
 		if ( __proplist != null ) {
-			// First search the generic property (not a strict
-			// product file format, or pre-formatted to do what is done below)...
+			// First search the generic property (not a strict product file format, or pre-formatted to do what is done below).
 			value = __proplist.getValue ( property );
-			// Next search the main product...
+			// Next search the main product.
 			if (isAnnotation) {
 				value2 = null;
-				// this is done because both a subproduct and
-				// an annotation number must be specified to bring back an annotation.
+				// This is done because both a subproduct and an annotation number must be specified to bring back an annotation.
 			}
 			else {
 				value2 = __proplist.getValue( "Product." + property);
@@ -3264,14 +3083,11 @@ public String getLayeredPropValue (	String property, int subproduct,
 			if ( value2 != null ) {
 				value = value2;
 			}
-			// Now search the sub-product...
+			// Now search the sub-product.
 			if ( subproduct >= 0 ) {
 				if (isAnnotation) {
 					value2 = null;
-					// this is done because both a 
-					// subproduct and an annotation number 
-					// must be specified to bring back an 
-					// annotation.
+					// This is done because both a subproduct and an annotation number must be specified to bring back an annotation.
 				}
 				else {
 					value2 = __proplist.getValue("SubProduct " + (subproduct + 1) + "." + property);
@@ -3281,7 +3097,7 @@ public String getLayeredPropValue (	String property, int subproduct,
 					value = value2;
 				}
 			}
-			// Now search the data or annotation item...
+			// Now search the data or annotation item.
 			if ( its >= 0 ) {
 			// TODO SAM Math.abs() doesn't make sense, but it's been like that for years now.
 				if (isAnnotation) {
@@ -3300,13 +3116,11 @@ public String getLayeredPropValue (	String property, int subproduct,
 		return value;
 	}
 	else {
-	    // The request is specifically for a certain level...
+	    // The request is specifically for a certain level.
 		if ( subproduct < 0 ) {
-			// Product property...
+			// Product property.
 			if (isAnnotation) {
-				// this is done because both a subproduct and
-				// an annotation number must be specified
-				// to bring back an annotation.
+				// This is done because both a subproduct and an annotation number must be specified to bring back an annotation.
 				return null;
 			}
 			else {
@@ -3314,11 +3128,9 @@ public String getLayeredPropValue (	String property, int subproduct,
 			}
 		}
 		else if ((subproduct >= 0) && (its < 0)) {
-			// Subproduct property...
+			// Subproduct property.
 			if (isAnnotation) {
-				// this is done because both a subproduct and
-				// an annotation number must be specified
-				// to bring back an annotation.
+				// This is done because both a subproduct and an annotation number must be specified to bring back an annotation.
 				return null;
 			}
 			else {
@@ -3326,7 +3138,7 @@ public String getLayeredPropValue (	String property, int subproduct,
 			}
 		}
 		else if ( (subproduct >=0) && (its >= 0) ) {
-			// Data or annotation property...
+			// Data or annotation property.
 			if (isAnnotation) {
 				return __proplist.getValue("Annotation " + (subproduct + 1) + "." + (its + 1)
 					+ "." + property);
@@ -3337,7 +3149,7 @@ public String getLayeredPropValue (	String property, int subproduct,
 			}
 		}
 	}
-	// Requested combination is not found...
+	// Requested combination is not found.
 	return null;
 }
 
@@ -3352,7 +3164,7 @@ public int getNumAnnotations(int subproduct) {
 	int ndata = -1;
 	String prop_value = null;
 	for (int i = 0; ; i++) {
-		// Use false to make sure we are getting the specific property..
+		// Use false to make sure we are getting the specific property.
 		prop_value = getLayeredPropValue("ShapeType", subproduct, i, false, true);
 		if (prop_value != null) {
 			ndata = i;
@@ -3368,9 +3180,9 @@ public int getNumAnnotations(int subproduct) {
 }
 
 /**
-Return the number of data items that are defined for a subproduct.  This is
-determined by checking the properties for "Data S.N.XXXX", where S is the
-subproduct number (minus 1, starting at 0) and XXXX is "TSID", "TS", and "TSAlias".
+Return the number of data items that are defined for a subproduct.
+This is determined by checking the properties for "Data S.N.XXXX",
+where S is the subproduct number (minus 1, starting at 0) and XXXX is "TSID", "TS", and "TSAlias".
 The largest N that returns a value is assumed to be the number of data sets.
 @param subproduct The subproduct to check (zero or greater).
 @return the number of data sets for a subproduct or zero if none are defined.
@@ -3379,7 +3191,7 @@ public int getNumData ( int subproduct )
 {	int ndata = -1;
 	String prop_value = null;
 	for ( int i = 0; ; i++ ) {
-		// Use false to make sure we are getting the specific property..
+		// Use false to make sure we are getting the specific property.
 		prop_value = getLayeredPropValue ("TSID", subproduct, i, false);
 		if ( prop_value != null ) {
 			ndata = i;
@@ -3417,10 +3229,10 @@ public int getNumSubProducts ()
 }
 
 /**
-Return the number of enabled subproducts that are defined.  This is determined
-by checking the properties for "Data N.1.XXXX", where XXXX is "TSID", "TSAlias", "TS",
-"GraphType", "TemplateTSID", and "MainTitleString" .  The largest N
-that returns a value is assumed to be the number of subproducts.
+Return the number of enabled subproducts that are defined.
+This is determined by checking the properties for "Data N.1.XXXX", where XXXX is "TSID", "TSAlias", "TS",
+"GraphType", "TemplateTSID", and "MainTitleString".
+The largest N that returns a value is assumed to be the number of subproducts.
 @return the number of subproducts or zero if none are defined.
 @param enabled_only If true, only enabled subproducts are counted.
 */
@@ -3428,13 +3240,11 @@ public int getNumSubProducts ( boolean enabled_only )
 {	int nsubs = -1;
 	String prop_value = null;
 
-    // TODO (JTS - 2005-05-06)
-    // enabled_only isn't working properly -- it's checking for whether any 
-    // TIME SERIES are enabled or not, and if not, marking the entire subproduct as not enabled.  
+    // TODO (JTS - 2005-05-06) enabled_only isn't working properly.
+	// It's checking for whether any TIME SERIES are enabled or not, and if not, marking the entire subproduct as not enabled.  
 	
 	int count = 0;
-	// the following makes sure that data exists in the product.  If not,
-	// then the data number is forced to -1
+	// The following makes sure that data exists in the product.  If not, then the data number is forced to -1.
 	int numData = -1;
 	int data = 0;
 	for ( int i = 0; ; i++ ) {
@@ -3442,7 +3252,7 @@ public int getNumSubProducts ( boolean enabled_only )
 		if (numData == 0) {
 			data = -1;
 		}
-		// Use false to make sure we are getting the specific property..
+		// Use false to make sure we are getting the specific property.
 		prop_value = getLayeredPropValue ( "TSID", i, data, false );
 		if ( prop_value != null ) {
 			nsubs = i;
@@ -3528,7 +3338,7 @@ public int getNumSubProducts ( boolean enabled_only )
 			continue;
 		}
 		if ( nsubs != i ) {
-			// Ran out of subproducts...
+			// Ran out of subproducts.
 			break;
 		}
 	}
@@ -3579,9 +3389,10 @@ public int getPropsHowSet() {
 }
 
 /**
-Return the property value for a requested property.  This first searches the
-override properties and then the main properties.  The fully-expanded property
-name is used.  Use getLayeredPropValue() to request a property using product, subproduct, etc.
+Return the property value for a requested property.
+This first searches the override properties and then the main properties.
+The fully-expanded property name is used.
+Use getLayeredPropValue() to request a property using product, subproduct, etc.
 @param property Property to get value for.
 @return value of property or null if not found.
 */
@@ -3653,9 +3464,8 @@ public boolean isDirty() {
 	Prop p = null;
 	int size = __proplist.size();
 	for (int i = 0; i < size; i++) {
-		p = (Prop)__proplist.elementAt(i);
-//		Message.printStatus(1, "", " (" + p.getHowSet() + ") "
-//			+ p.getKey());
+		p = __proplist.elementAt(i);
+//		Message.printStatus(1, "", " (" + p.getHowSet() + ") " + p.getKey());
 		if (p.getHowSet() == Prop.SET_AT_RUNTIME_BY_USER) {
 			return true;
 		}
@@ -3667,9 +3477,8 @@ public boolean isDirty() {
 	
 	size = __override_proplist.size();
 	for (int i = 0; i < size; i++) {
-		p = (Prop)__override_proplist.elementAt(i);
-//		Message.printStatus(1, "", " (" + p.getHowSet() + ") "
-//			+ p.getKey());
+		p = __override_proplist.elementAt(i);
+//		Message.printStatus(1, "", " (" + p.getHowSet() + ") " + p.getKey());
 		if (p.getHowSet() == Prop.SET_AT_RUNTIME_BY_USER) {
 			return true;
 		}	
@@ -3686,7 +3495,7 @@ protected void propsSaved() {
 	Prop p = null;
 	int size = __proplist.size();
 	for (int i = 0; i < size; i++) {
-		p = (Prop)__proplist.elementAt(i);
+		p = __proplist.elementAt(i);
 		if (p.getHowSet() == Prop.SET_AT_RUNTIME_BY_USER) {
 			p.setHowSet(Prop.SET_FROM_PERSISTENT);
 		}
@@ -3698,7 +3507,7 @@ protected void propsSaved() {
 	
 	size = __override_proplist.size();
 	for (int i = 0; i < size; i++) {
-		p = (Prop)__override_proplist.elementAt(i);
+		p = __override_proplist.elementAt(i);
 		if (p.getHowSet() == Prop.SET_AT_RUNTIME_BY_USER) {
 			p.setHowSet(Prop.SET_FROM_PERSISTENT);
 		}	
@@ -3737,10 +3546,10 @@ protected void removeAnnotation(int sp, int iann) {
 	String delsp = "" + (sp + 1);
 	String dsp = "" + iann;
 
-	// next, go through the properties and unset the appropriate annotations
+	// Next, go through the properties and unset the appropriate annotations.
 //Message.printStatus(1, "", "Size: " + __proplist.size());
 	for (int i = 0; i < __proplist.size(); i++) {
-		p = (Prop)__proplist.elementAt(i);
+		p = __proplist.elementAt(i);
 		key = p.getKey();
 		if (StringUtil.startsWithIgnoreCase(key, "Annotation ")) {
 			indexSpace = key.indexOf(" ");
@@ -3762,12 +3571,12 @@ protected void removeAnnotation(int sp, int iann) {
 		}
 	}
 
-	// check the override proplist and delete from there, too
+	// Check the override proplist and delete from there also.
 	if (__override_proplist == null) {
 		return;
 	}
 	for (int i = 0; i < __override_proplist.size(); i++) {
-		p = (Prop)__override_proplist.elementAt(i);
+		p = __override_proplist.elementAt(i);
 		key = p.getKey();
 		if (StringUtil.startsWithIgnoreCase(key, "Annotation ")) {
 			indexSpace = key.indexOf(" ");
@@ -3787,9 +3596,9 @@ protected void removeAnnotation(int sp, int iann) {
 }
 
 /**
-Removes a subproduct from the product.  No renumbering will be done for the
-other subproducts -- this is handled (along with some other special work) in
-the layout component already, which calls this method.  
+Removes a subproduct from the product.
+No renumbering will be done for the other subproducts.
+This is handled (along with some other special work) in the layout component already, which calls this method.  
 @param sp the number of the subproduct (0-based) to remove.
 */
 protected void removeSubProduct(int sp) {
@@ -3801,7 +3610,7 @@ protected void removeSubProduct(int sp) {
 	String del = "" + (sp + 1);
 	__dirty = true;
 
-	// remove the time series that are in this subproduct
+	// Remove the time series that are in this subproduct.
 	// FIXME SAM 2008-01-29 Evaluate how TSAlias is handled.
 	int numData = getNumData(sp);
 	String id = null;
@@ -3809,7 +3618,7 @@ protected void removeSubProduct(int sp) {
 	for (int i = 0; i < numData; i++) {
 		id = getPropValue("Data " + (sp + 1) + "." + (i + 1) + ".TSID");
 		for (int j = 0; j < __tslist.size(); j++) {
-			ts = (TS)__tslist.get(j);
+			ts = __tslist.get(j);
 			if (ts.getIdentifierString().equals(id)) {
 				__tslist.remove(j);
 				break;
@@ -3817,9 +3626,9 @@ protected void removeSubProduct(int sp) {
 		}
 	}
 
-	// Loop through the main proplist and unset all the appropriate properties
+	// Loop through the main proplist and unset all the appropriate properties.
 	for (int i = 0; i < __proplist.size(); i++) {
-		p = (Prop)__proplist.elementAt(i);
+		p = __proplist.elementAt(i);
 		key = p.getKey();
 		indexSpace = key.indexOf(" ");
 		indexDot = key.indexOf(".");
@@ -3832,13 +3641,12 @@ protected void removeSubProduct(int sp) {
 		}
 	}
 
-	// check the override proplist and if it contains anything, remove
-	// the properties from it as well
+	// Check the override proplist and if it contains anything, remove the properties from it as well.
 	if (__override_proplist == null) {
 		return;
 	}
 	for (int i = 0; i < __override_proplist.size(); i++) {
-		p = (Prop)__proplist.elementAt(i);
+		p = __proplist.elementAt(i);
 		key = p.getKey();
 		indexSpace = key.indexOf(" ");
 		indexDot = key.indexOf(".");
@@ -3853,11 +3661,11 @@ protected void removeSubProduct(int sp) {
 }
 
 /**
-Renames annotation properties from one number to another.  In any property
-named in the style 'Annotation X.Y.VALUE', this method replaces the X.Y 
-section with the new values passed in as parameters newSub and newAnn, 
-respectively.  For this reason, the parameters are not 0-based.  This is 
-used to maintain proper ordered numbering schemes in the proplist when deleting annotations.
+Renames annotation properties from one number to another.
+In any property named in the style 'Annotation X.Y.VALUE', this method replaces the X.Y 
+section with the new values passed in as parameters newSub and newAnn, respectively.
+For this reason, the parameters are not 0-based.
+This is used to maintain proper ordered numbering schemes in the proplist when deleting annotations.
 @param origSub the original subproduct number of the annotation properties
 @param origAnn the original annotation number of the properties
 @param newSub the new subproduct number of the annotation properties
@@ -3872,29 +3680,27 @@ protected void renameAnnotationProps(String origSub, String origAnn, String newS
 	String num1 = "";
 	String num2 = "";
 	String rest = "";
-	List<Prop> v = new Vector<Prop>();
+	List<Prop> v = new Vector<>();
 	__dirty = true;
 
-	// loop through the proplist
+	// Loop through the proplist.
 	for (int i = 0; i < __proplist.size(); i++) {
 		p = __proplist.elementAt(i);
 		key = p.getKey();
 
-		// only be concerned with properties starting with 'Annotation '
+		// Only be concerned with properties starting with 'Annotation '.
 		if (StringUtil.startsWithIgnoreCase(key, "Annotation ")) {
 			indexSpace = key.indexOf(" ");
 			indexDot1 = key.indexOf(".");		
 			
 			if (indexSpace > -1 && indexDot1 > -1) {
-				// Pull out the subproduct and annotation number from the property and compare to origSub
-				// and origAnn
+				// Pull out the subproduct and annotation number from the property and compare to origSub and origAnn.
 				num1 = key.substring(indexSpace + 1, indexDot1);
 				rest = key.substring(indexDot1 + 1);
 				indexDot2 = rest.indexOf(".");
 				num2 = rest.substring(0, indexDot2);
 				if (num1.equals(origSub) && indexDot2 > -1 && num2.equals(origAnn)) {
-					// If they match, replace them with the newSub and newAnn and put the
-					// new property in the prop list
+					// If they match, replace them with the newSub and newAnn and put the new property in the prop list.
 					__proplist.unSet(key);
 					i--;
 					p.setKey( key.substring(0, indexSpace) + " " + newSub + "." + newAnn
@@ -3905,7 +3711,7 @@ protected void renameAnnotationProps(String origSub, String origAnn, String newS
 		}
 	}
 	for (int i = 0; i < v.size(); i++) {
-		p = (Prop)v.get(i);
+		p = v.get(i);
 		if (p.getHowSet() == Prop.SET_FROM_PERSISTENT) {
 			__proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
 		}
@@ -3915,12 +3721,12 @@ protected void renameAnnotationProps(String origSub, String origAnn, String newS
 		__proplist.set(p);
 	}
 
-	v = new Vector<Prop>();
+	v = new Vector<>();
 	if (__override_proplist == null) {
 		return;
 	}
 	for (int i = 0; i < __override_proplist.size(); i++) {
-		p = (Prop)__override_proplist.elementAt(i);
+		p = __override_proplist.elementAt(i);
 		key = p.getKey();
 		if (StringUtil.startsWithIgnoreCase(key, "Annotation ")) {
 			indexSpace = key.indexOf(" ");
@@ -3941,7 +3747,7 @@ protected void renameAnnotationProps(String origSub, String origAnn, String newS
 		}	
 	}
 	for (int i = 0; i < v.size(); i++) {
-		p = (Prop)v.get(i);
+		p = v.get(i);
 		if (p.getHowSet() == Prop.SET_FROM_PERSISTENT) {
 			__override_proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
 		}
@@ -3953,11 +3759,11 @@ protected void renameAnnotationProps(String origSub, String origAnn, String newS
 }
 
 /**
-Renames data properties from one number to another.  In any property
-named in the style 'Data X.Y.VALUE', this method replaces the X.Y 
-section with the new values passed in as parameters newSub and newData, 
-respectively.  For this reason, the parameters are not 0-based.  This is 
-used to maintain proper ordered numbering schemes in the proplist when deleting data properties.
+Renames data properties from one number to another.
+In any property named in the style 'Data X.Y.VALUE', this method replaces the X.Y 
+section with the new values passed in as parameters newSub and newData, respectively.
+For this reason, the parameters are not 0-based.
+This is used to maintain proper ordered numbering schemes in the proplist when deleting data properties.
 @param origSub the original subproduct number of the data properties
 @param origD the original data number of the properties
 @param newSub the destination subproduct number of the data properties
@@ -3972,28 +3778,26 @@ protected void renameDataProps(String origSub, String origD, String newSub, Stri
 	String num1 = "";
 	String num2 = "";
 	String rest = "";
-	List<Prop> v = new Vector<Prop>();
+	List<Prop> v = new Vector<>();
 	__dirty = true;
 
-	// loop through the proplist
+	// Loop through the proplist.
 	for (int i = 0; i < __proplist.size(); i++) {
-		p = (Prop)__proplist.elementAt(i);
+		p = __proplist.elementAt(i);
 		key = p.getKey();
 
-		// only be concerned with data properties
+		// Only be concerned with data properties.
 		if (StringUtil.startsWithIgnoreCase(key, "Data ")) {
 			indexSpace = key.indexOf(" ");
 			indexDot1 = key.indexOf(".");		
 			if (indexSpace > -1 && indexDot1 > -1) {
-				// pull out the subproduct and data number
-				// from the property and compare to origSub and origData
+				// Pull out the subproduct and data number from the property and compare to origSub and origData.
 				num1 = key.substring(indexSpace + 1, indexDot1);
 				rest = key.substring(indexDot1 + 1);
 				indexDot2 = rest.indexOf(".");
 				num2 = rest.substring(0, indexDot2);
 				if (num1.equals(origSub) && indexDot2 > -1 && num2.equals(origD)) {
-					// if they match, replace them with the newSub and newAnn and put the
-					// new property in the prop list
+					// If they match, replace them with the newSub and newAnn and put the new property in the prop list.
 					__proplist.unSet(key);
 					i--;
 					p.setKey(key.substring(0, indexSpace) + " " + newSub + "." + newData
@@ -4004,7 +3808,7 @@ protected void renameDataProps(String origSub, String origD, String newSub, Stri
 		}
 	}
 	for (int i = 0; i < v.size(); i++) {
-		p = (Prop)v.get(i);
+		p = v.get(i);
 		if (p.getHowSet() == Prop.SET_FROM_PERSISTENT) {
 			__proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
 		}
@@ -4014,12 +3818,12 @@ protected void renameDataProps(String origSub, String origD, String newSub, Stri
 		__proplist.set(p);
 	}
 
-	v = new Vector<Prop>();
+	v = new Vector<>();
 	if (__override_proplist == null) {
 		return;
 	}
 	for (int i = 0; i < __override_proplist.size(); i++) {
-		p = (Prop)__override_proplist.elementAt(i);
+		p = __override_proplist.elementAt(i);
 		key = p.getKey();
 		if (StringUtil.startsWithIgnoreCase(key, "Data ")) {
 			indexSpace = key.indexOf(" ");
@@ -4040,7 +3844,7 @@ protected void renameDataProps(String origSub, String origD, String newSub, Stri
 		}	
 	}
 	for (int i = 0; i < v.size(); i++) {
-		p = (Prop)v.get(i);
+		p = v.get(i);
 		if (p.getHowSet() == Prop.SET_FROM_PERSISTENT) {
 			__override_proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
 		}
@@ -4052,11 +3856,11 @@ protected void renameDataProps(String origSub, String origD, String newSub, Stri
 }
 
 /**
-Renames properties from one number to another.  In any property
-named in the style 'Name X.Y.VALUE', this method replaces the X 
-section with the new value passed in as parameter newSub.
-For this reason, the parameters are not 0-based.  This is 
-used to maintain proper ordered numbering schemes in the proplist when deleting subproduct properties.
+Renames properties from one number to another.
+In any property named in the style 'Name X.Y.VALUE',
+this method replaces the X section with the new value passed in as parameter newSub.
+For this reason, the parameters are not 0-based.
+This is used to maintain proper ordered numbering schemes in the proplist when deleting subproduct properties.
 @param origSub the original number of the properties
 @param destSub the destination number of the properties
 */
@@ -4066,18 +3870,18 @@ private void renameSubProductProps(String origSub, String destSub) {
 	int indexSpace = -1;
 	int indexDot = -1;
 	String num = "";
-	// loop through the proplist
+	// Loop through the proplist.
 	for (int i = 0; i < __proplist.size(); i++) {
-		p = (Prop)__proplist.elementAt(i);
+		p = __proplist.elementAt(i);
 		key = p.getKey();
 		indexSpace = key.indexOf(" ");
 		indexDot = key.indexOf(".");
-		// only be concerned with data properties
+		// Only be concerned with data properties.
 		if (indexSpace > -1 && indexDot > -1) {
 			num = key.substring(indexSpace + 1, indexDot);
-			// pull out the subproduct from the property and compare to origSub
+			// Pull out the subproduct from the property and compare to origSub.
 			if (num.equals(origSub)) {
-				// if they match, replace it with the newSub and put the new property in the prop list
+				// If they match, replace it with the newSub and put the new property in the prop list.
 				if (p.getHowSet() == Prop.SET_FROM_PERSISTENT) {
 					__proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
 				}
@@ -4092,7 +3896,7 @@ private void renameSubProductProps(String origSub, String destSub) {
 		return;
 	}
 	for (int i = 0; i < __override_proplist.size(); i++) {
-		p = (Prop)__proplist.elementAt(i);
+		p = __proplist.elementAt(i);
 		key = p.getKey();
 		indexSpace = key.indexOf(" ");
 		indexDot = key.indexOf(".");
@@ -4123,17 +3927,17 @@ protected void setDirty(boolean dirty) {
 
 /**
 Set a property in the override PropList.  This is typically used for properties
-associated with a TSProduct that are supplemental to describing the TSProduct or
-are set dynamically.  For example, a graphing display may show a reference
-graph.  This information is controlled by the GUI and not the TSProduct (which
-may be read from a file).  The TSProduct may indicate which time series to use
+associated with a TSProduct that are supplemental to describing the TSProduct or are set dynamically.
+For example, a graphing display may show a reference graph.
+This information is controlled by the GUI and not the TSProduct (which may be read from a file).
+The TSProduct may indicate which time series to use
 in the reference graph but the TSProduct itself will be used for both the full and reference graphs.
 @param property Override property to set.
 @param value Value of override property.
 */
 public void setOverridePropValue ( String property, String value )
 {	if ( __override_proplist == null ) {
-		// Create a new list...
+		// Create a new list.
 		__override_proplist = new PropList ( "Override" );
 	}
 	__override_proplist.set ( property, value );
@@ -4148,7 +3952,7 @@ TODO (2005-11-01) change name to 'changeAllPropsHowSet'
 public void setPropsHowSet(int how) {
 	int size = __proplist.size();
 	for (int i = 0; i < size; i++) {
-		((Prop)__proplist.elementAt(i)).setHowSet(how);
+		__proplist.elementAt(i).setHowSet(how);
 	}
 
 	if (__override_proplist == null) {
@@ -4156,9 +3960,8 @@ public void setPropsHowSet(int how) {
 	} 
 	size = __override_proplist.size();
 	for (int i = 0; i < __override_proplist.size(); i++) {
-		((Prop)__override_proplist.elementAt(i)).setHowSet(how);
+		__override_proplist.elementAt(i).setHowSet(how);
 	}
-	
 }
 
 /**
@@ -4177,19 +3980,18 @@ public void setPropsHowSet(int how, boolean dummy) {
 
 /**
 Set a property value.  This method sets the property specifically at
-the level that is specified (it does not consider layers of properties).  The
-calling code should specifically set properties at the proper level.  The
-property is set in the main PropList (not the override PropList).
+the level that is specified (it does not consider layers of properties).
+The calling code should specifically set properties at the proper level.
+The property is set in the main PropList (not the override PropList).
 @param property Property to set.  Use only the property name (e.g., "MyProp").
 The leading property, sub-property, or data prefixes will be added based on the other parameter values.
 @param value String value of the property.
-@param subproduct Sub-product number (starting at zero).  A prefix of
-"SubProduct X." will be used for the property, where X is (subproduct.
+@param subproduct Sub-product number (starting at zero).
+A prefix of "SubProduct X." will be used for the property, where X is the subproduct.
 If negative, the sub-product property will not be checked (indicating a full product property).
-@param its Time series number within a sub-product (starting at zero).  A
-prefix of "Data X.Y." will be used for the property, where X is
-(subproduct) and Y is (its).  If negative, the data item property will
-not be checked (indicating a sub-product or product property).
+@param its Time series number within a sub-product (starting at zero).
+A prefix of "Data X.Y." will be used for the property, where X is (subproduct) and Y is (its).
+If negative, the data item property will not be checked (indicating a sub-product or product property).
 */
 public void setPropValue (	String property, String value, int subproduct, int its ) {
 	setPropValue(property, value, subproduct, its, false);
@@ -4197,25 +3999,24 @@ public void setPropValue (	String property, String value, int subproduct, int it
 
 /**
 Set a property value.  This method sets the property specifically at
-the level that is specified (it does not consider layers of properties).  The
-calling code should specifically set properties at the proper level.  The
-property is set in the main PropList (not the override PropList).
+the level that is specified (it does not consider layers of properties).
+The calling code should specifically set properties at the proper level.
+The property is set in the main PropList (not the override PropList).
 @param property Property to set.  Use only the property name (e.g., "MyProp").
 The leading property, sub-property, or data prefixes will be added based on the other parameter values.
 @param value String value of the property.
-@param subproduct Sub-product number (starting at zero).  A prefix of
-"SubProduct X." will be used for the property, where X is (subproduct.
+@param subproduct Sub-product number (starting at zero).
+A prefix of "SubProduct X." will be used for the property, where X is the subproduct.
 If negative, the sub-product property will not be checked (indicating a full product property).
-@param its Time series or annotation number within a sub-product (starting at 
-zero).  A prefix of "Data X.Y." or "Annotation X.Y." will be used for the 
-property, where X is (subproduct) and Y is (its).  If negative, the data item 
-property will not be checked (indicating a sub-product or product property).  
+@param its Time series or annotation number within a sub-product (starting at zero).
+A prefix of "Data X.Y." or "Annotation X.Y." will be used for the 
+property, where X is (subproduct) and Y is (its).
+If negative, the data item property will not be checked (indicating a sub-product or product property).  
 See isAnnotation for more information.
-@param isAnnotation is true, then its is treated as the number of an annotation
-under the given subproduct, rather than the number of a time series under the given subproduct.
+@param isAnnotation is true, then its is treated as the number of an annotation under the given subproduct,
+rather than the number of a time series under the given subproduct.
 */
-public void setPropValue ( String property, String value, int subproduct, int its, boolean isAnnotation )
-{
+public void setPropValue ( String property, String value, int subproduct, int its, boolean isAnnotation ) {
 	if (isAnnotation) {
 		if (subproduct < 0 || its < 0) {
 			Message.printWarning(2, "setPropValue", "Negative value"
@@ -4227,24 +4028,24 @@ public void setPropValue ( String property, String value, int subproduct, int it
 		return;
 	}
 			
-	// Make these if statements explicit so it is easy to understand...
+	// Make these if statements explicit so it is easy to understand.
 	if ( subproduct < 0 ) {
-		// Product property...
+		// Product property.
 		__proplist.set ( "Product." + property, value );
 	}
 	else if ( (subproduct >= 0) && (its < 0) ) {
-		// Subproduct property...
+		// Subproduct property.
 		__proplist.set ( "SubProduct " + (subproduct + 1) + "." + property, value );
 	}
 	else if ( (subproduct >=0) && (its >= 0) ) {
-		// Data property...
+		// Data property.
 		__proplist.set ( "Data " + (subproduct + 1) + "." + (its + 1) + "." + property, value );
 	}
 }
 
 /**
-Set the list of time series associated with the TSProduct.  If any 
-annotation providers have been added with addTSProductAnnotationProvider(),
+Set the list of time series associated with the TSProduct.
+If any annotation providers have been added with addTSProductAnnotationProvider(),
 the annotations from those providers will be set on the graph at this point.
 @param tslist list of TS associated with the TSProduct.
 */
@@ -4289,7 +4090,7 @@ public void showPropsStartingWith(int statusLevel, String start) {
 	Message.printStatus(statusLevel, "", "--------------------------------------");
 	int size = __proplist.size();
 	for (int i = 0; i < size; i++) {
-		p = (Prop)__proplist.elementAt(i);
+		p = __proplist.elementAt(i);
 		if (StringUtil.startsWithIgnoreCase(p.getKey(), start)) {
 			Message.printStatus(statusLevel, "", "" + p);
 		}
@@ -4300,7 +4101,7 @@ public void showPropsStartingWith(int statusLevel, String start) {
 	Message.printStatus(statusLevel, "", "--------------------------------------");
 	size = __override_proplist.size();
 	for (int i = 0; i < size; i++) {
-		p = (Prop)__override_proplist.elementAt(i);
+		p = __override_proplist.elementAt(i);
 		if (StringUtil.startsWithIgnoreCase(p.getKey(), start)) {
 			Message.printStatus(statusLevel, "", "" + p);
 		}		
@@ -4320,8 +4121,8 @@ protected void sortProps() {
 }
 
 /**
-This method should be called before hidden properties are to be added to the 
-product.  Hidden properties are never shown to a user and are never saved to a file.  
+This method should be called before hidden properties are to be added to the product.
+Hidden properties are never shown to a user and are never saved to a file.  
 */
 public void startAddingHiddenProps() {
 	__howSet = __proplist.getHowSet();
@@ -4329,9 +4130,9 @@ public void startAddingHiddenProps() {
 }
 
 /**
-This method should be called after hidden properties are done being added to the
-product.  Hidden properties are never shown to a user and are never saved to
-a file.  Any future properties added to the TSProduct will be added with the 
+This method should be called after hidden properties are done being added to the product.
+Hidden properties are never shown to a user and are never saved to a file.
+Any future properties added to the TSProduct will be added with the 
 same HowSet value that the internal PropList was using prior to the call to startAddingHiddenProps().
 */
 public void stopAddingHiddenProps() {
@@ -4381,15 +4182,14 @@ typically only when debugging.
 */
 public String toString ( boolean outputAll, boolean outputHowSet, TSProductFormatType formatType, boolean sort ) {
 	if ( (formatType == TSProductFormatType.JSON_PRETTY) || (formatType == TSProductFormatType.JSON_COMPACT) ) {
-		// Separate method formats for JSON
+		// Separate method formats for JSON.
 		return toStringJson ( outputAll, outputHowSet, sort );
 	}
 
-	// Else, outputting properties format
+	// Else, outputting properties format.
 
-	// First write the main product properties, then subproduct, and within
-	// each subproduct the data properties.  Use the prefix notation and
-	// shave the prefix off each property as it is written...
+	// First write the main product properties, then subproduct, and within each subproduct the data properties.
+	// Use the prefix notation and shave the prefix off each property as it is written.
 	
 	String nl = System.getProperty("line.separator");
 	StringBuilder out = new StringBuilder();
@@ -4418,8 +4218,8 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 	the expense of some performance.  The result should be acceptable
 	as saving is not a common activity.
 
-	Further, note that it was also expanded to be very clear as to the
-	logical intentions.  Instead of writing:
+	Further, note that it was also expanded to be very clear as to the logical intentions.
+	Instead of writing:
 	
 		...
 		else if (outputAll) {
@@ -4440,10 +4240,10 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 		}
 	
 	Even though (!outputAll) is the logical opposite of (outputAll), it might
-	be mis-read, and so this "redundant" bit of logic is included.
+	be misread, and so this "redundant" bit of logic is included.
 
-	Finally, the "save" boolean is another redundancy.  If anything should
-	not be saved, the loop in which it is located is 'continue'ed.  
+	Finally, the "save" boolean is another redundancy.
+	If anything should not be saved, the loop in which it is located is 'continue'ed.  
 	"save = true;" is used as a way of marking the locations where logic
 	dictates that saving a property is finally determined to be legal.
 	*/
@@ -4455,7 +4255,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 		howSet = prop.getHowSet();
 		
 		if (howSet == Prop.SET_HIDDEN) {
-			// these are never saved
+			// These are never saved.
 			continue;
 		}
 		else if (outputAll) {
@@ -4492,7 +4292,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 		}
 	}
 
-	// Loop through the subproducts...
+	// Loop through the subproducts.
 
 	int nsubs = getNumSubProducts();
 	List<Prop> vdata = null;
@@ -4535,19 +4335,19 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 				output = true;
 			}
 			else if (!outputAll) {
-				// Don't write internal properties that typically don't show up in the product file
+				// Don't write internal properties that typically don't show up in the product file.
 				if ( (howSet == Prop.SET_FROM_PERSISTENT) ||
 					(howSet == Prop.SET_AT_RUNTIME_BY_USER) ||
 					(howSet == Prop.SET_AT_RUNTIME_FOR_USER) ) {
-					// OK
+					// OK.
 				}
 				else {
-					// not ok
+					// Not ok.
 					continue;
 				}
 
 				if ( !outputHowSet ) {
-					// Never output the following internal properties
+					// Never output the following internal properties.
 					if (key.toUpperCase().endsWith("PRODUCTIDORIGINAL")) {
 						continue;
 					}
@@ -4585,7 +4385,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 			}
 		}
 
-		// Now write the data properties...
+		// Now write the data properties.
 		int ndata = getNumData(isub);
 		for ( int idata = 0; idata < ndata; idata++ ) {
 			vdata = __proplist.getPropsMatchingRegExp ("Data " + (isub + 1) + "." + (idata + 1) +".*");
@@ -4619,10 +4419,10 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 					if ( (howSet == Prop.SET_FROM_PERSISTENT) ||
 						(howSet == Prop.SET_AT_RUNTIME_BY_USER) ||
 						(howSet == Prop.SET_AT_RUNTIME_FOR_USER) ) {
-						// OK
+						// OK.
 					}
 					else {
-						// not ok
+						// Not ok.
 						continue;
 					}
 					
@@ -4689,21 +4489,21 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
         			if ( (howSet == Prop.SET_FROM_PERSISTENT)
     			    	|| (howSet == Prop.SET_AT_RUNTIME_BY_USER)
     			    	|| (howSet == Prop.SET_AT_RUNTIME_FOR_USER) ) {
-        				// ok
+        				// OK.
         			}
         			else {
-        				// not ok
+        				// Not ok.
         				continue;
         			}
         
         			key = prop.getKey().substring(data_prefix_length - 1);
         
-        			// List the annotation shape types alphabetically
+        			// List the annotation shape types alphabetically.
         			// Because annotation properties include some generic properties and some for the specific shape type
         			// have to check what should be saved for each annotation.
-        			// First check property for generic annotation properties
+        			// First check property for generic annotation properties.
         			if ( key.equalsIgnoreCase("AnnotationID") ||
-        				// key.equalsIgnoreCase("AnotationName") || TODO SAM 2016-10-16 Evaluate whether should fully enable sice in UI
+        				// key.equalsIgnoreCase("AnotationName") || TODO SAM 2016-10-16 Evaluate whether should fully enable since in UI>
         				key.equalsIgnoreCase("AnnotationTableID") ||
         				key.equalsIgnoreCase("Color") ||
         				key.equalsIgnoreCase("Order") ||
@@ -4818,7 +4618,7 @@ public String toStringJson ( boolean outputAll, boolean outputHowSet, boolean so
 		howSet = productProp.getHowSet();
 		
 		if (howSet == Prop.SET_HIDDEN) {
-			// these are never saved
+			// These are never saved.
 			continue;
 		}
 		else if (outputAll) {
@@ -4854,9 +4654,9 @@ public String toStringJson ( boolean outputAll, boolean outputHowSet, boolean so
 			//out.append(prop.getKey().substring(8) + " = \"" + prop.getValue() + "\"" + howSetString + nl );
 			product.setProperty(productProp.getKey().substring(8), productProp.getValue() + howSetString );
 		}
-	} // end properties for Product
+	} // End properties for Product.
 
-	// Loop through the SubProduct in the Product...
+	// Loop through the SubProduct in the Product.
 
 	int nsubs = getNumSubProducts();
 	List<Prop> subProductProps = null;
@@ -4870,11 +4670,11 @@ public String toStringJson ( boolean outputAll, boolean outputHowSet, boolean so
 	String key = null;
 	
 	for (int isub = 0; isub < nsubs; isub++) {
-		// Add a SubProduct object to the Product
+		// Add a SubProduct object to the Product.
 		SubProduct subProduct = new SubProduct();
 		product.addSubProduct ( subProduct );
 
-		// Get the properties for the subproduct
+		// Get the properties for the subproduct.
 		subProductProps = __proplist.getPropsMatchingRegExp("SubProduct " + (isub + 1) + ".*");
 		String sub_prefix = "[SubProduct " + (isub + 1) + "]";
 		sub_prefix_length = sub_prefix.length();
@@ -4901,19 +4701,19 @@ public String toStringJson ( boolean outputAll, boolean outputHowSet, boolean so
 				output = true;
 			}
 			else if (!outputAll) {
-				// Don't write internal properties that typically don't show up in the product file
+				// Don't write internal properties that typically don't show up in the product file.
 				if ( (howSet == Prop.SET_FROM_PERSISTENT) ||
 					(howSet == Prop.SET_AT_RUNTIME_BY_USER) ||
 					(howSet == Prop.SET_AT_RUNTIME_FOR_USER) ) {
-					// OK
+					// OK.
 				}
 				else {
-					// not ok
+					// Not ok.
 					continue;
 				}
 
 				if ( !outputHowSet ) {
-					// Never output the following internal properties
+					// Never output the following internal properties.
 					if (key.toUpperCase().endsWith("PRODUCTIDORIGINAL")) {
 						continue;
 					}
@@ -4950,14 +4750,14 @@ public String toStringJson ( boolean outputAll, boolean outputHowSet, boolean so
 				// out.append(prop.getKey().substring(sub_prefix_length - 1) + " = \"" + prop.getValue() + "\"" + howSetString + nl );
 				subProduct.setProperty(subProductProp.getKey().substring(sub_prefix_length - 1), subProductProp.getValue() + howSetString );
 			}
-		} // end properties for SubProduct
+		} // End properties for SubProduct.
 
-		// Now write the data properties...
+		// Now write the data properties.
 		int ndata = getNumData(isub);
 		List<Prop> dataProps = null;
 		Prop dataProp = null;
 		for ( int idata = 0; idata < ndata; idata++ ) {
-			// Add a Data object to the SubProduct
+			// Add a Data object to the SubProduct.
 			Data data = new Data();
 			subProduct.addData ( data );
 
@@ -4989,10 +4789,10 @@ public String toStringJson ( boolean outputAll, boolean outputHowSet, boolean so
 					if ( (howSet == Prop.SET_FROM_PERSISTENT) ||
 						(howSet == Prop.SET_AT_RUNTIME_BY_USER) ||
 						(howSet == Prop.SET_AT_RUNTIME_FOR_USER) ) {
-						// OK
+						// OK.
 					}
 					else {
-						// not ok
+						// Not ok.
 						continue;
 					}
 					
@@ -5028,16 +4828,16 @@ public String toStringJson ( boolean outputAll, boolean outputHowSet, boolean so
 					//    data_prefix_length - 1) + " = \"" + prop.getValue() + "\"" + howSetString + nl);
 					data.setProperty(dataProp.getKey().substring(data_prefix_length - 1), dataProp.getValue() + howSetString );
 				}
-			} // end Data property
-		} // end Data in SubProduct
+			} // End Data property.
+		} // End Data in SubProduct.
 
-		// Now write the annotations for the SubProduct
+		// Now write the annotations for the SubProduct.
 
 		int nann = getNumAnnotations(isub);
 		List<Prop> annotationProps = null;
 		Prop annotationProp = null;
 		for (int iann = 0; iann < nann; iann++) {
-			// Add a Data object to the SubProduct
+			// Add a Data object to the SubProduct.
 			Annotation annotation = new Annotation();
 			subProduct.addAnnotation ( annotation );
 
@@ -5074,12 +4874,12 @@ public String toStringJson ( boolean outputAll, boolean outputHowSet, boolean so
         
         			key = annotationProp.getKey().substring(data_prefix_length - 1);
         
-        			// List the annotation shape types alphabetically
+        			// List the annotation shape types alphabetically.
         			// Because annotation properties include some generic properties and some for the specific shape type
         			// have to check what should be saved for each annotation.
-        			// First check property for generic annotation properties
+        			// First check property for generic annotation properties.
         			if ( key.equalsIgnoreCase("AnnotationID") ||
-        				// key.equalsIgnoreCase("AnotationName") || TODO SAM 2016-10-16 Evaluate whether should fully enable sice in UI
+        				// key.equalsIgnoreCase("AnotationName") || TODO SAM 2016-10-16 Evaluate whether should fully enable since in UI.
         				key.equalsIgnoreCase("AnnotationTableID") ||
         				key.equalsIgnoreCase("Color") ||
         				key.equalsIgnoreCase("Order") ||
@@ -5143,14 +4943,14 @@ public String toStringJson ( boolean outputAll, boolean outputHowSet, boolean so
         			//out.append(prop.getKey().substring(data_prefix_length - 1) + " = \"" + prop.getValue() + "\"" + howSetString + nl);
 					annotation.setProperty(annotationProp.getKey().substring(data_prefix_length - 1), annotationProp.getValue() + howSetString );
         		}
-			} // end Annotation property
-		} // end Annotation in SubProduct
-	} // end SubProduct in Product
+			} // End Annotation property.
+		} // End Annotation in SubProduct.
+	} // End SubProduct in Product.
 	
-	// Now serialize to JSON using Jackson
+	// Now serialize to JSON using Jackson.
 
 	try {
-		// The following does not currently use Jackson Mixins - use annotations in the classes
+		// The following does not currently use Jackson Mixins - use annotations in the classes.
 		JsonFactory jsonFactory = new JsonFactory();
 		ObjectMapper objectMapper = new ObjectMapper(jsonFactory);
 		boolean prettyPrint = true;
@@ -5160,12 +4960,12 @@ public String toStringJson ( boolean outputAll, boolean outputHowSet, boolean so
 		String jsonFormat = "named";
 		//String jsonFormat = "full";
 		if ( jsonFormat.equals("bare") ) {
-			// Simplest form
+			// Simplest form.
 			json.append(objectMapper.writeValueAsString(product));
 		}
 		else if ( jsonFormat.equals("named") ) {
-			// Similar to BARE but add a name
-			// Use a map to wrap the response parts
+			// Similar to BARE but add a name.
+			// Use a map to wrap the response parts.
 			HashMap<String,Object> responseMap = new LinkedHashMap<String,Object>();
 			responseMap.put("product", product);
 			json.append(objectMapper.writeValueAsString(responseMap));
@@ -5184,16 +4984,14 @@ public String toStringJson ( boolean outputAll, boolean outputHowSet, boolean so
 		Message.printWarning(3,routine,"Error creating JSON for time series product.");
 		Message.printWarning(3,routine,e);
 	}
-	return ""; // Fall-through
+	return ""; // Fall-through.
 }
 
 /**
-Transfer the properties into objects that can be used by other code more
-efficiently.  For now don't do anything until we explore the concept of just
-getting everything out of the PropList.
+Transfer the properties into objects that can be used by other code more efficiently.
+For now don't do anything until we explore the concept of just getting everything out of the PropList.
 */
-private void transferPropList ()
-{
+private void transferPropList () {
 }
 
 /**
@@ -5217,13 +5015,13 @@ minimum amount of information.
 */
 public void writeFile ( String filename, boolean outputAll )
 throws Exception
-{	// First convert the product to a string, currently always the legacy properties format
-	boolean outputHowSet = false; // only used for development
-	boolean sort = false; // Keep in-memory order
+{	// First convert the product to a string, currently always the legacy properties format.
+	boolean outputHowSet = false; // Only used for development.
+	boolean sort = false; // Keep in-memory order.
 	String productString = toString ( outputAll, outputHowSet, TSProductFormatType.PROPERTIES, sort );
-	// Then write to the file
+	// Then write to the file.
 	//__proplist.setPersistentName ( filename );
-	// This writes everything in unsorted order...
+	// This writes everything in unsorted order.
 	//__proplist.writePersistent ();
 	PrintWriter out = new PrintWriter(new FileOutputStream (filename ));
 	out.print(productString);
@@ -5243,11 +5041,11 @@ minimum amount of information.
 */
 public void writeJsonFile ( String filename, boolean outputAll )
 throws Exception
-{	// First convert the product to a JSON string
-	boolean outputHowSet = false; // only used for development
-	boolean sort = true; // Sort alphabetically, easier for programmers to find information
+{	// First convert the product to a JSON string.
+	boolean outputHowSet = false; // Only used for development.
+	boolean sort = true; // Sort alphabetically, easier for programmers to find information.
 	String productString = toString ( outputAll, outputHowSet, TSProductFormatType.JSON_PRETTY, sort );
-	// Then write to the file
+	// Then write to the file.
 	PrintWriter out = null;
 	try {
 		out = new PrintWriter(new FileOutputStream (filename ));

@@ -1863,6 +1863,14 @@ throws Exception
     		includeProperties[i] = includeProperties[i].replace("*", ".*"); // Change glob notation to Java regular expression.
     	}
     }
+
+    // Indicate whether data flags should be written.
+    String writeDataFlags0 = props.getValue ( "WriteDataFlags" );
+    boolean writeDataFlags = true; // Default, write if available (don't write if time series has no flags).
+    if ( (writeDataFlags0 != null) && writeDataFlags0.equalsIgnoreCase("false") ) {
+    	writeDataFlags = false;
+    }
+
     // Indicate whether data flag descriptions should be written.
     String writeDataFlagDescriptions0 = props.getValue ( "WriteDataFlagDescriptions" );
     boolean writeDataFlagDescriptions = false; // Default.
@@ -1997,10 +2005,13 @@ throws Exception
 			    }
 			}
 			if ( ts.hasDataFlags() ) {
-				hasDataFlags = true;
-				dataflagBuffer.append ( "true" );
-				columnsBuffer.append ( delim );
-				columnsBuffer.append ( "DataFlag" );
+				if ( writeDataFlags ) {
+					// Only write data flags if requested (default is to write if available).
+					hasDataFlags = true;
+					dataflagBuffer.append ( "true" );
+					columnsBuffer.append ( delim );
+					columnsBuffer.append ( "DataFlag" );
+				}
 			}
 			else {
 			    dataflagBuffer.append ( "false" );
@@ -2074,8 +2085,9 @@ throws Exception
 	out.println ( "Units       = " + unitsBuffer.toString() );
 	out.println ( "MissingVal  = " + missingvalBuffer.toString() );
 	if ( hasDataFlags ) {
-		// At least one of the time series in the list has data flags
+		// At least one of the time series in the list has data flags that are being output
 		// so output the data flags information for all the time series.
+		// If no time series have data flags that are being written, then won't output the following.
 		out.println ( "DataFlags   = " + dataflagBuffer.toString() );
 	}
 	if ( versionInt >= 16000 ) {
@@ -2235,7 +2247,7 @@ throws Exception
     			buffer.append ( delim );
     			buffer.append ( string_value );
                 // Now print the data flag.
-                if ( ts.hasDataFlags() ) {
+                if ( ts.hasDataFlags() && writeDataFlags ) {
                     dataflag = tsdata.getDataFlag();
                     // Always enclose the data flag in quotes because it may contain white space.
                     buffer.append ( delim );
@@ -2398,7 +2410,7 @@ throws Exception
 	                        buffer.append ( delim + string_value );
 	                    }
 	                    // Now print the data flag.
-	                    if ( ts.hasDataFlags() ) {
+	                    if ( ts.hasDataFlags() && writeDataFlags ) {
 	                        dataflag = tsdata[its].getDataFlag();
 	                        // Always enclose the data flag in quotes because it may contain white space.
 	                        buffer.append ( delim + "\""+ dataflag + "\"");
@@ -2411,7 +2423,7 @@ throws Exception
 	                else {
 	                    // Output blanks (quoted blanks for illustration).
 	                    buffer.append ( delim + "" );
-	                    if ( ts.hasDataFlags() ) {
+	                    if ( ts.hasDataFlags() && writeDataFlags ) {
 	                        buffer.append ( delim + "\"" + "" + "\"" );
 	                    }
 	                    // Keep the iterator at the same spot so that the value will be tested for order.
@@ -2464,8 +2476,8 @@ throws Exception
 				else {
 				    buffer.append ( delim + string_value );
 				}
-				// Now print the data flag.
-				if ( ts.hasDataFlags() ) {
+				// Write the data flag.
+				if ( ts.hasDataFlags() && writeDataFlags ) {
 					datapoint = ts.getDataPoint ( t, datapoint );
 					dataflag = datapoint.getDataFlag();
 					// Always enclose the data flag in quotes because it may contain white space.
@@ -2510,8 +2522,7 @@ The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
 */
 public static void writeTimeSeriesList (List<TS> tslist, String fname,
                     DateTime date1, DateTime date2, String units, boolean write_data )
-throws Exception
-{
+throws Exception {
     writeTimeSeriesList ( tslist, fname, date1, date2, units, write_data, null );
 }
 
@@ -2571,6 +2582,12 @@ lines are not added to in any way.</b>
 <td><b>Version</b></td>
 <td><b>The DateValue file format version.</b>
 <td>Current version.</td>
+</tr>
+
+<tr>
+<td><b>WriteDataFlags</b></td>
+<td><b>A string "true" or "false" indicating whether data flags should be written.</b>
+<td>true (to adhere to legacy behavior, which is to write flags if they are available for the time series)</td>
 </tr>
 
 <tr>

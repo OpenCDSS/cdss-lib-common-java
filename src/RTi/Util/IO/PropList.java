@@ -803,7 +803,7 @@ updating its values, and then writing out again, trying to retain the original c
 */
 public void readPersistent ( boolean append, boolean includeLiterals )
 throws IOException
-{	String routine = "PropList.readPersistent";
+{	String routine = getClass().getSimpleName() + ".readPersistent";
 
 	String line; 
 	String prefix = "";
@@ -867,8 +867,12 @@ throws IOException
         		}
         	}
         	if ( (idx = line.indexOf( '#' )) != -1 ) {
-        	    // Remove # comments from the ends of lines.
-        		line = line.substring( 0, idx );
+        	    // Remove # comments from the ends of lines:
+        		// - may have property like Color = "#ffffff" so handle as a special case
+        		// - TODO smalers 2022-05-11 need to handle other cases where # is included in quotes
+        		if ( (idx > 0) && (line.charAt(idx - 1) != '"') ) {
+        			line = line.substring( 0, idx ).trim();
+        		}
         	}
         	if ( inComment && line.startsWith("*/") ) {
         		inComment = false;

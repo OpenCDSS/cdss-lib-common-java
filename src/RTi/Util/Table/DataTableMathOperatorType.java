@@ -53,6 +53,14 @@ DELTA ( "Delta" ),
  */
 DIVIDE ( "/" ),
 /**
+ * Get the maximum of the values.
+ */
+MAX ( "Max" ),
+/**
+ * Get the minimum of the values.
+ */
+MIN ( "Min" ),
+/**
  * Multiply values.
  */
 MULTIPLY ( "*" ),
