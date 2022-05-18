@@ -26,6 +26,7 @@ package RTi.Util.Table;
 import java.util.ArrayList;
 import java.util.List;
 
+import RTi.Util.Math.MathUtil;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
@@ -200,9 +201,7 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
         else if (
         	(operator == DataTableMathOperatorType.ASSIGN) ||
         	(operator == DataTableMathOperatorType.CUMULATE) ||
-        	(operator == DataTableMathOperatorType.DELTA) ||
-        	(operator == DataTableMathOperatorType.MAX) ||
-        	(operator == DataTableMathOperatorType.MIN)) {
+        	(operator == DataTableMathOperatorType.DELTA) ) {
         	// Output field type is the same as input.
             outputFieldType = input1FieldType;
         }
@@ -213,7 +212,7 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
         }
         else {
         	// One or both output fields are floating point so default output to double.
-        	// This catches the case of mixed case.
+        	// This is consistent with most common programming languages and handles mixed case
             outputFieldType = TableField.DATA_TYPE_DOUBLE;
         }
         // Create the table output field of the correct type.
@@ -225,7 +224,22 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
         else if ( outputFieldType == TableField.DATA_TYPE_DOUBLE ) {
         	Message.printWarning(3, routine, "Output field \"" + output + "\" not found in table \"" +
             	this.table.getTableID() + "\" - automatically adding double column." );
-            outputField = this.table.addField(new TableField(outputFieldType,output,10,4), null );
+        	// Use the maximum width and precision of the input columns.
+        	int precision = 4;
+        	int width = 10;
+        	if ( input1Field >= 0 ) {
+            	precision = this.table.getFieldPrecision(input1Field);
+            	width = this.table.getFieldWidth(input1Field);
+            	if ( input2Field >= 0 ) {
+            		precision = MathUtil.max(precision,this.table.getFieldPrecision(input2Field));
+            		width = MathUtil.max(width,this.table.getFieldWidth(input2Field));
+            	}
+        	}
+        	else if ( input2Field >= 0 ) {
+            	precision = this.table.getFieldPrecision(input2Field);
+            	width = this.table.getFieldWidth(input2Field);
+        	}
+            outputField = this.table.addField(new TableField(outputFieldType,output,width,precision),null);
         }
     }
     if ( (input1FieldType != TableField.DATA_TYPE_INT) && (input1FieldType != TableField.DATA_TYPE_DOUBLE) ) {
