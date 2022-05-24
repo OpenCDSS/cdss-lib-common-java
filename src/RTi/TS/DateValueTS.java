@@ -1737,8 +1737,8 @@ throws Exception
 
 	// TODO SAM 2012-04-04 Eventually need to support intervals like IrregularMinute.
 	// Interval used with irregular time series.
-	// This is needed because depending on how the irregular time series was initialized, its dates may
-	// not properly indicate the precision.  For example, a DateTime precision (and interval) of IRREGULAR
+	// This is needed because depending on how the irregular time series was initialized,
+	// its dates may not properly indicate the precision.  For example, a DateTime precision (and interval) of IRREGULAR
 	// may be used in cases where the data were read from a data format where the precision could not be determined.
 	TimeInterval irregularInterval = null;
 	Object obj = props.getContents( "IrregularInterval" );
@@ -2052,20 +2052,38 @@ throws Exception
 	else {
 	    out.println ( "# DateValueTS " + __VERSION_CURRENT + " file" );
 	}
-	IOUtil.printCreatorHeader ( out, "#", 80, 0 );
-	Object o = props.getContents("OutputComments");
+	// Determine if header should be written (default is full header comments).
+	Object o = props.getContents("WriteHeaderComments");
+	String writeHeaderComments = "Full"; // Default.
 	if ( o != null ) {
-	    // Write additional comments that were passed in.
-	    @SuppressWarnings("unchecked")
-		List<String> comments = (List<String>)o;
-	    int commentSize = comments.size();
-	    if ( commentSize > 0 ) {
-    	    for ( int iComment = 0; iComment < commentSize; iComment++ ) {
-    	        out.println ( "# " + comments.get(iComment) );
-    	    }
-	    }
+		writeHeaderComments = (String)o;
 	}
-	out.println ( "#" );
+	if ( writeHeaderComments.equalsIgnoreCase("None") ) {
+		// Don't write any file header.
+	}
+	else {
+		// Write Minimal or Full header:
+		// - this prints the command file if set as IOUtil data
+		IOUtil.printCreatorHeader ( out, "#", 80, 0 );
+		if ( writeHeaderComments.equalsIgnoreCase("Full") ) {
+			// Write Full header.
+			o = props.getContents("OutputComments");
+			if ( o != null ) {
+	    		// Write additional comments that were passed in if the list size is > 0.
+	    		@SuppressWarnings("unchecked")
+				List<String> comments = (List<String>)o;
+	    		int commentSize = comments.size();
+	    		if ( commentSize > 0 ) {
+    	    		for ( int iComment = 0; iComment < commentSize; iComment++ ) {
+    	    			out.println ( "# " + comments.get(iComment) );
+    	    		}
+	    		}
+			}
+		}
+		out.println ( "#" );
+	}
+
+	// Write important built-in properties.
 	out.println ( "Delimiter   = \"" + delim + "\"" );
 	out.println ( "NumTS       = " + size );
 	out.println ( "TSID        = " + tsidBuffer.toString() );
@@ -2084,6 +2102,7 @@ throws Exception
 	out.println ( "DataType    = " + datatypeBuffer.toString() );
 	out.println ( "Units       = " + unitsBuffer.toString() );
 	out.println ( "MissingVal  = " + missingvalBuffer.toString() );
+
 	if ( hasDataFlags ) {
 		// At least one of the time series in the list has data flags that are being output
 		// so output the data flags information for all the time series.
@@ -2548,6 +2567,13 @@ The IOUtil.getPathUsingWorkingDir() method is applied to the filename.
 </tr>
 
 <tr>
+<td><b>HeaderComments</b></td>
+<td><b>List of additional comments for the file header, using newlines as \n.</b>
+<td>No additional comments are added.</td>
+</tr>
+
+
+<tr>
 <td><b>IncludeProperties</b></td>
 <td><b>An array of strings indicating properties to write, with * to use glob-style pattern matching.</b>
 <td>Do not write any properties.</td>
@@ -2582,6 +2608,12 @@ lines are not added to in any way.</b>
 <td><b>Version</b></td>
 <td><b>The DateValue file format version.</b>
 <td>Current version.</td>
+</tr>
+
+<tr>
+<td><b>WriteHeaderComments</b></td>
+<td><b>A string "Full", "Minimal", or "None" indicating whether header comments should be written.</b>
+<td>Full (to adhere to legacy behavior, results in the largest file size)</td>
 </tr>
 
 <tr>
