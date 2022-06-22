@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,60 +21,16 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
 
 NoticeEnd */
 
-// ----------------------------------------------------------------------------
-// HTMLWriter - Creates files or Strings of HTML-formatted text.
-// See href="http://www.willcam.com/cmat/html/crossref.html for a good 
-// HTML tag reference.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2003-04-17	J. Thomas Sapienza, RTi	Initial version.
-// 2003-04-21	JTS, RTi		* Revised, adding a lot of commenting.
-//					* Removed the CENTER tag (use <P align=
-//					  CENTER> instead).
-//					* HTML now is written either directly
-//					  to a file or to memory.
-// 2003-09-26	JTS, RTi		* Renamed endHTML to closeFile().
-//					* Made the closeFile() javadocs clearer.
-// 2003-09-26	Anne Morgan Love, RTi	* Updated the image() method to
-//					  use the correct tag and to include
-//					  border, width, height, float, and
-//					  alt tag options.
-//					* Updated HEAD tag to take up to
-//					  2 META tags.
-// 2003-12-03	JTS, RTi		* Added finalize().  
-//
-// 2004-02-25	AML, RTi		* Updated tags to be in LowerCase
-//					according to World Wide Web Consortium
-//					(W3C).
-//		
-//					* added <q> Quote tag.
-//
-// 2004-03-02	AML, RTi		* Added htmlEncode(String s) to
-//					* call checkText() and replace 
-//					* special characters with
-//					* encoded versions.
-// 2004-11-18	JTS, RTi		* Added addLinkText(), which works like
-//					  addText(), but doesn't append a 
-//					  newline to the end of the text (which 
-//					  can screw up links in IE).
-//					* anchor() now uses addLinkText().
-// 2007-03-15	Kurt Tometich, RTi	*Added new functions for CheckFiles
-//					  that use html.  Fixed several functions that were not
-//					  up to date.  Added some keyword replacements in the
-//					  checkText() method.
-// ----------------------------------------------------------------------------
-
 package RTi.Util.IO;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 
 /**
-Class to format HTML content.  This class is meant to be used
-at the most basic level for HTML formatting.  Therefore, HTML tags are
-written in pieces.  It is expected that a higher-level class will be developed
-to provide a more friendly interface to HTML.<p>
+Class to format HTML content.
+This class is meant to be used at the most basic level for HTML formatting.
+Therefore, HTML tags are written in pieces.
+It is expected that a higher-level class will be developed to provide a more friendly interface to HTML.<p>
 
 All of the HTML tag methods are named in a specific pattern (and the list of
 supported tags along with their appropriate functions is 
@@ -147,9 +103,8 @@ w.closeFile();
 </BLOCKQUOTE>
 </PRE>
 
-Because in some cases the name of the method to use for inserting a specific
-tag may not be immediately obvious, here is a list of the class methods for
-inserting HTML tags, sorted by the HTML tag.
+Because in some cases the name of the method to use for inserting a specific tag may not be immediately obvious,
+here is a list of the class methods for inserting HTML tags, sorted by the HTML tag.
 <a name="tagMethodTable">
 <table border>
 <tr>
@@ -590,9 +545,9 @@ public class HTMLWriter {
 Specifies whether to check text for metacharacters before writing it.
 If set to true, the text that is visible on the HTML page is checked for 
 metacharacters (e.g., "&gt;" or "&lt;") that may not appear properly and
-the valid escape sequence is entered instead.  This can be expensive, because
-every character is checked prior to being placed in the html text.  Text 
-inside of a PRE or TT tag will not be checked for such things as multiple  spaces.
+the valid escape sequence is entered instead.
+This can be expensive, because every character is checked prior to being placed in the html text.
+Text inside of a PRE or TT tag will not be checked for such things as multiple  spaces.
 */
 private boolean __checkText = true;
 
@@ -803,8 +758,8 @@ Constructor.
 @param filename the filename to which to write HTML.  Can be null, in which 
 case the HTML will not be written to a file but will be stored in memory.
 @param title the title to assign to the HTML.  Can be null.
-@param createHead whether to create a head (an HTML and BODY tag) for this
-HTML.  This should be true if creating an HTML page and false if only 
+@param createHead whether to create a head (an HTML and BODY tag) for this HTML.
+This should be true if creating an HTML page and false if only 
 generating a snippet of HTML (e.g., for placing in the Clipboard).
 */
 public HTMLWriter (String filename, String title, boolean createHead) 
@@ -827,8 +782,7 @@ throws Exception {
 		bodyStart();
 	}
 
-	// The following are easier to initialize here, rather than above
-	// where they are declared
+	// The following are easier to initialize here, rather than above where they are declared.
 	__hL = new int[7];
 	__hL[1] = 0;
 	__hL[2] = 0;
@@ -850,7 +804,7 @@ throws Exception {
 	__hasHeader = htmlWriter.getHasHeader();
 	__checkText = htmlWriter.checkTextForMetaCharacters();
 
-	// The following are easier to initialize here, rather than above where they are declared
+	// The following are easier to initialize here, rather than above where they are declared.
 	__hL = new int[7];
 	__hL[1] = 0;
 	__hL[2] = 0;
@@ -863,8 +817,9 @@ throws Exception {
 }
 
 /**
-Cleans up member variables.  If the HTML has not been closed yet (i.e., not
-written to disk), this will attempt to do so.  This may be unreliable, so do not rely on it.
+Cleans up member variables.
+If the HTML has not been closed yet (i.e., not written to disk), this will attempt to do so.
+This may be unreliable, so do not rely on it.
 */
 public void finalize() 
 throws Throwable {
@@ -883,8 +838,8 @@ throws Throwable {
 }
 
 /**
-Writes the given text to the HTML without appending a newline.  addText()
-appends a newline after the text is added -- this can mess up links in IE.
+Writes the given text to the HTML without appending a newline.
+addText() appends a newline after the text is added -- this can mess up links in IE.
 @param s the text to write to the HTML.
 @throws Exception if an error occurs writing HTML text to a file.
 */
@@ -990,11 +945,9 @@ throws Exception {
 }
 
 /**
-Opens a BLOCKQUOTE tag with the given proplist values supplying the 
-BLOCKQUOTE parameters.
+Opens a BLOCKQUOTE tag with the given proplist values supplying the BLOCKQUOTE parameters.
 @param p PropList of the BLOCKQUOTE parameters.
-@see <a href="http://www.willcam.com/cmat/html/pformat.html#Block%20Quote">
-&lt;BLOCKQUOTE&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/pformat.html#Block%20Quote">&lt;BLOCKQUOTE&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void blockquoteStart(PropList p)
@@ -1005,8 +958,7 @@ throws Exception {
 /**
 Opens a BLOCKQUOTE tag with the string supplying the BLOCKQUOTE parameters.
 @param s the BLOCKQUOTE parameters.
-@see <a href="http://www.willcam.com/cmat/html/pformat.html#Block%20Quote">
-&lt;BLOCKQUOTE&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/pformat.html#Block%20Quote">&lt;BLOCKQUOTE&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void blockquoteStart(String s)
@@ -1022,8 +974,7 @@ throws Exception {
 
 /**
 Ends a BODY declaration.
-@see <a href="http://www.willcam.com/cmat/html/toplevel.html#Body">
-&lt;BODY&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/toplevel.html#Body">&lt;BODY&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void bodyEnd()
@@ -1038,8 +989,7 @@ throws Exception {
 /**
 Starts a body declaration and assigns the values in the proplist to the BODY.
 @param p the values to use as the BODY parameters.
-@see <a href="http://www.willcam.com/cmat/html/toplevel.html#Body">
-&lt;BODY&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/toplevel.html#Body">&lt;BODY&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void bodyStart(PropList p)
@@ -1049,8 +999,7 @@ throws Exception {
 
 /**
 Starts a BODY declaration.
-@see <a href="http://www.willcam.com/cmat/html/toplevel.html#Body">
-&lt;BODY&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/toplevel.html#Body">&lt;BODY&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void bodyStart()
@@ -1061,8 +1010,7 @@ throws Exception {
 /**
 Starts a BODY declaration and appends the String to the BODY tag.
 @param s the BODY parameters.
-@see <a href="http://www.willcam.com/cmat/html/toplevel.html#Body">
-&lt;BODY&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/toplevel.html#Body">&lt;BODY&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void bodyStart(String s)
@@ -1080,8 +1028,7 @@ throws Exception {
 /**
 Puts the given text in inside a set of B bold tags.
 @param s the text to bold.
-@see <a href="http://www.willcam.com/cmat/html/lformat.html#Bold">
-&lt;B&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lformat.html#Bold">&lt;B&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void bold(String s)
@@ -1093,8 +1040,7 @@ throws Exception {
 
 /**
 Ends a bold text section
-@see <a href="http://www.willcam.com/cmat/html/lformat.html#Bold">
-&lt;B&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lformat.html#Bold">&lt;B&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void boldEnd()
@@ -1108,8 +1054,7 @@ throws Exception {
 
 /**
 Starts a bold text section.
-@see <a href="http://www.willcam.com/cmat/html/lformat.html#Bold">
-&lt;B&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lformat.html#Bold">&lt;B&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void boldStart()
@@ -1120,8 +1065,7 @@ throws Exception {
 
 /**
 Inserts a line break.
-@see <a href="http://www.willcam.com/cmat/html/pformat.html#Line%20Break">
-&lt;BR&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/pformat.html#Line%20Break">&lt;BR&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void breakLine()
@@ -1131,8 +1075,7 @@ throws Exception {
 
 /**
 Ends an bulleted list declaration.
-@see <a href="http://www.willcam.com/cmat/html/lists.html#Unordered%20List">
-&lt;UL&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lists.html#Unordered%20List">&lt;UL&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void bulletedListEnd()
@@ -1146,8 +1089,7 @@ throws Exception {
 
 /**
 Starts an bulleted list declaration.
-@see <a href="http://www.willcam.com/cmat/html/lists.html#Unordered%20List">
-&lt;UL&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lists.html#Unordered%20List">&lt;UL&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void bulletedListStart()
@@ -1159,8 +1101,7 @@ throws Exception {
 /**
 Adds the given string as a table caption.
 @param s the String to caption.
-@see <a href="http://www.willcam.com/cmat/html/tables.html#Caption">
-&lt;CAPTION&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/tables.html#Caption">&lt;CAPTION&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void caption(String s)
@@ -1172,8 +1113,7 @@ throws Exception {
 
 /**
 Ends a table caption.
-@see <a href="http://www.willcam.com/cmat/html/tables.html#Caption">
-&lt;CAPTION&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/tables.html#Caption">&lt;CAPTION&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void captionEnd()
@@ -1186,8 +1126,7 @@ throws Exception {
 
 /**
 Starts a table caption.
-@see <a href="http://www.willcam.com/cmat/html/tables.html#Caption">
-&lt;CAPTION&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/tables.html#Caption">&lt;CAPTION&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void captionStart()
@@ -1210,8 +1149,7 @@ replaced with html escape codes for these characters.
 @param s a String of text to search for special characters.
 @return the String that was passed in to the method with HTML escape codes for the special characters.
 */
-private String textToHtml(String s)
-{
+private String textToHtml(String s) {
 	int length = s.length();
 	char ch;
 	String rep = "";
@@ -1278,14 +1216,13 @@ private String textToHtml(String s)
 		}
 	}
 
-	// FIXME SAM 2009-04-21 Evaluate the following - should not do anything special here for check file HTML
-	// Do other checks related to check files
-	// shouldn't affect anything unless they have a special
-	// sequence of characters
+	// FIXME SAM 2009-04-21 Evaluate the following - should not do anything special here for check file HTML.
+	// Do other checks related to check files.
+	// Shouldn't affect anything unless they have a special sequence of characters
 	String tmp = s.replaceAll("%font_red", "<b><font color=red>");
 	s = tmp.replaceAll("%font_end", "</font></b>");
 	
-	// Replace tooltips with HTML title strings
+	// Replace tooltips with HTML title strings.
 	if ( s.indexOf( "%tooltip" ) >= 0 ) {
 		tmp = s.replaceAll("%tooltip_start", 
 		// Need to wrap into a paragraph element otherwise
@@ -1433,8 +1370,7 @@ throws Exception {
 
 /**
 Puts the given text inside a comment.
-@see <a href="http://www.willcam.com/cmat/html/other.html#Comment">
-&lt;COMMENT&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/other.html#Comment">&lt;COMMENT&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void comment(String s)
@@ -1444,8 +1380,7 @@ throws Exception {
 
 /**
 Stops commenting.
-@see <a href="http://www.willcam.com/cmat/html/other.html#Comment">
-&lt;COMMENT&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/other.html#Comment">&lt;COMMENT&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void commentEnd()
@@ -1459,8 +1394,7 @@ throws Exception {
 
 /**
 Starts a comment.
-@see <a href="http://www.willcam.com/cmat/html/other.html#Comment">
-&lt;COMMENT&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/other.html#Comment">&lt;COMMENT&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void commentStart()
@@ -1472,8 +1406,7 @@ throws Exception {
 /**
 Adds the given definition to a definition list.
 @param s the string to use as the definition.
-@see <a href="http://www.willcam.com/cmat/html/lists.html#Definition%20List">
-&lt;DD&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lists.html#Definition%20List">&lt;DD&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void definition(String s)
@@ -1490,8 +1423,7 @@ throws Exception {
 Adds the given definition term and definition to a definition list.
 @param term the term to define.
 @param def the definition of the term.
-@see <a href="http://www.willcam.com/cmat/html/lists.html#Definition%20List">
-&lt;DL&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lists.html#Definition%20List">&lt;DL&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void definition(String term, String def)
@@ -1505,8 +1437,7 @@ throws Exception {
 
 /**
 Ends a definition.
-@see <a href="http://www.willcam.com/cmat/html/lists.html#Definition%20List">
-&lt;DD&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lists.html#Definition%20List">&lt;DD&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void definitionEnd()
@@ -1520,8 +1451,7 @@ throws Exception {
 
 /**
 Starts a definition.
-@see <a href="http://www.willcam.com/cmat/html/lists.html#Definition%20List">
-&lt;DD&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lists.html#Definition%20List">&lt;DD&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void definitionStart()
@@ -1535,8 +1465,7 @@ throws Exception {
 
 /**
 Ends a definition list.
-@see <a href="http://www.willcam.com/cmat/html/lists.html#Definition%20List">
-&lt;DL&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lists.html#Definition%20List">&lt;DL&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void definitionListEnd()
@@ -1550,8 +1479,7 @@ throws Exception {
 
 /**
 Starts a definition list.
-@see <a href="http://www.willcam.com/cmat/html/lists.html#Definition%20List">
-&lt;DL&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lists.html#Definition%20List">&lt;DL&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void definitionListStart()
@@ -1562,8 +1490,7 @@ throws Exception {
 /**
 Starts a definition list and uses the values in the proplist as the parameters.
 @param p PropList containing the definition list parameters.
-@see <a href="http://www.willcam.com/cmat/html/lists.html#Definition%20List">
-&lt;DL&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lists.html#Definition%20List">&lt;DL&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void definitionListStart(PropList p)
@@ -1574,8 +1501,7 @@ throws Exception {
 /**
 Starts a definition list and uses the string as the string of parameters.
 @param s the parameter list.
-@see <a href="http://www.willcam.com/cmat/html/lists.html#Definition%20List">
-&lt;DL&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lists.html#Definition%20List">&lt;DL&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void definitionListStart(String s)
@@ -1591,8 +1517,7 @@ throws Exception {
 /**
 Puts the given string in a definition list as a term.
 @param s the definition term
-@see <a href="http://www.willcam.com/cmat/html/lists.html#Definition%20List">
-&lt;DT&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lists.html#Definition%20List">&lt;DT&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void definitionTerm(String s)
@@ -1605,8 +1530,7 @@ throws Exception {
 
 /**
 Ends a definition term.
-@see <a href="http://www.willcam.com/cmat/html/lists.html#Definition%20List">
-&lt;DT&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lists.html#Definition%20List">&lt;DT&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void definitionTermEnd()
@@ -1620,8 +1544,7 @@ throws Exception {
 
 /**
 Starts a definition term.
-@see <a href="http://www.willcam.com/cmat/html/lists.html#Definition%20List">
-&lt;DT&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lists.html#Definition%20List">&lt;DT&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void definitionTermStart()
@@ -1644,8 +1567,7 @@ throws Exception {
 /**
 Starts a new font with the parameters in the proplist.
 @param p PropList containing the Font's parameters.
-@see <a href="http://www.willcam.com/cmat/html/lformat.html#Font">
-&lt;FONT&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lformat.html#Font">&lt;FONT&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void fontStart(PropList p)
@@ -1655,8 +1577,7 @@ throws Exception {
 
 /**
 Ends a font declaration.
-@see <a href="http://www.willcam.com/cmat/html/lformat.html#Font">
-&lt;FONT&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lformat.html#Font">&lt;FONT&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void fontEnd()
@@ -1671,8 +1592,7 @@ throws Exception {
 /**
 Starts a font with the parameters in the given String.
 @param s String containing the font parameters.
-@see <a href="http://www.willcam.com/cmat/html/lformat.html#Font">
-&lt;FONT&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lformat.html#Font">&lt;FONT&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void fontStart(String s)
@@ -1729,8 +1649,7 @@ protected boolean getWriteToFile() {
 /**
 Creates a HEAD tag and uses the given String as the title of the page.
 @param s the title to set the page to.  Can be null.
-@see <a href="http://www.willcam.com/cmat/html/toplevel.html#Head">
-&lt;HEAD&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/toplevel.html#Head">&lt;HEAD&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void head(String s)
@@ -1756,7 +1675,7 @@ arrMeta1[1] is used to assign the data that goes after the content
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void head(String s, String[] arrMeta1 ) throws Exception {
-	head( s, arrMeta1,  new String[]{"",""} );
+	head( s, arrMeta1, new String[]{"",""} );
 }
 
 
@@ -1807,16 +1726,16 @@ throws Exception {
 	meta_content2 = arrMeta2[1];
 
 	if (( meta_name1 == null ) || ( meta_name1.length() <= 0 )) {
-		//don't write any meta data...	
+		// Don't write any meta data.
 		write("<head>\n  <title>" + s + "</title>\n</head>\n");
 	}
 	else if (( meta_name2 == null ) || ( meta_name2.length() <= 0 )) {
-		//just write first meta tag
+		// Just write first meta tag.
 		write("<head>\n  <title>" + s + "</title>\n <meta name=\"" +
 		meta_name1 + "\" content =\"" + meta_content1 + "\">\n</head>\n");
 	}
 	else {
-		//just write both meta tags
+		// Just write both meta tags.
 		write("<head>\n  <title>" + s + "</title>\n <meta name=\"" +
 		meta_name1 + "\" content =\"" + meta_content1 + "\">\n" +
 		" <meta name=\"" + meta_name2 + "\" content =\"" + 
@@ -1828,8 +1747,7 @@ throws Exception {
 Head end tag.
  * @throws Exception
  */
-public void headEnd() throws Exception
-{
+public void headEnd() throws Exception {
 	write("</head>\n");
 }
 
@@ -1843,30 +1761,37 @@ This is based on the valid sizes for HTML header tags.
 @param id The id to use for this tag if one is to be assigned.
 @throws Exception if file can't be written to.
 */
-public void headerEnd ( int size ) throws Exception
-{
-	// check for valid tag
-	if ( size > 0 && size < 7 )
-	{
+public void headerEnd ( int size ) throws Exception {
+	// Check for valid tag.
+	if ( size > 0 && size < 7 ) {
 		write( "</h" + size + ">\n" );
 	}
 }
 
 /**
+ * Writes a header of a given size.
+ *@param size the size of the header font, 1 to 6
+ *@param text header text
+ */
+public void header ( int size, String text ) throws Exception {
+	headerStart( size );
+	write(text);
+	headerEnd( size );
+}
+
+/**
 Writes a header start tag based on the size input needed.  
-Size of 1 refers to creatingan H1 tag.
+Size of 1 refers to creating an H1 tag.
 Size of 2 creates a H2 tag, and so on.
 This is based on the valid sizes for HTML header tags.
 @param size The size of the header tag.  1 is largest, 6 is smallest.
 @param id The id to use for this tag if one is to be assigned.
 @throws Exception if file can't be written to.
  */
-public void headerStart( int size ) throws Exception
-{
-	// check for valid tag
-	if ( size > 0 && size < 7 )
-	{
-		write( "<h" + size + ">\n" );
+public void headerStart( int size ) throws Exception {
+	// Check for valid tag.
+	if ( size > 0 && size < 7 ) {
+		write( "<h" + size + ">" );
 	}
 }
 
@@ -1879,17 +1804,15 @@ This is based on the valid sizes for HTML header tags.
 @param PropList p - Properties to assign to this tag.
 @throws Exception if file can't be written to. 
  */
-public void headerStart( int size, PropList p ) throws Exception
-{
+public void headerStart( int size, PropList p ) throws Exception {
 	String prop = propListToString( p );
-	// check for valid tag
-	if ( size > 0 && size < 7 )
-	{
+	// Check for valid tag.
+	if ( size > 0 && size < 7 ) {
 		if ( prop == null || prop.length() == 0 ) {
 			headerStart( size );
 		}
 		else {
-			write("<h" + size + " " + prop + ">\n");
+			write("<h" + size + " " + prop + ">");
 		}
 	}
 }
@@ -1912,9 +1835,8 @@ Creates a heading for the given size (1 is bigger, 6 is smallest) and the given 
 "name" property to allow linking to the heading.
 @param number the kind of heading (1-6) to make.
 @param s the string to store in the heading.
-@paam name the target name for a link.
-@see <a href="http://www.willcam.com/cmat/html/pformat.html#Heading%201">
-&lt;HX&gt; tag.</a>
+@param name the target name for a link.
+@see <a href="http://www.willcam.com/cmat/html/pformat.html#Heading%201">&lt;HX&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void heading(int number, String s, String name )
@@ -1935,8 +1857,7 @@ throws Exception {
 /**
 Ends a heading.
 @param number the kind of heading (1-6) to end.
-@see <a href="http://www.willcam.com/cmat/html/pformat.html#Heading%201">
-&lt;HX&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/pformat.html#Heading%201">&lt;HX&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void headingEnd(int number)
@@ -1951,8 +1872,7 @@ throws Exception {
 /**
 Starts a heading section with the given size number.
 @param number the kind of heading (1-6) to make.
-@see <a href="http://www.willcam.com/cmat/html/pformat.html#Heading%201">
-&lt;HX&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/pformat.html#Heading%201">&lt;HX&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void headingStart(int number)
@@ -1964,8 +1884,7 @@ throws Exception {
 Starts a heading section with the given size number and parameters.
 @param number the kind of heading (1-6) to make.
 @param p PropList containing the parameters for the heading.
-@see <a href="http://www.willcam.com/cmat/html/pformat.html#Heading%201">
-&lt;HX&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/pformat.html#Heading%201">&lt;HX&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void headingStart(int number, PropList p)
@@ -1977,8 +1896,7 @@ throws Exception {
 Starts a heading section with the given size number and parameters.
 @param number the kind of heading (1-6) to make.
 @param s string of the parameters for the heading.
-@see <a href="http://www.willcam.com/cmat/html/pformat.html#Heading%201">
-&lt;HX&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/pformat.html#Heading%201">&lt;HX&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void headingStart(int number, String s)
@@ -1998,15 +1916,13 @@ throws Exception {
 Start tag for head tag element
 @throws Exception
  */
-public void headStart() throws Exception
-{
+public void headStart() throws Exception {
 	write("<head>\n");
 }
 
 /**
 Creates a horizontal rule across the page.
-@see <a href="http://www.willcam.com/cmat/html/pformat.html#Horizontal%20Rule">
-&lt;HR&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/pformat.html#Horizontal%20Rule">&lt;HR&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void horizontalRule()
@@ -2015,8 +1931,8 @@ throws Exception {
 }
 
 /**
-Encodes the String passed in so that special characters
-are encoded for HTML.  For example: a ";" is changed to: "&amp;"
+Encodes the String passed in so that special characters are encoded for HTML.
+For example: a ";" is changed to: "&amp;"
 @param s String to encode
 @return encoded string
 */
@@ -2026,8 +1942,7 @@ public String encodeHTML( String s ) {
 
 /**
 Ends an HTML declaration.
-@see <a href="http://www.willcam.com/cmat/html/toplevel.html#HTML">
-&lt;HTML&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/toplevel.html#HTML">&lt;HTML&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void htmlEnd()
@@ -2047,8 +1962,7 @@ Starts an HTML declaration.  Also add a DTD line for strict:
 <pre>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 </pre>
-@see <a href="http://www.willcam.com/cmat/html/toplevel.html#HTML">
-&lt;HTML&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/toplevel.html#HTML">&lt;HTML&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void htmlStart()
@@ -2061,8 +1975,7 @@ throws Exception {
 /**
 Inserts an image tag with the given parameters.
 @param p PropList containing image tag parameters.
-@see <a href="http://www.willcam.com/cmat/html/other.html#Inline%20Image">
-&lt;IMG&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/other.html#Inline%20Image">&lt;IMG&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void image(PropList p)
@@ -2121,30 +2034,32 @@ private void image( String s, String alt_str, int border,
 	if (s.trim().equals("")) {
 		return;
 	}
+	// TODO smalers 2022-06-14 Should the following use && rather than &?
 	if ( floatStr.equals("") ) {
-		if ( ( width > 0 )  & ( height > 0 ) ) {
+		if ( ( width > 0 ) & ( height > 0 ) ) {
 			write("<img src= \"" + s + "\" alt=\"" + 
 			alt_str + "\" border=\"" + border + 
 			"\" width=\"" + width + "\" height=\"" +
 			height + "\">" );
 		}
-		else if ( ( width > 0 )  & ( height < 0 ) ) {
+		else if ( ( width > 0 ) & ( height < 0 ) ) {
 			write("<img src= \"" + s + "\" alt=\"" + 
 			alt_str + "\" border=\"" + border + 
 			"\" width=\"" + width + "\">" );
 		}
-		else if ( ( width < 0 )  & ( height > 0 ) ) {
+		else if ( ( width < 0 ) & ( height > 0 ) ) {
 			write("<img src= \"" + s + "\" alt=\"" + 
 			alt_str + "\" border=\"" + border + 
 			"\" height=\"" + height + "\">" );
 		}
-		else { //width and height are -999
+		else {
+			//width and height are -999.
 			write("<img src= \"" + s + "\" alt=\"" + 
 			alt_str + "\" border=\"" + border + "\">" );
 		}
 	}
 	else {
-		if ( ( width > 0 )  & ( height > 0 ) ) {
+		if ( ( width > 0 ) & ( height > 0 ) ) {
 			write("<img src= \"" + s + "\" alt=\"" + 
 			alt_str + "\" border=\"" + border + 
 			"\" width=\"" + width + "\" height=\"" +
@@ -2152,7 +2067,7 @@ private void image( String s, String alt_str, int border,
 			"STYLE=\"margin-left:10;margin-right:10;" +
 			"margin-top:10;margin-bottom:10\">" );
 		}
-		else if ( ( width > 0 )  & ( height < 0 ) ) {
+		else if ( ( width > 0 ) & ( height < 0 ) ) {
 			write("<img src= \"" + s + "\" alt=\"" + 
 			alt_str + "\" border=\"" + border + 
 			"\" width=\"" + width + "\" align=\"" +
@@ -2160,7 +2075,7 @@ private void image( String s, String alt_str, int border,
 			"STYLE=\"margin-left:10;margin-right:10;" +
 			"margin-top:10;margin-bottom:10\">" );
 		}
-		else if ( ( width < 0 )  & ( height > 0 ) ) {
+		else if ( ( width < 0 ) & ( height > 0 ) ) {
 			write("<img src= \"" + s + "\" alt=\"" + 
 			alt_str + "\" border=\"" + border + 
 			"\" height=\"" + height + "\" align=\"" +
@@ -2168,7 +2083,8 @@ private void image( String s, String alt_str, int border,
 			"STYLE=\"margin-left:10;margin-right:10;" +
 			"margin-top:10;margin-bottom:10\">" );
 		}
-		else { //width and height are -999
+		else {
+			// Width and height are -999.
 			write("<img src= \"" + s + "\" alt=\"" + 
 			alt_str + "\" border=\"" + border + "\" align=\"" +
 			floatStr +"\" " +
@@ -2295,8 +2211,7 @@ throws Exception {
 
 /**
 Stops italicizing text.
-@see <a href="http://www.willcam.com/cmat/html/lformat.html#Italic">
-&lt;I&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lformat.html#Italic">&lt;I&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void italicEnd()
@@ -2309,9 +2224,8 @@ throws Exception {
 }
 
 /**
-Begings italicizing text.
-@see <a href="http://www.willcam.com/cmat/html/lformat.html#Italic">
-&lt;I&gt; tag.</a>
+Beging italicizing text.
+@see <a href="http://www.willcam.com/cmat/html/lformat.html#Italic">&lt;I&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void italicStart()
@@ -2357,8 +2271,7 @@ throws Exception {
 
 /**
 Ends a Hyperlink tag (the section that is clicked on to go to a link).
-@see <a href="http://www.willcam.com/cmat/html/other.html#Anchor">
-&lt;a href&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/other.html#Anchor">&lt;a href&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void linkEnd()
@@ -2373,8 +2286,7 @@ throws Exception {
 /**
 Inserts a hyperlink to the given location.
 @param s the location to link to.
-@see <a href="http://www.willcam.com/cmat/html/other.html#Anchor">
-&lt;a href&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/other.html#Anchor">&lt;a href&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void linkStart(String s)
@@ -2386,8 +2298,7 @@ throws Exception {
 /**
 Inserts a list item into a list.
 @param s the item to insert in the list.
-@see <a href="http://www.willcam.com/cmat/html/lists.html#List%20Item">
-&lt;LI&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lists.html#List%20Item">&lt;LI&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void listItem(String s)
@@ -2403,8 +2314,7 @@ throws Exception {
 
 /**
 Ends a list item declaration.
-@see <a href="http://www.willcam.com/cmat/html/lists.html#List%20Item">
-&lt;LI&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lists.html#List%20Item">&lt;LI&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void listItemEnd()
@@ -2418,8 +2328,7 @@ throws Exception {
 
 /**
 Starts a list item declaration.
-@see <a href="http://www.willcam.com/cmat/html/lists.html#List%20Item">
-&lt;LI&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lists.html#List%20Item">&lt;LI&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void listItemStart()
@@ -2434,8 +2343,7 @@ throws Exception {
 /**
 Defines a block of text that has no line breaks.
 @param s the text with no line breaks.
-@see <a href="http://www.willcam.com/cmat/html/other.html#No%20Break">
-&lt;NOBR&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/other.html#No%20Break">&lt;NOBR&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void nobr(String s)
@@ -2445,8 +2353,7 @@ throws Exception {
 
 /**
 Ends a section of text with no line breaks.
-@see <a href="http://www.willcam.com/cmat/html/other.html#No%20Break">
-&lt;NOBR&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/other.html#No%20Break">&lt;NOBR&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void nobrEnd()
@@ -2460,8 +2367,7 @@ throws Exception {
 
 /**
 Starts a section of text with no line breaks.
-@see <a href="http://www.willcam.com/cmat/html/other.html#No%20Break">
-&lt;NOBR&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/other.html#No%20Break">&lt;NOBR&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void nobrStart()
@@ -2472,8 +2378,7 @@ throws Exception {
 
 /**
 Starts a numbered list.
-@see <a href="http://www.willcam.com/cmat/html/lists.html#Ordered%20List">
-&lt;OL&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lists.html#Ordered%20List">&lt;OL&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void numberedListStart()
@@ -2484,8 +2389,7 @@ throws Exception {
 
 /**
 Ends a numbered list.
-@see <a href="http://www.willcam.com/cmat/html/lists.html#Ordered%20List">
-&lt;OL&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lists.html#Ordered%20List">&lt;OL&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void numberedListEnd()
@@ -2499,8 +2403,7 @@ throws Exception {
 
 /**
 Inserts a new paragraph.
-@see <a href="http://www.willcam.com/cmat/html/pformat.html#Paragraph">
-&lt;P&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/pformat.html#Paragraph">&lt;P&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void paragraph()
@@ -2511,8 +2414,7 @@ throws Exception {
 /**
 Inserts a new paragraph with the given text.
 @param s the text to put in the paragraph.
-@see <a href="http://www.willcam.com/cmat/html/pformat.html#Paragraph">
-&lt;P&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/pformat.html#Paragraph">&lt;P&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void paragraph(String s)
@@ -2522,8 +2424,7 @@ throws Exception {
 
 /**
 Ends a paragraph.
-@see <a href="http://www.willcam.com/cmat/html/pformat.html#Paragraph">
-&lt;P&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/pformat.html#Paragraph">&lt;P&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void paragraphEnd()
@@ -2537,8 +2438,7 @@ throws Exception {
 
 /**
 Starts a paragraph declaration.
-@see <a href="http://www.willcam.com/cmat/html/pformat.html#Paragraph">
-&lt;P&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/pformat.html#Paragraph">&lt;P&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void paragraphStart()
@@ -2549,8 +2449,7 @@ throws Exception {
 /**
 Starts a paragraph declaration with the given parameters.
 @param p the parameters to use in the paragraph declaration.
-@see <a href="http://www.willcam.com/cmat/html/pformat.html#Paragraph">
-&lt;P&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/pformat.html#Paragraph">&lt;P&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void paragraphStart(PropList p)
@@ -2561,8 +2460,7 @@ throws Exception {
 /**
 Starts a paragraph declaration with the given parameters.
 @param s String containing the paragraph parameters.
-@see <a href="http://www.willcam.com/cmat/html/pformat.html#Paragraph">
-&lt;P&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/pformat.html#Paragraph">&lt;P&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void paragraphStart(String s)
@@ -2579,9 +2477,7 @@ throws Exception {
 /**
 Inserts a block of pre-formatted text.
 @param s the text to be pre-formatted.
-@see <a 
-href="http://www.willcam.com/cmat/html/pformat.html#Preformatted%20Text">
-&lt;PRE&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/pformat.html#Preformatted%20Text">&lt;PRE&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void pre(String s)
@@ -2596,9 +2492,7 @@ throws Exception {
 
 /**
 Ends a block of pre-formatted text.
-@see <a 
-href="http://www.willcam.com/cmat/html/pformat.html#Preformatted%20Text">
-&lt;PRE&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/pformat.html#Preformatted%20Text">&lt;PRE&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void preEnd()
@@ -2613,9 +2507,7 @@ throws Exception {
 /**
 Starts a block of pre-formatted text with the given parameters.
 @param p the parameters for the pre-formatted text block.
-@see <a 
-href="http://www.willcam.com/cmat/html/pformat.html#Preformatted%20Text">
-&lt;PRE&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/pformat.html#Preformatted%20Text">&lt;PRE&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void preStart(PropList p)
@@ -2625,9 +2517,7 @@ throws Exception {
 
 /**
 Starts a block of pre-formatted text.
-@see <a 
-href="http://www.willcam.com/cmat/html/pformat.html#Preformatted%20Text">
-&lt;PRE&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/pformat.html#Preformatted%20Text">&lt;PRE&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void preStart()
@@ -2638,9 +2528,7 @@ throws Exception {
 /**
 Starts a block of pre-formatted text with the given parameters.
 @param s String of the pre-formatted text parameters.
-@see <a 
-href="http://www.willcam.com/cmat/html/pformat.html#Preformatted%20Text">
-&lt;PRE&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/pformat.html#Preformatted%20Text">&lt;PRE&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void preStart(String s)
@@ -2655,11 +2543,9 @@ throws Exception {
 
 /**
 Takes a PropList and turns every key/value pair into a single string that 
-contains <tt>key1=value1 key2=value2 ... keyN=valueN</tt> for each PropList
-prop from 1 to N.
+contains <tt>key1=value1 key2=value2 ... keyN=valueN</tt> for each PropList prop from 1 to N.
 @param p PropList for which to get the properties.
-@return a String with all the properties concatenated together and separated
-by spaces.
+@return a String with all the properties concatenated together and separated by spaces.
 @throws Exception if an error occurs writing HTML text to a file.
 */
 private String propListToString(PropList p) {
@@ -2682,7 +2568,6 @@ private String propListToString(PropList p) {
 	
 	return s;
 }
-
 
 /**
 Inserts a new quote.
@@ -2804,8 +2689,7 @@ public void styleEnd() throws Exception
 /**
 Inserts a block of subscripted text.
 @param s the text to subscript
-@see <a href="http://www.willcam.com/cmat/html/lformat.html#Subscript">
-&lt;SUB&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lformat.html#Subscript">&lt;SUB&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void subscript(String s)
@@ -2817,8 +2701,7 @@ throws Exception {
 
 /**
 Ends a block of subscripted text.
-@see <a href="http://www.willcam.com/cmat/html/lformat.html#Subscript">
-&lt;SUB&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lformat.html#Subscript">&lt;SUB&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void subscriptEnd()
@@ -2828,8 +2711,7 @@ throws Exception {
 
 /**
 Starts a block of subscripted text.
-@see <a href="http://www.willcam.com/cmat/html/lformat.html#Subscript">
-&lt;SUB&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lformat.html#Subscript">&lt;SUB&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void subscriptStart()
@@ -2840,8 +2722,7 @@ throws Exception {
 /**
 Inserts a block of superscripted text.
 @param s the text to superscript.
-@see <a href="http://www.willcam.com/cmat/html/lformat.html#Superscript">
-&lt;SUP&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lformat.html#Superscript">&lt;SUP&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void superscript(String s)
@@ -2853,8 +2734,7 @@ throws Exception {
 
 /**
 Ends a block of superscripted text.
-@see <a href="http://www.willcam.com/cmat/html/lformat.html#Superscript">
-&lt;SUP&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lformat.html#Superscript">&lt;SUP&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void superscriptEnd()
@@ -2864,8 +2744,7 @@ throws Exception {
 
 /**
 Starts a block of superscripted text.
-@see <a href="http://www.willcam.com/cmat/html/lformat.html#Superscript">
-&lt;SUP&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lformat.html#Superscript">&lt;SUP&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void superscriptStart()
@@ -2875,8 +2754,7 @@ throws Exception {
 
 /**
 Ends a table declaration.
-@see <a href="http://www.willcam.com/cmat/html/tables.html#Table">
-&lt;TABLE&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/tables.html#Table">&lt;TABLE&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void tableEnd()
@@ -2889,8 +2767,7 @@ throws Exception {
 
 /**
 Starts a table declaration.
-@see <a href="http://www.willcam.com/cmat/html/tables.html#Table">
-&lt;TABLE&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/tables.html#Table">&lt;TABLE&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void tableStart()
@@ -2901,8 +2778,7 @@ throws Exception {
 /**
 Starts a table declaration with the given parameters.
 @param p PropList of the table's parameters.
-@see <a href="http://www.willcam.com/cmat/html/tables.html#Table">
-&lt;TABLE&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/tables.html#Table">&lt;TABLE&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void tableStart(PropList p)
@@ -2913,8 +2789,7 @@ throws Exception {
 /**
 Starts a table declaration with the given parameters.
 @param s String of the table parameters.
-@see <a href="http://www.willcam.com/cmat/html/tables.html#Table">
-&lt;TABLE&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/tables.html#Table">&lt;TABLE&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void tableStart(String s)
@@ -2964,8 +2839,7 @@ throws Exception {
 /**
 Inserts a cell into a table with the given text.
 @param s the text to put into the cell.
-@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Data">
-&lt;td&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Data">&lt;td&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void tableCell(String s)
@@ -3013,8 +2887,7 @@ public void tableCells( String cells [], PropList props ) throws Exception
 
 /**
 Ends a table cell declaration.
-@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Data">
-&lt;td&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Data">&lt;td&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void tableCellEnd()
@@ -3028,8 +2901,7 @@ throws Exception {
 
 /**
 Starts a table cell declaration.
-@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Data">
-&lt;td&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Data">&lt;td&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void tableCellStart()
@@ -3040,8 +2912,7 @@ throws Exception {
 /**
 Starts a table cell declaration with the given properties.
 @param p PropList of table cell properties.
-@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Data">
-&lt;td&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Data">&lt;td&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void tableCellStart(PropList p)
@@ -3052,8 +2923,7 @@ throws Exception {
 /**
 Starts a table cell declaration with the given parameters.
 @param s String of table cell parameters.
-@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Data">
-&lt;td&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Data">&lt;td&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void tableCellStart(String s)
@@ -3072,8 +2942,7 @@ throws Exception {
 /**
 Inserts a table header cell with the given text.
 @param s text to put in the table header cell.
-@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Header">
-&lt;TH&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Header">&lt;TH&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void tableHeader(String s)
@@ -3088,9 +2957,8 @@ throws Exception {
 Inserts multiple table headers with the Strings specified.
 @param headers Array of Strings to use for each header.
 @throws Exception
- */
-public void tableHeaders(String [] headers ) throws Exception
-{
+*/
+public void tableHeaders(String [] headers ) throws Exception {
 	for(int i = 0; i < headers.length; i++ ) {
 		if( headers[i] != null && headers[i].length() > 0 ) {
 			tableHeader( headers[i].trim() );
@@ -3100,8 +2968,7 @@ public void tableHeaders(String [] headers ) throws Exception
 
 /**
 Ends a table header cell declaration.
-@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Header">
-&lt;TH&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Header">&lt;TH&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void tableHeaderEnd()
@@ -3115,8 +2982,7 @@ throws Exception {
 
 /**
 Starts a table header cell declaration.
-@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Header">
-&lt;TH&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Header">&lt;TH&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void tableHeaderStart()
@@ -3127,8 +2993,7 @@ throws Exception {
 /**
 Starts a table header cell declaration with the given parameters.
 @param p PropList of table header cell parameters.
-@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Header">
-&lt;TH&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Header">&lt;TH&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void tableHeaderStart(PropList p)
@@ -3139,8 +3004,7 @@ throws Exception {
 /**
 Starts a table header cell declaration with the given parameters.
 @param s String of table header cell parameters.
-@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Header">
-&lt;TH&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Header">&lt;TH&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void tableHeaderStart(String s)
@@ -3161,8 +3025,7 @@ Inserts multiple cells into a table with the row start and end tags.
 @param cells Array of Strings to write to each cell.
 @throws Exception
  */
-public void tableRow( String cells [] ) throws Exception
-{   
+public void tableRow( String cells [] ) throws Exception {   
     tableRowStart();
     tableCells ( cells );
     tableRowEnd();
@@ -3170,8 +3033,7 @@ public void tableRow( String cells [] ) throws Exception
 
 /**
 Ends a table row declaration.
-@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Row">
-&lt;tr&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Row">&lt;tr&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void tableRowEnd()
@@ -3184,8 +3046,7 @@ throws Exception {
 
 /**
 Starts a table row declaration.
-@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Row">
-&lt;tr&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Row">&lt;tr&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void tableRowStart()
@@ -3196,8 +3057,7 @@ throws Exception {
 /**
 Starts a table row declaration with the given parameters.
 @param p the table row parameters.
-@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Row">
-&lt;tr&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Row">&lt;tr&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void tableRowStart(PropList p)
@@ -3208,8 +3068,7 @@ throws Exception {
 /**
 Starts a table row declaration with the given parameters.
 @param s String of the table row parameters.
-@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Row">
-&lt;tr&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/tables.html#Table%20Row">&lt;tr&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void tableRowStart(String s)
@@ -3228,8 +3087,7 @@ throws Exception {
 /**
 Inserts a block of teletype-formatted text.
 @param s the teletype-formatted text to insert.
-@see <a href="http://www.willcam.com/cmat/html/lformat.html#Teletype">
-&lt;TT&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lformat.html#Teletype">&lt;TT&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void teletype(String s)
@@ -3241,8 +3099,7 @@ throws Exception {
 
 /**
 Ends a teletype block declaration.
-@see <a href="http://www.willcam.com/cmat/html/lformat.html#Teletype">
-&lt;TT&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lformat.html#Teletype">&lt;TT&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void teletypeEnd()
@@ -3256,8 +3113,7 @@ throws Exception {
 
 /**
 Starts a teletype block declaration.
-@see <a href="http://www.willcam.com/cmat/html/lformat.html#Teletype">
-&lt;TT&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lformat.html#Teletype">&lt;TT&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void teletypeStart()
@@ -3272,8 +3128,7 @@ Inserts the document title given the text.
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void title(String s)
-throws Exception
-{
+throws Exception {
     write("<title>");
     addText(s);
     write("</title>");
@@ -3282,8 +3137,7 @@ throws Exception
 /**
 Inserts a block of underlined text.
 @param s the underlined text to insert.
-@see <a href="http://www.willcam.com/cmat/html/lformat.html#Underlined">
-&lt;U&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lformat.html#Underlined">&lt;U&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void underline(String s)
@@ -3295,8 +3149,7 @@ throws Exception {
 
 /**
 Ends a block of underlined text.
-@see <a href="http://www.willcam.com/cmat/html/lformat.html#Underlined">
-&lt;U&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lformat.html#Underlined">&lt;U&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void underlineEnd()
@@ -3310,8 +3163,7 @@ throws Exception {
 
 /**
 Starts a block of underlined text.
-@see <a href="http://www.willcam.com/cmat/html/lformat.html#Underlined">
-&lt;U&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/lformat.html#Underlined">&lt;U&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void underlineStart()
@@ -3322,8 +3174,7 @@ throws Exception {
 
 /**
 Inserts a word break identifier, signifying where a word can be broken.
-@see <a href="http://www.willcam.com/cmat/html/other.html#Word%20Break">
-&lt;WBR&gt; tag.</a>
+@see <a href="http://www.willcam.com/cmat/html/other.html#Word%20Break">&lt;WBR&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
 public void wordBreak()

@@ -809,14 +809,18 @@ throws IOException
 		}
 	}
 	else {
-		// TODO SAM 2011-07-09 why not use ImageIO for all image types so we can do away with
-		// the custom JPEG encoder?
+		// TODO SAM 2011-07-09 why not use ImageIO for all image types so can do away with the custom JPEG encoder?
+		File file = new File(newfilename);
 		try {
-			File file = new File(newfilename);
 			ImageIO.write(_buffer, "png", file);
 		}
 		catch (Exception e) {
-			throw new IOException ( "Error writing png file: " + newfilename);
+			if ( !file.getParentFile().exists() ) {
+				throw new IOException ( "Error writing png file (parent folder does not exist): " + newfilename);
+			}
+			else {
+				throw new IOException ( "Error writing png file (permissions?): " + newfilename);
+			}
 		}
 	}
 }

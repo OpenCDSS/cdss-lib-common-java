@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -53,8 +53,8 @@ import RTi.Util.String.StringUtil;
 
 /**
 <p>
-This class is a dialog for editing a dictionary string ("property:value,property:value,...").  The updated dictionary string is
-returned via a response() method call as per the following sample code:
+This class is a dialog for editing a dictionary string ("property:value,property:value,...").
+The updated dictionary string is returned via a response() method call as per the following sample code:
 </p>
 <code><pre>
 	String dict = "Prop1:Value1,Prop2:Value1";
@@ -87,8 +87,8 @@ private final String
 /**
 Components to hold values from the TSIdent.
 */
-private ArrayList<JTextField> keyTextFieldList = new ArrayList<JTextField>();
-private ArrayList<JTextField> valueTextFieldList = new ArrayList<JTextField>();
+private ArrayList<JTextField> keyTextFieldList = new ArrayList<>();
+private ArrayList<JTextField> valueTextFieldList = new ArrayList<>();
 
 /**
 Text field row (0-index) where 0=first (top) row in entry fields.
@@ -140,11 +140,12 @@ private boolean error_wait = false; // Indicates if there is an error in input (
 
 /**
 Constructor.
-@param parent the parent JFrame on which the dialog will appear.  This cannot
-be null.  If necessary, pass in a new JFrame.
+@param parent the parent JFrame on which the dialog will appear.
+This cannot be null.  If necessary, pass in a new JFrame.
 @param modal whether the dialog is modal.
 @param dictString the dictionary string to edit.  Can be null, in which case <code>response()
 </code> will return a new dictionary string filled with the values entered on the form.
+The left-side key values can contain duplicate values.
 @param title dialog title
 @param notes information to display at the top of the dialog, to help explain the input
 @param keyLabel label above keys
@@ -181,7 +182,7 @@ public void actionPerformed(ActionEvent event)
 
     if (s.equals(this.BUTTON_ADD)) {
         Insets insetsTLBR = new Insets(2,2,2,2);
-        // Add a new row.  Rows are 1+ because the column names are in the first row
+        // Add a new row.  Rows are 1+ because the column names are in the first row.
         ++this.rowCount;
         JTextField ktf = new JTextField("",30);
         ktf.addMouseListener(this);
@@ -196,9 +197,9 @@ public void actionPerformed(ActionEvent event)
     }
     else if (s.equals(this.BUTTON_INSERT)) {
         Insets insetsTLBR = new Insets(2,2,2,2);
-        // Insert a new row before the row that was last selected.  Rows are 1+ because the column names are in the first row
+        // Insert a new row before the row that was last selected.  Rows are 1+ because the column names are in the first row.
         if ( this.keyTextFieldList.size() == 0 ) {
-            // Add at the end
+            // Add at the end.
             ++this.rowCount;
             JTextField ktf = new JTextField("",30);
             this.keyTextFieldList.add(ktf);
@@ -210,16 +211,16 @@ public void actionPerformed(ActionEvent event)
                 1, this.rowCount, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
         }
         else {
-            // Insert before the selected
+            // Insert before the selected.
             if ( this.selectedTextFieldRow < 0 ) {
-                // Nothing previously selected so reset
+                // Nothing previously selected so reset.
                 this.selectedTextFieldRow = 0;
             }
-            // First loop through all the rows after the new and shift later in the grid bag
+            // First loop through all the rows after the new and shift later in the grid bag.
             for ( int i = selectedTextFieldRow; i < this.keyTextFieldList.size(); i++ ) {
-                // FIXME SAM 2014-03-02 TOO MUCH WORK - come back and fix this later - for not disable the Insert
+                // FIXME SAM 2014-03-02 TOO MUCH WORK - come back and fix this later - for not disable the Insert.
             }
-            // Now add the new text field
+            // Now add the new text field.
             JTextField ktf = new JTextField("",30);
             this.keyTextFieldList.add(this.selectedTextFieldRow,ktf);
             JGUIUtil.addComponent(this.scrollPanel, ktf,
@@ -244,61 +245,57 @@ public void actionPerformed(ActionEvent event)
 	}
 }
 
-public void mouseClicked (MouseEvent e )
-{
+public void mouseClicked (MouseEvent e ) {
     setSelectedTextField(e.getComponent());
 }
 
-public void mouseEntered (MouseEvent e )
-{
+public void mouseEntered (MouseEvent e ) {
     
 }
 
-public void mouseExited (MouseEvent e )
-{
+public void mouseExited (MouseEvent e ) {
     
 }
 
-public void mousePressed (MouseEvent e )
-{
+public void mousePressed (MouseEvent e ) {
     setSelectedTextField(e.getComponent());
 }
 
-public void mouseReleased (MouseEvent e )
-{
+public void mouseReleased (MouseEvent e ) {
     
 }
 
 /**
-Check the input.  If errors exist, warn the user and set the __error_wait flag
-to true.  This should be called before response() is allowed to complete.
+Check the input.  If errors exist, warn the user and set the __error_wait flag to true.
+This should be called before response() is allowed to complete.
 */
-private void checkInputAndCommit ()
-{	
-    // Previously show all input to user, even if in error, but check before saving
+private void checkInputAndCommit () {	
+    // Previously show all input to user, even if in error, but check before saving.
 	this.error_wait = false;
 	
 	StringBuffer b = new StringBuffer();
 	String chars = ":,\"";
 	String message = "";
-    // Get from the dialog...
+    // Get data from the dialog.
 	for ( int i = 0; i < this.keyTextFieldList.size(); i++ ) {
 	    String key = this.keyTextFieldList.get(i).getText().trim();
 	    String value = this.valueTextFieldList.get(i).getText().trim();
 	    // Make sure that the key and value do not contain special characters :,"
 	    // TODO SAM 2013-09-08 For now see if can parse out intelligently when ${} surrounds property, as in ${TS:property},
-	    // but this is not a generic behavior and needs to be handled without hard-coding
-	    // Evaluate whether to implement:  It is OK in the value if the value is completely surrounded by single quotes 
+	    // but this is not a generic behavior and needs to be handled without hard-coding.
+	    // Evaluate whether to implement:  It is OK in the value if the value is completely surrounded by single quotes.
 	    if ( StringUtil.containsAny(key, chars, false) ) {
 	        if ( !key.startsWith("${") && !key.endsWith("}") ) {
-	            message += "\n" + this.keyLabel + " (" + key + ") is not ${Property} and contains special character(s) " + chars + "\nSurround with '  ' to protect or [  ] for array.";
+	            message += "\n" + this.keyLabel + " (" + key + ") is not ${Property} and contains special character(s) " +
+	            	chars + "\nSurround with '  ' to protect or [  ] for array.";
 	        }
 	    }
 	    if ( StringUtil.containsAny(value, chars, false) ) {
 	        if ( ((value.charAt(0) != '\'') && (value.charAt(value.length() - 1) != '\'')) &&
 	             ((value.charAt(0) != '[') && (value.charAt(value.length() - 1) != ']')) &&
 	            (!value.startsWith("${") && !value.endsWith("}")) ) {
-	            message = "\n" + this.valueLabel + " (" + value + ") is not ${Property} and contains special character(s) " + chars + "\nSurround with '  ' to protect or [  ] for array.";
+	            message = "\n" + this.valueLabel + " (" + value + ") is not ${Property} and contains special character(s) " +
+	            	chars + "\nSurround with '  ' to protect or [  ] for array.";
 	        }
         }
 	    if ( key.length() > 0 ) {
@@ -320,28 +317,26 @@ private void checkInputAndCommit ()
 /**
 Does nothing.
 */
-public void keyPressed(KeyEvent e)
-{
+public void keyPressed(KeyEvent e) {
 }
 
 /**
 Does nothing.
 */
-public void keyReleased(KeyEvent e)
-{
+public void keyReleased(KeyEvent e) {
 }
 
 /**
 Does nothing.
 */
-public void keyTyped(KeyEvent e) {}
+public void keyTyped(KeyEvent e) {
+}
 
 /**
 Return the user response and dispose the dialog.
 @return the dialog response.  If <code>null</code>, the user pressed Cancel.
 */
-public void response ( boolean ok )
-{
+public void response ( boolean ok ) {
 	setVisible(false);
 	dispose();
 	if ( !ok ) {
@@ -351,10 +346,11 @@ public void response ( boolean ok )
 
 /**
 Return the user response and dispose the dialog.
-@return the dialog response.  If <code>null</code>, the user pressed Cancel.
+The key values do not need to be unique since handled in a string rather than a hash.
+@return the dialog response in form:  key1:value1,key2,value2
+ If <code>null</code> is returned, the user pressed Cancel.
 */
-public String response ()
-{
+public String response () {
 	return this.response;
 }
 
@@ -362,9 +358,8 @@ public String response ()
 /**
 Set the selected text field, which indicates which row has been clicked on.
 */
-private void setSelectedTextField ( Component c )
-{
-    // Figure out which of the text fields were selected and save the index
+private void setSelectedTextField ( Component c ) {
+    // Figure out which of the text fields were selected and save the index.
     for ( int i = 0; i < keyTextFieldList.size(); i++ ) {
         if ( c == keyTextFieldList.get(i) ) {
             this.selectedTextFieldRow = i;
@@ -382,8 +377,7 @@ private void setSelectedTextField ( Component c )
 /**
 Sets up the GUI.
 */
-private void setupUI()
-{
+private void setupUI() {
     if ( this.title != null ) {
         setTitle(this.title );
     }
@@ -394,7 +388,7 @@ private void setupUI()
 	
 	Insets insetsTLBR = new Insets(2,2,2,2);
 	
-	// Display the notes
+	// Display the notes.
     int y = -1;
 	for ( int i = 0; i < this.notes.length; i++ ) {
 	    JGUIUtil.addComponent(panel, 
@@ -407,7 +401,7 @@ private void setupUI()
 	String [] keyList = new String[0];
 	String [] valueList = new String[0];
 	if ( (this.dictString != null) && (this.dictString.length() > 0) ) {
-	    // Have an existing dictionary string so parse and use to populate the dialog
+	    // Have an existing dictionary string so parse and use to populate the dialog.
 	    String [] dictParts;
 	    if ( dictString.indexOf(",") < 0 ) {
 	        dictParts = new String[1];
@@ -421,22 +415,22 @@ private void setupUI()
     	    valueList = new String[dictParts.length];
     	    for ( int i = 0; i < dictParts.length; i++ ) {
     	        // Now split the part by :
-    	        // It is possible that the dictionary entry value contains a protected ':' so have to split manually
+    	        // It is possible that the dictionary entry value contains a protected ':' so have to split manually.
     	        // For example, this is used with Property:${TS:property} to retrieve time series properties
-    	        // or ${TS:property}:Property to set properties
+    	        // or ${TS:property}:Property to set properties.
     	        int colonPos = dictParts[i].indexOf("}:");
     	        if ( colonPos > 0 ) {
-    	            // Have a ${property} property in the key
-    	            ++colonPos; // Increment one position since }: is 2 characters
+    	            // Have a ${property} property in the key.
+    	            ++colonPos; // Increment one position since }: is 2 characters.
     	        }
     	        else {
-    	            // No ${property} in the key
+    	            // No ${property} in the key.
     	            colonPos = dictParts[i].indexOf(":");
     	        }
     	        if ( colonPos >= 0 ) {
   	                keyList[i] = dictParts[i].substring(0,colonPos).trim();
   	                if ( colonPos == (dictParts[i].length() - 1) ) {
-  	                    // Colon is at the end of the string
+  	                    // Colon is at the end of the string.
                         valueList[i] = "";
   	                }
   	                else {
@@ -451,12 +445,12 @@ private void setupUI()
 	    }
 	}
 	if ( keyList.length > initDictSize ) {
-	    // Increase the initial dictionary size
+	    // Increase the initial dictionary size.
 	    initDictSize = keyList.length;
 	}
 
 	this.scrollPanel = new JPanel();
-	// Don't set preferred size because it seems to mess up the scroll bars (visible but no "thumb")
+	// Don't set preferred size because it seems to mess up the scroll bars (visible but no "thumb").
 	//this.scrollPanel.setPreferredSize(new Dimension(600,300));
 	this.scrollPanel.setLayout(new GridBagLayout());
     JGUIUtil.addComponent(panel, 
@@ -473,9 +467,9 @@ private void setupUI()
         new JLabel(this.valueLabel),
         1, yScroll, 1, 1, 0, 0, insetsTLBR,
         GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
-    this.keyTextFieldList = new ArrayList<JTextField>(initDictSize);
-    this.valueTextFieldList = new ArrayList<JTextField>(initDictSize);
-    // Add key value pairs
+    this.keyTextFieldList = new ArrayList<>(initDictSize);
+    this.valueTextFieldList = new ArrayList<>(initDictSize);
+    // Add key value pairs.
     for ( int i = 0; i < this.initDictSize; i++ ) {
         String key = "";
         String value = "";
@@ -524,7 +518,7 @@ private void setupUI()
 
 	pack();
 	// Set the window size.  Otherwise large numbers of items in the dictionary will cause the scrolled panel to
-	// be bigger than the screen at startup in some cases
+	// be bigger than the screen at startup in some cases.
 	setSize(650,400);
 	setResizable ( true );
 	JGUIUtil.center(this);
@@ -544,31 +538,37 @@ public void windowClosing(WindowEvent event) {
 /**
 Does nothing.
 */
-public void windowActivated(WindowEvent evt) {}
+public void windowActivated(WindowEvent evt) {
+}
 
 /**
 Does nothing.
 */
-public void windowClosed(WindowEvent evt) {}
+public void windowClosed(WindowEvent evt) {
+}
 
 /**
 Does nothing.
 */
-public void windowDeactivated(WindowEvent evt) {}
+public void windowDeactivated(WindowEvent evt) {
+}
 
 /**
 Does nothing.
 */
-public void windowDeiconified(WindowEvent evt) {}
+public void windowDeiconified(WindowEvent evt) {
+}
 
 /**
 Does nothing.
 */
-public void windowIconified(WindowEvent evt) {}
+public void windowIconified(WindowEvent evt) {
+}
 
 /**
 Does nothing.
 */
-public void windowOpened(WindowEvent evt) {}
+public void windowOpened(WindowEvent evt) {
+}
 
 }

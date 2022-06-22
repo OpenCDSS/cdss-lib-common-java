@@ -246,8 +246,7 @@ Writes the start tags for the HTML check file.
 @param title title for the document.
 @throws Exception
 */
-private void writeHtmlHead( HTMLWriter html, String title, String customStyleText ) throws Exception
-{
+private void writeHtmlHead( HTMLWriter html, String title, String customStyleText ) throws Exception {
     if ( html != null ) {
         html.headStart();
         html.title(title);
@@ -257,10 +256,10 @@ private void writeHtmlHead( HTMLWriter html, String title, String customStyleTex
 }
 
 /**
-Inserts the style attributes for a time series summary.
+Inserts the style attributes for a table.
 This was copied from the TSHtmlFormatter since tables are used with time series also.
 @throws Exception
- */
+*/
 private void writeHtmlStyles(HTMLWriter html, String customStyleText )
 throws Exception
 {
