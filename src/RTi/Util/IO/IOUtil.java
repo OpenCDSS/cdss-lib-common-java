@@ -1407,6 +1407,23 @@ public static List<String> getJarFilesManifests() {
 }
 
 /**
+ * Return the Java major version (e.g., 7, 8).
+ *@return the Java major version (e.g., 7, 8), or -1 if unkknown.
+ */
+public static int getJavaMajorVersion () {
+	String javaVersion = System.getProperty("java.vm.specification.version");
+	if ( javaVersion.startsWith("1.") ) {
+		// Early versions like 1.7.
+		javaVersion = javaVersion.substring(2).trim();
+		return Integer.parseInt(javaVersion);
+	}
+	else {
+		// Unknown how to process.
+		return -1;
+	}
+}
+
+/**
 Return the Java Runtime Environment architecture bits.
 @return the JRE bits, 32 or 64
 */
