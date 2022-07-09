@@ -194,8 +194,8 @@ This should only be used for debugging and testing, and should not be enabled in
 private boolean __dumpSQLOnError = false;
 
 /**
-If true, then when an SQL statement is executed, the text of the SQL statement 
-will be printed to the log file at Status level 2.
+If true, then when an SQL statement is executed,
+the text of the SQL statement will be printed to the log file at Status level 2.
 This should only be used for debugging and testing, and should not be enabled in production code.
 */
 private boolean __dumpSQLOnExecution = false;
@@ -434,12 +434,13 @@ that takes as a parameter the ODBC name.
 @param database_engine Database engine type (see setDatabaseEngine()).
 @param database_server Database server name (IP address or DNS-resolvable name).
 @param database_name Database name on the server.
-@param port Port to use for the database communications.  Specify as a negative
-number to use the default.  Generally the default value determined from the database engine is correct.
-@param system_login System login to use for the database connection.  Specify
-as null to not use.  Generally the login will be defined in a derived class and is specific to a database.
-@param system_password System login to use for the database connection.  Specify
-as null to not use.  Generally the login will be defined in a derived class and is specific to a database.
+@param port Port to use for the database communications.
+Specify as a negative number to use the default.
+Generally the default value determined from the database engine is correct.
+@param system_login System login to use for the database connection.
+Specify as null to not use.  Generally the login will be defined in a derived class and is specific to a database.
+@param system_password System login to use for the database connection.
+Specify as null to not use.  Generally the login will be defined in a derived class and is specific to a database.
 @throws Exception thrown if an unknown databaseEngine is specified.
 */
 public DMI(String database_engine, String database_server, String database_name,
@@ -563,7 +564,7 @@ throws Exception {
 	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("PostgreSQL")) {
 		// Escape for keywords.
 		// See:  https://www.postgresql.org/docs/9.6/sql-keywords-appendix.html
-		// The following caused issues
+		// The following caused issues:
 		// - TODO smalers 2020-10-12 why is this an issue?
 		//__fieldLeftEscape = "\"";
 		//__fieldRightEscape = "\"";
@@ -738,8 +739,8 @@ doing a Connection.commit() or in setAutoCommit(), or if the database
 was not connected when the call was made
 */
 public void commit() throws SQLException {
-	// TODO (JTS - 2006-05-22) This code has not been tested or used in nearly 4 years.
-	// Do not rely on this method without testing it first!
+	// TODO (JTS - 2006-05-22)This code has not been tested or used in nearly 4 years.
+	// Do not rely on this method without testing it first.
 	if (!__connected) {
 		throw new SQLException ("Database not connected, cannot call DMI.commit()");
 	}
@@ -778,9 +779,9 @@ public abstract void determineDatabaseVersion ();
 /** 
 Execute a count query to find the number of records specified by the query.
 This may be used in conjunction with a select statement to find
-out how many records will be pulled back (for doing a progress bar or the
-like), so the input SQL string can be a properly-formatted <b><code>SELECT </b></code>
-statement, or a normal <b><code>SELECT COUNT</b></code> statement.<p>
+out how many records will be pulled back (for doing a progress bar or the like),
+so the input SQL string can be a properly-formatted <b><code>SELECT </b></code> statement,
+or a normal <b><code>SELECT COUNT</b></code> statement.<p>
 If a normal SELECT statement is passed in, 
 this method will chop off any <b><codE>ORDER BY</b></code> clauses and
 will also remove the fields that are being selected and replace them with <b><code>COUNT(*)</b></code>.<p>
@@ -794,8 +795,8 @@ SELECT COUNT(*) FROM tableName where field3 = 123;<p>
 <p>
 <b>Known issues</b><br>
 A problem has been encountered with an ODBC connection to a Microsoft Access
-97 database in which malformed COUNT() statements have returned incorrect
-results.  <p>
+97 database in which malformed COUNT() statements have returned incorrect results.
+<p>
 An SQL statement of SELECT COUNT(*) ASDKJASD (where ASDKJASD could actually
 be pretty much any word or combination of letters) would return a result that
 said that 1 record was returned.  It is unclear why this SQL statement was
@@ -827,12 +828,12 @@ public int dmiCount(String sql) throws SQLException{
 		// Otherwise, the sql is formatted as a SELECT statement so the 'SELECT [fields]' part is removed.
 		if (sql.indexOf("FROM") >= 0) {
 			sql = sql.substring(sql.indexOf("FROM"));
-			// And then the ORDER BY clauses are removed as well, leaving behind only "FROM [table] WHERE (wheres)".
+			// And then the ORDER BY clauses are removed as well, leaving behind only:
+			//   "FROM [table] WHERE (wheres)"
 			if (sql.indexOf("ORDER BY") >= 0) {
 				sql = sql.substring(0, sql.indexOf("ORDER BY"));
 			}
 		}
-		
 		// Graft on the count statement to the beginning and it is functional SQL again, or should be.
 		sql = "SELECT COUNT(*) " + sql;
 	}
@@ -869,7 +870,7 @@ Connection.createStatement or Statement.executeQuery()
 public int dmiCount(DMISelectStatement s) 
 throws SQLException {
 	// TODO (JTS - 2006-05-22) This code has not been tested or used in nearly 4 years.
-	// Do not rely on this method without testing it first!
+	// Do not rely on this method without testing it first.
 	if (!__connected) {
 		throw new SQLException ("Database not connected, cannot call DMI.dmiCount()");
 	}	
@@ -922,8 +923,8 @@ public int dmiDelete(DMIDeleteStatement s) throws SQLException {
 /** 
 Executes a database delete.  This method runs the SQL DELETE statement in its String parameter.<p>
 The code in dmiDelete is surrounded by a check of the private boolean member 
-variable __editable (see isEditable() and setEditable(boolean)).  If
-__editable is set to true, none of the code is executed and an exception is thrown. 
+variable __editable (see isEditable() and setEditable(boolean)).
+If __editable is set to true, none of the code is executed and an exception is thrown. 
 @param sql the SQL statement that contains the <b><code>DELETE</b></code> command
 @return the number of rows deleted
 @throws SQLException thrown if there are problems with a 
@@ -1032,14 +1033,14 @@ If the database is accessed via a dmiSelect statement that takes a String argume
 the SELECT statement is saved, but cannot be used by this method.
 It saved for use in the dmiRunLastSelectForTableModel function.
 <b>Note:</b><p>
-If using stored procedures, this method WILL NOT WORK.  It only works with
-DMI connections that pass String-based SQL statements (either as Strings or DMIStatement objects).
+If using stored procedures, this method WILL NOT WORK.
+It only works with DMI connections that pass String-based SQL statements (either as Strings or DMIStatement objects).
 @return an object, the type of which depends on which kind of query was being executed.
 The problem here is that SELECT queries return 
 Vector objects while all other SQL statements return integers.
 Any method which calls this function should first call <b><code>
-getLastSQLType() </b></code> so that it knows what sort of object will
-be returned, and then cast the return type appropriately.<p>
+getLastSQLType() </b></code> so that it knows what sort of object will be returned,
+and then cast the return type appropriately.<p>
 <code>
 int type = rdmi.getLastSQLType();<br>
 if (type == DMI.SELECT) {<br>
@@ -1151,7 +1152,7 @@ throws SQLException {
 		return select.executeStoredProcedureQuery();
 	}
 	else {	
-		// Sets the DMISelectStatement as the last statement executed.
+		// Set the DMISelectStatement as the last statement executed.
 		setLastStatement(select);
 		return dmiSelect(select.toString());
 	}
@@ -1235,8 +1236,8 @@ Executes an insert or update statement from a DMIWriteStatement object.
 The SQL string stored in the DMIWriteStatement object is generated and the
 resulting string passed into a dmiWrite(String) function that does the work.<p>
 The code in dmiWrite is surrounded by a check of the private boolean member 
-variable __editable (set isEditable() and setEditable(boolean).  If
-__editable is set to true, none of the code is executed and an exception is thrown.  
+variable __editable (set isEditable() and setEditable(boolean).
+If __editable is set to true, none of the code is executed and an exception is thrown.  
 @param s a DMIWriteStatement object to be executed
 @param writeFlag not used with stored procedures; for SQL can be INSERT_UPDATE, UPDATE_INSERT, UPDATE,
 INSERT, DELETE_INSERT to indicate order of operations (can impact performance).
@@ -1654,7 +1655,7 @@ Returns all the kinds of databases a DMI can connect to.
 @return a list of all the kinds of databases a DMI can connect to.
 */
 protected static List<String> getAllDatabaseTypes() {
-	List<String> v = new ArrayList<>(9);
+	List<String> v = new ArrayList<>(10);
 	v.add("Access");
 	v.add("Derby");
 	v.add("Excel");
@@ -1669,7 +1670,7 @@ protected static List<String> getAllDatabaseTypes() {
 }
 
 /**
-Returns the current value of the autoCommit setting
+Returns the current value of the autoCommit setting.
 @return the value of the autoCommit setting
 */
 public boolean getAutoCommit() {
@@ -1685,7 +1686,7 @@ public boolean getCapitalize() {
 }
 
 /**
-Returns the connection being used to interact with the database
+Returns the connection being used to interact with the database.
 @return the connection being used to interact with the database
 */
 public Connection getConnection() {
@@ -1816,7 +1817,7 @@ public long getDatabaseVersion () {
 public static int getDefaultPort( DMIDatabaseType databaseType ) {
 	switch ( databaseType ) {
 		case ACCESS:
-			// Port not used.
+			// Port not used since a file database.
 			return -1;
 		case H2:
 			// Port not used.
@@ -1843,7 +1844,7 @@ public static int getDefaultPort( DMIDatabaseType databaseType ) {
 }
 
 /**
-Return the status of the dirty flag
+Return the status of the dirty flag.
 @return the status of the dirty flag
 */
 public boolean getDirty() {
@@ -1877,7 +1878,7 @@ public boolean getJDBCODBC() {
 }
 
 /**
-Returns the last query string that was executed
+Returns the last query string that was executed.
 @return the last query string that was executed
 */
 public String getLastQueryString() {
@@ -1913,7 +1914,7 @@ public String getLastSQLString() {
 }
 
 /**
-Returns the type of the last SQL string that was executed
+Returns the type of the last SQL string that was executed.
 @return the type of the last SQL string that was executed
 */
 public int getLastSQLType() {
@@ -1921,7 +1922,7 @@ public int getLastSQLType() {
 }
 
 /**
-Returns the field left escape string
+Returns the field left escape string.
 @return the field left escape string
 */
 public String getFieldLeftEscape() {
@@ -1929,7 +1930,7 @@ public String getFieldLeftEscape() {
 }
 
 /**
-Returns the field right escape string
+Returns the field right escape string.
 @return the field right escape string
 */
 public String getFieldRightEscape() {
@@ -1964,7 +1965,7 @@ public int getPort() {
 }
 
 /**
-Returns the setting of the secure variable
+Returns the setting of the secure variable.
 @return the setting of the secure variable
 */
 public boolean getSecure() {
@@ -1998,7 +1999,7 @@ public String getStatementEnd() {
 }
 
 /**
-Returns the string delimiter
+Returns the string delimiter.
 @return the string delimiter
 */
 public String getStringIdDelim() {
@@ -2071,10 +2072,10 @@ public boolean isOpen() {
 /**
 Opens the connection to the DMI with information that was previously set, 
 and sets printStatus to the given value while open() (the other version of the
-method, not this one) is being called, in order to print more debugging
-information.  Once this method is done, __printStatus will be set to false.<p>
-__printStatus is primarily used in printStatusOrDebug(), used internally for
-debugging DMI connection open()s.
+method, not this one) is being called, in order to print more debugging information.
+Once this method is done, __printStatus will be set to false.<p>
+__printStatus is primarily used in printStatusOrDebug(),
+used internally for debugging DMI connection open()s.
 @param printStatus whether to print information to status while in open().
 @throws SQLException if the DMI is already connected.
 @throws Exception if some other error happens while connecting to the database.
@@ -2170,13 +2171,28 @@ throws SQLException, Exception {
 			// a problem with some configuration files and software where
 			// an MDB file is allowed for the database name).
 			// This case is therefore the same as if __jdbc_odbc = false.
-			Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
-			connUrl = "jdbc:odbc:" + __database_name;
-		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
-			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,propertyMap);
-		    }
-			Message.printStatus(2, routine,
-				"Opening ODBC connection for Microsoft Access JDBC/ODBC and \"" + connUrl + "\"");
+			if ( IOUtil.getJavaMajorVersion() <= 7 ) {
+				// Use the built-in Microsoft Access driver.
+				Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
+				connUrl = "jdbc:odbc:" + __database_name;
+		    	if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
+			    	connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,propertyMap);
+		    	}
+				Message.printStatus(2, routine,
+					"Java version is <= 7. Opening ODBC connection for Microsoft Access built-in JDBC/ODBC driver and \"" + connUrl + "\"");
+			}
+			else {
+				// Must use a third party Access driver:
+				// - use open source UCanAccess: http://ucanaccess.sourceforge.net/site.html#home
+				// - example:  jdbc:ucanaccess://C:/db/main.mdb;remap=c:\db\linkee1.mdb|C:\pluto\linkee1.mdb&c:\db\linkee2.mdb|C:\pluto\linkee2.mdb
+				Class.forName("net.ucanaccess.jdbc.UcanaccessDriver");
+				connUrl = "jdbc:ucanaccess:" + __database_name;
+		    	if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
+			    	connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,propertyMap);
+		    	}
+				Message.printStatus(2, routine,
+					"Java version is not <= 7.  Opening ODBC connection for Microsoft Access using UCanAccess driver and \"" + connUrl + "\"");
+			}
 		}
 		else if (_database_engine == DMIDatabaseType.DERBY ) {
             printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.DERBY'");
@@ -2241,8 +2257,8 @@ throws SQLException, Exception {
 			Message.printStatus(2, routine, "Opening ODBC connection for PostgreSQL using (login not shown): " + connUrl );
 		}
 		else if (_database_engine == DMIDatabaseType.SQLITE ) {
-			// Database is a file, not via port connection.
-			// See:  https://www.sqlitetutorial.net/sqlite-java/sqlite-jdbc-driver/
+			// Database is a file, not via port connection:
+			// -see:  https://www.sqlitetutorial.net/sqlite-java/sqlite-jdbc-driver/
 			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.SQLITE'");
 			if ( __database_server.equalsIgnoreCase("memory") ) {
 				// Open an in-memory database.
@@ -2269,7 +2285,7 @@ throws SQLException, Exception {
 		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
 			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
 		    }
-            // If connecting to a named instance, DO NOT USE PORT!
+            // If connecting to a named instance, DO NOT USE PORT.
             // It is generally recommended to use the port for speed.
             if (__database_server.indexOf('\\') < 0) {
                 // Database instance is NOT specified, for example the server name would be something like:
@@ -2323,12 +2339,28 @@ throws SQLException, Exception {
 		// regardless of the database engine (this should not normally be used for Java applications,
 		// or need to figure out how to use the ODBC protocol URL knowing only the ODBC DSN for each engine).
 		printStatusOrDebug(dl, routine, "Using default Java connection method.");
-		Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
-		connUrl = "jdbc:odbc:" + __odbc_name;
-		if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
-			connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+		if ( IOUtil.getJavaMajorVersion() <= 7 ) {
+			// Use the built-in Microsoft Access driver.
+			Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
+			connUrl = "jdbc:odbc:" + __odbc_name;
+			if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
+				connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+			}
+			Message.printStatus(2, routine,
+				"Java version is <= 7. Opening ODBC connection for Microsoft Access built-in JDBC/ODBC driver and \"" + connUrl + "\"");
 		}
-		Message.printStatus (2, routine, "Opening ODBC connection using JDBC/ODBC and \"" + connUrl + "\"" );
+		else {
+			// Must use a third party Access driver:
+			// - use open source UCanAccess: http://ucanaccess.sourceforge.net/site.html#home
+			// - example:  jdbc:ucanaccess://C:/db/main.mdb;remap=c:\db\linkee1.mdb|C:\pluto\linkee1.mdb&c:\db\linkee2.mdb|C:\pluto\linkee2.mdb
+			Class.forName("net.ucanaccess.jdbc.UcanaccessDriver");
+			connUrl = "jdbc:ucanaccess:" + __database_name;
+		   	if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
+		    	connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,propertyMap);
+		   	}
+			Message.printStatus(2, routine,
+				"Java version is not <= 7.  Opening ODBC connection for Microsoft Access using UCanAccess driver and \"" + connUrl + "\"");
+		}
 	}
     if ( __secure ) {
 		printStatusOrDebug(dl, routine, "Calling getConnection(" 
@@ -2415,7 +2447,7 @@ public void rollback() throws SQLException {
 /**
 Set additional connection URL properties to be appended to the connection string.
 @param additionalConnectionProperties a string of form ";prop1=value1;prop2=value2",
-where the semi-colon represents a delimiter.
+where the semicolon represents a delimiter.
 Use the appropriate delimiter character for the database technology being used.
 */
 public void setAdditionalConnectionProperties ( String additionalConnectionProperties ) {
@@ -2643,9 +2675,8 @@ public void dumpSQLOnError(boolean dumpSQL) {
 }
 
 /**
-Sets whether to print out the SQL string that will be executed prior to any
-UPDATEs, INSERTS, SELECTs or DELETEs.  If true, the string will be printed at
-Message.printStatus(2).  Defaults to false.  For use in debugging.
+Sets whether to print out the SQL string that will be executed prior to any UPDATEs, INSERTS, SELECTs or DELETEs.
+If true, the string will be printed at Message.printStatus(2).  Defaults to false.  For use in debugging.
 @param dumpSQL whether to dump the SQL prior to running it.
 */
 public void setDumpSQLOnExecution(boolean dumpSQL) {
@@ -2826,7 +2857,7 @@ public void startTransaction() throws SQLException {
 	__dirty = false;
 	startTransaction(ROLLBACK);
 
-	// TODO (JTS - 2004-07-20) nothing in here to actually START a transaction!
+	// TODO (JTS - 2004-07-20) nothing in here to actually START a transaction.
 	// Other transactions are either committed or rolled back, but where is one started?
 
 	__inTransaction = true;
@@ -2849,7 +2880,7 @@ public void startTransaction(int action) throws SQLException {
 	String routine = "DMI.startTransaction";
 	int dl = 25;
 
-	// autoCommit and transaction do not work together.
+	// AutoCommit and transaction do not work together.
 	// Autocommit must be turned off for transactions to function, and so do that.
 	setAutoCommit(false);
 	
