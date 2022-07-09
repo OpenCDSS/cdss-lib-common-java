@@ -860,6 +860,10 @@ Writes the given text to the HTML and adds a newline.
 */
 public void addText(String s)
 throws Exception {
+	if ( s == null ) {
+		// Don't add anything.
+		return;
+	}
 	if (__checkText) {
 		write(textToHtml(s) + "\n");
 	}
@@ -2037,30 +2041,30 @@ private void image( String s, String alt_str, int border,
 	// TODO smalers 2022-06-14 Should the following use && rather than &?
 	if ( floatStr.equals("") ) {
 		if ( ( width > 0 ) & ( height > 0 ) ) {
-			write("<img src= \"" + s + "\" alt=\"" + 
+			write("<img src=\"" + s + "\" alt=\"" + 
 			alt_str + "\" border=\"" + border + 
 			"\" width=\"" + width + "\" height=\"" +
 			height + "\">" );
 		}
 		else if ( ( width > 0 ) & ( height < 0 ) ) {
-			write("<img src= \"" + s + "\" alt=\"" + 
+			write("<img src=\"" + s + "\" alt=\"" + 
 			alt_str + "\" border=\"" + border + 
 			"\" width=\"" + width + "\">" );
 		}
 		else if ( ( width < 0 ) & ( height > 0 ) ) {
-			write("<img src= \"" + s + "\" alt=\"" + 
+			write("<img src=\"" + s + "\" alt=\"" + 
 			alt_str + "\" border=\"" + border + 
 			"\" height=\"" + height + "\">" );
 		}
 		else {
 			//width and height are -999.
-			write("<img src= \"" + s + "\" alt=\"" + 
+			write("<img src=\"" + s + "\" alt=\"" + 
 			alt_str + "\" border=\"" + border + "\">" );
 		}
 	}
 	else {
 		if ( ( width > 0 ) & ( height > 0 ) ) {
-			write("<img src= \"" + s + "\" alt=\"" + 
+			write("<img src=\"" + s + "\" alt=\"" + 
 			alt_str + "\" border=\"" + border + 
 			"\" width=\"" + width + "\" height=\"" +
 			height +"\" align=\"" + floatStr + "\" " +
@@ -2068,7 +2072,7 @@ private void image( String s, String alt_str, int border,
 			"margin-top:10;margin-bottom:10\">" );
 		}
 		else if ( ( width > 0 ) & ( height < 0 ) ) {
-			write("<img src= \"" + s + "\" alt=\"" + 
+			write("<img src=\"" + s + "\" alt=\"" + 
 			alt_str + "\" border=\"" + border + 
 			"\" width=\"" + width + "\" align=\"" +
 			floatStr +"\" " +
@@ -2076,7 +2080,7 @@ private void image( String s, String alt_str, int border,
 			"margin-top:10;margin-bottom:10\">" );
 		}
 		else if ( ( width < 0 ) & ( height > 0 ) ) {
-			write("<img src= \"" + s + "\" alt=\"" + 
+			write("<img src=\"" + s + "\" alt=\"" + 
 			alt_str + "\" border=\"" + border + 
 			"\" height=\"" + height + "\" align=\"" +
 			floatStr +"\" " +
@@ -2085,7 +2089,7 @@ private void image( String s, String alt_str, int border,
 		}
 		else {
 			// Width and height are -999.
-			write("<img src= \"" + s + "\" alt=\"" + 
+			write("<img src=\"" + s + "\" alt=\"" + 
 			alt_str + "\" border=\"" + border + "\" align=\"" +
 			floatStr +"\" " +
 			"STYLE=\"margin-left:10;margin-right:10;" +
@@ -2543,26 +2547,44 @@ throws Exception {
 
 /**
 Takes a PropList and turns every key/value pair into a single string that 
-contains <tt>key1=value1 key2=value2 ... keyN=valueN</tt> for each PropList prop from 1 to N.
+contains <tt>key1="value1" key2="value2" ... keyN="valueN"</tt> for each PropList prop from 1 to N.
 @param p PropList for which to get the properties.
 @return a String with all the properties concatenated together and separated by spaces.
 @throws Exception if an error occurs writing HTML text to a file.
 */
 private String propListToString(PropList p) {
+	return propListToString(p, "\"");
+}
+
+/**
+Takes a PropList and turns every key/value pair into a single string that 
+contains <tt>key1=value1 key2=value2 ... keyN=valueN</tt> for each PropList prop from 1 to N.
+@param p PropList for which to get the properties.
+@param quote the character to use for quoting or null to not quote
+@return a String with all the properties concatenated together and separated by spaces.
+@throws Exception if an error occurs writing HTML text to a file.
+*/
+private String propListToString(PropList p, String quote) {
 	if (p == null) {
 		return "";
 	}
 	int size = p.size();
 	String s = "";
 	String val = "";
+	if ( quote == null ) {
+		quote = "";
+	}
 	for (int i = 0; i < size; i++) {
+		if ( i > 0 ) {
+			s += " ";
+		}
 		Prop prop = p.elementAt(i);
 		val = prop.getValue();
 		if (val.trim().equals("")) {
 			s += prop.getKey();
 		}
 		else {
-			s += prop.getKey() + "=" + prop.getValue() + " ";
+			s += prop.getKey() + "=" + quote + prop.getValue() + quote;
 		}
 	}
 	

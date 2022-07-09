@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,41 +26,44 @@ package RTi.DMI;
 /**
 This enumeration stores values for a database types, which indicate the database server software.
 */
-public enum DMIDatabaseType
-{
-
+public enum DMIDatabaseType {
 	/**
-	Database engine corresponding to "Access" database engine (Jet).
+	Database engine corresponding to the "Access" database engine (Jet).
 	*/
 	ACCESS("Access"),
 
 	/**
-	Database engine corresponding to "Derby" database engine (Oracle implementation of Apache Derby).
+	Database engine corresponding to the "Derby" database engine (Oracle implementation of Apache Derby).
 	*/
 	DERBY("Derby"),
 
 	/**
-	Database engine corresponding to "Excel" database engine (no distinction about version?).
+	Database engine corresponding to the "Excel" database engine (no distinction about version?).
 	*/
 	EXCEL("Excel"),
 
 	/**
-	Database engine corresponding to "H2" database engine
+	Database engine corresponding to the "H2" database engine.
  	*/
 	H2("H2"),
 
 	/**
-	Database engine corresponding to "Informix" database engine (no distinction about version?).
+	Database engine corresponding to the "HyperSQL" database engine (HSQLDB).
+ 	*/
+	HSQLDB("HSQLDB"),
+
+	/**
+	Database engine corresponding to the "Informix" database engine (no distinction about version?).
 	*/
 	INFORMIX("Informix"),
 
 	/**
-	Database engine corresponding to "MySQL" database engine (no distinction about version?).
+	Database engine corresponding to the "MySQL" database engine (no distinction about version?).
 	*/
 	MYSQL("MySQL"),
 
 	/**
-	Database engine corresponding to ODBC DSN database connection but engine type is not
+	Database engine corresponding to an ODBC DSN database connection but engine type is not
 	specifically known to this code.  Useful for generic connections.
 	*/
 	ODBC("ODBC"),
@@ -106,8 +109,8 @@ public enum DMIDatabaseType
 	}
 
 	/**
-	Return the display name for the enumeration string.  This is usually the same as the
-	value but using appropriate mixed case.
+	Return the display name for the enumeration string.
+	This is usually the same as the value but using appropriate mixed case.
 	@return the display name.
 	*/
 	@Override
@@ -124,7 +127,7 @@ public enum DMIDatabaseType
         	return null;
     	}
     	DMIDatabaseType [] values = values();
-    	// Currently supported values
+    	// Currently supported values.
     	for ( DMIDatabaseType t : values ) {
         	if ( name.equalsIgnoreCase(t.toString()) ) {
             	return t;
