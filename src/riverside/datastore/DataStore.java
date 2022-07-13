@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,8 +34,8 @@ import RTi.Util.IO.PropList;
 public interface DataStore {
     
     /**
-     * Get the description for the datastore.  This is a longer name that is helpful to the user
-     * (e.g., "Historical temperature database.").
+     * Get the description for the datastore.
+     * This is a longer name that is helpful to the user (e.g., "Historical temperature database.").
      * @param return the description of the datastore
      */
     public String getDescription();
@@ -49,16 +49,16 @@ public interface DataStore {
 
     /**
      * Get the property list for the datastore.  These are strings stored in the datastore configuration.
-     * Properties allow for custom-configuration of datastores beyond the basic behavior enforced by
-     * the datastore design.  "Name" and "Description" are specific properties that are required.
+     * Properties allow for custom-configuration of datastores beyond the basic behavior enforced by the datastore design.
+     * "Name" and "Description" are specific properties that are required.
      * @return the property list for the datastore
      */
     public PropList getProperties();
     
     /**
      * Get a property for the datastore.  These are strings stored in the datastore configuration.
-     * Properties allow for custom-configuration of datastores beyond the basic behavior enforced by
-     * the datastore design.  "Name" and "Description" are specific properties that are required.
+     * Properties allow for custom-configuration of datastores beyond the basic behavior enforced by the datastore design.
+     * "Name" and "Description" are specific properties that are required.
      * @return the string value of a datastore configuration property, or null if not found
      * @param propertyName the name of a property to retrieve
      */
@@ -76,7 +76,7 @@ public interface DataStore {
      */
     public String getStatusMessage();
 
-    // TODO SAM 2012-02-29 Evaluate using a more general object than PropList
+    // TODO SAM 2012-02-29 Evaluate using a more general object than PropList, such as a Map.
     /**
      * Set the list of properties for a datastore (typically at creation from a configuration file).
      */
