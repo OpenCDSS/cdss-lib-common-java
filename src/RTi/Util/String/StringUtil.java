@@ -2817,6 +2817,44 @@ public static boolean matchesRegExp ( String candidate_string, String regexp_str
 }
 
 /**
+ * Determine the number of digits in a floating point number string.
+ * For example "123.45" has 3 digits in the whole number and 2 digits in the remander.
+ * @param number floating point or integer to evaluate
+ * @param part if <= 0, return the digits in the whole number, if 1 return the digits in the remainder
+ */
+public static int numberOfDigits ( String number, int part ) {
+	int numDigits = 0;
+	int pos = number.indexOf(".");
+	if ( part <= 0 ) {
+		// Return the number of digits in the whole number.
+		if ( pos < 0 ) {
+			// Integer.
+			numDigits = number.length();
+		}
+		else {
+			numDigits = number.substring(0,pos).length();
+		}
+	}
+	else {
+		// Return number of digits after the decimal.
+		if ( pos < 0 ) {
+			// Integer.
+			numDigits = 0;
+		}
+		else {
+			if ( pos == (number.length() - 1) ) {
+				// String ends in period.
+				numDigits = 0;
+			}
+			else {
+				numDigits = number.substring(pos + 1).length();
+			}
+		}
+	}
+	return numDigits;
+}
+
+/**
 Pad a string with a character.
 @return A string that has been padded with the character
 @param string String to unpad.

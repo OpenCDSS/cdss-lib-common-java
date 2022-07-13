@@ -236,8 +236,14 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
             	}
         	}
         	else if ( input2Field >= 0 ) {
+        		// Second input is a table column so use the column properties to set the output precision.
             	precision = this.table.getFieldPrecision(input2Field);
             	width = this.table.getFieldWidth(input2Field);
+        	}
+        	if ( input2ConstantDouble != null ) {
+        		// Set the output precision based on the original double (number of digits after the period).
+           		width = input2.length();
+           		precision = MathUtil.max(precision,StringUtil.numberOfDigits(input2, 1));
         	}
             outputField = this.table.addField(new TableField(outputFieldType,output,width,precision),null);
         }

@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -76,21 +76,21 @@ public DataStore create ( PropList props )
     try {
         GenericDMI dmi = null;
         if ( (odbcName != null) && !odbcName.equals("") ) {
-            // An ODBC connection is configured so use it
+            // An ODBC connection is configured so use it.
             dmi = new GenericDMI (
-                databaseEngine, // Needed for internal SQL handling
-                odbcName, // Must be configured on the machine
-                systemLogin, // OK if null - use read-only guest
-                systemPassword ); // OK if null - use read-only guest
+                databaseEngine, // Needed for internal SQL handling.
+                odbcName, // Must be configured on the machine.
+                systemLogin, // OK if null - use read-only guest.
+                systemPassword ); // OK if null - use read-only guest.
         }
         else {
-            // Use the parts to create the connection
+            // Use the parts to create the connection.
             dmi = new GenericDMI( databaseEngine, databaseServer, databaseName, port, systemLogin, systemPassword );
         }
-        // Always create the datastore, which generally involves simple assignment
+        // Always create the datastore, which generally involves simple assignment.
         GenericDatabaseDataStore ds = new GenericDatabaseDataStore ( name, description, dmi );
         ds.setProperties(props);
-        // Now try to open the database connection, which may generate an exception
+        // Now try to open the database connection, which may generate an exception.
         ds.setStatus(0);
         // Set additional connection properties if specified, for example the login timeout:
         // - the properties will depend on the database but usually is ?prop1=value1&prop2=value2
@@ -99,13 +99,14 @@ public DataStore create ( PropList props )
         	dmi.open();
         }
         catch ( Exception e ) {
+        	Message.printWarning(3, routine, e);
         	ds.setStatus(1);
         	ds.setStatusMessage("" + e);
         }
         return ds;
     }
     catch ( Exception e ) {
-        // TODO SAM 2010-09-02 Wrap the exception because need to move from default Exception
+        // TODO SAM 2010-09-02 Wrap the exception because need to move from default Exception.
         Message.printWarning(3,routine,e);
         throw new RuntimeException ( e );
     }

@@ -2136,8 +2136,7 @@ All other connection parameters must have been set previously.
 @param system_login System login.
 @param system_password System password.
 @throws SQLException thrown by DriverManger.getConnection() or Connection.setAutoCommit()
-@throws Exception thrown when attempting to connecting to a database
-for which no JDBC information is known.
+@throws Exception thrown when attempting to connecting to a database for which no JDBC information is known.
 */
 public void open ( String system_login, String system_password ) 
 throws SQLException, Exception {
@@ -2179,19 +2178,25 @@ throws SQLException, Exception {
 			    	connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,propertyMap);
 		    	}
 				Message.printStatus(2, routine,
-					"Java version is <= 7. Opening ODBC connection for Microsoft Access built-in JDBC/ODBC driver and \"" + connUrl + "\"");
+					"Java version is <= 7. Opening database connection for Microsoft Access built-in JDBC/ODBC driver and \"" + connUrl + "\"");
 			}
 			else {
 				// Must use a third party Access driver:
 				// - use open source UCanAccess: http://ucanaccess.sourceforge.net/site.html#home
 				// - example:  jdbc:ucanaccess://C:/db/main.mdb;remap=c:\db\linkee1.mdb|C:\pluto\linkee1.mdb&c:\db\linkee2.mdb|C:\pluto\linkee2.mdb
 				Class.forName("net.ucanaccess.jdbc.UcanaccessDriver");
-				connUrl = "jdbc:ucanaccess:" + __database_name;
+				//String dbPath = this.__database_name;
+				String dbPath = IOUtil.toPortablePath(this.__database_name);
+				if ( !dbPath.startsWith("//") ) {
+					// UCanAccess wants // in front of the path.
+					dbPath = "//" + dbPath;
+				}
+				connUrl = "jdbc:ucanaccess:" + dbPath;
 		    	if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
 			    	connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,propertyMap);
 		    	}
 				Message.printStatus(2, routine,
-					"Java version is not <= 7.  Opening ODBC connection for Microsoft Access using UCanAccess driver and \"" + connUrl + "\"");
+					"Java version is not <= 7.  Opening database connection for Microsoft Access using UCanAccess JDBC driver and \"" + connUrl + "\"");
 			}
 		}
 		else if (_database_engine == DMIDatabaseType.DERBY ) {
