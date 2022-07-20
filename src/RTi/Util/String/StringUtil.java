@@ -37,6 +37,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import RTi.Util.Message.Message;
 
@@ -2438,6 +2440,21 @@ public static boolean isLong(String s)
 		return false;
 	}
 }	
+
+/**
+Determine whether a string is a URL.
+This is useful to check a data type in processing and to test for URL rather than local file.
+For now just do basic checks without a third-party library.
+@return true if the string is a URL.
+@param s String to convert.
+*/
+public static boolean isUrl( String s ) {
+	// See: https://stackoverflow.com/questions/163360/regular-expression-to-match-urls-in-java
+	String regex = "^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]";
+	Pattern pattern = Pattern.compile(regex);
+	Matcher matcher = pattern.matcher(s);
+	return matcher.find();
+}
 
 /**
 Wrap text by breaking a string into lines that are less than or equal to a desired length.

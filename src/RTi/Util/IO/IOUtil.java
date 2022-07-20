@@ -1876,14 +1876,15 @@ public static List<String> getSystemProperties() {
 
 /**
 Download a file given a URI and optionally save to a local file or StringBuffer.
-If the file is not saved, the error code return value will indicate whether it exists (200) or not (not 200).
+If the file is not saved, the error code return value will indicate whether it exists (200) or not (e.g., 400).
+Redirects should be followed by default.
+Any exception is absorbed and the return code indicates the error.
 @param uri the URI for the file to retrieve.
 @param outputFile output file to save the content.  If null or empty, don't save.
 @param outputString output string to save the content.  If null, don't save.
 @return HTTP exit code from retrieving the content.
 */
-public static int getUriContent ( String uri, String outputFile, StringBuilder outputString )
-throws IOException, MalformedURLException {
+public static int getUriContent ( String uri, String outputFile, StringBuilder outputString ) {
     FileOutputStream fos = null;
     HttpURLConnection urlConnection = null;
     InputStream is = null;
@@ -1930,6 +1931,12 @@ throws IOException, MalformedURLException {
             //bytesRead += numCharsRead;
         }
 	}
+	catch ( Exception e ) {
+		// Log it.
+		String routine = IOUtil.class.getSimpleName() + ".getUriContent";
+		Message.printWarning(3, routine, "Error getting the content for: ", uri );
+		Message.printWarning(3, routine, e );
+	}
     finally {
         // Close the streams and connection.
         if ( is != null ) {
@@ -1941,7 +1948,13 @@ throws IOException, MalformedURLException {
         }
         if ( urlConnection != null ) {
         	urlConnection.disconnect();
-        	code = urlConnection.getResponseCode();
+        	try {
+        		code = urlConnection.getResponseCode();
+        	}
+        	catch ( IOException e ) {
+        		// Should not happen?
+        		code = -999;
+        	}
         }
     }
 	return code;
