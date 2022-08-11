@@ -5,7 +5,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -45,7 +45,11 @@ NAME_TYPE_VALUE("NameTypeValue"),
 Format of properties is the same as NAME_TYPE_VALUE except that objects are formatted to be consistent
 with Python, which allows the property file to be used directly in Python to assign variables.
 */
-NAME_TYPE_VALUE_PYTHON("NameTypeValuePython");
+NAME_TYPE_VALUE_PYTHON("NameTypeValuePython"),
+/**
+The file contains the property value and the name must be supplied by other code.
+*/
+VALUE("Value");
 
 /**
  * The name that should be displayed when the best fit type is used in UIs and reports.
