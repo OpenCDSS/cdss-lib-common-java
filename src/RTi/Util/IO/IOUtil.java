@@ -366,15 +366,25 @@ Copies a file from one file to another.
 */
 public static void copyFile(File source, File dest) 
 throws IOException {
-	FileInputStream fis  = new FileInputStream(source);
-	FileOutputStream fos = new FileOutputStream(dest);
-	byte[] buf = new byte[1024];
-	int i = 0;
-	while((i = fis.read(buf)) != -1) {
-		fos.write(buf, 0, i);
+	FileInputStream fis = null;
+	FileOutputStream fos = null;
+	try {
+		fis = new FileInputStream(source);
+		fos = new FileOutputStream(dest);
+		byte[] buf = new byte[1024];
+		int i = 0;
+		while((i = fis.read(buf)) != -1) {
+			fos.write(buf, 0, i);
+		}
 	}
-	fis.close();
-	fos.close();
+	finally {
+		if ( fis != null ) {
+			fis.close();
+		}
+		if ( fos != null ) {
+			fos.close();
+		}
+	}
 }
 
 /**
