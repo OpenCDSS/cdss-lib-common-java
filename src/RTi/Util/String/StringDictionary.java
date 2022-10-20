@@ -93,6 +93,13 @@ public LinkedHashMap<String,String> getLinkedHashMap() {
 }
 
 /**
+ * Get the number of entries in the dictionary.
+ */
+public int size() {
+	return this.dict.size();
+}
+
+/**
 Return the string representation of the dictionary in form "key1:value1,key2:value2".
 */
 public String toString() {

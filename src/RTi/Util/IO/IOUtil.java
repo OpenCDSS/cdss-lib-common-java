@@ -662,7 +662,9 @@ public static boolean fileWriteable ( String filename )
  * Find the first executable program in the PATH.
  * @param program name of program to find in the PATH, will be exactly matched
  * so adjust for the operating system before calling.
- * @return the File corresponding to the found program, or null if not found.
+ * On Windows, extensions "exe", "bat", and "cmd" are also tested.
+ * Full or relative paths are not handled.
+ * @return the File corresponding to the found program, or null if the program is not found in the PATH.
  */
 public static File findProgramInPath ( String program ) {
 	String path = System.getenv("PATH");
@@ -677,6 +679,17 @@ public static File findProgramInPath ( String program ) {
 		Message.printStatus(2, "", "Checking file \"" + f.getAbsolutePath() + "\"" );
 		if ( f.exists() && f.canExecute() ) {
 			return f;
+		}
+		if ( !IOUtil.isUNIXMachine() ) {
+			// Also check common extensions on Windows until a match is found.
+			String [] extensions = { "exe", "bat", "cmd" };
+			for ( String extension : extensions ) {
+				f = new File(parts[i] + File.separator + program + "." + extension );
+				Message.printStatus(2, "", "Checking file \"" + f.getAbsolutePath() + "\"" );
+				if ( f.exists() && f.canExecute() ) {
+					return f;
+				}
+			}
 		}
 	}
 	return null;
