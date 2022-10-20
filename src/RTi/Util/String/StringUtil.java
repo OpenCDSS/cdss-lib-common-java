@@ -78,14 +78,18 @@ For use with breakStringList.  Skip blank fields (adjoining delimiters are merge
 */
 public static final int DELIM_SKIP_BLANKS = 0x1;
 /**
-For use with breakStringList.  Allow tokens that are surrounded by quotes.  For example, this is
-used when a data field might contain the delimiting character.
+For use with breakStringList.  Allow tokens that are surrounded by quotes.
+For example, this is used when a data field might contain the delimiting character.
 */
 public static final int DELIM_ALLOW_STRINGS = 0x2;
 /**
 For use with breakStringList.  When DELIM_ALLOW_STRINGS is set, include the quotes in the returned string.
 */
 public static final int DELIM_ALLOW_STRINGS_RETAIN_QUOTES = 0x4;
+/**
+For use with breakStringList.  When DELIM_TRIM_STRINGS is set, trim the resulting strings.
+*/
+public static final int DELIM_TRIM_STRINGS = 0x8;
 
 /**
 For use with padding routines.  Pad/unpad back of string.
@@ -294,6 +298,7 @@ Specify DELIM_SKIP_BLANKS to skip blank fields (delimiters that are next to each
 are treated as one delimiter - delimiters at the front are ignored).
 Specify DELIM_ALLOW_STRINGS to allow quoted strings (which may contain delimiters).
 Specify DELIM_ALLOW_STRINGS_RETAIN_QUOTES to retain the quotes in the return strings when DELIM_ALLOW_QUOTES is used.
+Specify DELIM_TRIM_STRINGS to trim the strings before returning.
 Specify 0 (zero) to do simple tokenizing where repeated delimiters are not
 merged and quoted strings are not handled as one token.
 Note that when allowing quoted strings the string "xxxx"yy is returned as xxxxyy because no intervening delimiter is present.
@@ -482,6 +487,16 @@ public static List<String> breakStringList( String string, String delim, int fla
 			//Message.printStatus ( 1, routine,
 			//"SAMX Broke out list[" + (list.size() - 1) + "]=\"" + tempstr + "\"" );
 		//}
+	}
+	if ( (flag & DELIM_TRIM_STRINGS) != 0 ) {
+		// Trim the strings so that calling code does not need to.
+		String s;
+		for ( int i = 0; i < list.size(); i++ ) {
+			s = list.get(i);
+			if ( s != null ) {
+				list.set(i, s.trim());
+			}
+		}
 	}
 	return list;
 }
