@@ -93,7 +93,7 @@ List of JComponent that display the "where" label for each filter group that is 
 This may be a SimpleJComboBox or a JLabel, depending on how many filters are available.
 Each item in the list corresponds to a different input filter group.
 */
-private List<JComponent> __whereComponentList = new Vector<JComponent>();
+private List<JComponent> __whereComponentList = new Vector<>();
 
 /**
 List of the operator components between the where an input components, one SimpleJComboBox per input filter.
@@ -718,6 +718,15 @@ private void removeInputFilters()
 	__inputFilterListArray = null;
 	__whereComponentList = null;
 	__operatorComponentList = null;
+}
+
+/**
+ * Refresh the input filters from data,
+ * used when internal data has been reset and the components need to be reinitialized.
+ */
+public void refreshInputFilters () {
+	// Reuse the original input filters list.
+	setInputFilters ( this.__inputFilterListArray[0], this.__numFilterGroups, this.__numWhereChoicesToDisplay );
 }
 
 /**

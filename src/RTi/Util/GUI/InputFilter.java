@@ -860,7 +860,8 @@ public void removeConstraint(String constraint) {
 }
 
 /**
-Set the choices available to a filter.  This can be called after initialization to change the list of
+Set the choices available to a filter.
+This can be called after initialization to change the list of
 choices, for example, based on dynamically selected information.
 @param choiceLabels A list of String containing choice values to be
 displayed to the user.  If null, the user will not be shown a list of choices.
@@ -871,11 +872,21 @@ the choices will also be editable (an editable JTextField part of the JComboBox 
 public void setChoices ( List<String> choiceLabels, List<String> choicesInternal, boolean areChoicesEditable )
 {   // Clear the list and add the new list so that GUI components that use this class as the data model
     // retain the same references.
-    __choiceLabelList.clear();
-    __choiceLabelList.addAll(choiceLabels);
-    __choiceInternalList.clear();
-    __choiceInternalList.addAll(choicesInternal);
-    __areChoicesEditable = areChoicesEditable;
+    this.__choiceLabelList.clear();
+  	this.__choiceLabelList.addAll(choiceLabels);
+    if ( this.__choiceInternalList != null ) {
+    	// The internal list may not have been set originally.
+    	this.__choiceInternalList.clear();
+    }
+    if ( choicesInternal != null ) {
+    	// Have internal choices to set.
+    	if ( this.__choiceInternalList == null ) {
+    		// The internal choices were not originally allocated so allocate now.
+    		this.__choiceInternalList = new Vector<>();
+    	}
+    	this.__choiceInternalList.addAll(choicesInternal);
+    }
+    this.__areChoicesEditable = areChoicesEditable;
 }
 
 /**

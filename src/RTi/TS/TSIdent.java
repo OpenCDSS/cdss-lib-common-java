@@ -679,7 +679,8 @@ public int getIntervalMult ()
 }
 
 /**
-Return the full location.
+Return the full location, which does not include the location type,
+but does include the main and sub locations.
 @return The full location string.
 */
 public String getLocation( )
@@ -695,7 +696,7 @@ public String getLocationType( )
 }
 
 /**
-Return the main location, which is the first part of the full location.
+Return the main location, which is the first part of the full location (does not include location type).
 @return The main location string.
 */
 public String getMainLocation( )
