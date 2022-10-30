@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -60,8 +60,9 @@ import RTi.Util.String.StringUtil;
 import RTi.Util.Time.TimeInterval;
 
 /**
-This class is a dialog for editing the values in a TSIdent.  The updated TSIdent object is
-returned via a response() method call.  The following is sample code for using it:
+This class is a dialog for editing the values in a TSIdent.
+The updated TSIdent object is returned via a response() method call.
+The following is sample code for using it:
 <code><pre>
 	TSIdent tsident = ...;
 	// tsident initialized and filled in
@@ -114,7 +115,7 @@ private SimpleJButton
 	__cancelButton = null,
 	__okButton = null;
 
-private TSIdent 
+private TSIdent
 	__response = null, // TSIdent that is returned via response().
 	__tsident = null; // TSIdent that is passed in.
 
@@ -137,8 +138,8 @@ private boolean __EnableInputName_boolean = true;
 
 /**
 Constructor.
-@param parent the parent JFrame on which the dialog will appear.  This cannot
-be null.  If necessary, pass in an empty JFrame via:<p>
+@param parent the parent JFrame on which the dialog will appear.
+This cannot be null.  If necessary, pass in an empty JFrame via:<p>
 <code><pre>
 	new TSident_JDialog(new JFrame(), ...);
 </pre></code>
@@ -206,7 +207,7 @@ public TSIdent_JDialog(JFrame parent, boolean modal, TSIdent tsident, PropList p
     }
     String enabled = props.getValue("EnableAll");
     if ( (enabled != null) && enabled.equalsIgnoreCase("False") ) {
-        // All fields are to be disabled...
+        // All fields are to be disabled.
         __EnableLocationType_boolean = false;
         __EnableLocation_boolean = false;
         __EnableSource_boolean = false;
@@ -306,18 +307,18 @@ public void actionPerformed(ActionEvent event)
 		}
 	}
 	else {
-        // list...
+        // List.
 		refresh();
 	}
 }
 
 /**
-Check the input.  If errors exist, warn the user and set the __error_wait flag
-to true.  This should be called before response() is allowed to complete.
+Check the input.  If errors exist, warn the user and set the __error_wait flag to true.
+This should be called before response() is allowed to complete.
 */
 private void checkInputAndCommit ()
 {	String routine = "TSIdent_JDialog.checkInput";
-    // Previously show all input to user, even if in error, but check before saving
+    // Previously show all input to user, even if in error, but check before saving.
 	__error_wait = false;
 	__warning = "";
     String locationType = "";
@@ -330,7 +331,7 @@ private void checkInputAndCommit ()
     String inputtype = "";
     String inputname = "";
 
-    // Get from the dialog...
+    // Get from the dialog.
 
     locationType = __locationTypeTextField.getText().trim();
     location = __locationTextField.getText().trim();
@@ -343,12 +344,12 @@ private void checkInputAndCommit ()
     inputname = __inputNameTextField.getText().trim();
     String badChars;
 
-    // Form the TSIdent string...
+    // Form the TSIdent string.
 
     __response = new TSIdent();
 
     // These would normally be in checkInput() but since the TSID is needed
-    // to output the string, also do the checks here...
+    // to output the string, also do the checks here.
 
     if ( (locationType.length() > 0) && StringUtil.containsAny(locationType, ".:", false) ) {
         __warning += "\nThe location type cannot contain a period (.) or colon (:).";
@@ -356,7 +357,7 @@ private void checkInputAndCommit ()
     else {
         __response.setLocationType( locationType );
     }
-    // Do not allow missing location...
+    // Do not allow missing location.
     if ( location.length() == 0 ) {
         __warning += "\nThe location must be specified.";
     }
@@ -383,7 +384,7 @@ private void checkInputAndCommit ()
     else {
         __response.setType(datatype);
     }
-    // Do not allow missing interval...
+    // Do not allow missing interval.
     if ( __EnableInterval_boolean ) {
         if ( interval.length() == 0 ) {
             __warning += "\nA valid interval must be specified.";
@@ -492,7 +493,8 @@ private void refresh ()
         }
 		/* TODO SAM 2005-08-26
 		 Add this for regular expressions, etc.?
-		else {	// Automatically add to the list at the top...
+		else {
+			// Automatically add to the list at the top.
 			__dataInterval_JComboBox.insertItemAt ( interval, 0 );
 			// Select...
 			__dataInterval_JComboBox.select ( interval );
@@ -504,7 +506,7 @@ private void refresh ()
 		__inputNameTextField.setText ( inputname );
 	}
 
-	// Get from the dialog...
+	// Get from the dialog.
 
 	locationType = __locationTypeTextField.getText().trim();
 	location = __locationTextField.getText().trim();
@@ -541,8 +543,7 @@ private void refresh ()
 Return the user response and dispose the dialog.
 @return the dialog response.  If <code>null</code>, the user pressed Cancel.
 */
-public void response ( boolean ok )
-{
+public void response ( boolean ok ) {
 	setVisible(false);
 	dispose();
 	if ( !ok ) {
@@ -554,16 +555,14 @@ public void response ( boolean ok )
 Return the user response and dispose the dialog.
 @return the dialog response.  If <code>null</code>, the user pressed Cancel.
 */
-public TSIdent response ()
-{
+public TSIdent response () {
 	return __response;
 }
 
 /**
 Sets up the GUI.
 */
-private void setupGUI()
-{
+private void setupGUI() {
 	setTitle("Edit the Time Series Identifier (TSID)");
 
 	JPanel panel = new JPanel();
@@ -590,7 +589,7 @@ private void setupGUI()
 	__inputNameTextField.addKeyListener ( this );
 
 	int y = -1;
-	JGUIUtil.addComponent(panel, 
+	JGUIUtil.addComponent(panel,
 		new JLabel(" The time series identifier (TSID) uniquely identifies a time series, " +
 		    "and provides key information about the time series."),
 		0, ++y, 3, 1, 0, 0, insetsTLBR,
@@ -620,7 +619,7 @@ private void setupGUI()
        GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel, new JLabel(
        "     123.USGS.Streamflow.6Hour.Raw[1950]  (example using a sequence ID for a trace in an ensemble, often start year)"),
-       0, ++y, 3, 1, 0, 0, 
+       0, ++y, 3, 1, 0, 0,
        GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel, new JLabel(
        "     Station:0451.NOAA.MeanTemp.Month  (example of location type)"),
@@ -706,7 +705,7 @@ private void setupGUI()
 	List<String> intervalChoices = TimeInterval.getTimeIntervalChoices(
 		TimeInterval.MINUTE, TimeInterval.YEAR, false, 1, true);
 	if ( (__tsident == null) || (__tsident.getInterval().length() == 0) ) {
-		// Add a blank at the beginning since nothing has been selected...
+		// Add a blank at the beginning since nothing has been selected.
 		intervalChoices.add ( 0, "" );
 	}
 	__dataInterval_JComboBox.setData ( intervalChoices );
@@ -731,7 +730,7 @@ private void setupGUI()
         scenario_JLabel.setEnabled(false);
         __scenarioTextField.setEnabled(false);
     }
-    
+
     JLabel sequenceNumber_JLabel = new JLabel("Sequence ID: ");
     JGUIUtil.addComponent(panel, sequenceNumber_JLabel,
         0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
@@ -809,31 +808,37 @@ public void windowClosing(WindowEvent event) {
 /**
 Does nothing.
 */
-public void windowActivated(WindowEvent evt) {}
+public void windowActivated(WindowEvent evt) {
+}
 
 /**
 Does nothing.
 */
-public void windowClosed(WindowEvent evt) {}
+public void windowClosed(WindowEvent evt) {
+}
 
 /**
 Does nothing.
 */
-public void windowDeactivated(WindowEvent evt) {}
+public void windowDeactivated(WindowEvent evt) {
+}
 
 /**
 Does nothing.
 */
-public void windowDeiconified(WindowEvent evt) {}
+public void windowDeiconified(WindowEvent evt) {
+}
 
 /**
 Does nothing.
 */
-public void windowIconified(WindowEvent evt) {}
+public void windowIconified(WindowEvent evt) {
+}
 
 /**
 Does nothing.
 */
-public void windowOpened(WindowEvent evt) {}
+public void windowOpened(WindowEvent evt) {
+}
 
 }

@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,50 +20,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// TimeInterval - time interval class
-// ----------------------------------------------------------------------------
-// History:
-//
-// 22 Sep 1997	Steven A. Malers, RTi	First version.
-// 13 Apr 1999	SAM, RTi		Add finalize.
-// 01 May 2001	SAM, RTi		Add toString(), compatible with C++.
-//					Add equals().
-// 2001-11-06	SAM, RTi		Review javadoc.  Verify that variables
-//					are set to null when no longer used.
-//					Change set methods to have void return
-//					type.
-// 2001-12-13	SAM, RTi		Copy TSInterval to TimeInterval and
-//					make changes to make the class more
-//					generic.  parseInterval() now throws an
-//					exception if unable to parse.
-// 2001-04-19	SAM, RTi		Add constructor to take integer base and
-//					multiplier.
-// 2002-05-30	SAM, RTi		Add getMultiplierString() to better
-//					support exact lookups of interval parts
-//					(e.g., for database queries that require
-//					parts).
-// 2003-05-30	SAM, RTi		Add multipliersForIntervalBase()
-//					to return reasonable multipliers for a
-//					base string.  Add support for seconds
-//					in parseInterval().
-// 2003-10-27	SAM, RTi		Add UNKNOWN for time interval. 
-// 2005-02-16	SAM, RTi		Add getTimeIntervalChoices() to
-//					facilitate use in interfaces.
-// 2005-03-03	SAM, RTi		Add lessThan(), lessThanOrEquivalent(),
-//					greaterThan(),greaterThanOrEquivalent(),
-//					equivalent().  REVISIT - only put in the
-//					comments but did not implement.
-// 2005-08-26	SAM, RTi		Overload getTimeIntervalChoices() to
-//					include Irregular.
-// 2005-09-27	SAM, RTi		Add isRegularInterval().
-// 2006-04-24	SAM, RTi		Change parseInterval() to throw an
-//					InvalidTimeIntervalException if the
-//					interval is not recognized.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-// EndHeader
 
 package RTi.Util.Time;
 
@@ -90,7 +46,7 @@ increase with the magnitude of the interval (e.g., YEAR > MONTH).  Only irregula
 the order.  Flags above >= 256 are reserved for DateTime constructor flags.
 These values are set as the DateTime.PRECISION* values to maintain consistency.
 */
-public static final int UNKNOWN = -1; // Unknown, e.g., for initialization
+public static final int UNKNOWN = -1; // Unknown, e.g., for initialization.
 public static final int IRREGULAR = 0;    // Value is important as 0 to allow checks for regular interval.
 public static final int NANOSECOND = 2;   // 0 - 999999999
 public static final int MICROSECOND = 3;  // 0 - 999999
@@ -107,7 +63,7 @@ public static final int YEAR = 70;
 /**
 The string associated with the base interval:
 - for regular interval, will be something like "Month" or "1Month"
-- fir irregular interval, will be the entire string like "Irregular", "IrregSecond"
+- for irregular interval, will be the entire string like "Irregular", "IrregSecond"
 */
 private String __intervalBaseString;
 
@@ -127,7 +83,7 @@ The base data interval:
 private int	__intervalBase;
 
 /**
-The data interval multiplier.
+The data interval multiplier:
 - for regular interval time series
 - not used for irregular time series
 */
@@ -159,8 +115,9 @@ public TimeInterval ( TimeInterval interval )
 }
 
 /**
-Constructor from the integer base and multiplier.  The string base name is
-set to defaults.  The multiplier is not relevant if the base is IRREGULAR, although in the future
+Constructor from the integer base and multiplier.
+The string base name is set to defaults.
+The multiplier is not relevant if the base is IRREGULAR, although in the future
 intervals like IrregMonth may be allowed.
 @param base Interval base.
 @param mult Interval multiplier.  If set to <= 0, the multiplier string returned
@@ -184,8 +141,8 @@ public TimeInterval ( int base, int mult )
 }
 
 /**
-Determine if two instances are equal.  The base and multiplier are checked.  This
-method does not check for cases like 60Minute = 1Hour (false will be returned).
+Determine if two instances are equal.  The base and multiplier are checked.
+This method does not check for cases like 60Minute = 1Hour (false will be returned).
 Instead use equivalent(), lessThanOrEqualTo(), or greterThanOrEqualTo().
 @param interval TimeInterval to compare.
 @return true if the integer interval base and multiplier are equal, false otherwise.
@@ -200,8 +157,8 @@ public boolean equals ( TimeInterval interval )
 }
 
 /**
-Determine if two instances are equal.  The base and multiplier are checked.  This
-method does not check for cases like 60Minute = 1Hour (false will be returned).
+Determine if two instances are equal.  The base and multiplier are checked.
+This method does not check for cases like 60Minute = 1Hour (false will be returned).
 Instead use equivalent(), lessThanOrEqualTo(), or greterThanOrEqualTo().
 Makes sure the object passed in is a TimeInterval and then calls equals(TimeInterval).
 @param o an Object to compare with
@@ -276,8 +233,8 @@ public String getMultiplierString ()
 }
 
 /**
-Look up an interval name as a string (e.g., "MONTH").  Note that the string is
-upper-case.  Call the version with the format if other format is desired.
+Look up an interval name as a string (e.g., "MONTH").
+Note that the string is upper-case.  Call the version with the format if other format is desired.
 @return The interval string, or an empty string if not found.
 @param interval Time series interval to look up).
 @deprecated the version that specifies format should be used.
@@ -287,8 +244,8 @@ public static String getName ( int interval ) {
 }
 
 /**
-Look up an interval name as a string (e.g., "MONTH").  Note that the string is
-upper-case.  Convert the 2nd+ characters to lower-case if necessary.
+Look up an interval name as a string (e.g., "MONTH").
+Note that the string is upper-case.  Convert the 2nd+ characters to lower-case if necessary.
 @return The interval string, or an empty string if not found.
 @param interval Time series interval to look up).
 @param format if -1 return lowercase (e.g., "day"),
@@ -337,11 +294,11 @@ public static String getName ( int interval, int format )
 		name = "Unknown";
 	}
 	if ( format > 0 ) {
-		// Legacy default
+		// Legacy default.
 		return name.toUpperCase();
 	}
 	else if ( format == 0 ) {
-		// Trying to move to this as default
+		// Trying to move to this as default.
 		return name;
 	}
 	else {
@@ -350,9 +307,9 @@ public static String getName ( int interval, int format )
 }
 
 /**
-Return a list of interval strings (e.g., "Year", "6Hour").  Only evenly
-divisible choices are returned (no "5Hour" because it does not divide into the
-day).  This version does NOT include the Irregular time step.
+Return a list of interval strings (e.g., "Year", "6Hour").
+Only evenly divisible choices are returned (no "5Hour" because it does not divide into the day).
+This version does NOT include the Irregular time step.
 @return a list of interval strings.
 @param start_interval The starting (smallest) interval base to return.
 @param end_interval The ending (largest) interval base to return.
@@ -364,14 +321,14 @@ public static List<String> getTimeIntervalChoices ( int start_interval, int end_
 }
 
 /**
-Return a list of base time interval strings (e.g., "Year", "Hour"), optionally
-including the Irregular time step.  No multipliers are prefixed on the time intervals.
+Return a list of base time interval strings (e.g., "Year", "Hour"),
+optionally including the Irregular time step.  No multipliers are prefixed on the time intervals.
 @return a list of interval strings.
 @param startInterval The starting (smallest) interval base to return.
 @param endInterval The ending (largest) interval base to return.
 @param sortOrder Specify zero or 1 to sort ascending (small interval to large), -1 to sort descending.
-@param includeIrregular Indicate whether the "Irregular" time step should be
-included.  If included, "Irregular" is always at the end of the list.
+@param includeIrregular Indicate whether the "Irregular" time step should be included.
+If included, "Irregular" is always at the end of the list.
 */
 public static List<String> getTimeIntervalBaseChoices ( int startInterval, int endInterval,
     int sortOrder, boolean includeIrregular )
@@ -411,7 +368,7 @@ public static List<String> getTimeIntervalBaseChoices ( int startInterval, int e
     if ( (DAY >= startInterval) && (DAY <= endInterval) ) {
         v.add ( "Day" );
     }
-    // TODO SAM 2005-02-16 Week is not yet supported
+    // TODO SAM 2005-02-16 Week is not yet supported.
     //if ( (WEEK >= start_interval) && (WEEK <= end_interval) ) {
     //}
     if ( (MONTH >= startInterval) && (MONTH <= endInterval) ) {
@@ -422,6 +379,18 @@ public static List<String> getTimeIntervalBaseChoices ( int startInterval, int e
     }
     if ( sortOrder >= 0 ) {
         if ( includeIrregular ) {
+        	// Newer code handles precision on irregular time series date/times.
+            v.add ( "IrregNanoSecond" );
+            v.add ( "IrregMicroSecond" );
+            v.add ( "IrregMilliSecond" );
+            v.add ( "IrregHSecond" );
+            v.add ( "IrregSecond" );
+            v.add ( "IrregMinute" );
+            v.add ( "IrregHour" );
+            v.add ( "IrregDay" );
+            v.add ( "IrregMonth" );
+            v.add ( "IrregYear" );
+            // Legacy value goes to seconds by default or whatever precision is detected when parsing date/time.
             v.add ( "Irregular" );
         }
         return v;
@@ -434,6 +403,18 @@ public static List<String> getTimeIntervalBaseChoices ( int startInterval, int e
             v2.add ( v.get(i) );
         }
         if ( includeIrregular ) {
+        	// Newer code handles precision on irregular time series date/times.
+            v2.add ( "IrregYear" );
+            v2.add ( "IrregMonth" );
+            v2.add ( "IrregDay" );
+            v2.add ( "IrregHour" );
+            v2.add ( "IrregMinute" );
+            v2.add ( "IrregSecond" );
+            v2.add ( "IrregHSecond" );
+            v2.add ( "IrregMilliSecond" );
+            v2.add ( "IrregMicroSecond" );
+            v2.add ( "IrregNanoSecond" );
+            // Legacy value goes to seconds by default or whatever precision is detected when parsing date/time.
             v2.add ( "Irregular" );
         }
         return v2;
@@ -441,17 +422,17 @@ public static List<String> getTimeIntervalBaseChoices ( int startInterval, int e
 }
 
 /**
-Return a list of interval strings (e.g., "Year", "6Hour"), optionally
-including the Irregular time step.  Only evenly divisible choices are returned
+Return a list of interval strings (e.g., "Year", "6Hour"),
+optionally including the Irregular time step.  Only evenly divisible choices are returned
 (no "5Hour" because it does not divide into the day).
 @return a list of interval strings.
 @param startInterval The starting (smallest) interval base to return.
 @param endInterval The ending (largest) interval base to return.
-@param pad_zeros If true, pad the strings with zeros (e.g., "06Hour").  If false
-do not pad (e.g., "6Hour").
+@param pad_zeros If true, pad the strings with zeros (e.g., "06Hour").
+If false do not pad (e.g., "6Hour").
 @param sort_order Specify zero or 1 to sort ascending (small interval to large), -1 to sort descending.
-@param include_irregular Indicate whether the "Irregular" time step should be
-included.  If included, "Irregular" is always at the end of the list.
+@param include_irregular Indicate whether the "Irregular" time step should be included.
+If included, "Irregular" is always at the end of the list.
 */
 public static List<String> getTimeIntervalChoices ( int startInterval, int endInterval,
 	boolean pad_zeros, int sort_order, boolean include_irregular )
@@ -562,6 +543,18 @@ public static List<String> getTimeIntervalChoices ( int startInterval, int endIn
 	}
 	if ( sort_order >= 0 ) {
 		if ( include_irregular ) {
+        	// Newer code handles precision on irregular time series date/times.
+            v.add ( "IrregNanoSecond" );
+            v.add ( "IrregMicroSecond" );
+            v.add ( "IrregMilliSecond" );
+            v.add ( "IrregHSecond" );
+            v.add ( "IrregSecond" );
+            v.add ( "IrregMinute" );
+            v.add ( "IrregHour" );
+            v.add ( "IrregDay" );
+            v.add ( "IrregMonth" );
+            v.add ( "IrregYear" );
+            // Legacy value goes to seconds by default or whatever precision is detected when parsing date/time.
 			v.add ( "Irregular" );
 		}
 		return v;
@@ -574,6 +567,18 @@ public static List<String> getTimeIntervalChoices ( int startInterval, int endIn
 			v2.add ( v.get(i) );
 		}
 		if ( include_irregular ) {
+        	// Newer code handles precision on irregular time series date/times.
+            v2.add ( "IrregYear" );
+            v2.add ( "IrregMonth" );
+            v2.add ( "IrregDay" );
+            v2.add ( "IrregHour" );
+            v2.add ( "IrregMinute" );
+            v2.add ( "IrregSecond" );
+            v2.add ( "IrregHSecond" );
+            v2.add ( "IrregMilliSecond" );
+            v2.add ( "IrregMicroSecond" );
+            v2.add ( "IrregNanoSecond" );
+            // Legacy value goes to seconds by default or whatever precision is detected when parsing date/time.
 			v2.add ( "Irregular" );
 		}
 		return v2;
@@ -646,10 +651,10 @@ public static boolean isRegularInterval ( int intervalBase )
 /*
 Determine whether the given TimeInterval is less than the instance based on
 a comparison of the length of the interval, for intervals with base Second to Year.
-For the sake of comparing largely different intervals, months are assumed to
-have 30 days.  Time intervals of 28Day, 29Day, and 31Day will explicitly be
-treated as 1Month.  Comparisons for intervals < Month are done using the number
-of seconds in the interval.  Comparisons
+For the sake of comparing largely different intervals, months are assumed to have 30 days.
+Time intervals of 28Day, 29Day, and 31Day will explicitly be treated as 1Month.
+Comparisons for intervals < Month are done using the number
+of seconds in the interval.
 @return true if the instance is less than the given TimeInterval.
 @param interval The TimeInterval to compare to the instance.
 */
@@ -688,14 +693,13 @@ private void init ()
 
 /**
 Determine the time interval multipliers for a base interval string.
-This is useful in code where the user picks the interval base and a reasonable
-multiplier is given as a choice.  Currently some general decisions are made.
+This is useful in code where the user picks the interval base and a reasonable multiplier is given as a choice.
+Currently some general decisions are made.
 For example, year, week, and regular interval always returns a multiple of 1.
-Day interval always returns 1-31 and should be limited by the calling code
-based on a specific month, if necessary.
-Note that this method returns valid interval multipliers, which may not be the
-same as the maximum value for a date/time component.  For example, the maximum
-multiplier for an hourly interval is 24 whereas the maximum hour value is 23.
+Day interval always returns 1-31 and should be limited by the calling code based on a specific month, if necessary.
+Note that this method returns valid interval multipliers,
+which may not be the same as the maximum value for a date/time component.
+For example, the maximum multiplier for an hourly interval is 24 whereas the maximum hour value is 23.
 @return an array of multipliers for for the interval string, or null if the
 interval_base string is not recognized.
 @param interval_base An interval base string that is recognized by parseInterval().
@@ -1049,7 +1053,7 @@ throws InvalidTimeIntervalException {
 			intervalFound = true;
 		}
 		else if ( intervalBaseStringUpper.startsWith("SEC") ) {
-			// Make sure this is after other interval strings that might include "sec"a.
+			// Make sure this is after other interval strings that might include "sec".
 			interval.setBaseString ( intervalBaseString );
 			interval.setBase ( SECOND );
 			intervalFound = true;
@@ -1125,10 +1129,10 @@ public void setMultiplierString ( String multiplier_string )
 }
 
 /**
-Return the number of seconds in an interval, accounting for the base interval
-and multiplier.  Only regular intervals with a base less than or equal to a week
-can be processed because of the different number of days in a month.  See
-toSecondsApproximate() for a version that will handle all intervals.
+Return the number of seconds in an interval, accounting for the base interval and multiplier.
+Only regular intervals with a base less than or equal to a week
+can be processed because of the different number of days in a month.
+See toSecondsApproximate() for a version that will handle all intervals.
 @return Number of seconds in an interval, or -1 if the interval cannot be processed.
 */
 public int toSeconds ()

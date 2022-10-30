@@ -34,7 +34,7 @@ import RTi.Util.Time.DateTime;
 Table model for displaying data table data in a JWorksheet.
 */
 @SuppressWarnings("serial")
-public class DataTable_TableModel 
+public class DataTable_TableModel
 extends JWorksheet_AbstractRowTableModel<DataTable> {
 
 /**
@@ -72,7 +72,7 @@ Constructor.
 @param dataTable the table to show in a worksheet.
 @throws NullPointerException if the dataTable is null.
 */
-public DataTable_TableModel(DataTable dataTable) 
+public DataTable_TableModel(DataTable dataTable)
 throws Exception {
 	if (dataTable == null) {
 		throw new NullPointerException();
@@ -134,7 +134,7 @@ private Class<?>[] determineClasses(int[] dataTypes) {
 	                classes[i] = Long.class;
 	                break;
 	            default:
-	            	throw new RuntimeException ( "TableField data type " + dataTypes[i] + " is not supported in DataTable table model." ); 
+	            	throw new RuntimeException ( "TableField data type " + dataTypes[i] + " is not supported in DataTable table model." );
 			}
 		}
 	}
@@ -195,7 +195,7 @@ public String[] getColumnToolTips() {
 }
 
 /**
-Returns an array containing the widths (in number of characters) that the 
+Returns an array containing the widths (in number of characters) that the
 fields in the table should be sized to.
 @return an integer array containing the widths for each field.
 */

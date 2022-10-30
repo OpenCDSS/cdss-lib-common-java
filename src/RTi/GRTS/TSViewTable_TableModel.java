@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,35 +49,35 @@ import RTi.Util.Time.DateTime;
 import RTi.Util.Time.TimeInterval;
 
 /**
-This class is a table model for displaying regular TS data.  It is more 
-complicated than most table models, primarily in order to achieve performance
-gains with getting values out of a time series.  The following is a brief 
-description of some of the performance gain efforts made in this class.  
+This class is a table model for displaying regular TS data.
+It is more complicated than most table models, primarily in order to achieve performance
+gains with getting values out of a time series.
+The following is a brief description of some of the performance gain efforts made in this class.
 These caching methods are both found in getValueAt().<p>
 <b>Date Caching</b><p>
-At creation time, dates throughout the range of the time series are cached
-into an internal array.  Then, when a row of data needs to be drawn in the
-worksheet, the date nearest the row to be drawn is used instead of calculating
-the date from the first row.<p>
-This is because adding many intervals at once to a date/time is an expensive
-operation.  Using a day time series as an example, adding X days to a date/time
-takes X times as long as adding 1 day.  Thus, by caching dates along the 
-entire span of the time series, it can be ensured that __cacheInterval will be
+At creation time, dates throughout the range of the time series are cached into an internal array.
+Then, when a row of data needs to be drawn in the worksheet,
+the date nearest the row to be drawn is used instead of calculating the date from the first row.<p>
+This is because adding many intervals at once to a date/time is an expensive operation.
+Using a day time series as an example,
+adding X days to a date/time takes X times as long as adding 1 day.
+Thus, by caching dates along the entire span of the time series,
+it can be ensured that __cacheInterval will be
 the greatest number of intervals ever added to a single date/time at once.<p>
 <b>Caching of the Top-Most Visible Row Number After Each Scroll Event</b><p>
-Caching is also done of the top-most visible row every time the worksheet is
-scrolled, and involves the __firstVisibleRowDate and __previousTopmostVisibleY
-member variables.  Each time getValueAt() is called, it checks to see if the 
-top Y value of the worksheet is different from it was when getValueAt() was
-last called.  If so, then the worksheet has been scrolled.  Each time the 
-worksheet is scrolled, the date/time of the top-most visible row is calculated
-using date caching.  Then, the date of each row that is drawn for the 
+Caching is also done of the top-most visible row every time the worksheet is scrolled,
+and involves the __firstVisibleRowDate and __previousTopmostVisibleY member variables.
+Each time getValueAt() is called, it checks to see if the
+top Y value of the worksheet is different from it was when getValueAt() was last called.
+If so, then the worksheet has been scrolled.
+Each time the worksheet is scrolled, the date/time of the top-most visible row is calculated using date caching.
+Then, the date of each row that is drawn for the
 current scroll position is calculated from the date of the top-most visible row.<p>
 <b>Notes</b>
 These caching steps may seem overkill, but JTS found during extensive testing
-that they increase the speed of browsing through a table of time series 
-dramatically.  Without the caching, scrolling to the end of a long time series
-can take many seconds, whereas it is nearly instant with the steps taken here.
+that they increase the speed of browsing through a table of time series dramatically.
+Without the caching, scrolling to the end of a long time series can take many seconds,
+whereas it is nearly instant with the steps taken here.
 */
 @SuppressWarnings("serial")
 public class TSViewTable_TableModel extends JWorksheet_AbstractRowTableModel<TS>
@@ -90,9 +90,9 @@ the TS normal legend will be used.
 private boolean __useExtendedLegend = false;
 
 /**
-An array of DateTime values that are pre-calculated in order to speed up 
-calculation of DateTimes in the middle of the dataset.  Each element in this
-array contains the DateTime for the row at N*(__cacheInterval)
+An array of DateTime values that are pre-calculated in order to speed up
+calculation of DateTimes in the middle of the dataset.
+Each element in this array contains the DateTime for the row at N*(__cacheInterval)
 */
 private DateTime[] __cachedDates;
 
@@ -117,15 +117,15 @@ The working date time from which dates and times for data read from the workshee
 private DateTime __workingDate = null;
 
 /**
-The top-most visible Y value of the JWorksheet at the time of the last call
-to getValueAt(); used to determine when the worksheet has been scrolled and
+The top-most visible Y value of the JWorksheet at the time of the last call to getValueAt();
+used to determine when the worksheet has been scrolled and
 __firstVisibleRow and __firstVisibleRowDate need to be recalculated.
 */
 private double __previousTopmostVisibleY = -1;
 
 /**
-The interval of date times that will be cached in __cachedDates.  Every Xth
-DateTime from the entire table, where X == __cacheInterval, will be pre-calculated and cached.
+The interval of date times that will be cached in __cachedDates.
+Every Xth DateTime from the entire table, where X == __cacheInterval, will be pre-calculated and cached.
 This is for regular time series only.
 */
 private int __cacheInterval;
@@ -219,22 +219,22 @@ private boolean __showRow = false;
 /**
 Constructor.  This builds the Model for displaying the given TS data and
 pre-calculates and caches every 50th row's date.
-@param data Vector of TS to graph in the table.  The TS must have the same
-data interval and data units, but this will not be checked in the table model; 
+@param data Vector of TS to graph in the table.
+The TS must have the same data interval and data units, but this will not be checked in the table model;
 it should have been done previously.
 @param start the first day of data to display in the table.
 @param intervalBase the TS data interval (from TimeInterval.*)
 @param intervalMult the TS data multiplier.
 @param dateFormat the format in which to display the date column (column 0).
 @param dataFormats the formats in which to display the data columns (columns 1
-through N).  The format for data column N should be at array position N-1.  
+through N).  The format for data column N should be at array position N-1.
 @param useExtendedLegend whether to use the extended TS legend for the TS column
 title, or the normal legend.  This is determined by the value of the propvalue
 "Table.UseExtendedLegend" passed into the TSViewJFrame.
 @throws Exception if an invalid data or dmi was passed in.
 */
-public TSViewTable_TableModel(List<TS> data, DateTime start, 
-int intervalBase, int intervalMult, int dateFormat, String[] dataFormats, 
+public TSViewTable_TableModel(List<TS> data, DateTime start,
+int intervalBase, int intervalMult, int dateFormat, String[] dataFormats,
 boolean useExtendedLegend)
 throws Exception {
 	this(data, start, intervalBase, intervalMult, dateFormat, dataFormats, useExtendedLegend, 50);
@@ -243,28 +243,28 @@ throws Exception {
 /**
 Constructor.  This builds the Model for displaying the given TS data.
 @param data list of TS to graph in the table.  The TS must have the same
-data interval and data units, but this will not be checked in the table model; 
+data interval and data units, but this will not be checked in the table model;
 it should have been done previously.
 @param start the first day of data to display in the table.
 @param intervalBase the TS data interval (from TimeInterval.*)
 @param intervalMult the TS data multiplier.
 @param dateFormat the format in which to display the date column (column 0).
-@param dataFormats the formats in which to display the data columns (columns 1
-through N).  The format for data column N should be at array position N-1.  
+@param dataFormats the formats in which to display the data columns (columns 1 through N).
+The format for data column N should be at array position N-1.
 @param useExtendedLegend whether to use the extended TS legend for the TS column
 title, or the normal legend.  This is determined by the value of the propvalue
 "Table.UseExtendedLegend" passed into the TSViewJFrame.
 @param cacheInterval the interval of dates to pre-calculate and cache.  Every
 Nth date in the entire table, where N == cacheInterval, will be pre-calculated
 and cached to improve performance.  The other constructor passes in a value of
-50 for the interval, and this value has been found to be adequate for most
-table needs.  It takes some experimenting to find the optimal value where 
+50 for the interval, and this value has been found to be adequate for most table needs.
+It takes some experimenting to find the optimal value where
 speed is most increased but not too much memory is used.<p>
 JTS recommends that if a table will display at most X rows at once, that the cacheInterval be no less than X*2.
 @throws Exception if an invalid data or dmi was passed in.
 */
-public TSViewTable_TableModel(List<TS> data, DateTime start, 
-int intervalBase, int intervalMult, int dateFormat, String[] dataFormats, 
+public TSViewTable_TableModel(List<TS> data, DateTime start,
+int intervalBase, int intervalMult, int dateFormat, String[] dataFormats,
 boolean useExtendedLegend, int cacheInterval )
 throws Exception
 {
@@ -273,7 +273,7 @@ throws Exception
     //if ( data != null ) {
     //    Message.printStatus(2,"TSView_TableModel","data.size()=" + data.size() );
     //}
-    
+
 	if (data == null) {
 		throw new Exception ("Null data list passed to TSViewTable_TableModel constructor.");
 	}	
@@ -352,13 +352,13 @@ throws Exception
     	else {
     	    __cachedDates = new DateTime[(_rows / __cacheInterval) + 1];
     	}
-    
+
     	// Cache the dates of each __cacheInterval row through the time series.
-    
+
     	__cachedDates[0] = __start;
     	for (int i = 1; i < __cachedDates.length; i++) {
     		__cachedDates[i] = new DateTime(__cachedDates[i - 1]);
-    
+
     		if (__intervalBase == TimeInterval.MINUTE) {
     			__cachedDates[i].addMinute(__cacheInterval * __intervalMult);
     		}	
@@ -622,7 +622,7 @@ public String getColumnName(int columnIndex) {
 	
 	// Otherwise the column names depends on time series properties.
     TS ts = (TS)_data.get(columnIndex - 1);
-    
+
     Object propVal = ts.getProperty("TableViewHeaderFormat");
     if ( (propVal != null) && !propVal.equals("") ) {
         String format = "" + propVal;
@@ -643,22 +643,24 @@ public String getColumnName(int columnIndex) {
 		String unitsString = "";
 		String datatypeString = "";
 		String sequenceString = "";
-		if (ts.getDataUnits().length() > 0) {
-			unitsString = ", " + ts.getDataUnits();
+		if ( !ts.getDataUnits().isEmpty() ) {
+			// Have units so include in the header.
+			unitsString = " (" + ts.getDataUnits() + ")";
 		}
-		if (ts.getDataType().length() == 0) {
-			datatypeString = ", " + ts.getIdentifier().getType();
-		}
-		else {
+		if ( !ts.getDataType().isEmpty() ) {
+			// Have the data type so include in the header.
 			datatypeString = ", " + ts.getDataType();
 		}
-		if (ts.getSequenceID().length() > 0) {
+		if ( !ts.getSequenceID().isEmpty() ) {
+			// Have a sequence identifier for a trace so include in the header.
 			sequenceString = " [" + ts.getSequenceID() + "]";
 		}
-		if (ts.getAlias().equals("")) {
+		if ( ts.getAlias().isEmpty() ) {
+			// Don't have the alias so use the time series identifier location in the header.
 			return ts.getLocation() + sequenceString + datatypeString + unitsString;
 		}
 		else {
+			// Use the alias in the header.
 			return ts.getAlias() + sequenceString + datatypeString + unitsString;
 		}
 	}
@@ -828,7 +830,7 @@ private int getDateFormatLength()
 
 /**
 Returns the format that the specified column should be displayed in when
-the table is being displayed in the given table format. 
+the table is being displayed in the given table format.
 @param column column for which to return the format.
 @return the format (as used by StringUtil.formatString() in which to display the column.
 */
@@ -927,7 +929,7 @@ public Object getValueAt(int row, int col) {
 		__previousTopmostVisibleY = y;
 		__firstVisibleRow = __worksheet.rowAtPoint(new Point(0,(int)y));
 
-		// Calculate its date time by looking up the nearest 
+		// Calculate its date time by looking up the nearest
 		// cached one and adding the remainder of intervals to it.
 		__firstVisibleRowDate = new DateTime( __cachedDates[__firstVisibleRow / __cacheInterval]);
 		int precision = 0;
@@ -1057,7 +1059,7 @@ public Object getValueAtIrregular(int row, int col)
     if (_sortOrder != null) {
         row = _sortOrder[row];
     }
-    
+
     // Based on the row, determine the date/time for the data.
     DateTime dt = __irregularDateTimeCache.get(row);
     double value;
@@ -1097,7 +1099,7 @@ public Object getValueAtIrregular(int row, int col)
 }
 
 /**
-Returns an array containing the widths (in number of characters) that the 
+Returns an array containing the widths (in number of characters) that the
 fields in the table should be sized to.
 @return an integer array containing the widths for each field.
 */
