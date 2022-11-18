@@ -1905,9 +1905,11 @@ Any exception is absorbed and the return code indicates the error.
 @param uri the URI for the file to retrieve.
 @param outputFile output file to save the content.  If null or empty, don't save.
 @param outputString output string to save the content.  If null, don't save.
-@return HTTP exit code from retrieving the content.
+@param connectTimeout connect timeout in ms
+@param readTimeout read timeout in ms, 0 or negative to not set
+@return HTTP exit code from retrieving the content, 0 or negative to not set
 */
-public static int getUriContent ( String uri, String outputFile, StringBuilder outputString ) {
+public static int getUriContent ( String uri, String outputFile, StringBuilder outputString, int connectTimeout, int readTimeout ) {
     FileOutputStream fos = null;
     HttpURLConnection urlConnection = null;
     InputStream is = null;
@@ -1919,6 +1921,12 @@ public static int getUriContent ( String uri, String outputFile, StringBuilder o
         // Open the input stream.
         URL url = new URL(uri);
         urlConnection = (HttpURLConnection)url.openConnection();
+        if ( connectTimeout > 0 ) {
+        	urlConnection.setConnectTimeout(connectTimeout);
+        }
+        if ( readTimeout > 0 ) {
+        	urlConnection.setReadTimeout(connectTimeout);
+        }
         is = urlConnection.getInputStream();
         BufferedInputStream isr = new BufferedInputStream(is);
         // Open the output file.
