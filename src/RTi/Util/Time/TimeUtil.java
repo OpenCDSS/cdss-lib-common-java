@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,89 +20,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// TimeUtil - date/time utility data and methods
-// ----------------------------------------------------------------------------
-// History:
-//
-// 05 Jan 1998	Steven A. Malers,	Start getting documentation in order.
-//		Riverside Technology,	Move TSDate.computeDayOfWeek to
-//		inc.			TimeUtil.getCurrentDayOfWeek.
-// 04 Mar 1998	SAM, RTi		Add overload for numDaysInMonths.
-// 14 Mar 1998	SAM, RTi		Add javadoc.
-// 08 May 1998  DLG, RTi		Added setLocalTimeZone functions.
-// 15 May 1998  DLG, RTi		Fixed bug in isValidMinute, isValidHour
-//					to restrict the range to 0-59 and 0-23
-//					respectively.
-// 21 Jun 1998	SAM, RTi		Add getDayAndMonthFromYearDay.
-// 23 Jun 1998	SAM, RTi		Remove dependence on TS by adding time
-//					zone information here.  Just copy the
-//					TSTimeZone.getDefinedCode function to
-//					here.
-// 30 Jun 1998	SAM, RTi		Add getAbsoluteDay.
-// 12 Jan 1999	SAM, RTi		Deprecate the old version of
-//					getMonthAndDayFromDayOfYear and
-//					replace with a more robust version.
-// 28 Mar 2001	SAM, RTi		Change getAbsoluteDay() to
-//					absoluteDay().  Add absoluteMinute().
-//					Get rid of * imports.
-// 08 Jul 2001	SAM, RTi		Add irrigation*FromCalendar() and
-//					water*FromCalendar() methods.  Although
-//					these are not generic to all code, they
-//					are common enough in what RTi does to
-//					put here.
-// 22 Aug 2001	SAM, RTi		Add waitForFile().
-// 2001-12-13	SAM, RTi		Add formatDateTime().  Transfer the
-//					following from DateTime:
-//						getDateTimeFromIndex()
-//						getLocalTimeZone()
-//						getNumIntervals()
-//						isDateTime()
-//					Use TZ and TZData instead of
-//					TimeZoneData.
-//					Verify that variables are set to null
-//					when no longer used.  Change
-//					getSystemTimeString() to use
-//					formatDateTime().
-//					Remove deprecated getTimeString(),
-//					getAbsoluteMonth(), getDefinedCode().
-//					Change setLocalTimeZone() to set the
-//					same data used by
-//					getLocalTimeZoneAbbr().
-//					Add subtract() from DateTime.
-//					Change %Z when dealing with dates to
-//					use the TimeZone.getID() rather than
-//					look up from a GMT offset (too
-//					complicated).
-// 2002-02-02	SAM, RTi		Change getDateFromIndex() to
-//					addIntervals().
-// 2002-05-21	SAM, RTi		Update formatDateTime() to pass through
-//					unrecognized %X format specifiers so
-//					that the string can be formatted in a
-//					secondary formatter.
-//					Add getDateTimeFormatSpecifiers().
-// 2003-02-20	SAM, RTi		Fix numDaysInMonth(), which was not
-//					checking for month 0 properly.
-// 2003-06-03	SAM, RTi		Change diff() methods to be static.
-// 2003-09-19	SAM, RTi		* formatDateTime() was not handling day
-//					  of week abbreviations - was returning
-//					  full day.
-//					* Update formatDateTime() to use
-//					  GregorianCalendar.
-// 2003-10-10	SAM, RTi		* Add numDaysInMonth(DateTime).
-// 2003-12-08	SAM, RTi		* Add dayOfYear(DateTime).
-// 2005-02-24	SAM, RTi		Add highestPrecision() and
-//					lowestPrecision().
-// 2005-09-27	SAM, RTi		* Add max() and min() to simplify
-//					  handling of DateTime comparisons.
-//					* Change warning levels from 2 to 3 to
-//					  facilitate use of the log file viewer.
-// 2005-11-16	SAM, RTi		* Add
-//					  convertCalendarMonthToCustomMonth().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-// EndHeader
 
 package RTi.Util.Time;
 
@@ -124,10 +41,10 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 /**
-The TimeUtil class provides time utility methods for date/time data, independent
-of use in time series or other classes.  There is no "Time" or "Date" class
-other than what is supplied by Java or RTi's DateTime class (TSDate is being
-phased out).  Conventions used for all methods are:
+The TimeUtil class provides time utility methods for date/time data,
+independent of use in time series or other classes.
+There is no "Time" or "Date" class other than what is supplied by Java or RTi's DateTime class
+(TSDate is being phased out).  Conventions used for all methods are:
 <p>
 Years are 4-digit.<br>
 Months are 1-12.<br>
@@ -144,17 +61,15 @@ public abstract class TimeUtil {
 /**
 Datum for absolute day = days inclusive of Dec 31, 1799.
 This has been computed by looping through years 1-1799 adding numDaysInYear.
-This constant can be used when computing absolute days (e.g., to calculate the
-number of days in a period).
+This constant can be used when computing absolute days (e.g., to calculate the number of days in a period).
 */
 public final static int ABSOLUTE_DAY_DATUM = 657071;
 
 /**
 Blank values for DateTime parts, used to "mask out" unused information.
-If these are used as data values, then DateTime.DATE_FAST should be used to
-prevent exceptions for invalid values.  For example, it may be necessary to show a DateTime
-as a string parameter to represent a window in a year ("MM-DD").  In this case the other
-date/time components are not used, but are needed in the string to allow for proper parsing.
+If these are used as data values, then DateTime.DATE_FAST should be used to prevent exceptions for invalid values.
+For example, it may be necessary to show a DateTime as a string parameter to represent a window in a year ("MM-DD").
+In this case the other date/time components are not used, but are needed in the string to allow for proper parsing.
 */
 public final static int BLANK_YEAR = 9999;
 public final static int BLANK_MONTH = 99;
@@ -164,19 +79,17 @@ public final static int BLANK_MINUTE = 99;
 public final static int BLANK_SECOND = 99;
 
 /**
-The following indicates how time zones are handled when getLocalTimeZone() is
-called (which is used when DateTime instances are created).  The default is
-LOOKUP_TIME_ZONE_ONCE, which results in the best performance when the time
-zone is not expected to change within a run.  However, if a time zone change
-will cause a problem, LOOKUP_TIME_ZONE_ALWAYS should be used (however, this
-results in slower performance).
+The following indicates how time zones are handled when getLocalTimeZone() is called (which is used when DateTime instances are created).
+The default is LOOKUP_TIME_ZONE_ONCE,
+which results in the best performance when the time zone is not expected to change within a run.
+However, if a time zone change will cause a problem, LOOKUP_TIME_ZONE_ALWAYS should be used
+(however, this results in slower performance).
 */
 public static final int LOOKUP_TIME_ZONE_ONCE = 1;
 
 /**
-The following indicates that for DateTime construction the local time zone is
-looked up each time a DateTime is created.  This should be considered when
-running a real-time application that runs continuously between time zone changes.
+The following indicates that for DateTime construction the local time zone is looked up each time a DateTime is created.
+This should be considered when running a real-time application that runs continuously between time zone changes.
 */
 public static final int LOOKUP_TIME_ZONE_ALWAYS	= 2;
 
@@ -231,11 +144,11 @@ protected static int _time_zone_lookup_method = LOOKUP_TIME_ZONE_ONCE;
 
 /**
 Compute the absolute day.  This can be used for determining the difference between dates.
-@return The absolute day, with respect to Dec 31, 1799.  The datum may change
-in the future and should be used only in a dynamic fashion.
 @param year Year (4-digit).
 @param month Month number (1-12).
 @param day Day number (1-31).
+@return The absolute day, with respect to Dec 31, 1799.
+The datum may change in the future and should be used only in a dynamic fashion.
 */
 public static int absoluteDay ( int year, int month, int day )
 {	int leap = 0;
@@ -256,13 +169,13 @@ public static int absoluteDay ( int year, int month, int day )
 
 /**
 Compute the absolute minute.  This can be used for determining the difference between dates.
-@return The absolute minute, with respect to Dec 31, 1799.  The datum may change
-in the future and should be used only in a dynamic fashion.
 @param year Year (4-digit).
 @param month Month number (1-12).
 @param day Day number (1-31).
 @param hour Hour (0-23).
 @param minute Minute (0-59).
+@return The absolute minute, with respect to Dec 31, 1799.
+The datum may change in the future and should be used only in a dynamic fashion.
 */
 public static long absoluteMinute (	int year, int month, int day, int hour, int minute )
 {	int aday = absoluteDay ( year, month, day );
@@ -272,22 +185,21 @@ public static long absoluteMinute (	int year, int month, int day, int hour, int 
 
 /**
 Return the absolute month, which is the year*12 + month.
-@return The absolute month, which is the year*12 + month.
 @param month Month number.
 @param year Year.
+@return The absolute month, which is the year*12 + month.
 */
 public static int absoluteMonth ( int month, int year )
 {	return ( year*12 + month );
 }
 
 /**
-Given a starting DateTime, an interval, and the number of intervals, increment
-the DateTime, returning the final DateTime.
-@return incremented DateTime (new instance is returned).
+Given a starting DateTime, an interval, and the number of intervals, increment the DateTime, returning the final DateTime.
 @param t1 Initial DateTime.
 @param base Interval base (see TimeInterval).
 @param mult Interval multiplier.
 @param nintervals Number of times to increment.
+@return incremented DateTime (new instance is returned).
 */
 public static DateTime addIntervals ( DateTime t1, int base, int mult, int nintervals )
 {	DateTime t = new DateTime ( t1 );
@@ -299,9 +211,8 @@ public static DateTime addIntervals ( DateTime t1, int base, int mult, int ninte
 
 /**
 Indicate whether a DateTime's precision matches the specified TimeInterval string.
-This is useful, for example, in confirming that DateTime's for a time series are
-consistent with the time series data interval.  This only checks the precision of the base
-but does not check the multiplier.
+This is useful, for example, in confirming that DateTime's for a time series are consistent with the time series data interval.
+This only checks the precision of the base but does not check the multiplier.
 @param dt DateTime to check.
 @param intervalString TimeInterval string to check.
 @return 0 if the precision value of the DateTime is the same as the interval (or interval is irregular),
@@ -322,9 +233,8 @@ public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, Stri
 
 /**
 Indicate whether a DateTime's precision matches the specified TimeInterval string.
-This is useful, for example, in confirming that DateTime's for a time series are
-consistent with the time series data interval.  This only checks the precision of the base
-but does not check the multiplier.
+This is useful, for example, in confirming that DateTime's for a time series are consistent with the time series data interval.
+This only checks the precision of the base but does not check the multiplier.
 @param dt DateTime to check.
 @param interval interval to check.
 @return 0 if the precision value of the DateTime is the same as the interval (or interval is irregular),
@@ -350,13 +260,10 @@ public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, Time
 }
 
 /**
-Indicate whether a DateTime's precision matches the specified TimeInterval,
-including base and multiplier.
-This is useful, for example, in confirming that DateTime's for a time series are
-consistent with the time series data interval.  Optionally, allow the precisions to
-be different when the DateTime is more precise but "remainder" date/time parts are
-zero.  This may be the case when a date/time is read from a source that always provides
-more precision in the data (e.g., databases).
+Indicate whether a DateTime's precision matches the specified TimeInterval, including base and multiplier.
+This is useful, for example, in confirming that DateTime's for a time series are consistent with the time series data interval.
+Optionally, allow the precisions to be different when the DateTime is more precise but "remainder" date/time parts are zero.
+This may be the case when a date/time is read from a source that always provides more precision in the data (e.g., databases).
 @param dt DateTime to check.
 @param interval TimeInterval to check.
 @param checkParts if true, then a date/time that is more precise than the interval is
@@ -383,9 +290,9 @@ public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, Time
         //   1) the remaining parts are DateTime initial values (0 or 1, depending on part)
         //   2) the date/time part at the same precision must evenly divide into the interval
         //      (e.g., 15Min data will allow minute values only 0, 15, 30, 45)
-        // If the extra information is OK, return 0
-        // First check to see if any date/time information in the remainder is not the initial values
-        // Numerical value of the interval is bigger for larger intervals (e.g., YEAR > MONTH)
+        // If the extra information is OK, return 0.
+        // First check to see if any date/time information in the remainder is not the initial values.
+        // Numerical value of the interval is bigger for larger intervals (e.g., YEAR > MONTH).
         int dtMorePrecise = -1;
         if ( compare == dtMorePrecise ) {
             // Date/time precision is greater than the interval so need to check if the end parts.
@@ -447,15 +354,15 @@ public static Integer compareDateTimePrecisionToTimeInterval ( DateTime dt, Time
 }
 
 /**
-Convert a calendar month (1=January,...,12=December) to a month in a special
-calendar.  For example, water years are Oct to Sep.  To determine the month
-number (1+) in a water year given a calendar year month, do the following:
+Convert a calendar month (1=January,...,12=December) to a month in a special calendar.
+For example, water years are Oct to Sep.
+To determine the month number (1+) in a water year given a calendar year month, do the following:
 <pre>
 int month = convertCalendarMonthToSpecialMonth ( cal_month, 10 );
 </pre>
 @param cal_month The calendar month (1=January, etc.).
-@param first_cal_month_in_year The calendar month corresponding to the first
-month in the special calendar.  For example, for water years, specify 10 for October.
+@param first_cal_month_in_year The calendar month corresponding to the first month in the special calendar.
+For example, for water years, specify 10 for October.
 @return the month number in the custom calendar (1 to 12).
 */
 public static int convertCalendarMonthToCustomMonth ( int cal_month, int first_cal_month_in_year )
@@ -474,11 +381,11 @@ public static int convertCalendarMonthToCustomMonth ( int cal_month, int first_c
 
 /**
 Determine whether the DateTime intervals align.
-For example, for data recorded on 6hour interval but offset at hours 1, 7, 13, and 20 will only
-align with similarly offset DateTime instances.
+For example, for data recorded on 6hour interval but offset at hours 1, 7, 13, and 20 will only align with similarly offset DateTime instances.
 @param dt1 first DateTime to compare
 @param dt2 second DateTime to compare
 @param interval TimeInterval indicating precision of 
+@return true if the date/time align, false if not
 */
 public static boolean dateTimeIntervalsAlign ( DateTime dt1, DateTime dt2, TimeInterval interval ) {
 	int precision = dt1.getPrecision();
@@ -538,9 +445,8 @@ public static boolean dateTimeIntervalsAlign ( DateTime dt1, DateTime dt2, TimeI
 
 /**
 Return the day of the year.
-@return The day of the year (where 1 is the first day of the year and 365 or
-366 is the last).  Return -1 if an error.
 @param d Java Date.
+@return The day of the year (where 1 is the first day of the year and 365 or 366 is the last).  Return -1 if an error.
 */
 public static int dayOfYear ( Date d )
 {	if ( d == null ) {
@@ -558,9 +464,8 @@ public static int dayOfYear ( Date d )
 
 /**
 Return the day of the year.
-@return The day of the year (where 1 is the first day of the year and 365 or
-366 is the last).  Return -1 if an error.
 @param d Datetime to evaluate.
+@return The day of the year (where 1 is the first day of the year and 365 or 366 is the last).  Return -1 if an error.
 */
 public static int dayOfYear ( DateTime d )
 {	if ( d == null ) {
@@ -579,9 +484,9 @@ public static int dayOfYear ( DateTime d )
 /**
 Return the day of the year, where day 1 is the first day in the year type (Jan 1 for calendar year type).
 For example, for calendar year day 1 is Jan 1 and for water year day 1 is Oct 1.
-@return The day of the year (where 1 is the first day of the year and 365 or 366 is the last).
 @param d Datetime to evaluate, in calendar year.
 @param yearType year type.
+@return The day of the year (where 1 is the first day of the year and 365 or 366 is the last).
 @exception IllegalArgumentException if there is an error.
 */
 public static int dayOfYear ( DateTime d, YearType yearType )
@@ -622,8 +527,12 @@ public static int dayOfYear ( DateTime d, YearType yearType )
 }
 
 /**
-Determine the inclusive output years given a time range in calendar years.  This is used to ensure that
-the output year fully includes any data from the calendar dates, even if partial output years.
+Determine the inclusive output years given a time range in calendar years.
+This is used to ensure that the output year fully includes any data from the calendar dates, even if partial output years.
+@param start starting date/time for a period of interest
+@param end ending date/time for a period of interest
+@param outputYearType the year type of interest for the period
+@return a range that fully encloses the requested date/time period
 */
 public static DateTimeRange determineOutputYearTypeRange ( DateTime start, DateTime end, YearType outputYearType )
 {   DateTime outputStart = new DateTime(start);
@@ -688,11 +597,11 @@ public static DateTimeRange determineOutputYearTypeRange ( DateTime start, DateT
 
 /**
 Compute the difference between dates.  See overloaded routine for more information.
-@return The offset from the date instance to the given date.  For example, if
-"date" is before the instance date, then the offset will be positive.
 @param date1 The date to be subtracted from.
 @param date2 The date to subtract from date1.
-REVISIT JAVADOC: see RTi.Util.Time.DateTime.add
+TODO JAVADOC: see RTi.Util.Time.DateTime.add
+@return The offset from the date instance to the given date.
+For example, if "date" is before the instance date, then the offset will be positive.
 @exception Exception if either date is null.
 */
 public static DateTime diff ( DateTime date1, DateTime date2 )
@@ -701,17 +610,16 @@ throws Exception
 }
 
 /**
-Subtract a date from another and return the offset.  This can then be used
-with the DateTime.add method to shift a date.  It is important to only compare
-dates of the same precision.
-@return The offset from the date instance to the given date.  For example, if
-"date" is before the instance date, then the offset will be positive.
+Subtract a date from another and return the offset.
+This can then be used with the DateTime.add method to shift a date.
+It is important to only compare dates of the same precision.
 @param date1 The DateTime to be subtracted from.
 @param date2 The DateTime to subtract from date1.
 @param use_month If true, the offset will be computed by setting the month also.
-In many cases, this is not valid because the relationship between days and
-months is dynamic.  If false, the month will be set to zero and the day will be
-set to the total number of days in the year from the difference.
+In many cases, this is not valid because the relationship between days and months is dynamic.
+If false, the month will be set to zero and the day will be set to the total number of days in the year from the difference.
+@return The offset from the date instance to the given date.
+For example, if "date" is before the instance date, then the offset will be positive.
 @exception Exception if either date is null.
 */
 public static DateTime diff ( DateTime date1, DateTime date2, boolean use_month)
@@ -771,6 +679,7 @@ throws Exception
 Format a DateTime using the given format.  The year type defaults to CALENDAR.
 @param dt DateTime object to format
 @param format format string (see overloaded version for details)
+@return the formatted date/time string
 */
 public static String formatDateTime ( DateTime dt, String format ) {
     return formatDateTime ( dt, YearType.CALENDAR, format );
@@ -778,14 +687,14 @@ public static String formatDateTime ( DateTime dt, String format ) {
 
 /**
 Format a DateTime using the given format.
-@return The date/time as a string for the specified date using the specified format.
 @param d0 The date to format.  If the date is null, the current time is used.
 @param yearType the year type, for example NOV_TO_OCT will result in date/times in Nov-Dec of the first year having a year
 of the following calendar year for ${dt:YearForYearType} property
-@param format0 The date format.  If the format is null,
-the default is as follows:  "Fri Jan 03 16:05:14 MST 1998" (the UNIX date
-command output).  The date can be formatted using the format modifiers of the
-C "strftime" routine, as follows:
+@param format0 The date format.  If the format is null, the default is as follows:
+"Fri Jan 03 16:05:14 MST 1998" (the UNIX date command output).
+The date can be formatted using the format modifiers of the C "strftime" routine, as shown below.
+@return The date/time as a string for the specified date using the specified format.
+
 <p>
 
 <table width=100% cellpadding=10 cellspacing=0 border=2>
@@ -941,7 +850,7 @@ public static String formatDateTime ( DateTime d0, YearType yearType, String for
 	// Use the date to format and then use DateTime time zone.
 	Date date = null;
 	// TODO SAM 2016-05-02 really need to handle time zone more explicitly here.
-	// Get the date using the DateTime's time zone or if not specified use the local time
+	// Get the date using the DateTime's time zone or if not specified use the local time.
 	// This matches legacy behavior.
 	date = dateTime.getDate(TimeZoneDefaultType.LOCAL);
 
@@ -1105,9 +1014,9 @@ public static String formatDateTime ( DateTime d0, YearType yearType, String for
 			}
 		}
 		else if ( (c == '$') && (yearType != null) ) {
-		    // TODO SAM 2013-12-23 For now hard-code one check but as more properties are added, make the code more elegant
+		    // TODO SAM 2013-12-23 For now hard-code one check but as more properties are added, make the code more elegant.
 		    String prop = "${dt:YearForYearType}";
-		    int iEnd = i + prop.length(); // Last char, zero index
+		    int iEnd = i + prop.length(); // Last char, zero index.
 		    String year = "";
 		    if ( iEnd <= format.length() ) {
 		        //Message.printStatus(2, "", "substring=\"" + format.substring(i,iEnd) + "\" prop=\"" + prop + "\"");
@@ -1138,8 +1047,7 @@ public static String formatDateTime ( DateTime d0, YearType yearType, String for
 
 /**
 Return the current date/time formatted using the default format.
-@return The current date date/time as a string using the default format
-(see the version that accepts a date and format).
+@return The current date date/time as a string using the default format (see the version that accepts a date and format).
 */
 public static String formatTimeString ()
 {	return formatTimeString ( new Date() );
@@ -1147,8 +1055,8 @@ public static String formatTimeString ()
 
 /**
 Return The current date/time formatted using the specified format string.
-@return The current date/time formatted using the specified format string.
 @param format The date format (see the version that accepts a date and format).
+@return The current date/time formatted using the specified format string.
 */
 public static String formatTimeString ( String format )
 {	return formatTimeString ( new Date(), format );
@@ -1156,8 +1064,8 @@ public static String formatTimeString ( String format )
 
 /**
 Return the date/time formatted using the default format string.
-@return The date/time formatted using the default format string.
 @param d0 The date to format (see the version that accepts a date and format).
+@return The date/time formatted using the default format string.
 */
 public static String formatTimeString ( Date d0 )
 {	return formatTimeString ( d0, null );
@@ -1165,12 +1073,12 @@ public static String formatTimeString ( Date d0 )
 
 /**
 Format a Date using the given format.  See also formatDateTime().
-@return The date/time formatted using the specified format.
 @param d0 The date to format.  If the date is null, the current time is used.
-@param format0 The date format.  If the format is null,
-the default is as follows:  "Fri Jan 03 16:05:14 MST 1998" (the UNIX date
-command output).  The date can be formatted using the format modifiers of the
-C "strftime" routine, as follows:
+@param format0 The date format.  If the format is null, the default is as follows:
+"Fri Jan 03 16:05:14 MST 1998" (the UNIX date command output).
+The date can be formatted using the format modifiers of the C "strftime" routine, as shown below.
+@return The date/time formatted using the specified format.
+
 <p>
 
 <table width=100% cellpadding=10 cellspacing=0 border=2>
@@ -1520,8 +1428,8 @@ public static String formatTimeString ( Date d0, String format0 )
 }
 
 /**
-Convert between 2 and 4 digit year representations, assuming that a future year
-is not allowed (this is mainly useful to convert a 4-digit year to 2-digit).
+Convert between 2 and 4 digit year representations, assuming that a future year is not allowed
+(this is mainly useful to convert a 4-digit year to 2-digit).
 @param year The year to convert.
 @param len The length of the output year (either 2 or 4).
 @return The formatted 2 or 4 digit year.
@@ -1534,8 +1442,7 @@ public static int formatYear ( int year, int len )
 Convert between 2 and 4 digit year representations.
 @param year0 The year to convert.
 @param len The length of the output year (either 2 or 4).
-@param allow_future If false, indicates that the resulting 4-digit year cannot
-be a future year, based on the system clock.
+@param allow_future If false, indicates that the resulting 4-digit year cannot be a future year, based on the system clock.
 @return The formatted 2 or 4 digit year.  Return -1 if there is an error.
 */
 public static int formatYear ( int year0, int len, boolean allow_future )
@@ -1609,8 +1516,7 @@ A new instance will have the time zone set to GMT.
 @exception RuntimeException if there is an error processing the UNIX time
 */
 public static DateTime fromUnixTime ( long unixTimeMs, DateTime dt )
-throws RuntimeException
-{
+throws RuntimeException {
 	// For now do not support negative.
 	if ( unixTimeMs < 0 ) {
 		throw new RuntimeException("Negative UNIX time is not supported." );
@@ -1683,8 +1589,8 @@ throws RuntimeException
 
 /**
 Get the current day of the week as a number.
-@return The current day of the week as a number, in the range 0-6, with 0 being
-Sunday.  The system clock is used to get the current time.  Return -1 if an error.
+@return The current day of the week as a number, in the range 0-6, with 0 being Sunday.
+The system clock is used to get the current time.  Return -1 if an error.
 */
 public int getCurrentDayOfWeek ()
 {	// First get the day of week as a string.
@@ -1702,13 +1608,12 @@ public int getCurrentDayOfWeek ()
 /**
 Return an array of valid format specifiers for the formatDateTime() method,
 in the format "%X - Description" where X is the format specifier.
-The specifiers correspond to the strftime formatting routine,
-with the addition of %h, %l, %u.
-@return an array of format specifiers.
-@param includeDescription If false, only the %X specifiers are returned.  if
-True, the description is also returned.
+The specifiers correspond to the strftime formatting routine, with the addition of %h, %l, %u.
+@param includeDescription If false, only the %X specifiers are returned.
+If True, the description is also returned.
 @param forOutput if true, return specifiers for formatting; if false only include formatters for parsing
 @param includeProps if true, include properties like ${dt:YearForYearType}, currently only used for output
+@return an array of format specifiers.
 */
 public static String[] getDateTimeFormatSpecifiers(boolean includeDescription, boolean forOutput, boolean includeProps )
 {	int nProps = 0;
@@ -1782,9 +1687,9 @@ public static String getLocalTimeZoneAbbr ()
 
 /**
 Return the local time zone abbreviation.  This uses java.util.TimeZone.getDefault().getID();
-@param time_zone_lookup_method If LOOKUP_TIME_ZONE_ONCE or
-LOOKUP_TIME_ZONE_ALWAYS, this method will control how time zones are determined
-for future time zone lookups, including those used in DateTime construction.
+@param time_zone_lookup_method If LOOKUP_TIME_ZONE_ONCE or LOOKUP_TIME_ZONE_ALWAYS,
+this method will control how time zones are determined for future time zone lookups,
+including those used in DateTime construction.
 The default is LOOKUP_TIME_ZONE_ONCE.
 @return the local time zone abbreviation.
 */
@@ -1814,11 +1719,10 @@ public static String getLocalTimeZoneAbbr ( int time_zone_lookup_method )
 
 /**
 Get the month and day from the day of year.
-@return A array of two integers containing the month and day given the
-year and Julian day within the year, or null if there is a problem.
-@param year Four digit year (used to determine if leap year).  If the leap
-year is not important, use a non-leap year (e.g., 1997).
+@param year Four digit year (used to determine if leap year).
+If the leap year is not important, use a non-leap year (e.g., 1997).
 @param julian_day Julian day in a year where 1 = Jan 1.
+@return A array of two integers containing the month and day given the year and Julian day within the year, or null if there is a problem.
 */
 public static int [] getMonthAndDayFromDayOfYear ( int year, int julian_day )
 {	int [] month_day = new int[2];
@@ -1861,15 +1765,16 @@ public static int [] getMonthAndDayFromDayOfYear ( int year, int julian_day )
 }
 
 /**
-Return the number of intervals between two dates.  This uses a loop to count
-the intervals and may be slow.  For time series, a faster method may be to call
-the TSUtil.getDataSize method.  Zero is returned if the start date is after the end date.
+Return the number of intervals between two dates.
+This uses a loop to count the intervals and may be slow.
+For time series, a faster method may be to call the TSUtil.getDataSize method.
+Zero is returned if the start date is after the end date.
 Zero is returned if the end date equals the start date since no interval will be traversed.
-@return The number of intervals between two dates.
 @param t1 Start date.
 @param t2 End date.
 @param base The time series base interval.
 @param mult The time series interval multiplier.
+@return The number of intervals between two dates.
 */
 public static int getNumIntervals (	DateTime t1, DateTime t2, int base, int mult ) {
 	if( t2.lessThan(t1) ) {
@@ -1890,7 +1795,7 @@ public static int getNumIntervals (	DateTime t1, DateTime t2, int base, int mult
 /**
 Return the current system time using the default format.
 @return The current system time as a string, using the default format used by formatDateTime.
-REVISIT JAVADOC: see RTi.Util.Time.TimeUtil.formatDateTime
+TODO JAVADOC: see RTi.Util.Time.TimeUtil.formatDateTime
 */
 public static String getSystemTimeString ( )
 {	return formatDateTime ( null, null );
@@ -1898,8 +1803,8 @@ public static String getSystemTimeString ( )
 
 /**
 Return the current system time using the specified format.
-@return The current system time as a string, using the specified format, as used by formatDateTime.
 @param format Format for date (see formatDateTime).
+@return The current system time as a string, using the specified format, as used by formatDateTime.
 */
 public static String getSystemTimeString ( String format )
 {	return formatDateTime ( null, format );
@@ -1930,8 +1835,7 @@ For example, return the water or irrigation year.
 @param yt year type
 @return the year for the requested year type
 */
-public static int getYearForYearType ( DateTime dt, YearType yt )
-{
+public static int getYearForYearType ( DateTime dt, YearType yt ) {
     int y = dt.getYear();
     int m = dt.getMonth();
     if ( (m >= yt.getStartMonth()) && (m <= 12) ) {
@@ -1956,14 +1860,13 @@ public static int getYearForYearType ( DateTime dt, YearType yt )
 }
 
 // jan1_1800_days pre-computed by looping from 1-1799 adding numDaysInYear.
-// Code taken from HMGetDateFromInternalJulianDay1900.  The logic is pretty
-// confusing but is necessary because of the leap year checks.
+// Code taken from HMGetDateFromInternalJulianDay1900.
+// The logic is pretty confusing but is necessary because of the leap year checks.
 /**
-Convert an absolute day into its components.  This routine does not at this
-time handle hours or time zone.
+Convert an absolute day into its components.  This routine does not at this time handle hours or time zone.
+@param aday Absolute day with respect to Dec 31, 1799.
+The datum may change in the future and should be used only in a dynamic fashion.
 @return The year, month, and day in an int[3] array.
-@param aday Absolute day with respect to Dec 31, 1799.  The datum may change
-in the future and should be used only in a dynamic fashion.
 @see #absoluteDay
 */
 public static int[] getYearMonthDayFromAbsoluteDay ( int aday )
@@ -2068,8 +1971,8 @@ public static int[] getYearMonthDayFromAbsoluteDay ( int aday )
 private static int _offset_year = -10000;
 
 /**
-@return The year offset for a 4-digit year (e.g., 1900 for 1981).  If a
-two-digit year is passed in, the offset is determined using the current system clock.
+@return The year offset for a 4-digit year (e.g., 1900 for 1981).
+If a two-digit year is passed in, the offset is determined using the current system clock.
 */
 public static int getYearOffset ( )
 {	if ( _offset_year == -10000 ) {
@@ -2085,12 +1988,10 @@ public static int getYearOffset ( )
 
 /**
 Determine the highest precision (smallest interval) for two DateTime instances.
-@return the highest precision (smallest interval) for two DateTime instances
-(see TimeInterval precision values).
 @param datetime1 A DateTime instance to compare.
 @param datetime2 Another DateTime instance to compare.
-@exception Exception if either of the dates are null or have an imprecise
-precision (UNKNOWN or IRREGULAR).
+@return the highest precision (smallest interval) for two DateTime instances (see TimeInterval precision values).
+@exception Exception if either of the dates are null or have an imprecise precision (UNKNOWN or IRREGULAR).
 */
 public static int highestPrecision ( DateTime datetime1, DateTime datetime2 )
 throws Exception
@@ -2116,8 +2017,8 @@ throws Exception
 
 // TODO SAM 2005-11-16 Should this be deprecated in favor of the convert*Month methods?
 /**
-Get the irrigation month given a calendar month.  The irrigation year starts in
-November of the previous calendar year and ends in October of the irrigation year.
+Get the irrigation month given a calendar month.
+The irrigation year starts in November of the previous calendar year and ends in October of the irrigation year.
 @return the irrigation month.
 */
 public static int irrigationMonthFromCalendar ( int month )
@@ -2132,8 +2033,8 @@ public static int irrigationMonthFromCalendar ( int month )
 // TODO SAM 2005-11-16
 // Should this be deprecated in favor of the convert*Month methods?
 /**
-Get the irrigation year given a calendar month and year.  The irrigation year
-starts in November of the previous calendar year and ends in October of the irrigation year.
+Get the irrigation year given a calendar month and year.
+The irrigation year starts in November of the previous calendar year and ends in October of the irrigation year.
 @return the irrigation year.
 */
 public static int irrigationYearFromCalendar ( int month, int year )
@@ -2146,12 +2047,11 @@ public static int irrigationYearFromCalendar ( int month, int year )
 }
 
 /**
-Return true if the string is a date/time, false otherwise.  The format must also
-be supplied.  The DateTime class is used to parse the date and therefore only
-date/time formats recognized by DateTime are recognized.
-@return true if the string is a date (can be parsed).
+Return true if the string is a date/time, false otherwise. The format must also be supplied.
+The DateTime class is used to parse the date and therefore only date/time formats recognized by DateTime are recognized.
 @param date_string Date string to parse.
 @param format Format to use for parsing (see FORMAT_*).
+@return true if the string is a date (can be parsed).
 */
 public static boolean isDateTime ( String date_string, int format )
 {	try {
@@ -2163,10 +2063,8 @@ public static boolean isDateTime ( String date_string, int format )
 }
 
 /**
-Return true if the string is a date, false otherwise.
-The format is determined from the string.
-The DateTime class is used to parse the date and therefore
-only date/time formats recognized by DateTime are recognized.
+Return true if the string is a date, false otherwise. The format is determined from the string.
+The DateTime class is used to parse the date and therefore only date/time formats recognized by DateTime are recognized.
 Because this results in a full parse, it is useful when checking data before parsing.
 Raw data processing should just parse once.
 @param date_string Date string to parse.
@@ -2186,10 +2084,9 @@ public static boolean isDateTime ( String date_string )
 /**
 Determine whether a year is a leap year.
 Leap years occur on years evenly divisible by four.
-However, years evenly divisible by 100 are not leap
-years unless they are also evenly divisible by 400.
-@return true if the specified year is a leap year and false if not.
+However, years evenly divisible by 100 are not leap years unless they are also evenly divisible by 400.
 @param year 4-digit year to check.
+@return true if the specified year is a leap year and false if not.
 */
 public static boolean isLeapYear ( int year )
 {	if ((((year%4) == 0) && ((year%100) != 0)) || (((year%100) == 0) && ((year%400) == 0)) ) {
@@ -2202,8 +2099,8 @@ public static boolean isLeapYear ( int year )
 
 /**
 Determine whether a day is valid.
-@return true if the day is valid (in the range 1-31), false if not.
 @param day Day to check.
+@return true if the day is valid (in the range 1-31), false if not.
 */
 public static boolean isValidDay ( int day )
 {	if ( (day >= 0) && (day <= 31) ) {
@@ -2216,8 +2113,8 @@ public static boolean isValidDay ( int day )
 
 /**
 Determine whether the day is valid.
-@return true if the day is valid (in the range 1-31), false if not.
 @param day Day to check (an integer as a String).
+@return true if the day is valid (in the range 1-31), false if not.
 */
 public static boolean isValidDay ( String day )
 {	try {
@@ -2231,10 +2128,10 @@ public static boolean isValidDay ( String day )
 
 /**
 Determine whether the day is valid.
-@return true if the day is valid (in the range 1-31), false if not.
 @param day Day to check.
 @param month Month corresponding to day to check.
 @param year Year corresponding to day to check.
+@return true if the day is valid (in the range 1-31), false if not.
 */
 public static boolean isValidDay ( int day, int month, int year )
 {	// First check month and year.
@@ -2262,10 +2159,10 @@ public static boolean isValidDay ( int day, int month, int year )
 
 /**
 Determine whether a day is valid.
-@return true if the day is valid (in the range 1-31), false if not.
 @param day Day to check, an integer as a String.
 @param month Month corresponding to day to check, an integer as a String.
 @param year Year corresponding to day to check, an integer as a String.
+@return true if the day is valid (in the range 1-31), false if not.
 */
 public static boolean isValidDay ( String day, String month, String year )
 {	int iday, imonth, iyear;
@@ -2293,8 +2190,8 @@ public static boolean isValidDay ( String day, String month, String year )
 
 /**
 Determine whether an hour is valid.
-@return true if the hour is valid (in the range 0-23), false if not.
 @param hour Hour to check.
+@return true if the hour is valid (in the range 0-23), false if not.
 */
 public static boolean isValidHour ( int hour )
 {	if ( (hour >= 0) && (hour < 24) ) {
@@ -2307,8 +2204,8 @@ public static boolean isValidHour ( int hour )
 
 /**
 Determine whether an hour is valid.
-@return true if the hour is valid (in the range 0-23), false if not.
 @param hour Hour to check, an integer as a String.
+@return true if the hour is valid (in the range 0-23), false if not.
 */
 public static boolean isValidHour ( String hour )
 {	try {
@@ -2322,8 +2219,8 @@ public static boolean isValidHour ( String hour )
 
 /**
 Determine whether a minute is valid.
-@return true if the minute is valid (in the range 0-59), false if not.
 @param minute Minute to check.
+@return true if the minute is valid (in the range 0-59), false if not.
 */
 public static boolean isValidMinute ( int minute )
 {	if ( (minute >= 0) && (minute <= 59) ) {
@@ -2336,8 +2233,8 @@ public static boolean isValidMinute ( int minute )
 
 /**
 Determine whether a minute is valid.
-@return true if the minute is valid (in the range 0-59), false if not.
 @param minute Minute to check, an integer as a String.
+@return true if the minute is valid (in the range 0-59), false if not.
 */
 public static boolean isValidMinute ( String minute )
 {	try {
@@ -2351,8 +2248,8 @@ public static boolean isValidMinute ( String minute )
 
 /**
 Determine whether a month is valid.
-@return true if the month is valid (in the range 1-12), false if not.
 @param month Month to check.
+@return true if the month is valid (in the range 1-12), false if not.
 */
 public static boolean isValidMonth ( int month )
 {	if ( (month > 0) && (month < 13) ) {
@@ -2365,8 +2262,8 @@ public static boolean isValidMonth ( int month )
 
 /**
 Determine whether a month is valid.
-@return true if the month is valid (in the range 1-12), false if not.
 @param month Month to check, an integer as a String.
+@return true if the month is valid (in the range 1-12), false if not.
 */
 public static boolean isValidMonth ( String month )
 {	try {
@@ -2383,10 +2280,11 @@ private static String [] __validTimeZones = new String[0];
 Determine whether a time zone is valid.
 This is needed because ava.util.TimeZone.getTimeZone(tz) will return GMT if the time zone is invalid.
 @param timeZone time zone ID such as "MST" or "America/Denver".
+@return true if a valid time zone and false otherwise
 */
 public static boolean isValidTimeZone ( String timeZone ) {
 	// Surely the time zone data are static and there is no need to store another static copy?
-	// However, to improve performance, save a static array of previously validated time zones
+	// However, to improve performance, save a static array of previously validated time zones.
 	// First check the valid time zones.
 	for ( int i = 0; i < __validTimeZones.length; i++ ) {
 		if ( __validTimeZones[i].equals(timeZone) ) {
@@ -2410,8 +2308,8 @@ public static boolean isValidTimeZone ( String timeZone ) {
 
 /**
 Determine whether a year is valid.
-@return true if the year is valid (> 100 and not 9999), false if not.
 @param year Year to check.
+@return true if the year is valid (> 100 and not 9999), false if not.
 */
 public static boolean isValidYear ( int year )
 {	if ( (year < 100) || (year == 9999) ) {
@@ -2424,8 +2322,8 @@ public static boolean isValidYear ( int year )
 
 /**
 Determine whether a year is valid.
-@return true if the year is valid (in the range 1-12), false if not.
 @param year Year to check, an integer as a String.
+@return true if the year is valid (in the range 1-12), false if not.
 */
 public static boolean isValidYear ( String year )
 {	try {
@@ -2439,12 +2337,10 @@ public static boolean isValidYear ( String year )
 
 /**
 Determine the lowest precision (largest interval) for two DateTime instances.
-@return the lowest precision (largest interval) for two DateTime instances
-(see TimeInterval precision values).
 @param datetime1 A DateTime instance to compare.
 @param datetime2 Another DateTime instance to compare.
-@exception Exception if either of the dates are null or have an imprecise
-precision (UNKNOWN or IRREGULAR).
+@return the lowest precision (largest interval) for two DateTime instances (see TimeInterval precision values).
+@exception Exception if either of the dates are null or have an imprecise precision (UNKNOWN or IRREGULAR).
 */
 public static int lowestPrecision ( DateTime datetime1, DateTime datetime2 )
 throws Exception
@@ -2530,8 +2426,8 @@ public static DateTime min ( DateTime dt1, DateTime dt2 )
 
 /**
 Return a string abbreviation for the month (e.g., "Jan").
-@return A string abbreviation for the month, or "" if not a valid month.
 @param month Month number, in range 1-12.
+@return A string abbreviation for the month, or "" if not a valid month.
 */
 public static String monthAbbreviation ( int month )
 {	if ( (month < 1) || ( month > 12) ) {
@@ -2544,10 +2440,8 @@ public static String monthAbbreviation ( int month )
 
 /**
 Determine the integer month given the month abbreviation.
-@return An integer in the range 1-12 corresponding to the month abbreviation,
-or 0 if the abbreviation cannot be matched.
-@param abbrev Month abbreviation (currently limited to 3-letter abbreviations
-in the MONTH_ABBREVIATIONS array).
+@param abbrev Month abbreviation (currently limited to 3-letter abbreviations in the MONTH_ABBREVIATIONS array).
+@return An integer in the range 1-12 corresponding to the month abbreviation, or 0 if the abbreviation cannot be matched.
 */
 public static int monthFromAbbrev( String abbrev )
 {   for ( int i = 0; i < 12; i++ ) {
@@ -2560,9 +2454,9 @@ public static int monthFromAbbrev( String abbrev )
 
 /**
 Convert an absolute month to its year and month values.
-@return An array if int's indicating the month and year corresponding to the
-given absolute month.  The first value will be the year, the second will be the month.
 @param amon Absolute month (year*12 + month).
+@return An array if int's indicating the month and year corresponding to the given absolute month.
+The first value will be the year, the second will be the month.
 */
 public static int[] monthFromAbsolute ( int amon )
 {	int	month, year;
@@ -2588,9 +2482,9 @@ public static int[] monthFromAbsolute ( int amon )
 /**
 Return the month of the year, where month 1 is the first month in the year type.
 For example Jan is month 1 for calendar year type and Oct is month 1 for water year type.
-@return The month of the year (where 1 is the first month of the year and 12 is the last).
 @param d Datetime to evaluate, in calendar year.
 @param yearType year type.
+@return The month of the year (where 1 is the first month of the year and 12 is the last).
 @exception IllegalArgumentException if input is invalid.
 */
 public static int monthOfYear ( DateTime d, YearType yearType )
@@ -2609,8 +2503,8 @@ public static int monthOfYear ( DateTime d, YearType yearType )
 
 /**
 Return the number of days in a month, checking for leap year for February.
-@return The number of days in a month, or zero if an error.
 @param dt The DateTime object to examine.
+@return The number of days in a month, or zero if an error.
 */
 public static int numDaysInMonth ( DateTime dt )
 {	return numDaysInMonth ( dt.getMonth(), dt.getYear() );
@@ -2618,9 +2512,9 @@ public static int numDaysInMonth ( DateTime dt )
 
 /**
 Return the number of days in a month, checking for leap year for February.
-@return The number of days in a month, or zero if an error.
 @param month The month of interest (1-12).
 @param year The year of interest.
+@return The number of days in a month, or zero if an error.
 */
 public static int numDaysInMonth ( int month, int year )
 {	int	ndays;
@@ -2645,12 +2539,12 @@ public static int numDaysInMonth ( int month, int year )
 
 /**
 Calculate the number of days in several months.
-@return The number of days in several months.
 @param month0 The initial month of interest (1-12).
 @param year0 The initial year of interest (4-digit).
-@param n The number of months, inclusive of the initial month.  For example, a
-value of 1 would return the days in the initial month.  A value of 2 would
-return the number of days in the initial month and its following month.
+@param n The number of months, inclusive of the initial month.
+For example, a value of 1 would return the days in the initial month.
+A value of 2 would return the number of days in the initial month and its following month.
+@return The number of days in several months.
 */
 static public int numDaysInMonths ( int month0, int year0, int n )
 {	int	i, month, ndays = 0, year;
@@ -2670,11 +2564,11 @@ static public int numDaysInMonths ( int month0, int year0, int n )
 
 /**
 Calculate the number of days in several months.
-@return The number of days in several months.
 @param month0 The initial month of interest.
 @param year0 The initial year of interest.
 @param month1 The last month of interest.
 @param year1 The last year of interest.
+@return The number of days in several months.
 */
 static public int numDaysInMonths (	int month0, int year0, int month1, int year1 )
 {	int nmonths = absoluteMonth ( month1, year1 ) - absoluteMonth ( month0, year0 ) + 1;
@@ -2683,8 +2577,8 @@ static public int numDaysInMonths (	int month0, int year0, int month1, int year1
 
 /**
 Determine the number of days in a year.
-@return The number of days in a year, accounting for leap years.
 @param year The year of interest.
+@return The number of days in a year, accounting for leap years.
 */
 public static int numDaysInYear ( int year )
 {	if ( isLeapYear(year) ) {
@@ -2698,8 +2592,8 @@ public static int numDaysInYear ( int year )
 
 /**
 Parse a 4-digit military time into its hour and minute and return in an array of int's.
-@return An array of int's with the hour (index 0) and minute (index 1).
 @param time 4-digit military time.
+@return An array of int's with the hour (index 0) and minute (index 1).
 */
 public static int [] parseMilitaryTime ( int time )
 {	int [] hour_min = new int[2];
@@ -2709,8 +2603,8 @@ public static int [] parseMilitaryTime ( int time )
 }
 
 /**
-Sleep the given number of milliseconds.  This code just loops and checks the
-system clock during each loop.  The thread will be tied up during the sleep.
+Sleep the given number of milliseconds.
+This code just loops and checks the system clock during each loop.  The thread will be tied up during the sleep.
 @param milliseconds The number of milliseconds to sleep.
 */
 public static void sleep ( long milliseconds )
@@ -2729,8 +2623,9 @@ public static void sleep ( long milliseconds )
 Calculate the UNIX time, which is the number of seconds since Jan 1, 1970 00:00:00.
 The calculation is only implemented for 1970 to 2036.
 @param dt DateTime containing date/time to process.  All parts of the date/time are processed, to seconds.
-@param ignoreTimeZone currently always assumed to be true.  If true, ignore the time zone in the DateTime
-and use the date/time values directly to compute UNIX time, equivalent to using a time zone of GMT.
+@param ignoreTimeZone currently always assumed to be true.
+If true, ignore the time zone in the DateTime and use the date/time values directly to compute UNIX time,
+equivalent to using a time zone of GMT.
 @return the UNIX time as milliseconds since Jan 1, 1970 00:00:00.
 @exception RuntimeException if there is an error computing the UNIX time
 */
@@ -2771,8 +2666,7 @@ Wait for a file to exist before continuing.
 @param filename Name of file to check for.
 @param wait Number of milliseconds to wait for each time.
 @param numtries Number of times to wait.
-@return true if the file exists, false if the timeout period is exceeded without
-the file being detected.
+@return true if the file exists, false if the timeout period is exceeded without the file being detected.
 */
 public static boolean waitForFile ( String filename, int wait, int numtries )
 {	for ( int i = 0; i < numtries; i++ ) {
@@ -2790,8 +2684,9 @@ public static boolean waitForFile ( String filename, int wait, int numtries )
 
 // TODO SAM 2005-11-16 Should this be deprecated in favor of the convert*Month methods?
 /**
-Get the water year month given a calendar month.  The water year starts in
-October of the previous calendar year and ends in September of the irrigation year.
+Get the water year month given a calendar month.
+The water year starts in October of the previous calendar year and ends in September of the irrigation year.
+@param month month 1 - 12
 @return the water year month.
 */
 public static int waterMonthFromCalendar ( int month )
@@ -2805,8 +2700,10 @@ public static int waterMonthFromCalendar ( int month )
 
 // TODO SAM 2005-11-16 Should this be deprecated in favor of the convert*Month methods?
 /**
-Get the water year given a calendar month and year.  The water year
-starts in October of the previous calendar year and ends in September of the irrigation year.
+Get the water year given a calendar month and year.
+The water year starts in October of the previous calendar year and ends in September of the irrigation year.
+@param month month 1 - 12
+@param year year as 4-digits
 @return the water year.
 */
 public static int waterYearFromCalendar ( int month, int year )

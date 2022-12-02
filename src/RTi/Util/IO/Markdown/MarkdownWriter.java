@@ -263,10 +263,18 @@ public class MarkdownWriter {
 	@throws IOException if an error occurs writing to a file.
 	*/
 	public void heading ( int level, String text) throws IOException {
-		for ( int i = 1; i <= level; i++ ) {
+		for ( int i = 0; i < level; i++ ) {
 			write("#");
 		}
-		write("\n");
+		write ( " " );
+		if ( text != null ) {
+			write ( text );
+		}
+		write ( " " );
+		for ( int i = 0; i < level; i++ ) {
+			write("#");
+		}
+		write("\n\n");
 	}
 
 	/**
@@ -441,7 +449,9 @@ public class MarkdownWriter {
 	@throws IOException if an error occurs writing to a file.
 	*/
 	public void tableCell(String s) throws IOException {
-		write(s.replaceAll("\n", ""));
+		if ( s != null ) {
+			write(s.replaceAll("\n", ""));
+		}
 		write("|");
 	}
 
@@ -475,25 +485,33 @@ public class MarkdownWriter {
 	}
 
 	/**
-	Inserts multiple table headers with the Strings specified.
+	Inserts multiple table headers with the Strings specified and header separator row.
 	@param headers Array of Strings to use for each header.
 	@throws IOException if an error occurs writing to a file.
  	*/
 	public void tableHeaders(String [] headers ) throws IOException {
-		for(int i = 0; i < headers.length; i++ ) {
-			if( headers[i] != null && headers[i].length() > 0 ) {
-				tableHeader( headers[i].trim() );
+		for ( int i = 0; i < headers.length; i++ ) {
+			String header = headers[i];
+			if ( headers[i] == null ) {
+				header = "";
 			}
+			tableHeader( header );
 		}                                     
+		// Write the headers separator line.
+		write ( "\n|" );
+		for ( int i = 0; i < headers.length; i++ ) {
+			tableHeaderSeparator();
+		}
+		write ( "\n" );
 	}
 
 	/**
-	Inserts a table header cell with the given text.
+	Inserts a table header cell as bold with the given text and trailing |.
 	@param s text to put in the table header cell.
 	@throws IOException if an error occurs writing to a file.
 	*/
 	public void tableHeader(String s) throws IOException {
-		write( this.boldString + s.replaceAll("\n", "" ) + this.boldString + "|");
+		write ( this.boldString + s.replaceAll("\n", "" ) + this.boldString + "|");
 	}
 
 

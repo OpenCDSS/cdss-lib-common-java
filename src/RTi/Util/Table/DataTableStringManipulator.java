@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2022 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ Perform simple column-based string manipulation on a table.
 */
 public class DataTableStringManipulator
 {
-    
+
 /**
 Data table on which to perform math.
 */
@@ -58,8 +58,7 @@ Construct an instance.
 @param columnIncludeFilters a list of filters that will be checked to include rows
 @param columnIncludeFilters a list of filters that will be checked to exclude rows
 */
-public DataTableStringManipulator ( DataTable table, StringDictionary columnIncludeFilters, StringDictionary columnExcludeFilters )
-{
+public DataTableStringManipulator ( DataTable table, StringDictionary columnIncludeFilters, StringDictionary columnExcludeFilters ) {
     __table = table;
     __columnIncludeFilters = columnIncludeFilters;
     __columnExcludeFilters = columnExcludeFilters;
@@ -68,10 +67,11 @@ public DataTableStringManipulator ( DataTable table, StringDictionary columnIncl
 /**
 Get the list of operators that can be used.
 */
-public static List<DataTableStringOperatorType> getOperatorChoices()
-{
+public static List<DataTableStringOperatorType> getOperatorChoices() {
     List<DataTableStringOperatorType> choices = new ArrayList<>();
     choices.add ( DataTableStringOperatorType.APPEND );
+    // TODO smalers 2022-11-30 would be nice to extract using a wildcard rather than substring with positions.
+    // choices.add ( DataTableStringOperatorType.EXTRACT );
     choices.add ( DataTableStringOperatorType.PREPEND );
     choices.add ( DataTableStringOperatorType.REMOVE );
     choices.add ( DataTableStringOperatorType.REPLACE );
@@ -93,8 +93,7 @@ public static List<DataTableStringOperatorType> getOperatorChoices()
 Get the list of operators that can be performed.
 @return the operator display names as strings.
 */
-public static List<String> getOperatorChoicesAsStrings()
-{
+public static List<String> getOperatorChoicesAsStrings() {
     List<DataTableStringOperatorType> choices = getOperatorChoices();
     List<String> stringChoices = new ArrayList<String>();
     for ( int i = 0; i < choices.size(); i++ ) {
@@ -114,18 +113,18 @@ Perform a string manipulation.
 @param problems a list of strings indicating problems during processing
 */
 public void manipulate ( String inputColumn1, DataTableStringOperatorType operator,
-    String inputColumn2, String inputValue2, String inputValue3, String outputColumn, List<String> problems )
-{   String routine = getClass().getSimpleName() + ".manipulate" ;
-	// Construct the filter
+    String inputColumn2, String inputValue2, String inputValue3, String outputColumn, List<String> problems ) {
+    String routine = getClass().getSimpleName() + ".manipulate" ;
+	// Construct the filter.
 	DataTableFilter filter = null;
 	try {
 		filter = new DataTableFilter ( __table, __columnIncludeFilters, __columnExcludeFilters );
 	}
 	catch ( Exception e ) {
-		// If any problems are detected then processing will be stopped below
+		// If any problems are detected then processing will be stopped below.
 		problems.add(e.getMessage());
 	}
-    // Look up the columns for input and output
+    // Look up the columns for input and output.
     int input1ColumnNum = -1;
     try {
         input1ColumnNum = __table.getFieldIndex(inputColumn1);
@@ -149,8 +148,8 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
     catch ( Exception e ) {
         Message.printStatus(2, routine, "Output column \"" + outputColumn + "\" not found in table \"" +
             __table.getTableID() + "\" - automatically adding." );
-        // Automatically add to the table, initialize with null
-        // TODO SAM 2015-04-29 Need to enable Boolean
+        // Automatically add to the table, initialize with null.
+        // TODO SAM 2015-04-29 Need to enable Boolean.
         //if ( operator == DataTableStringOperatorType.TO_BOOLEAN ) {
         //    __table.addField(new TableField(TableField.DATA_TYPE_BOOLEAN,outputColumn,-1,-1), null );
         //}
@@ -159,7 +158,7 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
         }
         else if ( (operator == DataTableStringOperatorType.TO_DATE) ||
             (operator == DataTableStringOperatorType.TO_DATE_TIME) ) {
-            // Precision is handled by precision on individual date/time objects
+            // Precision is handled by precision on individual date/time objects.
             __table.addField(new TableField(TableField.DATA_TYPE_DATETIME,outputColumn,-1,-1), null );
         }
         else if ( operator == DataTableStringOperatorType.TO_DOUBLE ) {
@@ -177,14 +176,14 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             problems.add ( "Output column \"" + outputColumn + "\" not found in table \"" + __table.getTableID() + "\".  Error addung column." );
         }
     }
-    
+
     if ( problems.size() > 0 ) {
-        // Return if any problems were detected
+        // Return if any problems were detected.
         return;
     }
-    
-    // Check for special cases on input, for example ^ and $ are used with replace
-    // In these cases, remove the special characters
+
+    // Check for special cases on input, for example ^ and $ are used with replace.
+    // In these cases, remove the special characters.
     boolean replaceStart = false;
     boolean replaceEnd = false;
 	if ( (operator == DataTableStringOperatorType.REPLACE) || (operator == DataTableStringOperatorType.REMOVE) ) {
@@ -194,38 +193,38 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
 	    		inputValue2 = inputValue2.substring(1,inputValue2.length());
     		}
     		else if ( inputValue2.endsWith("$") && !inputValue2.endsWith("\\$") ) {
-    			// Input value indicates line ending
+    			// Input value indicates line ending.
 	    		replaceEnd = true;
-	    		// Remove the dollar sign
+	    		// Remove the dollar sign.
 	    		inputValue2 = inputValue2.substring(0,inputValue2.length()-1);
     		}
-    		// Replace "\s" with single space
+    		// Replace "\s" with single space.
     		inputValue2 = inputValue2.replace("\\s"," ");
-    		// Replace "\$" with dollar sign since not a line ending
+    		// Replace "\$" with dollar sign since not a line ending.
     		inputValue2 = inputValue2.replace("\\$","$");
     	}
     	if ( operator == DataTableStringOperatorType.REMOVE ) {
-    		// Same as substring but second string is blank
+    		// Same as substring but second string is blank.
     		inputValue3 = "";
     	}
     	else {
 	    	if ( inputValue3 != null ) {
-	    		// Replace "\ " with single space, anywhere in the output
+	    		// Replace "\ " with single space, anywhere in the output.
 	    		inputValue3 = inputValue3.replace("\\s"," ");
 	    	}
     	}
 	}
 
-    // Loop through the records
+    // Loop through the records.
     int nrec = __table.getNumberOfRecords();
     Object val = null;
     String input1Val = null;
     String input2Val = null;
     String input3Val = null;
     Object outputVal = null;
-    int maxChars = -1; // Maximum string length of output
+    int maxChars = -1; // Maximum string length of output.
     for ( int irec = 0; irec < nrec; irec++ ) {
-    	// Check whether row should be included/excluded - "true" below indicates to throw exceptions
+    	// Check whether row should be included/excluded - "true" below indicates to throw exceptions.
     	try {
 	    	if ( !filter.includeRow(irec,true) ) {
 	    		continue;
@@ -234,19 +233,19 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
     	catch ( Exception e ) {
     		problems.add(e.getMessage());
     	}
-        // Initialize the values
+        // Initialize the values.
         input1Val = null;
         input2Val = null;
         input3Val = null;
         outputVal = null;
-        // Get the input values
+        // Get the input values.
         try {
             val = __table.getFieldValue(irec, input1ColumnNum);
             if ( val == null ) {
             	input1Val = null;
             }
             else {
-            	input1Val = "" + val; // Do this way so that even non-strings can be manipulated
+            	input1Val = "" + val; // Do this way so that even non-strings can be manipulated.
             }
         }
         catch ( Exception e ) {
@@ -258,7 +257,7 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
                 input2Val = inputValue2;
             }
             else if ( input2ColumnNum >= 0 ) {
-            	// Constant value was not given so get from column
+            	// Constant value was not given so get from column.
                 val = __table.getFieldValue(irec, input2ColumnNum);
                 if ( val == null ) {
                 	input2Val = null;
@@ -273,12 +272,12 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             continue;
         }
         if ( inputValue3 != null ) {
-        	// Only constant value is allowed (not from column)
+        	// Only constant value is allowed (not from column).
             input3Val = inputValue3;
         }
-        // Check for missing values and compute the output
+        // Check for missing values and compute the output.
         if ( input1Val == null ) {
-        	// Output is null regardless of the operator
+        	// Output is null regardless of the operator.
             outputVal = null;
         }
         else if ( operator == DataTableStringOperatorType.APPEND ) {
@@ -300,17 +299,17 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
         else if ( (operator == DataTableStringOperatorType.REPLACE) ||
         	(operator == DataTableStringOperatorType.REMOVE)) {
         	if ( operator == DataTableStringOperatorType.REMOVE ) {
-        		input3Val = ""; // Replace found string with empty string
+        		input3Val = ""; // Replace found string with empty string.
         	}
         	// This is tricky because don't want to change unless there is a match.
         	// Problems can occur if one call messes with data that another call previously changed.
         	// Therefore need to handle with care depending on whether output column is the same as input column.
         	if ( input1ColumnNum == outputColumnNum ) {
-        		// Default is output will be the same as input unless changed below
+        		// Default is output will be the same as input unless changed below.
         		outputVal = input1Val;
         	}
         	else {
-        		// Get the value of the output column before manipulation
+        		// Get the value of the output column before manipulation.
         		try {
         			Object o = __table.getFieldValue(irec, outputColumnNum);
         			if ( o == null ) {
@@ -324,24 +323,24 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             		outputVal = null;
         		}
         		if ( outputVal == null ) {
-        			// Probably first pass manipulating so set to input
+        			// Probably first pass manipulating so set to input.
         			outputVal = input1Val;
         		}
         	}
             if ( (input2Val != null) && (input3Val != null) ) {
-            	// Handle strings at beginning and end specifically
+            	// Handle strings at beginning and end specifically.
             	if ( replaceStart ) {
             		if ( input1Val.startsWith(input2Val) ) {
             			if ( input1Val.length() > input2Val.length() ) {
-            				// Have longer string so have to replace part
+            				// Have longer string so have to replace part.
             				outputVal = input3Val + input1Val.substring(input2Val.length());
             			}
 	            		else {
-	            			// Replace whole string
+	            			// Replace whole string.
 	            			outputVal = input3Val;
 	            		}
             		}
-            		// Else defaults to default output as determined above
+            		// Else defaults to default output as determined above.
             	}
             	else if ( replaceEnd ) {
             		input2Val = input2Val.substring(0,input2Val.length());
@@ -353,22 +352,22 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
 	            			outputVal = input3Val;
 	            		}
             		}
-            		// Else defaults to default output as determined above
+            		// Else defaults to default output as determined above.
             	}
             	else {
-            		// Simple replace - may not do anything if not matched
+            		// Simple replace - may not do anything if not matched.
             		String outputValTmp = input1Val.replace(input2Val, input3Val);
             		if ( !outputValTmp.equals(outputVal) ) {
-            			// Output was changed so update the value, otherwise leave previous output determined above
+            			// Output was changed so update the value, otherwise leave previous output determined above.
             			outputVal = outputValTmp;
             		}
             	}
             }
         }
         else if ( operator == DataTableStringOperatorType.SPLIT ) {
-        	// That parameter character positions are 1+ but internal positions are 0+
-        	// Split out a token where input2Value is the delimiter and input3Value is the integer position (1++)
-        	// TODO SAM 2016-06-16 Figure out how to error-handle better
+        	// That parameter character positions are 1+ but internal positions are 0+.
+        	// Split out a token where input2Value is the delimiter and input3Value is the integer position (1++).
+        	// TODO SAM 2016-06-16 Figure out how to error-handle better.
         	int input3ValInt = -1;
         	try {
         		input3ValInt = Integer.parseInt(input3Val);
@@ -381,7 +380,7 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
         	}
         	else {
 	        	if ( input3ValInt >= 0 ) {
-		        	// First break the string list
+		        	// First break the string list.
 	        		inputValue2 = inputValue2.replace("\\s"," ");
 	        		inputValue2 = inputValue2.replace("\\n","\n");
 		        	List<String> tokens = StringUtil.breakStringList(input1Val,input2Val,0);
@@ -396,24 +395,35 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
         	}
         }
         else if ( operator == DataTableStringOperatorType.SUBSTRING ) {
-        	// Note that parameter character positions are 1+ but internal positions are 0+
-        	// Extract a substring from the string based on character positions
-        	int input2ValInt = -1;
-        	int input3ValInt = -1;
+        	// Note that parameter character positions are 1+ but internal positions are 0+.
+        	// Extract a substring from the string based on character positions.
+        	// Use MAX_VALUE for missing.
+        	int input2ValInt = Integer.MAX_VALUE;
+        	int input3ValInt = Integer.MAX_VALUE;
         	try {
         		input2ValInt = Integer.parseInt(input2Val);
+        		if ( input2ValInt < 0 ) {
+        			// Index is from the end of the string:
+        			// - reset to an equivalent positive index from the front of the string
+        			input2ValInt = input1Val.length() + input2ValInt + 1;
+        		}
         	}
         	catch ( Exception e ) {
-        		input2ValInt = -1;
+        		input2ValInt = Integer.MAX_VALUE;
         	}
         	try {
         		input3ValInt = Integer.parseInt(input3Val);
+        		if ( input3ValInt < 0 ) {
+        			// Index is from the end of the string:
+        			// - reset to an equivalent positive index from the front of the string
+        			input3ValInt = input1Val.length() + input3ValInt + 1;
+        		}
         	}
         	catch ( Exception e ) {
-        		input3ValInt = -1;
+        		input3ValInt = Integer.MAX_VALUE;
         	}
-            if ( (input2ValInt >= 0) && (input3ValInt < 0) ) {
-            	// Substring to end of string
+            if ( (input2ValInt >= 0) && (input2ValInt != Integer.MAX_VALUE) && (input3ValInt == Integer.MAX_VALUE) ) {
+            	// Substring to end of string.
             	if ( input2ValInt > input1Val.length() ) {
             		outputVal = "";
             	}
@@ -421,11 +431,23 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             		outputVal = input1Val.substring(input2ValInt - 1);
             	}
             }
-            else if ( (input2ValInt >= 0) && (input3ValInt >= 0) ) {
+            else if ( (input2ValInt >= 0) && (input2ValInt != Integer.MAX_VALUE) &&
+            	(input3ValInt >= 0) && (input3ValInt != Integer.MAX_VALUE) ) {
+            	// Substring between index values.
             	int input1ValLength = input1Val.length();
             	outputVal = "";
-            	if ( (input2ValInt <= input1ValLength) && (input3ValInt <= input1ValLength) ) {
-            		outputVal = input1Val.substring((input2ValInt - 1), input3ValInt);
+            	if ( input2ValInt > input1Val.length() ) {
+            		outputVal = "";
+            	}
+            	else if ( input2ValInt <= input1ValLength ) {
+            		if  (input3ValInt <= input1ValLength ) {
+            			// Get the requested substring.
+            			outputVal = input1Val.substring((input2ValInt - 1), input3ValInt);
+            		}
+            		else {
+            			// Get the partial string that is available.
+            			outputVal = input1Val.substring(input2ValInt - 1);
+            		}
             	}
             }
         }
@@ -433,7 +455,7 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             (operator == DataTableStringOperatorType.TO_DATE_TIME)) {
             try {
                 outputVal = DateTime.parse(input1Val);
-                // TODO SAM 2013-05-13 Evaluate whether this is needed since string should parse
+                // TODO SAM 2013-05-13 Evaluate whether this is needed since string should parse.
                 //if ( operator == DataTableStringOperatorType.TO_DATE ) {
                 //    ((DateTime)outputVal).setPrecision(DateTime.PRECISION_DAY);
                 //}
@@ -451,15 +473,15 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             }
         }
         else if ( operator == DataTableStringOperatorType.TO_INTEGER ) {
-        	// First try to convert the string to an integer
+        	// First try to convert the string to an integer.
             try {
                 outputVal = Integer.parseInt(input1Val);
             }
             catch ( NumberFormatException e ) {
-            	// If the above fails, try converting to a Double
+            	// If the above fails, try converting to a Double.
             	try {
             		Double outputDouble = Double.parseDouble(input1Val);
-            		// intValue may truncate but want to round in the normal way
+            		// intValue may truncate but want to round in the normal way.
             		outputVal = new Integer((int)Math.round(outputDouble));
             	}
             	catch ( NumberFormatException e2 ) {
@@ -471,11 +493,11 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             outputVal = input1Val.toLowerCase();
         }
         else if ( operator == DataTableStringOperatorType.TO_MIXEDCASE ) {
-        	// Convert the first letter of each word to mixed case and others to lowercase
+        	// Convert the first letter of each word to mixed case and others to lower case.
         	StringBuilder b = new StringBuilder(input1Val.toLowerCase());
         	for ( int i = 0; i < input1Val.length(); i++ ) {
         		if ( (i == 0) || ((i > 0) && Character.isWhitespace(b.charAt(i - 1))) ) {
-        			// First character in a word
+        			// First character in a word.
         			b.setCharAt(i, Character.toUpperCase(b.charAt(i)) );
         		}
         	}
@@ -484,7 +506,7 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
         else if ( operator == DataTableStringOperatorType.TO_UPPERCASE ) {
             outputVal = input1Val.toUpperCase();
         }
-        // Check the length of the string because may need to reset output column width
+        // Check the length of the string because may need to reset output column width.
         if ( input1ColumnNum == outputColumnNum ) {
 	        if ( (outputVal != null) && outputVal instanceof String ) {
 	        	String s = (String)outputVal;
@@ -493,14 +515,14 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
 	        	}
 	        }
         }
-        // Set the value...
+        // Set the value.
         try {
             __table.setFieldValue(irec, outputColumnNum, outputVal );
         }
         catch ( Exception e ) {
             problems.add ( "Error setting value (" + e + ")." );
         }
-        // Set the column width
+        // Set the column width.
         if ( input1ColumnNum == outputColumnNum ) {
         	int width = __table.getFieldWidth(outputColumnNum);
         	if ( maxChars > width ) {
