@@ -2419,8 +2419,10 @@ public static DateTime parse ( String dtString, PropList datetime_props ) {
 		int modifierStartPos = 0;
 		int modifierEndPos = 0;
 		int roundDirection = -1; // Earlier in time.
+		String roundDayOfWeek = null; // Day of week to round day to.
 		TimeInterval roundInterval = null; // Interval to round to.
 		while ( true ) {
+			// Process as many modifiers as found until the string ends.
 			if ( modifierPos >= token0.length() ) {
 				break;
 			}
@@ -2430,7 +2432,9 @@ public static DateTime parse ( String dtString, PropList datetime_props ) {
 				break;
 			}
 			else {
-				// Process the modifier.
+				// Process the modifiers:
+				// - order is not important
+				// - if multiple modifiers work together, apply at the end
 				if ( token0.substring(modifierPos).toUpperCase().startsWith(".ROUND(") ) {
 					// Date/time needs to be rounded.
 					modifierStartPos = modifierPos + 7; // Skip over .ROUND(
@@ -2440,7 +2444,8 @@ public static DateTime parse ( String dtString, PropList datetime_props ) {
 					modifierPos = modifierEndPos;
 				}
 				else if ( token0.substring(modifierPos).toUpperCase().startsWith(".ROUNDDIRECTION(") ) {
-					// Direction of rounding.
+					// Direction of rounding:
+					// - check this before modifiers that may depend on it
 					modifierStartPos = modifierPos + 16; // Skip over .ROUNDDIRECTION(
 					modifierEndPos = token0.indexOf(")",modifierPos);
 					String sRoundDirection = token0.substring(modifierStartPos, modifierEndPos).trim();
@@ -2450,6 +2455,16 @@ public static DateTime parse ( String dtString, PropList datetime_props ) {
 					else if ( sRoundDirection.trim().equals("<") ) { // Don't use + or - here because that is used in may on current time.
 						roundDirection = -1; // Also the default set above if nothing matches.
 					}
+					modifierPos = modifierEndPos;
+				}
+				else if ( token0.substring(modifierPos).toUpperCase().startsWith(".ROUNDTODAYOFWEEK(") ) {
+					// Date/time needs to be rounded to a day of the week:
+					// - only the day is rounded
+					// - direction is also considered
+					// - the rounding occurs after checking modifiers
+					modifierStartPos = modifierPos + 18; // Skip over .ROUNDTODAYOFWEEK(
+					modifierEndPos = token0.indexOf(")",modifierPos);
+					roundDayOfWeek = token0.substring(modifierStartPos, modifierEndPos);
 					modifierPos = modifierEndPos;
 				}
 				else if ( token0.substring(modifierPos).toUpperCase().startsWith(".TIMEZONE(") ) {
@@ -2475,9 +2490,12 @@ public static DateTime parse ( String dtString, PropList datetime_props ) {
 				}
 			}
 		}
-		// Execute modifiers that take more than one input.
 		if ( roundInterval != null ) {
 			token0DateTime.round(roundDirection, roundInterval.getBase(), roundInterval.getMultiplier());
+		}
+		if ( roundDayOfWeek != null ) {
+			// This can be done in addition to the above rounding.
+			token0DateTime.roundToDayOfWeek(roundDirection, roundDayOfWeek, -1);
 		}
 	}
 
@@ -3724,6 +3742,83 @@ public void round ( int direction, int interval_base, int interval_mult )
 		Message.printWarning ( 2, "DateTime.round",	"Interval base " + interval_base + " is unsupported.");
     }
 	reset();
+}
+
+/**
+ * Round to a day of the week, for example to set a period of record to process.
+ * The offset from the current day is determined and then applied,
+ * which may cause other changes to occur such as month and year.
+ * @param direction Specify 1 to round by incrementing the date.
+ * Specify -1 to round by decrementing the date.
+ * @param dayOfWeek the day of week to round to specified as a string
+ * (Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday), or specify as null if dayOfWeekInt is specified
+ * @param dayOfWeekInt the day of week to round to specified as an integer (1=Monday as per ISO 8601), or -1 if 'dayOfWeek' should be used
+ */
+public void roundToDayOfWeek ( int direction, String dayOfWeek, int dayOfWeekInt ) {
+	// Get the day of week for the current date/time:
+	// - use OffsetDateTime
+	// - time zone is ignored
+	OffsetDateTime dt = OffsetDateTime.of(
+		this.__year,
+		this.__month,
+		this.__day,
+		this.__hour,
+		this.__minute,
+		this.__second,
+		this.__nano,
+		ZoneOffset.ofHours(0));
+	// Day of week is according to ISO 8601 so 1=Monday ... 7=Sunday
+	int dowFrom = dt.getDayOfWeek().getValue();
+	
+	// Determine the requested day of week.
+	int dowTo = -1;
+	if ( (dayOfWeek != null) && !dayOfWeek.isEmpty() ) {
+		// Use the string to determine the day of week.
+		if ( dayOfWeek.equalsIgnoreCase("Monday") ) {
+			dowTo = 1;
+		}
+		else if ( dayOfWeek.equalsIgnoreCase("Tuesday") ) {
+			dowTo = 2;
+		}
+		else if ( dayOfWeek.equalsIgnoreCase("Wednesday") ) {
+			dowTo = 3;
+		}
+		else if ( dayOfWeek.equalsIgnoreCase("Thursday") ) {
+			dowTo = 4;
+		}
+		else if ( dayOfWeek.equalsIgnoreCase("Friday") ) {
+			dowTo = 5;
+		}
+		else if ( dayOfWeek.equalsIgnoreCase("Saturday") ) {
+			dowTo = 6;
+		}
+		else if ( dayOfWeek.equalsIgnoreCase("Sunday") ) {
+			dowTo = 7;
+		}
+		else {
+			// Bad input.
+			throw new IllegalArgumentException ( "Invalid day of week (" + dayOfWeek + ") for round." );
+		}
+	}
+	
+	// Calculate the day shift.
+	int dayShift = dowTo - dowFrom;
+	if ( (dayShift > 0) && (direction > 0) ) {
+		// Do the shift forward.
+		addDay(dayShift);
+	}
+	else if ( (dayShift < 0) && (direction < 0) ) {
+		// Do the shift backwards.
+		addDay(dayShift);
+	}
+	else if ( (dayShift > 0) && (direction < 0) ) {
+		// Do the shift backwards by partial week.
+		addDay(dayShift - 7);
+	}
+	else if ( (dayShift < 0) && (direction > 0) ) {
+		// Do the shift backwards by partial week.
+		addDay(dayShift + 7);
+	}
 }
 
 /**
