@@ -23,10 +23,12 @@ NoticeEnd */
 
 package RTi.Util.JSON;
 
+import java.util.List;
 import java.util.Map;
 
 /**
- * Object to hold unstructured data objects using JSON.
+ * Object to hold unstructured data objects using JSON:
+ * - the top-level object can be a Map for {} or List (array) for [].
  */
 public class JSONObject {
 
@@ -37,8 +39,15 @@ public class JSONObject {
 	
 	/**
 	 * The object map, for example from Jackson mapper readValue() method.
+	 * This is used when the JSON is surrounded with { }.
 	 */
 	private Map<?,?> objectMap = null;
+
+	/**
+	 * The object list, for example from Jackson mapper readValue() method.
+	 * This is used when the JSON is surrounded with [ ].
+	 */
+	private List<?> objectArray = null;
 
 	/**
 	Construct a new JSON object and set the identifier to an empty string, used by utility code.
@@ -53,6 +62,14 @@ public class JSONObject {
 	*/
 	public JSONObject ( String objectID ) {
 		this.objectID = objectID;
+	}
+
+	/**
+	Return the JSON object array, when the top level object is an array.
+	@return the JSON object array.
+	*/
+	public List<?> getObjectArray () {
+    	return this.objectArray;
 	}
 
 	/**
@@ -72,6 +89,14 @@ public class JSONObject {
 	}
 
 	/**
+	Set the JSON object array.
+	@param the JSON object array.
+	*/
+	public void setObjectArray ( List<?> objectArray ) {
+    	this.objectArray = objectArray;
+	}
+
+	/**
 	Set the JSON object identifier.
 	@param the JSON object identifier.
 	*/
@@ -80,8 +105,8 @@ public class JSONObject {
 	}
 
 	/**
-	Set the JSON object map.
-	@param the JSON object map.
+	Set the JSON object list, for the case where the top-level object is an map {}.
+	@param the JSON object list.
 	*/
 	public void setObjectMap ( Map<?,?> objectMap ) {
     	this.objectMap = objectMap;

@@ -297,6 +297,7 @@ multi-character delimiter).  Cannot be null.
 Specify DELIM_SKIP_BLANKS to skip blank fields (delimiters that are next to each other
 are treated as one delimiter - delimiters at the front are ignored).
 Specify DELIM_ALLOW_STRINGS to allow quoted strings (which may contain delimiters).
+The quoting character can be single or double quote.
 Specify DELIM_ALLOW_STRINGS_RETAIN_QUOTES to retain the quotes in the return strings when DELIM_ALLOW_QUOTES is used.
 Specify DELIM_TRIM_STRINGS to trim the strings before returning.
 Specify 0 (zero) to do simple tokenizing where repeated delimiters are not
