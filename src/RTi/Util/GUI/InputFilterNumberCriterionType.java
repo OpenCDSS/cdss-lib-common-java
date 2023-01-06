@@ -28,8 +28,7 @@ package RTi.Util.GUI;
  * @author sam
  *
  */
-public enum InputFilterNumberCriterionType
-{
+public enum InputFilterNumberCriterionType {
 
 /**
  * Number is exactly equal to a value.
@@ -58,7 +57,7 @@ LESS_THAN_OR_EQUAL_TO ( "<=" );
 private final String displayName;
 
 /**
- * Construct a time series statistic enumeration value.
+ * Construct an enumeration value.
  * @param displayName name that should be displayed in choices, etc.
  */
 private InputFilterNumberCriterionType(String displayName) {
@@ -66,8 +65,7 @@ private InputFilterNumberCriterionType(String displayName) {
 }
 
 /**
- * Return the display name for the statistic.  This is usually the same as the
- * value but using appropriate mixed case.
+ * Return the display name for the enumeration.
  * @return the display name.
  */
 @Override
@@ -79,8 +77,7 @@ public String toString() {
  * Return the enumeration value given a string name (case-independent).
  * @return the enumeration value given a string name (case-independent), or null if not matched.
  */
-public static InputFilterNumberCriterionType valueOfIgnoreCase(String name)
-{
+public static InputFilterNumberCriterionType valueOfIgnoreCase(String name) {
     // Legacy/alternate values
     if ( name.equalsIgnoreCase("Equals") ) {
         return EQUALS;

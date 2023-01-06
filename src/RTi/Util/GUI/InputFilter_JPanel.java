@@ -345,25 +345,25 @@ private void fillOperatorJComboBox ( SimpleJComboBox cb, int type, List<String> 
 	// Remove existing.
 	cb.removeAll();
 	if ( type == StringUtil.TYPE_STRING ) {
-		cb.add ( InputFilter.INPUT_MATCHES );
+		cb.add ( InputFilterCriterionType.INPUT_MATCHES.toString() );
 		// TODO - add later.
 		//cb.add ( InputFilter.INPUT_ONE_OF );
-		cb.add ( InputFilter.INPUT_STARTS_WITH );
-		cb.add ( InputFilter.INPUT_ENDS_WITH );
-		cb.add ( InputFilter.INPUT_CONTAINS );
+		cb.add ( InputFilterCriterionType.INPUT_STARTS_WITH.toString() );
+		cb.add ( InputFilterCriterionType.INPUT_ENDS_WITH.toString() );
+		cb.add ( InputFilterCriterionType.INPUT_CONTAINS.toString() );
 		// TODO SAM 2010-05-23 Evaluate automatically adding.
 		//cb.add ( InputFilter.INPUT_IS_EMPTY );
 	}
 	else if ( (type == StringUtil.TYPE_DOUBLE) || (type == StringUtil.TYPE_FLOAT) ||
 		(type == StringUtil.TYPE_INTEGER) ) {
-		cb.add ( InputFilter.INPUT_EQUALS );
+		cb.add ( InputFilterCriterionType.INPUT_EQUALS.toString() );
 		// TODO - add later.
 		//cb.add ( InputFilter.INPUT_ONE_OF );
 		//cb.add ( InputFilter.INPUT_BETWEEN );
-		cb.add ( InputFilter.INPUT_LESS_THAN );
-		cb.add ( InputFilter.INPUT_LESS_THAN_OR_EQUAL_TO );
-		cb.add ( InputFilter.INPUT_GREATER_THAN );
-		cb.add ( InputFilter.INPUT_GREATER_THAN_OR_EQUAL_TO );
+		cb.add ( InputFilterCriterionType.INPUT_LESS_THAN.toString() );
+		cb.add ( InputFilterCriterionType.INPUT_LESS_THAN_OR_EQUAL_TO.toString() );
+		cb.add ( InputFilterCriterionType.INPUT_GREATER_THAN.toString() );
+		cb.add ( InputFilterCriterionType.INPUT_GREATER_THAN_OR_EQUAL_TO.toString() );
 	}
 
 	// Remove any constraints that have been explicitly set to NOT appear in the combo box.
@@ -409,7 +409,7 @@ toString() method (e.g., "contains;inputvalue").
 @param delim Delimiter character to use if use_wildcards=false.  See the toString() method.  If null, use ";".
 */
 public List<String> getInput ( String whereLabel, String internalWhere, boolean useWildcards, String delim )
-{	List<String> inputList = new Vector<String>();
+{	List<String> inputList = new Vector<>();
 	if ( delim == null ) {
 		delim = ";";
 	}
@@ -444,16 +444,16 @@ public List<String> getInput ( String whereLabel, String internalWhere, boolean 
 		if ( inputType == StringUtil.TYPE_STRING ) {
 			if ( useWildcards ) {
 			    // Insert the wildcard character around the input, as appropriate.
-				if ( getOperator(ifg).equals( InputFilter.INPUT_MATCHES) ) {
+				if ( getOperator(ifg).equals( InputFilterCriterionType.INPUT_MATCHES.toString()) ) {
 					inputList.add( input );
 				}
-				else if ( getOperator(ifg).equals(InputFilter.INPUT_CONTAINS) ) {
+				else if ( getOperator(ifg).equals(InputFilterCriterionType.INPUT_CONTAINS.toString()) ) {
 					inputList.add("*" +input+"*");
 				}
-				else if ( getOperator(ifg).equals(InputFilter.INPUT_STARTS_WITH) ) {
+				else if ( getOperator(ifg).equals(InputFilterCriterionType.INPUT_STARTS_WITH.toString()) ) {
 					inputList.add( input + "*" );
 				}
-				else if ( getOperator(ifg).equals(InputFilter.INPUT_ENDS_WITH) ) {
+				else if ( getOperator(ifg).equals(InputFilterCriterionType.INPUT_ENDS_WITH.toString()) ) {
 					inputList.add( "*" + input );
 				}
 			}
@@ -731,6 +731,10 @@ public void refreshInputFilters () {
 
 /**
 Set the contents of an input filter.
+This can be used, for example, to select the input filter given a TSTool "Where" parameter containing
+text such as "WhereValue;Operator;InputValue".
+The visible label is checked first and then the persistent label is checked.
+The InputFilter whereInternal and whereInternal2 are NOT checked.
 @param ifg The Filter group to be set (0+).
 @param inputFilterString The where clause as a string, using visible information in the input filters:
 <pre>
@@ -742,8 +746,8 @@ The input string is trimmed before attempting to set.
 @exception Exception if there is an error setting the filter data.
 */
 public void setInputFilter ( int ifg, String inputFilterString, String delim )
-throws Exception
-{	if ( delim == null ) {
+throws Exception {
+	if ( delim == null ) {
         delim = ";";
     }
     List<String> v = StringUtil.breakStringList ( inputFilterString, delim, 0 );
@@ -752,14 +756,14 @@ throws Exception
 	// Translate legacy operators to new convention.
 	// TODO SAM 2010-10-29 Evaluate whether to have a method for this but can
 	// hopefully phase out legacy convention without too much effort.
-	if ( operator.equalsIgnoreCase(InputFilter.INPUT_EQUALS_LEGACY) ) {
-	    operator = InputFilter.INPUT_EQUALS;
+	if ( operator.equalsIgnoreCase(InputFilterCriterionType.INPUT_EQUALS_LEGACY.toString()) ) {
+	    operator = InputFilterCriterionType.INPUT_EQUALS.toString();
 	}
-	else if ( operator.equalsIgnoreCase(InputFilter.INPUT_LESS_THAN_LEGACY) ) {
-        operator = InputFilter.INPUT_LESS_THAN;
+	else if ( operator.equalsIgnoreCase(InputFilterCriterionType.INPUT_LESS_THAN_LEGACY.toString()) ) {
+        operator = InputFilterCriterionType.INPUT_LESS_THAN.toString();
     }
-    else if ( operator.equalsIgnoreCase(InputFilter.INPUT_GREATER_THAN_LEGACY) ) {
-        operator = InputFilter.INPUT_GREATER_THAN;
+    else if ( operator.equalsIgnoreCase(InputFilterCriterionType.INPUT_GREATER_THAN_LEGACY.toString()) ) {
+        operator = InputFilterCriterionType.INPUT_GREATER_THAN.toString();
     }
 	// Sometimes during initialization an ending token may not be provided (e.g., ";Matches;") so handle below.
 	String input = "";
@@ -780,6 +784,7 @@ throws Exception
 		// First try exact match of the displayed where clause.
 		boolean selectOk = false;
 		try {
+			// Try the visible selection (the label).
 			JGUIUtil.selectIgnoreCase ( cb, where );
 			selectOk = true;
 		}
@@ -1117,7 +1122,7 @@ public String toString ( int ifg, String delim, int valuePos )
 		return filter.getWhereInternal2() + delim + getOperator(ifg) + delim + filter.getInput(false);
 	}
 	else if ( valuePos == 3 ) {
-		// Persistent label, intended to represent the where criteria in persistent form such as commands.
+		// Persistent label, intended to represent the where criteria in persistent form such as TSTool commands.
 		return filter.getWhereLabelPersistent() + delim + getOperator(ifg) + delim + filter.getInput(false);
 	}
 	else {

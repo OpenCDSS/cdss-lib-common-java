@@ -130,6 +130,7 @@ NoticeEnd */
 package RTi.DMI;
 
 import RTi.Util.GUI.InputFilter;
+import RTi.Util.GUI.InputFilterCriterionType;
 import RTi.Util.GUI.InputFilter_JPanel;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.ProcessManager;
@@ -3109,10 +3110,10 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
 	
 	String where_clause = null;
 	
-	if ( operator.equalsIgnoreCase(InputFilter.INPUT_BETWEEN) ) {
+	if ( operator.equalsIgnoreCase(InputFilterCriterionType.INPUT_BETWEEN.toString()) ) {
 		// TODO - need to enable in InputFilter_JPanel.
 	}
-	else if ( operator.equalsIgnoreCase( InputFilter.INPUT_CONTAINS) ) {
+	else if ( operator.equalsIgnoreCase( InputFilterCriterionType.INPUT_CONTAINS.toString()) ) {
 		// Only applies to strings...
 	    if ( upperCase ) {
 	        where_clause = "upper(" + whereSubject + ") like '%" + input + "%'";
@@ -3121,7 +3122,7 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
 	        where_clause = whereSubject + " like '%" + input + "%'";
 	    }
 	}
-	else if ( operator.equalsIgnoreCase( InputFilter.INPUT_ENDS_WITH) ) {
+	else if ( operator.equalsIgnoreCase( InputFilterCriterionType.INPUT_ENDS_WITH.toString()) ) {
 		// Only applies to strings...
         if ( upperCase ) {
             where_clause = "upper(" + whereSubject + ") like '%" + input + "'";
@@ -3130,7 +3131,7 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
             where_clause = whereSubject + " like '%" + input + "'";
         }
 	}
-	else if ( operator.equalsIgnoreCase(InputFilter.INPUT_EQUALS) ){
+	else if ( operator.equalsIgnoreCase(InputFilterCriterionType.INPUT_EQUALS.toString()) ){
 		if ( input_type == StringUtil.TYPE_STRING ) {
 	        if ( upperCase ) {
 	            where_clause = "upper(" + whereSubject + ")='" + input + "'";
@@ -3144,26 +3145,26 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
 			where_clause = whereSubject + "=" + input;
 		}
 	}
-	else if ( operator.equalsIgnoreCase( InputFilter.INPUT_GREATER_THAN) ) {
+	else if ( operator.equalsIgnoreCase( InputFilterCriterionType.INPUT_GREATER_THAN.toString()) ) {
 		// Only applies to numbers (?)...
 		where_clause = whereSubject + ">" + input;
 	}
-	else if ( operator.equalsIgnoreCase(InputFilter.INPUT_GREATER_THAN_OR_EQUAL_TO) ) {
+	else if ( operator.equalsIgnoreCase(InputFilterCriterionType.INPUT_GREATER_THAN_OR_EQUAL_TO.toString()) ) {
 		// Only applies to numbers (?)...
 		where_clause = whereSubject + ">=" + input;
 	}
-    else if ( operator.equalsIgnoreCase(InputFilter.INPUT_IS_EMPTY)){
+    else if ( operator.equalsIgnoreCase(InputFilterCriterionType.INPUT_IS_EMPTY.toString())){
         where_clause = whereSubject + "='' or where is null";
     }
-	else if ( operator.equalsIgnoreCase( InputFilter.INPUT_LESS_THAN) ) {
+	else if ( operator.equalsIgnoreCase( InputFilterCriterionType.INPUT_LESS_THAN.toString()) ) {
 		// Only applies to numbers (?)...
 		where_clause = whereSubject + "<" + input;
 	}
-	else if ( operator.equalsIgnoreCase( InputFilter.INPUT_LESS_THAN_OR_EQUAL_TO) ) {
+	else if ( operator.equalsIgnoreCase( InputFilterCriterionType.INPUT_LESS_THAN_OR_EQUAL_TO.toString()) ) {
 		// Only applies to numbers (?)...
 		where_clause = whereSubject + "<=" + input;
 	}
-	else if ( operator.equalsIgnoreCase(InputFilter.INPUT_MATCHES)){
+	else if ( operator.equalsIgnoreCase(InputFilterCriterionType.INPUT_MATCHES.toString())){
 	    // Only applies to strings
 	    if ( upperCase ) {
 	        where_clause = "upper(" + whereSubject + ")='" + input + "'";
@@ -3172,10 +3173,10 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
 	        where_clause = whereSubject + "='" + input + "'";
 	    }
 	}
-	else if ( operator.equalsIgnoreCase(InputFilter.INPUT_ONE_OF) ){
+	else if ( operator.equalsIgnoreCase(InputFilterCriterionType.INPUT_ONE_OF.toString()) ){
 		// TODO - need to enable in InputFilter_JPanel
 	}
-	else if ( operator.equalsIgnoreCase( InputFilter.INPUT_STARTS_WITH) ) {
+	else if ( operator.equalsIgnoreCase( InputFilterCriterionType.INPUT_STARTS_WITH.toString()) ) {
 		// Only applies to strings...
 	    if ( upperCase ) {
 	        where_clause = "upper(" + whereSubject + ") like '" + input + "%'";
