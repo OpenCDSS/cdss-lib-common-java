@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,25 +21,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
 
 NoticeEnd */
 
-//-----------------------------------------------------------------------------
-// SimpleJTree_Node - The class that makes up each node of a SimpleJTree,
-// able to store either normal JTree text or a Component, and with other
-// utility functions that make it easie to use than normal nodes.
-//-----------------------------------------------------------------------------
-// Copyright: See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// History: 
-//
-// 2003-04-30	J. Thomas Sapienza, RTI	Initial version
-// 2003-05-01	JTS, RTi		* Initial version complete
-//					* Javadoc'd.
-// 2003-05-13	JTS, RTi		* Added code so that nodes can now
-//					  store data.
-// 2003-05-27	JTS, RTi		Added equals().
-// 2005-04-26	JTS, RTi		Added finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
-
 package RTi.Util.GUI;
 
 import java.awt.Component;
@@ -49,32 +30,31 @@ import javax.swing.Icon;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
-This is a specialized node used by SimpleJTree's that overrides 
-DefaultMutableTreeNode and can be used inside of JTrees.  SimpleJTree_Nodes
-are used instead of DefaultMutableTreeNodes because these nodes keep 
+This is a specialized node used by SimpleJTree's that overrides DefaultMutableTreeNode
+and can be used inside of JTrees.
+SimpleJTree_Nodes are used instead of DefaultMutableTreeNodes because these nodes keep
 track of additional data that comes in very handy, such as:<ul>
 <li>The Name associated with the node</li>
 <li>Whether the node contains a component or text<li>
 </ul>
 <p>
 The most useful data is the name, because if names are used then nodes can
-be programatically referred to in the tree by a pre-determined name.  
-Instead of finding a node by manually recursing through a tree or by
-keeping a reference to a specific node, the node can be referred to be name, instead.
+be programatically referred to in the tree by a pre-determined name.
+Instead of finding a node by manually recursing through a tree or by keeping a reference to a specific node,
+the node can be referred to be name, instead.
 <p>
-<b>Note:</b> This class is ready-to-go for insertion in a SimpleJTree, and 
-applications can just use this class, but at the same time this class
-is easily extensible for more specialized purposes.  The developer should
-choose which way to go.  For an example of a specialized version, see
-RTi.GIS.GeoView.GeoViewLegendJTree_Node.
+<b>Note:</b> This class is ready-to-go for insertion in a SimpleJTree,
+and applications can just use this class, but at the same time this class
+is easily extensible for more specialized purposes if necessary.
+For an example of a specialized version, see RTi.GIS.GeoView.GeoViewLegendJTree_Node.
 */
 @SuppressWarnings("serial")
-public class SimpleJTree_Node 
-extends DefaultMutableTreeNode 
+public class SimpleJTree_Node
+extends DefaultMutableTreeNode
 implements Cloneable {
 
 /**
-Whether the node contains a component (true) or just text (true).
+Whether the node contains a component (true) or just text (false).
 */
 private boolean __containsComponent = false;
 
@@ -94,12 +74,12 @@ The Icon associated with the text in the node.
 private Icon __icon = null;
 
 /**
-The node's name.
+The node's name, which is typically an internally-facing identifier.
 */
 private String __name = null;
 
 /**
-The text held in the node.
+The node's text, displayed as a label.
 */
 private String __text = null;
 
@@ -109,7 +89,7 @@ Optional data of any type that can be held in the node.
 private Object __data = null;
 
 /**
-Constructor.  Creates a node with the given text and a name the same as the text
+Constructor.  Creates a node with the given text and a name the same as the text.
 @param text the text to display in the node
 */
 public SimpleJTree_Node(String text) {
@@ -121,6 +101,7 @@ public SimpleJTree_Node(String text) {
 
 /**
 Constructor.  Creates a node that holds the given object and has the given name.
+The tree will display the component rather than the default text field.
 @param userObject the Component to store in this node.
 @param name the name of this node.
 */
@@ -132,7 +113,7 @@ public SimpleJTree_Node(Component userObject, String name) {
 
 /**
 Constructor.  Creates a node that holds the given text and has the given name.
-@param text the text to hold in this node.
+@param text the text to hold in this node, what the JTree will display
 @param name the name of this node.
 */
 public SimpleJTree_Node(String text, String name) {
@@ -143,9 +124,8 @@ public SimpleJTree_Node(String text, String name) {
 }
 
 /**
-Constructor.  Creates a node that holds the given text and uses the given Icon 
-and has the given name.
-@param text the text to hold in this node.
+Constructor.  Creates a node that holds the given text and uses the given Icon and has the given name.
+@param text the text to hold in this node, what the JTree will display
 @param icon the icon to display in this node.
 @param name the name of this node.
 */
@@ -158,11 +138,11 @@ public SimpleJTree_Node(String text, Icon icon, String name) {
 }
 
 /**
-Clones this node and returns a copy with the identical settings.  If the 
-node being cloned contains a Component, that Component is <b>NOT</b> cloned,
-too.  The cloned node will contain a reference to the same Component held in
-the original node.  The data stored in the cloned object is not a clone
-of the original data: a reference is made to the same data object as in the original.
+Clones this node and returns a copy with the identical settings.
+If the node being cloned contains a Component, that Component is <b>NOT</b> cloned, too.
+The cloned node will contain a reference to the same Component held in the original node.
+The data stored in the cloned object is not a clone of the original data:
+a reference is made to the same data object as in the original.
 @return a cloned copy of this node.
 */
 public Object clone() {
@@ -189,14 +169,14 @@ public boolean containsComponent() {
 }
 
 /**
-Returns true if the nodes are equal.  This is equivalent to String's equals() 
-method, which is different from doing String comparisons with the == operator.
+Returns true if the nodes are equal.  This is equivalent to String's equals() method,
+which is different from doing String comparisons with the == operator.
 <p>
 If this node (not the passed-in node) contains a component then only the names
 of the nodes are checked to see if they match.
 <p>
-If this node (not the passed-in node) does not contain a component, then the 
-name of the node, the node's icon, and the nodes text are all checked to see if they are equal.
+If this node (not the passed-in node) does not contain a component, then the name of the node,
+the node's icon, and the nodes text are all checked to see if they are equal.
 @param node the node to compare against.
 @return true if the nodes are equal.
 */
@@ -266,8 +246,8 @@ public String getName() {
 }
 
 /**
-Returns the value stored in the superclass of this node.  This is used by 
-the SimpleJTree_CellRenderer to determine the value of the node <i>after</i> editing has finished.
+Returns the value stored in the superclass of this node.
+This is used by the SimpleJTree_CellRenderer to determine the value of the node <i>after</i> editing has finished.
 @return the value stored in the superclass of this node.
 */
 public String getSuperString() {
@@ -284,13 +264,14 @@ public String getText() {
 }
 
 /**
-Initialization method common to all constructors.  
-@param name the name of the node.  If name is null, it will be created from
-the <tt>toString()</tt> of this node, but that is not recommended as the
-node will then be hard to refer to by name.
+Initialization method common to all constructors.
+@param name the name of the node, which should be a unique hidden identifier.
+If name is null, it will be created from the <tt>toString()</tt> of this node,
+but that is not recommended as the node will then be hard to refer to by name.
 */
 private void initialize(String name) {
 	if (name == null) {	
+		// toString uses verbose name and super 'text'.
 		__name = toString();
 	}
 	else {
@@ -324,6 +305,7 @@ public void markVisible(boolean visible) {
 
 /**
 Sets the component to store in this node.
+This allows for custom components, for example a checkbox for the node.
 @param component the Component to store in this node.
 */
 public void setComponent(Component component) {
@@ -379,8 +361,8 @@ public boolean shouldBeDeleted() {
 }
 
 /**
-Returns a String representation of the node -- with information from the super
-object too, if available.  The returned string will be:<br>
+Returns a String representation of the node -- with information from the super object too, if available.
+The returned string will be:<br>
 SimpleJTree_Node Name: [Name as returned by getName()]<br>
   [result of super.toString()]<br>
 @return a String representation of the node.

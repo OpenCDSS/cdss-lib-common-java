@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -62,7 +62,7 @@ public static final int SORT_DESCENDING = 2;
 /**
 Token types for parsing routines.
 */
-public static final int TYPE_CHARACTER = 1; 
+public static final int TYPE_CHARACTER = 1;
 public static final int TYPE_DOUBLE = 2;
 public static final int TYPE_FLOAT = 3;
 public static final int TYPE_INTEGER = 4;
@@ -73,19 +73,23 @@ public static final int TYPE_SPACE = 6;
 For use with breakStringList.  No special action for delimiters.
 */
 public static final int DELIM_DEFAULT = 0x0;
+
 /**
 For use with breakStringList.  Skip blank fields (adjoining delimiters are merged).
 */
 public static final int DELIM_SKIP_BLANKS = 0x1;
+
 /**
 For use with breakStringList.  Allow tokens that are surrounded by quotes.
 For example, this is used when a data field might contain the delimiting character.
 */
 public static final int DELIM_ALLOW_STRINGS = 0x2;
+
 /**
 For use with breakStringList.  When DELIM_ALLOW_STRINGS is set, include the quotes in the returned string.
 */
 public static final int DELIM_ALLOW_STRINGS_RETAIN_QUOTES = 0x4;
+
 /**
 For use with breakStringList.  When DELIM_TRIM_STRINGS is set, trim the resulting strings.
 */
@@ -95,19 +99,23 @@ public static final int DELIM_TRIM_STRINGS = 0x8;
 For use with padding routines.  Pad/unpad back of string.
 */
 public static final int PAD_BACK = 0x1;
+
 /**
 For use with padding routines.  Pad/unpad front of string.
 */
 public static final int PAD_FRONT = 0x2;
+
 /**
 For use with padding routines.  Pad/unpad middle of string.
 This is private because for middle unpadding we currently only allow the full PAD_FRONT_MIDDLE_BACK option.
 */
 private static final int PAD_MIDDLE = 0x4;
+
 /**
 For use with padding routines.  Pad/unpad front and back of string.
 */
 public static final int PAD_FRONT_BACK = PAD_FRONT | PAD_BACK;
+
 /**
 For use with padding routines.  Pad/unpad front, back, and middle of string.
 */
@@ -122,8 +130,8 @@ If both are null, null will be returned.
 @param list list of Strings - will be modified if not null when passed in.
 @param newList list of Strings to add.
 */
-public static List<String> addListToStringList ( List<String> list, List<String> newList )
-{	if ( newList == null ) {
+public static List<String> addListToStringList ( List<String> list, List<String> newList ) {
+	if ( newList == null ) {
 		return list;
 	}
 	List<String> listMain = null;
@@ -150,8 +158,8 @@ The String will always be added to the list, even if the String is null.
 @param list list of Strings.
 @param string String to add to the list.
 */
-public static List<String> addToStringList ( List<String> list, String string )
-{	List<String> listMain = null;
+public static List<String> addToStringList ( List<String> list, String string ) {
+	List<String> listMain = null;
 	if ( list == null ) {
 		// Create a list.
 		listMain = new ArrayList<>();
@@ -171,8 +179,8 @@ The Strings will always be added to the list, even if they are null.
 @param list list of Strings.
 @param strings Array of String to add to list.
 */
-public static List<String> addToStringList ( List<String> list, String [] strings )
-{	List<String> listMain = null;
+public static List<String> addToStringList ( List<String> list, String [] strings ) {
+	List<String> listMain = null;
 	if ( list == null ) {
 		// Create a list.
 		listMain = new ArrayList<>();
@@ -196,8 +204,8 @@ WARNING - zero is returned if an error. It is better to use Integer parse method
 @param s String to convert.
 @return An int as converted from the String or 0 if conversion fails.
 */
-public static int atoi( String s )
-{	if ( s == null ) {
+public static int atoi( String s ) {
+	if ( s == null ) {
 		return 0;
 	}
 	int value=0;
@@ -218,8 +226,8 @@ WARNING - zero is returned if an error. It is better to use Float parse methods.
 @param s String to convert.
 @return A float as converted from the String, or 0.0 if there is a conversion error.
 */
-public static float atof( String s )
-{	if ( s == null ) {
+public static float atof( String s ) {
+	if ( s == null ) {
 		return (float)0.0;
 	}
 	float value=(float)0.0;
@@ -240,8 +248,8 @@ WARNING - zero is returned if an error. It is better to use Double parse methods
 @param s String to convert.
 @return A double as converted from the String, or 0.0 if a conversion error.
 */
-public static double atod( String s )
-{	if ( s == null ) {
+public static double atod( String s ) {
+	if ( s == null ) {
 		return 0.0;
 	}
 	double value=0.0;
@@ -262,8 +270,8 @@ WARNING - zero is returned if an error. It is better to use Long parse methods.
 @param s String to convert.
 @return A long as converted from the String, or 0 if an error.
 */
-public static long atol( String s )
-{	if ( s == null ) {
+public static long atol( String s ) {
+	if ( s == null ) {
 		return 0;
 	}
 	long value=0;
@@ -304,8 +312,8 @@ Specify 0 (zero) to do simple tokenizing where repeated delimiters are not
 merged and quoted strings are not handled as one token.
 Note that when allowing quoted strings the string "xxxx"yy is returned as xxxxyy because no intervening delimiter is present.
 */
-public static List<String> breakStringList( String string, String delim, int flag )
-{	String routine = "StringUtil.breakStringList";
+public static List<String> breakStringList( String string, String delim, int flag ) {
+	String routine = "StringUtil.breakStringList";
 	List<String> list = new ArrayList<>();
 	
 	if ( string == null ) {
@@ -511,8 +519,8 @@ and are not supported by this method.
 @param b Byte to convert to a hexadecimal String.
 @return String that represents the Hexadecimal value of the byte.
 */
-public static String byteToHex( byte b )
-{	char hexDigit[] = {
+public static String byteToHex( byte b ) {
+	char hexDigit[] = {
 	'0', '1', '2', '3', '4', '5', '6', '7',
 	'8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
 	};
@@ -527,8 +535,8 @@ Center a string by padding with spaces.
 @param orig The original string.
 @param width Width of the centered string.
 */
-public static String centerString ( String orig, int width )
-{	if ( orig.length() >= width ) {
+public static String centerString ( String orig, int width ) {
+	if ( orig.length() >= width ) {
 		return orig;
 	}
 	int border = (width - orig.length())/2;
@@ -548,8 +556,8 @@ the returned string is four characters (two per byte).
 @param c char to convert to hexadecimal String.
 @return String that represents the Hexadecimal value of the char.
 */
-public static String charToHex(char c)
-{	byte hi = (byte) (c >>> 8);
+public static String charToHex(char c) {
+	byte hi = (byte) (c >>> 8);
 	byte lo = (byte) (c & 0xff);
 	return byteToHex(hi) + byteToHex(lo);
 }
@@ -720,8 +728,7 @@ This can be used to check for restricted characters in input.
 @param ignore_case Specify to true if case should be ignored.
 @return true if the checked string contains any of the specified characters.
 */
-public static boolean containsAny ( String s, String chars, boolean ignore_case )
-{
+public static boolean containsAny ( String s, String chars, boolean ignore_case ) {
     if ( (s == null) || (chars == null) ) {
         return false;
     }
@@ -795,8 +802,8 @@ Determine whether one strings ends with the specified substring, ignoring case.
 @return true if the String "s" ends with "pattern", ignoring case.  If the
 pattern string is null or empty, false is returned.
 */
-public static boolean endsWithIgnoreCase ( String s, String pattern )
-{	if ( (s == null) || (pattern == null) ) {
+public static boolean endsWithIgnoreCase ( String s, String pattern ) {
+	if ( (s == null) || (pattern == null) ) {
 		return false;
 	}
 	int plen = pattern.length();
@@ -893,8 +900,8 @@ NO WHITESPACE OR DELIMITERS IN THE FORMAT!
 </tr>
 </table>
 */
-public static final List<Object> fixedRead ( String string, String format )
-{	// Determine the format types and widths.
+public static final List<Object> fixedRead ( String string, String format ) {
+	// Determine the format types and widths.
 	// THIS CODE INLINED FROM THE METHOD BELOW.  MODIFY THE OTHER METHOD AND THEN MAKE THIS CODE AGREE.
 
 	// First loop through the format string and count the number of valid format specifier characters.
@@ -983,8 +990,8 @@ Blank TYPE_SPACE fields are not returned.
 This allows a single list to be reused in repetitive reads.
 The list is cleared before reading.
 */
-public static final List<Object> fixedRead ( String string, String format, List<Object> results )
-{	// First loop through the format string and count the number of valid format specifier characters.
+public static final List<Object> fixedRead ( String string, String format, List<Object> results ) {
+	// First loop through the format string and count the number of valid format specifier characters.
 	int format_length = 0;
 	if ( format != null ) {
 		format_length = format.length();
@@ -1066,14 +1073,14 @@ string containing fixed-format information.
 Integers are returned as Integers, doubles as Doubles, etc.
 Blank TYPE_SPACE fields are not returned.
 @param string String to parse.
-@param field_types Field types to use for parsing 
+@param field_types Field types to use for parsing
 @param field_widths Array of fields widths.
 @param results If specified and not null, the list will be used to save the
 results.  This allows a single list to be reused in repetitive reads.
 The list is cleared before reading.
 */
-public static final List<Object> fixedRead ( String string, int[] field_types, int [] field_widths, List<Object> results )
-{	int	dtype = 0,	// Indicates type of variable (from "format").
+public static final List<Object> fixedRead ( String string, int[] field_types, int [] field_widths, List<Object> results ) {
+	int	dtype = 0,	// Indicates type of variable (from "format").
 		isize,		// Number of characters in a data value (as integer).
 		j,		// Index for characters in a field.
 		nread = 0;	// Number of values read from file.
@@ -1356,8 +1363,8 @@ To force strings to be a certain width use a format like %20.20s.
 To force floating point numbers to always use a decimal point use the #.
 Additional capabilities may be added later.
 */
-public static final String formatString ( List<? extends Object> objectList, String format )
-{	StringBuilder buffer = new StringBuilder();
+public static final String formatString ( List<? extends Object> objectList, String format ) {
+	StringBuilder buffer = new StringBuilder();
 	int dl = 75;
 
 	if ( objectList == null ) {
@@ -1637,7 +1644,7 @@ public static final String formatString ( List<? extends Object> objectList, Str
 					    else {
                             for ( i = 0; i < (width - 3); i++ ){
                                 buffer.append ( ' ' );
-                            } 
+                            }
                             buffer.append ( "NaN" );
 					    }
 		                ++vindex;
@@ -1914,8 +1921,8 @@ Note that the String.format() method can be used instead of this function.
 @param d A double to format.
 @param format Format to use.
 */
-public static final String formatString ( double d, String format )
-{	List<Double> v = new ArrayList<>(1);
+public static final String formatString ( double d, String format ) {
+	List<Double> v = new ArrayList<>(1);
 	v.add ( new Double(d) );
 	return formatString ( v, format );
 }
@@ -1927,8 +1934,8 @@ Note that the String.format() method can be used instead of this function.
 @param d A Double to format.
 @param format Format to use.
 */
-public static final String formatString ( Double d, String format )
-{	List<Double> v = new ArrayList<>(1);
+public static final String formatString ( Double d, String format ) {
+	List<Double> v = new ArrayList<>(1);
 	v.add ( d );
 	return formatString ( v, format );
 }
@@ -1940,8 +1947,8 @@ Note that the String.format() method can be used instead of this function.
 @param f A float to format.
 @param format Format to use.
 */
-public static final String formatString ( float f, String format )
-{	List<Float> v = new ArrayList<>(1);
+public static final String formatString ( float f, String format ) {
+	List<Float> v = new ArrayList<>(1);
 	v.add ( new Float(f) );
 	return formatString ( v, format );
 }
@@ -1953,8 +1960,8 @@ Note that the String.format() method can be used instead of this function.
 @param i An int to format.
 @param format Format to use.
 */
-public static final String formatString ( int i, String format )
-{	List<Integer> v = new ArrayList<>(1);
+public static final String formatString ( int i, String format ) {
+	List<Integer> v = new ArrayList<>(1);
 	v.add ( new Integer(i) );
 	return formatString ( v, format );
 }
@@ -1966,8 +1973,8 @@ Note that the String.format() method can be used instead of this function.
 @param i An Integer to format.
 @param format Format to use.
 */
-public static final String formatString ( Integer i, String format )
-{	List<Integer> v = new ArrayList<>(1);
+public static final String formatString ( Integer i, String format ) {
+	List<Integer> v = new ArrayList<>(1);
 	v.add ( i );
 	return formatString ( v, format );
 }
@@ -1979,8 +1986,8 @@ Note that the String.format() method can be used instead of this function.
 @param l A long to format.
 @param format Format to use.
 */
-public static final String formatString ( long l, String format )
-{	List<Long> v = new ArrayList<>(1);
+public static final String formatString ( long l, String format ) {
+	List<Long> v = new ArrayList<>(1);
 	v.add ( new Long(l) );
 	return formatString ( v, format );
 }
@@ -1992,8 +1999,8 @@ Note that the String.format() method can be used instead of this function.
 @param o An object to format.
 @param format Format to use.
 */
-public static final String formatString ( Object o, String format )
-{	List<Object> v = new ArrayList<Object>( 1 );
+public static final String formatString ( Object o, String format ) {
+	List<Object> v = new ArrayList<Object>( 1 );
 	v.add ( o );
 	return formatString ( v, format );
 }
@@ -2041,8 +2048,8 @@ The specifiers correspond to the C sprintf formatting routine.
 True, the description is also returned.
 @param forOutput if true, return specifiers for formatting; if false only include formatters for parsing
 */
-public static String[] getStringFormatSpecifiers(boolean includeDescription, boolean forOutput )
-{   String [] formats = new String[12];
+public static String[] getStringFormatSpecifiers(boolean includeDescription, boolean forOutput ) {
+    String [] formats = new String[12];
     formats[0] = "%% - literal percent";
     formats[1] = "%c - single character";
     formats[2] = "%d - integer";
@@ -2071,8 +2078,8 @@ DELIM_ALLOW_STRINGS to allow quoted strings (which may contain delimiters).
 @param token Token to return (starting with 0).
 @return the requested token or null.
 */
-public static String getToken ( String string, String delim, int flag, int token )
-{	if ( token < 0 ) {
+public static String getToken ( String string, String delim, int flag, int token ) {
+	if ( token < 0 ) {
 		return null;
 	}
 	List<String> list = breakStringList ( string, delim, flag );
@@ -2272,8 +2279,8 @@ Return index of string in string list.  If string is not in string list,
 @param stringlist List of strings to search.
 @param searchString String to return index of.
 */
-public static int indexOf ( List<String> stringlist, String searchString )
-{	if ( stringlist == null || searchString == null ) {
+public static int indexOf ( List<String> stringlist, String searchString ) {
+	if ( stringlist == null || searchString == null ) {
 		return -1;
 	}
 	int num_strings = stringlist.size();
@@ -2297,8 +2304,8 @@ If string is not in string list, -1 is returned.  A case-insensitive compare is 
 @param stringlist List of strings to search.
 @param searchString String to return index of.
 */
-public static int indexOfIgnoreCase ( List<String> stringlist, String searchString )
-{	if ( stringlist == null || searchString == null ) {
+public static int indexOfIgnoreCase ( List<String> stringlist, String searchString ) {
+	if ( stringlist == null || searchString == null ) {
 		return -1;
     }
 
@@ -2323,8 +2330,8 @@ Determine whether a string exists in another string, ignoring case.
 @param fromIndex The index where the search should begin.
 @return position of substring or -1 if not found.
 */
-public static int indexOfIgnoreCase ( String full, String substring, int fromIndex )
-{	// Convert both strings to uppercase and then do the comparison.
+public static int indexOfIgnoreCase ( String full, String substring, int fromIndex ) {
+	// Convert both strings to uppercase and then do the comparison.
 	String full_up = full.toUpperCase();
 	String substring_up = substring.toUpperCase();
 	int pos = full_up.indexOf ( substring_up, fromIndex );
@@ -2338,8 +2345,8 @@ If string is not in string list, -1 is returned.  A case-insensitive compare is 
 @param stringlist List of strings to search.
 @param searchString String to return index of.
 */
-public static int indexOfSubstringIgnoreCase ( List<String> stringlist, String searchString )
-{	if ( stringlist == null || searchString == null ) {
+public static int indexOfSubstringIgnoreCase ( List<String> stringlist, String searchString ) {
+	if ( stringlist == null || searchString == null ) {
 		return -1;
     }
 
@@ -2357,14 +2364,13 @@ public static int indexOfSubstringIgnoreCase ( List<String> stringlist, String s
 	return -1;
 }
 
-
 /**
 Determine whether a string is an ASCII string.
 @return true if the string is an ASCII string.
 @param s String to check.
 */
-public static boolean isASCII( String s )
-{	int sLength = s.length();
+public static boolean isASCII( String s ) {
+	int sLength = s.length();
 	char [] c = new char[sLength];
 
 	// Get character array.
@@ -2393,8 +2399,8 @@ Determine whether a string can be converted to a boolean.
 @return true if the string can be converted to a boolean ("true" or "false"), false otherwise.
 @param s String to convert.
 */
-public static boolean isBoolean( String s )
-{	if ( s == null ) {
+public static boolean isBoolean( String s ) {
+	if ( s == null ) {
         return false;
     }
 	if ( s.equalsIgnoreCase("true") || s.equalsIgnoreCase("false") ) {
@@ -2408,8 +2414,8 @@ Determine whether a string is a double precision value.
 @return true if the string can be converted to a double.
 @param s String to convert.
 */
-public static boolean isDouble( String s )
-{	if ( s == null ) {
+public static boolean isDouble( String s ) {
+	if ( s == null ) {
         return false;
     }
     try {
@@ -2422,12 +2428,31 @@ public static boolean isDouble( String s )
 }
 
 /**
+ * Determine whether a string is in a list of strings.
+ * This is used to avoid duplicates when adding an item to a list.
+ * Case is considered.
+ * @param list list of strings to check
+ * @param item single string to check for in list
+ */
+public static boolean isInList ( List<String> list, String item ) {
+	if ( list == null ) {
+		return false;
+	}
+	for ( String s : list ) {
+		if ( s.equals(item) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
 Determine whether a string can be converted to an integer.
 @return true if the string can be converted to a integer.
 @param s String to convert.
 */
-public static boolean isInteger( String s )
-{	if ( s == null ) {
+public static boolean isInteger( String s ) {
+	if ( s == null ) {
         return false;
     }
     try {
@@ -2444,8 +2469,8 @@ Determine whether a string can be converted to a long.
 @return true if the string can be converted to a long.
 @param s String to convert.
 */
-public static boolean isLong(String s)
-{   if ( s == null ) {
+public static boolean isLong(String s) {
+    if ( s == null ) {
         return false;
     }
 	try {
@@ -2480,8 +2505,8 @@ Wrap text by breaking a string into lines that are less than or equal to a desir
 @param linebreak Character(s) to insert at the end of a line (e.g., "\n").
 If not specified, "\n" is used.
 */
-public static String lineWrap ( String string, int maxlength, String linebreak )
-{	if ( (linebreak == null) || linebreak.equals("") ) {
+public static String lineWrap ( String string, int maxlength, String linebreak ) {
+	if ( (linebreak == null) || linebreak.equals("") ) {
 		linebreak = "\n";
 	}
 	if ( string == null ) {
@@ -2497,7 +2522,7 @@ public static String lineWrap ( String string, int maxlength, String linebreak )
 	//
 	// Also need to consider Tom's code.
 	List<String> v = breakStringList ( string, " \t\n", 0 );
-	int size = 0; 
+	int size = 0;
 	if ( v != null ) {
 		size = v.size();
 	}
@@ -2546,8 +2571,8 @@ Determine the maximum size of the String in a list.
 to get a String representation of the object for the check.
 @return the maximum size or -1 if it cannot be determined.
 */
-public static int maxSize ( List<String> list )
-{	int size = 0;
+public static int maxSize ( List<String> list ) {
+	int size = 0;
 	int maxsize = -1;
 	int len = 0;
 	if ( list != null ) {
@@ -2574,8 +2599,8 @@ The input strings are converted to uppercase before the comparison is made.
 @param s String to check.
 @param regex Regular expression used as input to String.matches().
 */
-public static boolean matchesIgnoreCase ( String s, String regex )
-{	return s.toUpperCase().matches ( regex.toUpperCase() );
+public static boolean matchesIgnoreCase ( String s, String regex ) {
+	return s.toUpperCase().matches ( regex.toUpperCase() );
 }
 
 /**
@@ -2604,8 +2629,8 @@ false, strings will be compared literally.
 @param regexp_string Regular expression string to match.
 @deprecated Use the standard String.matches() method or StringUtil.matchesIgnoreCase().
 */
-public static boolean matchesRegExp ( boolean ignore_case, String candidate_string, String regexp_string )
-{	String okchars = "", routine = "StringUtil.mtchesRegExp";
+public static boolean matchesRegExp ( boolean ignore_case, String candidate_string, String regexp_string ) {
+	String okchars = "", routine = "StringUtil.mtchesRegExp";
 	int	dl = 50, nokchars = 0;
 	boolean	asterisk = false, jumptotest = false;
 
@@ -2845,13 +2870,13 @@ Check to see if a String matches a regular expression, considering case explicit
 @return true if the candidate string matches the regular expression.
 @deprecated Use the standard String.matches() method or StringUtil.matchesIgnoreCase().
 */
-public static boolean matchesRegExp ( String candidate_string, String regexp_string )
-{	return matchesRegExp ( false, candidate_string, regexp_string );
+public static boolean matchesRegExp ( String candidate_string, String regexp_string ) {
+	return matchesRegExp ( false, candidate_string, regexp_string );
 }
 
 /**
  * Determine the number of digits in a floating point number string.
- * For example "123.45" has 3 digits in the whole number and 2 digits in the remander.
+ * For example "123.45" has 3 digits in the whole number and 2 digits in the remainder.
  * @param number floating point or integer to evaluate
  * @param part if <= 0, return the digits in the whole number, if 1 return the digits in the remainder
  */
@@ -3256,8 +3281,8 @@ public static String pluralS ( int count ) {
 @param string0 String to read from.
 @param delim Delimiter character to read to.
 */
-public static String readToDelim ( String string0, char delim )
-{	int i = 0;
+public static String readToDelim ( String string0, char delim ) {
+	int i = 0;
 	char c;
 	StringBuilder string = new StringBuilder ();
 
@@ -3283,8 +3308,8 @@ Remove a character from a string.
 @param s String to remove character from.
 @param r String to remove.
 */
-public static String remove ( String s, String r )
-{	if ( (s == null) || (r == null) ) {
+public static String remove ( String s, String r ) {
+	if ( (s == null) || (r == null) ) {
 		return s;
 	}
 	StringBuilder buffer = new StringBuilder();
@@ -3396,8 +3421,8 @@ The input list is modified so make a copy before calling this method if necessar
 increases processing speed.  TRUE IS CURRENTLY THE ONLY VALUE THAT IS SUPPORTED.
 @return the list with duplicate values removed.
 */
-public static List<String> removeDuplicates ( List<String> strings, boolean ignore_case, boolean sorted )
-{	if ( sorted ) {
+public static List<String> removeDuplicates ( List<String> strings, boolean ignore_case, boolean sorted ) {
+	if ( sorted ) {
 		// Loop through and compare each string with the previous string in the list,
 		// removing the current string if a duplicate.
 		int size = 0;
@@ -3434,8 +3459,8 @@ The newline pattern for UNIX or PC machines is recognized, as appropriate.
 @return String that has the newline character removed.
 @param string String to remove newline read from.
 */
-public static String removeNewline ( String string )
-{	char c, c2 = '\n';
+public static String removeNewline ( String string ) {
+	char c, c2 = '\n';
 	int	k;
 
 	if ( string == null ) {
@@ -3568,8 +3593,8 @@ because the method is called from the formatString() method that operates on str
 @param string String containing a floating point number.
 @param precision Number of digits after the decimal point to round the number.
 */
-public static String round ( String string, int precision )
-{	String new_string;
+public static String round ( String string, int precision ) {
+	String new_string;
 
 	// First break the string into its integer and remainder parts.
 	int dot_pos = string.indexOf ( '.' );
@@ -3652,8 +3677,8 @@ This is mainly used for Java debugging and testing.
 @return A list of strings, each of which is the expanded character for a character in the original string.
 @param string String to print control characters for.
 */
-public static List<String> showControl ( String string )
-{	List<String> list = new ArrayList<>();
+public static List<String> showControl ( String string ) {
+	List<String> list = new ArrayList<>();
 
 	int length = string.length();
 	char c;
@@ -3690,8 +3715,8 @@ Sort a list of strings into ascending order, considering case.
 @return The sorted list (a new list is returned).
 @param list The original list of String.
 */
-public static List<String> sortStringList ( List<String> list )
-{	return sortStringList ( list, SORT_ASCENDING, null, false, false );
+public static List<String> sortStringList ( List<String> list ) {
+	return sortStringList ( list, SORT_ASCENDING, null, false, false );
 }
 
 /**
@@ -3707,8 +3732,8 @@ Can be null if sflag is false.
 @param ignore_case If true, then case is ignored when comparing the strings.
 */
 public static List<String> sortStringList ( List<String> list, int order, int sort_order[], boolean sflag,
-	boolean ignore_case )
-{	int	i, ismallest;
+	boolean ignore_case ) {
+	int	i, ismallest;
 	int[] itmp=null;
 	String routine="StringUtil.sortStringList", smallest="";
 
@@ -3758,7 +3783,7 @@ public static List<String> sortStringList ( List<String> list, int order, int so
 			// Save the "smallest" string (null is considered smallest).
 			// If this is the first string encountered this iteration, initialize with the first string.
 			// TODO SAM 2013-09-15 How to handle nulls?
-			if( (ismallest == -1) || 
+			if( (ismallest == -1) ||
 				((order == SORT_ASCENDING) && (list_tosort.get(i).compareTo(smallest) < 0) ) ||
 				((order == SORT_DESCENDING) && (list_tosort.get(i).compareTo(smallest) > 0)) ) {
 				smallest = list_tosort.get(i);
@@ -3786,8 +3811,8 @@ Checks to see if one String starts with another, ignoring case.
 @param pattern the String that is being checked if it is the start of the other string.
 @return true if the second String is the starting String in the first.
 */
-public static boolean startsWithIgnoreCase ( String s, String pattern )
-{	if ( (s == null) || (pattern == null) ) {
+public static boolean startsWithIgnoreCase ( String s, String pattern ) {
+	if ( (s == null) || (pattern == null) ) {
 		return false;
 	}
 	int plen = pattern.length();
@@ -3855,13 +3880,13 @@ Return the count of the tokens in a string or null if no token.
 This method calls breakStringList() and returns the resulting count.
 @param string The string to break.
 @param delim A String containing characters to treat as delimiters.
-@param flag Bitmask indicating how to break the string.  Specify
-DELIM_SKIP_BLANKS to skip blank fields and
+@param flag Bitmask indicating how to break the string.
+Specify DELIM_SKIP_BLANKS to skip blank fields and
 DELIM_ALLOW_STRINGS to allow quoted strings (which may contain delimiters).
 @return the first token or null.
 */
-public static int tokenCount ( String string, String delim, int flag )
-{	List<String> v = breakStringList ( string, delim, flag );
+public static int tokenCount ( String string, String delim, int flag ) {
+	List<String> v = breakStringList ( string, delim, flag );
 	if ( v == null ) {
 		return 0;
 	}
@@ -3934,8 +3959,8 @@ Remove characters from string.
 @param flag Bitmask indicating how to unpad.  Can be
 PAD_FRONT, PAD_BACK, PAD_MIDDLE, PAD_FRONT_BACK, or PAD_FRONT_MIDDLE_BACK.
 */
-public static String unpad ( String string, String white0, int flag )
-{	int length_string, length_white;
+public static String unpad ( String string, String white0, int flag ) {
+	int length_string, length_white;
 	String default_white = " \t\n\r", white;
 	StringBuilder buffer;
 
@@ -4044,20 +4069,20 @@ This is essentially equivalent to String.trim().
 @return A string that has had spaces removed from the front and back.
 @param string The string to unpad.
 */
-public static String unpad ( String string )
-{	return( unpad( string, " ", PAD_FRONT_BACK ) );
+public static String unpad ( String string ) {
+	return( unpad( string, " ", PAD_FRONT_BACK ) );
 }
 
 /**
 This is the same as the String version, but allows a StringBuffer as input.
 */
-public static String unpad ( StringBuffer string, String white0, int flag )
-{	return unpad ( string.toString(), white0, flag );
+public static String unpad ( StringBuffer string, String white0, int flag ) {
+	return unpad ( string.toString(), white0, flag );
 }
 
 /**
-Wraps text to fit on a line of a certain length.  Text is wrapped at newlines,
-commas, periods, exclamation marks, question marks, open and close parentheses,
+Wraps text to fit on a line of a certain length.
+Text is wrapped at newlines, commas, periods, exclamation marks, question marks, open and close parentheses,
 open and close braces, open and close curly brackets, colons, semicolons,
 spaces, tabs, backslashes and forward slashes.
 @param s the text to wrap to fit on a certain-length line.
@@ -4075,8 +4100,8 @@ public static String wrap(String s, int lineLength) {
 }
 
 /**
-Wraps text to fit on a line of a certain length.  Text is wrapped at newlines,
-commas, periods, exclamation marks, question marks, open and close parentheses,
+Wraps text to fit on a line of a certain length.
+Text is wrapped at newlines, commas, periods, exclamation marks, question marks, open and close parentheses,
 open and close braces, open and close curly brackets, colons, semicolons,
 spaces, tabs, backslashes and forward slashes.
 @param s the text to wrap to fit on a certain-length line.
@@ -4124,7 +4149,7 @@ public static String wrapHelper(String s, int lineLength) {
 			}
 			else {	
 				// A previous wrap point was found.
-				// Split the text at the point of the previous word wrap point and then let the 
+				// Split the text at the point of the previous word wrap point and then let the
 				// rest of the string be carried over to be checked in the next iteration.
 				trim = s.substring(0, last);
 				sb.append(trim + "\n");
@@ -4136,7 +4161,7 @@ public static String wrapHelper(String s, int lineLength) {
 		}
 		else if (next == lineLength) {
 			// The next wrap point if exactly on the barrier between maximum line length and invalid line length.
-			// A perfect fit was found, so take all the text 
+			// A perfect fit was found, so take all the text
 			// up the next wrap point and put it on one line,
 			// then carry over the rest of the text to be checked in a later iteration.
 			trim = s.substring(0, next);
@@ -4155,8 +4180,8 @@ public static String wrapHelper(String s, int lineLength) {
 				return sb.toString();
 			}			
 				
-			// If not, take the text up to the last 
-			// wrap point and put it on a line and then take 
+			// If not, take the text up to the last
+			// wrap point and put it on a line and then take
 			// the rest of the text and prepare it to be handled in the next iteration.
 			
 			trim = s.substring(0, last);
@@ -4173,7 +4198,7 @@ public static String wrapHelper(String s, int lineLength) {
 
 			if (s.length() > lineLength) {
 				// The text is still longer than the maximum allowable line length.
-				// Loop through and separate it into hyphenatable chunks and put each chunk on a line.  
+				// Loop through and separate it into hyphenatable chunks and put each chunk on a line.
 				while (true) {
 					trim = s.substring(0, lineLength - 1);
 					trim += "-";
@@ -4202,7 +4227,7 @@ A helper function used by wrap() to locate a the point at which a line of text c
 @return the location of the next immediate wrap point, or -1 if none can be found.
 */
 private static int wrapFindFirstWrappableIndex(String s, int from) {
-	// There are two batches of characters to be checked and each batch must be handled differently.  
+	// There are two batches of characters to be checked and each batch must be handled differently.
 
 	// In the first case are characters that denote that the line can be wrapped immediately AFTERWARDS.
 	int index1 = wrapFindFirstWrappableIndexHelper(s, ".", from, -1);
@@ -4270,7 +4295,7 @@ private static int wrapFindFirstWrappableIndex(String s, int from) {
 			// AND the first batch had a valid wrap point.
 			// Choose whichever is lesser.  The two values will NEVER be the same.
 
-			if (index2 < index1) { 
+			if (index2 < index1) {
 				index = index2;
 			}
 			else {
@@ -4284,7 +4309,7 @@ private static int wrapFindFirstWrappableIndex(String s, int from) {
 
 /**
 Helper method for wrapFindFirstWrappableIndex to locate the first index of
-a character in a line from a specified point and compare it to a 
+a character in a line from a specified point and compare it to a
 previously-determined index of another character in the line.
 @param s the text to check.
 @param ch the character to find the index of.

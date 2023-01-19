@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@ import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.TimeInterval;
 
+// TODO smalers 2023-01-17 need to update to get the precision from the irregular interval (e.g., "IrregDay").
 /**
 This class stores irregular time step data.
 Because the time step is irregular,
@@ -73,24 +74,24 @@ private TSData __prevRemoveDataPointerNext = null;
 
 /**
 Index used when traversing the data array.
-This is the element in _ts_data_head (0+) that was last accessed.  This is used internally between
-method calls and should not be assumed to have state between data get calls.
+This is the element in _ts_data_head (0+) that was last accessed.
+This is used internally between method calls and should not be assumed to have state between data get calls.
 */
 private int __data_index;
 
 /**
 Default constructor.  The data array is initialized to null.
 */
-public IrregularTS ( )
-{	super();
+public IrregularTS ( ) {
+	super();
 	init();
 }
 
 /**
 Copy constructor.  Everything is copied by calling copyHeader() and then copying the data values.
 */
-public IrregularTS ( IrregularTS ts )
-{	if ( ts == null ) {
+public IrregularTS ( IrregularTS ts ) {
+	if ( ts == null ) {
 		return;
 	}
 	copyHeader ( ts );
@@ -121,25 +122,25 @@ public IrregularTS ( IrregularTS ts )
 Allocate the data flag space for the time series.
 This is a place-holder and is not used since data
 space is adjusted as necessary as data are added with setDataValue().
-@param data_flag_length Maximum length of data flags.  If the data flags array
-is already allocated, then the flag size will be increased by the specified
-length.  This allows multiple flags to be concatenated.
+@param data_flag_length Maximum length of data flags.
+If the data flags array is already allocated, then the flag size will be increased by the specified length.
+This allows multiple flags to be concatenated.
 @param initial_value Initial value (null is allowed and will result in the flags being initialized to spaces).
 @param retain_previous_values If true, the array size will be increased if necessary, but
 previous data values will be retained.  If false, the array will be reallocated and initialized to spaces.
 @exception Exception if there is an error allocating the memory.
 */
 public void allocateDataFlagSpace (	String initial_value, boolean retain_previous_values )
-throws Exception
-{	return;
+throws Exception {
+	return;
 }
 
 /**
-Allocate the data space.  This is a place-holder and is not used since data
-space is adjusted as necessary as data are added with setDataValue().
+Allocate the data space.
+This is a place-holder and is not used since data space is adjusted as necessary as data are added with setDataValue().
 */
-public int allocateDataSpace()
-{	return 0;
+public int allocateDataSpace() {
+	return 0;
 }
 
 /**
@@ -150,8 +151,8 @@ Calculate the number of data points between two dates.
 @param end_date Last date of interest.
 @param interval_mult Data interval multiplier (not used).
 */
-public static int calculateDataSize ( DateTime start_date, DateTime end_date, int interval_mult )
-{	Message.printWarning ( 1, "IrregularTS.calculateDataSize",
+public static int calculateDataSize ( DateTime start_date, DateTime end_date, int interval_mult ) {
+	Message.printWarning ( 1, "IrregularTS.calculateDataSize",
 	"Must have an instance of IrregularTS to compute the data size.  Use " +
 	"the non-static calculateDataSize() method" );
 	return 0;
@@ -163,8 +164,8 @@ Calculate the number of data points between two dates.
 @param start_date First date of interest.
 @param end_date Last date of interest.
 */
-public int calculateDataSize (	DateTime start_date, DateTime end_date )
-{	int	datasize = 0;
+public int calculateDataSize (	DateTime start_date, DateTime end_date ) {
+	int	datasize = 0;
 
 	if ( __tsDataList == null ) {
 		return 0;
@@ -194,12 +195,11 @@ public int calculateDataSize (	DateTime start_date, DateTime end_date )
 }
 
 /**
- * Change the period of record.  Because irregular time series don't need to fill the period
- * with a data array this method does nothing.
+ * Change the period of record.
+ * Because irregular time series don't need to fill the period with a data array this method does nothing.
  */
 public void changePeriodOfRecord ( DateTime date1, DateTime date2 )
 throws TSException {
-	
 }
 
 /**
@@ -278,7 +278,7 @@ public int enforceDataGaps (	int interval_base, int interval_mult,
 	prevDate = start;
 	TSDateIterator tsdi;
 	int missingcount = 0, datacount = 0;
-	for ( tsdi = new TSDateIterator( this, start, end ); 
+	for ( tsdi = new TSDateIterator( this, start, end );
 		!tsdi.isIterationComplete(); tsdi.advanceDate(), ++datacount ){
 
 		t = tsdi.getCurrentDate();
@@ -426,20 +426,19 @@ At this time, irregular time series are always output in a sequential summary fo
 <td><b>Format</b></td>
 <td>The overall format of the output.  Can be either "Summary" for an array
 of data or "Spreadsheet" for a delimited
-file suitable for a spreadsheet (see the "Delimiter" property).  At this time,
-the determination of whether total or average annual values are shown is made
-based on units.  AF, ACFT, IN, INCH, FEET, and FOOT are treated as totals and
-all others as averages.  A more rigorous handling is being implemented to
-use the units dimension to determine totals, etc.</td>
+file suitable for a spreadsheet (see the "Delimiter" property).
+At this time, the determination of whether total or average annual values are shown is made based on units.
+AF, ACFT, IN, INCH, FEET, and FOOT are treated as totals and all others as averages.
+A more rigorous handling is being implemented to use the units dimension to determine totals, etc.</td>
 <td>Summary</td>
 </tr>
 
 <tr>
 <td><b>Precision</b></td>
-<td>The precision of numbers as printed.  All data values are printed in a
-9-digit column.  The precision controls how many digits are shown after the
-decimal.  If not specified, an attempt will be made to use the units to
-look up the precision.  If that fails, a default of 1 will be used.
+<td>The precision of numbers as printed.  All data values are printed in a 9-digit column.
+The precision controls how many digits are shown after the decimal.
+If not specified, an attempt will be made to use the units to look up the precision.
+If that fails, a default of 1 will be used.
 <td>Summary</td>
 </tr>
 
@@ -463,28 +462,27 @@ Available Period        = 1924-01 to 1995-12
 
 <tr>
 <td><b>PrintComments</b></td>
-<td>Print the comments associated with the time series.  This may contain
-information about the quality of data, station information, etc.  This
-information is usually variable-length text, and may not be available.
+<td>Print the comments associated with the time series.
+This may contain information about the quality of data, station information, etc.
+This information is usually variable-length text, and may not be available.
 </td>
 <td>true</td>
 </tr>
 
 <tr>
 <td><b>PrintAllStats</b></td>
-<td>Print all the statistics (currently maximum, minimum, and mean, although
-standard deviation and others are being added).  Because statistics are being
-added to output, it is advised that if formatting is to remain the same over
-time, that output items be individually specified.  One way of doing this is
-to turn all the statistics off and then turn specific items on (to true).
+<td>Print all the statistics (currently maximum, minimum, and mean,
+although standard deviation and others are being added).
+Because statistics are being added to output,
+it is advised that if formatting is to remain the same over time, that output items be individually specified.
+One way of doing this is to turn all the statistics off and then turn specific items on (to true).
 </td>
 <td>false</td>
 </tr>
 
 <tr>
 <td><b>PrintGenesis</b></td>
-<td>Print the time series genesis information after the header in a
-format as follows:
+<td>Print the time series genesis information after the header in a format as follows:
 <p>
 <pre>
 Time series genesis (creation history):
@@ -519,8 +517,8 @@ etc.
 
 <tr>
 <td><b>PrintNotes</b></td>
-<td>Print notes about the output.  This consists of helpful information used
-to understand the output (but does not consist of data).  For example:
+<td>Print notes about the output.
+This consists of helpful information used to understand the output (but does not consist of data).  For example:
 <p>
 <pre>
 Notes:
@@ -534,19 +532,18 @@ Notes:
 
 <tr>
 <td><b>UseCommentsForHeader</b></td>
-<td>Use the time series comments for the header and do not print other header
-information.  This can be used when the entire header is formatted elsewhere.
+<td>Use the time series comments for the header and do not print other header information.
+This can be used when the entire header is formatted elsewhere.
 </td>
 <td>false</td>
 </tr>
 
 </table>
-@exception RTi.TS.TSException Throws if there is a problem formatting the
-output.
+@exception RTi.TS.TSException Throws if there is a problem formatting the output.
 */
 public List<String> formatOutput( PropList proplist )
-throws TSException
-{	String message = "", routine = "Irregular.formatOutput";	
+throws TSException {
+	String message = "", routine = "Irregular.formatOutput";	
 	int dl = 20;
 	List<String> strings = new ArrayList<>();
 	PropList props = null;
@@ -773,8 +770,8 @@ Format the time series for output.
 @exception RTi.TS.TSException Throws if there is an error writing the output.
 */
 public List<String> formatOutput ( PrintWriter fp, PropList props )
-throws TSException
-{	List<String> formatted_output = null;
+throws TSException {
+	List<String> formatted_output = null;
 	String routine = "IrregularTS.formatOutput(Writer,props)";
 	int	dl = 20;
 	String message;
@@ -822,8 +819,8 @@ Format the time series for output.
 @exception RTi.TS.TSException Throws if there is an error writing the output.
 */
 public List<String> formatOutput ( String fname, PropList props )
-throws TSException
-{	String message = null;
+throws TSException {
+	String message = null;
 	List<String> formatted_output = null;
 	PrintWriter	stream = null;
 
@@ -859,8 +856,8 @@ throws TSException
 Return the data list.
 @return The reference to the data array.  Use caution when manipulating.
 */
-public List<TSData> getData()
-{	return __tsDataList;
+public List<TSData> getData() {
+	return __tsDataList;
 }
 
 /**
@@ -940,7 +937,7 @@ public TSData getDataPoint ( DateTime date, TSData data_point )
 	int found_index = -1;
 	if ( Math.abs( date_double - date1_double ) < Math.abs( date_double - date2_double ) ){
 		for ( i=0; i < size; i++ ) {
-			ptr = __tsDataList.get(i); 
+			ptr = __tsDataList.get(i);
 			if( ptr.getDate().equals( date ) ){
 				found_index = i;
 				break;
@@ -949,7 +946,7 @@ public TSData getDataPoint ( DateTime date, TSData data_point )
 	}
 	else {
 	    for ( i=(size-1); i >= 0; i-- ) {
-			ptr = __tsDataList.get(i); 
+			ptr = __tsDataList.get(i);
 			if( ptr.getDate().equals( date ) ) {
 				found_index = i;
 				break;
@@ -1001,8 +998,8 @@ but might need to be in the future to increase performance.
 value if the date cannot be found in the data.
 @param date Date of interest.
 */
-public double getDataValue( DateTime date )
-{	// Do not define routine here to increase performance.
+public double getDataValue( DateTime date ) {
+	// Do not define routine here to increase performance.
 	int	dl = 30, found_index = -1, i = 0;
 	TSData ptr=null;
 
@@ -1059,7 +1056,7 @@ public double getDataValue( DateTime date )
 	else {
 	    // Closer to the end of the list.
 	    for ( i=(size-1); i >= 0; i-- ){
-			ptr = __tsDataList.get(i); 
+			ptr = __tsDataList.get(i);
 			if( ptr.getDate().equals( date ) ){
 				found_index = i;
 				break;
@@ -1089,12 +1086,12 @@ public double getDataValue( DateTime date )
 }
 
 /**
-Return the first date in the data.  This is taken from the first data point
-if data are available, or the base class method, if data are not available
-(e.g., in cases when the time series header is defined without data).
+Return the first date in the data.
+This is taken from the first data point if data are available, or the base class method,
+if data are not available (e.g., in cases when the time series header is defined without data).
 */
-public DateTime getDate1()
-{	if ( (__tsDataList == null) || (__tsDataList.size() == 0) ) {
+public DateTime getDate1() {
+	if ( (__tsDataList == null) || (__tsDataList.size() == 0) ) {
 		return super.getDate1();
 	}
 	else {
@@ -1103,12 +1100,12 @@ public DateTime getDate1()
 }
 
 /**
-Return the last date in the data.  This is taken from the last data point
-if data are available, or the base class method, if data are not available
-(e.g., in cases when the time series header is defined without data).
+Return the last date in the data.
+This is taken from the last data point if data are available, or the base class method,
+if data are not available (e.g., in cases when the time series header is defined without data).
 */
-public DateTime getDate2()
-{	if ( (__tsDataList == null) || (__tsDataList.size() == 0) ) {
+public DateTime getDate2() {
+	if ( (__tsDataList == null) || (__tsDataList.size() == 0) ) {
 		return super.getDate2();
 	}
 	else {
@@ -1118,13 +1115,13 @@ public DateTime getDate2()
 
 /**
 Get the next element in the data list.
-This method can be used to return the element after the previously accessed
-element.  For example, when searching the data array, this routine can be used
-to get the next data value.  The routine returns null if at the end of the data array.
+This method can be used to return the element after the previously accessed element.
+For example, when searching the data array, this routine can be used to get the next data value.
+The routine returns null if at the end of the data array.
 @return The next data point after the previous access.
 */
-public TSData getNextElement()
-{	// Do not define routine here to increase performance.
+public TSData getNextElement() {
+	// Do not define routine here to increase performance.
 	TSData tsdata=null;
 
 	if ( __tsDataList == null ) {
@@ -1157,7 +1154,7 @@ From the Transferable interface.  Supported dataflavors are:<br>
 <ul>
 <li>IrregularTS - IrregularTS.class / RTi.TS.IrregularTS</li>
 <li>TS - TS.class / RTi.TS.TS</li>
-<li>TSIdent - TSIdent.class / RTi.TS.TSIdent</li></ul> 
+<li>TSIdent - TSIdent.class / RTi.TS.TSIdent</li></ul>
 @param flavor the flavor in which to return the data.
 @return the data in the specified DataFlavor, or null if no matching flavor exists.
 */
@@ -1194,18 +1191,18 @@ public DataFlavor[] getTransferDataFlavors() {
 }
 
 /**
-Indicate whether the time series has data, determined by checking to see whether
-the data space has &gt; 0 data points.  This method can be called after a time
-series has been read - even if no data are available, the header information
-may be complete.  The alternative of returning a null time series from a read
-method if no data are available results in the header information being
-unavailable.  Instead, return a TS with only the header information and call
-hasData() to check to see if the data space has been assigned.
+Indicate whether the time series has data,
+determined by checking to see whether the data space has &gt; 0 data points.
+This method can be called after a time series has been read - even if no data are available,
+the header information may be complete.
+The alternative of returning a null time series from a read method if no data are available
+results in the header information being unavailable.
+Instead, return a TS with only the header information and call hasData() to check to see if the data space has been assigned.
 @return true if data are available (the data space has been allocated).
 Note that true will be returned even if all the data values are set to the missing data value.
 */
-public boolean hasData ()
-{	if ( (__tsDataList != null) && (__tsDataList.size() > 0) ) {
+public boolean hasData () {
+	if ( (__tsDataList != null) && (__tsDataList.size() > 0) ) {
 		return true;
 	}
 	else {
@@ -1214,14 +1211,13 @@ public boolean hasData ()
 }
 
 /**
-Indicate whether the irregular time series has data flags.  Because some code may edit the list of TSData
-directly, it is difficult to intercept calls to setDataValue(...flag...) so assume all irregular data has
-data flags.  This should not be a major issue because blank flags will be ignored in most code and interned
-strings are memory-efficient.
+Indicate whether the irregular time series has data flags.
+Because some code may edit the list of TSData directly, it is difficult to intercept calls to
+setDataValue(...flag...) so assume all irregular data has data flags.
+This should not be a major issue because blank flags will be ignored in most code and interned strings are memory-efficient.
 @return true if data flags are used, false if not.
 */
-public boolean hasDataFlags ()
-{
+public boolean hasDataFlags () {
     if ( !hasData() ) {
         return false;
     }
@@ -1233,8 +1229,8 @@ public boolean hasDataFlags ()
 /**
 Initialize data.
 */
-private void init(  )
-{	_data_interval_base = TimeInterval.IRREGULAR;
+private void init( ) {
+	_data_interval_base = TimeInterval.IRREGULAR;
 	_data_interval_mult = 1;
 	_data_interval_base_original = TimeInterval.IRREGULAR;
 	_data_interval_mult_original = 1;
@@ -1248,7 +1244,7 @@ From the Transferable interface.  Supported dataflavors are:<br>
 <ul>
 <li>IrregularTS - IrregularTS.class / RTi.TS.IrregularTS</li>
 <li>TS - TS.class / RTi.TS.TS</li>
-<li>TSIdent - TSIdent.class / RTi.TS.TSIdent</li></ul> 
+<li>TSIdent - TSIdent.class / RTi.TS.TSIdent</li></ul>
 @param flavor the flavor to check.
 @return true if data can be transferred in the specified flavor, false if not.
 */
@@ -1273,8 +1269,8 @@ Return an iterator for the time series using the full period for the time series
 @exception Exception if the time series dates are null.
 */
 public TSIterator iterator ()
-throws Exception
-{	return new IrregularTSIterator ( this );
+throws Exception {
+	return new IrregularTSIterator ( this );
 }
 
 /**
@@ -1286,16 +1282,16 @@ For regular interval time series, the iterator is that same. IrregularTS use the
 @exception Exception if the time series dates are null.
 */
 public TSIterator iterator ( DateTime date1, DateTime date2 )
-throws Exception
-{	return new IrregularTSIterator ( this, date1, date2 );
+throws Exception {
+	return new IrregularTSIterator ( this, date1, date2 );
 }
 
 /**
 Refresh the derived data in the time series (e.g., recompute limits if data
 has been set).  This is typically only called from other package routines.
 */
-public void refresh ()
-{	// If the data is not dirty, then we do not have to refresh the other information.
+public void refresh () {
+	// If the data is not dirty, then we do not have to refresh the other information.
 
 	if ( !_dirty ) {
 		if ( Message.isDebugOn ) {
@@ -1346,8 +1342,7 @@ Remove a data point corresponding to the date.
 @param date date/time for which to remove the data point.
 @return true if the point was removed, false if not (date was not found).
 */
-public boolean removeDataPoint ( DateTime date )
-{
+public boolean removeDataPoint ( DateTime date ) {
     if ( date == null ) {
         return false;
     }
@@ -1382,11 +1377,11 @@ public boolean removeDataPoint ( DateTime date )
         // Do a more exhaustive loop.
         // FIXME SAM 2010-08-17 Need to optimize search for the date, relinking list, etc.
         for ( TSData ptr2 : __tsDataList ) {
-        
+
             //if ( Message.isDebugOn ) {
             //  Message.printDebug( 50, "IrregularTS.setDataValue", "Comparing " + dateLocal + " to " + ptr.getDate() );
             //}
-            
+
             if( ptr2.getDate().equals( date ) ) {
                 // Found match.
                 ptr = ptr2;
@@ -1419,27 +1414,30 @@ public boolean removeDataPoint ( DateTime date )
 
 /**
 Set the data value for the given date.  If the date has not already been set
-with a value, add a data point in the proper order.  This calls the overloaded
-method with a "" flag and duration of 0.
+with a value, add a data point in the proper order.
+This calls the overloaded method with a "" flag and duration of 0.
 @param date Date of interest.
 @param value Data value corresponding to the date.
+@param return the number of values set, 0 or 1, useful to know when a value is outside the allocated period
 */
-public void setDataValue( DateTime date, double value )
-{	setDataValue ( date, value, "", 0 );
+public int setDataValue( DateTime date, double value ) {
+	return setDataValue ( date, value, "", 0 );
 }
 
 /**
-Set the data value and associated information for the date.  First check to see if the point to be set exists as the
-next point relative to the previous set call - this will be fast if values are being reset sequentially (e.g., after
-being initialized to missing data and then reset with other values).
+Set the data value and associated information for the date.
+First check to see if the point to be set exists as the next point relative to the previous set call.
+This will be fast if values are being reset sequentially
+(e.g., after being initialized to missing data and then reset with other values).
 If not, utilize a bisection approach to find the point to set.
 @param date Date of interest.
 @param value Data value corresponding to date.
 @param data_flag Data flag for value.
 @param duration Duration for value
+@param return the number of values set, 0 or 1, useful to know when a value is outside the allocated period
 */
-public void setDataValue ( DateTime date, double value, String data_flag, int duration )
-{	// Do not define routine here to increase performance.
+public int setDataValue ( DateTime date, double value, String data_flag, int duration ) {
+	// Do not define routine here to increase performance.
 	boolean	found;
 	int	i;
 	TSData ptr=null, tsdata=null;
@@ -1466,7 +1464,7 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 
 		setDataSize ( __tsDataList.size() );
 		__prevSetDataPointer = tsdata;
-		return;
+		return 1;
 	}
 	
 	// First check the previous set call and determine if the point is next on the list.
@@ -1484,7 +1482,7 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
                 _dirty = true;
                 // Save the pointer for the next operation.
                 __prevSetDataPointer = ptr;
-                return;
+                return 1;
     	    }
 	    }
 	} // The previous pointer is set below for other cases.
@@ -1533,7 +1531,7 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 		//}
 	
 		for( i=0; i< size; i++ ){
-			ptr = __tsDataList.get(i); 
+			ptr = __tsDataList.get(i);
 			
 			//if ( Message.isDebugOn ) {
 			//	Message.printDebug( 50, "IrregularTS.setDataValue", "Comparing " + dateLocal + " to " + ptr.getDate() );
@@ -1607,7 +1605,7 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 		//if ( Message.isDebugOn ) {
 		//	Message.printDebug( 20, "IrregularTS.setDataValue", "Updated data value at: " + dateLocal + " to " + value + "." );
 		//}
-		return;
+		return 1;
 	}
 
 	if ( Message.isDebugOn ) {
@@ -1667,11 +1665,12 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 
 		// Update the data size.
 		setDataSize ( this.__tsDataList.size() );
-		return;
+		return 1;
 	}
 
 	// If here, must have a logic problem.
 	Message.printWarning ( 3, "IrregularTS.setDataValue", "Logic problem in routine.  Need to fix!" );
+	return 0;
 }
 
 }

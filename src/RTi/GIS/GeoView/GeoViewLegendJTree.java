@@ -1,10 +1,10 @@
-// GeoViewPanel - panel class to manage GeoView legend
+// GeoViewLegendJTree - tree to display legend layers
 
 /* NoticeStart
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,84 +21,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
 
 NoticeEnd */
 
-// ----------------------------------------------------------------------------
-// Panel class to manage GeoView legend
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2001-10-08	Steven A. Malers, RTi	Add invalidate so that the entire legend
-//					can be invalidated, causing the
-//					individual panels to redraw.
-// 2001-10-12	SAM, RTi		Handle events to enable/disable
-//					properties button.
-// 2001-10-17	SAM, RTi		Set unused variables to null to help
-//					garbage collection.
-// 2001-11-27	SAM, RTi		Fix bug where removeAllLayerViews()
-//					was not having a visible effect
-//					(__legendVector was not getting
-//					cleared).  Also fix bug where the
-//					layer view legends were being removed
-//					from this main panel, and not the panel
-//					in the scroll pane!
-// 2001-12-04	SAM, RTi		Update to use Swing.
-// ----------------------------------------------------------------------------
-// 2003-05-06	J. Thomas Sapienza, RTi	Brought in line with the non-Swing
-//					version of the code
-// 2003-05-09	JTS, RTi		Changed layout of the panel that holds
-//					the buttons to be a GridBagLayout so
-//					the button sizing works properly.
-// 2003-05-13	JTS, RTi		* Private variables now meet RTi's
-//					  standard naming convention.
-//					* Started work implementing the legend
-//					  with a SimpleJTree.
-//					* Added a mouse listener so that the 
-//					  tree can have a popup menu.
-//					* Removed checkState();
-// ----------------------------------------------------------------------------
-// 2003-05-14	JTS, RTi		* Initial version from 
-//					  GeoViewLegendJPanel
-//					* Lots of javadoc'ing.
-//					* Uncommented and filled in all methods.
-// 2003-05-15	JTS, RTi		Can now remove more than one layer at
-//					at a time.
-// 2003-05-21	JTS, RTi		Added a popup to the project nodes to
-//					open a new project.
-// 2003-08-21	JTS, RTi		Layers are now added to the legend tree
-//					in the correct order.
-// 2003-08-22	JTS, RTi		Popup menu for layer nodes now has
-//					an entry for viewing the attributes 
-//					table.
-// 2004-07-29	JTS, RTi		* Fixed problem with drawing the node
-//					  information for scaled symbols.
-//					* Attribute tables can now be displayed
-//					  for layers that had their tables
-//					  generated in-memory.
-//					* Nodes rows are now sized individually
-//					  because of setRowHeight(0);
-// 2004-08-03	JTS, RTi		Added a popup menu that is used for
-//					animated layers.
-// 2004-09-16	JTS, RTi		Changed the call of isPopupTrigger to
-//					use the one in the JPopupMenu.
-// 2004-10-14	JTS, RTi		* Added isLayerVisible().
-//					* Corrected bug in getLayerNames() that
-//					  was resulting in nothing being
-//					  returned.
-// 2004-10-22	JTS, RTi		When viewing an attribute table now,
-//					the GUI defers to showing the table
-//					that resides in memory, rather than
-//					trying to re-read the original from
-//					a file.
-// 2004-10-27	JTS, RTi		Added setLayerVisible().
-// 2004-11-11	JTS, RTi		In legends with class breaks, the
-//					class break text background is now
-//					set to match the color of the tree.
-// 2005-04-27	JTS, RTi		Added all member variables to finalize()
-// 2006-03-06	JTS, RTi		Changed text for showing the animation
-//					control from "Show Animation Control
-//					GUI".
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package RTi.GIS.GeoView;
 
 import java.awt.Color;
@@ -113,7 +35,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Vector;
@@ -141,9 +63,10 @@ import RTi.Util.Table.DataTable;
 import RTi.Util.Table.DataTable_JFrame;
 
 /**
-The GeoViewLegendJTree is a Tree that displays -- in ESRI-like fashion -- the layers available in a GeoView.  
+The GeoViewLegendJTree is a Tree that displays the layers available in a GeoView using a typical GIS legend.
 TODO (JTS - 2006-05-23) How to see this tree?  Is it automatic?
 */
+@SuppressWarnings("serial")
 public class GeoViewLegendJTree extends SimpleJTree
 implements ActionListener, ItemListener, MouseListener
 {
@@ -151,7 +74,7 @@ implements ActionListener, ItemListener, MouseListener
 /**
 Menu item labels.
 */
-private final String 
+private final String
 	__MENU_VIEW_ATTRIBUTES = "View Attribute Table",
 	__MENU_SHOW_ANIMATION_CONTROL_GUI = "Show Animation Control";
 
@@ -161,20 +84,20 @@ The GeoViewJPanel in which this tree appears.
 private GeoViewJPanel __theGeoViewJPanel = null;
 
 /**
-The root-most and visible node in the tree.  All the layer nodes are children
-of this node.  When this node is null, the tree is empty.  
+The root-most and visible node in the tree.
+All the layer nodes are children of this node.  When this node is null, the tree is empty.
 */
 private GeoViewLegendJTree_Node __projectNode = null;
 
 /**
-The popup menu to be assigned to the project nodes.  It is displayed when a
-project node is right-clicked on in the tree.
+The popup menu to be assigned to the project nodes.
+It is displayed when a project node is right-clicked on in the tree.
 */
 private JPopupMenu __projectNodePopup = null;
 
 /**
-The popup menu to be assigned to all the layer nodes except those that 
-are animated.  It is displayed when any non-animation layer node is right-clicked on in the tree.
+The popup menu to be assigned to all the layer nodes except those that are animated.
+It is displayed when any non-animation layer node is right-clicked on in the tree.
 */
 private JPopupMenu __layerPopup = null;
 
@@ -193,19 +116,19 @@ Constructor.
 @param gvp GeoViewJPanel to contain and manage the legend panel.
 */
 public GeoViewLegendJTree(GeoViewJPanel gvp) {
-	// initialize all the SimpleJTree settings.
+	// Initialize all the SimpleJTree settings.
 	super();
 
 	__theGeoViewJPanel = gvp;
 
-	// These calls set up the SimpleJTree to display in a fashion similar to ESRI's Table of Contents
+	// These calls set up the SimpleJTree to display in a fashion similar to ESRI's Table of Contents.
 	setClosedIcon(null);
 	setOpenIcon(null);
 	setLeafIcon(null);
 	setLineStyle(SimpleJTree.LINE_NONE);
 
-	// Create the popup menu for the tree nodes.  This popup menu
-	// has a "Properties" and a "Remove" menu item
+	// Create the popup menu for the tree nodes.
+	// This popup menu has a "Properties" and a "Remove" menu item.
 	__layerPopup = new JPopupMenu();
 	JMenuItem mi = new JMenuItem(__theGeoViewJPanel.REMOVE);
 	mi.addActionListener(this);
@@ -234,14 +157,14 @@ public GeoViewLegendJTree(GeoViewJPanel gvp) {
 	mi.addActionListener(this);
 	__animatedPopup.add(mi);
 	
-	// Create the popup menu for the tree.  This has an "Add" menu item
+	// Create the popup menu for the tree.  This has an "Add" menu item.
 	__treePopup = new JPopupMenu();
 	mi = new JMenuItem(__theGeoViewJPanel.ADD);
 	mi.addActionListener(this);
 	__treePopup.add(mi);
 	__treePopup = null;
 
-	// Create the popup menu for project nodes.  This has an "Open Project" menu item
+	// Create the popup menu for project nodes.  This has an "Open Project" menu item.
 	__projectNodePopup = new JPopupMenu();
 	mi = new JMenuItem(__theGeoViewJPanel.OPEN_GVP);
 	mi.addActionListener(__theGeoViewJPanel);
@@ -289,7 +212,7 @@ public GeoViewLegendJTree(GeoViewJPanel gvp) {
 	
 	addMouseListener(this);
 
-	// Allow each row's height to be computed individually
+	// Allow each row's height to be computed individually.
 	setRowHeight(0);
 }
 
@@ -304,9 +227,9 @@ public void actionPerformed(ActionEvent evt) {
 		__theGeoViewJPanel.addLayerView();
 	}
 	else if (command.equals(__theGeoViewJPanel.REMOVE)) {
-		List v = getSelectedLayerViews(false);
+		List<GeoLayerView> v = getSelectedLayerViews(false);
 		if (v.size() == 0) {
-			// this *shouldn't* happen, but ...
+			// This should not happen.
 			return;
 		}
 
@@ -328,12 +251,12 @@ public void actionPerformed(ActionEvent evt) {
 	}
 	else if (command.equals(__theGeoViewJPanel.PROPERTIES)) {
 		GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)getSelectedNode();
-		GeoLayerView layerView = (GeoLayerView)node.getData(); 
+		GeoLayerView layerView = (GeoLayerView)node.getData();
 		__theGeoViewJPanel.showLayerViewProperties(layerView);
 	}
 	else if (command.equals(__MENU_SHOW_ANIMATION_CONTROL_GUI)) {
 		GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)getSelectedNode();
-		GeoLayerView layerView = (GeoLayerView)node.getData(); 
+		GeoLayerView layerView = (GeoLayerView)node.getData();
 		layerView.getAnimationControlJFrame().setVisible(true);
 	}
 	else if (command.equals(__MENU_VIEW_ATTRIBUTES)) {
@@ -346,8 +269,7 @@ public void actionPerformed(ActionEvent evt) {
 			int index = filename.lastIndexOf(".");
 			if (index == -1) {
 				Message.printStatus(1,"GeoViewPropertiesJFrame.actionPerformed",
-					"Error trying to parse layer file name (" + filename 
-					+ ") into the associated .dbf file");
+					"Error trying to parse layer file name (" + filename + ") into the associated .dbf file");
 				return;
 			}
 			String base = filename.substring(0, index + 1);
@@ -357,8 +279,7 @@ public void actionPerformed(ActionEvent evt) {
 				new DataTable_JFrame("Attributes of " + layerName, dbfFilename);
 			}
 			catch (Exception e) {
-				Message.printWarning(1, "GeoViewLegendJTree.actionPerformed",
-					"Error opening DataTable_JFrame (" + e +").");
+				Message.printWarning(1, "GeoViewLegendJTree.actionPerformed", "Error opening DataTable_JFrame (" + e +").");
 				Message.printWarning(2, "GeoViewLegendJTree.actionPerformed",e);
 			}
 		}
@@ -377,9 +298,9 @@ public void actionPerformed(ActionEvent evt) {
 }
 
 /**
-Add an item to the legend.  Make sure the GeoLayerView has already been added
-to the main GeoView.  Because the number of layer views to add may not initially
-be known, the legend panels are removed at each call and are then re-added so
+Add an item to the legend.  Make sure the GeoLayerView has already been added to the main GeoView.
+Because the number of layer views to add may not initially be known,
+the legend panels are removed at each call and are then re-added so
 the highest numbered layer view is at the top of the legend panel.
 @param layerView GeoLayerView for which to draw the legend panel.
 @param count of layers added (1 is first, displayed on bottom).
@@ -389,10 +310,10 @@ public void addLayerView(GeoLayerView layerView, int count) {
 	String layerName = layerView.getLegend().getText();
 
 	GeoViewLegendJTree_Node node = null;
-	String layerLabel = " " + layerName; // Space helps with presentation
+	String layerLabel = " " + layerName; // Space helps with presentation.
 	if ( !layerView.getLayer().isSourceAvailable() ) {
 		// The data for the layer is not available so add a red ! to the front of the label.
-		// TODO SAM 2010-12-15 HTML and JEditPane does weird things when the strings need to wrap
+		// TODO SAM 2010-12-15 HTML and JEditPane does weird things when the strings need to wrap.
 		//layerLabel = "<html><p style=\"color:red\">! " + layerName + "</p></html>";
 		layerLabel = "** NO DATA ** " + layerName;
 	}
@@ -407,7 +328,7 @@ public void addLayerView(GeoLayerView layerView, int count) {
 
 	try {
 		if (__projectNode == null) {
-			__projectNode =  new GeoViewLegendJTree_Node("GeoView Layers", 
+			__projectNode =  new GeoViewLegendJTree_Node("GeoView Layers",
 				"Project Node Name", this, __projectNodePopup);
 			__projectNode.setCheckBoxSelected(true);
 			addNode(__projectNode);
@@ -417,10 +338,9 @@ public void addLayerView(GeoLayerView layerView, int count) {
 		
 		addNode(node, __projectNode, 0);
 		// Now draw the symbol(s)...
-		// Get the number of symbols for the layer view.  First need to
-		// determine the layer view number, which is stored in the "Number"
-		// property for the layerview.  Currently this is supported only for
-		// CLASSIFICATION_SINGLE and CLASSIFICATION_SCALED_SYMBOL.
+		// Get the number of symbols for the layer view.
+		// First need to determine the layer view number, which is stored in the "Number" property for the layerview.
+		// Currently this is supported only for CLASSIFICATION_SINGLE and CLASSIFICATION_SCALED_SYMBOL.
 	
 		int nsymbol = layerView.getLegend().size();
 		GRSymbol symbol = null;
@@ -433,29 +353,27 @@ public void addLayerView(GeoLayerView layerView, int count) {
 			if (symbol.getClassificationType() == GRSymbol.CLASSIFICATION_SINGLE
 			|| symbol.getClassificationType() == GRSymbol.CLASSIFICATION_SCALED_TEACUP_SYMBOL) {
 				if (isym == 0) {
-					// For now assume that symbol types will not be mixed for a layer...
+					// For now assume that symbol types will not be mixed for a layer.
 					layerCanvas = new GeoLayerViewLegendJComponent[nsymbol];
 				}
 				layerCanvas[isym] = new GeoLayerViewLegendJComponent(layerView, isym, 0);
-				SimpleJTree_Node symNode = new SimpleJTree_Node((Component)layerCanvas[isym], 
+				SimpleJTree_Node symNode = new SimpleJTree_Node((Component)layerCanvas[isym],
 					"" + layerName + " symbol #" + isym);
 	
-				// This data is used when drawing the legend on 
-				// the map later, so it's important that it be set.
+				// This data is used when drawing the legend on the map later, so it's important that it be set.
 				symNode.setData(layerCanvas[isym]);
 				addNode(symNode, node);
 			}
 			else if (symbol.getClassificationType() == GRSymbol.CLASSIFICATION_SCALED_SYMBOL) {
 				// This is currently enabled only for vertical signed
-				// bars where the bar is centered vertically on the
-				// point, positive values are drawn with the main
-				// foreground color and negative values are drawn with
-				// the secondary foreground color.
+				// bars where the bar is centered vertically on the point,
+				// positive values are drawn with the main foreground color and
+				// negative values are drawn with the secondary foreground color.
 				JPanel panel = new JPanel();
 				panel.setBackground(Color.white);
 				panel.setLayout(new GridBagLayout());
 				if (isym == 0) {
-					// For now assume that symbol types will not be mixed for a layer...
+					// For now assume that symbol types will not be mixed for a layer.
 					layerCanvas = new GeoLayerViewLegendJComponent[nsymbol];
 					layerClassJLabel = new JLabel[nsymbol];
 				}
@@ -466,7 +384,7 @@ public void addLayerView(GeoLayerView layerView, int count) {
 					insets_none, GridBagConstraints.NONE,
 					GridBagConstraints.SOUTH);
 				if (!symbol.getClassificationField().equals("")) {
-					// Get the maximum value for the symbol, which is used to scale the symbol...
+					// Get the maximum value for the symbol, which is used to scale the symbol.
 					// TODO SAM 2009-07-02 - need to streamline this - store with symbol at creation?
 					DataTable attribute_table = layerView.getLayer().getAttributeTable();
 					int classification_field = -1;
@@ -482,14 +400,12 @@ public void addLayerView(GeoLayerView layerView, int count) {
 					}
 	
 					if ((classification_field >= 0)) {
-						double symbol_max =
-							((GRScaledClassificationSymbol)symbol).getClassificationDataDisplayMax();
-						// Do this to keep legend a reasonable width...
+						double symbol_max = ((GRScaledClassificationSymbol)symbol).getClassificationDataDisplayMax();
+						// Do this to keep legend a reasonable width.
 						if (cf.length() > 20) {
 							cf = cf.substring(0,20) + "...";
 						}
-						layerClassJLabel[isym] = new JLabel(
-						cf + ", Max = " + StringUtil.formatString(symbol_max,"%.3f"));
+						layerClassJLabel[isym] = new JLabel( cf + ", Max = " + StringUtil.formatString(symbol_max,"%.3f"));
 					}
 					else {	
 						if (cf.length() > 20) {
@@ -499,7 +415,7 @@ public void addLayerView(GeoLayerView layerView, int count) {
 					}
 				}
 				else {
-					// Add a label with the field and maximum value...
+					// Add a label with the field and maximum value.
 					layerClassJLabel[isym] = new JLabel("");
 				}
 				JGUIUtil.addComponent (panel,
@@ -507,23 +423,20 @@ public void addLayerView(GeoLayerView layerView, int count) {
 					2, y, 1, 1, 1, 0,
 					insets_none, GridBagConstraints.HORIZONTAL,
 					GridBagConstraints.NORTH);
-				SimpleJTree_Node symNode = new
-					SimpleJTree_Node((Component)panel, "" + layerName + " symbol #" + isym);
+				SimpleJTree_Node symNode = new SimpleJTree_Node((Component)panel, "" + layerName + " symbol #" + isym);
 	
-				// The text that is drawn on the legend to label
-				// the height of the bar.  Essential this is set!
-				// This information cannot easily be pulled from the
-				// tree, so it is just set here so that the legend 
-				// will be labelled with "Max = XXX.XX", or such.
+				// The text that is drawn on the legend to label the height of the bar.
+				// It is essential that this is set!
+				// This information cannot easily be pulled from the tree,
+				// so it is just set here so that the legend will be labeled with "Max = XXX.XX", or such.
 				layerCanvas[isym].setLegendText( layerClassJLabel[isym].getText());
 	
-				// This data is used when drawing the legend on 
-				// the map later, so it's important that it be set
+				// This data is used when drawing the legend on the map later, so it's important that it be set.
 				symNode.setData(layerCanvas[isym]);
 				addNode(symNode, node);	
 			}
 			else {	
-				// Multiple legend items need to be drawn...
+				// Multiple legend items need to be drawn.
 				int numclass = symbol.getNumberOfClassifications();
 				layerCanvas = new GeoLayerViewLegendJComponent[numclass];
 				layerClassJLabel = new JLabel[numclass];
@@ -536,7 +449,7 @@ public void addLayerView(GeoLayerView layerView, int count) {
 						1, ++y, 1, 1, 0, 0,
 						insets_none, GridBagConstraints.NONE,
 						GridBagConstraints.SOUTH);
-					// Add a label for the classification...
+					// Add a label for the classification.
 					layerClassJLabel[i] = new JLabel(symbol.getClassificationLabel(i));
 					layerClassJLabel[i].setBackground(getBackground());
 					JGUIUtil.addComponent (panel,
@@ -575,32 +488,19 @@ public void emptyTree() {
 }
 
 /**
-Clean up for garbage collection.
-*/
-public void finalize()
-throws Throwable {
-	__projectNode = null;
-	__layerPopup = null;
-	__treePopup = null;
-	__theGeoViewJPanel = null;
-	__projectNodePopup = null;
-	__animatedPopup = null;
-	super.finalize();
-}
-
-/**
-Returns a list of all the nodes that contain layer information (i.e., 
-are GeoViewLegendJTree_Nodes), but not the project node.
+Returns a list of all the nodes that contain layer information (i.e., are GeoViewLegendJTree_Nodes),
+but not the project node.
 @return a list of the nodes with layer information.
 */
-public List getAllLayerNodes() {
-	List v = new Vector();
+public List<GeoViewLegendJTree_Node> getAllLayerNodes() {
+	List<GeoViewLegendJTree_Node> v = new ArrayList<>();
 
 	if (__projectNode != null) {
 		if (__projectNode.getChildCount() >= 0) {
-			for (Enumeration e = __projectNode.children(); 
+			for ( @SuppressWarnings("unchecked")
+			Enumeration<GeoViewLegendJTree_Node> e = __projectNode.children();
 				e.hasMoreElements();) {
-				SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
+				GeoViewLegendJTree_Node n = (GeoViewLegendJTree_Node)e.nextElement();
 				getAllLayerNodes(n, v);
 			}
 		}		
@@ -610,39 +510,42 @@ public List getAllLayerNodes() {
 
 /**
 Utility method used by getAllLayerNodes()
-@param node the node to check to see if to add to the Vector
-@param v the Vector to which to add the nodes.
+@param node the node to check to see if to add to the list
+@param v the list to which to add the nodes.
 */
-private void getAllLayerNodes(SimpleJTree_Node node, List<SimpleJTree_Node> v) {
+private void getAllLayerNodes(GeoViewLegendJTree_Node node, List<GeoViewLegendJTree_Node> v) {
 	if (node instanceof GeoViewLegendJTree_Node) {
 		v.add(node);
 	}
 	if (node.getChildCount() >= 0) {
-		for (Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
-			SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
+		for (@SuppressWarnings("unchecked")
+		Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
+			GeoViewLegendJTree_Node n = (GeoViewLegendJTree_Node)e.nextElement();
 			getAllLayerNodes(n, v);
 		}
 	}	
 }
 
 /**
-Returns a lsit of all the nodes that contain layer information (i.e., 
-are GeoViewLegendJTree_Nodes), but not the project node.
+Returns a list of all the nodes that contain layer information (i.e., are GeoViewLegendJTree_Nodes),
+but not the project node.
 @return a list of the nodes with layer information.
 */
-public List<SimpleJTree_Node> getAllNodes() {
-	List<SimpleJTree_Node> v = new Vector<SimpleJTree_Node>();
+public List<GeoViewLegendJTree_Node> getAllNodes() {
+	List<GeoViewLegendJTree_Node> v = new ArrayList<>();
 
 	if (__projectNode == null || __projectNode.getChildCount() <= 0) {
 		return v;
 	}
 
-	SimpleJTree_Node node = null;
+	GeoViewLegendJTree_Node node = null;
 
-	for (Enumeration<SimpleJTree_Node> e = __projectNode.children(); e.hasMoreElements();) {
+	for (@SuppressWarnings("unchecked")
+	Enumeration<GeoViewLegendJTree_Node> e = __projectNode.children(); e.hasMoreElements();) {
 		node = e.nextElement();	
 		v.add(node);
-		for (Enumeration<SimpleJTree_Node> e2 = node.children(); e2.hasMoreElements();) {
+		for (@SuppressWarnings("unchecked")
+		Enumeration<GeoViewLegendJTree_Node> e2 = node.children(); e2.hasMoreElements();) {
 			v.add(e2.nextElement());
 		}
 	}
@@ -662,21 +565,22 @@ Returns the names of all the layers in the JTree.
 @param visibleOnly whether to only return the names of the visible layers.
 @return a list (guaranteed to be non-null) with the names of the specified kind of layers.
 */
+@SuppressWarnings("rawtypes")
 public List[] getLayersNamesAndNodes(boolean visibleOnly) {
-	List allNodes = getAllLayerNodes();
-	List layers = new Vector();
-	List names = new Vector();
-	List matchNodes = new Vector();
+	List<GeoViewLegendJTree_Node> allNodes = getAllLayerNodes();
+	List<GeoLayerView> layers = new ArrayList<>();
+	List<String> names = new ArrayList<>();
+	List<GeoViewLegendJTree_Node> matchNodes = new ArrayList<>();
 	for (int i = 0; i < allNodes.size(); i++) {
 		GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)allNodes.get(i);
 		if (((visibleOnly && node.isCheckBoxSelected()) || (!visibleOnly))) {
-		   	layers.add(node.getData());
+		   	layers.add((GeoLayerView)node.getData());
 			names.add(node.getFieldText());
 			matchNodes.add(node);
 		}
 	}
-	List[] vectors = { layers, names, matchNodes };
-	return vectors;
+	List[] lists = { layers, names, matchNodes };
+	return lists;
 }
 
 /**
@@ -684,8 +588,8 @@ Returns the names of all the layers in the JTree.
 @param visibleOnly whether to only return the names of the visible layers.
 @return a list (guaranteed to be non-null) with the names of the specified kind of layers.
 */
-public List getLayerNames(boolean visibleOnly) {
-	List allNodes = getAllLayerNodes();
+public List<String> getLayerNames(boolean visibleOnly) {
+	List<GeoViewLegendJTree_Node> allNodes = getAllLayerNodes();
 	List<String> names = new Vector<String>();
 	for (int i = 0; i < allNodes.size(); i++) {
 		GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)allNodes.get(i);
@@ -709,18 +613,18 @@ public int getNumLegend() {
 
 /**
 Return the list of application layer views that are selected in the legend.
-@return a list of application layer types (Strings) that are selected in the
-legend.  The list can be of zero size.
+@return a list of application layer types (Strings) that are selected in the legend.
+The list can be of zero size.
 Currently the list is not sorted and duplicates and blanks may be present.
-@param visibleOnly If true only return app layer types that are visible and
-selected.  If false, return selected app layer types, whether visible or not.
+@param visibleOnly If true only return app layer types that are visible and selected.
+If false, return selected app layer types, whether visible or not.
 */
 public List<String> getSelectedAppLayerTypes(boolean visibleOnly) {
-	List allNodes = getAllLayerNodes();
-	List<String> appLayerTypes = new Vector<String>();
+	List<GeoViewLegendJTree_Node> allNodes = getAllLayerNodes();
+	List<String> appLayerTypes = new ArrayList<>();
 	for (int i = 0; i < allNodes.size(); i++) {
 		GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)allNodes.get(i);
-		if (((visibleOnly && node.isCheckBoxSelected()) 
+		if (((visibleOnly && node.isCheckBoxSelected())
 		   || (!visibleOnly)) && node.isTextSelected()) {
 			GeoLayerView layerView = (GeoLayerView)node.getData();
 			appLayerTypes.add(layerView.getLayer().getAppLayerType());
@@ -731,13 +635,13 @@ public List<String> getSelectedAppLayerTypes(boolean visibleOnly) {
 
 /**
 Return the list of layer views that are selected in the legend.
-@return a Vector of layer views that are selected in the legend.  The list can be of zero size.
+@return a list of layer views that are selected in the legend. The list can be of zero size.
 @param visibleOnly If true only return layers that are visible and selected.
 If false, return selected layers, whether visible or not.
 */
 public List<GeoLayerView> getSelectedLayerViews(boolean visibleOnly) {
-	List allNodes = getAllLayerNodes();
-	List <GeoLayerView>appLayerTypes = new Vector<GeoLayerView>();
+	List<GeoViewLegendJTree_Node> allNodes = getAllLayerNodes();
+	List <GeoLayerView>appLayerTypes = new ArrayList<>();
 	for (int i = 0; i < allNodes.size(); i++) {
 		GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)allNodes.get(i);
 		if (((visibleOnly && node.isCheckBoxSelected()) || (!visibleOnly)) && node.isTextSelected()) {
@@ -754,7 +658,7 @@ Checks to see if the specified layer is visible.
 @return true if the layer is visible, false if not.
 */
 public boolean isLayerVisible(int num) {
-	List allNodes = getAllLayerNodes();
+	List<GeoViewLegendJTree_Node> allNodes = getAllLayerNodes();
 	GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)allNodes.get(num);
 	if (node.isCheckBoxSelected()) {
 		return true;
@@ -768,7 +672,7 @@ Checks to see if the layer with the given name is visible.
 @return true if the layer is visible, false if not.
 */
 public boolean isLayerVisible(String name) {
-	List allNodes = getAllLayerNodes();
+	List<GeoViewLegendJTree_Node> allNodes = getAllLayerNodes();
 	for (int i = 0; i < allNodes.size(); i++) {
 		GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)allNodes.get(i);
 		if (node.getFieldText().equals(name) && node.isCheckBoxSelected()) {
@@ -779,8 +683,8 @@ public boolean isLayerVisible(String name) {
 }
 
 /**
-Respond to item state changed events.  These happen when the checkbox for
-a layer is selected or deselected.
+Respond to item state changed events.
+These happen when the checkbox for a layer is selected or deselected.
 @param event the ItemEvent that happened.
 */
 public void itemStateChanged(ItemEvent event) {
@@ -789,18 +693,18 @@ public void itemStateChanged(ItemEvent event) {
 		select = true;
 	}
 
-	// Mark the node as selected, and also select (or deselect) all
-	// its immediate children nodes.
-	SimpleJTree_Node node = (SimpleJTree_Node)event.getItemSelectable();
+	// Mark the node as selected, and also select (or deselect) all its immediate children nodes.
+	GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)event.getItemSelectable();
 	if (node instanceof GeoViewLegendJTree_Node) {
 		GeoLayerView layerView = (GeoLayerView)node.getData();
 		if (layerView != null) {		
 			layerView.isVisible(select);
 		}
 	}	
+	@SuppressWarnings("rawtypes")
 	Enumeration e = getChildren(node);
 	for (; e.hasMoreElements();) {
-		SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
+		SimpleJTree_Node n = (GeoViewLegendJTree_Node)e.nextElement();
 
 		if (n instanceof GeoViewLegendJTree_Node) {
 			((GeoViewLegendJTree_Node)n).setCheckBoxSelected(select);
@@ -809,7 +713,7 @@ public void itemStateChanged(ItemEvent event) {
 		}
 	}
 
-	// redraw the map according to the new settings
+	// Redraw the map according to the new settings.
 	boolean waitState = JGUIUtil.getWaitCursor();
 	JGUIUtil.setWaitCursor(__theGeoViewJPanel.getParentJFrame(), true);
 	__theGeoViewJPanel.setWaitCursorAfterRepaint(waitState);
@@ -822,7 +726,7 @@ Determines whether the popup menu should be shown based on data in the MouseEven
 @param e the MouseEvent that happened.
 */
 private void maybeShowPopup(MouseEvent e) {
-	if (__treePopup != null && __treePopup.isPopupTrigger(e)) {
+	if ( (__treePopup != null) && __treePopup.isPopupTrigger(e)) {
 		__treePopup.show(e.getComponent(), e.getX(), e.getY());
 	}
 }
@@ -831,31 +735,36 @@ private void maybeShowPopup(MouseEvent e) {
 Responds to mouse clicked events; does nothing.
 @param event the MouseEvent that happened.
 */
-public void mouseClicked (MouseEvent event) {}
+public void mouseClicked (MouseEvent event) {
+}
 
 /**
 Responds to mouse dragged events; does nothing.
 @param event the MouseEvent that happened.
 */
-public void mouseDragged(MouseEvent event) {}
+public void mouseDragged(MouseEvent event) {
+}
 
 /**
 Responds to mouse entered events; does nothing.
 @param event the MouseEvent that happened.
 */
-public void mouseEntered(MouseEvent event) {}
+public void mouseEntered(MouseEvent event) {
+}
 
 /**
 Responds to mouse exited events; does nothing.
 @param event the MouseEvent that happened.
 */
-public void mouseExited(MouseEvent event) {}
+public void mouseExited(MouseEvent event) {
+}
 
 /**
 Responds to mouse moved events; does nothing.
 @param event the MouseEvent that happened.
 */
-public void mouseMoved(MouseEvent event) {}
+public void mouseMoved(MouseEvent event) {
+}
 
 /**
 Responds to mouse pressed events and sees if the popup should be shown.
@@ -874,8 +783,9 @@ public void mouseReleased(MouseEvent event) {
 }
 
 /**
-Remove all layer views from the legend.  This should be called when clearing
-the GeoViewJPanel of all data.  The GeoViewLegendJTree will have no memory of its previous contents.
+Remove all layer views from the legend.
+This should be called when clearing the GeoViewJPanel of all data.
+The GeoViewLegendJTree will have no memory of its previous contents.
 */
 public void removeAllLayerViews () {
 	emptyTree();	
@@ -903,17 +813,17 @@ public void removeLayerView(GeoLayerView layerView_to_remove) {
 }
 
 /**
-Sets whether a layer should be visible or not.  If the layer is turned off,
-it will be deselected in the tree and not drawn on the map.
+Sets whether a layer should be visible or not.
+If the layer is turned off, it will be deselected in the tree and not drawn on the map.
 @param layerView the layer to affect.
 @param visible whether to make the layer visible or not.
 */
 public void setLayerVisible(GeoLayerView layerView, boolean visible) {
-	List allNodes = getAllLayerNodes();
+	List<GeoViewLegendJTree_Node> allNodes = getAllLayerNodes();
 	GeoLayerView layer = null;
 	GeoViewLegendJTree_Node node = null;
 	for (int i = 0; i < allNodes.size(); i++) {
-		node = (GeoViewLegendJTree_Node)allNodes.get(i);
+		node = allNodes.get(i);
 		layer = (GeoLayerView)node.getData();
 		if (layer == layerView) {
 			node.setVisible(visible);
@@ -938,7 +848,7 @@ public void setProjectNodeText(String name) {
 			__projectNode.setCheckBoxSelected(true);
 			replaceNode("Project Node Name", __projectNode);
 		}
-	} 
+	}
 	catch (Exception e) {
 		Message.printWarning(1, "GeoViewLegendJTree.setProjectNodeText", "Error setting project node text.");
 		Message.printWarning(2, "GeoViewLegendJTree.setProjectNodeText", e);
@@ -949,11 +859,12 @@ public void setProjectNodeText(String name) {
 Updates the geo view JPanel's button state depending on whether any of the layers are selected or not.
 */
 public void updateGeoViewJPanelButtons() {
-	// Count how many children of the projectNode are selected
-	// and if more than 0, tell the GeoViewJPanel to update how the buttons are enabled or not
+	// Count how many children of the projectNode are selected and if more than 0,
+	// tell the GeoViewJPanel to update how the buttons are enabled or not.
+	@SuppressWarnings("rawtypes")
 	Enumeration e = getChildren(__projectNode);
 	for (; e.hasMoreElements();) {
-		SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
+		GeoViewLegendJTree_Node n = (GeoViewLegendJTree_Node)e.nextElement();
 
 		if (n instanceof GeoViewLegendJTree_Node) {
 			if (((GeoViewLegendJTree_Node)n).isSelected()) {
