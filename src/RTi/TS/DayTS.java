@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -78,8 +78,9 @@ import RTi.Util.Time.TimeUtil;
 import RTi.Util.Time.YearType;
 
 /**
-The DayTS class is the base class for daily time series.  The class can be
-extended for variations on daily data.  Override the allocateDataSpace() and set/get methods to do so.
+The DayTS class is the base class for daily time series.
+The class can be extended for variations on daily data.
+Override the allocateDataSpace() and set/get methods to do so.
 */
 @SuppressWarnings("serial")
 public class DayTS extends TS implements Cloneable, Serializable, Transferable {
@@ -100,16 +101,16 @@ protected int _row, // Row position in data.
 /**
 Constructor.
 */
-public DayTS ()
-{	super ();
+public DayTS () {
+	super ();
 	init();
 }
 
 /**
 Copy constructor.  Everything is copied by calling copyHeader() and then copying the data values.
 */
-public DayTS ( DayTS ts )
-{	if ( ts == null ) {
+public DayTS ( DayTS ts ) {
+	if ( ts == null ) {
 		return;
 	}
 	copyHeader ( ts );
@@ -122,13 +123,12 @@ public DayTS ( DayTS ts )
 }
 
 /**
-Copy constructor that can convert an HourTS to a DayTS.  Everything is copied 
-by calling copyHeader() and then copying the data values.<p>
-<b>Note:</b> Currently assumes that the interval is 24Hour, and offers no 
-support for other HourTS intervals.
+Copy constructor that can convert an HourTS to a DayTS.
+Everything is copied by calling copyHeader() and then copying the data values.<p>
+<b>Note:</b> Currently assumes that the interval is 24Hour, and offers no support for other HourTS intervals.
 */
-public DayTS ( HourTS ts )
-{	if ( ts == null ) {
+public DayTS ( HourTS ts ) {
+	if ( ts == null ) {
 		return;
 	}
 	copyHeader ( ts );
@@ -155,29 +155,29 @@ public DayTS ( HourTS ts )
 		setIdentifier(tsid);
 	}
 	catch (Exception e) {
-		// this ought never to happen
+		// This should never happen.
 		Message.printWarning(2, "DayTS.constructor", "Error setting Time Series Idnetifier: " + tsid);
 		Message.printWarning(3, "DayTS.constructor", e);
 	}
 }
 
 /**
-Allocate the data flag space for the time series.  This requires that the data
-interval base and multiplier are set correctly and that _date1 and _date2 have
-been set.  The allocateDataSpace() method will allocate the data flags if
-appropriate.  Use this method when the data flags need to be allocated after the initial allocation.
+Allocate the data flag space for the time series.
+This requires that the data interval base and multiplier are set correctly and that _date1 and _date2 have been set.
+The allocateDataSpace() method will allocate the data flags if appropriate.
+Use this method when the data flags need to be allocated after the initial allocation.
 @param initialValue Initial value (null is allowed and will result in the flags being initialized to spaces).
-@param retainPreviousValues If true, the array size will be increased if necessary, but
-previous data values will be retained.  If false, the array will be reallocated and initialized to spaces.
+@param retainPreviousValues If true, the array size will be increased if necessary, but previous data values will be retained.
+If false, the array will be reallocated and initialized to spaces.
 @exception Exception if there is an error allocating the memory.
 */
 public void allocateDataFlagSpace (	String initialValue, boolean retainPreviousValues )
-throws Exception
-{	String	routine="DayTS.allocateDataFlagSpace", message;
+throws Exception {
+	String	routine="DayTS.allocateDataFlagSpace", message;
 	int	i;
 
 	if ( (_date1 == null) || (_date2 == null) ) {
-		message ="Dates have not been set.  Cannot allocate data space";
+		message ="Dates have not been set.  Cannot allocate data space.";
 		Message.printWarning ( 2, routine, message );
 		throw new Exception ( message );
 	}
@@ -212,8 +212,8 @@ throws Exception
 	// Top-level allocation.
 	_dataFlags = new String[nmonths][];
 
-	// Set the counter date to match the starting month.  This date is used
-	// to determine the number of days in each month.
+	// Set the counter date to match the starting month.
+	// This date is used to determine the number of days in each month.
 
 	DateTime date = new DateTime(DateTime.DATE_FAST);
 	date.setMonth( _date1.getMonth() );
@@ -257,11 +257,12 @@ throws Exception
 }
 
 /**
-Allocate the data space for the time series.  The start and end dates and the
-data interval multiplier must have been set.  Initialize the space with the missing data value.
+Allocate the data space for the time series.
+The start and end dates and the data interval multiplier must have been set.
+Initialize the space with the missing data value.
 */
-public int allocateDataSpace()
-{	return allocateDataSpace ( _missing );
+public int allocateDataSpace() {
+	return allocateDataSpace ( _missing );
 }
 
 /**
@@ -269,8 +270,8 @@ Allocate the data space.  The start and end dates and the interval multiplier sh
 @param value The value to initialize the time series.
 @return 0 if successful, 1 if failure.
 */
-public int allocateDataSpace ( double value )
-{	String	routine = "DayTS.allocateDataSpace";
+public int allocateDataSpace ( double value ) {
+	String	routine = "DayTS.allocateDataSpace";
 	int	ndays_in_month, nmonths=0, nvals;
 
 	if ( (_date1 == null) || (_date2 == null) ) {
@@ -295,10 +296,10 @@ public int allocateDataSpace ( double value )
 		_dataFlags = new String[nmonths][];
 	}
 
-	// May need to catch an exception here in case we run out of memory.
+	// May need to catch an exception here in case run out of memory.
 
-	// Set the counter date to match the starting month.  This date is used
-	// to determine the number of days in each month.
+	// Set the counter date to match the starting month.
+	// This date is used to determine the number of days in each month.
 
 	DateTime date = new DateTime ( DateTime.DATE_FAST );
 	date.setMonth( _date1.getMonth() );
@@ -340,14 +341,13 @@ public int allocateDataSpace ( double value )
 
 /**
 Determine the number of points between two dates for the given interval multiplier.
-@return The number of data points for a day time series
-given the data interval multiplier for the specified period.
+@return The number of data points for a day time series given the data interval multiplier for the specified period.
 @param start_date The first date of the period.
 @param end_date The last date of the period.
 @param interval_mult The time series data interval multiplier.
 */
-public static int calculateDataSize ( DateTime start_date, DateTime end_date, int interval_mult )
-{	String routine = "DayTS.calculateDataSize";
+public static int calculateDataSize ( DateTime start_date, DateTime end_date, int interval_mult ) {
+	String routine = "DayTS.calculateDataSize";
 	int datasize = 0;
 
 	if ( start_date == null ) {
@@ -377,18 +377,19 @@ public static int calculateDataSize ( DateTime start_date, DateTime end_date, in
 }
 
 /**
-Change the period of record to the specified dates.  If the period is extended,
-missing data will be used to fill the time series.  If the period is shortened, data will be lost.
+Change the period of record to the specified dates.
+If the period is extended, missing data will be used to fill the time series.
+If the period is shortened, data will be lost.
 @param date1 New start date of time series.
 @param date2 New end date of time series.
 @exception RTi.TS.TSException if there is a problem extending the data.
 */
 public void changePeriodOfRecord ( DateTime date1, DateTime date2 )
-throws TSException
-{	String routine="DayTS.changePeriodOfRecord";
+throws TSException {
+	String routine="DayTS.changePeriodOfRecord";
 	String message;
 
-	// To transfer, we need to allocate a new data space.  In any case, need to get the dates established.
+	// To transfer, need to allocate a new data space.  In any case, need to get the dates established.
 	if ( (date1 == null) && (date2 == null) ) {
 		// No dates.  Cannot change.
 		message = "\"" + _id + "\": period dates are null.  Cannot change the period.";
@@ -422,9 +423,8 @@ throws TSException
 		return;
 	}
 
-	// To transfer the data (later), get the old position and then set in
-	// the new position.  To get the right data position, declare a
-	// temporary DayTS with the old dates and save a reference to the old data.
+	// To transfer the data (later), get the old position and then set in the new position.
+	// To get the right data position, declare a temporary DayTS with the old dates and save a reference to the old data.
 
 	double [][] data_save = _data;
 	String [][] dataFlagsSave = _dataFlags;
@@ -466,49 +466,43 @@ throws TSException
 	// To do so, get the old position and then set in the new position.
 	// Are only concerned with transferring the values for the the old time series that are within the new period.
 
-	int column, row, temp_ts_am1 = temp_ts.getDate1().getAbsoluteMonth();
-	boolean internDataFlagStrings = getInternDataFlagStrings();
-	for ( DateTime date = new DateTime (transfer_date1,DateTime.DATE_FAST);
-		date.lessThanOrEqualTo (transfer_date2);
-		date.addInterval( _data_interval_base, _data_interval_mult ) ) {
-		// Get the data position for the old data.
-		row = date.getAbsoluteMonth() - temp_ts_am1;
-       	column = date.getDay() - 1;	// Zero offset.
-		// Also transfer the data flag.
-		if ( _has_data_flags ) {
-			// Transfer the value and flag.
-		    if ( internDataFlagStrings ) {
-		        setDataValue ( date, data_save[row][column], dataFlagsSave[row][column].intern(), 1 );
-		    }
-		    else {
-		        setDataValue ( date, data_save[row][column], dataFlagsSave[row][column], 1 );
-		    }
-		}
-		else {
-		    // Transfer the value.
-			setDataValue ( date, data_save[row][column] );
+	if ( data_save != null ) {
+		// It is possible that no original data array exists, in which case there is no data to transfer.
+		int column, row, temp_ts_am1 = temp_ts.getDate1().getAbsoluteMonth();
+		boolean internDataFlagStrings = getInternDataFlagStrings();
+		for ( DateTime date = new DateTime (transfer_date1,DateTime.DATE_FAST);
+			date.lessThanOrEqualTo (transfer_date2);
+			date.addInterval( _data_interval_base, _data_interval_mult ) ) {
+			// Get the data position for the old data.
+			row = date.getAbsoluteMonth() - temp_ts_am1;
+       		column = date.getDay() - 1;	// Zero offset.
+			// Also transfer the data flag.
+			if ( _has_data_flags ) {
+				// Transfer the value and flag.
+		    	if ( internDataFlagStrings ) {
+		        	setDataValue ( date, data_save[row][column], dataFlagsSave[row][column].intern(), 1 );
+		    	}
+		    	else {
+		        	setDataValue ( date, data_save[row][column], dataFlagsSave[row][column], 1 );
+		    	}
+			}
+			else {
+		    	// Transfer the value.
+				setDataValue ( date, data_save[row][column] );
+			}
 		}
 	}
 
 	// Add to the genesis.
 
-	addToGenesis ( "Changed period from: " + temp_ts.getDate1() + " - " +
-		temp_ts.getDate2() + " to " + new_date1 + " - " + new_date2 );
-	routine = null;
-	message = null;
-	new_date1 = null;
-	new_date2 = null;
-	temp_ts = null;
-	transfer_date1 = null;
-	transfer_date2 = null;
-	data_save = null;
+	addToGenesis ( "Changed period from: " + temp_ts.getDate1() + " - " + temp_ts.getDate2() + " to " + new_date1 + " - " + new_date2 );
 }
 
 /**
 Clone the object.  Similar to a copy constructor but can be used polymorphically.
 */
-public Object clone ()
-{	DayTS ts = (DayTS)super.clone();
+public Object clone () {
+	DayTS ts = (DayTS)super.clone();
 	// Does not seem to work.
 	//ts._data = (double[][])_data.clone();
 	//ts._pos = (int[])_pos.clone();
@@ -552,17 +546,17 @@ Finalize before garbage collection.
 @exception Throwable if there is an error.
 */
 protected void finalize()
-throws Throwable
-{	_data = null;
+throws Throwable {
+	_data = null;
 	_dataFlags = null;
 	_pos = null;
 	super.finalize();
 }
 
 /**
-Format the time series for output.  This is not meant to be used for time
-series conversion but to produce a general summary of the output.  At this time,
-daily time series are always output in a matrix summary format.
+Format the time series for output.
+This is not meant to be used for time series conversion but to produce a general summary of the output.
+At this time, daily time series are always output in a matrix summary format.
 @return list of strings that can be displayed, printed, etc.
 @param proplist Properties of the output, as described in the following table:
 
@@ -590,11 +584,10 @@ daily time series are always output in a matrix summary format.
 <td><b>Format</b></td>
 <td>The overall format of the output.  Can be either "Summary" for a matrix
 similar to the USGS flow data reports or "Spreadsheet" for a delimited
-file suitable for a spreadsheet (see the "Delimiter" property).  At this time,
-the determination of whether total or average annual values are shown is made
-based on units.  AF, ACFT, IN, INCH, FEET, and FOOT are treated as totals and
-all others as averages.  A more rigorous handling is being implemented to
-use the units dimension to determine totals, etc.</td>
+file suitable for a spreadsheet (see the "Delimiter" property).
+At this time, the determination of whether total or average annual values are shown is made based on units.
+AF, ACFT, IN, INCH, FEET, and FOOT are treated as totals and all others as averages.
+A more rigorous handling is being implemented to use the units dimension to determine totals, etc.</td>
 <td>Summary</td>
 </tr>
 
@@ -636,20 +629,20 @@ Available Period        = 1924-01 to 1995-12
 
 <tr>
 <td><b>PrintComments</b></td>
-<td>Print the comments associated with the time series.  This may contain
-information about the quality of data, station information, etc.  This
-information is usually variable-length text, and may not be available.
+<td>Print the comments associated with the time series.
+This may contain information about the quality of data, station information, etc.
+This information is usually variable-length text, and may not be available.
 </td>
 <td>true</td>
 </tr>
 
 <tr>
 <td><b>PrintAllStats</b></td>
-<td>Print all the statistics (currently maximum, minimum, and mean, although
-standard deviation and others are being added).  Because statistics are being
-added to output, it is advised that if formatting is to remain the same over
-time, that output items be individually specified.  One way of doing this is
-to turn all the statistics off and then turn specific items on (to true).
+<td>Print all the statistics (currently maximum, minimum, and mean,
+although standard deviation and others are being added).
+Because statistics are being added to output, it is advised that if formatting is to remain the same over time,
+that output items be individually specified.
+One way of doing this is to turn all the statistics off and then turn specific items on (to true).
 </td>
 <td>false</td>
 </tr>
@@ -691,8 +684,8 @@ etc.
 
 <tr>
 <td><b>PrintNotes</b></td>
-<td>Print notes about the output.  This consists of helpful information used
-to understand the output (but does not consist of data).  For example:
+<td>Print notes about the output.
+This consists of helpful information used to understand the output (but does not consist of data).  For example:
 <p>
 <pre>
 Notes:
@@ -706,8 +699,8 @@ Notes:
 
 <tr>
 <td><b>UseCommentsForHeader</b></td>
-<td>Use the time series comments for the header and do not print other header
-information.  This can be used when the entire header is formatted elsewhere.
+<td>Use the time series comments for the header and do not print other header information.
+This can be used when the entire header is formatted elsewhere.
 </td>
 <td>false</td>
 </tr>
@@ -716,15 +709,14 @@ information.  This can be used when the entire header is formatted elsewhere.
 @exception RTi.TS.TSException Throws if there is a problem formatting the output.
 */
 public List<String> formatOutput( PropList proplist )
-throws TSException
-{	String message = "", routine = "DayTS.formatOutput()";	
+throws TSException {
+	String message = "", routine = "DayTS.formatOutput()";	
 	int column, dl = 20, row;
 	List<String> strings = new ArrayList<String>();
 	PropList props = null;
 	String data_format = "%9.1f", format = "", prop_value = null;
 
-	// Only know how to do this for 1-day time series (in the future may
-	// automatically convert to correct interval).
+	// Only know how to do this for 1-day time series (in the future may automatically convert to correct interval).
 
 	if ( _data_interval_mult != 1 ) {
 		message = "Can only do summary for 1-day time series";
@@ -732,10 +724,10 @@ throws TSException
 		throw new TSException ( message );
 	}
 
-	// If the property list is null, allocate one here so we don't have to constantly check for null.
+	// If the property list is null, allocate one here so don't have to constantly check for null.
 
 	if ( proplist == null ) {
-		// Create a PropList so we don't have to check for nulls all the time.
+		// Create a PropList so don't have to check for nulls all the time.
 		props = new PropList ( "formatOutput" );
 	}
 	else {
@@ -845,11 +837,10 @@ throws TSException
 		return strings;
 	}
 	else if ( format.equalsIgnoreCase("Summary") ) {
-		// The default output.  In this case, we produce a matrix like
-		// the one produced by the legacy TSPrintSummaryMatrix.
-		// However, since we now limit the formatting to only daily
-		// time series and the data are already in a daily time step,
-		// we do not have to change interval.
+		// The default output.
+		// In this case, produce a matrix like the one produced by the legacy TSPrintSummaryMatrix.
+		// However, since now limit the formatting to only daily
+		// time series and the data are already in a daily time step, do not have to change interval.
 
 		// Print the header for the matrix.
 
@@ -1009,8 +1000,8 @@ throws TSException
 			month_to_start = 10;
 			month_to_end = 9;
 		}
-		// Calculate the number of years...
-		// up with the same month as the start month.
+		// Calculate the number of years.
+		// Line up with the same month as the start month.
 		int num_years = (end_date.getAbsoluteMonth() - start_date.getAbsoluteMonth() + 1)/12;
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, routine, "Printing " + num_years + " years of summary for " +
@@ -1020,11 +1011,11 @@ throws TSException
 		double data[][] = new double[31][12];
 
 		// Now loop through the time series and transfer to the proper location in the matrix.
-		// Since days are vertical, cannot print any results until we have completed a month.
+		// Since days are vertical, cannot print any results until have completed a month.
 		double data_value;
 		DateTime date = new DateTime(start_date,DateTime.DATE_FAST);
 		StringBuffer buffer = null;
-		// We have adjusted the dates above, so we always start in column 0 (first day of first month in year).
+		// We have adjusted the dates above, so always start in column 0 (first day of first month in year).
 		column = 0;
 		row = 0;
 		double missing = getMissing();
@@ -1035,7 +1026,7 @@ throws TSException
 				Message.printDebug ( dl, routine, "Processing " + date.toString(DateTime.FORMAT_YYYY_MM_DD) +
 				" row:" + row + " column:" + column );
 			}
-			// Figure out if this is a new year.  If so, we reset the headers, etc.
+			// Figure out if this is a new year.  If so, reset the headers, etc.
 			day = date.getDay();
 			month = date.getMonth();
 			if ( day == 1 ) {
@@ -1141,7 +1132,7 @@ throws TSException
 				strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 				// Now do the statistics.  Loop through each column.
-				// First check to see if all statistics should be printed (can be dangerous if we add new statistics).
+				// First check to see if all statistics should be printed (can be dangerous if add new statistics).
 				prop_value = props.getValue ( "PrintAllStats" );
 				String print_all_stats = null;
 				if ( prop_value == null ) {
@@ -1251,8 +1242,8 @@ Format the time series for output.
 @exception RTi.TS.TSException Throws if there is an error writing the output.
 */
 public List<String> formatOutput ( PrintWriter fp, PropList props )
-throws TSException
-{	List<String> formatted_output = null;
+throws TSException {
+	List<String> formatted_output = null;
 	String routine = "DayTS.formatOutput(Writer,props)";
 	int	dl = 20;
 	String message;
@@ -1300,8 +1291,8 @@ Format the time series for output.
 @exception RTi.TS.TSException Throws if there is an error writing the output.
 */
 public List<String> formatOutput ( String fname, PropList props )
-throws TSException
-{	String message = null;
+throws TSException {
+	String message = null;
 	//String routine = "DayTS.formatOutput";
 	List<String> formatted_output = null;
 	PrintWriter	stream = null;
@@ -1327,7 +1318,7 @@ throws TSException
 		throw e;
 	}
 
-	// Also return the list
+	// Also return the list.
 
 	return formatted_output;
 }
@@ -1338,8 +1329,8 @@ Format the output statistics row given the data array.
 @param label Label for statistics row (e.g., "Mean").
 @param data_format Format for individual floating point values.
 */
-private List<String> formatOutputStats ( double[][] data, String label, String data_format )
-{	List<String> strings = new ArrayList<String>();
+private List<String> formatOutputStats ( double[][] data, String label, String data_format ) {
+	List<String> strings = new ArrayList<>();
 	double stat = 0.0;
 	StringBuffer buffer = null;
 	double [] array = new double[31];
@@ -1401,7 +1392,7 @@ Return the data point corresponding to the date.
   		     |----------------> days
   		     |
   		    \|/
-  		   month 
+  		   month
 
 </pre>
 If the date is outside the data period, the object will be filled with missing data value and empty flag.
@@ -1425,7 +1416,7 @@ public TSData getDataPoint ( DateTime date, TSData tsdata ) {
 		tsdata.setValues ( date, _missing, _data_units, "", 0 );
 		return tsdata;
 	}
-	getDataPosition ( date );	// This computes _row and _column
+	getDataPosition ( date );	// This computes _row and _column.
 	if ( _has_data_flags ) {
 	    if ( _internDataFlagStrings ) {
 	        tsdata.setValues ( date, getDataValue(date), _data_units, _dataFlags[_row][_column].intern(), 0 );
@@ -1448,14 +1439,14 @@ and is reused for each call.  Copy the values to make persistent.
   		     |----------------> days
   		     |
   		    \|/
-  		   month 
+  		   month
 
 </pre>
 @return The data position corresponding to the date.
 @param date Date of interest.
 */
-private int [] getDataPosition ( DateTime date )
-{	// Do not define the routine or debug level here so we can optimize.
+private int [] getDataPosition ( DateTime date ) {
+	// Do not define the routine or debug level here so can optimize.
 
 	// Note that unlike HourTS, do not need to check the time zone!
 
@@ -1474,8 +1465,8 @@ private int [] getDataPosition ( DateTime date )
 
 	_row = date.getAbsoluteMonth() - _date1.getAbsoluteMonth();
 
-    // Calculate the column position of the data. We know that Daily data
-    // is stored in a 2 dimensional array with the column being the daily data by interval.
+    // Calculate the column position of the data.
+	// Daily data is stored in a 2 dimensional array with the column being the daily data by interval.
 
     _column = date.getDay() - 1;
 	if ( Message.isDebugOn ) {
@@ -1494,15 +1485,15 @@ Return the data value for a date.
   		     |----------------> days
   		     |
   		    \|/
-  		   month 
+  		   month
 </pre>
 @return The data value corresponding to the date, or the missing data value if the date is not found.
 @param date Date of interest.
 */
-public double getDataValue( DateTime date )
-{	// Do not define routine here to improve performance.
+public double getDataValue( DateTime date ) {
+	// Do not define routine here to improve performance.
 
-	// Check the date coming in 
+	// Check the date coming in.
 
     if ( (date == null) || !hasData() ) {
         return _missing;
@@ -1523,7 +1514,7 @@ public double getDataValue( DateTime date )
 
 	double value = 0;
 	// FIXME SAM 2010-08-20 Possible to throw exceptions if the date is not the right precision and
-	// illegal math results in negative values in arrays
+	// illegal math results in negative values in arrays.
 	//try {
 	    value = _data[_row][_column];
 	//}
@@ -1535,12 +1526,12 @@ public double getDataValue( DateTime date )
 }
 
 /**
-Returns the data in the specified DataFlavor, or null if no matching flavor
-exists.  From the Transferable interface.  Supported data flavors are:<br>
+Returns the data in the specified DataFlavor, or null if no matching flavor exists
+from the Transferable interface.  Supported data flavors are:<br>
 <ul>
 <li>DayTS - DayTS.class / RTi.TS.DayTS</li>
 <li>TS - TS.class / RTi.TS.TS</li>
-<li>TSIdent - TSIdent.class / RTi.TS.TSIdent</li></ul> 
+<li>TSIdent - TSIdent.class / RTi.TS.TSIdent</li></ul>
 @param flavor the flavor in which to return the data.
 @return the data in the specified DataFlavor, or null if no matching flavor exists.
 */
@@ -1560,7 +1551,7 @@ public Object getTransferData(DataFlavor flavor) {
 }
 
 /**
-Static method to return the flavors in which data can be transferred.  From the Transferable interface.
+Static method to return the flavors in which data can be transferred from the Transferable interface.
 The order of the data flavors that are returned are:<br>
 <ul>
 <li>DayTS - DayTS.class / RTi.TS.DayTS</li>
@@ -1577,18 +1568,17 @@ public DataFlavor[] getTransferDataFlavors() {
 }
 
 /**
-Indicate whether the time series has data, determined by checking to see whether
-the data space has been allocated.  This method can be called after a time
-series has been read - even if no data are available, the header information
-may be complete.  The alternative of returning a null time series from a read
-method if no data are available results in the header information being
-unavailable.  Instead, return a TS with only the header information and call
-hasData() to check to see if the data space has been assigned.
+Indicate whether the time series has data, determined by checking to see whether the data space has been allocated.
+This method can be called after a time series has been read - even if no data are available,
+the header information may be complete.
+The alternative of returning a null time series from a read method
+if no data are available results in the header information being unavailable.
+Instead, return a TS with only the header information and call hasData() to check to see if the data space has been assigned.
 @return true if data are available (the data space has been allocated).
 Note that true will be returned even if all the data values are set to the missing data value.
 */
-public boolean hasData ()
-{	if ( _data != null ) {
+public boolean hasData () {
+	if ( _data != null ) {
 		return true;
 	}
 	else {
@@ -1602,8 +1592,8 @@ the data flag space has been allocated and data flags are enabled for the time s
 @return true if data flags are available (the data flag space has been allocated).
 Note that true will be returned even if all the data flag values are set to the missing data flag value.
 */
-public boolean hasDataFlags ()
-{	if ( _dataFlags != null ) {
+public boolean hasDataFlags () {
+	if ( _dataFlags != null ) {
 		return super.hasDataFlags();
 	}
 	else {
@@ -1614,8 +1604,8 @@ public boolean hasDataFlags ()
 /**
 Initialize data members.
 */
-private void init()
-{	_data = null;
+private void init() {
+	_data = null;
 	_data_interval_base = TimeInterval.DAY;
 	_data_interval_mult = 1;
 	_data_interval_base_original = TimeInterval.DAY;
@@ -1633,7 +1623,7 @@ From the Transferable interface.  Supported dataflavors are:<br>
 <ul>
 <li>DayTS - DayTS.class / RTi.TS.DayTS</li>
 <li>TS - TS.class / RTi.TS.TS</li>
-<li>TSIdent - TSIdent.class / RTi.TS.TSIdent</li></ul> 
+<li>TSIdent - TSIdent.class / RTi.TS.TSIdent</li></ul>
 @param flavor the flavor to check.
 @return true if data can be transferred in the specified flavor, false if not.
 */
@@ -1653,13 +1643,13 @@ public boolean isDataFlavorSupported(DataFlavor flavor) {
 }
 
 /**
-Refresh the derived data (e.g., data limits) if data have been set.  This is
-normally only called from other package routines.
+Refresh the derived data (e.g., data limits) if data have been set.
+This is normally only called from other package routines.
 */
-public void refresh ()
-{	TSLimits limits = null;
+public void refresh () {
+	TSLimits limits = null;
 
-	// If the data is not dirty, then we do not have to refresh the other information.
+	// If the data is not dirty, then do not have to refresh the other information.
 
 	if ( !_dirty ) {
 		if ( Message.isDebugOn ) {
@@ -1695,14 +1685,15 @@ public void refresh ()
 Set the data value for the date.
 @param date Date of interest.
 @param value Data value corresponding to date.
+@param return the number of values set, 0 or 1, useful to know when a value is outside the allocated period
 */
-public void setDataValue( DateTime date, double value )
-{	if( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
+public int setDataValue( DateTime date, double value ) {
+	if( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
 			Message.printWarning( 10, "DayTS.setDataValue",
 			"Date " + date + " is outside bounds " + _date1 + " - " + _date2 );
 		}
-		return;
+		return 0;
 	}
 
 	getDataPosition ( date );
@@ -1711,11 +1702,12 @@ public void setDataValue( DateTime date, double value )
 		Message.printDebug( 30, "DayTS.setDataValue", "Setting " + value + " for " + date + " at " + _row + "," + _column );
 	}
 
-	// Set the dirty flag so that we know to recompute the limits if desired.
+	// Set the dirty flag so that know to recompute the limits if desired.
 
 	_dirty = true;
 
 	_data[_row][_column] = value;
+	return 1;
 }
 
 /**
@@ -1723,15 +1715,15 @@ Set the data value and associated information for the date.
 @param date Date of interest.
 @param value Data value corresponding to date.
 @param data_flag data_flag Data flag for value.
-@param duration Duration for value (ignored - assumed to be 1-day or
-instantaneous depending on data type).
+@param duration Duration for value (ignored - assumed to be 1-day or instantaneous depending on data type).
+@param return the number of values set, 0 or 1, useful to know when a value is outside the allocated period
 */
-public void setDataValue ( DateTime date, double value, String data_flag, int duration )
-{	if ( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
+public int setDataValue ( DateTime date, double value, String data_flag, int duration ) {
+	if ( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
 			Message.printWarning( 10, "DayTS.setDataValue", "Date " + date + " is outside bounds " + _date1 + " - " + _date2 );
 		}
-		return;
+		return 0;
 	}
 
 	getDataPosition ( date );
@@ -1741,24 +1733,24 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 		"Setting " + value + " flag=" + data_flag + " for " + date + " at " + _row + "," + _column );
 	}
 
-	// Set the dirty flag so that we know to recompute the limits if desired.
+	// Set the dirty flag so that know to recompute the limits if desired.
 
 	_dirty = true;
 
 	_data[_row][_column] = value;
 	if ( (data_flag != null) && (data_flag.length() > 0) ) {
 	    if ( !_has_data_flags ) {
-	        // Trying to set a data flag but space has not been allocated, so allocate the flag space
+	        // Trying to set a data flag but space has not been allocated, so allocate the flag space.
 	        try {
 	            allocateDataFlagSpace(null, false );
 	        }
 	        catch ( Exception e ) {
-	            // Generally should not happen - log as debug because could generate a lot of warnings
+	            // Generally should not happen - log as debug because could generate a lot of warnings.
 	            if ( Message.isDebugOn ) {
     	            Message.printDebug(30, "DayTS.setDataValue", "Error allocating data flag space (" + e +
     	                ") - will not use flags." );
 	            }
-	            // Make sure to turn flags off
+	            // Make sure to turn flags off.
 	            _has_data_flags = false;
 	        }
 	    }
@@ -1771,6 +1763,7 @@ public void setDataValue ( DateTime date, double value, String data_flag, int du
 	        _dataFlags[_row][_column] = data_flag;
 	    }
 	}
+	return 1;
 }
 
 }

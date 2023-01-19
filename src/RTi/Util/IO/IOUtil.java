@@ -160,7 +160,7 @@ private static String _command_file ="";
 Program command list.
 TODO SAM (2009-05-06) Evaluate phasing out since command file is managed with processor, not program.
 */
-private static List<String> _command_list=null;
+private static List<String> _command_list = null;
 
 /**
 Host (computer) running the program.
@@ -223,6 +223,13 @@ private static boolean __runningApplet = false;
 Home directory for the application, typically the installation location (e.g., C:\Program Files\Company\AppName).
 */
 private static String __homeDir = null;
+
+/**
+ * List of classpath items (jar files and folders with wildcards).
+ * This is used, for example, to allow code to run a separate Java program using the
+ * application's startup environment.
+ */
+private static List<String> applicationPluginClasspathList = new ArrayList<>();
 
 /**
 Add a PropList to the list managed by the IOUtil PropListManager.
@@ -899,6 +906,14 @@ Normally it is the installation home (e.g., C:\Program Files\RTi\TSTool-Version)
 */
 public static String getApplicationHomeDir() {
 	return __homeDir;
+}
+
+/**
+ * Get the list of application plugin classpath folders.
+ * @return the list of application plugin classpath folders.
+ */
+public static List<String> getApplicationPluginClasspath () {
+	return IOUtil.applicationPluginClasspathList;
 }
 
 /**
@@ -2794,6 +2809,15 @@ public static void setApplicationHomeDir(String homeDir) {
 		}
 		__homeDir = homeDir;
 	}
+}
+
+/**
+ * Set the list of application plugin classpath folders.
+ * @param applicationClasspathList a list of classpath jar files and folders with "/*" that
+ * are dynamically determined from plugins.
+ */
+public static void setApplicationPluginClasspath ( List<String> applicationPluginClasspathList ) {
+	IOUtil.applicationPluginClasspathList = applicationPluginClasspathList;
 }
 
 /**

@@ -431,7 +431,7 @@ optionally including the Irregular time step.  Only evenly divisible choices are
 @param pad_zeros If true, pad the strings with zeros (e.g., "06Hour").
 If false do not pad (e.g., "6Hour").
 @param sort_order Specify zero or 1 to sort ascending (small interval to large), -1 to sort descending.
-@param include_irregular Indicate whether the "Irregular" time step should be included.
+@param include_irregular Indicate whether the "Irregular" interval should be included.
 If included, "Irregular" is always at the end of the list.
 */
 public static List<String> getTimeIntervalChoices ( int startInterval, int endInterval,

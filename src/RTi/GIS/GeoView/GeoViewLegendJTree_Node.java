@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,30 +20,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//-----------------------------------------------------------------------------
-// GeoViewLegendJTree_Node - Convenience class to use when putting ESRI data
-// into a SimpleJTree.
-//-----------------------------------------------------------------------------
-// Copyright: See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// History: 
-//
-// 2003-05-12	J. Thomas Sapienza, RTI	Initial version
-// 2003-05-13	JTS, RTi		Added support for popup menus
-// 2003-05-14	JTS, RTi		* Text field selection works
-//					* Lots of javadoc'ing.
-// 2003-05-21	JTS, RTi		Layers were not being selected when the
-//					nodes were selected; fixed that.
-// 2003-05-22	JTS, RTi		* Added isSelected/setSelected/
-//					  isVisible/setVisible.
-//					* Added getLayerView
-// 2004-09-16	JTS, RTi		Changed the call of isPopupTrigger to
-//					use the one in the JPopupMenu.
-// 2004-10-14	JTS, RTi		Added getFieldText().
-// 2005-04-27	JTS, RTi		Added finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
 
 package RTi.GIS.GeoView;
 
@@ -78,16 +54,16 @@ import RTi.Util.Message.Message;
 
 /**
 This class is a convenience class for displaying CheckBox and label information
-in a Tree similar to how ESRI handles its Table of Contents tree sections.
-These nodes contain two components, a JCheckBox (with no text) and a separate JLabel.  
+in a Tree typical of how GIS applications handle their Table of Contents tree sections.
+These nodes contain two components, a JCheckBox (with no text) and a separate JLabel.
 */
 @SuppressWarnings("serial")
-public class GeoViewLegendJTree_Node 
+public class GeoViewLegendJTree_Node
 extends SimpleJTree_Node
 implements FocusListener, MouseListener, ItemListener, ItemSelectable {
 
 /**
-Whether this node has been selected (i.e., the label has been clicked on) or not
+Whether this node has been selected (i.e., the label has been clicked on) or not.
 */
 private boolean __selected = false;
 
@@ -95,6 +71,7 @@ private boolean __selected = false;
 The Color in which the background of the non-selected node text should be drawn.
 */
 private Color bg = null;
+
 /**
 The Color in which the foreground of the non-selected node text should be drawn.
 */
@@ -106,18 +83,19 @@ Reference to the tree in which this component appears.
 private GeoViewLegendJTree __tree;
 
 /**
-Reference to the unlabelled checkbox that appears in this component.
+Reference to the unlabeled checkbox that appears in this component.
 */
 private JCheckBox __check = null;
 
 /**
-The popup menu associated with this node.  
+The popup menu associated with this node.
 */
 private JPopupMenu __popup = null;
 
 /**
-Label that appears in this component.  Originally used a JTextField to automatically handle some of
-the selection rendering.  However, JTextField did not cleanly handle HTML labels so switch to a JLabel.
+Label that appears in this component.
+Originally used a JTextField to automatically handle some of the selection rendering.
+However, JTextField did not cleanly handle HTML labels so switch to a JLabel.
 */
 //private JEditorPane __field = null;
 //private JButton __field = null;
@@ -135,21 +113,19 @@ Constructor.
 @param name the name of this node.
 @param tree the tree in which this component appears
 */
-public GeoViewLegendJTree_Node(String text, String name, GeoViewLegendJTree tree)
-{
+public GeoViewLegendJTree_Node(String text, String name, GeoViewLegendJTree tree) {
 	super(new JPanel(), name);
 	initialize(text, name, tree, null);
 }
 
 /**
-Constructor. 
+Constructor.
 @param text the Text to appear next to the JCheckbox in this component.
 @param name the name of this node.
 @param tree the tree in which this component appears
 @param popupMenu the popupMenu that this node should display.
 */
-public GeoViewLegendJTree_Node(String text, String name, GeoViewLegendJTree tree, JPopupMenu popupMenu)
-{
+public GeoViewLegendJTree_Node(String text, String name, GeoViewLegendJTree tree, JPopupMenu popupMenu) {
 	super(new JPanel(), name);
 	initialize(text, name, tree, popupMenu);
 }
@@ -163,7 +139,7 @@ public void addItemListener(ItemListener listener) {
 }
 
 /**
-Deselects all the labels in all the other nodes in the tre.
+Deselects all the labels in all the other nodes in the tree.
 */
 private void deselectAllOthers() {
 	deselectAllOthers(__tree.getRoot());
@@ -195,7 +171,7 @@ public void deselectField() {
 	__field.setForeground(fg);
 	__field.repaint();
 	__selected = false;
-	GeoLayerView layerView = (GeoLayerView)getData(); 
+	GeoLayerView layerView = (GeoLayerView)getData();
 	if (layerView != null) {
 		layerView.isSelected(false);
 	}
@@ -230,16 +206,14 @@ throws Throwable {
 /**
 Indicate when focus is gained on the component.
 */
-public void focusGained ( FocusEvent e )
-{
+public void focusGained ( FocusEvent e ) {
 	Message.printStatus(2,"","Legend item focused gained for label component " + __field );
 }
 
 /**
 Indicate when focus is lost on the component.
 */
-public void focusLost ( FocusEvent e )
-{
+public void focusLost ( FocusEvent e ) {
 	Message.printStatus(2,"","Legend item focused gained for label component " + __field );
 }
 
@@ -267,8 +241,7 @@ Initializes the settings in the GeoViewLegendJTree_Node.
 @param listener the ItemListener to register for this component
 @param popupMenu the popupMenu that this node should display.  If null, no popup will be displayed.
 */
-private void initialize(String text, String name, GeoViewLegendJTree tree, JPopupMenu popup)
-{
+private void initialize(String text, String name, GeoViewLegendJTree tree, JPopupMenu popup) {
 	JPanel panel = new JPanel();
 	panel.setLayout(new GridBagLayout());
 	__check = new JCheckBox();
@@ -277,33 +250,32 @@ private void initialize(String text, String name, GeoViewLegendJTree tree, JPopu
 	//__field = new JEditorPane();
 	__tree = tree;
 
-	// Because of the way these two components (the checkbox and the
-	// label) are drawn, sometimes the first letter of the JLabel is
-	// slightly (like, 2 pixels) overlapped by the CheckBox.  Adding
-	// a single space at the front of the label text seems to avoid this.
+	// Because of the way these two components (the checkbox and the label) are drawn,
+	// sometimes the first letter of the JLabel is slightly (like, 2 pixels) overlapped by the CheckBox.
+	// Adding a single space at the front of the label text seems to avoid this.
 	
 	if ( text.startsWith("<") ) {
-		// Assume HTML so just set it
+		// Assume HTML so just set it.
 		__field.setText(text);
-		// TODO SAM 2010-12-15 Uncomment this if using a JEditPane with HTML
+		// TODO SAM 2010-12-15 Uncomment this if using a JEditPane with HTML.
 		//__field.setContentType("mime/html");
 	}
 	else {
-		// Add extra space
+		// Add extra space.
 		__field.setText(" " + text);
 		__field.setFont((new SimpleJTree_CellRenderer()).getFont());
 	}
 
 	__field.addMouseListener(this);
-	// JTextField and JEditorPane...
+	// JTextField and JEditorPane.
 	__field.setEditable(false);
-	// JButton and JLabel...
+	// JButton and JLabel.
 	//__field.addFocusListener(this);
 	//__field.setFocusable(true);
-	// Don't want any decorative border
+	// Don't want any decorative border.
 	__field.setBorder(null);
 	__field.setBackground(UIManager.getColor("Tree.textBackground"));
-	JGUIUtil.addComponent(panel, __check, 0, 0, 1, 1, 0, 0, 
+	JGUIUtil.addComponent(panel, __check, 0, 0, 1, 1, 0, 0,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(panel, __field, 1, 0, 2, 1, 1, 1,
 		GridBagConstraints.BOTH, GridBagConstraints.WEST);
@@ -315,7 +287,7 @@ private void initialize(String text, String name, GeoViewLegendJTree tree, JPopu
 
 	__popup = popup;
 
-	// Store the default label drawing colors
+	// Store the default label drawing colors.
 	bg = __field.getBackground();
 	fg = __field.getForeground();
 }
@@ -381,9 +353,9 @@ public void setVisible(boolean vis) {
 
 /**
 The internal item state changed event that occurs when the JCheckBox is clicked.
-Internally, this class is its own listener for the JCheckBox's item state
-changed event.  It catches the event and then RE-posts it so that the 
-GeoViewLegendJTree that catches the new event can see which specific node issued the event.
+Internally, this class is its own listener for the JCheckBox's item state changed event.
+It catches the event and then RE-posts it so that the GeoViewLegendJTree that catches the new event
+can see which specific node issued the event.
 @param e the ItemEvent that happened.
 */
 public void itemStateChanged(ItemEvent e) {
@@ -409,31 +381,36 @@ private void maybeShowPopup(MouseEvent e) {
 Responds to mouse clicked events; does nothing.
 @param event the MouseEvent that happened.
 */
-public void mouseClicked ( MouseEvent event ) {}
+public void mouseClicked ( MouseEvent event ) {
+}
 
 /**
 Responds to mouse dragged events; does nothing.
 @param event the MouseEvent that happened.
 */
-public void mouseDragged(MouseEvent event) {}
+public void mouseDragged(MouseEvent event) {
+}
 
 /**
 Responds to mouse entered events; does nothing.
 @param event the MouseEvent that happened.
 */
-public void mouseEntered(MouseEvent event) {}
+public void mouseEntered(MouseEvent event) {
+}
 
 /**
 Responds to mouse exited events; does nothing.
 @param event the MouseEvent that happened.
 */
-public void mouseExited(MouseEvent event) {}
+public void mouseExited(MouseEvent event) {
+}
 
 /**
 Responds to mouse moved events; does nothing.
 @param event the MouseEvent that happened.
 */
-public void mouseMoved(MouseEvent event) {}
+public void mouseMoved(MouseEvent event) {
+}
 
 /**
 Responds to mouse pressed events.
@@ -455,8 +432,7 @@ public void mousePressed(MouseEvent event) {
 		}
 		__tree.repaint();
 	}
-	// A node was either selected or deselected -- repaint the buttons
-	// in the geoviewjpanel as appropriate
+	// A node was either selected or deselected - repaint the buttons in the GeoViewJPanel as appropriate.
 	__tree.updateGeoViewJPanelButtons();	
 }
 
@@ -485,13 +461,13 @@ Select's this node's text field.
 */
 public void selectField() {
 	__selected = true;
-	JTextField tf = new JTextField(); // use this to get selection colors to mimic a JTextField
+	JTextField tf = new JTextField(); // Use this to get selection colors to mimic a JTextField.
 	//__field.setBackground(__field.getSelectionColor());
 	//__field.setForeground(__field.getSelectedTextColor());
 	__field.setBackground(tf.getSelectionColor());
 	__field.setForeground(tf.getSelectedTextColor());
 	__field.repaint();
-	GeoLayerView layerView = (GeoLayerView)getData(); 
+	GeoLayerView layerView = (GeoLayerView)getData();
 	if (layerView != null) {
 		layerView.isSelected(true);
 	}

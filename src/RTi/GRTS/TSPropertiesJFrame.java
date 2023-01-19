@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -79,30 +79,37 @@ implements ActionListener, ChangeListener, WindowListener
 Time series to display.
 */
 private TS __ts;
+
 /**
 Properties to control output.
 */
 private PropList __props;
+
 /**
 Print button to be enabled only with the History tab.
 */
 private SimpleJButton __print_JButton;
+
 /**
 Tabbed pane to manage panels with properties.
 */
 private JTabbedPane __props_JTabbedPane;
+
 /**
 JTextArea for history tab.
 */
 private JTextArea __history_JTextArea;
+
 /**
 JTextArea for comments tab.
 */
 private JTextArea __comments_JTextArea;
+
 /**
 Panel for time series history.
 */
 private JPanel __history_JPanel;
+
 /**
 Panel for time series comments.
 */
@@ -115,8 +122,8 @@ Construct a TSPropertiesJFrame.
 @exception Exception if there is an error displaying properties.
 */
 public TSPropertiesJFrame ( JFrame gui, TS ts, PropList props )
-throws Exception
-{	super ( "Time Series Properties" );
+throws Exception {
+	super ( "Time Series Properties" );
 	__ts = ts;
 	if ( props == null ) {
 		props = new PropList("");
@@ -130,8 +137,8 @@ throws Exception
 Handle action events (button press, etc.)
 @param e ActionEvent to handle.
 */
-public void actionPerformed ( ActionEvent e )
-{	String command = e.getActionCommand();
+public void actionPerformed ( ActionEvent e ) {
+	String command = e.getActionCommand();
 	if ( command.equals("Close") ) {
 		JGUIUtil.close(this);
 	}
@@ -224,8 +231,8 @@ private DataTable createPropertyTable ( TS ts ) {
 Open the properties GUI.
 @param mode Indicates whether the GUI is visible at creation.
 */
-private void openGUI ( boolean mode )
-{	String	routine = "TSViewPropertiesJFrame.openGUI";
+private void openGUI ( boolean mode ) {
+	String	routine = getClass().getSimpleName() + ".openGUI";
 
 	// Start a big try block to set up the GUI.
 	try {
@@ -260,9 +267,9 @@ private void openGUI ( boolean mode )
 	general_JPanel.setLayout ( gbl );
 	__props_JTabbedPane.addTab ( "General", null, general_JPanel, "General (built-in) properties" );
 
-	int y = 0;
+	int y = -1;
 	JGUIUtil.addComponent ( general_JPanel, new JLabel("Identifier:"),
-			0, y, 1, 1, 0.0, 0.0,
+			0, ++y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	JTextField identifier_JTextField = new JTextField(__ts.getIdentifierString(), 50);
 	identifier_JTextField.setToolTipText ( "Period-delimited time series identifier (TSID), to uniquely identify the time series." );
@@ -277,9 +284,99 @@ private void openGUI ( boolean mode )
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	// Limit the length of this field.
 	JTextField input_JTextField = new JTextField( __ts.getIdentifier().toString(true), 50 );
-	input_JTextField.setToolTipText ( "Period-delimited time series identifier, with ~InputName if the time series was read from a file, database, etc." );
+	input_JTextField.setToolTipText (
+		"Period-delimited time series identifier, with ~InputName if the time series was read from a datastore or other input." );
 	input_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( general_JPanel, input_JTextField,
+			1, y, 6, 1, 1.0, 0.0,
+			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
+
+	JGUIUtil.addComponent ( general_JPanel, new JLabel( "Identifier part (location type):"),
+			0, ++y, 1, 1, 0.0, 0.0,
+			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
+	// Limit the length of this field.
+	JTextField locType_JTextField = new JTextField( __ts.getIdentifier().getLocationType(), 50 );
+	locType_JTextField.setToolTipText ( "Location type, use when interpreting the location ID is ambiguous." );
+	locType_JTextField.setEditable ( false );
+	JGUIUtil.addComponent ( general_JPanel, locType_JTextField,
+			1, y, 6, 1, 1.0, 0.0,
+			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
+
+	JGUIUtil.addComponent ( general_JPanel, new JLabel( "Identifier part (location ID):"),
+			0, ++y, 1, 1, 0.0, 0.0,
+			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
+	// Limit the length of this field.
+	JTextField locid_JTextField = new JTextField( __ts.getIdentifier().getLocation(), 50 );
+	locid_JTextField.setToolTipText ( "Location identifier (e.g., station or site identifier)." );
+	locid_JTextField.setEditable ( false );
+	JGUIUtil.addComponent ( general_JPanel, locid_JTextField,
+			1, y, 6, 1, 1.0, 0.0,
+			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
+
+	JGUIUtil.addComponent ( general_JPanel, new JLabel( "Identifier part (data source):"),
+			0, ++y, 1, 1, 0.0, 0.0,
+			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
+	// Limit the length of this field.
+	JTextField dataSource_JTextField = new JTextField( __ts.getIdentifier().getSource(), 50 );
+	dataSource_JTextField.setToolTipText ( "Data source, typically an organiation abbreviation or software application/system name." );
+	dataSource_JTextField.setEditable ( false );
+	JGUIUtil.addComponent ( general_JPanel, dataSource_JTextField,
+			1, y, 6, 1, 1.0, 0.0,
+			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
+
+	JGUIUtil.addComponent ( general_JPanel, new JLabel( "Identifier part (data type):"),
+			0, ++y, 1, 1, 0.0, 0.0,
+			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
+	// Limit the length of this field.
+	JTextField dataType_JTextField = new JTextField( __ts.getIdentifier().getType(), 50 );
+	dataType_JTextField.setToolTipText ( "Data type, typically an abbreviation or short name." );
+	dataType_JTextField.setEditable ( false );
+	JGUIUtil.addComponent ( general_JPanel, dataType_JTextField,
+			1, y, 6, 1, 1.0, 0.0,
+			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
+
+	JGUIUtil.addComponent ( general_JPanel, new JLabel( "Identifier part (interval):"),
+			0, ++y, 1, 1, 0.0, 0.0,
+			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
+	// Limit the length of this field.
+	JTextField interval_JTextField = new JTextField( __ts.getIdentifier().getInterval(), 50 );
+	interval_JTextField.setToolTipText ( "Data interval, can be regular or irregular spacing." );
+	interval_JTextField.setEditable ( false );
+	JGUIUtil.addComponent ( general_JPanel, interval_JTextField,
+			1, y, 6, 1, 1.0, 0.0,
+			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
+
+	// Limit the length of this field.
+	JLabel interval_JLabel = null;
+	if ( TimeInterval.isRegularInterval(__ts.getIdentifier().getIntervalBase()) ) {
+		interval_JLabel = new JLabel( "Time series has regular interval spacing." );
+	}
+	else {
+		interval_JLabel = new JLabel( "Time series has irregular interval spacing." );
+	}
+	JGUIUtil.addComponent ( general_JPanel, interval_JLabel,
+			1, ++y, 6, 1, 1.0, 0.0,
+			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
+
+	JGUIUtil.addComponent ( general_JPanel, new JLabel( "Identifier part (scenario):"),
+			0, ++y, 1, 1, 0.0, 0.0,
+			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
+	// Limit the length of this field.
+	JTextField scenario_JTextField = new JTextField( __ts.getIdentifier().getScenario(), 50 );
+	scenario_JTextField.setToolTipText ( "Scenario identifier, typically used with modeling or analysis." );
+	scenario_JTextField.setEditable ( false );
+	JGUIUtil.addComponent ( general_JPanel, scenario_JTextField,
+			1, y, 6, 1, 1.0, 0.0,
+			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
+
+	JGUIUtil.addComponent ( general_JPanel, new JLabel( "Identifier part (sequence ID):"),
+			0, ++y, 1, 1, 0.0, 0.0,
+			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
+	// Limit the length of this field.
+	JTextField seqID_JTextField = new JTextField( __ts.getIdentifier().getSequenceID(), 50 );
+	seqID_JTextField.setToolTipText ( "Sequence (trace) identifier, used time series is part of an ensemble." );
+	seqID_JTextField.setEditable ( false );
+	JGUIUtil.addComponent ( general_JPanel, seqID_JTextField,
 			1, y, 6, 1, 1.0, 0.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
@@ -350,11 +447,11 @@ private void openGUI ( boolean mode )
 			// No precision from units.
 		}
 	}
-	JGUIUtil.addComponent ( general_JPanel, new JLabel("Precision (from units):"),
+	JGUIUtil.addComponent ( general_JPanel, new JLabel("Output precision (from units):"),
 			0, ++y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	JTextField precisionFromUnits_JTextField = new JTextField(precisionFromUnits, 10);
-	precisionFromUnits_JTextField.setToolTipText ( "Data precision (digits after decimal point), determined from data units." );
+	precisionFromUnits_JTextField.setToolTipText ( "Data precision (digits after decimal point) for output, determined from data units." );
 	precisionFromUnits_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( general_JPanel, precisionFromUnits_JTextField,
 			1, y, 1, 1, 0.0, 0.0,
@@ -365,11 +462,12 @@ private void openGUI ( boolean mode )
 	if ( __ts.getDataPrecision() >= 0 ) {
 		precisionSpecified = "" + __ts.getDataPrecision();
 	}
-	JGUIUtil.addComponent ( general_JPanel, new JLabel("Precision (specified):"),
+	JGUIUtil.addComponent ( general_JPanel, new JLabel("Output precision (specified):"),
 			0, ++y, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	JTextField precisionSpecified_JTextField = new JTextField(precisionSpecified, 10);
-	precisionSpecified_JTextField.setToolTipText ( "Data precision (digits after decimal point) specified directly, overrides precision from units." );
+	precisionSpecified_JTextField.setToolTipText (
+		"Data precision (digits after decimal point) for output specified directly, overrides precision from units." );
 	precisionSpecified_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( general_JPanel, precisionSpecified_JTextField,
 			1, y, 1, 1, 0.0, 0.0,
@@ -383,7 +481,7 @@ private void openGUI ( boolean mode )
 			1, ++y, 1, 1, 1.0, 0.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 	isselected_JCheckBox = null;
-    
+
     JCheckBox iseditable_JCheckBox = new JCheckBox ( "Is editable?", __ts.isEditable() );
     iseditable_JCheckBox.setEnabled ( false );
 	iseditable_JCheckBox.setToolTipText ( "Is the time series editable when viewed?" );
@@ -633,8 +731,8 @@ private void openGUI ( boolean mode )
 React to tab selections.  Currently all that is done is the Print button is enabled or disabled.
 @param e the ChangeEvent that happened.
 */
-public void stateChanged ( ChangeEvent e )
-{	// Check for null because events are sometimes generated at startup.
+public void stateChanged ( ChangeEvent e ) {
+	// Check for null because events are sometimes generated at startup.
 	if ( (__props_JTabbedPane.getSelectedComponent()==__history_JPanel)||
 		(__props_JTabbedPane.getSelectedComponent() == __comments_JPanel)){
 		JGUIUtil.setEnabled ( __print_JButton, true );

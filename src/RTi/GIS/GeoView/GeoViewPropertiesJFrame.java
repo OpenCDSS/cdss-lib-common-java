@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,68 +21,8 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
 
 NoticeEnd */
 
-//-----------------------------------------------------------------------------
-// GeoViewPropertiesJFrame - properties for GeoView and a selected layer
-//-----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// History:
-//
-// 2001-10-08	Steven A. Malers, RTi	Initial version.
-// 2001-10-15	SAM, RTi		Add check box for
-//					"Label Selected Features Only" to make
-//					it easier to see labels for dense data
-//					layers.
-// 2001-10-18	SAM, RTi		Update javadoc, remove unneeded code,
-//					set unused variables to null to help
-//					with garbage collection.
-// 2001-11-27	SAM, RTi		Add number of layer views to GeoView
-//					properties.
-// 2001-12-04	SAM, RTi		Change name from GeoViewPropertiesGUI
-//					and convert to Swing.
-// 2002-01-08	SAM, RTi		Change GeoViewCanvas to
-//					GeoViewJComponent.
-//-----------------------------------------------------------------------------
-// 2003-05-06	J. Thomas Sapienza, RTi	Checked to see that code corresponds
-//					with code in non-Swing version.
-// 2003-05-08	JTS, RTi		Added a lot of non-Swing code and
-//					converted it.
-// 2003-05-09	JTS, RTi		Corrected errors in the Label editor 
-//					event handling.
-// 2003-05-12	JTS, RTi		Added a second constructor; now can
-//					display properties for either a layer
-//					or a GeoViewJComponent map display.
-// 2003-05-14	JTS, RTi		GeoLayerViewLegendJPanel constructor
-//					changed and made appropriate changes
-//					here
-// 2004-01-08	SAM, RTi		Set the icon and title from JGUIUtil
-//					data.
-// 2004-05-24	SAM, RTi		* Fix bug where the layer was getting
-//					  smashed against the title.
-//					* Change some upper case word starts to
-//					  lowercase to more closely match
-//					  standard softare guidelines.
-// 2004-10-13	JTS, RTi		* Added the ability to set properties
-//					  for the new legend that can appear on
-//					  the map.  Layers can be removed from
-//					  the legend, the legend can be turned 
-//					  off or on, and the legend can be 
-//					  positioned.
-//					* Removed the KeyListener code as it 
-//					  wasn't doing anything.
-// 2004-11-01	JTS, RTi		The label combo box now has both an
-//					item listener and an action listener.
-//					The action listener is used to catch
-//					times when the user selects from the 
-//					combo box the same thing that is already
-//					selected.  
-// 2005-05-26	JTS, RTi		Added all data members to finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
-// EndHeader
-
 package RTi.GIS.GeoView;
- 
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
@@ -133,20 +73,20 @@ import RTi.Util.Table.DataTable;
 import RTi.Util.Message.Message;
 
 /**
-The GeoViewPropertiesJFrame displays global properties shared for all
-GeoViewLayers in a GeoViewJComponent, as well as specific properties for a GeoLayerView.
+The GeoViewPropertiesJFrame displays global properties shared for all GeoViewLayers in a GeoViewJComponent,
+as well as specific properties for a GeoLayerView.
 */
 @SuppressWarnings("serial")
-public class GeoViewPropertiesJFrame extends JFrame implements 
-ActionListener, ChangeListener, WindowListener, ItemListener 
+public class GeoViewPropertiesJFrame extends JFrame implements
+ActionListener, ChangeListener, WindowListener, ItemListener
 {
 /**
-Whether the GUI has finished being built or not.  
+Whether the GUI has finished being built or not.
 */
 boolean __doneInitializing = false;
 /**
-If true, this will only show the properties for the main geoview map.  If false,
-the properties for a layer view will be displayed.
+If true, this will only show the properties for the main geoview map.
+If false, the properties for a layer view will be displayed.
 */
 boolean __geoViewOnly = false;
 
@@ -176,7 +116,7 @@ private JComboBox<String> __uniqueValuesFieldJComboBox = null;
 private JComboBox<String> __classBreakFieldJComboBox = null;
 private JComboBox<String> __labelFieldJComboBox = null;
 
-private JPanel __symbolJPanel = null; // Symbol Panel
+private JPanel __symbolJPanel = null;
 private JPanel __singleSymbolJPanel = null;
 private JPanel __singleLegendJPanel = null;
 private JPanel __uniqueValuesJPanel = null;
@@ -212,7 +152,7 @@ private SimpleJButton __applyJButton;
 private SimpleJButton __okJButton;
 private SimpleJButton __cancelJButton;
 
-private final String 
+private final String
 	__BUTTON_APPLY = "Apply",
 	__BUTTON_CANCEL = "Cancel",
 	__BUTTON_OK = "OK";
@@ -223,25 +163,24 @@ private final String
 /**
 Button labels.
 */
-private String 
+private String
 	__BUTTON_ADD_LAYOUT = "Add Layout",
 	__BUTTON_DEL_LAYOUT = "Delete Layout";
 
 /**
-The button for deleting the current layout.  There must always be at least one
-layout, so the button is greyed out if there is only one layout.
+The button for deleting the current layout.
+There must always be at least one layout, so the button is grayed out if there is only one layout.
 */
 private JButton __delLayoutButton = null;
 
 /**
-The checkbox for setting whether the legend is visible on the map shown in 
-the GUI (not on the printed page).
+The checkbox for setting whether the legend is visible on the map shown in the GUI (not on the printed page).
 */
 private JCheckBox __legendVisibleJCheckBox = null;
 
 /**
-The combo box that holds the names of the different layouts defined for
-a GeoView Project.  Currently there is only a single layout and it cannot be saved.
+The combo box that holds the names of the different layouts defined for a GeoView Project.
+Currently there is only a single layout and it cannot be saved.
 */
 private SimpleJComboBox __legendComboBox = null;
 
@@ -251,16 +190,16 @@ The combo box that holds the locations in which the legend can be positioned on 
 private SimpleJComboBox __legendLocationComboBox = null;
 
 /**
-Constructor.  This constructor is used to show the properties for a 
-GeoViewJComponent display, not particular layers.
+Constructor.
+This constructor is used to show the properties for a GeoViewJComponent display, not particular layers.
 @param parent JFrame from which this object is created.
 @param geoview GeoViewJComponent that is displaying the data.
 @param gvp GeoViewProject containing overall GeoView information.
 @param parent__geoviewJPanel GeoViewJPanel that is used for the display.
 */
 public GeoViewPropertiesJFrame (JFrame parent, GeoViewJComponent geoview,
-GeoViewProject gvp, GeoViewJPanel parent__geoviewJPanel)
-{	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
+GeoViewProject gvp, GeoViewJPanel parent__geoviewJPanel) {
+	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
 	__gvp = gvp;
 	__geoview = geoview;
 	__parentGeoViewJPanel = parent__geoviewJPanel;
@@ -273,8 +212,8 @@ GeoViewProject gvp, GeoViewJPanel parent__geoviewJPanel)
 }
 
 /**
-Constructor.  This constructor is used to show the properties for 
-particular layers in a GeoView display.
+Constructor.
+This constructor is used to show the properties for particular layers in a GeoView display.
 @param parent JFrame from which this object is created.
 @param layer_view GeoLayerView whose properties are being edited.
 @param geoview GeoViewJComponent that is displaying the data.
@@ -282,8 +221,8 @@ particular layers in a GeoView display.
 @param parent__geoviewJPanel GeoViewPanel that is used for the display.
 */
 public GeoViewPropertiesJFrame ( JFrame parent, GeoLayerView layer_view, GeoViewJComponent geoview,
-	GeoViewProject gvp, GeoViewJPanel parent__geoviewJPanel )
-{	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
+	GeoViewProject gvp, GeoViewJPanel parent__geoviewJPanel ) {
+	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
 	__layerView = layer_view;
 	__gvp = gvp;
 	__geoview = geoview;
@@ -300,8 +239,8 @@ public GeoViewPropertiesJFrame ( JFrame parent, GeoLayerView layer_view, GeoView
 This function responds to ActionEvents.
 @param evt ActionEvent object.
 */
-public void actionPerformed( ActionEvent evt )
-{	String command = evt.getActionCommand();
+public void actionPerformed( ActionEvent evt ) {
+	String command = evt.getActionCommand();
 	Object obj = evt.getSource();
 
 /*
@@ -310,24 +249,24 @@ public void actionPerformed( ActionEvent evt )
 	}
 */
 	if ( obj == __clearLabelField_JButton ) {
-		// Clear the label and format fields..
+		// Clear the label and format fields.
 		__labelFieldJTextField.setText("");
 		__labelFormatJTextField.setText("");
 	}
 	else if (obj == __legendVisibleJCheckBox) {
-		// Show or hide the legend on the map depending on whether the checkbox is selected or not
+		// Show or hide the legend on the map depending on whether the checkbox is selected or not.
 		if (__legendVisibleJCheckBox.isSelected()) {
-			// The checkbox was just selected
+			// The checkbox was just selected.
 			__geoview.setDrawLegend(true);
 		}
 		else {
-			// The checkbox was deselected
+			// The checkbox was deselected.
 			__geoview.setDrawLegend(false);
 		}
 	}
 	else if (obj == __legendLocationComboBox) {
-		// Move the legend depending on the value selected from the combo box.  Positioning is done based on 
-		// North/South/East/West locations, since it is being overlaid on a map.
+		// Move the legend depending on the value selected from the combo box.
+		// Positioning is done based on North/South/East/West locations, since it is being overlaid on a map.
 		String pos = __legendLocationComboBox.getSelected();
 		GeoViewLegendLayout layout = __geoview.getLegendLayout();	
 		if (pos.equalsIgnoreCase("NorthWest")) {
@@ -345,10 +284,8 @@ public void actionPerformed( ActionEvent evt )
 		__geoview.redraw(true);
 	}
 	else if (obj instanceof JCheckBox) {
-		// The above check catches all the checkboxes that are
-		// shown for deciding which layers to list in the legend.  If
-		// any other checkboxes are listened for in the future, they 
-		// must be listed explicitly above this check.
+		// The above check catches all the checkboxes that are shown for deciding which layers to list in the legend.
+		// If any other checkboxes are listened for in the future, they must be listed explicitly above this check.
 		legendCheckBoxChecked((JCheckBox)obj);
 	}
 	else if ( command.equals(__BUTTON_APPLY) ) {
@@ -362,8 +299,7 @@ public void actionPerformed( ActionEvent evt )
 		close();
 	}
 	else if (obj == __labelFieldJComboBox ) {
-		// Add to the label field.  If the text field is not empty, add
-		// a command and then the new field...
+		// Add to the label field.  If the text field is not empty, add a command and then the new field.
 		if ( __labelFieldJTextField.getText().equals("") ) {
 			__labelFieldJTextField.setText( (String)__labelFieldJComboBox.getSelectedItem());
 		}
@@ -375,18 +311,17 @@ public void actionPerformed( ActionEvent evt )
 }
 
 /**
-Apply the properties in the dialog to the layer view.  This changes the
-properties in the layer view's symbol, etc. but does not resave the GeoViewProject file.
+Apply the properties in the dialog to the layer view.
+This changes the properties in the layer view's symbol, etc. but does not resave the GeoViewProject file.
 */
 private void applyProperties()
 {	boolean dirty = false; // Indicates if anything has changed.
 	String propValue = null; // Use as a generic string.
 
 	if (__layerView == null) {
-		// the properties were opened for the geoview as a whole.
-		// Currently, the only properties that can be changed for
-		// the GeoView are for the legend, and 1) they cannot be
-		// saved yet, and 2) the changes are applied immediately so simply return for now.
+		// The properties were opened for the geoview as a whole.
+		// Currently, the only properties that can be changed for the GeoView are for the legend,
+		// and 1) they cannot be saved yet, and 2) the changes are applied immediately so simply return for now.
 		return;
 	}
 	
@@ -394,13 +329,13 @@ private void applyProperties()
 
 	Message.printStatus ( 1, "", "Applying GeoView properties." );
 
-	// Check the GeoView Panel...
+	// Check the GeoView Panel.
 
-	// Check the Layer panel...
+	// Check the Layer panel.
 
-	// Check the Symbol panel...
+	// Check the Symbol panel.
 
-	// Check the Label panel...
+	// Check the Label panel.
 
 	propValue = __labelFieldJTextField.getText();
 	if ( !propValue.equals(symbol.getLabelField()) ) {
@@ -418,21 +353,20 @@ private void applyProperties()
 		dirty = true;
 	}
 
-	// Check the Application panel...
+	// Check the Application panel.
 
-	// Check the Animation panel...
+	// Check the Animation panel.
 
-	// If anything has changed, redraw the GeoView, but only if the layer
-	// view is currently visible...
+	// If anything has changed, redraw the GeoView, but only if the layer view is currently visible.
 
 	if ( dirty && __layerView.isVisible() ) {
-		// Redraw the geoview...
+		// Redraw the geoview.
 		JGUIUtil.setWaitCursor ( this, true );
 		__geoview.redraw();
 		JGUIUtil.setWaitCursor ( this, false );
 	}
 
-	// Clean up...
+	// Clean up.
 
 	symbol = null;
 	propValue = null;
@@ -451,7 +385,7 @@ private void browseForLayerFile ()
 	}
 	fd.setVisible(true);
 
-	// Return if no file name is selected...
+	// Return if no file name is selected.
 
 	if ( fd.getFile() == null || fd.getFile().equals("") ) {
 		return;
@@ -460,13 +394,13 @@ private void browseForLayerFile ()
 		JGUIUtil.setLastFileDialogDirectory(fd.getDirectory());
 	}
 
-	String fileName = fd.getDirectory() + fd.getFile();        
+	String fileName = fd.getDirectory() + fd.getFile();
 
 	if (fileName != null) {
 		_defaultGVPJTextField.setText ( fileName );
 	}
-	// Tell main GUI what the file is.  Do this here because this is when
-	// a file is going to change.  Don't do it every time OK is clicked...
+	// Tell main GUI what the file is.
+	// Do this here because this is when a file is going to change.  Don't do it every time OK is clicked.
 	fd = null;
 	last_directory_selected = null;
 	__parent_gui.openGVP ( fileName );
@@ -477,8 +411,8 @@ private void browseForLayerFile ()
 /**
 Close the GUI.  It is assumed that properties have already been applied if appropriate.
 */
-public void close ()
-{	setVisible( false );	
+public void close () {
+	setVisible( false );	
 	dispose();
 }
 
@@ -487,14 +421,14 @@ Clean up for garbage collection.
 @exception Throwable if an error occurs.
 */
 protected void finalize()
-throws Throwable
-{	// Shared...
+throws Throwable {
+	// Shared.
 	
 	__layerView = null;
 	__gvp = null;
 	__geoview = null;
 
-	// Geoview...
+	// Geoview.
 
 	__backgroundColorJTextField = null;
 	__dataHomeJTextField = null;
@@ -503,7 +437,7 @@ throws Throwable
 	__projectionJTextField = null;
 	__selectColorJTextField = null;
 
-	// Layer...
+	// Layer.
 
 	__layerFileJTextField = null;
 	__layerFormatJTextField = null;
@@ -511,7 +445,7 @@ throws Throwable
 	__numShapesJTextField = null;
 	__shapeTypeJTextField = null;
 
-	// Symbol...
+	// Symbol.
 
 	__symbolJPanel = null;
 	__singleSymbolJRadioButton = null;
@@ -530,12 +464,12 @@ throws Throwable
 	__clearLabelField_JButton = null;
 	__labelSelectedJCheckBox = null;
 
-	// App...
+	// App.
 
 	__appJoinFieldJTextField = null;
 	__appLayerTypeJTextField = null;
 
-	// Bottom...
+	// Bottom.
 
 	__okJButton = null;
 	__cancelJButton = null;
@@ -560,8 +494,8 @@ throws Throwable
 Respond to ItemEvents.
 @param evt ItemEvent object.
 */
-public void itemStateChanged( ItemEvent evt )
-{	Object o = evt.getItemSelectable();
+public void itemStateChanged( ItemEvent evt ) {
+	Object o = evt.getItemSelectable();
 
 	if (!__doneInitializing) {
 		return;
@@ -580,12 +514,12 @@ public void itemStateChanged( ItemEvent evt )
 	}
 	else if ( o == __labelFieldJComboBox ) {
 		if (evt.getStateChange() == ItemEvent.DESELECTED) {
-			// Item events are fired twice when something is selected from a JComboBox.  Once for the item
-			// that is DEselected, again for the item that is selected.  Ignore deselection events.
+			// Item events are fired twice when something is selected from a JComboBox.
+			// Once for the item that is DEselected, again for the item that is selected.
+			// Ignore deselection events.
 			return;
 		}
-		// Add to the label field.  If the text field is not empty, add
-		// a command and then the new field...
+		// Add to the label field.  If the text field is not empty, add a command and then the new field.
 		if ( __labelFieldJTextField.getText().equals("") ) {
 			__labelFieldJTextField.setText( (String)__labelFieldJComboBox.getSelectedItem());
 		}
@@ -628,8 +562,8 @@ public void itemStateChanged( ItemEvent evt )
 }
 
 /**
-Called when one of the checkboxes in the legend setup tab is pressed.  Finds
-the checkbox that was clicked and turns on or off the associated layer in the legend appropriately.
+Called when one of the checkboxes in the legend setup tab is pressed.
+Finds the checkbox that was clicked and turns on or off the associated layer in the legend appropriately.
 @param cb the checkbox that was clicked.
 */
 private void legendCheckBoxChecked(JCheckBox cb) {
@@ -652,11 +586,11 @@ private void legendCheckBoxChecked(JCheckBox cb) {
 Sets up the GUI.
 */
 private void setupGUI() {
-    // objects to be used in the GUI layout
+    // Objects to be used in the GUI layout.
 	int b = 2;
 	Insets TNNN = new Insets(b,0,0,0);
 	Insets NNNN = new Insets(0,0,0,0);
-    Insets TLBR = new Insets(b,b,b,b);        
+    Insets TLBR = new Insets(b,b,b,b);
 	Insets NLNN = new Insets(0,b,0,0);
     Insets TLBN = new Insets(b,b,b,0);
     Insets TLNN = new Insets(b,b,0,0);
@@ -810,7 +744,7 @@ private void setupGUI() {
         JGUIUtil.addComponent( layerJPanel, __layerView_nameJTextField,
 		4, y, 6, 1, 0, 0, TNNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
-        // TODO SAM 2009-07-02 Would need to change if dealing with a detabase or web service
+        // TODO SAM 2009-07-02 Would need to change if dealing with a detabase or web service.
 		if ( !IOUtil.fileExists(__layerView.getLayer().getFileName()) ) {
 			JGUIUtil.addComponent( layerJPanel, new JLabel (
 			"<html><p style=\"color:red\">Data file (file does not exist):</p></html>" ),
@@ -882,7 +816,7 @@ private void setupGUI() {
         JGUIUtil.addComponent( layerJPanel, __numShapesJTextField,
 		4, y, 6, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
-        JGUIUtil.addComponent( layerJPanel, new JLabel ( "Projection:"), 
+        JGUIUtil.addComponent( layerJPanel, new JLabel ( "Projection:"),
 		0, ++y, 4, 1, 0, 0, NNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 		propValue = "";
 		GeoProjection projection = layer.getProjection();
@@ -910,7 +844,7 @@ private void setupGUI() {
         symbolJPanel.setLayout( gbl );
         y = 0;
 
-		// Panel for class checkboxes...
+		// Panel for class checkboxes.
 	
 		JPanel symbol_classJPanel = new JPanel();
 		symbol_classJPanel.setLayout ( gbl );
@@ -922,66 +856,62 @@ private void setupGUI() {
 		JGUIUtil.addComponent( symbol_classJPanel,
 			new JLabel ( "Classification type:"),
 			0, y, 1, 1, 0, 0, NNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		__singleSymbolJRadioButton = new JRadioButton( 
-			"Single symbol", false);
+		__singleSymbolJRadioButton = new JRadioButton( "Single symbol", false);
 		class_Group.add(__singleSymbolJRadioButton);
 		__singleSymbolJRadioButton.addItemListener ( this );
 		if ( classification_type == GRSymbol.CLASSIFICATION_SINGLE ) {
 			__singleSymbolJRadioButton.setSelected(true);
 		}
-		JGUIUtil.addComponent( symbol_classJPanel, __singleSymbolJRadioButton, 
+		JGUIUtil.addComponent( symbol_classJPanel, __singleSymbolJRadioButton,
 			0, ++y, 1, 1, 0, 0, NNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 		__singleSymbolJRadioButton.setEnabled ( false );
 	
-		__uniqueValuesJRadioButton = new JRadioButton( 
-			"Unique values", false);
+		__uniqueValuesJRadioButton = new JRadioButton( "Unique values", false);
 		class_Group.add(__uniqueValuesJRadioButton);
 		__uniqueValuesJRadioButton.addItemListener ( this );
 		if ( classification_type == GRSymbol.CLASSIFICATION_UNIQUE_VALUES ) {
 			__uniqueValuesJRadioButton.setSelected(true);
 		}
-		JGUIUtil.addComponent( symbol_classJPanel, __uniqueValuesJRadioButton, 
+		JGUIUtil.addComponent( symbol_classJPanel, __uniqueValuesJRadioButton,
 			0, ++y, 1, 1, 0, 0, NNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 		__uniqueValuesJRadioButton.setEnabled ( false );
 	
-		__classBreaksJRadioButton = new JRadioButton( 
-			"Class breaks", false);
+		__classBreaksJRadioButton = new JRadioButton( "Class breaks", false);
 		class_Group.add(__classBreaksJRadioButton);
 		__classBreaksJRadioButton.addItemListener ( this );
 		if ( classification_type == GRSymbol.CLASSIFICATION_CLASS_BREAKS ) {
 			__classBreaksJRadioButton.setSelected (true);
 		}
 		__classBreaksJRadioButton.setEnabled ( false );
-		JGUIUtil.addComponent( symbol_classJPanel, __classBreaksJRadioButton, 
+		JGUIUtil.addComponent( symbol_classJPanel, __classBreaksJRadioButton,
 			0, ++y, 1, 1, 0, 0, NNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	        JGUIUtil.addComponent( symbolJPanel, symbol_classJPanel,
 			0, 0, 3, 1, 0, 0, TLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	
-		__scaledSymbolJRadioButton = new JRadioButton( 
-			"Scaled symbol", false);
+		__scaledSymbolJRadioButton = new JRadioButton( "Scaled symbol", false);
 		class_Group.add(__scaledSymbolJRadioButton);
 		__scaledSymbolJRadioButton.addItemListener ( this );
 		if ( classification_type == GRSymbol.CLASSIFICATION_SCALED_SYMBOL ) {
 			__scaledSymbolJRadioButton.setSelected(true);
 		}
-		JGUIUtil.addComponent( symbol_classJPanel, __scaledSymbolJRadioButton, 
+		JGUIUtil.addComponent( symbol_classJPanel, __scaledSymbolJRadioButton,
 			0, ++y, 1, 1, 0, 0, NNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 		__scaledSymbolJRadioButton.setEnabled ( false );
 	
-	/* Later - idea is to allow symbol class breaks on any layer type...
-		Checkbox _symbol__classBreaksJRadioButton = new Checkbox( 
+	/* Later - idea is to allow symbol class breaks on any layer type.
+		Checkbox _symbol__classBreaksJRadioButton = new Checkbox(
 			"Class breaks (symbols)", false, class_Group );
 		_symbol__classBreaksJRadioButton.addItemListener ( this );
 		_symbol__classBreaksJRadioButton.setEnabled ( false );
 		JGUIUtil.addComponent( symbol_classJPanel,
-			_symbol__classBreaksJRadioButton, 
+			_symbol__classBreaksJRadioButton,
 			0, ++y, 1, 1, 0, 0, NNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	*/
 	
 	        JGUIUtil.addComponent( symbolJPanel, symbol_classJPanel,
 			0, 0, 3, 1, 0, 0, TLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	
-		// Panel for notes about symbols...
+		// Panel for notes about symbols.
 	
 		JPanel symbol_textJPanel = new JPanel();
 		symbol_textJPanel.setLayout ( gbl );
@@ -1000,7 +930,7 @@ private void setupGUI() {
 		// Now add a panel for each classification type (only set visible the panel that applies).
 	
 		// ----------------------------------
-		// Panel for single symbol...
+		// Panel for single symbol.
 		// ----------------------------------
 	
 		__singleSymbolJPanel = new JPanel();
@@ -1013,7 +943,7 @@ private void setupGUI() {
 	
 		if ( (shapeType == GeoLayer.POINT) || (shapeType == GeoLayer.POINT_ZM) ||
 			(shapeType == GeoLayer.MULTIPOINT) ) {
-			// Add list of recognized GRSymbol types...
+			// Add list of recognized GRSymbol types.
 			JGUIUtil.addToJComboBox ( _symbol_styleJComboBox, GRSymbol.SYMBOL_NAMES );
 			// Select the one that is in use...
 			Message.printStatus(2,"","Symbol is " + symbol.getStyle() + " " +
@@ -1021,7 +951,7 @@ private void setupGUI() {
 			_symbol_styleJComboBox.setSelectedItem ( GRSymbol.toString(symbol.getStyle()) );
 		}
 		else if ( (shapeType == GeoLayer.LINE) || (shapeType == GeoLayer.POLYLINE_ZM) ) {
-			// Currently only offer "Solid"...
+			// Currently only offer "Solid".
 			_symbol_styleJComboBox.addItem ( "Solid" );
 		}
 		else if ( shapeType == GeoLayer.POLYGON ) {
@@ -1050,8 +980,7 @@ private void setupGUI() {
 	        JGUIUtil.addComponent( __singleSymbolJPanel, _single_colorJTextField,
 			1, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 		if ( shapeType == GeoLayer.POLYGON ) {
-	        JGUIUtil.addComponent( __singleSymbolJPanel, new JLabel (
-				"Outline color:"),
+	        JGUIUtil.addComponent( __singleSymbolJPanel, new JLabel ( "Outline color:"),
 				0, ++y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 			JTextField _single_outline_colorJTextField = new JTextField(4);
 			if ( symbol.getOutlineColor().isTransparent() ) {
@@ -1081,13 +1010,12 @@ private void setupGUI() {
 			_symbol_sizeJTextField = null;
 		}
 		y = 0;
-	        JGUIUtil.addComponent( __singleSymbolJPanel, new JLabel (
-			"Single symbol:" ),
+	        JGUIUtil.addComponent( __singleSymbolJPanel, new JLabel ( "Single symbol:" ),
 			2, y, 1, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 		JPanel single_legend_panel = new GeoLayerViewLegendJPanel(
 			__layerView, false);
 		single_legend_panel.setBackground ( Color.white );
-	        JGUIUtil.addComponent( __singleSymbolJPanel, 
+	        JGUIUtil.addComponent( __singleSymbolJPanel,
 			new JScrollPane(single_legend_panel),
 			2, ++y, 1, 9, 1, 1, TLNN, GridBagConstraints.BOTH, GridBagConstraints.WEST );
 		single_legend_panel = null;
@@ -1096,11 +1024,12 @@ private void setupGUI() {
 		if ( classification_type == GRSymbol.CLASSIFICATION_SINGLE ) {
 			__singleSymbolJPanel.setVisible(true);
 		}
-		else {	__singleSymbolJPanel.setVisible(false);
+		else {
+			__singleSymbolJPanel.setVisible(false);
 		}
 	
 		// ----------------------------------
-		// Panel for unique values...
+		// Panel for unique values.
 		// ----------------------------------
 	
 		__uniqueValuesJPanel = new JPanel();
@@ -1112,7 +1041,8 @@ private void setupGUI() {
 		if ( classification_type == GRSymbol.CLASSIFICATION_UNIQUE_VALUES ) {
 			__uniqueValuesJPanel.setVisible(true);
 		}
-		else {	__uniqueValuesJPanel.setVisible(false);
+		else {
+			__uniqueValuesJPanel.setVisible(false);
 		}
 		y = 0;
 	        JGUIUtil.addComponent( __uniqueValuesJPanel, new JLabel ("Symbol:"),
@@ -1124,7 +1054,7 @@ private void setupGUI() {
 			0, ++y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 		__uniqueValuesFieldJComboBox = new JComboBox<String>();
 		__uniqueValuesFieldJComboBox.addItem( "Junk" );
-	        JGUIUtil.addComponent(__uniqueValuesJPanel, 
+	        JGUIUtil.addComponent(__uniqueValuesJPanel,
 			__uniqueValuesFieldJComboBox,
 			1, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	        JGUIUtil.addComponent( symbolJPanel, __uniqueValuesJPanel,
@@ -1132,11 +1062,12 @@ private void setupGUI() {
 		if ( classification_type == GRSymbol.CLASSIFICATION_UNIQUE_VALUES ) {
 			__uniqueValuesJPanel.setVisible(true);
 		}
-		else {	__uniqueValuesJPanel.setVisible(false);
+		else {
+			__uniqueValuesJPanel.setVisible(false);
 		}
 	
 		// ----------------------------------
-		// Panel for class breaks...
+		// Panel for class breaks.
 		// ----------------------------------
 	
 		__classBreaksJPanel = new JPanel();
@@ -1150,8 +1081,8 @@ private void setupGUI() {
 		DataTable attributeTable = layer.getAttributeTable();
 		String [] attributeTableFieldNames = null;
 		if ( attributeTable == null ) {
-			// May be the case if the original layer did not have data
-			attributeTableFieldNames = new String[0]; // Nothing in list
+			// May be the case if the original layer did not have data.
+			attributeTableFieldNames = new String[0]; // Nothing in list.
 		}
 		else {
 			attributeTableFieldNames = attributeTable.getFieldNames();
@@ -1181,7 +1112,7 @@ private void setupGUI() {
 		ButtonGroup colors_group = new ButtonGroup();
 		JRadioButton _color_tableJRadioButton = new JRadioButton("Color Table:", true);
 		colors_group.add(_color_tableJRadioButton);
-		JGUIUtil.addComponent( colorJPanel, _color_tableJRadioButton, 
+		JGUIUtil.addComponent( colorJPanel, _color_tableJRadioButton,
 			0, ++yc, 2, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 		JComboBox<String>_color_tableJComboBox = new JComboBox<String>();
 		_color_tableJComboBox.setEnabled ( false );
@@ -1190,28 +1121,28 @@ private void setupGUI() {
 		if ( color_table != null ) {
 			_color_tableJComboBox.setSelectedItem( color_table.getName());
 		}
-		JGUIUtil.addComponent( colorJPanel, _color_tableJComboBox, 
+		JGUIUtil.addComponent( colorJPanel, _color_tableJComboBox,
 			2, yc, 2, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 		JRadioButton _color_rampJRadioButton = new JRadioButton("Color ramp:", false);
 		colors_group.add(_color_rampJRadioButton);
 		_color_rampJRadioButton.setEnabled ( false );
-		JGUIUtil.addComponent( colorJPanel, _color_rampJRadioButton, 
+		JGUIUtil.addComponent( colorJPanel, _color_rampJRadioButton,
 			0, ++yc, 2, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 		JGUIUtil.addComponent( colorJPanel, new JLabel("Start:"),
 			2, yc, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 		JTextField _color_ramp1JTextField = new JTextField(5);
 		_color_ramp1JTextField.setEnabled(false);
-		JGUIUtil.addComponent( colorJPanel, _color_ramp1JTextField, 
+		JGUIUtil.addComponent( colorJPanel, _color_ramp1JTextField,
 			3, yc, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 		JGUIUtil.addComponent( colorJPanel, new JLabel("End:"),
 			2, ++yc, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 		JTextField _color_ramp2JTextField = new JTextField(5);
 		_color_ramp2JTextField.setEnabled(false);
-		JGUIUtil.addComponent( colorJPanel, _color_ramp2JTextField, 
+		JGUIUtil.addComponent( colorJPanel, _color_ramp2JTextField,
 			3, yc, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 		JRadioButton _custom_colorsJRadioButton = new JRadioButton("Custom Colors", false);
 		colors_group.add(_custom_colorsJRadioButton);
-		JGUIUtil.addComponent( colorJPanel, _custom_colorsJRadioButton, 
+		JGUIUtil.addComponent( colorJPanel, _custom_colorsJRadioButton,
 			0, ++yc, 2, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 		_custom_colorsJRadioButton.setEnabled ( false );
 	
@@ -1232,33 +1163,33 @@ private void setupGUI() {
 				2, ys, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 			JTextField _size_ramp1JTextField = new JTextField(5);
 			_size_ramp1JTextField.setEnabled(false);
-			JGUIUtil.addComponent( sizeJPanel, _size_ramp1JTextField, 
+			JGUIUtil.addComponent( sizeJPanel, _size_ramp1JTextField,
 				3, ys, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 			_size_ramp1JTextField = null;
 			JGUIUtil.addComponent( sizeJPanel, new JLabel("End:"),
 				2, ++ys, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 			JTextField _size_ramp2JTextField = new JTextField(5);
 			_size_ramp2JTextField.setEnabled(false);
-			JGUIUtil.addComponent( sizeJPanel, _size_ramp2JTextField, 
+			JGUIUtil.addComponent( sizeJPanel, _size_ramp2JTextField,
 				3, ys, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	        	JGUIUtil.addComponent( __classBreaksJPanel, sizeJPanel,
 				0, ++y, 4, 1, 1, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 			_size_ramp2JTextField = null;
 		}
 		
-		// Class breaks legend (show effects of symbol, color table, and size)..
+		// Class breaks legend (show effects of symbol, color table, and size).
 	
 		y = 0;
 	    JGUIUtil.addComponent( __classBreaksJPanel, new JLabel ("Class breaks:" ),
 			4, y, 6, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 		GeoLayerViewLegendJPanel legendJPanel = new GeoLayerViewLegendJPanel(__layerView, false);
 		legendJPanel.setBackground ( Color.white );
-	    JGUIUtil.addComponent( __classBreaksJPanel, 
-			new JScrollPane(legendJPanel), 
+	    JGUIUtil.addComponent( __classBreaksJPanel,
+			new JScrollPane(legendJPanel),
 			4, ++y, 6, 9, 1, 1, TLNN, GridBagConstraints.BOTH, GridBagConstraints.WEST );
 		legendJPanel = null;
 	
-		// Add the whole class breaks panel...
+		// Add the whole class breaks panel.
 	    JGUIUtil.addComponent( symbolJPanel, __classBreaksJPanel,
 			0, 1, 10, 1, 1, 1, TNNN, GridBagConstraints.BOTH, GridBagConstraints.SOUTH );
 		if ( classification_type == GRSymbol.CLASSIFICATION_CLASS_BREAKS ) {
@@ -1269,9 +1200,9 @@ private void setupGUI() {
 		}
 	
 		// --------------------------------------------------------------------
-		// Panel for scaled symbol...
+		// Panel for scaled symbol.
 		//
-		// Layout as follows...
+		// Layout as follows.
 		//
 		// +Color -Color Wid. Ht. AbsMaxData DisplayMax
 		// +Color -Color Wid. Ht. AbsMaxData DisplayMax
@@ -1287,19 +1218,18 @@ private void setupGUI() {
 		__scaledSymbol_styleJComboBox.setEnabled ( false );
 		if ( (shapeType == GeoLayer.POINT) || (shapeType == GeoLayer.POINT_ZM) ||
 			(shapeType == GeoLayer.MULTIPOINT) ) {
-			// Add list of recognized GRSymbol types...
+			// Add list of recognized GRSymbol types.
 			__scaledSymbol_styleJComboBox.addItem ( "VerticalBar-Signed" );
-			// Select the one that is in use...
+			// Select the one that is in use.
 			__scaledSymbol_styleJComboBox.setSelectedItem( GRSymbol.toString(symbol.getStyle()) );
 		}
 	/* Later
 		else if ( shape_type == GeoLayer.LINE ) {
-			// Currently only offer "Solid"...
+			// Currently only offer "Solid".
 			_symbol_styleJComboBox.add ( "Solid" );
 		}
 		else if ( shape_type == GeoLayer.POLYGON ) {
-			// Currently only offer "FillSolid".  If transparent, use the
-			// color to indicate.
+			// Currently only offer "FillSolid".  If transparent, use the color to indicate.
 			_symbol_styleJComboBox.add ( "FillSolid" );
 		}
 	*/
@@ -1313,14 +1243,13 @@ private void setupGUI() {
 			1, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 		}
 	
-		// No restriction on the shape type since this symbol is drawn external
-		// to the main symbol.  Loop through the number of symbols in the
-		// legend and add the grid of output.
+		// No restriction on the shape type since this symbol is drawn external to the main symbol.
+		// Loop through the number of symbols in the legend and add the grid of output.
 	
 		JPanel scaled_symbol_detailJPanel = new JPanel();
 		scaled_symbol_detailJPanel.setLayout ( gbl );
 	
-		// Add the headers...
+		// Add the headers.
 	
 		y = 0;
 		x = 0;
@@ -1337,7 +1266,7 @@ private void setupGUI() {
 	   	JGUIUtil.addComponent(scaled_symbol_detailJPanel, new JLabel("MaxDisplay"),
 			++x, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	
-		// Now loop through each symbol in the legend and display its information...
+		// Now loop through each symbol in the legend and display its information.
 		int nsym = legend.size();
 	
 		for ( int isym = 0; isym < nsym; isym++ ) {
@@ -1345,7 +1274,7 @@ private void setupGUI() {
 			++y;
 			x = 0;
 	
-			// Color...
+			// Color.
 	
 			JTextField __scaledSymbol_color1JTextField = new JTextField(3);
 			__scaledSymbol_color1JTextField.setEditable ( false );
@@ -1354,8 +1283,7 @@ private void setupGUI() {
 				__scaledSymbol_color1JTextField.setText( "None");
 			}
 			else {
-				__scaledSymbol_color1JTextField.setBackground(
-					symbol.getColor());
+				__scaledSymbol_color1JTextField.setBackground( symbol.getColor());
 			}
 	    	JGUIUtil.addComponent( scaled_symbol_detailJPanel,
 				__scaledSymbol_color1JTextField,
@@ -1376,7 +1304,7 @@ private void setupGUI() {
 				__scaledSymbol_color2JTextField,
 				++x, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	
-			// Width...
+			// Width.
 	
 			JTextField __scaledSymbol_sizexJTextField = new JTextField(2);
 			__scaledSymbol_sizexJTextField.setEditable ( false );
@@ -1388,7 +1316,7 @@ private void setupGUI() {
 				++x, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 			__scaledSymbol_sizexJTextField = null;
 		
-			// Height...
+			// Height.
 	
 			JTextField __scaledSymbol_sizeyJTextField = new JTextField(3);
 			__scaledSymbol_sizeyJTextField.setEditable ( false );
@@ -1400,7 +1328,7 @@ private void setupGUI() {
 				++x, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 			__scaledSymbol_sizeyJTextField = null;
 	
-			// Max Data...
+			// Max Data.
 	
 			JTextField __scaledSymbol_maxdataJTextField =new JTextField(7);
 			__scaledSymbol_maxdataJTextField.setEditable ( false );
@@ -1409,26 +1337,21 @@ private void setupGUI() {
 	
 			if ( symbol.getType() == GRSymbol.CLASSIFICATION_SCALED_SYMBOL){
 				__scaledSymbol_maxdataJTextField.setText (
-				StringUtil.formatString(
-				((GRScaledClassificationSymbol)
-				symbol).getClassificationDataMax(),"%.2f") );
+				StringUtil.formatString( ((GRScaledClassificationSymbol)symbol).getClassificationDataMax(),"%.2f") );
 			}
 	       		JGUIUtil.addComponent( scaled_symbol_detailJPanel,
 				__scaledSymbol_maxdataJTextField,
 				++x, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 			__scaledSymbol_maxdataJTextField = null;
 	
-			// Max display...
+			// Max display.
 	
-			JTextField __scaledSymbol_maxdisplayJTextField =
-				new JTextField(7);
+			JTextField __scaledSymbol_maxdisplayJTextField = new JTextField(7);
 			__scaledSymbol_maxdisplayJTextField.setEditable ( false );
-			__scaledSymbol_maxdisplayJTextField.setBackground(
-				Color.lightGray );
+			__scaledSymbol_maxdisplayJTextField.setBackground( Color.lightGray );
 			if ( symbol.getType() == GRSymbol.CLASSIFICATION_SCALED_SYMBOL){
 				__scaledSymbol_maxdisplayJTextField.setText (
-				StringUtil.formatString(
-				((GRScaledClassificationSymbol)
+				StringUtil.formatString( ((GRScaledClassificationSymbol)
 				symbol).getClassificationDataDisplayMax(),"%.2f"));
 			}
 	       		JGUIUtil.addComponent( scaled_symbol_detailJPanel,
@@ -1446,7 +1369,7 @@ private void setupGUI() {
 			2, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 		JPanel scaled_legend_panel = new GeoLayerViewLegendJPanel(__layerView, false);
 		scaled_legend_panel.setBackground ( Color.white );
-	    JGUIUtil.addComponent( __scaledSymbolJPanel, 
+	    JGUIUtil.addComponent( __scaledSymbolJPanel,
 			new JScrollPane(scaled_legend_panel),
 			2, ++y, 1, 9, 1, 1, TNNN, GridBagConstraints.BOTH, GridBagConstraints.WEST );
 		scaled_legend_panel = null;
@@ -1476,7 +1399,7 @@ private void setupGUI() {
         JGUIUtil.addComponent( labelJPanel, new JLabel ( "   Floating point " +
 		"values:  Use %NN.Nf (e.g., %f, %.2f, %10.2f)." ),
 		0, ++y, 7, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
-//      JGUIUtil.addComponent( labelJPanel, new JLabel ( "   Integer values:  " 
+//      JGUIUtil.addComponent( labelJPanel, new JLabel ( "   Integer values:  "
 //		+ "Use %NNd (e.g., %d, %2d, %02d)." ),
 //		0, ++y, 7, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
         JGUIUtil.addComponent( labelJPanel, new JLabel( "   Integer values:  " +
@@ -1662,8 +1585,7 @@ private void setupGUI() {
 			1, y++, 1, 1, 0, 0, TLBR,
 			GridBagConstraints.NONE, GridBagConstraints.CENTER);
 		
-		JGUIUtil.addComponent(layoutJPanel, new JLabel(
-			"Location: "),
+		JGUIUtil.addComponent(layoutJPanel, new JLabel( "Location: "),
 			0, y, 1, 1, 0, 0, TNBR,
 			GridBagConstraints.NONE, GridBagConstraints.NORTHEAST);
 		v = new ArrayList<String>();
@@ -1678,24 +1600,28 @@ private void setupGUI() {
 			GridBagConstraints.NONE, GridBagConstraints.NORTHWEST);
 		__legendLocationComboBox.addActionListener(this);
 
-		// The legend is drawn on the map by iterating through the 
-		// tree, so links need made between the tree and the layers
+		// The legend is drawn on the map by iterating through the tree,
+		// so links need made between the tree and the layers
 		// listed in the legend so that they can be turned on or off
-		// and thus appear (or not) in the legend on screen
+		// and thus appear (or not) in the legend on screen.
 		GeoViewLegendJTree legendJTree = __parentGeoViewJPanel.getLegendJTree();
 
-		// The following method returns an array of Vectors.  It's
-		// not the cleanest method, but it's not called often and
-		// guarantees that this method gets all the information it needs to set up the layout object
-		// [0] - the GeoLayerViews that are associated with each node in the tree
-		// [1] - the layer names associated with each node in the tree
-		// [2] - the actual nodes in the tree
+		// The following method returns an array of Vectors.
+		// It's not the cleanest method, but it's not called often and
+		// guarantees that this method gets all the information it needs to set up the layout object:
+		// [0] - the GeoLayerView that are associated with each node in the tree
+		// [1] - the layer names (String) associated with each node in the tree
+		// [2] - the actual nodes (GeoViewLegendJTree_Node) in the tree
+		@SuppressWarnings("rawtypes")
 		List[] vectors = legendJTree.getLayersNamesAndNodes(false);
-		List layers = vectors[0];
-		List names = vectors[1];
-		List nodes = vectors[2];
+		@SuppressWarnings("unchecked")
+		List<GeoLayerView> layers = (List<GeoLayerView>)vectors[0];
+		@SuppressWarnings("unchecked")
+		List<String> names = (List<String>)vectors[1];
+		@SuppressWarnings("unchecked")
+		List<GeoViewLegendJTree_Node> nodes = (List<GeoViewLegendJTree_Node>)vectors[2];
 
-		// All methods must be the same size (forced by the called method, so just get the size from one)
+		// All methods must be the same size (forced by the called method, so just get the size from one).
 		int size = names.size();
 
 		GeoLayerView glv = null;
@@ -1707,30 +1633,31 @@ private void setupGUI() {
 		SimpleJTree_Node node = null;
 		String name = null;
 
-		// the following object should never be null. 
+		// The following object should never be null.
 		GeoViewLegendLayout layout = __geoview.getLegendLayout();
 
 		for (int i = 0; i < size; i++) {
-			// pull out the values returned from the lists above
-			glv = (GeoLayerView)layers.get(i);
-			name = (String)names.get(i);
+			// Pull out the values returned from the lists above.
+			glv = layers.get(i);
+			name = names.get(i);
 			checkBox = new JCheckBox((String)null);
 			
-			// The following panel is what will be displayed in the tree of layers that users can select to appear
-			// in the legend or not.  The panel will contain a check box on the left (for the user to show/hide
-			// a layer in the legend) and the description of the layer on the right
+			// The following panel is what will be displayed in the tree of layers
+			// that users can select to appear in the legend or not.
+			// The panel will contain a check box on the left (for the user to show/hide a layer in the legend)
+			// and the description of the layer on the right.
 			panel = new JPanel();
 			panel.setLayout(new GridBagLayout());
 			
-			// Finds the position within the internal layout lists of the current GeoLayerView.  Returns -1 if the
-			// GeoLayerView is not in the layout -- this means either 1) a new layer has been added to the display
-			// since last the properties window was opened, or 2) the layout has never been set up (is new)
-			// and simply displays everything
+			// Finds the position within the internal layout lists of the current GeoLayerView.
+			// Returns -1 if the GeoLayerView is not in the layout -- this means either
+			// 1) a new layer has been added to the display since last the properties window was opened, or
+			// 2) the layout has never been set up (is new) and simply displays everything.
 			num = layout.findLayer(glv);
 			
 			if (num == -1 || layout.isLayerLegendVisible(glv)) {
 				// Set the layer visible in the legend if -1 because this either means it's a new legend
-				// since last the layout was modified or the layout has never been edited before
+				// since last the layout was modified or the layout has never been edited before.
 				checkBox.setSelected(true);
 			}
 			else {
@@ -1743,33 +1670,33 @@ private void setupGUI() {
 
 			checkBox.addActionListener(this);
 
-			// The nodeLabel is the text that will be shown next to the checkbox -- contains the name of the layer
+			// The nodeLabel is the text that will be shown next to the checkbox -- contains the name of the layer.
 			nodeLabel = new JLabel("  " + name);
 
-			// Force the colors to match 
+			// Force the colors to match.
 			checkBox.setBackground(tree.getBackground());
 			nodeLabel.setBackground(tree.getBackground());	
 			panel.setBackground(tree.getBackground());
 
 			JGUIUtil.addComponent(panel, checkBox,
-				0, 0, 1, 1, 0, 0, 
+				0, 0, 1, 1, 0, 0,
 				GridBagConstraints.NONE,
 				GridBagConstraints.EAST);
 			JGUIUtil.addComponent(panel, nodeLabel,
-				1, 0, 1, 1, 0, 0, 
+				1, 0, 1, 1, 0, 0,
 				GridBagConstraints.NONE,
 				GridBagConstraints.EAST);
 			
 			node = new SimpleJTree_Node(panel, name);
 
 			if (num == -1) {
-				// If the layer was not found in the layout, add it and all its other associated control
-				// information to the layout
-				layout.addNodeLayerCheckBox( (SimpleJTree_Node)nodes.get(i), glv, checkBox, checkBox.isSelected());
+				// If the layer was not found in the layout,
+				// add it and all its other associated control information to the layout.
+				layout.addNodeLayerCheckBox( (GeoViewLegendJTree_Node)nodes.get(i), glv, checkBox, checkBox.isSelected());
 			}
 			else {
-				// If the layer was found in the layout, associate it with the new checkbox so that
-				// actions occur properly
+				// If the layer was found in the layout,
+				// associate it with the new checkbox so that actions occur properly.
 				layout.setCheckBox(num, checkBox);
 			}
 			
@@ -1784,12 +1711,12 @@ private void setupGUI() {
 		tree.setVisibleRowCount(8);
 		JGUIUtil.addComponent(layoutJPanel, new JScrollPane(tree),
 			0, y++, 10, 1, 1, 0, TLBR,
-			GridBagConstraints.HORIZONTAL, 
+			GridBagConstraints.HORIZONTAL,
 			GridBagConstraints.CENTER);
 	}
 
     //---------------------------------------------------------------------
-    // Add all Panels to the Tab Panel
+    // Add all panels to the tab panel.
     //---------------------------------------------------------------------
 	layer = null;
 	JTabbedPane tab = new JTabbedPane();
@@ -1843,13 +1770,13 @@ private void setupGUI() {
 	_statusJTextField = new JTextField();
 	_statusJTextField.setEditable( false );
 	JGUIUtil.addComponent( buttonSJPanel, _statusJTextField,
-			0, 0, 1, 1, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST ); 
+			0, 0, 1, 1, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
     */
 
-	// Frame settings
+	// Frame settings.
 
 	if ( __geoViewOnly || (legend.getText() == null) ) {
-		// Main GeoView properties...
+		// Main GeoView properties.
 		if ( (JGUIUtil.getAppNameForWindows() == null) || JGUIUtil.getAppNameForWindows().equals("") ) {
 			setTitle ( "GeoView - Properties" );
 		}
@@ -1873,15 +1800,14 @@ private void setupGUI() {
 }
 
 /**
-Detected when the state of the JTabbedPane has changed.  Mainly, want to check
-when the __symbolJPanel is visible so that we can manage the heavy weight canvas.
+Detected when the state of the JTabbedPane has changed.
+Mainly, want to check when the __symbolJPanel is visible so that we can manage the heavy weight canvas.
 TODO (JTS - 2004-10-18) is this old AWT stuff?  Can it be removed?
 */
-public void stateChanged ( ChangeEvent e )
-{	if ( e.getSource() == __theJTabbedPane ) {
-		// If the selected tab is the __symbolJPanel, make set the
-		// legend panel to visible, otherwise set it to not visible
-		// so the canvas does not show through the other components
+public void stateChanged ( ChangeEvent e ) {
+	if ( e.getSource() == __theJTabbedPane ) {
+		// If the selected tab is the __symbolJPanel, make set the legend panel to visible,
+		// otherwise set it to not visible so the canvas does not show through the other components.
 		if (__theJTabbedPane.getSelectedComponent() == __symbolJPanel ){
 			Message.printStatus ( 1, "", "Symbol panel selected" );
 			if ( __singleLegendJPanel != null ) {
@@ -1896,21 +1822,26 @@ public void stateChanged ( ChangeEvent e )
 	}
 }
 
-public void windowActivated( WindowEvent evt )
-{
+public void windowActivated( WindowEvent evt ) {
 }
 
-public void windowClosed( WindowEvent evt )
-{
+public void windowClosed( WindowEvent evt ) {
 }
 
-public void windowClosing( WindowEvent evt )
-{	close();
+public void windowClosing( WindowEvent evt ) {
+	close();
 }
 
-public void windowDeactivated( WindowEvent evt ){;}
-public void windowDeiconified( WindowEvent evt ){;}
-public void windowIconified( WindowEvent evt ){;}
-public void windowOpened( WindowEvent evt ){;}
+public void windowDeactivated( WindowEvent evt ) {
+}
+
+public void windowDeiconified( WindowEvent evt ) {
+}
+
+public void windowIconified( WindowEvent evt ) {
+}
+
+public void windowOpened( WindowEvent evt ) {
+}
 
 }
