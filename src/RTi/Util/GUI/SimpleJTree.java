@@ -42,8 +42,6 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 
-import RTi.Util.IO.PropList;
-
 import RTi.Util.Message.Message;
 
 /**
@@ -62,7 +60,7 @@ Example of setting up a tree with some nodes:<p>
 
 	getContentPane().add(new JScrollPane(tree));
 	// no lines connecting nodes to other nodes
-	tree.setLineStyle(SimpleJTree.LINE_NONE);	
+	tree.setLineStyle(SimpleJTree.LINE_NONE);
 
 	// Turn off some of the icons, but not all.
 	tree.setClosedIcon(null);
@@ -87,14 +85,14 @@ Example of setting up a tree with some nodes:<p>
 	tree.addNode(nodes[0]);
 	tree.addNode(nodes[1], nodes[0]);
 	tree.addNode(nodes[2], nodes[0]);
-	for (int i = 0; i < 10; i++) {	
+	for (int i = 0; i < 10; i++) {
 		tree.addNode(new SimpleJTree_Node("Temp " + i, null, ""),
 			nodes[0]);
 	}
 	pack();
 	tree.setLineStyle(SimpleJTree.LINE_NONE);
 	tree.setShowsRootHandles(true);
-	tree.collapseAllNodes();	
+	tree.collapseAllNodes();
 </code>
 */
 @SuppressWarnings("serial")
@@ -104,12 +102,12 @@ extends JTree {
 /**
 The class name.
 */
-public final static String CLASS = "SimpleJTree";
+public String CLASS = getClass().getSimpleName();
 
 /**
 The level at which most debug messages are printed.
 */
-public final static int dl = 10;
+public int dl = 10;
 
 /**
 The default closed icon is a closed file folder.
@@ -160,11 +158,13 @@ Used to refer internally to the windows-type look and feel.
 */
 private static final int __WINDOWS = 0;
 
+// TODO smalers 2023-01-20 these are old conventions, need to evaluate updating.
 /**
 Used to refer internally to the motif-type look and feel.
 */
 private static final int __MOTIF = 1;
 
+// TODO smalers 2023-01-20 these are old conventions, need to evaluate updating.
 /**
 Used to refer internally to the metal-type look and feel.
 */
@@ -172,6 +172,8 @@ private static final int __METAL = 2;
 
 /**
 Whether nodes should be added with the fast add method, which doesn't do any tree error checking.
+Fast mode loads trees much faster because checks and events don't occur.
+Fast mode should be turned on for interactive editing.
 */
 private boolean __fastAdd = false;
 
@@ -247,7 +249,22 @@ private List<SimpleJTree_Listener> __listeners = null;
 
 /**
 Constructor.
+The tree is created but is not initialized.
 This creates an empty tree containing only an invisible root node.
+For example, use this version when the default root node is inappropriate
+but a specified node cannot be passed in at construction.
+Call the initializeTree() as soon as the root node is created.
+@param waitToInitialize currently ignored, used to provide an overloaded constructor
+*/
+public SimpleJTree ( boolean waitToInitialize ) {
+}
+
+// TODO smalers 2023-01-22 what does "invisible" mean?
+// This version results in a node labeled "JTree.rootNode" being shown.
+/**
+Constructor.
+This creates an empty tree containing only an invisible root node.
+The root node text for the visible label defaults to "JTree.rootNode".
 The DefaultTreeModel is used for the data model.
 */
 public SimpleJTree() {
@@ -356,12 +373,12 @@ throws Exception {
 }
 
 /**
-Adds a listener to the Vector of listeners.
-@param listener the listener to add.
+Adds a listener to the list of listeners.
+@param listener the SimpleJTree_Listener listener to add.
 */
 public void addSimpleJTreeListener(SimpleJTree_Listener listener) {
 	if (__listeners == null) {
-		__listeners = new Vector<SimpleJTree_Listener>();
+		__listeners = new Vector<>();
 	}
 	__listeners.add(listener);
 }
@@ -474,7 +491,7 @@ throws Exception {
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, CLASS + ".addNode", "Node to be added at position: " + position);
 	}
-	
+
 	if (!__fastAdd) {
 		// Keep track of which nodes were visible prior to adding the new node.
 		markVisibleNodes();
@@ -488,9 +505,9 @@ throws Exception {
 
 		// Make sure that all the nodes visible prior to adding this node are visible again.
 		resetVisibleNodes();
-	
+
 		treeDidChange();
-	
+
 		scrollPathToVisible(new TreePath(node));
 	}
 }
@@ -505,11 +522,11 @@ throws Exception {
 	if (!isCollapsible()) {
 		throw new Exception ("Cannot collapse nodes; table has set un-collapsible");
 	}
-	
+
 	SimpleJTree_Node node = getRoot();
-	
+
 	if (Message.isDebugOn) {
-		Message.printStatus(dl, CLASS + ".collapseAllNodes", "Collapsing from root node (" + node.toString() + ")");
+		Message.printStatus(dl, CLASS + ".collapseAllNodes", "Collapsing from root node (" + node + ")");
 	}
 
 	if (node.getChildCount() > 0) {
@@ -518,13 +535,13 @@ throws Exception {
 			SimpleJTree_Node n = e.nextElement();
 			collapseAllNodes(n);
 		}
-	}	
+	}
 }
 
 /**
 Private function used by <tt>collapseAllNodes()</tt> to recursively collapse all the tree's nodes.
 This goes out to the very end leaves of the tree and collapses all the nodes on its way back up the tree.
-@param node the node to recurse through the children of, and then collapse.
+@param node the node to recurse through the children of, and then collapse the specified node
 */
 private void collapseAllNodes(SimpleJTree_Node node) {
 	if (node.getChildCount() > 0) {
@@ -533,22 +550,22 @@ private void collapseAllNodes(SimpleJTree_Node node) {
 			SimpleJTree_Node n = e.nextElement();
 			collapseAllNodes(n);
 		}
-	}		
+	}
 
 	// Mark the node itself as visible, too, so that calls to resetVisibleNodes() work correctly.
 	node.markVisible(false);
 
 	if (Message.isDebugOn) {
-		Message.printStatus(dl, CLASS + ".collapseAllNodes", "  Collapsing node: " + node.toString());
+		Message.printStatus(dl, CLASS + ".collapseAllNodes", "  Collapsing node: " + node );
 	}
 
 	// Close the node.
 	TreePath tp = getTreePath(node);
-	collapsePath(tp);	
+	collapsePath(tp);
 }
 
 /**
-Collapses a node with the given name (as found by String.equalsIgnoreCase).
+Collapses a node with the given name, case-independent.
 @param name name of the node to collapse
 @throws Exception if the named node cannot be found, or if the tree has been set un-collapsible
 */
@@ -571,23 +588,27 @@ throws Exception {
 	if (!isCollapsible()) {
 		throw new Exception ("Cannot collapse nodes; table has set un-collapsible");
 	}
-	
+
 	if (Message.isDebugOn) {
-		Message.printStatus(dl, CLASS + ".collapseNode", "Collapsing node: " + node.toString());
+		Message.printStatus(dl, CLASS + ".collapseNode", "Collapsing node: " + node );
 	}
-	
+
 	node.markVisible(false);
 	TreePath tp = getTreePath(node);
-	collapsePath(tp);	
+	collapsePath(tp);
 }
 
 /**
 Dumps out the tree on the standard output.  Used for debugging.
+The dump is printed to standard output and the log file if debug is on.
 */
 public void dumpTree() {
 	SimpleJTree_Node root = getRoot();
-	System.out.println("'" + root.getName() + "'");	
+	String divider = "----------------------";
+	System.out.println(divider);
+	System.out.println("'" + root.getName() + "'");
 	if ( Message.isDebugOn ) {
+		Message.printDebug(1,"", divider );
 		Message.printDebug(1,"",root.getName() );
 	}
 	if (root.getChildCount() > 0) {
@@ -596,11 +617,18 @@ public void dumpTree() {
 			SimpleJTree_Node n = e.nextElement();
 			dumpTree(1, n);
 		}
-	}	
+	}
+	System.out.println(divider);
+	if ( Message.isDebugOn ) {
+		Message.printDebug(1,"", divider );
+	}
 }
 
 /**
-Private utility method used by dumpTree().
+Private utility method used by dumpTree() to dump a node and recurse.
+The dump is printed to standard output and the log file if debug is on.
+@param indent indentation level (two spaces are used for each level)
+@param node node to output (recursively)
 */
 public void dumpTree(int indent, SimpleJTree_Node node) {
 	String s = "";
@@ -618,7 +646,7 @@ public void dumpTree(int indent, SimpleJTree_Node node) {
 			SimpleJTree_Node n = e.nextElement();
 			dumpTree((indent + 1), n);
 		}
-	}		
+	}
 }
 
 /**
@@ -628,20 +656,21 @@ public void expandAllNodes() {
 	SimpleJTree_Node node = getRoot();
 
 	if (Message.isDebugOn) {
-		Message.printStatus(dl, CLASS + ".expandAllNodes", "Expanding from root node (" + node.toString() + ")");
+		Message.printStatus(dl, CLASS + ".expandAllNodes", "Expanding from root node (" + node + ")");
 	}
-	
+
 	if (node.getChildCount() > 0) {
 		for (@SuppressWarnings("unchecked")
 		Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
 			SimpleJTree_Node n = e.nextElement();
 			expandAllNodes(n);
 		}
-	}	
+	}
 }
 
 /**
-Private utility method used by <tt>expandAllNodes()</tt> to recursively expand all the nodes in the tree.
+Private utility method used by <tt>expandAllNodes()</tt> to recursively expand all the children nodes for a node.
+@param node the node to expand, including all children and the node itself
 */
 private void expandAllNodes(SimpleJTree_Node node) {
 	node.markVisible(true);
@@ -649,7 +678,7 @@ private void expandAllNodes(SimpleJTree_Node node) {
 	makeVisible(tp);
 
 	if (Message.isDebugOn) {
-		Message.printStatus(dl, CLASS + ".expandAllNodes", "  Expanding node:  " + node.toString());
+		Message.printStatus(dl, CLASS + ".expandAllNodes", "  Expanding node:  " + node );
 	}
 
 	if (node.getChildCount() > 0) {
@@ -658,11 +687,11 @@ private void expandAllNodes(SimpleJTree_Node node) {
 			SimpleJTree_Node n = e.nextElement();
 			expandAllNodes(n);
 		}
-	}		
+	}
 }
 
 /**
-Expands the node with the given name (as found by String.equalsIgnoreCase).
+Expands the node with the given name, case-independent.
 @param name the name of the node to expand.
 @throws Exception if the named node cannot be found in the tree.
 */
@@ -685,12 +714,12 @@ public void expandNode(SimpleJTree_Node node) {
 	makeVisible(tp);
 
 	if (Message.isDebugOn) {
-		Message.printStatus(dl, CLASS + ".expandNode", " Expanding node: " + node.toString());
-	}	
+		Message.printStatus(dl, CLASS + ".expandNode", " Expanding node: " + node);
+	}
 }
 
 /**
-Locates a node in the tree that has the same name, matched with use of <tt>String.equalsIgnoreCase(String)</tt>.
+Locates a node in the tree that has the same name, ignoring case.
 @param name the name of the node to find.
 @return the node that has the given name, or null if no matching nodes could be found.
 */
@@ -714,7 +743,7 @@ private SimpleJTree_Node findNodeByName(SimpleJTree_Node node,String name) {
 	if (node.getName().equalsIgnoreCase(name)) {
 		if (Message.isDebugOn) {
 			Message.printDebug(dl, CLASS + ".findNodeByName", "  Node matched: '" + node.getName());
-		}	
+		}
 		//if (node.getName().startsWith(name)) {
 		return node;
 	}
@@ -722,7 +751,7 @@ private SimpleJTree_Node findNodeByName(SimpleJTree_Node node,String name) {
 		if (Message.isDebugOn) {
 			Message.printDebug(dl, CLASS + ".findNodeByName", "  Not a match: '" + node.getName() + "'");
 		}
-	}	
+	}
 
 	if (node.getChildCount() > 0) {
 		for (@SuppressWarnings("unchecked")
@@ -736,6 +765,39 @@ private SimpleJTree_Node findNodeByName(SimpleJTree_Node node,String name) {
 	}
 	return null;
 }
+
+	/**
+	 * Find a matching node under a node. Do not recurse to children.
+	 * @param node the parent node to search under
+	 * @param text visible text (node label) to match
+	 */
+   	public SimpleJTree_Node findFolderMatchingText ( SimpleJTree_Node node, String text ) {
+   		return findFolderMatchingText ( node, text, false );
+   	}
+	
+	/**
+	 * Find a matching node under a node based on the visible text. Do not recurse to children.
+	 * @param node the parent node to search under
+	 * @param text visible text (node label) to match
+	 * @param doRecurse whether to recursively search child nodes (not currently implemented)
+	 */
+   	public SimpleJTree_Node findFolderMatchingText ( SimpleJTree_Node node, String text, boolean doRecurse ) {
+   		if ( doRecurse ) {
+   			// TODO smalers 2023-01-11 not currently implemented.
+   			return null;
+   		}
+   		else {
+   			for ( @SuppressWarnings("unchecked")
+   				Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
+   				SimpleJTree_Node n = e.nextElement();
+   				if ( n.getText().equals(text) ) {
+   					return n;
+   				}
+   			}
+   			// Node was not found so return null;
+   			return null;
+   		}
+   	}
 
 /**
 Finds the node that contains the given data.
@@ -752,6 +814,8 @@ public SimpleJTree_Node findNodeWithData(Object data) {
 
 /**
 Utility method used by findNodeWithData.
+The object reference address is used, not 'equals'.
+The requested object must therefore match an object in source data.
 @param node the node at which to start going down the tree.
 @param data the data in the node to find.
 @return the node that contains the given data.
@@ -783,7 +847,7 @@ private SimpleJTree_Node findNodeWithData(SimpleJTree_Node node, Object data) {
 }
 
 /**
-Finds a top-level node with the given name.
+Finds a top-level node with the given name, case-specific.
 This only searches the nodes immediately beneath the (hidden) root node.
 @param name the name of the node for which to search.  Cannot be null.
 @return the first SimpleJTree_Node with the same name, or null if none could be found.
@@ -796,7 +860,7 @@ public SimpleJTree_Node findTopLevelNode(String name) {
 		}
 		return root;
 	}
-	
+
 	SimpleJTree_Node n = null;
 	if (root.getChildCount() > 0) {
 		for (@SuppressWarnings("unchecked")
@@ -827,7 +891,7 @@ throws Throwable {
 /**
 Returns an array of all the children nodes of the given node,
 and all the children of their children, so on and so on.
-@param name the name of the node to return the children of.
+@param name the name of the node to return the children of (case is ignored).
 @return an array of all the children nodes of the given node.
 */
 public Object[] getAllChildrenArray(String name) {
@@ -853,7 +917,7 @@ public Object[] getAllChildrenArray(SimpleJTree_Node node) {
 /**
 Returns a list of all the children nodes of the given node,
 and all the children of their children, so on and so on.
-@param name the name of the node to return the children of.
+@param name the name of the node to return the children of (case is ignored).
 @return a list of all the children nodes of the given node.
 */
 public List<SimpleJTree_Node> getAllChildrenList(String name) {
@@ -869,12 +933,12 @@ and all the children of their children, so on and so on.
 public List<SimpleJTree_Node> getAllChildrenList(SimpleJTree_Node node) {
 	Enumeration<SimpleJTree_Node> e = getChildren(node);
 	if (e == null) {
-		return new Vector<SimpleJTree_Node>();
+		return new Vector<>();
 	}
 
 	int size = 0;
 	SimpleJTree_Node tempNode = null;
-	List<SimpleJTree_Node> v = new Vector<SimpleJTree_Node>();
+	List<SimpleJTree_Node> v = new Vector<>();
 	List<SimpleJTree_Node> temp = null;
 	while (e.hasMoreElements()) {
 		tempNode = (SimpleJTree_Node)e.nextElement();
@@ -890,7 +954,7 @@ public List<SimpleJTree_Node> getAllChildrenList(SimpleJTree_Node node) {
 
 /**
 Returns an enumeration of all the children nodes of the given node.
-@param name the name of the node to return the children of.
+@param name the name of the node to return the children of (case is ignored).
 @return an enumeration of all the children nodes of the given node.
 */
 public Enumeration<SimpleJTree_Node> getChildren(String name) {
@@ -912,10 +976,10 @@ public Enumeration<SimpleJTree_Node> getChildren(SimpleJTree_Node node) {
 
 /**
 Returns an array of all the children nodes of the given node.
-@param name the name of the node to return the children of.
+@param name the name of the node to return the children of (case is ignored).
 @return an array of all the children nodes of the given node.
 */
-public Object[] getChildrenArray(String name) {
+public SimpleJTree_Node[] getChildrenArray(String name) {
 	return getChildrenArray(findNodeByName(name));
 }
 
@@ -924,10 +988,10 @@ Returns an array of all the children nodes of the given node.
 @param node the node to get the children of
 @return an array of all the children nodes of the given node.
 */
-public Object[] getChildrenArray(SimpleJTree_Node node) {
+public SimpleJTree_Node[] getChildrenArray(SimpleJTree_Node node) {
 	List<SimpleJTree_Node> v = getChildrenList(node);
 	int size = v.size();
-	Object[] array = new Object[size];
+	SimpleJTree_Node[] array = new SimpleJTree_Node[size];
 	for (int i = 0; i < size; i++) {
 		array[i] = v.get(i);
 	}
@@ -936,7 +1000,7 @@ public Object[] getChildrenArray(SimpleJTree_Node node) {
 
 /**
 Returns a list of all the children nodes of the given node.
-@param name the name of the node to return the children of.
+@param name the name of the node to return the children of (case is ignored)
 @return a list of all the children nodes of the given node.
 */
 public List<SimpleJTree_Node> getChildrenList(String name) {
@@ -950,7 +1014,7 @@ Returns a list of all the children nodes of the given node.
 */
 public List<SimpleJTree_Node> getChildrenList(SimpleJTree_Node node) {
 	Enumeration<SimpleJTree_Node> e = getChildren(node);
-	List<SimpleJTree_Node> v = new Vector<SimpleJTree_Node>();
+	List<SimpleJTree_Node> v = new Vector<>();
 	while (e.hasMoreElements()) {
 		v.add(e.nextElement());
 	}
@@ -959,6 +1023,7 @@ public List<SimpleJTree_Node> getChildrenList(SimpleJTree_Node node) {
 
 /**
 Returns a count of the number of children of the named node.
+@param name the name of the node to return the children of (case is ignored)
 @return a count of the number of children of the named node.
 */
 public int getChildCount(String name)
@@ -977,7 +1042,7 @@ public int getChildCount(SimpleJTree_Node node) {
 /**
 Gets the Icon being used as the closed icon.
 This is the icon that appears in the label next to text in a node that has children
-(e.g., a closed folder to represent an un-opened subdirectory).
+(e.g., a closed folder to represent an unopened folder).
 @return the Icon being used as the closed icon.
 */
 public Icon getClosedIcon() {
@@ -997,7 +1062,7 @@ public Icon getCollapsedIcon() {
 /**
 Gets the icon being used as the expanded icon.
 This is the icon used when a branch of a tree has been opened
-(e.g., a box with a minux sign in it representing a branch that can be closed).
+(e.g., a box with a minus sign in it representing a branch that can be closed).
 @return the Icon being used as the expanded icon.
 */
 public Icon getExpandedIcon() {
@@ -1026,7 +1091,7 @@ public Icon getLeafIcon() {
 Returns the list of listeners.
 @return the list of listeners.
 */
-protected List<SimpleJTree_Listener> getListeners() {	
+protected List<SimpleJTree_Listener> getListeners() {
 	return __listeners;
 }
 
@@ -1045,7 +1110,7 @@ public TreePath getNextMatch(String prefix, int startingRow, Position.Bias bias)
 }
 
 /**
-Returns the node with the given name (as found by String.equalsIgnoreCase).
+Returns the node with the given name, ignoring case.
 @param name the name of the node to return
 @return the node with the matching name, or null if no matching node could be found.
 */
@@ -1054,7 +1119,7 @@ public SimpleJTree_Node getNode(String name) {
 }
 
 /**
-Returns the data from the node with the given name (as found by String.equalsIgnoreCase).
+Returns the data from the node with the given name, ignoring case.
 @param name the name of the node for which to return its data.
 @return the data from the node with the given name, or null if the node could not be found.
 */
@@ -1095,32 +1160,34 @@ public SimpleJTree_Node getRoot() {
 
 /**
 Returns the first node selected in the tree or null if nothing is selected.
+The first selected is by chronological order, not the tree order.
 @return the first node selected in the tree or null if nothing is selected.
 */
 public SimpleJTree_Node getSelectedNode() {
-	List<SimpleJTree_Node> v = getSelectedNodes();
-	if (v.size() == 0) {
+	List<SimpleJTree_Node> nodes = getSelectedNodes();
+	if (nodes.size() == 0) {
 		return null;
 	}
-	return v.get(0);
+	return nodes.get(0);
 }
 
 /**
 Returns a list of all the nodes selected in the tree, or an empty list if none are selected.
+The list is the chronological order of the selection, not the tree order.
 @return a list of all the nodes selected in the tree, or an empty list if none are selected.
 */
 public List<SimpleJTree_Node> getSelectedNodes() {
 	TreePath[] tps = getSelectionPaths();
 
-	List<SimpleJTree_Node> list = new ArrayList<>();
+	List<SimpleJTree_Node> nodes = new ArrayList<>();
 	if (tps == null) {
-		return list;
+		return nodes;
 	}
 	for (int i = 0; i < tps.length; i++) {
-		list.add((SimpleJTree_Node)tps[i].getLastPathComponent());
+		nodes.add((SimpleJTree_Node)tps[i].getLastPathComponent());
 	}
 
-	return list;
+	return nodes;
 }
 
 /**
@@ -1153,7 +1220,7 @@ public boolean hasNode(SimpleJTree_Node node) {
 		return true;
 	}
 	if (Message.isDebugOn) {
-		Message.printDebug(dl, CLASS + ".hasNode", "Looking for node: " + node.toString());
+		Message.printDebug(dl, CLASS + ".hasNode", "Looking for node: " + node );
 	}
 	return hasNode(root, node);
 }
@@ -1179,7 +1246,7 @@ private boolean hasNode(SimpleJTree_Node node, SimpleJTree_Node nodeToFind) {
 				if (Message.isDebugOn) {
 					Message.printDebug(dl, CLASS + ".hasNode", "  Not a match: " + n.toString());
 				}
-			}			
+			}
 			boolean b = hasNode(n, nodeToFind);
 			if (b == true) {
 				return true;
@@ -1239,7 +1306,19 @@ private void initialize() {
 	// Set a listener so that the behavior of collapsing and expanding can be controlled.
 	__collapseExpandListener = new SimpleJTree_TreeWillExpandListener();
 	__collapseExpandListener.setTree(this);
-	addTreeWillExpandListener(__collapseExpandListener);	
+	addTreeWillExpandListener(__collapseExpandListener);
+}
+
+/**
+Initialize the tree.
+This should be called after SimpleJTree(boolean).
+This creates a tree containing the provided root node.
+@param root the root node to use to initialize the tree.
+*/
+public void initializeTree ( SimpleJTree_Node root ) {
+    DefaultTreeModel model = new DefaultTreeModel(root);
+    setModel(model);
+    initialize();
 }
 
 /**
@@ -1299,7 +1378,7 @@ private void markVisibleNodes(SimpleJTree_Node node) {
 			else {
 				if (Message.isDebugOn) {
 					Message.printDebug(dl, CLASS + ".markVisibleNodes", "  Node '" + n.getName() + "' marked not visible");
-				}			
+				}
 				n.markVisible(false);
 			}
 
@@ -1309,8 +1388,7 @@ private void markVisibleNodes(SimpleJTree_Node node) {
 }
 
 /**
-Moves the node with the given name to be under the parent with the given name
-(both found by String.equalsIgnoreCase).
+Moves the node with the given name to be under the parent with the given name, both case-independent.
 None of the node's children will be moved when the node is moved.
 @param nodeName the name of the node to move
 @param newParentName the name of the node under which to move the node
@@ -1327,8 +1405,7 @@ throws Exception {
 }
 
 /**
-Moves the node with the given name to be under the parent with the given name
-(both found by String.equalsIgnoreCase).
+Moves the node with the given name to be under the parent with the given name, both case-independent.
 @param nodeName the name of the node to move
 @param newParentName the name of the node under which to move the node
 @param moveChildren whether the children of the node should be moved when
@@ -1347,8 +1424,8 @@ throws Exception {
 
 /**
 Moves the node with the given name to be under the parent with the given name and places it in the specified position.
-@param nodeName the name of the node to move
-@param newParentName the name of the node under which to move the node
+@param nodeName the name of the node to move (case is ignored)
+@param newParentName the name of the node under which to move the node (case is ignored)
 @param moveChildren whether the children of the node should be moved when
 the node is moved (true) or whether they should simply be deleted (false)
 @param pos the position under the new parent node to which to move the node.
@@ -1472,7 +1549,7 @@ throws Exception {
 	// If the children don't have to move when the node moves it is easier, so that case is handled here.
 	if (!moveChildren) {
 		model.removeNodeFromParent(nodeToMove);
-		model.nodeStructureChanged(parent);	
+		model.nodeStructureChanged(parent);
 		addNode(nodeToMove, newParent, pos);
 		model.nodeStructureChanged(newParent);
 
@@ -1480,7 +1557,7 @@ throws Exception {
 	}
 
 	// Otherwise, move the node and all its children to the new parent.
-	moveNodes(nodeToMove, newParent, pos);	
+	moveNodes(nodeToMove, newParent, pos);
 }
 
 /**
@@ -1519,7 +1596,7 @@ private void moveNodesRecurse(SimpleJTree_Node node, SimpleJTree_Node newParent,
 	if (pos == -1) {
 		pos = childCount;
 	}
-	
+
 	DefaultTreeModel model = (DefaultTreeModel)getModel();
 	model.insertNodeInto(clonedNode, newParent, pos);
 
@@ -1542,6 +1619,15 @@ private void moveNodesRecurse(SimpleJTree_Node node, SimpleJTree_Node newParent,
 }
 
 /**
+ * Call the tree data model nodeStructureChanged() method.
+ * @param parent the parent node that contains changes
+ */
+public void nodeStructureChanged ( SimpleJTree_Node parent ) {
+	DefaultTreeModel model = (DefaultTreeModel)getModel();
+	model.nodeStructureChanged(parent);
+}
+
+/**
 Sets the tree to not allow the collapsing of nodes.
 */
 public void preventCollapsing() {
@@ -1557,7 +1643,7 @@ public void refresh() {
 }
 
 /**
-Refreshes the tree and forces the model to redraw all the nodes.
+Refreshes the tree and forces the model to redraw all the nodes including the root node.
 @param keepVisibility if true then the nodes that were visible prior to the refresh will be visible after the refresh.
 If false, then only the top-most nodes will be visible and expanded.
 */
@@ -1583,7 +1669,7 @@ throws Exception {
 
 /**
 Removes all the children of the specified node.
-@param name the name of the node from which to remove the children.
+@param name the name of the node from which to remove the children, case-independent
 */
 public void removeChildren(String name)
 throws Exception {
@@ -1610,7 +1696,7 @@ throws Exception {
 		}
 		@SuppressWarnings("unchecked")
 		Enumeration<SimpleJTree_Node> e = node.children();
-		List<SimpleJTree_Node> v = new Vector<SimpleJTree_Node>();
+		List<SimpleJTree_Node> v = new Vector<>();
 		for (; e.hasMoreElements();) {
 			v.add(e.nextElement());
 		}
@@ -1625,12 +1711,12 @@ throws Exception {
 	}
 
 	// And then refresh the structure of the tree.
-	model.nodeStructureChanged(node);	
+	model.nodeStructureChanged(node);
 }
 
 /**
 Removes the node with the given name (as found by String.equalsIgnoreCase) and all its children from the tree.
-@param name the name of the node to remove.
+@param name the name of the node to remove, case-independent
 @throws Exception if the named node could not be found.
 */
 public void removeNode(String name)
@@ -1643,11 +1729,11 @@ throws Exception {
 }
 
 /**
-Removes the node with the given name  (as found by String.equalsIgnoreCase) from the tree.
+Removes the node with the given name, case-independent.
 @param name the name of the node to remove.
-@param saveChildren if true, then the children of the node to be deleted
-are not deleted, but are instead made as new child nodes of the deleted node's
-parent.  If false, the child nodes are also deleted.
+@param saveChildren if true, then the children of the node to be deleted are not deleted,
+but are instead made as new child nodes of the deleted node's parent.
+If false, the child nodes are also deleted.
 @throws Exception if the named node could not be found.
 */
 public void removeNode(String name, boolean saveChildren)
@@ -1684,7 +1770,7 @@ throws Exception {
 
 	// Stop any cell editing that is in progress.
 	stopEditing();
-	
+
 	markVisibleNodes();
 	// If the child nodes do not need to be saved, it's a lot easier.
 	// Handle that case here and return.
@@ -1718,12 +1804,12 @@ throws Exception {
 
 	// And then the node itself is removed.
 	model.removeNodeFromParent(node);
-	model.nodeStructureChanged(parent);	
+	model.nodeStructureChanged(parent);
 	resetVisibleNodes();
 }
 
 /**
-Removes a listener from the listeners' list.
+Removes a SimpleJTree_Listener listener from the listeners' list.
 @param listener the listener to remove.
 */
 public void removeSimpleJTreeListener(SimpleJTree_Listener listener) {
@@ -1732,20 +1818,20 @@ public void removeSimpleJTreeListener(SimpleJTree_Listener listener) {
 	}
 	int size = __listeners.size();
 	for (int i = 0; i < size; i++) {
-		if (((SimpleJTree_Listener)__listeners.get(i)) == listener) {
+		if ( __listeners.get(i) == listener ) {
 			__listeners.remove(i);
 			return;
 		}
 	}
 }
-			
+
 /**
 Replaces a node in the tree with a new node.
 All the children of the original node become children of the new node.
 If the changes to the node aren't very drastic,
 it might be worthwhile to simply call SimpleJTree_Node's setComponent(), setData(), setIcon(), or setText() methods.
-@param nodeToReplaceName the name of the node to replace.
-@param newNode the node to put in the old node's stead.
+@param nodeToReplaceName the name of the node to replace, case-independent
+@param newNode the node to put in the old node's stead, case-independent
 @throws Exception if the named node could not be found or if the newNode is already in the tree
 */
 public void replaceNode(String nodeToReplaceName, SimpleJTree_Node newNode)
@@ -1783,12 +1869,12 @@ throws Exception {
 	// Give the new node the same visibility that the original node had,
 	// so that the tree looks the same after the replacement.
 	newNode.markVisible(nodeToReplace.isVisible());
-	
+
 	// Get the location of the original node in the tree so that the new node is placed in the same point,
 	// and then add the new node into the tree
 	int index = model.getIndexOfChild(parent, nodeToReplace);
 	addNode(newNode, parent, index);
-	
+
 	// Move the original node's children over onto the new node.
 	if (nodeToReplace.getChildCount() > 0) {
 		if (Message.isDebugOn) {
@@ -1833,7 +1919,7 @@ public void resetVisibleNodes() {
 			SimpleJTree_Node n = e.nextElement();
 			resetVisibleNodes(n);
 		}
-	}	
+	}
 }
 
 /**
@@ -1859,9 +1945,9 @@ private void resetVisibleNodes(SimpleJTree_Node node) {
 			else {
 				if (Message.isDebugOn) {
 					Message.printDebug(dl, CLASS + ".resetVisibleNodes", "  Node '" + n.getName() + "' " + " not set visible.");
-				}			
+				}
 			}
-			
+
 			resetVisibleNodes(n);
 		}
 	}
@@ -1877,7 +1963,7 @@ private void trimOldNodes(SimpleJTree_Node node) {
 		for (@SuppressWarnings("unchecked")
 		Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
 			SimpleJTree_Node n = e.nextElement();
-			trimOldNodes(n);	
+			trimOldNodes(n);
 		}
 	}
 	if (node.shouldBeDeleted()) {
@@ -1900,7 +1986,7 @@ throws Exception {
 }
 
 /**
-Scrolls to a visible node with the given name (as found by String.equalsIgnoreCase).
+Scrolls to a visible node with the given name, case-independent.
 @param name the name of a node to scroll to.
 @param select whether to select the node or not.
 @throws Exception if the named node could not be found.
@@ -1943,7 +2029,7 @@ public void scrollToVisibleNode(SimpleJTree_Node node, boolean select) {
 
 /**
 Selects a node in the tree so that it is the only node selected.
-@param name the name of the node to select.
+@param name the name of the node to select, case-independent.
 @throws Exception if no nodes with the given name can be found.
 */
 public void selectNode(String name)
@@ -1953,7 +2039,7 @@ throws Exception {
 
 /**
 Selects a node in the tree, but possibly leaves the selection state of the other nodes alone.
-@param name the name of the node to select.
+@param name the name of the node to select, case-independent.
 @param clearSelection if true, then all the other nodes will be deselected prior to this node being selected.
 If false, any other selected nodes will remain selected.
 @throws Exception if no nodes with the given name can be found.
@@ -2022,7 +2108,7 @@ This is used when a branch of a tree is closed
 @param icon the Icon to use as the collapsed icon.
 */
 public void setCollapsedIcon(Icon icon) {
-	BasicTreeUI ui = (BasicTreeUI)getUI();	
+	BasicTreeUI ui = (BasicTreeUI)getUI();
 	ui.setCollapsedIcon(icon);
 	__collapsedIcon = icon;
 }
@@ -2040,11 +2126,11 @@ public void setExpandAllowed(boolean expand ) {
 /**
 Sets the Icon to use as the expanded icon.
 This is the icon used when a branch of a tree has been opened
-(e.g., a box with a minux sign in it representing a branch that can be closed).
+(e.g., a box with a minus sign in it representing a branch that can be closed).
 @param icon the Icon to use as the expanded icon.
 */
 public void setExpandedIcon(Icon icon) {
-	BasicTreeUI ui = (BasicTreeUI)getUI();	
+	BasicTreeUI ui = (BasicTreeUI)getUI();
 	ui.setExpandedIcon(icon);
 	__expandedIcon = icon;
 }
@@ -2055,19 +2141,19 @@ to dramatically speed up the addNode() process. <p>
 <b>Notes:</b>
 Turning on <u>fast add</u> disables the following things in the addNode() method:<p>
 <ul>
-<li>The tree does not check whether the parent node of the node that is
-being added is an actual node in the tree.</li>
-<li>The tree does not notify the model that the node structure changed after a node is inserted.</li>
-<li>The tree does not keep track of which nodes are visible prior to adding the new node,
-nor does it reset those nodes that are visible after adding the node.
-This means that all the nodes added when <u>fast add</u> is on will be initially non-visible,
-unless they are root nodes.</li>
-<li>The tree does not scroll automatically to the newly-added node.</li>
+<li> The tree does not check whether the parent node of the node that is
+     being added is an actual node in the tree.</li>
+<li> The tree does not notify the model that the node structure changed after a node is inserted.</li>
+<li> The tree does not keep track of which nodes are visible prior to adding the new node,
+     nor does it reset those nodes that are visible after adding the node.
+     This means that all the nodes added when <u>fast add</u> is on will be initially non-visible,
+     unless they are root nodes.</li>
+<li> The tree does not scroll automatically to the newly-added node.</li>
 </ul>
 <p>
-In general, on JTS's computer, <u>fast add</u> made a dramatic difference in the node-adding speeds,
-particularly in large trees.  For example, in a tree that consisted of 10 nodes,
-each with 100 child nodes beneath them, it took <b>18.531</b> seconds to add all the nodes without <u>fast add</u>.
+In general, <u>fast add</u> results in a dramatic difference in the node-adding speeds, particularly in large trees.
+For example, in a tree that consisted of 10 nodes, each with 100 child nodes beneath them,
+it took <b>18.531</b> seconds to add all the nodes without <u>fast add</u>.
 When <u>fast add</u> was turned on, it took <b>0.093</b> seconds.
 <p>
 On a tree with 25 nodes, each with 250 child nodes, it took <b>629.016</b> seconds.
@@ -2096,19 +2182,18 @@ to dramatically speed up the addNode() process. <p>
 <b>Notes:</b>
 Turning on <u>fast add</u> disables the following things in the addNode() method:<p>
 <ul>
-<li>The tree does not check whether the parent node of the node that is
-being added is an actual node in the tree.</li>
-<li>The tree does not notify the model that the node structure changed after a node is inserted.</li>
-<li>The tree does not keep track of which nodes are visible prior to adding the new node,
-nor does it reset those nodes that are visible after adding the node.
-This means that all the nodes added when <u>fast add</u> is on will be initially non-visible,
-unless they are root nodes.</li>
-<li>The tree does not scroll automatically to the newly-added node.</li>
+<li> The tree does not check whether the parent node of the node that is
+     being added is an actual node in the tree.</li>
+<li> The tree does not notify the model that the node structure changed after a node is inserted.</li>
+<li> The tree does not keep track of which nodes are visible prior to adding the new node,
+     nor does it reset those nodes that are visible after adding the node.
+     This means that all the nodes added when <u>fast add</u> is on will be initially non-visible,
+     unless they are root nodes.</li>
+<li> The tree does not scroll automatically to the newly-added node.</li>
 </ul>
 <p>
-In general, on JTS's computer, <u>fast add</u> made a dramatic difference in the node-adding speeds,
-particularly in large trees.  For example, in a tree that consisted of 10 nodes,
-each with 100 child nodes beneath them,
+In general, <u>fast add</u> can dramatically difference in the node-adding speeds, particularly in large trees.
+For example, in a tree that consisted of 10 nodes, each with 100 child nodes beneath them,
 it took <b>18.531</b> seconds to add all the nodes without <u>fast add</u>.
 When <u>fast add</u> was turned on, it took <b>0.093</b> seconds.
 <p>
@@ -2131,6 +2216,7 @@ refresh() is also called with the keepVisibility parameter passed in.
 public void setFastAdd(boolean fastAdd, boolean keepVisibility) {
 	__fastAdd = fastAdd;
 	if (!__fastAdd) {
+		// Turning fast add off so refresh the tree to reflect changes.
 		refresh(keepVisibility);
 	}
 }
@@ -2170,7 +2256,7 @@ public void setLineStyle(int style) {
 	else if (__treeType == __METAL) {
 		String styleString = null;
 		if (style == LINE_NONE) {
-			styleString = "None";	
+			styleString = "None";
 		}
 		else if (style == LINE_ANGLED) {
 			styleString = "Angled";
@@ -2213,8 +2299,8 @@ public void setOpenIcon(Icon icon) {
 /**
 Sets whether the text in the tree can be clicked on and edited or not.
 The default is that the text is editable.
-@param editable if true, then the SimpleJTree_CellEditor will allow text
-values stored in the tree (in the fashion of the original JTree functionality) to be edited.
+@param editable if true, then the SimpleJTree_CellEditor will allow text values stored in the tree
+(in the fashion of the original JTree functionality) to be edited.
 If false, these values can not be edited.
 */
 public void setTreeTextEditable(boolean editable) {
@@ -2258,7 +2344,7 @@ public void showIcons(int iconFlag, boolean state) {
 	SimpleJTree_CellRenderer renderer = (SimpleJTree_CellRenderer)getCellRenderer();
 
 	Icon tempIcon;
-		
+
 	if ((iconFlag & OPEN_ICON) == OPEN_ICON) {
 		if (state) {
 			if (__openIcon != null) {
@@ -2271,7 +2357,7 @@ public void showIcons(int iconFlag, boolean state) {
 				__openIcon = tempIcon;
 			}
 			renderer.setOpenIcon(null);
-		}	
+		}
 	}
 
 	if ((iconFlag & CLOSED_ICON) == CLOSED_ICON) {
@@ -2286,9 +2372,9 @@ public void showIcons(int iconFlag, boolean state) {
 				__closedIcon = tempIcon;
 			}
 			renderer.setClosedIcon(null);
-		}		
+		}
 	}
-	
+
 	if ((iconFlag & LEAF_ICON) == LEAF_ICON) {
 		if (state) {
 			if (__leafIcon != null) {
@@ -2301,9 +2387,9 @@ public void showIcons(int iconFlag, boolean state) {
 				__leafIcon = tempIcon;
 			}
 			renderer.setLeafIcon(null);
-		}					
+		}
 	}
-	
+
 	BasicTreeUI ui = (BasicTreeUI)getUI();
 	if ((iconFlag & COLLAPSED_ICON) == COLLAPSED_ICON) {
 		if (state) {
@@ -2317,7 +2403,7 @@ public void showIcons(int iconFlag, boolean state) {
 				__collapsedIcon = tempIcon;
 			}
 			ui.setCollapsedIcon(null);
-		}				
+		}
 	}
 
 	if ((iconFlag & EXPANDED_ICON) == EXPANDED_ICON) {
@@ -2332,23 +2418,8 @@ public void showIcons(int iconFlag, boolean state) {
 				__expandedIcon = tempIcon;
 			}
 			ui.setExpandedIcon(null);
-		}					
+		}
 	}
-}
-
-/**
-A proplist that can be used for storing extra data in the tree.
-This data is never used by the tree.
-May be removed in future (REVISIT (JTS - 2006-04-12)) but for now leave in for DataTest.
-*/
-private PropList __props = null;
-
-public void setDataPropList(PropList props) {
-	__props = props;
-}
-
-public PropList getDataPropList() {
-	return __props;
 }
 
 }

@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,43 +20,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// FindInJListJDialog - dialog to search and manipulate a JList
-// ----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History: 
-//
-// 16 Mar 2001	Steven A. Malers, RTi	Copy TextResponseDialog and modify.
-// 2002-03-01	SAM, RTi		Add to popup the ability to select the
-//					first found item (previously could only
-//					select all).
-// 2002-11-12	SAM, RTi		Copy FindInListDialog and update to use
-//					Swing.
-// 2004-03-15	SAM, RTi		* Fix bug where not using a
-//					  DefaultListModel was causing a class
-//					  cast exception.
-//					* Put the results in a JScrollPane.
-//					* Add option to select all not found.
-// 2004-07-26	J. Thomas Sapienza, RTi	Mouse events only trigger a popup
-//					menu now when the left button is not 
-//					pressed.
-// 2005-08-03	JTS, RTi		* Added tool tips to the text field
-//					  in which search terms are typed and
-//					  the button at the bottom.
-//					* Now when new searches are done, the 
-//					  old results are cleared.
-//					* The size has been adjusted so the 
-//					  button at the bottom doesn't get cut
-//					  off.
-//					* OK button changed to Close to better
-//					  represent what it does, and position
-//					  changed slightly.
-// 2005-08-15	JTS, RTi		Changed text from "Search For:" to a
-//					more expressive phrase.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
 
 package RTi.Util.GUI;
 
@@ -90,8 +53,7 @@ import RTi.Util.GUI.SimpleJList;
 import RTi.Util.GUI.SimpleJButton;
 
 /**
-The FindInJListJDialog is a dialog containing that users can 
-use search to find desired information in an input JList.
+The FindInJListJDialog is a dialog containing that users can use search to find desired information in an input JList.
 Searches occur on the String representation of the JList contents.
 However, the list can use a data model of any object type,
 as long as toString() returns strings that can be searched.
@@ -100,42 +62,39 @@ as long as toString() returns strings that can be searched.
 public class FindInJListJDialog extends JDialog
 implements ActionListener, KeyListener, MouseListener, WindowListener
 {
-private JTextField __find_JTextField;	// text response from user
-private JList<?> __original_JList;	// Original List to search
-private SimpleJList<String>	__find_JList;		// List containing found items in the original list.
-/* SAMX not needed??
-private ListSelectionListener	__selection_listener;
-						// Selection listener for the original list.
-*/
-private JPopupMenu	__find_JPopupMenu;	// Popup to edit list.
+private JTextField __find_JTextField;  // Text response from user.
+private JList<?> __original_JList;  // Original List to search.
+private SimpleJList<String>	__find_JList;  // List containing found items in the original list.
+private JPopupMenu	__find_JPopupMenu;  // Popup to edit list.
 
-private String		__GO_TO_ITEM = "Go To First (Selected) Found Item in Original List";
-private String		__SELECT_FIRST_ITEM = "Select First (Selected) Found Item in Original List (deselect others)";
-private String		__SELECT_ALL_FOUND_ITEMS = "Select All Found Items in Original List (deselect others)";
-private String		__SELECT_ALL_NOT_FOUND_ITEMS = "Select All NOT Found Items in Original List (deselect found items)";
-private int[]		__find_index = null;	// Positions in original List
-						// that are found.
+private String __GO_TO_ITEM = "Go To First (Selected) Found Item in Original List";
+private String __SELECT_FIRST_ITEM = "Select First (Selected) Found Item in Original List (deselect others)";
+private String __SELECT_ALL_FOUND_ITEMS = "Select All Found Items in Original List (deselect others)";
+private String __SELECT_ALL_NOT_FOUND_ITEMS = "Select All NOT Found Items in Original List (deselect found items)";
+private int[] __find_index = null;	// Positions in original List for found items.
 
 /**
 FindInJListJDialog Constructor.
+This is used by TSTool to search the command list.
 @param parent JFrame class instantiating this class.
 @param list JList to operate on, can be a list of any object type.
 @param title JDialog title.
 */
-public FindInJListJDialog ( JFrame parent, JList<?> list, String title )
-{	// Call the overloaded method
+public FindInJListJDialog ( JFrame parent, JList<?> list, String title ) {
+	// Call the overloaded method.
 	this ( parent, true, list, title );
 }
 
 /**
 FindInJListJDialog Constructor.
+This is used by TSTool to search the time series results.
 @param parent JFrame class instantiating this class.
 @param modal If true, the dialog is modal.  If false, it is not.
 @param list JList to operate on, can be a list of any object type.
 @param title JDialog title.
 */
-public FindInJListJDialog ( JFrame parent, boolean modal, JList<?> list, String title )
-{	super ( parent, modal );
+public FindInJListJDialog ( JFrame parent, boolean modal, JList<?> list, String title ) {
+	super ( parent, modal );
 	initialize ( parent, list, title );
 }
 
@@ -143,8 +102,8 @@ public FindInJListJDialog ( JFrame parent, boolean modal, JList<?> list, String 
 Responds to ActionEvents.
 @param event ActionEvent object
 */
-public void actionPerformed ( ActionEvent event )
-{	String command = event.getActionCommand();
+public void actionPerformed ( ActionEvent event ) {
+	String command = event.getActionCommand();
 
 	if ( command.equals("Close") ) {
 		okClicked();
@@ -152,92 +111,67 @@ public void actionPerformed ( ActionEvent event )
 	else if ( command.equals(__GO_TO_ITEM) ) {
 		if ( __find_index != null ) {
 			if ( JGUIUtil.selectedSize(__find_JList) == 0 ) {
-				// Go to first item...
-				__original_JList.ensureIndexIsVisible(
-					__find_index[0]);
+				// Go to first item.
+				__original_JList.ensureIndexIsVisible( __find_index[0]);
 			}
-			else {	// Go to first selected item...
-				__original_JList.ensureIndexIsVisible(
-				__find_index[
-				JGUIUtil.selectedIndex(__find_JList,0)]);
+			else {
+				// Go to first selected item.
+				__original_JList.ensureIndexIsVisible(__find_index[JGUIUtil.selectedIndex(__find_JList,0)]);
 			}
 		}
 	}
 	else if ( command.equals(__SELECT_ALL_FOUND_ITEMS) ) {
-		// Select in the original list all the found items...
+		// Select in the original list all the found items.
 		__original_JList.clearSelection();
 		__original_JList.setSelectedIndices ( __find_index );
 	}
 	else if ( command.equals(__SELECT_ALL_NOT_FOUND_ITEMS) ) {
-		// Select in the original list all the not found items and
-		// deselect the found items (useful for deleting not found
-		// items)...
+		// Select in the original list all the not found items and deselect the found items
+		// (useful for deleting not found items).
 		int original_size = __original_JList.getModel().getSize();
 		if ( (original_size == 0) && (__find_index.length > 0) ) {
 			return;
 		}
-		// Initialize all to 1 (selected)...
+		// Initialize all to 1 (selected).
 		int selected_size = original_size - __find_index.length;
 		if ( selected_size == 0 ) {
 			return;
 		}
 		int [] selected_indices = new int[selected_size];
-		// REVISIT 2004-03-15 Need to optimize code...
-		// Do this the brute force way for now.
-		int count = 0;	// Count for selected.
+		int count = 0; // Count for selected.
 		boolean found = false;
 		for ( int i = 0; i < original_size; i++ ) {
 			found = false;
 			for ( int j = 0; j < __find_index.length; j++ ) {
 				if ( __find_index[j] == i ) {
-					// Don't want selected...
+					// Don't want selected.
 					found = true;
 					break;
 				}
 			}
 			if ( !found ) {
-				// We want to select all non-matching rows...
+				// We want to select all non-matching rows.
 				selected_indices[count++] = i;
 			}
 		}
-		// Clear out the old list...
+		// Clear out the old list.
 		__original_JList.clearSelection();
-		// Now select what we thing should be selected...
+		// Now select what we thing should be selected.
 		__original_JList.setSelectedIndices ( selected_indices );
 		selected_indices = null;
 	}
 	else if ( command.equals(__SELECT_FIRST_ITEM) ) {
 		if ( __find_index != null ) {
 			if ( JGUIUtil.selectedSize(__find_JList) == 0 ) {
-				// Go to first item...
-				__original_JList.ensureIndexIsVisible(
-					__find_index[0]);
-				__original_JList.setSelectedIndex(
-					__find_index[0]);
-				/* SAMX not needed??
-				if ( __selection_listener != null ) {
-					__selection_listener.valueChanged (
-					new ListSelectionEvent (
-					__original_JList,
-					__find_index[0], __find_index[0],true));
-				}
-				*/
+				// Go to first item.
+				__original_JList.ensureIndexIsVisible(__find_index[0]);
+				__original_JList.setSelectedIndex(__find_index[0]);
 			}
-			else {	// Go to first selected item...
-				__original_JList.ensureIndexIsVisible(
-				__find_index[
-				JGUIUtil.selectedIndex(__find_JList,0)]);
-				int found_index = __find_index[
-				JGUIUtil.selectedIndex(__find_JList,0)];
+			else {
+				// Go to first selected item.
+				__original_JList.ensureIndexIsVisible( __find_index[JGUIUtil.selectedIndex(__find_JList,0)]);
+				int found_index = __find_index[JGUIUtil.selectedIndex(__find_JList,0)];
 				__original_JList.setSelectedIndex(found_index);
-				/* SAMX not needed??
-				if ( __selection_listener != null ) {
-					__selection_listener.valueChanged (
-					new ListSelectionEvent (
-					__original_JList,
-					__found_index, __found_index,true));
-				}
-				*/
 			}
 		}
 	}
@@ -249,31 +183,28 @@ Instantiates the components.
 @param list JList that is being operated on, can be a list of any object type.
 @param title Dialog title.
 */
-//@param selection_listener ListSelectionListener to pass ListSelectionEvents to
-//for the list.
-private void initialize ( JFrame parent, JList<?> list, String title )//,
-				//ListSelectionListener selection_listener )
-{	__original_JList = list;
-	//__selection_listener = selection_listener;
+private void initialize ( JFrame parent, JList<?> list, String title ) {
+	__original_JList = list;
 	if ( (title != null) && (title.length() > 0) ) {
 		setTitle ( title );
 	}
-	else {	setTitle ( "Find Text in List" );
+	else {
+		setTitle ( "Find Text in List" );
 	}
 
 	addWindowListener( this );
 
-	// Main panel...
+	// Main panel.
 
-        Insets insetsTLBR = new Insets(2,2,2,2);
+    Insets insetsTLBR = new Insets(2,2,2,2);
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
 	getContentPane().add ( "Center", main_JPanel );
 	int y = 0;
 
-	// Main contents...
+	// Main contents.
 
-        JGUIUtil.addComponent(main_JPanel,
+    JGUIUtil.addComponent(main_JPanel,
 		new JLabel ( "Search for rows containing:"),
 		0, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
@@ -285,59 +216,52 @@ private void initialize ( JFrame parent, JList<?> list, String title )//,
 		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 	__find_JTextField.addKeyListener ( this );
 
-        JGUIUtil.addComponent(main_JPanel, new JLabel (
-		"Search Results (found items):" ), 
+    JGUIUtil.addComponent(main_JPanel, new JLabel ( "Search Results (found items):" ),
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
-	
+
 	__find_JList = new SimpleJList<String>();
-	__find_JList.setToolTipText(
-		"Right click to see actions to perform on the original list.");
+	__find_JList.setToolTipText("Right click to see actions to perform on the original list.");
 	__find_JList.setVisibleRowCount ( 10 );
-	__find_JList.setSelectionMode (
-		ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
+	__find_JList.setSelectionMode (ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
 	// Initially a blank list.
 	__find_JList.addKeyListener ( this );
-	__find_JList.addMouseListener ( this );	// For popup
+	__find_JList.addMouseListener ( this );	// For the popup.
         JGUIUtil.addComponent(main_JPanel, new JScrollPane(__find_JList),
 		0, ++y, 7, 1, 1, 1, insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER);
 
 	// South Panel: North
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
-        JGUIUtil.addComponent(main_JPanel, button_JPanel, 
+        JGUIUtil.addComponent(main_JPanel, button_JPanel,
 		0, ++y, 7, 1, 1, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
 	SimpleJButton Close = new SimpleJButton("Close", this);
 	Close.setToolTipText("Closes the dialog window.");
 	button_JPanel.add ( Close );
 
-	// Add the JPopupMenu...
+	// Add the JPopupMenu.
 
-	// Pop-up menu to manipulate the list...
+	// Pop-up menu to manipulate the list.
 	__find_JPopupMenu = new JPopupMenu("Search Actions");
 	__find_JPopupMenu.add( new SimpleJMenuItem ( __GO_TO_ITEM, this ) );
 	__find_JPopupMenu.add( new SimpleJMenuItem ( __SELECT_FIRST_ITEM,this));
-	if (	__original_JList.getSelectionMode() ==
-		ListSelectionModel.MULTIPLE_INTERVAL_SELECTION ) {
-		// Only makes sense if we can select more than one thing in the
-		// original list...
-		__find_JPopupMenu.add( new SimpleJMenuItem (
-		__SELECT_ALL_FOUND_ITEMS,this));
-		__find_JPopupMenu.add( new SimpleJMenuItem (
-		__SELECT_ALL_NOT_FOUND_ITEMS,this));
+	if (	__original_JList.getSelectionMode() == ListSelectionModel.MULTIPLE_INTERVAL_SELECTION ) {
+		// Only makes sense if we can select more than one thing in the original list.
+		__find_JPopupMenu.add( new SimpleJMenuItem ( __SELECT_ALL_FOUND_ITEMS,this));
+		__find_JPopupMenu.add( new SimpleJMenuItem ( __SELECT_ALL_NOT_FOUND_ITEMS,this));
 	}
 	setResizable ( true );
-        pack();
+    pack();
 	setSize(getWidth(), getHeight() + 10);
-        JGUIUtil.center( this );
-        super.setVisible( true );
+    JGUIUtil.center( this );
+    super.setVisible( true );
 }
 
 /**
 Respond to KeyEvents.  If enter is pressed, refreshes the dialog.
 */
-public void keyPressed ( KeyEvent event )
-{	int code = event.getKeyCode();
+public void keyPressed ( KeyEvent event ) {
+	int code = event.getKeyCode();
 
 	if ( code == KeyEvent.VK_ENTER ) {
 		refresh();
@@ -347,46 +271,41 @@ public void keyPressed ( KeyEvent event )
 /**
 Does nothing.
 */
-public void keyReleased ( KeyEvent event )
-{	
+public void keyReleased ( KeyEvent event ) {
 }
 
 /**
 Does nothing.
 */
-public void keyTyped ( KeyEvent event ) {;}
-
-/**
-Does nothing.
-*/
-public void mouseClicked ( MouseEvent event )
-{
+public void keyTyped ( KeyEvent event ) {
 }
 
 /**
 Does nothing.
 */
-public void mouseEntered ( MouseEvent event )
-{
+public void mouseClicked ( MouseEvent event ) {
 }
 
 /**
 Does nothing.
 */
-public void mouseExited ( MouseEvent event )
-{
+public void mouseEntered ( MouseEvent event ) {
 }
 
 /**
-Handle mouse pressed event.  Shows the popup menu if the popup menu trigger
-(right mouse button usually) was pressed.
+Does nothing.
+*/
+public void mouseExited ( MouseEvent event ) {
+}
+
+/**
+Handle mouse pressed event.
+Shows the popup menu if the popup menu trigger (right mouse button usually) was pressed.
 */
 public void mousePressed ( MouseEvent event ) {
 	if (__find_JList.getItemCount() > 0
 		&& event.getButton() != MouseEvent.BUTTON1){
-		Point pt = JGUIUtil.computeOptimalPosition (
-			event.getPoint(), event.getComponent(),
-			__find_JPopupMenu );
+		Point pt = JGUIUtil.computeOptimalPosition ( event.getPoint(), event.getComponent(), __find_JPopupMenu );
 		__find_JPopupMenu.show ( event.getComponent(), pt.x, pt.y );
 	}
 }
@@ -394,25 +313,24 @@ public void mousePressed ( MouseEvent event ) {
 /**
 Does nothing.
 */
-public void mouseReleased ( MouseEvent event )
-{
+public void mouseReleased ( MouseEvent event ) {
 }
 
 /**
 Close the dialog.
 */
-private void okClicked()
-{	setVisible( false );
+private void okClicked() {
+	setVisible( false );
 	dispose();
 }
 
 /**
 Refresh the list based on the current find string.
 */
-private void refresh()
-{	// First clear the list...
+private void refresh() {
+	// First clear the list.
 	__find_JList.removeAll();
-	// Now search the original list...
+	// Now search the original list.
 	if ( __original_JList == null ) {
 		return;
 	}
@@ -420,24 +338,23 @@ private void refresh()
 	String item = null, item_up = null;
 	String find_text = __find_JTextField.getText().trim().toUpperCase();
 	int find_count = 0;
-	// First cut at index...
+	// First cut at index.
 	int [] find_index = new int[size];
 	JGUIUtil.setWaitCursor ( this, true );
 	for ( int i = 0; i < size; i++ ) {
 		item = "" + __original_JList.getModel().getElementAt(i);
 		item_up = item.toUpperCase();
 		if ( item_up.indexOf(find_text) >= 0 ) {
-			((DefaultListModel<String>)
-			__find_JList.getModel()).addElement(item);
+			((DefaultListModel<String>)__find_JList.getModel()).addElement(item);
 			find_index[find_count] = i;
-			// Set selection to match original list...
+			// Set selection to match original list.
 			if ( __original_JList.isSelectedIndex(i) ) {
 				__find_JList.setSelectedIndex(find_count);
 			}
 			++find_count;
 		}
 	}
-	// Now resize the find index to the final...
+	// Now resize the find index to the final.
 	__find_index = new int[find_count];
 	for ( int i = 0; i < find_count; i++ ) {
 		__find_index[i] = find_index[i];
@@ -449,38 +366,44 @@ private void refresh()
 Responds to WindowEvents.  Closes the window.
 @param event WindowEvent object.
 */
-public void windowClosing( WindowEvent event )
-{	okClicked();
+public void windowClosing( WindowEvent event ) {
+	okClicked();
 }
 
 /**
 Does nothing.
 */
-public void windowActivated( WindowEvent evt ){;}
+public void windowActivated( WindowEvent evt ) {
+}
 
 /**
 Does nothing.
 */
-public void windowClosed( WindowEvent evt ){;}
+public void windowClosed( WindowEvent evt ) {
+}
 
 /**
 Does nothing.
 */
-public void windowDeactivated( WindowEvent evt ){;}
+public void windowDeactivated( WindowEvent evt ) {
+}
 
 /**
 Does nothing.
 */
-public void windowDeiconified( WindowEvent evt ){;}
+public void windowDeiconified( WindowEvent evt ) {
+}
 
 /**
 Does nothing.
 */
-public void windowIconified( WindowEvent evt ){;}
+public void windowIconified( WindowEvent evt ) {
+}
 
 /**
 Does nothing.
 */
-public void windowOpened( WindowEvent evt ){;}
+public void windowOpened( WindowEvent evt ) {
+}
 
-} // end FindInJListJDialog
+}

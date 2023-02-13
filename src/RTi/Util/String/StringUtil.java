@@ -315,7 +315,7 @@ Note that when allowing quoted strings the string "xxxx"yy is returned as xxxxyy
 public static List<String> breakStringList( String string, String delim, int flag ) {
 	String routine = "StringUtil.breakStringList";
 	List<String> list = new ArrayList<>();
-	
+
 	if ( string == null ) {
 	 	return list;
 	}
@@ -1825,7 +1825,7 @@ public static final String formatString ( List<? extends Object> objectList, Str
 							}
 						}
 					}
-				
+
 					// Append to our main string.
 					buffer.append ( temp );
 				}
@@ -2291,7 +2291,7 @@ public static int indexOf ( List<String> stringlist, String searchString ) {
 			// Skip.
 		}
 		else if ( currentString.equalsIgnoreCase ( searchString )) {
-			return i;	
+			return i;
 		}
 	}
 	return -1;
@@ -2317,7 +2317,7 @@ public static int indexOfIgnoreCase ( List<String> stringlist, String searchStri
 			// Skip.
 		}
 		else if ( currentString.equalsIgnoreCase ( searchString )) {
-			return i;	
+			return i;
 		}
 	}
 	return -1;
@@ -2358,7 +2358,7 @@ public static int indexOfSubstringIgnoreCase ( List<String> stringlist, String s
 			// Skip.
 		}
 		else if ( currentString.toUpperCase().indexOf ( searchString.toUpperCase()) >= 0 ) {
-			return i;	
+			return i;
 		}
 	}
 	return -1;
@@ -2480,7 +2480,7 @@ public static boolean isLong(String s) {
 	catch (NumberFormatException e) {
 		return false;
 	}
-}	
+}
 
 /**
 Determine whether a string is a URL.
@@ -3324,7 +3324,7 @@ public static String remove ( String s, String r ) {
 		    buffer.append ( s.charAt(i) );
 		}
 	}
-	return buffer.toString();	
+	return buffer.toString();
 }
 
 /**
@@ -3556,7 +3556,7 @@ public static String replaceString ( String strOrig, String s1, String s2 ) {
 	}
 	if (strOrig.length() == 0) {
 		return strOrig;
-	}	
+	}
 
 	String str = new String(strOrig);
 	int i = str.indexOf(s1);
@@ -3575,8 +3575,8 @@ public static String replaceString ( String strOrig, String s1, String s2 ) {
 			str = before + s2;
 			i = -1;
 		}
-		else {	
-			after = str.substring(i + s1_len);	
+		else {
+			after = str.substring(i + s1_len);
 			str = before + s2 + after;
 			start = before.length() + s2_len;
 			i = str.indexOf(s1, start);
@@ -3724,15 +3724,13 @@ Sort a list of strings.
 @return The sorted list (a new list is always returned, even if empty).
 @param list The original list of String.
 @param order Order to sort (SORT_ASCENDING or SORT_DESCENDING).
-@param sort_order Original locations of data after sort (array needs to be
-allocated before calling routine).  For example, first sort String data and then
-sort associated data by using new_other_data[i] = old_other_data[sort_order[i]];
+@param sortOrder Original locations of data after sort (array needs to be allocated before calling routine).
+For example, first sort String data and then sort associated data by using new_other_data[i] = old_other_data[sort_order[i]].
 Can be null if sflag is false.
-@param sflag Indicates whether "sort_order" is to be filled.
+@param sflag Indicates whether "sort_order" is to be filled (true) or not (false).
 @param ignore_case If true, then case is ignored when comparing the strings.
 */
-public static List<String> sortStringList ( List<String> list, int order, int sort_order[], boolean sflag,
-	boolean ignore_case ) {
+public static List<String> sortStringList ( List<String> list, int order, int sortOrder[], boolean sflag, boolean ignore_case ) {
 	int	i, ismallest;
 	int[] itmp=null;
 	String routine="StringUtil.sortStringList", smallest="";
@@ -3797,7 +3795,7 @@ public static List<String> sortStringList ( List<String> list, int order, int so
 		// Put in the original item (which will have the original case).
 		newlist.add( list.get(ismallest) );
 		if ( sflag ) {
-			sort_order[count++] = ismallest;
+			sortOrder[count++] = ismallest;
 		}
 
 		itmp[ismallest] = 1;
@@ -4092,7 +4090,7 @@ spaces, tabs, backslashes and forward slashes.
 public static String wrap(String s, int lineLength) {
 	List<String> v = StringUtil.breakStringList(s, "\n", 0);
 	StringBuilder sb = new StringBuilder("");
-	
+
 	for (int i = 0; i < v.size(); i++) {
 		sb.append(wrapHelper(v.get(i), lineLength));
 	}
@@ -4125,7 +4123,7 @@ public static String wrapHelper(String s, int lineLength) {
 		sb.append(s + "\n");
 		return sb.toString();
 	}
-	
+
 	while (true) {
 		last = next;
 
@@ -4147,7 +4145,7 @@ public static String wrapHelper(String s, int lineLength) {
 				last = -1;
 				next = -1;
 			}
-			else {	
+			else {
 				// A previous wrap point was found.
 				// Split the text at the point of the previous word wrap point and then let the
 				// rest of the string be carried over to be checked in the next iteration.
@@ -4170,7 +4168,7 @@ public static String wrapHelper(String s, int lineLength) {
 			s = s.trim();
 			last = -1;
 			next = -1;
-		}	
+		}
 		else if (next == -1 && last > -1) {
 			// No valid wrap points can be found in the rest of the text,
 			// but a valid wrap point was found just prior.
@@ -4178,12 +4176,12 @@ public static String wrapHelper(String s, int lineLength) {
 			if (s.length() <= lineLength) {
 				sb.append(s + "\n");
 				return sb.toString();
-			}			
-				
+			}
+
 			// If not, take the text up to the last
 			// wrap point and put it on a line and then take
 			// the rest of the text and prepare it to be handled in the next iteration.
-			
+
 			trim = s.substring(0, last);
 			sb.append(trim + "\n");
 			s = s.substring(last);
@@ -4215,7 +4213,7 @@ public static String wrapHelper(String s, int lineLength) {
 				// The remaining text can all fit on one line, put it on one line and return it.
 				sb.append(s + "\n");
 				return sb.toString();
-			}		
+			}
 		}
 	}
 }
@@ -4252,7 +4250,7 @@ private static int wrapFindFirstWrappableIndex(String s, int from) {
 	/*
 	So given a line like this:
 		The solution (X) is easy!  Okay.
-	
+
 	If the line needs to be wrapped at the open parentheses, the wrap
 	is performed before, so that the wrap would look like:
 		The solution
@@ -4260,7 +4258,7 @@ private static int wrapFindFirstWrappableIndex(String s, int from) {
 	and not:
 		The solution (
 		X) is easy!  Okay.
-	
+
 	Likewise, if the wrap must be performed at the exclamation point,
 	the wrap should look like:
 		The solution (X) is easy!
@@ -4303,7 +4301,7 @@ private static int wrapFindFirstWrappableIndex(String s, int from) {
 			}
 		}
 	}
-		
+
 	return index;
 }
 
@@ -4322,18 +4320,18 @@ previously-found wrap point (index), or -1 if none can be found.
 private static int wrapFindFirstWrappableIndexHelper(String s, String ch, int from, int index) {
 	// Find the first position of the specified character from the specified start point.
 	int i = s.indexOf(ch, from);
-	
+
 	// If no position was found, and no position had been found previously.
 	if (i == -1 && index == -1) {
 		return -1;
 	}
-	
+
 	// If a position was found this time, but none had been found previously.
 	if (i > -1 && index == -1) {
 		return i;
 	}
 	// If no position was found this time, but one had been found previously.
-	else if (i == -1 && index > -1) {	
+	else if (i == -1 && index > -1) {
 		return index;
 	}
 	// If a position was found this time AND one had been found previously.

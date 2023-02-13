@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -62,12 +62,11 @@ import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
 /**
-This class provides useful static functions for handling SWING GUI (graphical 
-user interface) components.  This class extends GUIUtil and so inherits the
-ability to work with AWT components, as well.
+This class provides useful static functions for handling SWING GUI (graphical user interface) components.
+This class extends GUIUtil and so inherits the ability to work with AWT components, as well.
 */
 public abstract class JGUIUtil extends GUIUtil {
-	
+
 // TODO sam 2017-02-26 seems to only be used in GeoView - maybe should not be global static here?
 /**
 The current status of the wait cursor, as set by the setWaitCursor method.
@@ -81,8 +80,7 @@ The icon to use for an application.
 private static ImageIcon __applicationIcon = null;
 
 /**
-The 'pretty' version of the application name that can be displayed in window
-titles, dialog boxes, and more.
+The 'pretty' version of the application name that can be displayed in window titles, dialog boxes, and more.
 */
 private static String __applicationName = "";
 
@@ -96,8 +94,8 @@ REVISIT JAVADOC: see removeStringFromSelected
 @param list JList to modify.
 @param prefix String to add.
 */
-public static <I> void addStringToSelected ( JList<String> list, String prefix )
-{	if ( (list == null) || (prefix == null) ) {
+public static <I> void addStringToSelected ( JList<String> list, String prefix ) {
+	if ( (list == null) || (prefix == null) ) {
 		return;
 	}
 	int selected_indices[] = list.getSelectedIndices();
@@ -113,7 +111,6 @@ public static <I> void addStringToSelected ( JList<String> list, String prefix )
 	}
 	// Make sure the selected indices remain as before.
 	list.setSelectedIndices ( selected_indices );
-	selected_indices = null;
 }
 
 /**
@@ -121,8 +118,8 @@ Add an array of strings to a JList.  This is useful when a standard set of choic
 @param comboBox Choice to add items to.
 @param items Items to add.
 */
-public static void addToJComboBox ( JComboBox<String> comboBox, String[] items )
-{	if ( (comboBox == null) || (items == null) ) {
+public static void addToJComboBox ( JComboBox<String> comboBox, String[] items ) {
+	if ( (comboBox == null) || (items == null) ) {
 		return;
 	}
 	for ( String s : items ) {
@@ -136,8 +133,8 @@ The toString() method of each object in the list is called, so even non-String i
 @param comboBox Choice to add items to.
 @param items Items to add.
 */
-public static void addToJComboBox ( JComboBox<String> comboBox, List<Object> items )
-{	if ( (comboBox == null) || (items == null) ) {
+public static void addToJComboBox ( JComboBox<String> comboBox, List<Object> items ) {
+	if ( (comboBox == null) || (items == null) ) {
 		return;
 	}
 	for ( Object item: items ) {
@@ -152,17 +149,17 @@ otherwise any data put on the clipboard by the application will remain there and
 */
 public static void clearClipboard() {
 	StringBuffer buffer = new StringBuffer("");
-	StringSelection selection = new StringSelection(buffer.toString());	
+	StringSelection selection = new StringSelection(buffer.toString());
 	Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 	clipboard.setContents(selection, selection);
-}	
+}
 
 /**
 Hides and dispose of a JFrame Object.
 @param frame JFrame object to hide.
 */
-public static void close (JFrame frame)
-{	if ( frame != null ) {
+public static void close (JFrame frame) {
+	if ( frame != null ) {
 		frame.setVisible ( false );
 		frame.dispose();
 	}
@@ -178,8 +175,8 @@ See JavaSoft bug 4425878.
 @param menu JPopupMeni instance to check.
 @return a Point containing the optimal coordinates.
 */
-public static Point computeOptimalPosition ( Point pt, Component c, JPopupMenu menu ) 
-{	// The code below is partially taken from the bug report.
+public static Point computeOptimalPosition ( Point pt, Component c, JPopupMenu menu ) {
+	// The code below is partially taken from the bug report.
 	// However, the fix there for computing coordinates was actually pretty simplistic,
 	// so an improvement has been implemented here.
 	Dimension menuSize = menu.getPreferredSize();
@@ -203,22 +200,22 @@ Once the string has been copied to the clipboard, it can be pasted into other ap
 */
 public static void copyToClipboard(String s) {
 	StringBuffer buffer = new StringBuffer(s);
-	StringSelection selection = new StringSelection(buffer.toString());	
+	StringSelection selection = new StringSelection(buffer.toString());
 	Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 	clipboard.setContents(selection, selection);
 }
 
 /**
-Enable a list of components.  This method can be called, for example, 
+Enable a list of components.  This method can be called, for example,
 when a data object is selected from a list of objects (e.g., in a JList or JWorksheet).
 @param comp an array of all the JComponents on the form that can be enabled when something is selected.
 @param compNeverEnabled an array of the components in comp[] that should never be editable.
 These components are disabled after there others are enabled.  Specify as -1 to ignore.
-@param editable Indicates whether the form is editable or not.  If the form is
-not editable, then some components may be disabled to prevent input.
+@param editable Indicates whether the form is editable or not.
+If the form is not editable, then some components may be disabled to prevent input.
 */
-public static void enableComponents ( JComponent[] comp, int[] compNeverEnabled, boolean editable )
-{	for (int i = 0; i < comp.length; i++) {
+public static void enableComponents ( JComponent[] comp, int[] compNeverEnabled, boolean editable ) {
+	for (int i = 0; i < comp.length; i++) {
 		if (comp[i] instanceof JTextComponent) {
 			if (editable) {
 				setEnabled ( comp[i], true );
@@ -229,12 +226,14 @@ public static void enableComponents ( JComponent[] comp, int[] compNeverEnabled,
 			}
 		}
 		else if (comp[i] instanceof JComboBox) {
+			@SuppressWarnings("rawtypes")
+			JComboBox cb = (JComboBox)comp[i];
 			if (editable) {
 				setEnabled ( comp[i], true );
-				((JComboBox)comp[i]).setEditable(true);
+				cb.setEditable(true);
 			}
 			else {
-			    ((JComboBox)comp[i]).setEditable(false);
+			    cb.setEditable(false);
 				setEnabled ( comp[i], false );
 			}
 		}
@@ -265,8 +264,8 @@ See enableComponents(), which will also disable components globally if the edita
 @param cleartext If true, text components will be cleared when disabled.
 If false, the text component text will not be changed.
 */
-public static void disableComponents ( JComponent[] comp, boolean cleartext )
-{	for (int i = 0; i < comp.length; i++) {
+public static void disableComponents ( JComponent[] comp, boolean cleartext ) {
+	for (int i = 0; i < comp.length; i++) {
 		if (comp[i] instanceof JTextComponent) {
 			if ( cleartext ) {
 				((JTextComponent)comp[i]).setText("");
@@ -274,8 +273,10 @@ public static void disableComponents ( JComponent[] comp, boolean cleartext )
 			((JTextComponent)comp[i]).setEditable(false);
 		}
 		else if (comp[i] instanceof JComboBox) {
+			@SuppressWarnings("rawtypes")
+			JComboBox cb = (JComboBox)comp[i];
 			setEnabled ( comp[i], false );
-			((JComboBox)comp[i]).setEditable(false);
+			cb.setEditable(false);
 		}
 		else {
 		    setEnabled ( comp[i], false );
@@ -332,8 +333,8 @@ The JList must use a DefaultListModel or object derived from this class.
 @param ignore_case Indicates whether to ignore case (true) or not (false).
 @return The index of the first match, or -1 if no match.
 */
-public static int indexOf (	JList<String> list, String item, boolean selected_only, boolean ignore_case )
-{	if ( (list == null) || (item == null) || (item.length() == 0) ) {
+public static int indexOf (	JList<String> list, String item, boolean selected_only, boolean ignore_case ) {
+	if ( (list == null) || (item == null) || (item.length() == 0) ) {
 		return -1;
 	}
 	int size = 0;
@@ -347,7 +348,7 @@ public static int indexOf (	JList<String> list, String item, boolean selected_on
 			if ( ignore_case ) {
 				if ( list_item.equalsIgnoreCase(item) ) {
 					return i;
-				} 
+				}
 			}
 			else if ( list_item.equals(item) ) {
 				return i;
@@ -361,7 +362,7 @@ public static int indexOf (	JList<String> list, String item, boolean selected_on
 			if ( ignore_case ) {
 				if ( list_item.equalsIgnoreCase(item) ) {
 					return i;
-				} 
+				}
 			}
 			else if ( list_item.equals(item) ) {
 				return i;
@@ -383,7 +384,7 @@ This version matches any substring (when flag=CHECK_SUBSTRINGS) and is case-sens
 (index[0] is set to the first ComboBox item that matches).
 */
 public static boolean isSimpleJComboBoxItem ( SimpleJComboBox comboBox,
-        String compare, int flag, String delimiter, int[] index ) {
+    String compare, int flag, String delimiter, int[] index ) {
     return isSimpleJComboBoxItem ( comboBox, compare, flag, delimiter, -1, index, false );
 }
 
@@ -401,24 +402,25 @@ currently any trimmed substring that matches will return true
 @param delimiter String containing delimiter(s) to parse for flag=CHECK_SUBSTRINGS.
 Each character in the string will be considered a delimiter.
 However, if the delimiter string starts with "seq:" the multi-character string is used for the delimiter.
-@param compareIndex if >= 0, the substring part to compare (e.g., 
+@param compareIndex if >= 0, the substring part to compare (e.g.,
 may be null if using flag=NONE; specify -1 to compare all parts
 @param index Index location in ComboBox data where the compare String was located
 (index[0] is set to the first ComboBox item that matches).
 @param ignoreCase true to ignore case in comparisons; false to require that case matches
-This is filled in unless it is passed as null.  For example use this when checking substrings so that an item
-can be selected (rather than setting a full string that may not totally match).
+This is filled in unless it is passed as null.
+For example use this when checking substrings so that an item can be selected
+(rather than setting a full string that may not totally match).
 @return returns true if compare exist in the comboBox items list, false otherwise.
 */
 public static boolean isSimpleJComboBoxItem ( SimpleJComboBox comboBox,
-	String compare, int flag, String delimiter, int compareIndex, int[] index, boolean ignoreCase )
-{	String curItem; // Current Choice item.
+	String compare, int flag, String delimiter, int compareIndex, int[] index, boolean ignoreCase ) {
+	String curItem; // Current Choice item.
 	String delimiterOrig = delimiter;
    	if ( (delimiter != null) && delimiter.startsWith("seq:") ) {
    		delimiter = delimiter.substring(4); // Delimiter string without leading "seq".
    		//Message.printStatus(2, "isSimpleJComboBoxItem", "Using sequence delimiter \"" + delimiter + "\"");
    	}
- 
+
 	if ( compare == null ) {
 		return false;
 	}
@@ -521,13 +523,13 @@ public static boolean isSimpleJComboBoxItem ( SimpleJComboBox comboBox,
 }
 
 /**
-Loads an image icon from a location and returns it.  
-@param location the location at which the icon can be found, either a path
-to an image on a drive or a path within a JAR file.  
+Loads an image icon from a location and returns it.
+@param location the location at which the icon can be found,
+either a path to an image on a drive or a path within a JAR file.
 @return the ImageIcon that was loaded, or null if there was a problem loading the ImageIcon.
 @throws exception if no file could be found at the specified location.
 */
-public static ImageIcon loadIconImage(String location) 
+public static ImageIcon loadIconImage(String location)
 throws Exception {
 	// first try loading the image as if it were specified in a JAR file.
 	URL iconURL = ClassLoader.getSystemResource(location);
@@ -562,8 +564,8 @@ Return a new SimpleJComboBox that contains a list of fonts.
 @param includeLocal if true, include all available font family names from the local graphics environment.
 @return a new SimpleJComboBox that contains a list of standard fonts.
 */
-public static SimpleJComboBox newFontNameJComboBox ( boolean includeCommonAtTop, boolean includeLocal )
-{	SimpleJComboBox fonts = new SimpleJComboBox(false);
+public static SimpleJComboBox newFontNameJComboBox ( boolean includeCommonAtTop, boolean includeLocal ) {
+	SimpleJComboBox fonts = new SimpleJComboBox(false);
 	// Always put common "generic" ones at top, which should be portable to any platform.
 	if ( includeCommonAtTop ) {
 		fonts.add ( "Arial" );
@@ -587,8 +589,8 @@ public static SimpleJComboBox newFontNameJComboBox ( boolean includeCommonAtTop,
 Return a new SimpleJComboBox that contains a list of standard font styles.
 @return a new SimpleJComboBox that contains a list of standard font styles.
 */
-public static SimpleJComboBox newFontStyleJComboBox ()
-{	SimpleJComboBox styles = new SimpleJComboBox(false);
+public static SimpleJComboBox newFontStyleJComboBox () {
+	SimpleJComboBox styles = new SimpleJComboBox(false);
 	styles.add( "Plain" );
 	styles.add( "PlainItalic" );
 	styles.add( "Bold" );
@@ -597,8 +599,8 @@ public static SimpleJComboBox newFontStyleJComboBox ()
 }
 
 /**
-Given a list with selected items, remove the specified string from the front of
-the items if is at the front of the items.
+Given a list with selected items,
+remove the specified string from the front of the items if is at the front of the items.
 After the changes, the originally selected items are still selected.
 This is useful, for example, when a popup menu toggles the contents of a list back and forth.
 The list model must be the DefaultListModel or an extended class.
@@ -606,8 +608,8 @@ TODO JAVADOC: see addStringToSelected
 @param list JList to modify.
 @param prefix String to add.
 */
-public static void removeStringFromSelected ( JList<String> list, String prefix )
-{	if ( (list == null) || (prefix == null) ) {
+public static void removeStringFromSelected ( JList<String> list, String prefix ) {
+	if ( (list == null) || (prefix == null) ) {
 		return;
 	}
 	int selected_indices[] = list.getSelectedIndices();
@@ -624,7 +626,6 @@ public static void removeStringFromSelected ( JList<String> list, String prefix 
 	}
 	// Make sure the selected indices remain as before.
 	list.setSelectedIndices ( selected_indices );
-	selected_indices = null;
 }
 
 /**
@@ -634,8 +635,8 @@ The DefaultListModel or an extended class should be used for the list model.
 @param item Item to select.
 @param ignore_case Indicates whether case should be ignored when searching the list for a match.
 */
-public static void select ( JList<String> list, String item, boolean ignore_case )
-{	if ( (list == null) || (item == null) ) {
+public static void select ( JList<String> list, String item, boolean ignore_case ) {
+	if ( (list == null) || (item == null) ) {
 		return;
 	}
 	DefaultListModel<String> model = (DefaultListModel<String>)list.getModel();
@@ -660,20 +661,18 @@ public static void select ( JList<String> list, String item, boolean ignore_case
 Select all items in a JList.
 @param list JList to select all items.
 */
-public static <I> void selectAll ( JList<I> list )
-{	if ( list == null ) {
+public static <I> void selectAll ( JList<I> list ) {
+	if ( list == null ) {
 		return;
 	}
 	// There is no "select" method so need to select all.
-	// Rather than do this item by item, send an array and do it all at once - this should
-	// hopefully give the best performance.
+	// Rather than do this item by item, send an array and do it all at once - this should hopefully give the best performance.
 	int [] selected = new int[list.getModel().getSize()];
 	int size = selected.length;
 	for ( int i = 0; i < size; i++ ) {
 		selected[i] = i;
 	}
 	list.setSelectedIndices ( selected );
-	selected = null;
 }
 
 /**
@@ -683,22 +682,19 @@ requesting index 0 will return index of the first of the 5 selected items.
 This is particularly useful when determining the first or last selected item in a list.
 @param list JList to check.
 @param selected_index Position in the selected rows list.
-@return the position in the original data for the requested selected index or
--1 if unable to determine.
+@return the position in the original data for the requested selected index or -1 if unable to determine.
 */
-public static <I> int selectedIndex ( JList<I> list, int selected_index )
-{	if ( list == null ) {
+public static <I> int selectedIndex ( JList<I> list, int selected_index ) {
+	if ( list == null ) {
 		return -1;
 	}
 	int selected[] = list.getSelectedIndices();
 	if ( selected != null ) {
 		int length = selected.length;
 		if ( selected_index > (length - 1) ) {
-			selected = null;
 			return -1;
 		}
 		int pos = selected[selected_index];
-		selected = null;
 		return pos;
 	}
 	return -1;
@@ -709,14 +705,13 @@ Return the number of items selected in a JList.
 @param list JList to check.
 @return the number items selected in the JList, or 0 if a null List.
 */
-public static <I> int selectedSize ( JList<I> list )
-{	if ( list == null ) {
+public static <I> int selectedSize ( JList<I> list ) {
+	if ( list == null ) {
 		return 0;
 	}
 	int selected[] = list.getSelectedIndices();
 	if ( selected != null ) {
 		int length = selected.length;
-		selected = null;
 		return length;
 	}
 	return 0;
@@ -731,10 +726,9 @@ match in case when read from a file or hand-edited.
 @exception Exception if the string is not found in the SimpleJComboBox.
 */
 public static void selectIgnoreCase ( SimpleJComboBox c, String item )
-throws Exception
-{	// Does not look like SimpleJComboBox.select(String) throws an exception
-	// if the item is not found (especially if the SimpleJComboBox is
-	// editable) so go through the list every time.
+throws Exception {
+	// Does not look like SimpleJComboBox.select(String) throws an exception if the item is not found
+	// (especially if the SimpleJComboBox is editable) so go through the list every time.
 	// Get the list size.
 	int size = c.getItemCount();
 	for ( int i = 0; i < size; i++ ) {
@@ -755,17 +749,17 @@ This is useful when the combo box shows an extended value (e.g., "Value - Descri
 @param flags Flags used by StringUtil.breakStringList().
 @param token Token position in the JComboBox item, to be compared.
 @param item String item to compare to JComboBox item tokens.
-@param default_item String If null, only "item" is evaluated.  If not null and
-"item" is not found, then an attempt to match "default" is made, using the same
-tokenizing parameters.  If a match is found, it is selected.  If a match is not
-found, an Exception is thrown.  This parameter is useful when defaulting a
-combo box to a value for a new instance of an object.
+@param default_item String If null, only "item" is evaluated.
+If not null and "item" is not found, then an attempt to match "default" is made,
+using the same tokenizing parameters.  If a match is found, it is selected.
+If a match is not found, an Exception is thrown.
+This parameter is useful when defaulting a combo box to a value for a new instance of an object.
 @exception Exception if the string is not found in the JComboBox.
 */
 public static <I> void selectTokenMatches (	JComboBox<I> c, boolean ignore_case, String delimiter, int flags,
 	int token, String item, String default_item )
-throws Exception
-{	selectTokenMatches ( c, ignore_case, delimiter, flags, token, item,	default_item, false );
+throws Exception {
+	selectTokenMatches ( c, ignore_case, delimiter, flags, token, item,	default_item, false );
 }
 
 /**
@@ -777,8 +771,8 @@ This is useful when the combo box shows an extended value (e.g., Value - Descrip
 @param flags Flags used by StringUtil.breakStringList().
 @param token Token position in the JComboBox item, to be compared.
 @param item String item to compare to JComboBox item tokens.
-@param default_item If null, only "item" is evaluated.  If not null and
-"item" is not found, then an attempt to match "default" is made, using the same tokenizing parameters.
+@param default_item If null, only "item" is evaluated.
+If not null and "item" is not found, then an attempt to match "default" is made, using the same tokenizing parameters.
 If a match is found, it is selected.  If a match is not found, an Exception is thrown.
 This parameter is useful when defaulting a combo box to a value for a new instance of an object.
 @param trim_tokens Indicate whether the tokens should be trimmed when trying to match - the default is not to trim.
@@ -786,8 +780,8 @@ This parameter is useful when defaulting a combo box to a value for a new instan
 */
 public static <I> void selectTokenMatches (	JComboBox<I> c, boolean ignore_case, String delimiter, int flags,
 	int token, String item, String default_item, boolean trim_tokens )
-throws Exception
-{	// Does not look like Choice.select(String) throws an exception if the
+throws Exception {
+	// Does not look like Choice.select(String) throws an exception if the
 	// item is not found so go through the list every time.
 	// Get the list size.
 	int size = c.getItemCount();
@@ -827,8 +821,8 @@ throws Exception
 			}
 		}
 	}
-	// If here, allow the default to be selected.Because all choices need
-	// to be evaluated again, just call the code recursively using the default instead of the item.
+	// If here, allow the default to be selected.Because all choices need to be evaluated again,
+	// just call the code recursively using the default instead of the item.
 	if ( default_item != null ) {
 		selectTokenMatches ( c, ignore_case, delimiter, flags, token, default_item, null );
 	}
@@ -861,8 +855,8 @@ The object is also checked for null.
 @param component A component to enable/disable.
 @param enabled Indicates whether to enable or disable the component.
 */
-public static void setEnabled ( Component component, boolean enabled )
-{	if ( component == null ) {
+public static void setEnabled ( Component component, boolean enabled ) {
+	if ( component == null ) {
 		return;
 	}
 	if ( enabled ) {
@@ -880,13 +874,11 @@ public static void setEnabled ( Component component, boolean enabled )
 }
 
 /**
-Sets an icon in a JFrame; all JDialogs that are opened with this frame as their
-parent will take this icon, as well.
+Sets an icon in a JFrame; all JDialogs that are opened with this frame as their parent will take this icon, as well.
 @param frame the frame in which to set an icon.
 @param i the ImageIcon to use as the window icon.
 */
 public static void setIcon(JFrame frame, ImageIcon i) {
-	String routine = "JGUIUtil.setIcon()";
 	try {
 		if (i != null) {
 			Image image = i.getImage();
@@ -896,6 +888,7 @@ public static void setIcon(JFrame frame, ImageIcon i) {
 		}
 	}
 	catch (Exception e) {
+		String routine = "JGUIUtil.setIcon()";
 		Message.printWarning(2, routine, e);
 	}
 }
@@ -913,7 +906,7 @@ Sets the icon to use for an application.  The icon is read from the specified lo
 @param location a path to an icon or the location within a jar file.
 @throws Exception if no icon could be found at the specified location.
 */
-public static void setIconImage(String location) 
+public static void setIconImage(String location)
 throws Exception {
 	ImageIcon icon = loadIconImage(location);
 	if (icon != null) {
@@ -1008,15 +1001,14 @@ public static void setWaitCursor(Component component, boolean state, boolean use
 			glassPane.setVisible(state);
 		}
 	}
-	
+
 	__waitCursor = state;
 }
 
 /**
-Sets the current java look and feel to be like the current System theme 
-(Windows, Motif, etc) or the Java Metal theme.
-@param set if set is true, the look and feel is set to be the standard system
-look and feel.  If false, the Java metal theme is used.
+Sets the current java look and feel to be like the current System theme (Windows, Motif, etc) or the Java Metal theme.
+@param set if set is true, the look and feel is set to be the standard system look and feel.
+If false, the Java metal theme is used.
 */
 public static void setSystemLookAndFeel(boolean set) {
 	boolean error = false;
@@ -1029,7 +1021,7 @@ public static void setSystemLookAndFeel(boolean set) {
 			if (Message.isDebugOn) {
 				Message.printWarning(2, "", e);
 			}
-		}			
+		}
 	}
 	else {
 		try {
@@ -1071,8 +1063,7 @@ Return the text from a TextArea as a list of strings, each of which has had the 
 This is useful for exporting the text to a file or for printing.
 At some point Sun may change the delimiter returned but we can isolate to this routine.
 @param ta TextArea of interest.
-@return A list of strings containing the text from the text area or a 
-list with no elements if a null TextArea.
+@return A list of strings containing the text from the text area or a list with no elements if a null TextArea.
 */
 public static List<String> toList (JTextArea ta) {
 	if ( ta == null ) {
@@ -1096,16 +1087,16 @@ For example, this can be used to save a report that is displayed in a JTextArea.
 @exception if there is an error writing the file.
 */
 public static void writeFile ( JTextArea ta, String filename )
-throws Exception
-{	List<String> list = toList ( ta );
+throws Exception {
+	List<String> list = toList ( ta );
 	PrintWriter out = new PrintWriter( new FileWriter( filename ) );
 	// Write each element of the export list to a file.
 	for ( String s : list ) {
 		out.println ( s );
 	}
 	// Close the PrintStream Object.
-	out.flush(); 
-	out.close(); 
+	out.flush();
+	out.close();
 }
 
 }

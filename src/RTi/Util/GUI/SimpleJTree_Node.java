@@ -79,7 +79,7 @@ The node's name, which is typically an internally-facing identifier.
 private String __name = null;
 
 /**
-The node's text, displayed as a label.
+The node's text, displayed as a label next to the node icon.
 */
 private String __text = null;
 
@@ -270,7 +270,7 @@ If name is null, it will be created from the <tt>toString()</tt> of this node,
 but that is not recommended as the node will then be hard to refer to by name.
 */
 private void initialize(String name) {
-	if (name == null) {	
+	if (name == null) {
 		// toString uses verbose name and super 'text'.
 		__name = toString();
 	}

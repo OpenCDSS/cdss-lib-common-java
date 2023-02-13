@@ -312,7 +312,7 @@ according to the operating system.
 @param timeoutMilliseconds If the process is not complete in this time, then exit with a status of 999.
 Specifying 0 will result in no timeout.
 */
-public ProcessManager ( String command, int timeoutMilliseconds ) {	
+public ProcessManager ( String command, int timeoutMilliseconds ) {
     this ( command, timeoutMilliseconds, null, true, (File)null );
 }
 
@@ -674,7 +674,7 @@ throws Throwable {
 	__commandInterpreter = null;
 	IOUtil.nullArray(__listeners);
 	__exitStatusIndicator = null;
-	
+
 	super.finalize();
 }
 
@@ -942,10 +942,10 @@ public void run () {
 	// Note that internally this class uses "out" even though the Process class refers to the output
 	// from the exec'ed process as the input stream to Process.
 	// It just seems more intuitive to call it "out" and "error".
-	
+
 	// Always consume the standard error on a thread.
 	__error = __process.getErrorStream ();
-    StreamConsumer errorConsumer = new StreamConsumer (__error, "Error",true,true);
+    StreamConsumer errorConsumer = new StreamConsumer (__error, "Stderr: ",true,true);
     errorConsumer.start();
 
     // For the standard output, either just consume it (and process the strings later),
@@ -958,7 +958,7 @@ public void run () {
     	__out = __process.getInputStream ();
     	if ( handleOutputWithStreamConsumer ) {
     	    // Consume the stream.
-    	    StreamConsumer outputConsumer = new StreamConsumer (__out, "Output:",true,true);
+    	    StreamConsumer outputConsumer = new StreamConsumer (__out, "Stdout: ",true,true);
     	    outputConsumer.start();
     	    // This will block if the process is not complete.
     	    exitValueFromProcess = __process.waitFor();
