@@ -506,15 +506,6 @@ protected void printDebug( int level, String routine, String message ) {
 			}
 		}
 	}
-	dlstring = null;
-	routine_string = null;
-	message2 = null;
-	if ( this._method_registered ) {
-		arg_list[0] = null;
-		arg_list[1] = null;
-		arg_list[2] = null;
-		arg_list = null;
-	}
 }
 
 /**
@@ -708,12 +699,6 @@ protected void printStatus ( int level, String routine, String message ) {
 			}
 		}
 	}
-	if ( this._method_registered ) {
-		arg_list[0] = null;
-		arg_list[1] = null;
-		arg_list[2] = null;
-		arg_list = null;
-	}
 }
 
 /**
@@ -844,12 +829,6 @@ protected void printWarning ( int level, String tag, String routine, String mess
 			new MessageJDialog( this._top_level, message2 );
 		}
 	}
-	if ( this._method_registered ) {
-		arg_list[0] = null;
-		arg_list[1] = null;
-		arg_list[2] = null;
-		arg_list = null;
-	}
 }
 
 /**
@@ -956,8 +935,7 @@ protected void setDebugLevel ( int i, int level ) {
 		return;
 	}
 	this._debug_level[i] = level;
-	printStatus ( 1, routine, "Set debug level for " + Message.OUTPUT_NAMES[i] + " to " + level );
-	routine = null;
+	printStatus ( 1, routine, "Set debug level for " + Message.OUTPUT_NAMES[i] + " to " + level + ".");
 }
 
 /**
@@ -1250,13 +1228,11 @@ protected void setStatusLevel ( int i, int level ) {
 	}
 	String	routine = "setStatusLevel";
 	if ( i >= MAX_OUTPUT_RECEIVERS ) {
-		printWarning( 1, routine,
-		"Attempting to set level " + i + ". Only " + MAX_OUTPUT_RECEIVERS + " are available." );
+		printWarning( 1, routine, "Attempting to set level " + i + ". Only " + MAX_OUTPUT_RECEIVERS + " are available." );
 		return;
 	}
 	this._status_level[i] = level;
-	printStatus ( 1, routine, "Set status level for " + Message.OUTPUT_NAMES[i] + " to " + level );
-	routine = null;
+	printStatus ( 1, routine, "Set status level for " + Message.OUTPUT_NAMES[i] + " to " + level + ".");
 }
 
 /**
@@ -1297,13 +1273,11 @@ protected void setWarningLevel( int i, int level ) {
 	}
 	String routine = "setWarningLevel";
 	if( i >= MAX_OUTPUT_RECEIVERS ){
-		printWarning( 1, routine,
-		"Attempting to set level " + i + ". Only " + MAX_OUTPUT_RECEIVERS + " are available." );
+		printWarning( 1, routine, "Attempting to set level " + i + ". Only " + MAX_OUTPUT_RECEIVERS + " are available." );
 		return;
 	}
 	this._warning_level[i] = level;
-	printStatus ( 1, routine, "Set warning level for " + Message.OUTPUT_NAMES[i] + " to " + level );
-	routine = null;
+	printStatus ( 1, routine, "Set warning level for " + Message.OUTPUT_NAMES[i] + " to " + level + "." );
 }
 
 }

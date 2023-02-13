@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -47,8 +47,8 @@ import RTi.Util.String.StringDictionary;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 
-// TODO SAM 2010-12-16 Evaluate using a different package for in-memory tables, such as
-// from H2 or other embedded database.
+// TODO SAM 2010-12-16 Evaluate using a different package for in-memory tables,
+// such as from SQLite, H2 or other embedded database.
 /**
 This class contains records of data as a table, using a list of TableRecord instances.
 The format of the table is defined using the TableField class.
@@ -105,8 +105,8 @@ List of TableRecord, that contains the table data.
 protected List<TableRecord> _table_records;
 
 /**
-List of comments for the table.  For example, an analysis that creates a table of results may
-need explanatory comments corresponding to column headings.
+List of comments for the table.
+For example, an analysis that creates a table of results may need explanatory comments corresponding to column headings.
 The comments can be output when the table is written to a file.
 */
 private List<String> __comments = new ArrayList<>();
@@ -117,14 +117,15 @@ Number of records in the table (kept for case where records are not in memory).
 protected int _num_records = 0;
 
 /**
-Indicates if data records have been read into memory.  This can be reset by derived classes that
-instead keep open a binary database file (e.g., dBase) and override the read/write methods.
+Indicates if data records have been read into memory.
+This can be reset by derived classes that instead keep open a binary database file (e.g., dBase)
+and override the read/write methods.
 */
 protected boolean _haveDataInMemory = true;
 
 /**
-Indicates whether string data should be trimmed on retrieval.  In general, this
-should be true because older databases like Dbase pad data with spaces but seldom
+Indicates whether string data should be trimmed on retrieval.
+In general, this should be true because older databases like Dbase pad data with spaces but seldom
 are spaces actually actual data values.
 */
 protected boolean _trim_strings = true;
@@ -139,8 +140,8 @@ protected boolean _add_record_called = false;
 /**
 Construct a new table.  Use setTableFields() at a later time to define the table.
 */
-public DataTable ()
-{	// Estimate that 100 is a good increment for the data list.
+public DataTable () {
+	// Estimate that 100 is a good increment for the data list.
 	initialize ( new ArrayList<>(), 10, 100 );
 }
 
@@ -148,8 +149,8 @@ public DataTable ()
 Construct a new table.  The list of TableRecord will increment in size by 100.
 @param tableFieldsList a list of TableField objects defining table contents.
 */
-public DataTable ( List<TableField> tableFieldsList )
-{	// Guess that 100 is a good increment for the data list.
+public DataTable ( List<TableField> tableFieldsList ) {
+	// Estimate that 100 is a good increment for the data list.
 	initialize ( tableFieldsList, 10, 100 );
 }
 
@@ -161,16 +162,16 @@ This can be used to optimize performance.
 @param listIncrement Increment for the list holding records.
 This can be used to optimize performance.
 */
-public DataTable ( List<TableField> tableFieldsList, int listSize, int listIncrement )
-{	initialize ( tableFieldsList, listSize, listIncrement );
+public DataTable ( List<TableField> tableFieldsList, int listSize, int listIncrement ) {
+	initialize ( tableFieldsList, listSize, listIncrement );
 }
 
 /**
 Add a String to the comments associated with the time series (e.g., station remarks).
 @param comment Comment string to add.
 */
-public void addToComments( String comment )
-{   if ( comment != null ) {
+public void addToComments( String comment ) {
+    if ( comment != null ) {
         __comments.add ( comment );
     }
 }
@@ -179,8 +180,8 @@ public void addToComments( String comment )
 Add a list of String to the comments associated with the time series (e.g., station remarks).
 @param comments Comments strings to add.
 */
-public void addToComments( List<String> comments )
-{   if ( comments == null ) {
+public void addToComments( List<String> comments ) {
+    if ( comments == null ) {
         return;
     }
     for ( String comment : comments ) {
@@ -199,8 +200,8 @@ number of fields in the current TableField declaration.
 @return the new record (allows command chaining)
 */
 public TableRecord addRecord ( TableRecord newRecord )
-throws Exception
-{	int num_table_fields = _table_fields.size();
+throws Exception {
+	int num_table_fields = _table_fields.size();
 	int num_new_record_fields = newRecord.getNumberOfFields();
 	_add_record_called = true;
 	if ( num_new_record_fields == num_table_fields ) {
@@ -209,8 +210,7 @@ throws Exception
 	}
 	else {
         throw new Exception ( "Number of fields in the new record (" +
-		num_new_record_fields + ") does not match current description of the table fields (" +
-		num_table_fields + ")." );
+		num_new_record_fields + ") does not match current description of the table fields (" + num_table_fields + ")." );
 	}
 }
 
@@ -221,8 +221,7 @@ The added fields are initialized with blank strings or NaN, as appropriate.
 @param initValue the initial value to set for all the existing rows in the table (can be null).
 @return the field index (0+).
 */
-public int addField ( TableField tableField, Object initValue )
-{
+public int addField ( TableField tableField, Object initValue ) {
     return addField ( -1, tableField, initValue );
 }
 
@@ -248,8 +247,8 @@ The added fields are initialized with blank strings or NaN, as appropriate.
 @param initFunction the initial function used to set initial values for all the existing rows in the table (can be null).
 @return the field index (0+).
 */
-public int addField ( int insertPos, TableField tableField, Object initValue, DataTableFunctionType initFunction )
-{	boolean addAtEnd = false;
+public int addField ( int insertPos, TableField tableField, Object initValue, DataTableFunctionType initFunction ) {
+	boolean addAtEnd = false;
     if ( (insertPos < 0) || (insertPos >= _table_fields.size()) ) {
         // Add at the end.
         _table_fields.add ( tableField );
@@ -405,8 +404,8 @@ the strings are converted to a type for the data column
 */
 public int appendTable ( DataTable table, DataTable appendTable, String [] reqIncludeColumns,
     Hashtable<String,String> columnMap, Hashtable<String,String> columnData,
-    Hashtable<String,String> columnFilters )
-{   String routine = getClass().getSimpleName() + ".appendTable";
+    Hashtable<String,String> columnFilters ) {
+    String routine = getClass().getSimpleName() + ".appendTable";
     // List of columns that will be appended.
     String [] columnNamesToAppend = null;
     String [] firstTableColumnNames = table.getFieldNames();
@@ -683,7 +682,7 @@ for example, DBF file floating point column that is actually storing an integer.
 @param newPrecision new column precision, can be -1 to not use, -2 to keep previous value.
 @exception Exception if an error occurs converting values
 */
-public void changeFieldDataType ( int fieldNum, int newDataType, int newWidth, int newPrecision ) 
+public void changeFieldDataType ( int fieldNum, int newDataType, int newWidth, int newPrecision )
 throws Exception {
 	int oldDataType = -1;
 	String format = null; // Used when converting from Float/Double to String.
@@ -838,8 +837,9 @@ throws Exception {
 Create a copy of the table.
 @param table original table
 @param newTableID identifier for new table
-@param reqIncludeColumns requested columns to include or null to include all, must specify the distinct column if only
-the distinct column is to be copied (this is a change from behavior prior to TSTool 10.26.00 where distinctColumns would
+@param reqIncludeColumns requested columns to include or null to include all,
+must specify the distinct column if only the distinct column is to be copied
+(this is a change from behavior prior to TSTool 10.26.00 where distinctColumns would
 override the reqIncludeColumns and default of all columns)
 @param distinctColumns requested columns to check for distinct combinations, multiple columns are allowed,
 specify null to not check for distinct values
@@ -850,8 +850,8 @@ specify null to not check for distinct values
 */
 public DataTable createCopy ( DataTable table, String newTableID, String [] reqIncludeColumns,
     String [] distinctColumns, Hashtable<String,String> columnMap,
-    Hashtable<String,String> columnFilters, StringDictionary columnExcludeFilters )
-{   String routine = getClass().getSimpleName() + ".createCopy";
+    Hashtable<String,String> columnFilters, StringDictionary columnExcludeFilters ) {
+    String routine = getClass().getSimpleName() + ".createCopy";
     // List of columns that will be copied.
     String [] columnNamesToCopy = null;
     // TODO SAM 2013-11-25 Remove code if the functionality works.
@@ -882,7 +882,7 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
                 }
             }
         }
-        if ( foundCount != distinctColumns.length ) { // At least one of the distinct columns was not found
+        if ( foundCount != distinctColumns.length ) { // At least one of the distinct columns was not found.
             String [] tmp = new String[reqIncludeColumns.length + (distinctColumns.length - foundCount)];
             System.arraycopy(reqIncludeColumns, 0, tmp, 0, reqIncludeColumns.length);
             int addCount = 0;
@@ -1181,8 +1181,7 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
         }
     }
     if ( errorCount > 0 ) {
-        throw new RuntimeException ( "There were + " + errorCount + " errors transferring data to new table: " +
-            errorMessage );
+        throw new RuntimeException ( "There were + " + errorCount + " errors transferring data to new table: " + errorMessage );
     }
     return newTable;
 }
@@ -1191,9 +1190,8 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
 Deletes a field and all the field's data from the table.
 @param fieldNum the number of the field to delete.
 */
-public void deleteField(int fieldNum) 
-throws Exception
-{
+public void deleteField(int fieldNum)
+throws Exception {
 	if (fieldNum < 0 || fieldNum > (_table_fields.size() - 1)) {
 		throw new Exception ("Field number " + fieldNum + " out of bounds.");
 	}
@@ -1211,7 +1209,7 @@ throws Exception
 Delete all records from the table, useful when a temporary table is being reused.
 @return the number of records deleted.
 */
-public int deleteAllRecords() 
+public int deleteAllRecords()
 throws Exception {
 	int nrec = _table_records.size();
 	_table_records.clear();
@@ -1222,12 +1220,12 @@ throws Exception {
 Deletes a record from the table.
 @param recordNum the number of the record to delete.
 */
-public void deleteRecord(int recordNum) 
+public void deleteRecord(int recordNum)
 throws Exception {
 	if (recordNum < 0 || recordNum > (_table_records.size() - 1)) {
 		throw new Exception ("Record number " + recordNum + " out of bounds.");
 	}
-	
+
 	_table_records.remove(recordNum);
 }
 
@@ -1284,10 +1282,9 @@ Dumps a table to Status level 1.
 @param delimiter the delimiter to use.
 @throws Exception if an error occurs.
 */
-public void dumpTable(String delimiter) 
-throws Exception
-{
-	String routine = "DataTable.dumpTable";
+public void dumpTable(String delimiter)
+throws Exception {
+	String routine = getClass().getSimpleName() + ".dumpTable";
 	int cols = getNumberOfFields();
 	int rows = getNumberOfRecords();
 	String rowPlural = "s";
@@ -1299,7 +1296,7 @@ throws Exception
 		colPlural = "";
 	}
 	Message.printStatus(1, "", "Table has " + rows + " row" + rowPlural + " and " + cols + " column" + colPlural + ".");
-		
+
 	if (cols == 0) {
 		Message.printWarning(2, routine, "Table has 0 columns!  Nothing will be written.");
 		return;
@@ -1311,7 +1308,7 @@ throws Exception
 	}
 	line += getFieldName((cols - 1));
 	Message.printStatus(1, "", line);
-	
+
 	for (int row = 0; row < rows; row++) {
 		line = "";
 		for (int col = 0; col < (cols - 1); col++) {
@@ -1326,14 +1323,13 @@ throws Exception
 /**
 Copies a DataTable.
 @param originalTable the table to be copied.
-@param cloneData if true, the data in the table will be cloned.  If false, both
-tables will have pointers to the same data.
+@param cloneData if true, the data in the table will be cloned.
+If false, both tables will have pointers to the same data.
 @return the new copy of the table.
 */
-public static DataTable duplicateDataTable(DataTable originalTable, boolean cloneData)
-{
-	String routine = "DataTable.duplicateDataTable";
-	
+public static DataTable duplicateDataTable(DataTable originalTable, boolean cloneData) {
+	String routine = DataTable.class.getSimpleName() + ".duplicateDataTable";
+
 	DataTable newTable = null;
 	int numFields = originalTable.getNumberOfFields();
 
@@ -1342,7 +1338,7 @@ public static DataTable duplicateDataTable(DataTable originalTable, boolean clon
 	List<TableField> tableFields = new ArrayList<>();
 	for (int i = 0; i < numFields; i++) {
 		field = originalTable.getTableField(i);
-		newField = new TableField(field.getDataType(), 
+		newField = new TableField(field.getDataType(),
 			new String(field.getName()), field.getWidth(), field.getPrecision());
 		tableFields.add(newField);
 	}
@@ -1411,8 +1407,8 @@ public TableRecord emptyRecord () {
 }
 
 /**
-Used internally when parsing a delimited file to determine whether a field name is already present in a 
-table's fields, so as to avoid duplication.
+Used internally when parsing a delimited file to determine whether a field name is already present in a table's fields,
+so as to avoid duplication.
 @param tableFields a list of the tableFields created so far for a table.
 @param name the name of the field to check.
 @return true if the field name already is present in the table fields, false if not.
@@ -1651,7 +1647,7 @@ public String formatArrayColumn ( int row, int col ) throws Exception {
 				boolean [] ba= (boolean [])oa;
 				Ba = new Boolean[ba.length];
 				for ( int i = 0; i < ba.length; i++ ) {
-					// No need to check for missing
+					// No need to check for missing.
 					Ba[i] = ba[i];
 				}
 			}
@@ -1697,8 +1693,8 @@ public String formatArrayColumn ( int row, int col ) throws Exception {
 Return the time series comments.
 @return The comments list.
 */
-public List<String> getComments ()
-{   return __comments;
+public List<String> getComments () {
+    return __comments;
 }
 
 /**
@@ -1706,20 +1702,20 @@ Return the field data type, given an index.
 @return Data type for specified zero-based index.
 @param index field index (0+).
 */
-public int getFieldDataType ( int index )
-{	if ( _table_fields.size() <= index ) {
+public int getFieldDataType ( int index ) {
+	if ( _table_fields.size() <= index ) {
         throw new ArrayIndexOutOfBoundsException( "Table field index " + index + " is not valid." );
     }
     return (_table_fields.get ( index )).getDataType();
 }
 
 /**
-Return the field data types for all of the fields.  This is useful because
-code that processes all the fields can request the information once and then re-use.
+Return the field data types for all of the fields.
+This is useful because code that processes all the fields can request the information once and then re-use.
 @return Data types for all fields, in an integer array or null if no fields.
 */
-public int[] getFieldDataTypes ()
-{	int size = getNumberOfFields();
+public int[] getFieldDataTypes () {
+	int size = getNumberOfFields();
 	if ( size == 0 ) {
 		return null;
 	}
@@ -1740,8 +1736,8 @@ Strings are left-justified and numbers are right justified.
 @return a String format specifier.
 @param index Field index (zero-based).
 */
-public String getFieldFormat ( int index )
-{	int fieldType = getFieldDataType(index);
+public String getFieldFormat ( int index ) {
+	int fieldType = getFieldDataType(index);
     int fieldWidth = getFieldWidth(index);
 	if ( fieldType == TableField.DATA_TYPE_STRING ) {
 		// Output left-justified and padded.
@@ -1785,8 +1781,8 @@ It is possible that objects other than the expected type will be stored in a col
 in which case there could be a formatting problem.
 @return a new String array with the format specifiers.
 */
-public String[] getFieldFormats()
-{	int nfields = getNumberOfFields();
+public String[] getFieldFormats() {
+	int nfields = getNumberOfFields();
 	String [] format_spec = new String[nfields];
 	for ( int i = 0; i < nfields; i++ ) {
 		format_spec[i] = getFieldFormat ( i );
@@ -1801,15 +1797,15 @@ Return the field index associated with the given field name.
 @exception Exception if the field name is not found.
 */
 public int getFieldIndex ( String field_name )
-throws Exception
-{	int num = _table_fields.size();
+throws Exception {
+	int num = _table_fields.size();
 	for ( int i=0; i<num; i++ ) {
 		if ((_table_fields.get(i)).getName().equalsIgnoreCase(field_name)) {
 			return i;
         }
 	}
 
-	// if this line is reached, the given field was never found.
+	// If this line is reached, the given field was never found.
 	throw new Exception( "Unable to find table field with name \"" + field_name + "\" in table \"" + getTableID() + "\"" );
 }
 
@@ -1821,8 +1817,8 @@ This method simply calls getFieldIndex() for each requested name.
 @exception Exception if any field name is not found.
 */
 public int [] getFieldIndices ( String [] fieldNames )
-throws Exception
-{   int [] fieldIndices = new int[fieldNames.length];
+throws Exception {
+    int [] fieldIndices = new int[fieldNames.length];
     for ( int i=0; i<fieldNames.length; i++ ) {
         fieldIndices[i] = getFieldIndex ( fieldNames[i] );
     }
@@ -1834,16 +1830,16 @@ Return the field name, given an index.
 @return Field name for specified zero-based index.
 @param index field index.
 */
-public String getFieldName ( int index )
-{	return (_table_fields.get ( index )).getName();
+public String getFieldName ( int index ) {
+	return (_table_fields.get ( index )).getName();
 }
 
 /**
 Return the field names for all fields.
 @return a String array with the field names.
 */
-public String[] getFieldNames ()
-{	int nfields = getNumberOfFields();
+public String[] getFieldNames () {
+	int nfields = getNumberOfFields();
 	String [] field_names = new String[nfields];
 	for ( int i = 0; i < nfields; i++ ) {
 		field_names[i] = getFieldName ( i );
@@ -1856,39 +1852,38 @@ Return the field precision, given an index.
 @return Field precision for specified zero-based index.
 @param index field index.
 */
-public int getFieldPrecision ( int index )
-{	return (_table_fields.get ( index )).getPrecision();
+public int getFieldPrecision ( int index ) {
+	return (_table_fields.get ( index )).getPrecision();
 }
 
 /**
 Return the field value for the requested record and field name.
-The overloaded method that takes integers should be called for optimal
-performance (so the field name lookup is avoided).
+The overloaded method that takes integers should be called for optimal performance (so the field name lookup is avoided).
 @param record_index zero-based index of record
 @param field_name Field name of field to read.
 @return field value for the specified field name of the specified record index
 The returned object must be properly cast.
 */
 public Object getFieldValue ( long record_index, String field_name )
-throws Exception
-{	return getFieldValue ( record_index, getFieldIndex(field_name) );
+throws Exception {
+	return getFieldValue ( record_index, getFieldIndex(field_name) );
 }
 
 /**
-Return the field value for the requested record and field index.  <b>Note that
-this method can be overruled to implement on-the-fly data reads.  For example,
-the DbaseDataTable class overrules this method to allow data to be read from the
-binary Dbase file, as needed, at run-time, rather than reading from memory.  In
-this case, the haveData() method can be used to indicate if data should be
-taken from memory (using this method) or read from file (using a derived class method).</b>
+Return the field value for the requested record and field index.
+<b>Note that this method can be overruled to implement on-the-fly data reads.
+For example, the DbaseDataTable class overrules this method to allow data to be read from the binary Dbase file,
+as needed, at run-time, rather than reading from memory.
+In this case, the haveData() method can be used to indicate if data should be taken from memory
+(using this method) or read from file (using a derived class method).</b>
 @param record_index zero-based index of record
 @param field_index zero_based index of desired field
 @return field value for the specified index of the specified record index
 The returned object must be properly cast.
 */
 public Object getFieldValue ( long record_index, int field_index )
-throws Exception
-{	int num_recs = _table_records.size();
+throws Exception {
+	int num_recs = _table_records.size();
 	int num_fields = _table_fields.size();
 
 	if ( num_recs <= record_index ) {
@@ -1927,30 +1922,29 @@ Return the field width, given an index.
 @return Field width for specified zero-based index.
 @param index field index.
 */
-public int getFieldWidth ( int index )
-{	return (_table_fields.get ( index )).getWidth();
+public int getFieldWidth ( int index ) {
+	return (_table_fields.get ( index )).getWidth();
 }
 
 /**
 Return the number of fields in the table.
 @return number of fields in the table.
 */
-public int getNumberOfFields ()
-{	return _table_fields.size();
+public int getNumberOfFields () {
+	return _table_fields.size();
 }
 
 // TODO SAM 2010-09-22 Evaluate whether the records list size should be returned if records in memory?
 /**
-Return the number of records in the table.  <b>This value should be set by
-code that manipulates the data table.  If the table records list has been
-manipulated with a call to addRecord(), the size of the list will be returned.
-Otherwise, the setNumberOfRecords() methods should be called appropriately and
-its the value that is set will be returned.  This latter case
-will be in effect if tables are being read on-the-fly.</b>
+Return the number of records in the table.
+<b>This value should be set by code that manipulates the data table.
+If the table records list has been manipulated with a call to addRecord(), the size of the list will be returned.
+Otherwise, the setNumberOfRecords() methods should be called appropriately and its the value that is set will be returned.
+This latter case will be in effect if tables are being read on-the-fly.</b>
 @return number of records in the table.
 */
-public int getNumberOfRecords ()
-{	if ( _add_record_called ) {
+public int getNumberOfRecords () {
+	if ( _add_record_called ) {
 		return _table_records.size();
 	}
 	else {
@@ -1964,14 +1958,14 @@ Return the TableRecord at a record index.
 @return TableRecord at specified record_index
 */
 public TableRecord getRecord ( int record_index )
-throws Exception
-{	if ( !_haveDataInMemory ) {
+throws Exception {
+	if ( !_haveDataInMemory ) {
 		// Most likely a derived class is not handling on the fly reading of data and needs more development.
 		// Return null because the limitation is likely handled elsewhere.
 		return null;
 	}
 	if ( _table_records.size() <= record_index ) {
-		throw new Exception ( 
+		throw new Exception (
 		"Unable to return TableRecord at index [" + record_index +
 		"].  Max value allowed is " + (_table_records.size() - 1) +".");
 	}
@@ -1979,15 +1973,15 @@ throws Exception
 }
 
 /**
-Return the TableRecord for the given column and column value.  If multiple records are matched the first record is returned.
+Return the TableRecord for the given column and column value.
+If multiple records are matched the first record is returned.
 @param columnNum column number, 0+
 @param columnValue column value to match in the records.  The first matching record is returned.
 The type of the object will be checked before doing the comparison.
 @return TableRecord matching the specified column value or null if no record is matched.
 */
 public TableRecord getRecord ( int columnNum, Object columnValue )
-throws Exception
-{
+throws Exception {
     int [] columnNums = new int[1];
     columnNums[0] = columnNum;
     List<Object> columnValues = new ArrayList<>();
@@ -2010,8 +2004,7 @@ The type of the object will be checked before doing the comparison.
 @return TableRecord matching the specified column value or null if no record is matched.
 */
 public TableRecord getRecord ( String columnName, Object columnValue )
-throws Exception
-{
+throws Exception {
     List<String> columnNames = new ArrayList<>();
     columnNames.add(columnName);
     List<Object> columnValues = new ArrayList<>();
@@ -2057,11 +2050,10 @@ The type of the object will be checked before doing the comparison.
 @return List of TableRecord matching the specified column values, guaranteed to be non-null but may be an empty list.
 */
 public List<TableRecord> getRecords ( int [] columnNumbers, List<? extends Object> columnValues )
-throws Exception
-{   if ( !_haveDataInMemory ) {
-        // Most likely a derived class is not handling on the fly
-        // reading of data and needs more development.  Return null
-        // because the limitation is likely handled elsewhere.
+throws Exception {
+   if ( !_haveDataInMemory ) {
+        // Most likely a derived class is not handling on the fly reading of data and needs more development.
+		// Return null because the limitation is likely handled elsewhere.
         // TODO SAM 2013-07-02 Why not return an empty list here?
         return null;
     }
@@ -2120,8 +2112,8 @@ public String getTableID () {
 Return the list of TableRecords.
 @return list of TableRecord.
 */
-public List<TableRecord> getTableRecords ( )
-{	return _table_records;
+public List<TableRecord> getTableRecords ( ) {
+	return _table_records;
 }
 
 /**
@@ -2129,8 +2121,8 @@ Return the TableField object for the requested column.
 @param index Table field index (zero-based).
 @return TableField object for the specified zero-based index.
 */
-public TableField getTableField ( int index )
-{	return (_table_fields.get( index ));
+public TableField getTableField ( int index ) {
+	return (_table_fields.get( index ));
 }
 
 /**
@@ -2140,8 +2132,8 @@ Get the data type for the field.
 @exception If the index is out of range.
 @deprecated use getFieldDataType
 */
-public int getTableFieldType ( int index )
-{	if ( _table_fields.size() <= index ) {
+public int getTableFieldType ( int index ) {
+	if ( _table_fields.size() <= index ) {
 		throw new ArrayIndexOutOfBoundsException( "Index " + index + " is not valid." );
 	}
 	return _table_fields.get(index).getDataType ();
@@ -2161,14 +2153,13 @@ Depending on the field data type, a double[], int[], short[], or String[] will b
 */
 /* TODO SAM Implement this later.
 public Object getUniqueFieldValues ( int field_index )
-throws Exception
-{	int num_recs = _table_records.size();
+throws Exception {
+	int num_recs = _table_records.size();
 	int num_fields = _table_fields.size();
 
 	if ( num_fields <= field_index ) {
 		throw new Exception ( "Requested field index " + field_index +
-		" is not available (only " + num_fields +
-		" are available)." );
+		" is not available (only " + num_fields + " are available)." );
 	}
 
 	// Use a temporary list to get the unique values.
@@ -2209,12 +2200,13 @@ public boolean hasField(String fieldName) {
 }
 
 /**
-Indicate whether the table has data in memory.  This will be true if any table records
-have been added during a read or write operation.  This method is meant to be called by derived classes
+Indicate whether the table has data in memory.
+This will be true if any table records have been added during a read or write operation.
+This method is meant to be called by derived classes
 that allow records to be accessed on the fly rather than from memory (e.g., dBase tables).
 */
-public boolean haveDataInMemory ()
-{	return _haveDataInMemory;
+public boolean haveDataInMemory () {
+	return _haveDataInMemory;
 }
 
 /**
@@ -2223,8 +2215,8 @@ Initialize the data.
 @param listSize Initial list size for the list holding records.
 @param sizeIncrement Increment for the list holding records.
 */
-private void initialize ( List<TableField> tableFieldsList, int listSize, int sizeIncrement )
-{	_table_fields = tableFieldsList;
+private void initialize ( List<TableField> tableFieldsList, int listSize, int sizeIncrement ) {
+	_table_fields = tableFieldsList;
 	_table_records = new ArrayList<> ( 10 );
 }
 
@@ -2234,13 +2226,13 @@ If inserting at the start or middle, the provided table record will be inserted 
 If inserting after the existing records, empty records will be added up to the requested insert position.
 @param row row position (0+) to insert the record
 @param record table record to insert
-@param doCheck indicate whether the record should be checked against the table for consistency; false inserts with no check
-(currently this parameter is not enabled).  Use emptyRecord() to create a record that matches the table design.
+@param doCheck indicate whether the record should be checked against the table for consistency;
+false inserts with no check (currently this parameter is not enabled).
+Use emptyRecord() to create a record that matches the table design.
 @exception Exception if there is an error inserting the record
 */
 public void insertRecord ( int row, TableRecord record, boolean doCheck )
-throws Exception
-{
+throws Exception {
     // TODO SAM 2014-02-01 enable doCheck.
     int nRows = getNumberOfRecords();
     if ( row < nRows ) {
@@ -2277,8 +2269,8 @@ This is useful when setting column widths narrow for unused data, or deleting un
 @param columnNum column number 0+ to check
 @return true if the column is empty, false if contains at least one record with a value.
 */
-public boolean isColumnEmpty ( int columnNum )
-{	TableRecord rec = null;
+public boolean isColumnEmpty ( int columnNum ) {
+	TableRecord rec = null;
 	int recCount = getNumberOfRecords();
 	int emptyCount = 0;
 	String s;
@@ -2333,22 +2325,22 @@ public boolean isDirty() {
 Join one table to another by matching column column values.
 @param table original table
 @param tableToJoin table being joined
-@param joinColumnsMap map indicating which columns need to be matched in the tables, for the join
-(this must be populated, even if the join column name is the same in both tables)
+@param joinColumnsMap map indicating which columns need to be matched in the tables,
+for the join (this must be populated, even if the join column name is the same in both tables)
 @param reqIncludeColumns requested columns to include from the second table or null to include all
 (the join tables will be automatically included because they exist in the first table)
 @param columnMap map to rename original columns to new name
 @param columnFilters map for columns that will apply a filter to limit rows that are processed
 @param joinMethod the method used to join the tables
-@param handleMultipleMatchesHow indicate how multiple join matches should be handled (currently only
-NUMBER_COLUMNS and USE_LAST_MATCH [default] are supported)
+@param handleMultipleMatchesHow indicate how multiple join matches should be handled
+(currently only NUMBER_COLUMNS and USE_LAST_MATCH [default] are supported)
 @param problems list of problems that will be filled during processing
 @return the number of rows joined
 */
 public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,String> joinColumnsMap, String [] reqIncludeColumns,
     Hashtable<String,String> columnMap, Hashtable<String,String> columnFilters, DataTableJoinMethodType joinMethod,
-    HandleMultipleJoinMatchesHowType handleMultipleMatchesHow, List<String> problems )
-{   String routine = getClass().getSimpleName() + ".joinTable", message;
+    HandleMultipleJoinMatchesHowType handleMultipleMatchesHow, List<String> problems ) {
+    String routine = getClass().getSimpleName() + ".joinTable", message;
 
     // List of columns that will be copied to the first table.
     String [] columnNamesToCopy = null;
@@ -2425,7 +2417,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
         Message.printStatus(2,routine,"Will copy table2 column \"" + table2CopyColumnNames[icol] + "\" to table1 column \"" +
             table1CopyColumnNames[icol] + "\"" );
     }
-    
+
     // Create columns in the output table for the "include columns" (including new column names from the column map).
     // Use column types that match the copy table's column types.
     // Figure out the column numbers in both tables for the include.
@@ -2523,7 +2515,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
             Message.printWarning(3,routine,message);
         }
     }
-    
+
     // Get filter columns and glob-style regular expressions.
     int [] columnNumbersToFilter = new int[columnFilters.size()];
     String [] columnFilterGlobs = new String[columnFilters.size()];
@@ -2584,9 +2576,10 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
             }
         }
     }
-    // Loop through all the data records in the original table (the original records, NOT any that have been appended due
-    // to the join), loop through records in the join table, and join records to the table original as appropriate (this may
-    // result in a modification of the same records, or appending new records at the bottom of the table).
+    // Loop through all the data records in the original table (the original records,
+    // NOT any that have been appended due to the join), loop through records in the join table,
+    // and join records to the table original as appropriate
+    // (this may result in a modification of the same records, or appending new records at the bottom of the table).
     // Keep track of which rows do not match and add at the end.  Otherwise, duplicate rows are added.
     boolean [] joinTableRecordMatchesTable1 = new boolean[tableToJoin.getNumberOfRecords()];
     int tableNumRows = table.getNumberOfRecords();
@@ -2702,7 +2695,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                                 		else {
                                 			// Else, need to add output columns that have number appended.
                                 			// For now look up the column.
-                                			// TODO SAM 2015-03-04 add column to the existing column number array to increase performance
+                                			// TODO SAM 2015-03-04 add column to the existing column number array to increase performance.
                                 			int icol1 = -1;
                                 			String duplicateColumn = table1CopyColumnNames[icol] + "_" + matchCountList.get(irow);
                                 			Message.printStatus(2,routine,"Duplicate match.  Will output to column \"" + duplicateColumn + "\"");
@@ -2752,8 +2745,9 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
             }
         }
     }
-    // Now add any rows that were not matched - add at the end so as to not upset the original sequence and lists used above.
-    // TODO SAM 2015-03-05 Need to enable for NUMBER_COLUMNS.
+    // Now add any rows that were not matched:
+    // - add at the end so as to not upset the original sequence and lists used above
+    // - TODO SAM 2015-03-05 Need to enable for NUMBER_COLUMNS.
     if ( joinMethod == DataTableJoinMethodType.JOIN_ALWAYS ) {
     	if ( handleMultipleMatchesHow == HandleMultipleJoinMatchesHowType.NUMBER_COLUMNS ) {
     		problems.add("Requested NumberColumns for multiple join matches but not suported "
@@ -2881,7 +2875,7 @@ Comment lines start with # and are not considered part of the header.
 @param num_lines_header number of lines in header (typically 1).
 The header lines are read and ignored.
 @param trim_spaces if true, then when a column value is read between delimiters,
-it will be .trim()'d before being parsed into a number or String. 
+it will be .trim()'d before being parsed into a number or String.
 @exception Exception if there is an error parsing the file.
 */
 public static DataTable parseDelimitedFile ( String filename, String delimiter, List<TableField> tableFields,
@@ -2891,26 +2885,24 @@ throws Exception {
 }
 
 /**
-Given a definition of what data to expect, read a simple delimited file and
-store the data in a table.  Comment lines start with # and are not considered part of the header.
+Given a definition of what data to expect, read a simple delimited file and store the data in a table.
+Comment lines start with # and are not considered part of the header.
 This method may not be maintained in the future.
 The parseFile() method is more flexible.
 @return new DataTable containing data.
 @param filename name of file containing delimited data.
 @param delimiter string representing delimiter in data file (typically a comma).
 @param tableFields list of TableField objects defining data expectations.
-@param num_lines_header number of lines in header (typically 1).  The header
-lines are read and ignored.
+@param num_lines_header number of lines in header (typically 1).  The header lines are read and ignored.
 @param trim_spaces if true, then when a column value is read between delimiters,
-it will be .trim()'d before being parsed into a number or String. 
-@param maxLines the maximum number of lines to read from the file.  If less than
-or equal to 0, all lines will be read.
+it will be .trim()'d before being parsed into a number or String.
+@param maxLines the maximum number of lines to read from the file.
+If less than or equal to 0, all lines will be read.
 @exception Exception if there is an error parsing the file.
 */
 public static DataTable parseDelimitedFile ( String filename, String delimiter, List<TableField> tableFields,
 	int num_lines_header, boolean trim_spaces, int maxLines)
-throws Exception
-{
+throws Exception {
 	String iline;
 	boolean processed_header = false;
 	List<String> columns;
@@ -2930,15 +2922,14 @@ throws Exception
 
 	String col = null;
 
-	// Create an array to use for determining the maximum size of all the
-	// fields that are Strings.  This will be used to set the width of
-	// the data values for those fields so that the width of the field is
-	// equal to the width of the longest string.  This is mostly important
-	// for when the table is to be placed within a DataTable_TableModel, 
+	// Create an array to use for determining the maximum size of all the fields that are Strings.
+	// This will be used to set the width of the data values for those fields so thatthe width of the field is
+	// equal to the width of the longest string.
+	// This is mostly important for when the table is to be placed within a DataTable_TableModel,
 	// so that the String field data are not truncated.
 	int numFields = tableFields.size();
 	int[] stringLengths = new int[numFields];
-	for (int i = 0; i < numFields; i++) {	
+	for (int i = 0; i < numFields; i++) {
 		stringLengths[i] = 0;
 	}
 	int length = 0;
@@ -2949,8 +2940,8 @@ throws Exception
 			continue;
 		}
 
-		// TODO SAM if a column contains only quoted strings, but each string is a number, then there is no
-		// way to treat the column as strings.  This may be problematic if the string is zero-padded.
+		// TODO SAM if a column contains only quoted strings, but each string is a number,
+		// then there is no way to treat the column as strings.  This may be problematic if the string is zero-padded.
 		columns = StringUtil.breakStringList ( iline, delimiter, StringUtil.DELIM_ALLOW_STRINGS);
 
 		// Line is part of header.
@@ -2960,7 +2951,7 @@ throws Exception
 				in.close();
 				throw new IOException ( "Table fields specifications do not match data found in file." );
 			}
-			
+
 			num_lines_header_read++;
 			if ( num_lines_header_read == num_lines_header ) {
 				processed_header = true;
@@ -2969,7 +2960,7 @@ throws Exception
 		else {
 		    // Line contains data - store in table as record.
 			TableRecord contents = new TableRecord(num_fields);
-			try {						
+			try {
     			for ( int i=0; i<num_fields; i++ ) {
     				col = columns.get(i);
     				if (trim_spaces) {
@@ -3018,7 +3009,7 @@ throws Exception
 					table.setFieldWidth(i, stringLengths[i]);
 				}
 			}
-							
+
 			return table;
 		}
 	}
@@ -3032,22 +3023,22 @@ Reads the header of a comma-delimited file and return list of TableField objects
 @param filename name of file containing delimited data.
 */
 public static List<TableField> parseDelimitedFileHeader ( String filename )
-throws Exception
-{	return parseDelimitedFileHeader ( filename, "," );
+throws Exception {
+	return parseDelimitedFileHeader ( filename, "," );
 }
 
 /**
 Reads the header of a delimited file and return list of TableField objects.
-The field names will be correctly returned.  The data type, however, will be set
-to TableField.DATA_TYPE_STRING.  This should be changed if not appropriate.
+The field names will be correctly returned.
+The data type, however, will be set to TableField.DATA_TYPE_STRING.  This should be changed if not appropriate.
 @return list of TableField objects (field names will be correctly set but data type will be string).
 @param filename name of file containing delimited data.
 @param delimiter string representing delimiter in data file.
 @exception Exception if there is an error reading the file.
 */
 public static List<TableField> parseDelimitedFileHeader ( String filename, String delimiter )
-throws Exception
-{	String iline;
+throws Exception {
+	String iline;
 	List<String> columns;
 	List<TableField> tableFields = null;
 	int num_fields=0;
@@ -3057,15 +3048,15 @@ throws Exception
 
 	try {
     	while (( iline = in.readLine ()) != null ) {
-    
+
     		// Check whether read a comment or empty line.
     		if ( iline.startsWith("#") || iline.trim().length()==0) {
     			continue;
     		}
-    
+
     		columns = StringUtil.breakStringList ( iline, delimiter, 0);
     //			StringUtil.DELIM_SKIP_BLANKS );
-    
+
     		num_fields = columns.size();
     		tableFields = new ArrayList<> ( num_fields );
     		for ( int i=0; i<num_fields; i++ ) {
@@ -3089,12 +3080,12 @@ throws Exception
 // http://en.wikipedia.org/wiki/Comma-separated_values
 // For now assume no embedded quotes in quoted strings.
 /**
-Parses a file and returns the DataTable for the file.  Currently only does
-delimited files, and the data type for a column must be consistent.
-The lines in delimited files do not need to all have the same
-number of columns: the number of columns in the returned DataTable will be 
-the same as the line in the file with the most delimited columns, all others
-will be padded with empty value columns on the right of the table.
+Parses a file and returns the DataTable for the file.
+Currently only does delimited files, and the data type for a column must be consistent.
+The lines in delimited files do not need to all have the same number of columns:
+the number of columns in the returned DataTable will be
+the same as the line in the file with the most delimited columns,
+all others will be padded with empty value columns on the right of the table.
 @param filename the name of the file from which to read the table data.
 @param props a PropList with settings for how the file should be read and handled.<p>
 Properties and their effects:<br>
@@ -3105,8 +3096,8 @@ Properties and their effects:<br>
 
 <tr>
 <td><b>ColumnDataTypes</b></td>
-<td>The data types for the column, either "Auto" (determine from column contents) or
-"AllStrings" (all are strings, fastest processing and the default from historical behavior).
+<td>The data types for the column, either "Auto" (determine from column contents) or "AllStrings"
+(all are strings, fastest processing and the default from historical behavior).
 SEE ALSO DateTimeColumns.</td>
 <td>AllStrings.</td>
 </tr>
@@ -3135,8 +3126,9 @@ The column names must agree with those determined from the table headings.</td>
 
 <tr>
 <td><b>Delimiter</b></td>
-<td>The character (s) that should be used to delimit fields in the file.  Fields are broken
-using the following StringUtil.breakStringList() call (the flag can be modified by MergeDelimiters):<br>
+<td>The character (s) that should be used to delimit fields in the file.
+Fields are broken using the following StringUtil.breakStringList() call
+(the flag can be modified by MergeDelimiters):<br>
 <blockquote>
     v = StringUtil.breakStringList(line, delimiters, 0);
 </blockquote><br></td>
@@ -3159,8 +3151,8 @@ The column names must agree with those determined from the table headings.</td>
 <tr>
 <td><b>HeaderLines (previously HeaderRows)</b></td>
 <td>The lines containing the header information, specified as single number or a range (e.g., 2-3).
-Multiple lines will be separated with a newline when displayed, or Auto to automatically treat the
-first non-comment row as a header if the value is double-quoted.
+Multiple lines will be separated with a newline when displayed,
+or Auto to automatically treat the first non-comment row as a header if the value is double-quoted.
 This will be ignored if ColumnNames is specified.</td>
 <td>Auto</td>
 </tr>
@@ -3181,9 +3173,9 @@ StringUtil.breakStringList(line,delimiters,StringUtil.DELIM_SKIP_BLANKS.</td>
 
 <tr>
 <td><b>SkipLines (previously SkipRows)</b></td>
-<td>Lines from the original file to skip (each value 0+), as list of comma-separated individual row or
-ranges like 3-6.  Skipped lines are generally information that cannot be parsed.  The lines are skipped after
-the initial read and are not available for further processing.</td>
+<td>Lines from the original file to skip (each value 0+), as list of comma-separated individual row or ranges like 3-6.
+Skipped lines are generally information that cannot be parsed.
+The lines are skipped after the initial read and are not available for further processing.</td>
 <td>Don't skip any lines.</td>
 </tr>
 
@@ -3208,8 +3200,8 @@ The column names must agree with those determined from the table headings.</td>
 
 <tr>
 <td><b>TrimStrings</b></td>
-<td>"True" or "False".  Indicates whether strings should
-be trimmed before being placed in the data table (after parsing).</td>
+<td>"True" or "False".
+Indicates whether strings should be trimmed before being placed in the data table (after parsing).</td>
 <td>False</td>
 </tr>
 
@@ -3217,9 +3209,9 @@ be trimmed before being placed in the data table (after parsing).</td>
 @return the DataTable that was created.
 @throws Exception if an error occurs
 */
-public static DataTable parseFile(String filename, PropList props) 
-throws Exception
-{   String routine = DataTable.class.getSimpleName() + ".parseFile";
+public static DataTable parseFile(String filename, PropList props)
+throws Exception {
+    String routine = DataTable.class.getSimpleName() + ".parseFile";
 	if ( props == null ) {
 		props = new PropList(""); // To simplify code below.
 	}
@@ -3231,7 +3223,7 @@ throws Exception
 		}
 	}
 	*/
-   
+
 	// Default is to treat column types as all strings, which is fastest:
 	// - setting ColumnDataTypes=Auto will determine column types by data
     boolean ColumnDataTypes_Auto_boolean = false;
@@ -3239,10 +3231,10 @@ throws Exception
     //String ColumnDataTypes = "AllStrings";  // Default for historical reasons.
     String propVal = props.getValue("ColumnDataTypes");
     if ( propVal != null ) {
-    	if ( propVal.equalsIgnoreCase("Auto") ) {      
+    	if ( propVal.equalsIgnoreCase("Auto") ) {
     		ColumnDataTypes_Auto_boolean = true;
     	}
-    	else if ( propVal.equalsIgnoreCase("AllStrings") ) {      
+    	else if ( propVal.equalsIgnoreCase("AllStrings") ) {
     		//ColumnDataTypes = "Auto";
     		ColumnDataTypes_Auto_boolean = false;
     	}
@@ -3250,13 +3242,13 @@ throws Exception
 
     String Delimiter = "";
 	propVal = props.getValue("Delimiter");
-	if (propVal != null) {		
+	if (propVal != null) {
         Delimiter = propVal;
 	}
 	else {
         Delimiter = ",";
 	}
-	
+
     propVal = props.getValue("HeaderLines");
     if ( propVal == null ) {
         // Use older form.
@@ -3336,7 +3328,7 @@ throws Exception
 			columnNames[i] = columnNames[i].trim();
 		}
     }
-    
+
     String [] dateTimeColumns = null;
     propVal = props.getValue("DateTimeColumns");
     if ( (propVal != null) && !propVal.isEmpty() ) {
@@ -3345,7 +3337,7 @@ throws Exception
             dateTimeColumns[i] = dateTimeColumns[i].trim();
         }
     }
-    
+
     String [] doubleColumns = null;
     propVal = props.getValue("DoubleColumns");
     if ( (propVal != null) && !propVal.isEmpty() ) {
@@ -3354,7 +3346,7 @@ throws Exception
         	doubleColumns[i] = doubleColumns[i].trim();
         }
     }
-    
+
     String [] integerColumns = null;
     propVal = props.getValue("IntegerColumns");
     if ( (propVal != null) && !propVal.isEmpty() ) {
@@ -3363,7 +3355,7 @@ throws Exception
         	integerColumns[i] = integerColumns[i].trim();
         }
     }
-    
+
     String [] textColumns = null;
     propVal = props.getValue("TextColumns");
     if ( (propVal != null) && !propVal.isEmpty() ) {
@@ -3372,7 +3364,7 @@ throws Exception
             textColumns[i] = textColumns[i].trim();
         }
     }
-    
+
     int top = -1;
     int topm1 = -1; // Used for 0-index comparison.
     propVal = props.getValue("Top");
@@ -3387,12 +3379,12 @@ throws Exception
     }
 
 	int parseFlagHeader = StringUtil.DELIM_ALLOW_STRINGS;
-	// Retain the quotes in data records makes sure that quoted numbers come across as intended as literal strings. 
+	// Retain the quotes in data records makes sure that quoted numbers come across as intended as literal strings.
     // This is important when numbers are zero padded, such as for station identifiers.
 	// The problem is that it will result in embedded escaped quotes "" in the output.
 	int parseFlag = StringUtil.DELIM_ALLOW_STRINGS | StringUtil.DELIM_ALLOW_STRINGS_RETAIN_QUOTES;
 	propVal = props.getValue("MergeDelimiters");
-	if (propVal != null) {		
+	if (propVal != null) {
 		parseFlag |= StringUtil.DELIM_SKIP_BLANKS;
 		parseFlagHeader |= StringUtil.DELIM_SKIP_BLANKS;
 	}
@@ -3452,7 +3444,7 @@ throws Exception
     }
     // Use to speed up code below.
     int skipLinesList_size = skipLinesList.size();
-	
+
 	propVal = props.getValue("TrimInput");
 	boolean TrimInput_Boolean = false; // Default.
 	if ( (propVal != null) && propVal.equalsIgnoreCase("true") ) {
@@ -3479,7 +3471,7 @@ throws Exception
 	// Found a bug in DataTable.
 	// If attempt to call parseFile() on a file of size 0 (no lines, no characters) it will throw an exception.
 	// This should be checked out in the future.
-	
+
 	// If the column names were specified, set them up front.
 	List<TableField> tableFields = null; // Table fields as controlled by header or examination of data records.
 	boolean headers_found = false; // Indicates whether the headers have been found.
@@ -3489,9 +3481,9 @@ throws Exception
         numFields = tableFields.size();
         headers_found = true;
 	}
-	
+
 	// Read until the end of the file.
-	
+
 	int linecount = 0; // linecount = 1 for first line in file, for user perspective.
 	int dataLineCount = 0; // Count of data lines (comments and header lines are not included).
 	int linecount0; // linecount0 = linecount - 1 (zero index), for code perspective.
@@ -3506,19 +3498,19 @@ throws Exception
 		}
 		++linecount;
 		linecount0 = linecount - 1; // Zero index.
-		
+
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 10, routine, "Line [" + linecount0 + "]: " + line );
 		}
-		
+
 		// Skip any comments anywhere in the file.
 		if ( (CommentLineIndicator != null) && line.startsWith(CommentLineIndicator) ) {
 		    continue;
 		}
 		++noncommentLineCount0;
-		
+
 		// Also skip the requested lines to skip linecount is 1+ while lines to skip are 0+.
-		
+
 		if ( linecount0 <= skipLinesList_maxval ) {
 		    // Need to check it.
 		    if ( parseFile_LineMatchesLineFromList(linecount0,skipLinesList, skipLinesList_size)) {
@@ -3526,12 +3518,12 @@ throws Exception
                 continue;
 		    }
 		}
-		
+
 		// "line" now contains the latest non-comment line:
 		// - evaluate whether the line contains the column names (header lines)
 		// - header lines MUST come before data lines
 		// - currently only handle one header line
-		
+
 		if ( !headers_found && (dataLineCount == 0) &&
 			(HeaderLines_Auto_boolean || ((HeaderLineList != null) && (dataLineCount == 0)) ) ) { //&& (headerLineCount <= HeaderLinesList_maxval)) ) ) {}
 		    if ( HeaderLines_Auto_boolean ) {
@@ -3555,7 +3547,7 @@ throws Exception
 		            Message.printStatus(2, routine, "Header line to parse:" + line);
 		            tableFields = parseFile_ParseHeaderLine ( line, linecount0, TrimInput_Boolean, Delimiter, parseFlagHeader );
 		            numFields = tableFields.size();
-		                
+
                     //FIXME SAM 2008-01-27 Figure out how to deal with multi-row headings.
                     // What is the column name?
 		            // If the maximum header row has been processed, indicate that headers have been found.
@@ -3568,7 +3560,7 @@ throws Exception
 		        }
 		    }
 		}
-		
+
 		if ( linecount0 <= HeaderLinesList_maxval ) {
 		    // Currently only allow one header row so need to ignore other rows that are found
 		    // (don't want them considered as data).
@@ -3578,13 +3570,13 @@ throws Exception
 		}
 
     	// Now evaluate the data lines.  Parse into tokens to allow evaluation of the number of columns below.
-    	
+
 		++dataLineCount;
 		// If "Top" was specified as a parameter, skip lines after top.
 		if ( (top >= 0) && (dataLineCount > top) ) {
 			break;
 		}
-		
+
         if ( TrimInput_Boolean ) {
 			tokens = StringUtil.breakStringList(line.trim(), Delimiter, parseFlag );
 		}
@@ -3600,7 +3592,7 @@ throws Exception
 	}
 	// Close the file.
 	in.close();
-	
+
 	// Make sure that the table fields are in place for the maximum number of columns.
 
 	if (tableFields == null) {
@@ -3611,7 +3603,7 @@ throws Exception
 		}
 	}
 	else {
-		// Add enough fields to account for the maximum number of columns in the table.  
+		// Add enough fields to account for the maximum number of columns in the table.
 		String temp = null;
 		for (int i = numFields; i < maxColumns; i++) {
 			tableField = new TableField();
@@ -3624,11 +3616,10 @@ throws Exception
 			tableFields.add(tableField);
 		}
 	}
-	
+
 	// Loop through the data and determine what type of data are in each column.
-	// Do this in any case because the length of the string columns and precision for floating point
-	// columns need to be determined.
-	
+	// Do this in any case because the length of the string columns and precision for floating point columns need to be determined.
+
 	numFields = tableFields.size();
 	int numRecords = data_record_tokens.size(); // Number of data records.
 	int [] count_int = new int[maxColumns];
@@ -3721,12 +3712,12 @@ throws Exception
             }
 	    }
 	}
-	
+
 	// TODO SAM 2016-08-25 Could optimize so that if all column types are specified, don't need to scan data for type.
-	
+
 	// Loop through the table fields and based on the examination of data above,
 	// set the table field type and if a string, max width.
-	
+
 	int [] tableFieldType = new int[tableFields.size()];
 	boolean isString = false;
 	boolean isDateTime = false;
@@ -3870,15 +3861,15 @@ throws Exception
 	for ( int icol = maxColumns; icol < tableFields.size(); icol++) {
 	    tableFieldType[icol] = TableField.DATA_TYPE_STRING;
 	}
-	
+
 	// Create the table from the field information.
 
 	DataTable table = new DataTable(tableFields);
 	table._haveDataInMemory = true;
 	TableRecord tablerec = null;
-	
+
 	// Now transfer the data records to table records.
-	
+
 	int cols = 0;
 	int errorCount = 0;
 	for (int irow = 0; irow < numRecords; irow++) {
@@ -3949,12 +3940,12 @@ throws Exception
 			    tablerec.addFieldValue( parseFile_ProcessString(cell) );
 	        }
 		}
-		
+
 		// If the specific record does not have enough columns, pad the columns at the end with blanks,
 		// using blank strings or NaN for number fields.  This depends on whether headings were read.
-		// Sometimes the header row has more columns than data rows, in particular because breakStringList()
-		// will drop an empty field at the end.
-		
+		// Sometimes the header row has more columns than data rows,
+		// in particular because breakStringList() will drop an empty field at the end.
+
 		for ( int icol = cols; icol < table.getNumberOfFields(); icol++) {
 		    if ( ColumnDataTypes_Auto_boolean ) {
 		        // Add values based on the column type.
@@ -3970,7 +3961,7 @@ throws Exception
 		        tablerec.addFieldValue("");
 		    }
 		}
-		
+
 		try {
 		    table.addRecord(tablerec);
 		}
@@ -3987,7 +3978,7 @@ throws Exception
 	    throw new Exception ( message );
 	}
 
-	return table;		
+	return table;
 }
 
 /**
@@ -4037,8 +4028,8 @@ All fields are set to type String, although this will be reset when data records
 @return A list of TableField describing the table columns.
 */
 private static List<TableField> parseFile_ParseHeaderLine (
-    String line, int linecount0, boolean TrimInput_Boolean, String Delimiter, int parse_flag )
-{   String routine = "DataTable.parseFile_ParseHeaderLine";
+    String line, int linecount0, boolean TrimInput_Boolean, String Delimiter, int parse_flag ) {
+    String routine = DataTable.class.getSimpleName() + ".parseFile_ParseHeaderLine";
     Message.printStatus ( 2, routine, "Adding column headers from line [" + linecount0 + "]: " + line );
     List<String> columns = null;
     if ( TrimInput_Boolean ) {
@@ -4047,7 +4038,7 @@ private static List<TableField> parseFile_ParseHeaderLine (
     else {
         columns = StringUtil.breakStringList(line, Delimiter, parse_flag );
     }
-    
+
     int numFields = columns.size();
     List<TableField> tableFields = new ArrayList<>();
     TableField tableField = null;
@@ -4068,9 +4059,10 @@ private static List<TableField> parseFile_ParseHeaderLine (
 
 /**
 Process a string table field value before setting as data in the table.
+Remote surrounding quotes.
+@param cell table cell value as string
 */
-private static String parseFile_ProcessString ( String cell )
-{
+private static String parseFile_ProcessString ( String cell ) {
     if ( (cell == null) || (cell.length() == 0) ) {
         return cell;
     }
@@ -4087,7 +4079,7 @@ private static String parseFile_ProcessString ( String cell )
         else {
             // Truncated field or error in input?  Unlikely case.
             return cell.substring(1);
-        } 
+        }
     }
     else {
         return cell;
@@ -4124,8 +4116,8 @@ Rename column(s) in a table.
 @param columnMap map to rename original columns to new name
 @param problems list of problems that will be filled during processing
 */
-public void renameFields ( DataTable table, Hashtable<String,String> columnMap, List<String> problems )
-{   //String routine = getClass().getSimpleName() + ".renameFields";
+public void renameFields ( DataTable table, Hashtable<String,String> columnMap, List<String> problems ) {
+    //String routine = getClass().getSimpleName() + ".renameFields";
 
 	// Iterate through the columnMap and rename columns
 	for ( Map.Entry<String,String> entry: columnMap.entrySet() ) {
@@ -4150,8 +4142,8 @@ public void renameFields ( DataTable table, Hashtable<String,String> columnMap, 
 Set the comments string list.
 @param comments Comments to set.
 */
-public void setComments ( List<String> comments )
-{   if ( comments != null ) {
+public void setComments ( List<String> comments ) {
+    if ( comments != null ) {
         __comments = comments;
     }
 }
@@ -4161,36 +4153,34 @@ Sets the precision of the field.
 @param col the column (0+) for which to set the precision.
 @param precision the precision to set.
 */
-public void setFieldPrecision(int col, int precision) 
+public void setFieldPrecision(int col, int precision)
 throws Exception {
 	TableField field = _table_fields.get(col);
 	field.setPrecision(precision);
 }
 
 /**
-Sets the value of a specific field. 
+Sets the value of a specific field.
 @param row the row (0+) in which to set the value.
 @param col the column (0+) in which to set the value.
 @param value the value to set.
 @exception Exception if the field value cannot be set, including if the row does not exist.
 */
-public void setFieldValue(int row, int col, Object value) 
-throws Exception
-{
+public void setFieldValue(int row, int col, Object value)
+throws Exception {
     setFieldValue ( row, col, value, false );
 }
 
 /**
-Sets the value of a specific field. 
+Sets the value of a specific field.
 @param row the row (0+) in which to set the value .
 @param col the column (0+) in which to set the value.
 @param value the value to set.
 @param createIfNecessary if true and the requested row is not in the existing rows, create
 intervening rows, initialize to missing (null objects), and then set the data.
 */
-public void setFieldValue(int row, int col, Object value, boolean createIfNecessary ) 
-throws Exception
-{
+public void setFieldValue(int row, int col, Object value, boolean createIfNecessary )
+throws Exception {
     int nRows = getNumberOfRecords();
     if ( (row > (nRows - 1)) && createIfNecessary ) {
         // Create empty rows.
@@ -4208,7 +4198,7 @@ Sets the width of the field.
 @param col the column (0+) for which to set the width.
 @param width the width to set.
 */
-public void setFieldWidth(int col, int width) 
+public void setFieldWidth(int col, int width)
 throws Exception {
 	TableField field = _table_fields.get(col);
 	field.setWidth(width);
@@ -4218,18 +4208,18 @@ throws Exception {
 Set the table identifier.
 @param table_id Identifier for the table
 */
-public void setTableID ( String table_id )
-{
+public void setTableID ( String table_id ) {
     __table_id = table_id;
 }
 
 /**
-Set the number of records in the table.  This method should typically only be
-called when data are read on-the-fly (and are not stored in memory in the table records).
+Set the number of records in the table.
+This method should typically only be called when data are read on-the-fly
+(and are not stored in memory in the table records).
 @param num_records Number of records in the table.
 */
-public void setNumberOfRecords ( int num_records )
-{	_num_records = num_records;
+public void setNumberOfRecords ( int num_records ) {
+	_num_records = num_records;
 }
 
 /**
@@ -4239,8 +4229,8 @@ Set field data type and header for the specified zero-based index.
 @param name name of the field.
 */
 public void setTableField ( int index, int data_type, String name )
-throws Exception
-{	if ( _table_fields.size() <= index ) {
+throws Exception {
+	if ( _table_fields.size() <= index ) {
 		throw new Exception ( "Index " + index + " is not valid." );
 	}
 	TableField tableField = _table_fields.get(index);
@@ -4252,19 +4242,19 @@ throws Exception
 Set the table fields to define the table.
 @param tableFieldsList a list of TableField objects defining table contents.
 */
-public void setTableFields ( List<TableField> tableFieldsList )
-{	_table_fields = tableFieldsList;
+public void setTableFields ( List<TableField> tableFieldsList ) {
+	_table_fields = tableFieldsList;
 }
 
 /**
-Set table field name.
+Set the table field name.
 @param index index of field to set (zero-based).
 @param name Field name.
 @exception If the index is out of range.
 */
 public void setTableFieldName ( int index, String name )
-throws Exception 
-{	if ( _table_fields.size() <= index ) {
+throws Exception {
+	if ( _table_fields.size() <= index ) {
 		throw new Exception ( "Index " + index + " is not valid." );
 	}
 	TableField tableField = _table_fields.get(index);
@@ -4278,8 +4268,8 @@ Set field data type for the specified zero-based index.
 @exception If the index is out of range.
 */
 public void setTableFieldType ( int index, int data_type )
-throws Exception
-{	if ( _table_fields.size() <= index ) {
+throws Exception {
+	if ( _table_fields.size() <= index ) {
 		throw new Exception ( "Index " + index + " is not valid." );
 	}
 	TableField tableField = _table_fields.get(index);
@@ -4393,8 +4383,8 @@ public void setTableRecordValues ( List<TableRecord> tableRecords, HashMap<Strin
 }
 
 /**
-Set values in the table by first matching rows using column filters (default is match all) and
-then setting values for specific columns.
+Set values in the table by first matching rows using column filters
+(default is match all) and then setting values for specific columns.
 This method is called by overloaded versions that specify either column filters or lists of records.
 @param columnFilters map to filter rows to set values in
 @param columnValues map for columns values that will be set, where rows to be modified will be the result of the filters;
@@ -4404,8 +4394,8 @@ used to provide ability to dynamically format the values being set in the table
 @param createColumns indicates whether new columns should be created if necessary
 */
 public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<String,String> columnValues,
-	DataTableValueStringProvider getter, boolean createColumns )
-{   String routine = getClass().getSimpleName() + ".setTableValues";
+	DataTableValueStringProvider getter, boolean createColumns ) {
+    String routine = getClass().getSimpleName() + ".setTableValues";
     // List of columns that will be set, taken from keys in the column values.
     int errorCount = 0;
     StringBuffer errorMessage = new StringBuffer();
@@ -4727,8 +4717,8 @@ Sort the table rows by sorting a column's values.
 @return the sort order array indicating the position in the original data
 (useful if a parallel sort of data needs to occur)
 */
-public int [] sortTable ( String [] sortColumns, int [] sortOrder )
-{	String routine = getClass().getSimpleName() + ".sortTable";
+public int [] sortTable ( String [] sortColumns, int [] sortOrder ) {
+	String routine = getClass().getSimpleName() + ".sortTable";
     int [] sortColumnsNum = new int[sortColumns.length];
     List<String> errors = new ArrayList<>();
     for ( int i = 0; i < sortColumns.length; i++ ) {
@@ -4899,7 +4889,7 @@ public int [] sortTable ( String [] sortColumns, int [] sortOrder )
         for ( TableRecord rec : getTableRecords() ) {
             ++irec;
             //Message.printStatus(2,routine,"Processing record " + irec );
-            // Check the current row's sort columns against the previous row
+            // Check the current row's sort columns against the previous row.
             if ( sortValuesPrev == null ) {
             	// Initialize this row with values to be compared with the next row.
             	sortValuesPrev = new Object[iSort];
@@ -4994,8 +4984,7 @@ Sort a subset of a table.  This is called internally by other methods.
 (useful if a parallel sort of data needs to occur)
 */
 private void sortTableSubset ( int blockStartRow, int blockEndRow, int iCol, int sortOrder, int [] sortedOrderArray )
-throws Exception
-{
+throws Exception {
 	if ( blockStartRow == blockEndRow ) {
 		// Only one row to sort.
 		return;
@@ -5151,8 +5140,8 @@ Set whether strings should be trimmed at read.
 @param trim_strings If true, strings will be trimmed at read.
 @return Boolean value indicating whether strings should be trimmed, after reset.
 */
-public boolean trimStrings ( boolean trim_strings )
-{	_trim_strings = trim_strings;
+public boolean trimStrings ( boolean trim_strings ) {
+	_trim_strings = trim_strings;
 	return _trim_strings;
 }
 
@@ -5160,8 +5149,8 @@ public boolean trimStrings ( boolean trim_strings )
 Indicate whether strings should be trimmed at read.
 @return Boolean value indicating whether strings should be trimmed.
 */
-public boolean trimStrings ( )
-{	return _trim_strings;
+public boolean trimStrings ( ) {
+	return _trim_strings;
 }
 
 /**
@@ -5170,10 +5159,10 @@ they will be written surrounded by double quotes.
 The overloaded version of this method is called.
 @param filename the file to write
 @param delimiter the delimiter between columns
-@param writeColumnNames If true, the field names will be read from the fields 
+@param writeColumnNames If true, the field names will be read from the fields
 and written as a one-line header of field names.  The headers are double-quoted.
 If all headers are missing, then the header line will not be written.
-@param comments a list of Strings to put at the top of the file as comments, 
+@param comments a list of Strings to put at the top of the file as comments,
 @param commentLinePrefix prefix string for comment lines specify if incoming comment strings have not already been prefixed.
 @param alwaysQuoteStrings if true, then always surround strings with double quotes; if false strings will only
 be quoted when they include the delimiter
@@ -5184,7 +5173,7 @@ performance hit and mask data issues so the default is to NOT replace newlines.
 @param NaNValue value to replace NaN in output (a value of null will result in NaN being written).
 */
 public void writeDelimitedFile(String filename, String delimiter, boolean writeColumnNames, List<String> comments,
-    String commentLinePrefix, boolean alwaysQuoteStrings, String newlineReplacement, String NaNValue ) 
+    String commentLinePrefix, boolean alwaysQuoteStrings, String newlineReplacement, String NaNValue )
 throws Exception {
 	HashMap<String,Object> writeProps = new HashMap<>();
 	if ( alwaysQuoteStrings ) {
@@ -5211,10 +5200,10 @@ Writes a table to a delimited file.  If the data items contain the delimiter,
 they will be written surrounded by double quotes.
 @param filename the file to write
 @param delimiter the delimiter between columns
-@param writeColumnNames If true, the field names will be read from the fields 
+@param writeColumnNames If true, the field names will be read from the fields
 and written as a one-line header of field names.  The headers are double-quoted.
 If all headers are missing, then the header line will not be written.
-@param comments a list of Strings to put at the top of the file as comments, 
+@param comments a list of Strings to put at the top of the file as comments,
 @param commentLinePrefix prefix string for comment lines specify if incoming comment strings have not already been prefixed.
 @param writeProps additional properties to control writing:
 <ul>
@@ -5222,20 +5211,21 @@ If all headers are missing, then the header line will not be written.
 if false date/times will only be quoted when they include the delimiter</li>
 <li>AlwaysQuoteStrings - if true, then always surround strings with double quotes;
 if false strings will only be quoted when they include the delimiter</li>
+<li>Append - if "true" (string) append to the file without writing the header, if "false" (default) create a new file</li>
 <li>IncludeColumns - array of String containing column names to include</li>
 <li>ExcludeColumns - array of String containing column names to exclude</li>
 <li>NaNValue - value to replace NaN in output (no property or null will result in NaN being written).</li>
 <li>NewlineReplacement - if not null, replace newlines in string table values with this replacement string
 (which can be an empty string).  This is needed to ensure that the delimited file does not include unexpected
-newlines in mid-row.  Checks are done for \r\n, then \n, then \r to catch all combinations.  This can be a
-performance hit and mask data issues so the default is to NOT replace newlines.</li>
+newlines in mid-row.  Checks are done for \r\n, then \n, then \r to catch all combinations.
+This can be a performance hit and mask data issues so the default is to NOT replace newlines.</li>
 </ul>
 */
 public void writeDelimitedFile(String filename, String delimiter, boolean writeColumnNames, List<String> comments,
     String commentLinePrefix, HashMap<String,Object> writeProps )
 throws Exception {
 	String routine = getClass().getSimpleName() + ".writeDelimitedFile";
-	
+
 	if (filename == null) {
 		Message.printWarning(1, routine, "Cannot write to file '" + filename + "'");
 		throw new Exception("Cannot write to file '" + filename + "'");
@@ -5247,14 +5237,21 @@ throws Exception {
 	if ( !commentLinePrefix.equals("") ) {
 	    commentLinePrefix2 = commentLinePrefix + " "; // Add space for readability.
 	}
+	
+	// Check whether should append.
+	boolean append = false;
+	Object propO = writeProps.get("Append");
+	if ( (propO != null) && ((String)propO).equalsIgnoreCase("true") ) {
+		append = true;
+	}
 
 	// Output string to use for NaN values.
-	Object propO = writeProps.get("NaNValue");
+	propO = writeProps.get("NaNValue");
 	String NaNValue = "NaN"; // Default.
 	if ( propO != null ) {
 	    NaNValue = (String)propO;
 	}
-	
+
 	// Indicate whether strings should always be quoted:
 	// - default is to not quote date/times
 	boolean alwaysQuoteDateTimes = false;
@@ -5278,7 +5275,7 @@ throws Exception {
 	if ( (AlwaysQuoteStrings != null) && AlwaysQuoteStrings.equalsIgnoreCase("true") ) {
 		alwaysQuoteStrings = true;
 	}
-	
+
 	// String to use for newlines, can be "", by default don't replace:
 	// - default is to not replace newlines
 	propO = writeProps.get("NewlineReplacement");
@@ -5290,7 +5287,7 @@ throws Exception {
 	if ( NewlineReplacement != null ) {
 		newlineReplacement = NewlineReplacement;
 	}
-	
+
 	// Check whether include and exclude columns are indicated.
 	String [] includeColumns = new String[0];
 	String [] excludeColumns = new String[0];
@@ -5302,18 +5299,26 @@ throws Exception {
 	if ( propO != null ) {
 		excludeColumns = (String [])propO;
 	}
-	
-	PrintWriter out = new PrintWriter( new BufferedWriter(new FileWriter(filename)));
+
+	PrintWriter out = null;
+	if ( append ) {
+		// Open in append mode.
+		out = new PrintWriter( new BufferedWriter(new FileWriter(filename,true)));
+	}
+	else {
+		// Open in write (not append) mode.
+		out = new PrintWriter( new BufferedWriter(new FileWriter(filename)));
+	}
 	int irow = 0, icol = 0;
 	try {
-    	// If any comments have been passed in, print them at the top of the file.
-    	if (comments != null && comments.size() > 0) {
-    		int size = comments.size();
-    		for (int i = 0; i < size; i++) {
-    			out.println(commentLinePrefix2 + comments.get(i) );
+    	// If any comments have been passed in, write them at the top of the file.
+		// Do not write if in append mode.
+    	if ( !append && (comments != null) && (comments.size() > 0) ) {
+    		for ( String comment : comments ) {
+    			out.println(commentLinePrefix2 + comment );
     		}
     	}
-    
+
     	int cols = getNumberOfFields();
     	if (cols == 0) {
     		Message.printWarning(3, routine, "Table has 0 columns!  Nothing will be written.");
@@ -5323,11 +5328,11 @@ throws Exception {
     	// Determine which columns should be written:
     	// - default is to write all
        	boolean [] columnOkToWrite = determineColumnsToInclude(includeColumns, excludeColumns);
-    
+
     	StringBuffer line = new StringBuffer();
-    
+
         int nonBlank = 0; // Number of non-blank table headings.
-    	if (writeColumnNames) {
+    	if ( writeColumnNames && !append ) {
     	    // First determine if any headers are non blank:
     		// - only write headers if requested and have at least one non-blank header
     		// - TODO smalers 2021-10-24 is this left over?  All columns should typically have names for lookups.
@@ -5356,7 +5361,7 @@ throws Exception {
         		out.println(line);
             }
     	}
-    	
+
     	int rows = getNumberOfRecords();
     	String cell;
     	int tableFieldType;

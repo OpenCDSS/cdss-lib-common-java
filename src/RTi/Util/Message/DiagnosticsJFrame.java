@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -58,12 +58,10 @@ import RTi.Util.IO.PropList;
 import RTi.Util.String.StringUtil;
 
 /**
-This class provides a simple GUI for setting various diagnostic information for
-a Java application.  Quite often, this GUI should only be enabled when
-diagnostics need to be provided.
-An example of how to implement the GUI is as follows (note that this uses
-resources at program initialization but it does allow for very simple use of
-the component):
+This class provides a simple UI as Java JFrame for setting various diagnostic information for a Java application.
+Quite often, this UI should only be enabled when diagnostics need to be provided.
+An example of how to implement the GUI is as follows
+(note that this uses resources at program initialization but it does allow for very simple use of the component):
 <p>
 
 <pre>
@@ -111,8 +109,8 @@ private Component __parent = null;
 Constructor the GUI but do not make visible.
 @param parent UI parent component, used to center dialog
 */
-public DiagnosticsJFrame(Component parent)
-{	super ( "Diagnostics" );
+public DiagnosticsJFrame(Component parent) {
+	super ( "Diagnostics" );
 	__list_max = 100;
 	__parent = parent;
 	openGUI ( 0 );
@@ -121,8 +119,8 @@ public DiagnosticsJFrame(Component parent)
 /**
 Constructor the GUI but do not make visible.
 */
-public DiagnosticsJFrame()
-{	super ( "Diagnostics" );
+public DiagnosticsJFrame() {
+	super ( "Diagnostics" );
 	__list_max = 100;
 	openGUI ( 0 );
 }
@@ -133,8 +131,8 @@ Construct and specify the help key (the GUI will not be visible at construction)
 @see RTi.Util.Help.URLHelp
 @deprecated.
 */
-public DiagnosticsJFrame ( String help_key )
-{	super ( "Diagnostics" );
+public DiagnosticsJFrame ( String help_key ) {
+	super ( "Diagnostics" );
 	__list_max = 100;
 	openGUI ( 0 );
 }
@@ -143,8 +141,8 @@ public DiagnosticsJFrame ( String help_key )
 Handle ActionEvent events.
 @param e ActionEvent to handle.
 */
-public void actionPerformed ( ActionEvent e )
-{   String rtn = "DiagnosticsGUI.actionPerformed";
+public void actionPerformed ( ActionEvent e ) {
+   String rtn = getClass().getSimpleName() + ".actionPerformed";
     String command = e.getActionCommand();
 
     if ( command.equals("Apply") ) {
@@ -194,7 +192,7 @@ public void actionPerformed ( ActionEvent e )
         catch (Exception ex) {
             Message.printWarning(1, rtn, "Unable to view log file \"" + Message.getLogFile() + "\"");
             Message.printWarning(2, rtn, ex);
-        }       
+        }
     }
     else if ( command.equals ("Flush") ) {
         Message.flushOutputFiles(0);
@@ -208,7 +206,7 @@ public void actionPerformed ( ActionEvent e )
             Message.flushOutputFiles(0);
             command_array[1] = Message.getLogFile();
             ProcessManager p = new ProcessManager ( command_array );
-            // This will run as a thread until the process is shut down...
+            // This will run as a thread until the process is shut down.
             Thread t = new Thread ( p );
             t.start ();
         }
@@ -220,8 +218,7 @@ public void actionPerformed ( ActionEvent e )
     }
     else if (command.equals("restart")) {
         int x = (new ResponseJDialog(this, "Start a new log file?",
-            "Are you sure you want to restart the log file?  All "
-            + "contents currently in the log file will be lost.",
+            "Are you sure you want to restart the log file?  All contents currently in the log file will be lost.",
             ResponseJDialog.YES | ResponseJDialog.NO)).response();
         if (x == ResponseJDialog.NO) {
             return;
@@ -238,24 +235,24 @@ public void actionPerformed ( ActionEvent e )
         Message.closeLogFile();
         JGUIUtil.setWaitCursor(this, true);
         String lastDirectorySelected = JGUIUtil.getLastFileDialogDirectory();
-    
+
         JFileChooser fc = JFileChooserFactory.createJFileChooser ( lastDirectorySelected );
-    
+
         fc.setDialogTitle("Select Log File");
         SimpleFileFilter htmlFF = new SimpleFileFilter("log", "Log Files");
         fc.addChoosableFileFilter(htmlFF);
         fc.setAcceptAllFileFilterUsed(true);
         fc.setFileFilter(htmlFF);
-        fc.setDialogType(JFileChooser.OPEN_DIALOG); 
-    
+        fc.setDialogType(JFileChooser.OPEN_DIALOG);
+
         JGUIUtil.setWaitCursor(this, false);
         int retVal = fc.showOpenDialog(this);
         if (retVal != JFileChooser.APPROVE_OPTION) {
             return;
         }
-    
+
         String currDir = (fc.getCurrentDirectory()).toString();
-    
+
         if (!currDir.equalsIgnoreCase(lastDirectorySelected)) {
             JGUIUtil.setLastFileDialogDirectory(currDir);
         }
@@ -267,7 +264,7 @@ public void actionPerformed ( ActionEvent e )
         catch (Exception ex) {
             Message.printWarning(1, rtn, "Unable to open new log file: " + path);
             Message.printWarning(2, rtn, ex);
-        }                   
+        }
     }
 }
 
@@ -276,29 +273,20 @@ Apply the settings in the GUI.  This is called when "Apply" or "Close" are press
 */
 private void applySettings () {
     String rtn = "DiagnosticsGUI.applySettings";
-    Message.setDebugLevel ( Message.TERM_OUTPUT,
-        StringUtil.atoi ( __consoleDebugLevel_JTextField.getText() ) );
-    Message.setWarningLevel ( Message.TERM_OUTPUT,
-        StringUtil.atoi ( __consoleWarningLevel_JTextField.getText() ));
-    Message.setStatusLevel ( Message.TERM_OUTPUT,
-        StringUtil.atoi ( __consoleStatusLevel_JTextField.getText() ) );
-    Message.setDebugLevel ( Message.STATUS_HISTORY_OUTPUT,
-        StringUtil.atoi ( __guiDebugLevel_JTextField.getText() ) );
-    Message.setWarningLevel ( Message.STATUS_HISTORY_OUTPUT,
-        StringUtil.atoi ( __guiWarningLevel_JTextField.getText() ) );
-    Message.setStatusLevel ( Message.STATUS_HISTORY_OUTPUT,
-        StringUtil.atoi ( __guiStatusLevel_JTextField.getText() ) );
-    Message.setDebugLevel ( Message.LOG_OUTPUT,
-        StringUtil.atoi ( __logDebugLevel_JTextField.getText() ) );
-    Message.setWarningLevel ( Message.LOG_OUTPUT,
-        StringUtil.atoi ( __logWarningLevel_JTextField.getText() ) );
-    Message.setStatusLevel ( Message.LOG_OUTPUT,
-        StringUtil.atoi ( __logStatusLevel_JTextField.getText() ) );
+    Message.setDebugLevel ( Message.TERM_OUTPUT, StringUtil.atoi ( __consoleDebugLevel_JTextField.getText() ) );
+    Message.setWarningLevel ( Message.TERM_OUTPUT, StringUtil.atoi ( __consoleWarningLevel_JTextField.getText() ));
+    Message.setStatusLevel ( Message.TERM_OUTPUT, StringUtil.atoi ( __consoleStatusLevel_JTextField.getText() ) );
+    Message.setDebugLevel ( Message.STATUS_HISTORY_OUTPUT, StringUtil.atoi ( __guiDebugLevel_JTextField.getText() ) );
+    Message.setWarningLevel ( Message.STATUS_HISTORY_OUTPUT, StringUtil.atoi ( __guiWarningLevel_JTextField.getText() ) );
+    Message.setStatusLevel ( Message.STATUS_HISTORY_OUTPUT, StringUtil.atoi ( __guiStatusLevel_JTextField.getText() ) );
+    Message.setDebugLevel ( Message.LOG_OUTPUT, StringUtil.atoi ( __logDebugLevel_JTextField.getText() ) );
+    Message.setWarningLevel ( Message.LOG_OUTPUT, StringUtil.atoi ( __logWarningLevel_JTextField.getText() ) );
+    Message.setStatusLevel ( Message.LOG_OUTPUT, StringUtil.atoi ( __logStatusLevel_JTextField.getText() ) );
 
     Message.isDebugOn = __debug_JCheckBox.isSelected();
 
     if ( Message.isDebugOn ) {
-        Message.printStatus ( 1, rtn, "Setting debug to " + 
+        Message.printStatus ( 1, rtn, "Setting debug to " +
         Message.getDebugLevel ( Message.STATUS_HISTORY_OUTPUT ) +
         " (STATUS_HISTORY_OUTPUT) " + Message.getDebugLevel ( Message.LOG_OUTPUT ) + " (LOG_OUTPUT)");
     }
@@ -311,8 +299,8 @@ private void applySettings () {
 Attach the DiagnosticsGUI menus to the given menu.  The menu will be labeled "Diagnostics Preferences...".
 @param menu Menu to attach to.
 */
-public void attachMainMenu ( JMenu menu )
-{   menu.add ( new SimpleJMenuItem ( "Diagnostics...", "DiagnosticsGUI", this) );
+public void attachMainMenu ( JMenu menu ) {
+    menu.add ( new SimpleJMenuItem ( "Diagnostics...", "DiagnosticsGUI", this) );
     menu.add(new SimpleJMenuItem("Diagnostics - View Log File ...", "ViewLogFile", this));
 }
 
@@ -321,13 +309,13 @@ Attach the DiagnosticsGUI menus to the given menu.  The menu will be labeled "Di
 @param menu Menu to attach to.
 @param use_checkbox If true, use a CheckboxMenuItem.  If false, use a normal MenuItem.
 */
-public void attachMainMenu ( JMenu menu, boolean use_checkbox )
-{   if ( use_checkbox ) {
+public void attachMainMenu ( JMenu menu, boolean use_checkbox ) {
+    if ( use_checkbox ) {
         __menu_JCheckBoxMenuItem = new JCheckBoxMenuItem ( "Diagnostics", isVisible());
         __menu_JCheckBoxMenuItem.addItemListener ( this );
-            
+
         menu.add ( __menu_JCheckBoxMenuItem );
-        menu.add(new SimpleJMenuItem("Diagnostics - View Log File ...", "ViewLogFile", this));      
+        menu.add(new SimpleJMenuItem("Diagnostics - View Log File ...", "ViewLogFile", this));
     }
     else {
         attachMainMenu ( menu );
@@ -335,12 +323,11 @@ public void attachMainMenu ( JMenu menu, boolean use_checkbox )
 }
 
 /**
-Return the name of the external program to use for viewing log files.  The program
-should be in the path.  Currently this is not configurable.
+Return the name of the external program to use for viewing log files.
+The program should be in the path.  Currently this is not configurable.
 @return the name of the external program to use to view the log file.
 */
-private String getExternalFileViewerProgram ()
-{
+private String getExternalFileViewerProgram () {
     if ( IOUtil.isUNIXMachine() ) {
         return "nedit";
     }
@@ -353,8 +340,8 @@ private String getExternalFileViewerProgram ()
 Handle ItemEvent events.
 @param e ItemEvent to handle.
 */
-public void itemStateChanged ( ItemEvent e )
-{	if ( e.getSource() == __message_JCheckBox ) {
+public void itemStateChanged ( ItemEvent e ) {
+	if ( e.getSource() == __message_JCheckBox ) {
 		if ( __message_JCheckBox.isSelected() ) {
 			__message_JList.setVisible ( true );
 		}
@@ -364,7 +351,7 @@ public void itemStateChanged ( ItemEvent e )
 		pack();
 	}
 	else if ( e.getSource() == __menu_JCheckBoxMenuItem ) {
-		// Use the CheckboxMenuItem
+		// Use the CheckboxMenuItem.
 		setVisible(__menu_JCheckBoxMenuItem.getState());
 		__debug_JCheckBox.setSelected ( Message.isDebugOn );
 	}
@@ -372,12 +359,12 @@ public void itemStateChanged ( ItemEvent e )
 
 /**
 Construct with the flag.
-@param mode Indicates how the GUI should be constructed.  Currently, the mode
-can be 1 to indicated that the GUI should be visible on creation, and zero to
-indicate that it should be hidden on creation.
+@param mode Indicates how the GUI should be constructed.
+Currently, the mode can be 1 to indicated that the GUI should be visible on creation,
+and zero to indicate that it should be hidden on creation.
 */
-public void openGUI ( int mode )
-{   String rtn = "openGUI";
+public void openGUI ( int mode ) {
+    String rtn = getClass().getSimpleName() + ".openGUI";
 
     try {
         JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
@@ -388,21 +375,26 @@ public void openGUI ( int mode )
         setTitle( JGUIUtil.getAppNameForWindows() + " - Diagnostics" );
     }
 
-    // Set the visibility up front so that if not visible it does not
-    // flash when drawing.  Reset at the end to the final value...
+    // Set the visibility up front so that if not visible it does not flash when drawing.
+    // Reset at the end to the final value.
 
     setVisible ( false );
 
     __consoleDebugLevel_JTextField = new JTextField ( 4 );
+    String debugMessage = "Debug level=0 means no messages, level=1 is high-level messages, 10=detailed, 100=highly detailed";
+    __consoleDebugLevel_JTextField.setToolTipText(debugMessage);
     __consoleWarningLevel_JTextField = new JTextField ( 4 );
     __consoleStatusLevel_JTextField = new JTextField ( 4 );
     __guiDebugLevel_JTextField = new JTextField ( 4 );
+    __guiDebugLevel_JTextField.setToolTipText(debugMessage);
     __guiWarningLevel_JTextField = new JTextField ( 4 );
     __guiStatusLevel_JTextField = new JTextField ( 4 );
     __logDebugLevel_JTextField = new JTextField ( 4 );
+    __logDebugLevel_JTextField.setToolTipText(debugMessage);
     __logWarningLevel_JTextField = new JTextField ( 4 );
     __logStatusLevel_JTextField = new JTextField ( 4 );
     __debug_JCheckBox = new JCheckBox ( "Allow debug", Message.isDebugOn );
+    __debug_JCheckBox.setToolTipText("Select to turn on debug messages using levels to the left.");
     __message_JCheckBox = new JCheckBox ( "Show messages", true );
     __message_JListModel = new DefaultListModel<String> ();
     __message_JList = new JList<String>(__message_JListModel);
@@ -437,7 +429,7 @@ public void openGUI ( int mode )
     JPanel p2 = new JPanel();
     SimpleJButton launch_button = new SimpleJButton("Launch Log File Viewer", "LaunchLogFileViewer", this);
     launch_button.setToolTipText("Use " + getExternalFileViewerProgram() + " to view the log file.");
-    // Disable if the log file is not known to the Message class or does not exist...
+    // Disable if the log file is not known to the Message class or does not exist.
     String logfile = Message.getLogFile ();
     if ( logfile == null ) {
         launch_button.setEnabled ( false );
@@ -469,55 +461,53 @@ public void openGUI ( int mode )
     JPanel main_JPanel = new JPanel();
     main_JPanel.setLayout ( new GridBagLayout() );
     getContentPane().add ( "Center", main_JPanel );
-    JGUIUtil.addComponent ( 
+    JGUIUtil.addComponent (
         main_JPanel, new JLabel ( "More detailed messages are printed as the message level increases."),
-        0, y, 1, 1, 
+        0, y, 1, 1,
         1, 0,
-        20, 1, 0, 1, 
+        20, 1, 0, 1,
         GridBagConstraints.NONE, GridBagConstraints.CENTER );
-    JGUIUtil.addComponent ( 
+    JGUIUtil.addComponent (
         main_JPanel, new JLabel ( "(0 results in none of the messages being printed)"),
-        0, ++y, 1, 1, 
+        0, ++y, 1, 1,
         1, 0,
-        0, 1, 0, 1, 
+        0, 1, 0, 1,
         GridBagConstraints.NONE, GridBagConstraints.CENTER );
-    JGUIUtil.addComponent ( 
+    JGUIUtil.addComponent (
             main_JPanel, __logfileName_JLabel = new JLabel ( ""),
-            0, ++y, 1, 1, 
+            0, ++y, 1, 1,
             1, 0,
-            0, 1, 0, 1, 
+            0, 1, 0, 1,
             GridBagConstraints.NONE, GridBagConstraints.CENTER );
-    JGUIUtil.addComponent ( 
+    JGUIUtil.addComponent (
         main_JPanel, p1,
-        0, ++y, 1, 1, 
+        0, ++y, 1, 1,
         0, 0,
-        4, 1, 14, 1, 
+        4, 1, 14, 1,
         GridBagConstraints.NONE, GridBagConstraints.CENTER );
     p1 = null;
 
-    JGUIUtil.addComponent ( 
+    JGUIUtil.addComponent (
         main_JPanel, new JLabel ("Message history:"),
-        0, ++y, 1, 1, 
+        0, ++y, 1, 1,
         0, 0,
         GridBagConstraints.NONE, GridBagConstraints.WEST );
-    JGUIUtil.addComponent ( 
-        main_JPanel, __message_JCheckBox, 
-        0, y, 1, 1, 
+    JGUIUtil.addComponent (
+        main_JPanel, __message_JCheckBox,
+        0, y, 1, 1,
         0, 0,
         GridBagConstraints.NONE, GridBagConstraints.EAST );
     __message_JCheckBox.addItemListener(this);
     JGUIUtil.addComponent (
         main_JPanel, message_JScrollPane,
-        0, ++y, 1, 1, 
+        0, ++y, 1, 1,
         1, 1,
         GridBagConstraints.BOTH, GridBagConstraints.CENTER );
     SimpleJButton flushButton = new SimpleJButton("Flush Log File","Flush",this);
-    flushButton.setToolTipText("Force the log file buffer to flush, in "
-        + "order to guarantee that all messages have been logged to the file.");
+    flushButton.setToolTipText("Force the log file buffer to flush, to guarantee that all messages have been logged to the file.");
 
     SimpleJButton restartButton = new SimpleJButton("Restart Log File", "restart", this);
-    restartButton.setToolTipText("Re-open the log file, "
-        + "overwriting all text that currently is in the log file.");
+    restartButton.setToolTipText("Reopen the log file, overwriting all text that currently is in the log file.");
     SimpleJButton newButton = new SimpleJButton("New Log File", "new", this);
     newButton.setToolTipText("Open a new log file for writing.");
 
@@ -525,27 +515,27 @@ public void openGUI ( int mode )
     buttons.add(flushButton);
     buttons.add(restartButton);
     buttons.add(newButton);
-    
+
     JGUIUtil.addComponent (
         main_JPanel, buttons,
-        0, ++y, 1, 1, 
-        1, 0, 
-        GridBagConstraints.NONE, GridBagConstraints.CENTER );   
-    
-    JGUIUtil.addComponent ( 
+        0, ++y, 1, 1,
+        1, 0,
+        GridBagConstraints.NONE, GridBagConstraints.CENTER );
+
+    JGUIUtil.addComponent (
         main_JPanel, p2,
-        0, ++y, 1, 1, 
+        0, ++y, 1, 1,
         0, 0,
-        10, 1, 0, 1, 
+        10, 1, 0, 1,
         GridBagConstraints.NONE, GridBagConstraints.CENTER );
     p2 = null;
 
     Message.setOutputFunction ( Message.STATUS_HISTORY_OUTPUT, this, "printStatusMessages" );
-    
-    // Refresh the contents of the graphical components...
+
+    // Refresh the contents of the graphical components.
     refreshContents();
 
-    // Listen for window events (close, etc.)...
+    // Listen for window events (close, etc.).
 
     addWindowListener ( this );
 
@@ -559,7 +549,8 @@ public void openGUI ( int mode )
         setVisible(false);
     }
 
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
         e.printStackTrace();
         Message.printWarning ( 2, rtn, e );
     }
@@ -567,14 +558,13 @@ public void openGUI ( int mode )
 }
 
 /**
-Routine that is registered with the Message.printStatus routine and which
-results in messages being printed to the history.
+Routine that is registered with the Message.printStatus routine and which results in messages being printed to the history.
 @param level Message level.
 @param rtn Routine that is printing the message.
 @param message Message to be printed.
 */
-public void printStatusMessages ( int level, String rtn, String message )
-{	while ( __message_JListModel.size() > __list_max ) {
+public void printStatusMessages ( int level, String rtn, String message ) {
+	while ( __message_JListModel.size() > __list_max ) {
 		__message_JListModel.removeElementAt(0);
 	}
 	__message_JListModel.addElement ( message );
@@ -584,11 +574,9 @@ public void printStatusMessages ( int level, String rtn, String message )
 }
 
 /**
-Refresh the contents of the display.  This is called by setVisible() to ensure that
-the display is consistent with memory.
+Refresh the contents of the display.  This is called by setVisible() to ensure that the display is consistent with memory.
 */
-private void refreshContents ()
-{
+private void refreshContents () {
     String logfile = Message.getLogFile();
     if ( (logfile == null) || logfile.equals("") ) {
         __logfileName_JLabel.setText ( "No log file has been opened.  Verify the software configuration." );
@@ -596,78 +584,61 @@ private void refreshContents ()
     else {
         __logfileName_JLabel.setText ( "Most recent log file = \"" + logfile + "\"" );
     }
-    
-    __consoleDebugLevel_JTextField.setText ( String.valueOf (
-        Message.getDebugLevel ( Message.TERM_OUTPUT )));
-    __consoleWarningLevel_JTextField.setText ( String.valueOf (
-        Message.getWarningLevel ( Message.TERM_OUTPUT )));
-    __consoleStatusLevel_JTextField.setText ( String.valueOf (
-        Message.getStatusLevel ( Message.TERM_OUTPUT )));
-    __guiDebugLevel_JTextField.setText ( String.valueOf (
-        Message.getDebugLevel ( Message.STATUS_HISTORY_OUTPUT )));
-    __guiWarningLevel_JTextField.setText ( String.valueOf (
-        Message.getWarningLevel ( Message.STATUS_HISTORY_OUTPUT )));
-    __guiStatusLevel_JTextField.setText ( String.valueOf (
-        Message.getStatusLevel ( Message.STATUS_HISTORY_OUTPUT )));
-    __logDebugLevel_JTextField.setText ( String.valueOf (
-        Message.getDebugLevel ( Message.LOG_OUTPUT )));
-    __logWarningLevel_JTextField.setText ( String.valueOf (
-        Message.getWarningLevel ( Message.LOG_OUTPUT )));
-    __logStatusLevel_JTextField.setText ( String.valueOf (
-        Message.getStatusLevel ( Message.LOG_OUTPUT )));
+
+    __consoleDebugLevel_JTextField.setText ( String.valueOf ( Message.getDebugLevel ( Message.TERM_OUTPUT )));
+    __consoleWarningLevel_JTextField.setText ( String.valueOf ( Message.getWarningLevel ( Message.TERM_OUTPUT )));
+    __consoleStatusLevel_JTextField.setText ( String.valueOf ( Message.getStatusLevel ( Message.TERM_OUTPUT )));
+    __guiDebugLevel_JTextField.setText ( String.valueOf ( Message.getDebugLevel ( Message.STATUS_HISTORY_OUTPUT )));
+    __guiWarningLevel_JTextField.setText ( String.valueOf ( Message.getWarningLevel ( Message.STATUS_HISTORY_OUTPUT )));
+    __guiStatusLevel_JTextField.setText ( String.valueOf ( Message.getStatusLevel ( Message.STATUS_HISTORY_OUTPUT )));
+    __logDebugLevel_JTextField.setText ( String.valueOf ( Message.getDebugLevel ( Message.LOG_OUTPUT )));
+    __logWarningLevel_JTextField.setText ( String.valueOf ( Message.getWarningLevel ( Message.LOG_OUTPUT )));
+    __logStatusLevel_JTextField.setText ( String.valueOf ( Message.getStatusLevel ( Message.LOG_OUTPUT )));
 }
 
 /**
-Set the window visible, refreshing the contents from settings that may have been
-applied programatically elsewhere.
+Set the window visible, refreshing the contents from settings that may have been applied programatically elsewhere.
 @param isVisible If true, set the window to visible and refresh the contents.
 If false, set the window to invisible.
 */
-public void setVisible ( boolean isVisible )
-{
+public void setVisible ( boolean isVisible ) {
     if ( isVisible ) {
         // Refresh the contents
         refreshContents ();
     }
-    // Always center on the main interface since people will think it is popping up new each time
+    // Always center on the main interface since people will think it is popping up new each time.
     if ( isVisible ) {
 	    JGUIUtil.center(this,__parent);
     }
     super.setVisible(isVisible);
 }
 
-public void windowActivated(WindowEvent e)
-{
+public void windowActivated(WindowEvent e) {
 }
 
 /**
 If the window is closing, set to visible but do not dispose.
 */
-public void windowClosing(WindowEvent e)
-{	setVisible(false);
+public void windowClosing(WindowEvent e) {
+	setVisible(false);
 	if ( __menu_JCheckBoxMenuItem != null ) {
 		__menu_JCheckBoxMenuItem.setState ( false );
 	}
 }
 
-public void windowClosed(WindowEvent e)
-{
+public void windowClosed(WindowEvent e) {
 }
 
-public void windowDeactivated(WindowEvent e)
-{
+public void windowDeactivated(WindowEvent e) {
 }
 
-public void windowDeiconified(WindowEvent e)
-{
+public void windowDeiconified(WindowEvent e) {
 }
 
-public void windowIconified(WindowEvent e)
-{
+public void windowIconified(WindowEvent e) {
 }
 
-public void windowOpened(WindowEvent e)
-{
+public void windowOpened(WindowEvent e) {
 }
 
-} // End DiagnosticsJFrame class
+}

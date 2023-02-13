@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,55 +20,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//-----------------------------------------------------------------------------
-// ReportJFrame - component to display a text report in a JTextArea object
-//-----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// History:
-// 01 Apr 1998  DLG, RTi                Created initial class decription.
-// 24 Feb 1999  CEN, RTi                No longer need paging using Java 1.2.
-// 11 Jun 1999  Steven A. Malers, RTi	Clean up code, add finalize, and check
-//					for problem displaying large report.
-//					Rechecked in previous revisions to get
-//					permissions back in place.
-// 28 Nov 2000	SAM, RTi		Change "Export" button to "Save", which
-//					is more consistent with standard GUI
-//					notation.
-// 07 Jan 2001	SAM, RTi		Change GUI to GUIUtil.
-// 29 Mar 2001	SAM, RTi		Add optional Search button and related
-//					features.
-// 16 May 2001	SAM, RTi		Change search feature to be on by
-//					default.
-// 16 Jul 2001	SAM, RTi		If using Windows 95/98/ME, turn paging
-//					on by default because the systems cannot
-//					handle reports > 64KB.  Otherwise, turn
-//					paging off always.  If Windows 95/98/ME,
-//					change label on Search to "Search Page".
-// 2002-04-05	SAM, RTi		Minor revision to use toVector() for
-//					TextArea conversion.
-// 2002-09-04	J. Thomas Sapienza, RTi	Dropped a 0 off of both assignments:
-//					_page_length = 10000000000;
-//					because the compiler was breaking.
-// ============================================================================
-// 2002-10-24	SAM, RTi		Copy the AWT JReportGUI to this class
-//					and implement a Swing version.
-//					Change to support general JTextComponent
-//					and add ability to display a URL.
-//					Remove paging code because Swing does
-//					not require and it complicates the
-//					logic.
-// 2003-03-28	JTS, RTi		Added code for using a JTextArea as 
-//					opposed to a JEditorPane if the proper
-//					prop is passed in.  JTextAreas can 
-//					very easily turn off word wrapping.
-// 2003-05-27	JTS, RTi		Made class a window listener to get rid
-//					of anonymous inner window adapter class.
-// 2003-09-30	SAM, RTi		Enable the title bar and icon as set
-//					by the main application.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
 
 package RTi.Util.GUI;
 
@@ -116,27 +67,58 @@ Display a report in a JTextArea.  See the constructor for more information.
 public class ReportJFrame extends JFrame implements ActionListener, HyperlinkListener, WindowListener
 {
 
-private JTextField _status_JTextField; // status TextField
-private JTextArea _info_JTextArea; // Report TextArea
-private JEditorPane _info_JEditorPane; // Report TextArea
-private List<String> _info_Vector; // Contains list of String to display in the _info_TextArea object
-                                                
-private PropList _prop; // Controls display
-private String _help_key; // Help Keyword
+/**
+ * Status TextField.
+ */
+private JTextField _status_JTextField;
 
+/**
+ * Report TextArea.
+ */
+private JTextArea _info_JTextArea;
+
+/**
+ * Report EditorPane (displays HTML).
+ */
+private JEditorPane _info_JEditorPane;
+
+/**
+ * Contains list of String to display in the _info_TextArea object.
+ */
+private List<String> _infoList;
+                                                
+/**
+ * Properties to control the display.
+ */
+private PropList _prop;
+
+/**
+ * Help keyword.
+ */
+private String _help_key;
+
+/**
+ * Buttons for the UI.
+ */
 private SimpleJButton _close_JButton,
 			_help_JButton,
 			_print_JButton,
 			_save_JButton,
 			_search_JButton;
                         
-private int _page_length; // lines to a page
-private int _print_size; // print point size
-private String _title = null; // Title for frame
+/**
+ * Print point size.
+ */
+private int _print_size;
 
 /**
-Determines the kind of text component that will be used for displaying results, either
-"JTextArea" (for simple black on white text) or "JEditorPane" (for marked-up navigable HTML).
+ * Title for frame.
+ */
+private String _title = null;
+
+/**
+Determines the kind of text component that will be used for displaying results,
+either "JTextArea" (for simple black on white text) or "JEditorPane" (for marked-up navigable HTML).
 */
 private String __textComponent = "JTextArea";
 
@@ -171,14 +153,6 @@ ReportJFrame constructor.
 <td>HelpKey</td>
 <td>Search key for help.</td>
 <td>Help button is disabled.</td>
-</tr>
-
-<tr>
-<td>PageLength</td>
-<td>No longer used, paging not necessary in Windows NT, NT200), etc or with
-Java1.2.  If a Windows 95/98/ME machine is detected, the page length is set
-to 100 regardless of what the property is.</td>
-<td>-</td>
 </tr>
 
 <tr>
@@ -225,23 +199,20 @@ to 100 regardless of what the property is.</td>
 
 <tr>
 <td>DisplayTextComponent</td>
-<td>If specified, determines the kind of Text Component to use for displaying
-the report data.  Possible options are "JTextArea" and "JEditorPane".  The
-difference is:<br>
+<td>If specified, determines the kind of Text Component to use for displaying the report data.
+Possible options are "JTextArea" and "JEditorPane".  The difference is:<br>
 <ul>
-<li><b>JTextArea</b> - This text component turns off line wrapping, but cannot
-display HTML</li>
-<li><b>JEditorPane</b> - This text component cannot turn off line wrapping, 
-but it can display HTML</li>
+<li><b>JTextArea</b> - This text component turns off line wrapping, but cannot display HTML</li>
+<li><b>JEditorPane</b> - This text component cannot turn off line wrapping, but it can display HTML</li>
 </ul>
 <td>JTextArea</td>
 </tr>
 
 </table>
 */
-public ReportJFrame ( List<String> info, PropList prop )
-{	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
-	_info_Vector = info;
+public ReportJFrame ( List<String> info, PropList prop ) {
+	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
+	_infoList = info;
 	_prop = prop;
 
 	setGUI();
@@ -251,8 +222,8 @@ public ReportJFrame ( List<String> info, PropList prop )
 Responds to components that generate action events.
 @param evt ActionEvent object
 */
-public void actionPerformed( ActionEvent evt )
-{	Object o = evt.getSource();
+public void actionPerformed( ActionEvent evt ) {
+	Object o = evt.getSource();
 	if ( o == _close_JButton) {
 		o = null;
 		close_clicked();
@@ -263,11 +234,11 @@ public void actionPerformed( ActionEvent evt )
 	}
 	else if ( o == _print_JButton ) {
 		o = null;
-		PrintJGUI.print ( this, _info_Vector, null, _print_size );
+		PrintJGUI.print ( this, _infoList, null, _print_size );
 	}
 	else if ( o == _save_JButton ) {
 		o = null;
-		ExportJGUI.export ( this, _info_Vector );
+		ExportJGUI.export ( this, _infoList );
 	}
 	else if ( o == _search_JButton ) {
 		o = null;
@@ -293,9 +264,9 @@ public void actionPerformed( ActionEvent evt )
 /**
 Responsible for closing the component.
 */
-private void close_clicked()
-{	setVisible( false );
-	// If the soft close property is true, then just set hidden
+private void close_clicked() {
+	setVisible( false );
+	// If the soft close property is true, then just set hidden.
 	String prop_val = _prop.getValue("Close");
 	if ( (prop_val == null) || ((prop_val != null) && !prop_val.equalsIgnoreCase("soft")) ) {
       	dispose();
@@ -306,8 +277,8 @@ private void close_clicked()
 Add the contents of the formatted Vector to the JTextArea object starting from
 the specified line number and ending with the specified line number.
 */
-private void displayContents()
-{	_status_JTextField.setText( "Displaying Report..." );
+private void displayContents() {
+	_status_JTextField.setText( "Displaying Report..." );
 	setGUICursor( Cursor.WAIT_CURSOR );
 
 	String prop_value = _prop.getValue ( "URL" );
@@ -316,7 +287,7 @@ private void displayContents()
 			// Try to set text in the HTML viewer using the URL.
 			try {
                 _info_JEditorPane.setPage ( prop_value );
-				// Force the position to be at the top...
+				// Force the position to be at the top.
 				_info_JEditorPane.setCaretPosition ( 0 );
 				_info_JEditorPane.addHyperlinkListener ( this );
 				_status_JTextField.setText( "Ready" );
@@ -330,41 +301,41 @@ private void displayContents()
 		}			
 	}
 	else {
-	    // Trying to view using the text area...
-        boolean status_set = false; // Indicate whether the status message has been set - to get most appropriate message
-        if ( (_info_Vector == null) && (prop_value != null) ) {
-            // Read the text into a Vector...
+	    // Trying to view using the text area.
+        boolean status_set = false; // Indicate whether the status message has been set - to get most appropriate message.
+        if ( (_infoList == null) && (prop_value != null) ) {
+            // Read the text into a list.
             if ( !IOUtil.fileExists( prop_value) ) {
                 _status_JTextField.setText( "Unable to display - file does not exist:  " + prop_value );
                 status_set = true;
             }
             else {
                 try {
-                    _info_Vector = IOUtil.fileToStringList ( prop_value );
+                    _infoList = IOUtil.fileToStringList ( prop_value );
                 }
                 catch ( IOException e ) {
-                    _info_Vector = null;
+                    _infoList = null;
                     _status_JTextField.setText( "Unable to display - no URL provided" );
                     status_set = true;
                 }
             }
         }
         
-        if ( _info_Vector != null ) {
+        if ( _infoList != null ) {
 
     		StringBuffer contents = new StringBuffer();
     		String newLine = System.getProperty ( "line.separator" );
     		int from = 0; 
-    		int to = _info_Vector.size();
-    		int size = _info_Vector.size();
+    		int to = _infoList.size();
+    		int size = _infoList.size();
                     
-    		// Set the JTextArea
+    		// Set the JTextArea.
     		if ( Message.isDebugOn ) {
     			String routine = "ReportJFrame.displayContents";
     			Message.printDebug ( 1, routine, "Text report is " + size + " lines." );
     		}
-    		for ( int i=from; i<to; i++ ) {
-    			contents.append ( (String)_info_Vector.get( i ) + newLine );
+    		for ( int i = from; i < to; i++ ) {
+    			contents.append ( _infoList.get( i ) + newLine );
     		}
     		if (__textComponent.equals("JTextArea")) {
     			_info_JTextArea.setText(contents.toString());
@@ -373,7 +344,7 @@ private void displayContents()
     		else if (__textComponent.equals("JEditorPane")) {
     			_info_JEditorPane.setContentType( "text/html" );
     			_info_JEditorPane.setText( contents.toString() );
-    			// Force the position to be at the top...
+    			// Force the position to be at the top.
     			_info_JEditorPane.setCaretPosition ( 0 );
     		}
     		_status_JTextField.setText( "Ready" );
@@ -388,33 +359,10 @@ private void displayContents()
 }
 
 /**
-Finalize before garbage collection.
-*/
-protected void finalize ()
-throws Throwable
-{	_status_JTextField = null;
-	_info_JEditorPane = null;
-	_info_JTextArea = null;
-	_info_Vector = null;
-                                                
-	_prop = null;
-	_help_key = null;
-	_title = null;
-
-	_save_JButton = null;
-	_search_JButton = null;
-	_help_JButton = null;
-	_print_JButton = null;
-	_close_JButton = null;
-
-	super.finalize();
-}
-
-/**
 Handle hyperlink events, if a URL is being displayed.
 */
-public void hyperlinkUpdate ( HyperlinkEvent e )
-{	if ( e.getEventType() != EventType.ACTIVATED ) {
+public void hyperlinkUpdate ( HyperlinkEvent e ) {
+	if ( e.getEventType() != EventType.ACTIVATED ) {
 		return;
 	}
 	if (!__textComponent.equals("JEditorPane")) {
@@ -422,7 +370,7 @@ public void hyperlinkUpdate ( HyperlinkEvent e )
 	}
 	try {
         _info_JEditorPane.setPage ( e.getURL() );
-		// Force the position to be at the top...
+		// Force the position to be at the top.
 		_info_JEditorPane.setCaretPosition ( 0 );
 		_status_JTextField.setText( "Ready" );
 	}
@@ -434,8 +382,8 @@ public void hyperlinkUpdate ( HyperlinkEvent e )
 /**
 Instantiates and arranges the GUI components.
 */
-private void setGUI()
-{	int		height,
+private void setGUI() {
+	int		height,
 			width,
 			displayStyle,
 			displaySize;
@@ -443,28 +391,26 @@ private void setGUI()
 			propValue;
 
 	/**
-	This anonymous inner class extends WindowAdapter and overrides
-	the no-ops window closing event.
+	This anonymous inner class extends WindowAdapter and overrides the no-ops window closing event.
 	*/
 	addWindowListener(this);
-	// Objects used throughout the GUI layout..
+	// Objects used throughout the GUI layout.
 
 	Insets insetsTLBR = new Insets(7,7,7,7);
 	GridBagLayout gbl = new GridBagLayout();
 
-	// If the property list is null, allocate one here so we
-	// don't have to constantly check for null...
+	// If the property list is null, allocate one here so we don't have to constantly check for null.
 	if ( _prop == null ) {
 		_prop = new PropList("Default");
 	}
 
-	// No check needed on these as null is the default value
+	// No check needed on these as null is the default value.
 	_help_key = _prop.getValue( "HelpKey" );
 	_title = _prop.getValue( "Title");
 
-	// Check the non-null values so a default is applied if the property 'key' does not exist
+	// Check the non-null values so a default is applied if the property 'key' does not exist.
 
-	// Determine the width
+	// Determine the width.
 	propValue = _prop.getValue( "TotalWidth" );
 	if ( propValue == null ) {
 		width = 600;
@@ -473,7 +419,7 @@ private void setGUI()
         width = StringUtil.atoi( propValue );
 	}
 
-	// Determine the height
+	// Determine the height.
 	propValue =  _prop.getValue( "TotalHeight" );
 	if ( propValue == null ) {
 		height = 550;
@@ -482,7 +428,7 @@ private void setGUI()
         height = StringUtil.atoi( propValue );
 	}
 
-	// Determine the Font type
+	// Determine the font type.
 	propValue =  _prop.getValue( "DisplayFont" );
 	if ( propValue == null ) {
 		displayFont = "Courier";
@@ -491,7 +437,7 @@ private void setGUI()
         displayFont = propValue;
 	}
 
-	// Determine the Font style
+	// Determine the font style.
 	propValue =  _prop.getValue( "DisplayStyle" );
 	if ( propValue == null ) {
 		displayStyle = Font.PLAIN;
@@ -500,7 +446,7 @@ private void setGUI()
         displayStyle = StringUtil.atoi( propValue );
 	}
 
-	// Determine the Font size
+	// Determine the font size.
 	propValue =  _prop.getValue( "DisplaySize" );
 	if ( propValue == null ) {
 		displaySize = 11;
@@ -509,7 +455,7 @@ private void setGUI()
         displaySize = StringUtil.atoi( propValue );
 	}
 
-	// Determine the print size in number of lines
+	// Determine the print size in number of lines.
 	propValue =  _prop.getValue( "PrintSize" );
 	if ( propValue == null ) {
 		_print_size = 10;
@@ -527,7 +473,7 @@ private void setGUI()
 			__textComponent = "JEditorPane";
 		}
 		else {
-			// default to JTextArea if any other value is provided
+			// Default to JTextArea if any other value is provided.
 			__textComponent = "JTextArea";
 		}
 		if ( Message.isDebugOn ) {
@@ -535,42 +481,7 @@ private void setGUI()
 		}
 	}
 
-	// Determine the page length in number of lines. NOTE: This was
-	// implemented to manage limitations of displayable memory in the
-	// the java.awt.TextArea in Windows 95.  If a Windows 95 variant, then
-	// if the value page length is not set, set it to 100.  If not a
-	// Windows 95 variant (e.g., NT), then set the value to a large number.
-	propValue = _prop.getValue( "PageLength" );
-	String os_name = System.getProperty ( "os.name" );
-	if ( propValue == null ) {
-		//_page_length = 100;
-		// TODO SAM (2001-06-08) - Evaluate need.
-        // Make this large so that paging is off
-		// by default.  However, if a Windows 95/98/ME machine, set to
-		// 100 because these machines cannot handle large reports...
-		if ( os_name.equalsIgnoreCase("Windows 95") ) {
-			_page_length = 100;
-		}
-		else {
-            _page_length = 1000000000;
-		}
-    }
-	else {
-        _page_length = StringUtil.atoi( propValue );
-		if ( !os_name.equalsIgnoreCase("Windows 95") ) {
-			// Set to a large number to disable the page length for NT machines...
-			_page_length = 1000000000;
-		}
-		else {
-            // Limit to reasonable value...
-			if ( _page_length > 200 ) {
-				_page_length = 100;
-			}
-		}
-    }
-	os_name = null;
-
-	// Center Panel
+	// Center Panel.
 	JPanel center_JPanel = new JPanel();
 	center_JPanel.setLayout( gbl );
 	getContentPane().add( "Center", center_JPanel );
@@ -629,7 +540,7 @@ private void setGUI()
 	JGUIUtil.addComponent(bottomS_JPanel, _status_JTextField,
 		0, 0, 1, 1, 1, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
-	// Frame settings
+	// Frame settings.
 	if ( _title != null ) {
 		if ( (JGUIUtil.getAppNameForWindows() == null) || JGUIUtil.getAppNameForWindows().equals("") ) {
 			setTitle( _title );
@@ -640,7 +551,7 @@ private void setGUI()
 	}
 	pack();
 	setSize( width, height );
-	// Get the UI component to determine screen to display on - needed for multiple monitors
+	// Get the UI component to determine screen to display on - needed for multiple monitors.
 	Object uiComponentO = _prop.getContents( "ParentUIComponent" );
 	Component parentUIComponent = null;
 	if ( (uiComponentO != null) && (uiComponentO instanceof Component) ) {
@@ -657,8 +568,8 @@ private void setGUI()
 Sets the Cursor for all the GUI components
 @param flag Cursor type (e.g, Cursor.WAIT_CURSOR etc..)
 */
-private void setGUICursor( int flag )
-{	setCursor( new Cursor(flag) );
+private void setGUICursor( int flag ) {
+	setCursor( new Cursor(flag) );
 	if (__textComponent.equals("JTextArea")) {
 		_info_JTextArea.setCursor(new Cursor(flag));
 	} 
@@ -668,14 +579,26 @@ private void setGUICursor( int flag )
 	_status_JTextField.setCursor( new Cursor(flag) );
 }
 
-public void windowActivated(WindowEvent e) {}
-public void windowClosed(WindowEvent e) {}
+public void windowActivated(WindowEvent e) {
+}
+
+public void windowClosed(WindowEvent e) {
+}
+
 public void windowClosing(WindowEvent e) {
 	close_clicked();
 }
-public void windowDeactivated(WindowEvent e) {}
-public void windowDeiconified(WindowEvent e) {}
-public void windowIconified(WindowEvent e) {}
-public void windowOpened(WindowEvent e) {}
+
+public void windowDeactivated(WindowEvent e) {
+}
+
+public void windowDeiconified(WindowEvent e) {
+}
+
+public void windowIconified(WindowEvent e) {
+}
+
+public void windowOpened(WindowEvent e) {
+}
 
 }

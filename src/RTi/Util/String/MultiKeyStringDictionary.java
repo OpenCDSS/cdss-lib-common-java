@@ -107,7 +107,7 @@ public MultiKeyStringDictionary ( String dictString, String keyValueSep, String 
     	        // Get the key.
     	        int quoteColonPos = dictPart.indexOf("':");
     	        if ( quoteColonPos > 0 ) {
-    	        	// Quoted key.
+    	        	// The key is like 'key':value or 'key':'value'.
     	        	key = dictPart.substring(0,quoteColonPos).trim().replace("'","");
     	        	sepPos = quoteColonPos + 1;
     	        }
@@ -120,7 +120,7 @@ public MultiKeyStringDictionary ( String dictString, String keyValueSep, String 
     	        // Get the value.
     	        int colonQuotePos = dictPart.indexOf(":'", sepPos);
     	        if ( colonQuotePos > 0 ) {
-    	        	// Quoted value.
+    	        	// Value is like 'key':'value' or key:'value'.
     	        	if ( (colonQuotePos + 2) >= dictPart.length() ) {
     	        		// Empty value.
     	        		value = "";

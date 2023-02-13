@@ -692,6 +692,10 @@ public static boolean fileWriteable ( String filename ) {
  * @return the File corresponding to the found program, or null if the program is not found in the PATH.
  */
 public static File findProgramInPath ( String program ) {
+	String routine = null;
+	if ( Message.isDebugOn ) {
+		routine = IOUtil.class.getSimpleName() + ".findProgamInPath";
+	}
 	String path = System.getenv("PATH");
 	Message.printStatus(2, "", "PATH=" + path );
 	if ( path == null ) {
@@ -701,7 +705,9 @@ public static File findProgramInPath ( String program ) {
 	String [] parts = path.split(File.pathSeparator);
 	for ( int i = 0; i < parts.length; i++ ) {
 		File f = new File(parts[i] + File.separator + program);
-		Message.printStatus(2, "", "Checking file \"" + f.getAbsolutePath() + "\"" );
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2, routine, "Checking file \"" + f.getAbsolutePath() + "\"" );
+		}
 		if ( f.exists() && f.canExecute() ) {
 			return f;
 		}
@@ -710,7 +716,9 @@ public static File findProgramInPath ( String program ) {
 			String [] extensions = { "exe", "bat", "cmd" };
 			for ( String extension : extensions ) {
 				f = new File(parts[i] + File.separator + program + "." + extension );
-				Message.printStatus(2, "", "Checking file \"" + f.getAbsolutePath() + "\"" );
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2, routine, "Checking file \"" + f.getAbsolutePath() + "\"" );
+				}
 				if ( f.exists() && f.canExecute() ) {
 					return f;
 				}
@@ -3373,6 +3381,7 @@ This is a simple method that does the following:
 </ol>
 @param force always do the conversion (on Windows this will always convert // to \ - this should probably be
 the default behavior but make it an option since this has not always been the behavior of this method (see overload).
+Force should be used, for example, when using URL paths that require forward slashes.
 @return A path to the file that uses separators appropriate for the operating system.
 */
 public static String verifyPathForOS ( String path, boolean force ) {

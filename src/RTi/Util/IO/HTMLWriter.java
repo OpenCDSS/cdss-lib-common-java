@@ -855,6 +855,7 @@ throws Exception {
 
 /**
 Writes the given text to the HTML and adds a newline.  
+Use an empty string to write only a newline.
 @param s the text to write to the HTML.
 @throws Exception if an error occurs writing HTML text to a file.
 */
