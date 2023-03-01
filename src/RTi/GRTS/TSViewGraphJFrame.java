@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,125 +20,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//------------------------------------------------------------------------------
-// TSViewGraphJFrame - view to display graph of one or more time series
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// Notes:	(1)	This class displays the time series using the property
-//			list.  Mixed time steps are allowed.
-//------------------------------------------------------------------------------
-// History:
-// 
-// 05 Dec 1998	Steven A. Malers,	Initial version.  Copy OpTableDislayGUI
-//		Riverside Technology,	and modify as necessary.
-//		inc.
-// 28 Jun 1999	SAM, RTi		Update to use new GR functionality.
-//					Start enhancing to be fully functional.
-// 26 Jul 1999	SAM, RTi		Add more functionality now that the
-//					GIS.GeoView features seem to be working
-//					well.
-// 23 May 2000	SAM, RTi		Enable the image save.  Add a second
-//					row for buttons to allow toggling select
-//					and zoom modes.  Add intelligence for
-//					selecting the reference graph time
-//					series.
-// 13 Oct 2000	SAM, RTi		Change so default is zoom mode.  Enable
-//					properties window.  Add "Visible" label
-//					next to reference graph so people know
-//					better what is going on.  Add refresh()
-//					method to recompute data limits and
-//					redraw.
-// 26 Oct 2000	SAM, RTi		Add scatter plot (which disables the
-//					reference graph).
-// 30 Oct 2000	SAM, RTi		Add duration graph, with similar
-//					behavior as scatter.
-// 06 Nov 2000	SAM, RTi		Add more intelligence to disable/enable
-//					features based on graph type so calling
-//					code mainly only needs to set the graph
-//					type.
-// 30 Nov 2000	SAM, RTi		Add XAxis.Format property to allow some
-//					control over mouse formatting.
-// 19 Feb 2001	SAM, RTi		Change GUI to GUIUtil.
-// 13 Apr 2001	SAM, RTi		Disable "Change to Select Mode" until
-//					it does something.  Add ability to
-//					gracefully handle incompatible units
-//					when creating TSGraph.  Add finalize().
-// 04 May 2001	SAM, RTi		Add TSViewTitleString property to set
-//					the title of the window.
-// 18 May 2001	SAM, RTi		Change the Save As button to a choice
-//					so that DateValue can be added as an
-//					output.  For cursor Y precision,
-//					recognize the YAxisPrecision property.
-//					Change so if Table or Summary are not
-//					enabled, don't even show the buttons.
-//					Change so selection of reference graph
-//					is based on non-missing data limits,
-//					not overall limits.
-// 14 Aug 2001	SAM, RTi		Add buttons to scroll graph
-//					incrementally or go to either end.
-//					Comment out until there is time to do
-//					it completely.
-// 2001-11-05	SAM, RTi		Update javadoc and verify that variables
-//					are set to null when no longer used.
-// 2001-12-11	SAM, RTi		Change help key to "TSView.Graph".
-// 2002-01-17	SAM, RTi		Change TSViewGraphGUI to
-//					TSViewGraphFrame to allow support for
-//					Swing.  Allow construction from a
-//					TSProduct, which is being phased in as
-//					the preferred method.
-//					Add "TSProduct" to save as choice.
-// 2002-02-09	SAM, RTi		Remove the Properties and Details
-//					buttons.  They are now available as a
-//					popup for each graph.  Finish
-//					implementing the scroll buttons.
-// 2002-02-20	SAM, RTi		Change default product extension to
-//					tspd.
-// 2003-06-03	SAM, RTi		* Update to be consistent with current
-//					  GR and TS packages.
-//					* Change default product extension back
-//					  to "tsp".
-//					* Change the Save As to a Save button
-//					  and use the filter to determine what
-//					  file format is being saved.
-//					* Remove batchGraph() method since it
-//					  was not being called - TSProcessor
-//					  can be used instead.
-//					* Change actionPerformed() to check
-//					  objects, not command names.
-//					* Use Swing setPreferredSize() for the
-//					  reference graph.
-// 2003-08-21	SAM, RTi		* Change DateValueTS.writeTimeSeries()
-//					  to writeTimeSeriesList().
-// 2003-09-19	SAM, RTi		* Fix bug where save was not using the
-//					  full path.
-// 2003-09-30	SAM, RTi		* Set the icon and title using
-//					  information from the main application.
-// 2004-01-04	SAM, RTi		* Comment out Help button - enable later
-//					  if a better help system is
-//					  implemented.
-// 2004-02-24	J. Thomas Sapienza, RTi	Added getReferenceGraph().
-// 2004-05-03	JTS, RTi		* Added shouldClose() to check whether
-//					  the GUI can be closed.
-//					* Renamed save() to saveGraph().
-//					* Save now checks for any registered
-//					  TSProductDMIs and allows tsproducts
-//					  to be written through them.
-// 2004-08-06	JTS, RTi		Enabled saving to PNGs.
-// 2005-07-06	JTS, RTi		Changed the save dialog text for when 
-//					saving through a TSProductDMI.
-// 2005-07-13	JTS, RTi		TSProductDMIs are now stored in the
-//					parent TSViewJFrame rather than within
-//					this class.
-// 2005-07-14	JTS, RTi		When saving as a TSP, the extension is
-//					now enforced.  Same for DV and TXT
-//					files.
-// 2005-08-04	SAM, RTi		Clean up the wording on the save warning
-//					and use more standard dialog buttons.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//------------------------------------------------------------------------------
-// EndHeader
 
 package RTi.GRTS;
 
@@ -195,8 +76,8 @@ import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
 /**
-The TSViewGraphJFrame displays a graph of one or more time series, and is
-managed by the parent TSViewJFrame.  See the constructor documentation for more information.
+The TSViewGraphJFrame displays a graph of one or more time series, and is managed by the parent TSViewJFrame.
+See the constructor documentation for more information.
 */
 @SuppressWarnings("serial")
 public class TSViewGraphJFrame extends JFrame
@@ -302,8 +183,20 @@ The properties are defined in the TSViewJFrame constructor documentation.
 @exception Exception if there is an error displaying the view.
 */
 public TSViewGraphJFrame ( TSViewJFrame tsview_gui, List<TS> tslist, PropList props )
-throws Exception
-{	super ( "Time Series - Graph View" );
+throws Exception {
+	super ( "Time Series - Graph View" );
+	String routine = "TSViewGraphJFrame";
+	if ( props != null ) {
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2, routine, "In TSViewGraphJFrame constructor for TS list, TSViewParentUIComponent=" +
+				props.getContents("TSViewParentUIComponent"));
+		}
+	}
+	else {
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2, routine, "In TSViewGraphJFrame constructor for TS list, null props so can't check TSViewParentUIComponent");
+		}
+	}
 	initialize ( tsview_gui, tslist, props );
 }
 
@@ -314,18 +207,39 @@ Construct a TSViewGraphJFrame.
 @exception Exception if there is an error displaying the view.
 */
 public TSViewGraphJFrame ( TSViewJFrame tsview_gui, TSProduct tsproduct )
-throws Exception
-{	super ( "Time Series - Graph View" );
+throws Exception {
+	super ( "Time Series - Graph View" );
+	String routine = "TSViewGraphJFrame";
 	// Set before calling initialize().
 	__tsproduct = tsproduct;
-	// Set a property to make sure the centering works
+	// Set a property to make sure the centering works.
 	PropList props = new PropList("TSViewJFrame");
 	// TODO SAM 2016-04-01 This needs to use the TSTool frame, not the hidden frame?
-	if ( tsview_gui != null ) {
-		props.setUsingObject("TSViewParentUIComponent",tsview_gui);
+	if ( tsproduct.getPropList().getContents("TSViewParentUIComponent") != null ) {
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2, routine, "In TSViewGraphJFrame constructor for tsproduct, product TSViewParentUIComponent=" +
+				tsproduct.getPropList().getContents("TSViewParentUIComponent"));
+		}
+		// Use the property from the product, which was probably passed from TSTool.
+		props.setUsingObject("TSViewParentUIComponent",tsproduct.getPropList().getContents("TSViewParentUIComponent"));
+	}
+	else {
+		// The parent (e.g., TSTool JFrame) UI component was not in the tsproduct:
+		// - use the hidden frame
+		if ( tsview_gui != null ) {
+			props.setUsingObject("TSViewParentUIComponent",tsview_gui);
+			if ( Message.isDebugOn ) {
+				Message.printStatus(2, routine, "  Setting to hidden JFrame TSViewParentUIComponent=" + tsview_gui);
+			}
+		}
+		else {
+			if ( Message.isDebugOn ) {
+				Message.printStatus(2, routine, "  Hidden JFrame is null, cannot set TSViewParentUIComponent.");
+			}
+		}
 	}
 	if ( (tsproduct == null) || (tsproduct.getTSList() == null) ) {
-		initialize ( tsview_gui, new ArrayList<TS>(), props );
+		initialize ( tsview_gui, new ArrayList<>(), props );
 	}
 	else {
 		initialize ( tsview_gui, tsproduct.getTSList(), props );
@@ -336,8 +250,8 @@ throws Exception
 Handle action events.
 @param event ActionEvent.
 */
-public void actionPerformed ( ActionEvent event )
-{	Object o = event.getSource();
+public void actionPerformed ( ActionEvent event ) {
+	Object o = event.getSource();
     if (o == _edit_JToogleButton) {
       _ts_graph.setDisplayCursor(true);
       _ts_graph.setInteractionMode(TSGraphJComponent.INTERACTION_EDIT);
@@ -399,16 +313,13 @@ public void actionPerformed ( ActionEvent event )
 			__mode_JButton.setText( "Change to Select Mode" );
 			setInteractionMode (TSGraphJComponent.INTERACTION_ZOOM);
 /* FIXME SAM 2008-02-21
-			if (	(_ts_graph.getGraphType() ==
-				TSGraphJComponent.GRAPH_TYPE_DOUBLE_MASS) ||
-				(_ts_graph.getGraphType() ==
- 				TSGraphJComponent.GRAPH_TYPE_DURATION) ||
-				(_ts_graph.getGraphType() ==
-				TSGraphJComponent.GRAPH_TYPE_XY_SCATTER) ) {
-				__message_JTextField.setText (
-					"Zoom Mode Disabled" );
+			if ( (_ts_graph.getGraphType() == TSGraphJComponent.GRAPH_TYPE_DOUBLE_MASS) ||
+				(_ts_graph.getGraphType() == TSGraphJComponent.GRAPH_TYPE_DURATION) ||
+				(_ts_graph.getGraphType() == TSGraphJComponent.GRAPH_TYPE_XY_SCATTER) ) {
+				__message_JTextField.setText ( "Zoom Mode Disabled" );
 			}
-			else {	__message_JTextField.setText ( "Zoom Mode");
+			else {
+				__message_JTextField.setText ( "Zoom Mode");
 			}
 */
 			__message_JTextField.setText ( "Zoom Mode");
@@ -543,9 +454,9 @@ private void checkGUIState () {
 Close the detail GUI.  This should be called before calling
 TSViewJFrame.closeGUI() to close this graph GUI.
 */
-private void closeDetail ()
-{	// If the detail GUI is not null, close it.  It is possible that the
-	// GUI will have been closed within the ReportGUI, but the try/catch should handle if so.
+private void closeDetail () {
+	// If the detail GUI is not null, close it.
+	// It is possible that the GUI will have been closed within the ReportGUI, but the try/catch should handle if so.
 	if ( __detail_JFrame == null ) {
 		return;
 	}
@@ -562,8 +473,8 @@ private void closeDetail ()
 Return the main TSGraphJComponent.
 @return the main TSGraphJComponent.
 */
-public TSGraphJComponent getMainJComponent ()
-{	return _ts_graph;
+public TSGraphJComponent getMainJComponent () {
+	return _ts_graph;
 }
 
 /**
@@ -592,8 +503,8 @@ protected TSGraphJComponent getReferenceGraph() {
 /**
 Return the TSViewJFrame instance.
 */
-public final TSViewJFrame getTSViewJFrame()
-{	return __tsview_JFrame;
+public final TSViewJFrame getTSViewJFrame() {
+	return __tsview_JFrame;
 }
 
 /**
@@ -603,8 +514,8 @@ Initialize data and open the GUI.
 @param props Properties to customize the data display.
 The properties are defined in the TSViewJFrame constructor documentation.
 */
-private void initialize (TSViewJFrame tsview_gui,List<TS> tslist, PropList props )
-{	this.__tsview_JFrame = tsview_gui;
+private void initialize (TSViewJFrame tsview_gui,List<TS> tslist, PropList props ) {
+	this.__tsview_JFrame = tsview_gui;
 	this.__tslist = tslist;
 	this.__props = props;
 	// Used to set the menu bar.
@@ -612,7 +523,7 @@ private void initialize (TSViewJFrame tsview_gui,List<TS> tslist, PropList props
 	//if ( includeFullCode ) {
 	String prop_value = null;
 	JGUIUtil.setIcon(this, JGUIUtil.getIconImage());
-	
+
 	// TODO SAM 2011-11-29 Need to figure out how to let TSProduct file properties set the window title.
 	if (this.__tsproduct == null) {
 		prop_value = __props.getValue("TSViewTitleString");
@@ -653,7 +564,7 @@ private void initialize (TSViewJFrame tsview_gui,List<TS> tslist, PropList props
  */
 public void itemStateChanged ( ItemEvent evt ) {
 	Object o = evt.getItemSelectable();
-	
+
 	if ( (o == __trackerModeJComboBox) && (evt.getStateChange() == ItemEvent.SELECTED) ) {
 		// Mouse tracker was changed so change in the drawing component.
 		this.tsgraphGlassPane.setMouseTrackerType (
@@ -663,9 +574,8 @@ public void itemStateChanged ( ItemEvent evt ) {
 
 /**
 Indicate whether the graph needs to be closed due to start-up problems.
-This will be the case, for example, if time series are incompatible for plotting
-and the user indicates not to continue.  This should be called by the parent
-code after a TSViewGraphFrame is constructed.
+This will be the case, for example, if time series are incompatible for plotting and the user indicates not to continue.
+This should be called by the parent code after a TSViewGraphFrame is constructed.
 */
 public boolean needToClose () {
 	if ( _ts_graph == null ) {
@@ -679,11 +589,11 @@ public boolean needToClose () {
 
 /**
 Open the GUI and display the time series.
-@param mode Indicates whether the GUI should be visible at creation, typically true
-unless processing a graph in batch mode, in which case an image file is usually the output.
+@param mode Indicates whether the GUI should be visible at creation,
+typically true unless processing a graph in batch mode, in which case an image file is usually the output.
 */
-private void openGUI ( boolean mode )
-{	String routine = "TSViewGraphJFrame.openGUI";
+private void openGUI ( boolean mode ) {
+	String routine = getClass().getSimpleName() + ".openGUI";
 	int	y = 0;
 
 	// Start a big try block to set up the GUI.
@@ -702,7 +612,7 @@ private void openGUI ( boolean mode )
 	//Insets insetsTLBR = new Insets ( 3, 3, 3, 3 ); // Space around components.
 	Insets insetsTLBR = new Insets ( 1, 3, 1, 3 );   // Space around component.
 	Insets insetsNone = new Insets ( 0, 0, 0, 0 );   // No space around component, for surrounding the drawing JComponent.
-	
+
 	// The drawing component will occupy the CENTER part of the BorderLayout.
 	// Controls at the bottom will occupy the SOUTH part of the BoarderLayout.
 
@@ -712,21 +622,21 @@ private void openGUI ( boolean mode )
 	//if ( includeFullCode ) {
 	_toolbar = new JToolBar();
 	//main_JPanel.add ( "North", _toolbar);
-	
+
 	_edit_JToogleButton = new SimpleJToggleButton("Edit Mode", this, false);
 	_edit_JToogleButton.setToolTipText("Edit graph mode");
 	_toolbar.add(_edit_JToogleButton);
 	_zoom_JToogleButton = new SimpleJToggleButton("Zoom Mode", this, true);
 	_zoom_JToogleButton.setToolTipText("Zoom graph mode");
 	_toolbar.add(_zoom_JToogleButton);
-	
+
 	ButtonGroup buttonGroup= new ButtonGroup();
 	buttonGroup.add(_edit_JToogleButton);
 	buttonGroup.add(_zoom_JToogleButton);
-	
+
 	_fillInterpolation_JButton = new SimpleJButton("FillInterpolate","FillInterpolate",this);
 	//_toolbar.add(__fillInterpolation);
-	
+
 	_autoConnect_JCheckBox= new JCheckBox("Auto-Connect");
 	_autoConnect_JCheckBox.setSelected(true);
 	_autoConnect_JCheckBox.setEnabled(false);
@@ -778,16 +688,21 @@ private void openGUI ( boolean mode )
 	// Main graph.
 
 	if ( __tsproduct == null ) {
-		// Old-style.
+		// Old-style:
+		// - time series list
 		__props.set ( "ReferenceTSIndex=" + max_period_index );
-		_ts_graph = new TSGraphJComponent ( this, __tslist, __props );
+		_ts_graph = new TSGraphJComponent ( this, this.__tslist, this.__props );
 	}
 	else {
-	    // New-style.
-		PropList additional_props = new PropList ( "TSViewGraphJFrame");
-		additional_props.set ( "ReferenceTSIndex=" + max_period_index );
+	    // New-style:
+		// - time series product
+		PropList additionalDisplayProps = new PropList ( "TSViewGraphJFrame");
+		additionalDisplayProps.set ( "ReferenceTSIndex=" + max_period_index );
+		// Set the following to the passed in application JFrame so it can be used to center message dialogs
+		// that are needed before the graph window is displayed (e.g., mismatched units).
+		//additionalDisplayProps.set ( "TSViewParentUIComponent=" + this.__props );
 		__tsproduct.setTSList ( __tslist );
-		_ts_graph = new TSGraphJComponent ( this, __tsproduct, additional_props );
+		_ts_graph = new TSGraphJComponent ( this, __tsproduct, additionalDisplayProps );
 	}
     _ts_graph.setEditor(_tsGraphEditor);
 	//} // includeFullCode
@@ -898,7 +813,7 @@ private void openGUI ( boolean mode )
     	// Don't do a glass pane on the frame because only doing on the LayeredPane.
     	doFrameGlassPane = false;
     }
-    
+
     // If the following is true, a glass frame component is used over the entire JFrame,
     // for use in mouse tracking, etc.
     if ( doFrameGlassPane ) {
@@ -911,7 +826,7 @@ private void openGUI ( boolean mode )
     	//glassPane.setOpaque(false);
     	this.tsgraphGlassPane.setVisible(true);
     }
-	
+
 	// Panel to hold the reference graph and buttons (to maintain spatial ordering).
     //if ( includeFullCode ) {
 	JPanel bottom_JPanel = new JPanel ();
@@ -1056,23 +971,23 @@ private void openGUI ( boolean mode )
 	__zoom_out_JButton.setToolTipText("Zoom to full period");
 	button_top_JPanel.add ( __zoom_out_JButton );
 	__zoom_out_JButton.setEnabled ( true );
-	
+
 	zoomXPrevious_JButton = new SimpleJButton("<x", "TSViewGraphJFrame.ZoomXPrevious", this);
 	zoomXPrevious_JButton.setToolTipText("Zoom to previous X-axis extent");
 	button_top_JPanel.add ( zoomXPrevious_JButton );
 	zoomXPrevious_JButton.setEnabled ( false );
 	// TODO SAM 2017-04-24 need to fully enable.
 	zoomXPrevious_JButton.setVisible ( false );
-	
+
 	zoomXNext_JButton = new SimpleJButton("x>", "TSViewGraphJFrame.ZoomXNext", this);
 	zoomXNext_JButton.setToolTipText("Zoom to next X-axis extent");
 	button_top_JPanel.add ( zoomXNext_JButton );
 	zoomXNext_JButton.setEnabled ( false );
 	// TODO SAM 2017-04-24 need to fully enable.
 	zoomXNext_JButton.setVisible ( false );
-	
+
 	// Add choices for tracker behavior.
-	
+
 	__trackerModeJComboBox = new SimpleJComboBox(false);
 	__trackerModeJComboBox.setToolTipText("Indicate how the mouse tracker should behave, for graphs that support the tracker");
 	if ( getMainJComponent().isRasterGraph() ) {
@@ -1112,8 +1027,7 @@ private void openGUI ( boolean mode )
 	// Default the mode to select initially (so user can change to zoom mode if they want).
 
 /* Comment out for now since we need the space.
-	__mode_JButton = new SimpleJButton("Change to Select Mode",
-		"TSViewGraphJFrame.Mode", this);
+	__mode_JButton = new SimpleJButton("Change to Select Mode", "TSViewGraphJFrame.Mode", this);
 	button_top_JPanel.add ( __mode_JButton );
 	// Don't enable until it actually does something.
 	//__mode_JButton.setEnabled ( true );
@@ -1122,19 +1036,15 @@ private void openGUI ( boolean mode )
 */
 	setInteractionMode ( TSGraphJComponent.INTERACTION_ZOOM );
 /*
-	if (	(_ts_graph.getGraphType() ==
-		TSGraphJComponent.GRAPH_TYPE_DOUBLE_MASS) ||
-		(_ts_graph.getGraphType() ==
-		TSGraphJComponent.GRAPH_TYPE_DURATION) ||
-		(_ts_graph.getGraphType() ==
-		TSGraphJComponent.GRAPH_TYPE_XY_SCATTER) ){
+	if ( (_ts_graph.getGraphType() == TSGraphJComponent.GRAPH_TYPE_DOUBLE_MASS) ||
+		(_ts_graph.getGraphType() == TSGraphJComponent.GRAPH_TYPE_DURATION) ||
+		(_ts_graph.getGraphType() == TSGraphJComponent.GRAPH_TYPE_XY_SCATTER) ){
 		_mode_Button.setEnabled(false);
 	}
 */
 
 /* TODO - add later when actually in use
-	__annotate_JButton = new SimpleJButton("Annotate",
-		"TSViewGraphJFrame.Annotate", this);
+	__annotate_JButton = new SimpleJButton("Annotate", "TSViewGraphJFrame.Annotate", this);
 	button_top_JPanel.add ( __annotate_JButton );
 	__annotate_JButton.setEnabled ( false );
 */
@@ -1148,7 +1058,7 @@ private void openGUI ( boolean mode )
 
 	__save_JButton = new SimpleJButton( "Save","TSViewGraphJFrame.Save",this);
 	button_bottom_JPanel.add ( __save_JButton );
-	
+
 	if ( TSUtil.areAnyTimeSeriesEditable(__tslist) ) {
 	    __save_edits_JButton = new SimpleJButton( "Save Edits","TSViewGraphJFrame.SaveEdits",this);
 	    button_bottom_JPanel.add ( __save_edits_JButton );
@@ -1169,7 +1079,7 @@ private void openGUI ( boolean mode )
 	++y;
 	JGUIUtil.addComponent ( bottom_JPanel, button_bottom_JPanel,
 		0, 3, 1, 1, 1.0, 0.0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.SOUTH );
-	
+
 	// Add panel for status and tracker window.
 
 	++y;
@@ -1194,7 +1104,7 @@ private void openGUI ( boolean mode )
 	++y;
 	JGUIUtil.addComponent ( bottom_JPanel, status_JPanel,
 		0, 4, 1, 1, 1.0, 0.0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.SOUTH );
-	
+
 	contentPane.add ( bottom_JPanel, BorderLayout.SOUTH );
     //} // includeFullCode
 
@@ -1215,17 +1125,23 @@ private void openGUI ( boolean mode )
 	//if ( includeFullCode ) {
 	// TODO SAM 2016-04-01 Need to set property in calling code so center works properly.
 	// Get the UI component to determine screen to display on - needed for multiple monitors.
-	if ( __props != null ) {
+	if ( this.__props != null ) {
 		// Get the UI component to determine screen to display on - needed for multiple monitors.
 		Object uiComponentO = __props.getContents( "TSViewParentUIComponent" );
 		Component parentUIComponent = null;
 		if ( (uiComponentO != null) && (uiComponentO instanceof Component) ) {
 			parentUIComponent = (Component)uiComponentO;
+			if ( Message.isDebugOn ) {
+				Message.printStatus(2, routine, "TSViewParentUIComponent=" + parentUIComponent);
+			}
 		}
 		// Center on the UI component rather than the graph, because the graph screen seems to get tied screen 0?
 		JGUIUtil.center(this,parentUIComponent);
 	}
 	else {
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2, routine, "No props so can't get TSViewParentUIComponent." );
+		}
 		JGUIUtil.center ( this );
 	}
 	//} // includeFullCode
@@ -1241,7 +1157,7 @@ private void openGUI ( boolean mode )
 	//if ( !includeFullCode) {
 		setVisible(true);
 	//} // !includeFullCode
-	
+
 	// Clean up.
 		if ( Message.isDebugOn ) {
 			if ( this.tsgraphGlassPane != null ) {
@@ -1281,23 +1197,23 @@ private void openGUI ( boolean mode )
 }
 
 /**
-Refresh the graphs.  This should be called if time series properties have
-changed (e.g., enable/disable time series in TSViewPropertiesFrame).
+Refresh the graphs.  This should be called if time series properties have changed
+(e.g., enable/disable time series in TSViewPropertiesFrame).
 */
-public void refresh ()
-{	_ts_graph.refresh();
+public void refresh () {
+	_ts_graph.refresh();
 	if ( _ref_graph != null ) {
 		_ref_graph.refresh();
 	}
 }
 
 /**
-Save the editable time series.  This is generally configured programmatically
-to allow users access to time series that can actually be edited (default is nothing
-editable).  The button will only be available if time series are editable.
+Save the editable time series.
+This is generally configured programmatically to allow users access to time series that can actually be edited
+(default is nothing editable).  The button will only be available if time series are editable.
 */
-private void saveEdits ()
-{   String routine = "TSViewGraph.saveEdits";
+private void saveEdits () {
+    String routine = getClass().getSimpleName() + ".saveEdits";
     // FIXME SAM 2008-01-11 Need to enable a file chooser if the default is not specified.
     // FIXME SAM 2008-01-11 Need to check the file extension to determine what format to write.
     String DefaultSaveFile = getPropValue ( "DefaultSaveFile");
@@ -1305,7 +1221,7 @@ private void saveEdits ()
         Message.printWarning ( 1, routine, "DefaultSaveFile property is not specified.  File chooser is not enabled.");
         return;
     }
-    List<TS> editable_tslist = new Vector<TS>();
+    List<TS> editable_tslist = new Vector<>();
     String DefaultSaveFile_full = DefaultSaveFile;
     try {
         int size = 0;
@@ -1359,7 +1275,7 @@ private void saveGraph() {
     SimpleFileFilter svg_sff = new SimpleFileFilter("svg", "Scalable Vector Graphics File" );
     // Only enabled if batik jars on classpath.
     if (TSGraphJComponent.svgEnabled) {
-        fc.addChoosableFileFilter ( svg_sff );  
+        fc.addChoosableFileFilter ( svg_sff );
     }
 	SimpleFileFilter json_sff = new SimpleFileFilter("json", "Time Series Product File" );
 	fc.addChoosableFileFilter ( json_sff );
@@ -1392,7 +1308,7 @@ private void saveGraph() {
 	}
 	// Always default the selection to a TSP file since that is the most common use.
 	fc.setFileFilter(tsp_sff);
-		
+
 	//-------------------------------
 	/*
 	SimpleFileFilter db_sff = new SimpleFileFilter("db", "Save to DataTable File");
@@ -1432,7 +1348,7 @@ private void saveGraph() {
 	}
 	else if (fileFilter == jpg_sff || fileFilter == png_sff) {
 	    String type = "PNG";   // For message below.
-		try {	
+		try {
 			__tsview_JFrame.setWaitCursor(true);
 			if (fileFilter == png_sff) {
 			    path = IOUtil.enforceFileExtension ( path, "png" );
@@ -1455,7 +1371,7 @@ private void saveGraph() {
 	}
 	else if ( fileFilter == json_sff ) {
 		try {
-		    path = IOUtil.enforceFileExtension ( path, "json" );		
+		    path = IOUtil.enforceFileExtension ( path, "json" );
 		    boolean outputAll = false; // Only output non-default properties.
 			__tsproduct.writeJsonFile ( path, outputAll );
 			__tsproduct.setDirty(false);
@@ -1469,7 +1385,7 @@ private void saveGraph() {
 	}
 	else if ( fileFilter == json_all_sff ) {
 		try {
-		    path = IOUtil.enforceFileExtension ( path, "json" );		
+		    path = IOUtil.enforceFileExtension ( path, "json" );
 		    boolean outputAll = true; // Output all properties.
 			__tsproduct.writeJsonFile ( path, outputAll );
 			__tsproduct.setDirty(false);
@@ -1482,7 +1398,7 @@ private void saveGraph() {
 		}
 	}
     else if ( fileFilter == svg_sff ) {
-        try {   
+        try {
             __tsview_JFrame.setWaitCursor(true);
             path = IOUtil.enforceFileExtension ( path, "svg" );
             try {
@@ -1492,7 +1408,7 @@ private void saveGraph() {
                 Message.printWarning ( 1, "TSViewGraphJFrame.actionPerformed", "Error printing graph." );
                 Message.printWarning ( 2, "TSViewGraphJFrame.actionPerformed", e );
             }
-            
+
             __tsview_JFrame.setWaitCursor(false);
         }
         catch (Exception e) {
@@ -1503,7 +1419,7 @@ private void saveGraph() {
     }
 	else if ( fileFilter == tsp_sff ) {
 		try {
-		    path = IOUtil.enforceFileExtension ( path, "tsp" );		
+		    path = IOUtil.enforceFileExtension ( path, "tsp" );
 			__tsproduct.writeFile ( path, false );
 			__tsproduct.setDirty(false);
 			__tsproduct.propsSaved();
@@ -1531,12 +1447,12 @@ private void saveGraph() {
 }
 
 /**
-Set the interaction mode for the main and reference graphs.  Currently this
-just calls the TSGraphJComponent version.
+Set the interaction mode for the main and reference graphs.
+Currently this just calls the TSGraphJComponent version.
 @param mode Interaction mode (see TSGraphJComponent).
 */
-public void setInteractionMode ( int mode )
-{	if ( _ts_graph != null ) {
+public void setInteractionMode ( int mode ) {
+	if ( _ts_graph != null ) {
 		_ts_graph.setInteractionMode( mode );
 	}
 	// Reference graph is always in zoom mode.
@@ -1581,8 +1497,8 @@ Handle mouse motion events and display the mouse coordinates in the status TextF
 @param devpt Mouse point in GR device coordinates.
 @param datapt Mouse point in data coordinates.
 */
-public void tsViewMouseMotion ( TSGraph g, GRPoint devpt, GRPoint datapt )
-{	__tracker_JTextField.setText ( g.formatMouseTrackerDataPoint(devpt,datapt) );
+public void tsViewMouseMotion ( TSGraph g, GRPoint devpt, GRPoint datapt ) {
+	__tracker_JTextField.setText ( g.formatMouseTrackerDataPoint(devpt,datapt) );
 }
 
 public void tsViewSelect ( TSGraph g, GRShape devlim, GRShape datalim, List<Object> selected ) {
@@ -1604,8 +1520,11 @@ public void tsViewZoom ( TSGraph g, GRShape devlim, GRShape datalim ) {
 
 // WindowListener functions.
 
-public void windowActivated( WindowEvent evt ){;}
-public void windowClosed( WindowEvent evt ){;}
+public void windowActivated( WindowEvent evt ) {
+}
+
+public void windowClosed( WindowEvent evt ) {
+}
 
 /**
 Responds to the window Closing window event.
@@ -1619,9 +1538,16 @@ public void windowClosing(WindowEvent event) {
 	__tsview_JFrame.closeGUI(TSViewType.GRAPH);
 }
 
-public void windowDeactivated( WindowEvent evt ){;}
-public void windowDeiconified( WindowEvent evt ){;}
-public void windowOpened( WindowEvent evt ){;}
-public void windowIconified( WindowEvent evt ){;}
+public void windowDeactivated( WindowEvent evt ) {
+}
+
+public void windowDeiconified( WindowEvent evt ) {
+}
+
+public void windowOpened( WindowEvent evt ) {
+}
+
+public void windowIconified( WindowEvent evt ) {
+}
 
 }
