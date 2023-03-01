@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,8 +40,7 @@ import RTi.TS.DateValueTS;
 import java.awt.image.BufferedImage;
 
 /**
-The TSProcessor class provides methods to query and process time series
-into output products (graphs, reports, etc.).
+The TSProcessor class provides methods to query and process time series into output products (graphs, reports, etc.).
 An example of implementation is as follows:
 <pre>
 	try {
@@ -69,13 +68,11 @@ private TSViewJFrame __lastTSViewJFrame = null;
 
 /**
 A single WindowListener that can be associated with the TSViewFrame.
-This is being tested to determine whether an application like TSTool can detect a
-TSViewJFrame closing and close the application.
+This is being tested to determine whether an application like TSTool can detect a TSViewJFrame closing and close the application.
 */
 private WindowListener _tsview_window_listener = null;
 
-public TSProcessor ()
-{
+public TSProcessor () {
 }
 
 /**
@@ -83,8 +80,8 @@ Add a time series supplier.
 Suppliers are used to query time series based on a time series identifier.
 @param supplier TSSupplier to use with the TSProcessor.
 */
-public void addTSSupplier ( TSSupplier supplier )
-{	// Use arrays to make a little simpler than lists to use later.
+public void addTSSupplier ( TSSupplier supplier ) {
+	// Use arrays to make a little simpler than lists to use later.
 	if ( supplier != null ) {
 		// Resize the supplier array.
 		if ( _suppliers == null ) {
@@ -110,8 +107,8 @@ Add a WindowListener for TSViewFrame instances that are created.
 Currently only one listener can be set.
 @param listener WindowListener to listen to TSViewFrame WindowEvents.
 */
-public void addTSViewWindowListener ( WindowListener listener )
-{	_tsview_window_listener = listener;
+public void addTSViewWindowListener ( WindowListener listener ) {
+	_tsview_window_listener = listener;
 }
 
 /**
@@ -133,7 +130,7 @@ be created due to a lack of data).
 private void processGraphProduct ( TSProduct tsproduct )
 throws Exception {
 	String routine = getClass().getSimpleName() + ".processGraphProduct";
-	List<TS> tslist = new Vector<TS>(10);
+	List<TS> tslist = new Vector<>(10);
 	TS ts = null;
 	// Loop through the sub-products (graphs on page) and get the time series to support the graph.
 	String tsid;
@@ -218,8 +215,7 @@ throws Exception {
                     ts = readTimeSeries ( tsalias.trim(), date1, date2,	null, true );
 				}
 				catch ( Exception e ) {
-					// Always add a time series because visual properties are going to be
-					// tied to the position of the time series.
+					// Always add a time series because visual properties are going to be tied to the position of the time series.
 					Message.printWarning ( 3, routine, "Error getting time series \"" +	tsalias.trim() + "\" - setting to null." );
 					ts = null;
 				}
@@ -231,8 +227,7 @@ throws Exception {
                     ts = readTimeSeries ( tsid.trim(), date1, date2, null, true );
 				}
 				catch ( Exception e ) {
-					// Always add a time series because visual properties are going to be
-					// tied to the position of the time series.
+					// Always add a time series because visual properties are going to be tied to the position of the time series.
 				    Message.printWarning ( 2, routine,
 				        "Error getting time series \"" + tsid.trim() + "\".  Setting to null." );
 					ts = null;
@@ -263,10 +258,10 @@ throws Exception {
 	tsproduct.setTSList ( tslist );
 
 	// Now create the graph.  For now use the PropList associated with the TSProduct.
-	// The use of a frame seems to be necessary to get this to
-	// work (tried lots of other things including just declaring a TSGraph),
+	// The use of a frame seems to be necessary to get this to work
+	// (tried lots of other things including just declaring a TSGraph),
 	// but could not get the combination of Graphics, Image, etc. to work.
-	// The following is essentially a serialized TSP file using dot-notation
+	// The following is essentially a serialized TSP file using dot-notation.
 	PropList tsviewprops = tsproduct.getPropList();
 	//Message.printStatus(2, routine, "Graph properties=" + tsviewprops);
 
@@ -289,10 +284,8 @@ throws Exception {
 	String preview_output = tsproduct.getLayeredPropValue ( "PreviewOutput", -1, -1 );
 	try {
 	    // Draw to the image file first in case because the on-screen display throws
-	    // an exception for missing data and for troubleshooting it would be good to
-	    // see the image.
-		// TODO SAM 2007-06-22 Need to figure out how to combine on-screen
-		// drawing with file to do one draw, if possible.
+	    // an exception for missing data and for troubleshooting it would be good to see the image.
+		// TODO SAM 2007-06-22 Need to figure out how to combine on-screen drawing with file to do one draw, if possible.
 		if ( (graph_file != null) && (graph_file.length() > 0) ){
 			// Create an in memory image and let the TSGraphJComponent draw to it.
 			// Use properties since that was what was done before.
@@ -361,26 +354,23 @@ throws Exception {
 /**
 Process a time series product file.
 @param filename Name of time series product file.
-@param override_props Properties to override the properties in the product file
-(e.g., to set the period for the plot dynamically).
-@exception Exception if the product cannot be processed (e.g., the graph cannot
-be created due to a lack of data).
+@param override_props Properties to override the properties in the product file (e.g., to set the period for the plot dynamically).
+@exception Exception if the product cannot be processed (e.g., the graph cannot be created due to a lack of data).
 */
-public void processProduct ( String filename, PropList override_props ) throws Exception
-{	Message.printStatus ( 2, "", "Processing time series product \"" + filename + "\"" );
-	TSProduct tsproduct = new TSProduct (filename, override_props);	
+public void processProduct ( String filename, PropList override_props ) throws Exception {
+	Message.printStatus ( 2, "", "Processing time series product \"" + filename + "\"" );
+	TSProduct tsproduct = new TSProduct (filename, override_props);
 	processProduct ( tsproduct );
 }
 
 /**
 Process a time series product.
 @param tsproduct Time series product definition.
-@exception Exception if the product cannot be processed (e.g., the graph cannot
-be created due to a lack of data).
+@exception Exception if the product cannot be processed (e.g., the graph cannot be created due to a lack of data).
 */
 public void processProduct ( TSProduct tsproduct )
-throws Exception
-{	String prop_value = null;
+throws Exception {
+	String prop_value = null;
 	// Determine whether the product should be processed.
 	// New version.
 	prop_value = tsproduct.getLayeredPropValue ( "IsEnabled", -1, -1 );
@@ -403,9 +393,8 @@ throws Exception
 
 /**
 Processes a time series product of type "Report" using its given properties.
-Each subproduct in the product is processed, and will have an outfile
-associated with it, in order to put time series of different interval in
-separate files. The only supported ReportType is DateValue.
+Each subproduct in the product is processed, and will have an output file associated with it,
+in order to put time series of different interval in separate files. The only supported ReportType is DateValue.
 @param tsproduct Time series product.
 */
 public void processReportProduct( TSProduct tsproduct ) throws Exception {
@@ -417,7 +406,7 @@ public void processReportProduct( TSProduct tsproduct ) throws Exception {
 	boolean is_template = false;
 
 	// Loop through each subproduct and print out the corresponding files.
-	int nsubs = tsproduct.getNumSubProducts();	 
+	int nsubs = tsproduct.getNumSubProducts();
 	for ( int isub = 0; isub < nsubs; isub++ ) {
 
 		String fname = null;
@@ -434,9 +423,9 @@ public void processReportProduct( TSProduct tsproduct ) throws Exception {
 		  }
 		  else {
               fname = "C:\\TEMP\\tmp_report_" + isub;
-		  }	
+		  }
 		}
-				
+
 		// Set the report type for subproduct.
 		report_type = tsproduct.getLayeredPropValue( "ReportType", isub, -1);
 
@@ -536,7 +525,7 @@ public void processReportProduct( TSProduct tsproduct ) throws Exception {
 					tsproduct.setPropValue(	"TSID", ts.getIdentifier().toString(),isub, i );
 				}
 			}
-			
+
 			tslist.add ( ts );
 		}
 
@@ -550,8 +539,8 @@ public void processReportProduct( TSProduct tsproduct ) throws Exception {
 }
 
 /**
-Read a time series using the time series suppliers.  The first supplier to
-return a time series is assumed to be the correct supplier.
+Read a time series using the time series suppliers.
+The first supplier to return a time series is assumed to be the correct supplier.
 @param tsident TSIdent string indicating the time series to read.
 @param date1 Starting date of read, or null.
 @param date2 Ending date of read, or null.
@@ -562,8 +551,8 @@ return a time series is assumed to be the correct supplier.
 */
 public TS readTimeSeries ( String tsident, DateTime date1, DateTime date2,
 				String req_units, boolean read_data )
-throws Exception
-{	String routine = getClass().getSimpleName() + ".readTimeSeries";
+throws Exception {
+	String routine = getClass().getSimpleName() + ".readTimeSeries";
 	int size = 0;
 	if ( _suppliers != null ) {
 		size = _suppliers.length;

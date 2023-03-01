@@ -25,6 +25,7 @@ package RTi.Util.GUI;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -52,6 +53,7 @@ import javax.swing.border.Border;
 import java.util.List;
 import java.util.Vector;
 
+import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
 /**
@@ -85,6 +87,11 @@ public class ResponseJDialog extends JDialog implements ActionListener, KeyListe
 		__BUTTON_NO = "No",
 		__BUTTON_OK = "OK",
 		__BUTTON_YES = "Yes";
+
+	/**
+	 * Component that is the parent.
+	 */
+	private Component parent = null;
 
 /**
  *  "Yes" button.
@@ -149,6 +156,7 @@ ResponseJDialog constructor.
 public ResponseJDialog ( JDialog parent, String label ) {
 	// Call the full version with no title and ok Button.
 	super(parent, true);
+	this.parent = parent;
 	initialize ( null, label, OK, GridBagConstraints.WEST );
 }
 
@@ -161,6 +169,7 @@ ResponseJDialog constructor.
 public ResponseJDialog ( JFrame parent, String label, boolean modal ) {
 	// Call the full version with no title and ok Button.
 	super(parent, modal);
+	this.parent = parent;
 	initialize ( null, label, OK, GridBagConstraints.WEST );
 }
 
@@ -171,6 +180,7 @@ ResponseJDialog constructor for use by the HelpAboutJDialog.
 */
 protected ResponseJDialog(JFrame parent, boolean modal) {
 	super(parent, modal);
+	this.parent = parent;
 }
 
 /**
@@ -183,6 +193,7 @@ process different types of yes responses from the calling form.
 public ResponseJDialog ( JFrame parent, String label, int mode ) {
 	// Call the full version with no title...
 	super(parent, true);
+	this.parent = parent;
 	initialize ( null, label, mode, GridBagConstraints.WEST );
 }
 
@@ -197,6 +208,7 @@ process different types of yes responses from the calling form.
 public ResponseJDialog ( JFrame parent, String label, int mode, boolean modal ) {
 	// Call the full version with no title.
 	super(parent, modal);
+	this.parent = parent;
 	initialize ( null, label, mode, GridBagConstraints.WEST );
 }
 
@@ -210,6 +222,7 @@ process different types of yes responses from the calling form.
 public ResponseJDialog ( JDialog parent, String label, int mode ) {
 	// Call the full version with no title.
 	super(parent, true);
+	this.parent = parent;
 	initialize ( null, label, mode, GridBagConstraints.WEST );
 }
 
@@ -223,6 +236,7 @@ process different types of yes responses from the calling form.
 */
 public ResponseJDialog ( JFrame parent, String title, String label, int mode ) {
 	super(parent, true);
+	this.parent = parent;
 	initialize ( title, label, mode, GridBagConstraints.WEST );
 }
 
@@ -237,6 +251,7 @@ process different types of yes responses from the calling form.
 */
 public ResponseJDialog ( JFrame parent, String title, String label, int mode, boolean modal) {
 	super(parent, modal);
+	this.parent = parent;
 	initialize ( title, label, mode, GridBagConstraints.WEST );
 }
 
@@ -250,6 +265,7 @@ process different types of yes responses from the calling form.
 */
 public ResponseJDialog ( JDialog parent, String title, String label, int mode ) {
 	super(parent, true);
+	this.parent = parent;
 	initialize ( title, label, mode, GridBagConstraints.WEST );
 }
 
@@ -264,6 +280,7 @@ process different types of yes responses from the calling form.
 */
 public ResponseJDialog ( JFrame parent, String title, String label, int mode, int alignment ) {
 	super(parent, true);
+	this.parent = parent;
 	initialize ( title, label, mode, alignment );
 }
 
@@ -279,6 +296,7 @@ process different types of yes responses from the calling form.
 */
 public ResponseJDialog ( JFrame parent, String title, String label, int mode, int alignment, boolean modal ) {
 	super(parent, modal);
+	this.parent = parent;
 	initialize ( title, label, mode, alignment );
 }
 
@@ -293,6 +311,7 @@ process different types of yes responses from the calling form.
 */
 public ResponseJDialog ( JDialog parent, String title, String label, int mode, int alignment ) {
 	super(parent, true);
+	this.parent = parent;
 	initialize ( title, label, mode, alignment );
 }
 
@@ -304,7 +323,7 @@ public void actionPerformed( ActionEvent event ) {
 	String s = event.getActionCommand();
 	if ( s.equals(__BUTTON_YES) ) {
 		__response = YES;
-	}	
+	}
 	else if ( s.equals(__BUTTON_NO) ) {
 		__response = NO;
 	}
@@ -469,7 +488,10 @@ private void initialize ( String title, String label, int mode, int alignment ) 
 	// Dialogs do no need to be resizable.
 	setResizable ( false );
     pack();
-    JGUIUtil.center( this );
+    if ( Message.isDebugOn ) {
+    	Message.printStatus(2, "ResponseJDialog.initialize", "Parent for center is: " + this.parent);
+    }
+    JGUIUtil.center( this, this.parent );
     super.setVisible( true );
 	addKeyListener(this);
 }

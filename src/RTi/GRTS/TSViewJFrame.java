@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,94 +20,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//------------------------------------------------------------------------------
-// TSViewJFrame - main TSView controller class
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// Notes:	(1)	This class handles the TSView GUIs using a JFrame that
-//			is never made visible.
-//			At instantiation, only the event handlers are set up.
-//------------------------------------------------------------------------------
-// History:
-// 
-// 05 Dec 1998	Steven A. Malers,	Initial version.  Copy OpTableGUI and
-//		Riverside Technology,	modify.
-//		inc.
-// 15 Oct 2000	SAM, RTi		Enable properties window handling.
-//					Add refresh() method to update GUIs
-//					based on properties changes.
-// 13 Apr 2001	SAM, RTi		Add getPropValue(), setPropValue(),
-//					isDirty(), finalize().
-// 04 May 2001	SAM, RTi		Add more properties to documentation:
-//					YAxisPrecision
-//					TSViewTitleString
-//					Add setWaitCursor().
-// 17 May 2001	SAM, RTi		Add saveAsText() and saveAsDateValue()
-//					to work as utility methods from the
-//					views.  Remove unused code that attaches
-//					menus.
-// 17 Jul 2001	SAM, RTi		Change so if using Windows 95 variant
-//					that a ReportGUI is used for the summary
-//					so that the paging works.  This does
-//					not allow for as much interaction
-//					between the window but at least gets
-//					things working on Windows 95.  Add
-//					a WindowListener to monitor the
-//					ReportGUI.  Add a warning to the table
-//					that displaying daily data may be slow
-//					and add a needToClose() check here.
-// 05 Sep 2001	SAM, RTi		Add _identifier to allow graphs to be
-//					managed externally (e.g., by TSTool).
-//					Add isVisible(boolean) to allow view
-//					to be hidden/visible during preparation.
-// 2001-11-05	SAM, RTi		Update javadoc.  Verify that variables
-//					are set to null when no longer used.
-// 2002-01-17	SAM, RTi		Rename TSViewGUI to TSViewFrame so that
-//					support can be added for Swing
-//					(TSViewJFrame).
-// 2002-07-12	SAM, RTi		Fix so warning is printed if trying to
-//					write DateValue time series of different
-//					intervals.
-// =========================
-// 2002-11-11	SAM, RTi		Copy TSViewFrame and update to use
-//					Swing.
-// 2003-06-03	SAM, RTi		* Update based on current GR and TS
-//					  packages.
-//					* Use JGUIUtil instead of GUIUtil.
-// 2003-08-21	SAM, RTi		* Change DateValueTS.writeTimeSeries()
-//					  to writeTimeSeriesList().
-// 2004-02-24	J. Thomas Sapienza, RTi	Added getViewGraphJFrame().
-// 2004-04-23	SAM, RTi		Renamed TSViewPropertiesJFrame to
-//					TSProductJFrame and adjusted string
-//					properties appropriately.
-// 2004-04-30	JTS, RTi		* Added closePropertiesGUI().
-//					* Added openPropertiesGUI().
-// 2004-10-11	JTS, RTi		Added closeGraphGUI().
-// 2005-04-22	JTS, RTi		Added PROPERTIES_HIDDEN so that the
-//					properties GUI can be opened non-visible
-//					in order to use it to change properties
-//					on graphs.
-// 2005-07-13	JTS, RTi		TSProductDMIs are now stored in this
-//					class instead of in the 
-//					TSViewGraphJFrame.
-// 2005-10-14	JTS, RTi		Added a combo box for selecting an 
-//					annotation provider.
-// 2005-10-18	JTS, RTi		TSProductAnnotationProviders are now
-//					stored in this class, like 
-//					TSProductDMIs
-// 2005-10-28	SAM, RTi		Add needToCloseGraph() to chain the
-//					call to the similar methods in other
-//					views.  If true is returned it means
-//					that the view could not be started up,
-//					usually because of a lack of data.  This
-//					can then be used by a TSTool check in
-//					batch mode to exit with a non-zero
-//					status.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//------------------------------------------------------------------------------
-// EndHeader
 
 package RTi.GRTS;
 
@@ -129,81 +41,86 @@ import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 
 /**
-The TSViewJFrame class provides a simple and uniform way to provide views of
-time series data.  Three main views are available:
+The TSViewJFrame class provides a simple and uniform way to provide views of time series data.
+Three main views are available:
 <ol>
 <li>	graph, implemented with TSViewGraphJFrame,</li>
 <li>	summary text report, implemented with TSViewSummaryJFrame,</li>
 <li>	table, implemented with TSViewTableJFrame.</li>
 </ol>
-The above views may allow additional windows to be displayed (e.g., the
-TSViewGraphJFrame allows the TSProductJFrame to be displayed, showing
-properties for the graph).  The TSViewJFrame is a hidden
-frame and manages all of the views for a set of time series, using listeners.
-This approach allows sharing of resources between views and minimizes redraw
-times when windows are minimized/maximized.  When the last view is closed, all
-of the graphical resources will be freed and this frame will be disposed().  The
-different views can be enabled or disabled, as appropriate, for the data that
-are being displayed.  See the documentation for the constructor for a list of
-properties that can be used to control output.
+The above views may allow additional windows to be displayed
+(e.g., the TSViewGraphJFrame allows the TSProductJFrame to be displayed, showing properties for the graph).
+The TSViewJFrame is a hidden frame and manages all of the views for a set of time series, using listeners.
+This approach allows sharing of resources between views and minimizes redraw times when windows are minimized/maximized.
+When the last view is closed, all of the graphical resources will be freed and this frame will be disposed().
+The different views can be enabled or disabled, as appropriate, for the data that are being displayed.
+See the documentation for the constructor for a list of properties that can be used to control output.
 */
 @SuppressWarnings("serial")
 public class TSViewJFrame extends JFrame
 implements ActionListener
 {
-	
-// Private data related to TSView...
+
+// Private data related to TSView.
 
 /**
 List of time series to display.
 */
 private List<TS> _tslist = null;
+
 /**
 Property list used for displays.
+For example, these properties allow TSTool to control how the graph window will appear.
 */
 private PropList _props = null;
+
 /**
 TSProduct (used instead of old-style) PropList.
 */
 private TSProduct _tsproduct = null;
+
 /**
-Currently this is only used by the graph and indicates when a property has been set in the
-TSProductJFrame (so that title, etc. can be updated in the graph).
+Currently this is only used by the graph and indicates when a property has been set in the TSProductJFrame
+(so that title, etc. can be updated in the graph).
 */
 private boolean _is_dirty = true;
+
 /**
 Static window manager shared among all instances.
 */
 private static TSViewWindowManager __tsViewWM = new TSViewWindowManager();
 
-// Private data related to Frame...
+// Private data related to Frame.
 
-//protected Frame _parent = null;		// Parent frame.
+//protected Frame _parent = null; // Parent frame.
 /**
 Frame to display the time series in a graph.
 */
 protected TSViewGraphJFrame _graph_gui = null;
+
 /**
 Frame to display the time series in a summary report.
 */
 protected TSViewSummaryJFrame _summary_gui = null;
+
 /**
 Frame to display the time series in a tabular display.
 */
 protected TSViewTableJFrame _table_gui = null;
+
 /**
 Frame to display the time series product properties
 */
 protected TSProductJFrame _tsproduct_gui = null;
 
 /**
-List of TSProductAnnotationProvider objects available for use with any of 
-the sub guis.  Used in TSProductJFrame properties display.
+List of TSProductAnnotationProvider objects available for use with any of the view GUIs.
+Used in TSProductJFrame properties display.
 */
 private List<TSProductAnnotationProvider> __tsProductAnnotationProviders = null;
 
 /**
-List of TSProductDMI objects available for use with any of the sub guis.
+List of TSProductDMI objects available for use with any of the view GUIs.
 These provide the ability to save/read TSProduct objects.
 Most of the time the TSTool product file as *.tsp or *.json is used.
 However, products where at one point saved to HydroBase.
@@ -214,8 +131,8 @@ private List<TSProductDMI> __tsProductDMIs = null;
 /**
 Construct a stand-alone frame that manages a time series graph, summary and table.
 @param tslist list of TS to display.
-@param proplist Properties to control the display.  Properties
-can have the values shown in the following table:
+@param proplist Properties to control the display.
+Properties can have the values shown in the following table:
 <p>
 <table width=100% cellpadding=10 cellspacing=0 border=2>
 <tr>
@@ -251,11 +168,11 @@ can have the values shown in the following table:
 
 <tr>
 <td><b>TSViewTitleString</b></td>
-<td>If specified the views will use this string for the frame title, which will
-then be visible when windows are minimized.  The string is used with the
-following strings appended as appropriate to create an initial title:
-" - Graph", " - Table", " - Summary".  The title may further be modified in
-the individual views if more information is available (e.g., the graph type).
+<td>If specified the views will use this string for the frame title,
+which will then be visible when windows are minimized.
+The string is used with the following strings appended as appropriate to create an initial title:
+" - Graph", " - Table", " - Summary".
+The title may further be modified in the individual views if more information is available (e.g., the graph type).
 It should only be necessary to set the title string once to achieve reasonably specific titles.
 </td>
 <td>Defaults to "Time Series - Graph View", "Time Series - Table View",
@@ -272,16 +189,16 @@ Graph View Properties</td>
 
 <tr>
 <td><b>DoubleBuffer</b></td>
-<td>Indicates whether double-buffering should be used.  Doing so increases
-performance for refreshes but uses more memory.
+<td>Indicates whether double-buffering should be used.
+Doing so increases performance for refreshes but uses more memory.
 </td>
 <td>true</td>
 </tr>
 
 <tr>
 <td><b>Graph.EnableTracker</b></td>
-<td>Indicates whether the mouse tracker should be enabled.  If true, then
-for screen output the mouse position is shown in a TextField below the graph.
+<td>Indicates whether the mouse tracker should be enabled.
+If true, then for screen output the mouse position is shown in a TextField below the graph.
 </td>
 <td>"true"</td>
 </tr>
@@ -311,8 +228,7 @@ for screen output the mouse position is shown in a TextField below the graph.
 <tr>
 <td><b>MaximizeGraphSpace</b></td>
 <td>Indicates whether the canvas should be completely filled with the graph.
-This property was used during development and should not be specified in
-production components.
+This property was used during development and should not be specified in production components.
 </td>
 <td>"true"
 </tr>
@@ -333,8 +249,8 @@ production components.
 
 <tr>
 <td><b>XAxisFormat</b></td>
-<td>Format for X-axis label.  Currently only "MM-DD" is recognized other
-than the default format determined from data.
+<td>Format for X-axis label.
+Currently only "MM-DD" is recognized other than the default format determined from data.
 </td>
 <td>Determined from graph type and data for axis.
 </tr>
@@ -343,8 +259,8 @@ than the default format determined from data.
 <td><b>XAxisLabelString</b></td>
 <td>Literal string to use for X-axis label (labeled under X axis).
 </td>
-<td>Date for simple plots or determined based on graph type (e.g., for
-Duration plot the label is the percentage of time exceeded.</td>
+<td>Date for simple plots or determined based on graph type (e.g.,
+for Duration plot the label is the percentage of time exceeded.</td>
 </tr>
 
 <tr>
@@ -356,9 +272,9 @@ Duration plot the label is the percentage of time exceeded.</td>
 
 <tr>
 <td><b>YAxisPrecision</b></td>
-<td>Precision for Y-axis labels.  Use when it is likely that the precision based
-on units will not be satisfactory (e.g., for dimensionless numbers, which are
-harder to set a default precision for).
+<td>Precision for Y-axis labels.
+Use when it is likely that the precision based on units will not be satisfactory
+(e.g., for dimensionless numbers, which are harder to set a default precision for).
 </td>
 <td>Use precision based on units or default of 2.</td>
 </tr>
@@ -416,33 +332,64 @@ Table View Properties</td>
 
 <tr>
 <td><b>Table.UseExtendedLegend</b></td>
-<td>Indicates whether the time series extended legend should be used for
-column headings.  Specify as "true" or "false".
+<td>Indicates whether the time series extended legend should be used for column headings.
+Specify as "true" or "false".
 </td>
 <td>false</td>
+</tr>
+
+<tr>
+<td><b>TSViewParentUIComponent</b></td>
+<td>A Java Component (JFrame or JDialog) that is the parent,
+typically the TSTool JFrame, which is used to center child JFrame and JDialog.
+</td>
+<td>Not provided.</td>
 </tr>
 
 </table>
 @exception Exception if there is an error opening the view.
 */
-public TSViewJFrame ( List<TS> tslist, PropList proplist )
-throws Exception
-{	super ( "Time Series View" );
-	initialize ( tslist, proplist );
+public TSViewJFrame ( List<TS> tslist, PropList props )
+throws Exception {
+	super ( "Time Series View" );
+	String routine = "TSViewJFrame";
+	if ( props != null ) {
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2, routine, "In TSViewJFrame constructor for TS list, TSViewParentUIComponent=" +
+				props.getContents("TSViewParentUIComponent"));
+		}
+	}
+	else {
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2, routine, "In TSViewJFrame constructor for TS list, null props so can't check TSViewParentUIComponent");
+		}
+	}
+	initialize ( tslist, props );
 }
 
 /**
 Construct using a TSProduct, instead of the old-style PropList.
+This is called from software that processes a product, such as the TSTool ProcessTSProduct command.
+Any display properties must be set when creating the product.
+@param tsproduct time series product to view
 */
 public TSViewJFrame ( TSProduct tsproduct )
-throws Exception
-{	super ( "Time Series View" );
-	// Must set this before calling initialize()...
+throws Exception {
+	super ( "Time Series View" );
+	String routine = "TSViewJFrame";
+	// Must set this before calling initialize().
 	this._tsproduct = tsproduct;
-	// Later phase out _tslist
-	// Actually, set a property to make sure the centering works
+	// Later phase out _tslist.
+	// Actually, set a property to make sure the centering works.
 	PropList props = new PropList("TSViewJFrame");
+	if ( Message.isDebugOn ) {
+		Message.printStatus(2, routine, "In TSViewJFrame constructor for tsproduct, from product properies TSViewParentUIComponent=" +
+			tsproduct.getPropList().getContents("TSViewParentUIComponent"));
+	}
 	props.setUsingObject("TSViewParentUIComponent",this);
+	if ( Message.isDebugOn ) {
+		Message.printStatus(2, routine, "In TSViewJFrame constructor for tsproduct, set to hidden JFrame TSViewParentUIComponent=" + this);
+	}
 	initialize ( tsproduct.getTSList(), props );
 }
 
@@ -450,22 +397,20 @@ throws Exception
 Handle action events.
 @param event ActionEvent to handle.
 */
-public void actionPerformed ( ActionEvent event )
-{	
+public void actionPerformed ( ActionEvent event ) {
 }
 
 /**
 @deprecated use the other method that takes a proplist
 */
-public void addTSProductAnnotationProvider(TSProductAnnotationProvider provider) {	
+public void addTSProductAnnotationProvider(TSProductAnnotationProvider provider) {
 	__tsProductAnnotationProviders.add(provider);
 	if (_tsproduct != null) {
 		try {
 			_tsproduct.addTSProductAnnotationProvider(provider, null);
 		}
 		catch (Exception e) {
-			Message.printWarning(2, 
-				"addTSProductAnnotationProvider", "Error adding annotations to provider.");
+			Message.printWarning(2, "addTSProductAnnotationProvider", "Error adding annotations to provider.");
 			Message.printWarning(2, "addTSProductAnnotationProvider", e);
 		}
 	}
@@ -473,13 +418,12 @@ public void addTSProductAnnotationProvider(TSProductAnnotationProvider provider)
 
 /**
 Adds a TSProductAnnotationProvider to the TSProduct viewed by this view JFrame.
-If the TSProduct has time series, the annotation provider will put annotations
-on the product immediately.  Otherwise, the provider will be cached by the
-TSProduct until time series are set in the TSProduct.
+If the TSProduct has time series, the annotation provider will put annotations on the product immediately.
+Otherwise, the provider will be cached by the TSProduct until time series are set in the TSProduct.
 @param provider the TSProductAnnotationProvider to add.
 @param controlProps control properties for the annotation provider.
 */
-public void addTSProductAnnotationProvider(TSProductAnnotationProvider provider, PropList controlProps) {	
+public void addTSProductAnnotationProvider(TSProductAnnotationProvider provider, PropList controlProps) {
 	__tsProductAnnotationProviders.add(provider);
 	if (_tsproduct != null) {
 		try {
@@ -496,19 +440,18 @@ public void addTSProductAnnotationProvider(TSProductAnnotationProvider provider,
 Adds a TSProductDMI to the list of TSProductDMIs stored in this class.
 @param productDMI the TSProductDMI to add.
 */
-public void addTSProductDMI(TSProductDMI productDMI) {	
+public void addTSProductDMI(TSProductDMI productDMI) {
 	__tsProductDMIs.add(productDMI);
 }
 
 /**
-Close a subordinate Frame.  This is done here to coordinate open/closing the
-Frames.  If all subordinate Frames are closed, this Frame is disposed.
+Close a subordinate Frame.  This is done here to coordinate open/closing the JFrames.
+If all subordinate Frames are closed, this Frame is disposed.
 @param type Type of TSView Frame go close (e.g., GRAPH), as defined in this class.
-@return 0 if the window was not closed, 1 if the window was closed, and -1 if the controlling
-TSViewJFrame was closed.
+@return 0 if the window was not closed, 1 if the window was closed, and -1 if the controlling TSViewJFrame was closed.
 */
-protected int closeGUI ( TSViewType type )
-{	int closeCount = 0; // Will be set to 1 if the window actually closed
+protected int closeGUI ( TSViewType type ) {
+	int closeCount = 0; // Will be set to 1 if the window actually closed.
     if ( type == TSViewType.GRAPH ) {
 		if ( _graph_gui != null ) {
 			if (_graph_gui.shouldClose()) {
@@ -516,7 +459,7 @@ protected int closeGUI ( TSViewType type )
 				_graph_gui.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 				_graph_gui.dispose();
 				_graph_gui = null;
-				// Also close the properties window (currently this is only associated with the graph Frame)...
+				// Also close the properties window (currently this is only associated with the graph Frame).
 				closeGUI ( TSViewType.PROPERTIES );
 				++closeCount;
 			}
@@ -557,11 +500,10 @@ protected int closeGUI ( TSViewType type )
 			++closeCount;
 		}
 	}
-	// Close this Frame if there are no other Frames open (otherwise there
-	// is no way to garbage collect)...
+	// Close this Frame if there are no other Frames open (otherwise there is no way to garbage collect).
 	if ( (_graph_gui == null) && (_tsproduct_gui == null) && (_summary_gui == null) &&
 		(_table_gui == null) ) {
-	    // Remove from the manager before disposing...
+	    // Remove from the manager before disposing.
 	    getTSViewWindowManager().remove ( this );
 		setDefaultCloseOperation ( DISPOSE_ON_CLOSE);
 		dispose ();
@@ -587,28 +529,12 @@ public void closePropertiesGUI() {
 }
 
 /**
-Clean up memory for garbage collection.
-@exception Throwable if there is an error.
-*/
-protected void finalize()
-throws Throwable
-{	_tslist = null;	
-	_props = null;
-	_graph_gui = null;
-	_tsproduct = null;
-	_summary_gui = null;
-	_table_gui = null;
-	_tsproduct_gui = null;
-	super.finalize();
-}
-
-/**
 Get a TSView property, which is available to all the view components.
 @return value of property corresponding to the key.
 @param key Property key.
 */
-public String getPropValue ( String key )
-{	return _props.getValue ( key );
+public String getPropValue ( String key ) {
+	return _props.getValue ( key );
 }
 
 /**
@@ -628,11 +554,11 @@ public List<TSProductDMI> getTSProductDMIs() {
 }
 
 /**
-Return a reference to the TSProductJFrame.  This is used from the
-TSGraph code to control the properties window.
+Return a reference to the TSProductJFrame.
+This is used from the TSGraph code to control the properties window.
 */
-public TSProductJFrame getTSProductJFrame()
-{	return _tsproduct_gui;
+public TSProductJFrame getTSProductJFrame() {
+	return _tsproduct_gui;
 }
 
 /**
@@ -647,8 +573,7 @@ public TSViewGraphJFrame getViewGraphJFrame() {
  * Returns the table JFrame.
  * @return table JFrame
  */
-public TSViewTableJFrame getTSViewTableJFrame()
-{
+public TSViewTableJFrame getTSViewTableJFrame() {
   return _table_gui;
 }
 
@@ -656,8 +581,7 @@ public TSViewTableJFrame getTSViewTableJFrame()
 Return the shared window manager for all window instances.
 @return the shared window manager for all window instances.
 */
-public static TSViewWindowManager getTSViewWindowManager()
-{
+public static TSViewWindowManager getTSViewWindowManager() {
   return __tsViewWM;
 }
 
@@ -668,33 +592,33 @@ Initialize the TSViewJFrame data.
 @exception Exception if an error occurs.
 */
 private void initialize ( List<TS> tslist, PropList proplist )
-throws Exception
-{	String message, routine = "TSViewJFrame.initialize";
+throws Exception {
+	String message, routine = getClass().getSimpleName() + ".initialize";
 
 	try {
     	//_parent = parent;
-    	/* TODO SAM 2009-04-16 - allow no time series to be more flexible
+    	/* TODO SAM 2009-04-16 - allow no time series to be more flexible.
     	if ( tslist == null ) {
-    		// Cannot continue, we need a TS list...
+    		// Cannot continue, we need a TS list.
     		throw new Exception ( "No time series to view." );
     	}
     	if ( tslist.size() == 0 ) {
-    		// Cannot continue, we need a TS list...
+    		// Cannot continue, we need a TS list.
     		throw new Exception ( "No time series to view." );
     	}
     	*/
     	this._tslist = tslist;
     	if ( proplist == null ) {
-    		// That is ok, create a new one...
+    		// That is ok, create a new one.
     		this._props = new PropList ( "TSView.Defaults" );
     	}
     	else {
-    	    // Use what was supplied...
+    	    // Use what was supplied.
     		this._props = proplist;
     	}
-    
-    	// Check the proplist for the initial view...
-    
+
+    	// Check the proplist for the initial view.
+
     	String prop_value = null;
     	if ( this._tsproduct == null ) {
     		prop_value = this._props.getValue ( "InitialView" );
@@ -705,7 +629,7 @@ throws Exception
     		//Message.printStatus ( 1,"","InitialView from TSProduct is \""+prop_value + "\"" );
     	}
     	if ( prop_value == null ) {
-    		// Default to summary...
+    		// Default to summary.
     		openGUI ( TSViewType.SUMMARY );
     	}
     	else if ( prop_value.equalsIgnoreCase("Graph") ) {
@@ -715,7 +639,7 @@ throws Exception
     		openGUI ( TSViewType.TABLE );
     	}
     	else {
-    		// Default to summary...
+    		// Default to summary.
     		openGUI ( TSViewType.SUMMARY );
     	}
 	}
@@ -725,23 +649,23 @@ throws Exception
 		Message.printWarning ( 1, routine, message );
 		throw new Exception ( message );
 	}
-	
+
 	if ( this.__tsProductDMIs == null ) {
 		this.__tsProductDMIs = new Vector<TSProductDMI>();
 	}
 	if (__tsProductAnnotationProviders == null) {
-		__tsProductAnnotationProviders = new Vector<TSProductAnnotationProvider>();
+		__tsProductAnnotationProviders = new Vector<>();
 	}
 }
 
 /**
-Indicate whether the time series have been modified.  Ideally a change in one
-view will result in other views being changed.  Currently time series cannot
-be edited and only the graph properties can be dynamically set so the dirty
+Indicate whether the time series have been modified.
+Ideally a change in one view will result in other views being changed.
+Currently time series cannot be edited and only the graph properties can be dynamically set so the dirty
 flag is not used by the different views.
 */
-protected boolean isDirty ()
-{	return _is_dirty;
+protected boolean isDirty () {
+	return _is_dirty;
 }
 
 /**
@@ -757,21 +681,20 @@ protected void isDirty ( boolean is_dirty )
 Set whether the views are visible.  Currently this does nothing.
 @param is_visible Indicates whether all views should be visible.
 */
-protected void isVisible ( boolean is_visible )
-{	// This frame is always invisible but need to make sure the components are set to invisible...
+protected void isVisible ( boolean is_visible ) {
+	// This frame is always invisible but need to make sure the components are set to invisible.
 }
 
 /**
 Indicate whether the graph needs to be closed due to start-up problems.
-This will be the case, for example, if time series are incompatible for plotting
-and the user indicates not to continue.  This should be called by the parent
-code after a TSViewGraphFrame is constructed.  If the graph is null (was not
-created), then true is returned.
+This will be the case, for example, if time series are incompatible for plotting and the user indicates not to continue.
+This should be called by the parent code after a TSViewGraphFrame is constructed.
+If the graph is null (was not created), then true is returned.
 @return true if the graph should be automatically closed due to data problems,
 false if the graph should be (or is currently) displayed.
 */
-public boolean needToCloseGraph ()
-{	if ( _graph_gui != null ) {
+public boolean needToCloseGraph () {
+	if ( _graph_gui != null ) {
 		return _graph_gui.needToClose();
 	}
 	else {
@@ -780,93 +703,87 @@ public boolean needToCloseGraph ()
 }
 
 /**
-Open a subordinate GUI.  This is done here to coordinate open/closing the
-JFrames within the package classes.
+Open a subordinate GUI.  This is done here to coordinate open/closing the JFrames within the package classes.
 @param type Type of GUI to open (e.g., GRAPH).
 */
-protected void openGUI ( TSViewType type )
-{	String routine = "TSViewJFrame.openGUI";
+protected void openGUI ( TSViewType type ) {
+	String routine = getClass().getSimpleName() + ".openGUI";
     TSViewWindowManager wm = getTSViewWindowManager();
 	try {
     	if ( type == TSViewType.GRAPH ) {
     		if ( _graph_gui == null ) {
-    			// OK to open new GUI...
+    			// OK to open new GUI.
     			setWaitCursor ( true );
-    
+
     			if ( _tsproduct == null ) {
-    				// Old-style...
+    				// Old-style.
     				_graph_gui = new TSViewGraphJFrame ( this, this._tslist, this._props );
     			}
     			else {
-    				// New-style...
+    				// New-style.
     				_tsproduct.setTSList ( _tslist );
-    				_graph_gui = new TSViewGraphJFrame ( this, _tsproduct );
+    				_graph_gui = new TSViewGraphJFrame ( this, this._tsproduct );
     			}
    				wm.add ( this, _graph_gui );
     			setWaitCursor ( false );
-    			// The following gracefully handles shut-down of a graph.  An attempt to close the graph
-    			// GUI from itself will fail because _graph_gui will still be null.
+    			// The following gracefully handles shut-down of a graph.
+    			// An attempt to close the graph GUI from itself will fail because _graph_gui will still be null.
     			if ( _graph_gui.needToClose() ) {
-    				Message.printStatus ( 2, routine,
-    				"Automatically closing the graph because of initialization problems." );
+    				Message.printStatus ( 2, routine, "Automatically closing the graph because of initialization problems." );
     				closeGUI ( TSViewType.GRAPH );
     			}
     		}
     		else {
-    			// The GUI is already open, pop to the front (any way to do this?)...
+    			// The GUI is already open, pop to the front (any way to do this?).
     			_graph_gui.setVisible ( true );
     			_graph_gui.toFront();
     		}
     	}
     	else if ( type == TSViewType.PROPERTIES ) {
     		if ( _tsproduct_gui == null ) {
-    			// Need to pass in the main canvas, which is
-    			// currently where the TSProduct properties are fully checked.
+    			// Need to pass in the main canvas, which is currently where the TSProduct properties are fully checked.
     			if ( _graph_gui != null ) {
     				_tsproduct_gui = new TSProductJFrame ( this, _graph_gui.getMainJComponent() );
     				wm.add ( this, _tsproduct_gui );
     			}
     		}
     		else {
-    			// The GUI is already open, pop to the front (any way to do this?)...
+    			// The GUI is already open, pop to the front (any way to do this?).
     			_tsproduct_gui.setVisible ( true );
     		}
     	}
     	else if (type == TSViewType.PROPERTIES_HIDDEN) {
     		if (_tsproduct_gui == null) {
-    			// Need to pass in the main canvas, which is currently where the TSProduct properties
-    			// are fully checked.
+    			// Need to pass in the main canvas, which is currently where the TSProduct properties are fully checked.
     			if (_graph_gui != null) {
     				_tsproduct_gui = new TSProductJFrame(this, _graph_gui.getMainJComponent(),false);
     				wm.add ( this, _tsproduct_gui );
     			}
     		}
-    		else {	
-    			// The GUI is already open, in a visible or invisible
-    			// mode.  Either way, it's fine how it is.  
+    		else {
+    			// The GUI is already open, in a visible or invisible mode.  Either way, it's fine how it is.
     		}
-    	}	
+    	}
     	else if ( type == TSViewType.SUMMARY ) {
     		if ( _summary_gui == null ) {
-    			// OK to open new GUI...
+    			// OK to open new GUI.
     			setWaitCursor ( true );
     			_summary_gui = new TSViewSummaryJFrame ( this, _tslist, _props );
     			wm.add ( this, _summary_gui );
     		}
     		else {
-    			// The GUI is already open, pop to the front (any way to do this?)...
+    			// The GUI is already open, pop to the front (any way to do this?).
     			_summary_gui.setVisible ( true );
     		}
     	}
     	else if ( type == TSViewType.TABLE ) {
     		if ( _table_gui == null ) {
-    			// OK to open new GUI...
+    			// OK to open new GUI.
     			setWaitCursor ( true );
     			_table_gui = new TSViewTableJFrame ( this, _tslist,	_props );
     			wm.add ( this, _table_gui );
-    			// The following gracefully handles shut-down of a
-    			// graph.  An attempt to close the graph GUI from 
-    			// itself will fail because _graph_gui will still be null.
+    			// The following gracefully handles shut-down of a graph.
+    			// An attempt to close the graph GUI from itself will fail because _graph_gui will still be null.
     			/*
     			TODO (JTS - 2003-07-21) this method was removed from TSViewTableJFrame.
     			if ( _table_gui.needToClose() ) {
@@ -875,7 +792,7 @@ protected void openGUI ( TSViewType type )
     			*/
     		}
     		else {
-    			// The GUI is already open, pop to the front (any way to do this?)...
+    			// The GUI is already open, pop to the front (any way to do this?).
     			_table_gui.setVisible ( true );
     		}
     	}
@@ -903,8 +820,8 @@ public void openPropertiesGUI() {
 /**
 Refresh the displays based on property changes.  Currently only the graph GUI is refreshed.
 */
-protected void refresh ()
-{	// For now only refresh the plot.
+protected void refresh () {
+	// For now only refresh the plot.
 	if ( _graph_gui != null ) {
 		_graph_gui.refresh();
 	}
@@ -920,7 +837,7 @@ TSProductAnnotationProvider provider) {
 
 	TSProductAnnotationProvider tsProductAnnotationProvider = null;
 	for (int i = (size - 1); i <= 0; i--) {
-		tsProductAnnotationProvider = (TSProductAnnotationProvider)__tsProductAnnotationProviders.get(i);
+		tsProductAnnotationProvider = __tsProductAnnotationProviders.get(i);
 		if (tsProductAnnotationProvider == provider) {
 			__tsProductAnnotationProviders.remove(i);
 		}
@@ -947,8 +864,8 @@ public void removeTSProductDMI(TSProductDMI productDMI) {
 /**
 Save the time series in the list to a DateValue file.  The user is prompted to select an output file.
 */
-public void saveAsDateValue ()
-{	String routine = "TSViewJFrame.saveAsDateValue";
+public void saveAsDateValue () {
+	String routine = getClass().getSimpleName() + ".saveAsDateValue";
 	Message.printStatus ( 2, routine, "Saving DateValue file." );
 	if ( !TSUtil.intervalsMatch(_tslist) ) {
 		Message.printWarning ( 1, routine, "Unable to write DateValue time series of different intervals." );
@@ -991,8 +908,8 @@ Set the interaction mode.  Currently this just calls the TSViewGraphFrame versio
 Need to figure out how listeners will communicate within this package.
 @param mode TSViewGraphFrame interaction mode.
 */
-public void setInteractionMode ( int mode )
-{	if ( _graph_gui != null ) {
+public void setInteractionMode ( int mode ) {
+	if ( _graph_gui != null ) {
 		_graph_gui.setInteractionMode( mode );
 	}
 }
@@ -1003,18 +920,18 @@ Set a property, which will be available to all the view components.
 @param value Property value string.
 @deprecated Set the property in the TSProduct.
 */
-public void setPropValue ( String key, String value )
-{	_props.set ( key, value );
+public void setPropValue ( String key, String value ) {
+	_props.set ( key, value );
 }
 
 /**
-Set the wait cursor on/off.  This can be used, for example, to set the cursor
-for the views to the hourglass while a view is opening.
+Set the wait cursor on/off.
+This can be used, for example, to set the cursor for the views to the hourglass while a view is opening.
 @param status true to set to wait cursor, false to set to normal cursor.
 */
-public void setWaitCursor ( boolean status )
-{	if ( _graph_gui != null ) {
-		// Don't use the glass pane to intercept events because that is handled by the component
+public void setWaitCursor ( boolean status ) {
+	if ( _graph_gui != null ) {
+		// Don't use the glass pane to intercept events because that is handled by the component.
 		JGUIUtil.setWaitCursor ( _graph_gui, status, false );
 	}
 	if ( _table_gui != null ) {

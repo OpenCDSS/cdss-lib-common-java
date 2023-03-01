@@ -26,6 +26,7 @@ package RTi.Util.IO;
 import java.lang.Object;
 import java.lang.String;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 import java.io.BufferedReader;
@@ -51,9 +52,9 @@ Often, a PropList will contain only simple string properties.
 However, it is possible to store any Object in a PropList, keyed by a name.
 Internally, each property has a String key, a String value, an Object contents,
 and an integer flag indicating how the property was set (from file, by user, etc).
-For simple strings, the value and contents are the same.  For other Objects, the contents
-evaluates to toString(); however, applications will often use the contents
-directly by casting after retrieving from the PropList.
+For simple strings, the value and contents are the same.
+For other Objects, the contents evaluates to toString();
+however, applications will often use the contents directly by casting after retrieving from the PropList.
 <p>
 
 An additional feature of PropList is the use of variables in strings.
@@ -87,13 +88,16 @@ it is common to use the "how set" flag to control how the properties file is wri
 <pre>
 PropList props = new PropList ( "" );
 props.setPersistentName ( "somefile" );
+
 // The following uses a "how set" value of Prop.SET_FROM_PERSISTENT.
 props.readPersistent ( "somefile" );
-// Next, the application may check the file properties and assign some internal
-// defaults to have a full set of properties...
+
+// Next, the application may check the file properties and assign some internal defaults to have a full set of properties.
 props.setHowSet ( Prop.SET_AS_RUNTIME_DEFAULT );
+
 // When a user interface is displayed...
 props.setHowSet ( Prop.SET_AT_RUNTIME_BY_USER );
+
 // ...User interaction...
 props.setHowSet ( Prop.SET_UNKNOWN );
 // Then there is usually custom code to write a specific PropList to a file.
@@ -260,7 +264,7 @@ public PropList (PropList props, boolean cloneContents) {
 }
 
 /**
-Construct given the name of the list (the list name should be unique if multiple lists are being used in a PropListManager.
+Construct given the name of the list (the list name should be unique if multiple lists are being used in a PropListManager).
 The persistent format defaults to FORMAT_UNKNOWN.
 @param listName The name of the property list.
 @see PropListManager
@@ -332,6 +336,25 @@ Remove all items from the PropList.
 */
 public void clear() {
 	__list.clear();
+}
+
+/**
+ * Dump the property list to the log file, used in troubleshooting.
+ * All properties are written to the log file using status messages.
+ */
+public void dumpPropList() {
+	String routine = getClass().getSimpleName() + ".dumpPropList";
+	Prop p;
+	String name;
+	String value;
+	Object object;
+	for ( int i = 0; i < size(); i++ ) {
+		p = propAt(i);
+		name = p.getKey();
+		value = p.getValue();
+		object = p.getContents();
+		Message.printStatus(2, routine, "Property name=" + name + " value=" + value + " object=" + object);
+	}
 }
 
 /**
@@ -486,7 +509,7 @@ public List<Prop> getPropsMatchingRegExp ( String regExp ) {
 		return null;
 	}
 	int size = __list.size();
-	List<Prop> props = new Vector<>();
+	List<Prop> props = new ArrayList<>();
 	Prop prop;
 	for ( int i = 0; i < size; i++ ) {
 		prop = __list.get(i);
@@ -586,6 +609,7 @@ public static PropList getValidPropList ( PropList props, String newName ) {
 
 /**
 The string value of the property corresponding to the string key, or null if not found.
+If the Prop was set using setUsingContents, the string value will not have been set and an empty string is returned (not null).
 @return The string value of the property corresponding to the string key.
 @param key The string key used to look up the property.
 */
@@ -607,6 +631,7 @@ public String getValue ( String key ) {
 
 /**
 Return the string value of the property given the instance number (allows storage of duplicate keys), or null if not found.
+If the Prop was set using setUsingContents, the string value will not have been set and an empty string is returned (not null).
 @return The string value of the property corresponding to the string key, or <CODE>null</CODE> if not found.
 @param key The string key used to look up the property.
 @param inst Instance number of property (0+). If inst is one, then
@@ -623,6 +648,7 @@ public String getValue ( String key, int inst ) {
 
 /**
 Return the string value of the property corresponding to the integer key, or null if not a valid integer key.
+If the Prop was set using setUsingContents, the string value will not have been set and an empty string is returned (not null).
 @return The string value of the property corresponding to the integer key.
 @param intKey The integer key used to look up the property.
 */
@@ -935,7 +961,7 @@ throws IOException {
                 }
         		continue;
         	}
-        	v = new Vector<>(2);
+        	v = new ArrayList<>(2);
         	v.add ( line.substring(0,pos) );
         	v.add ( line.substring(pos + 1) );
 
@@ -1390,12 +1416,12 @@ throws Exception {
 	String key = null;
 	String msg = null;
 	String val = null;
-	List<String> warnings = new Vector<>();
+	List<String> warnings = new ArrayList<>();
 
 	// Iterate through all the properties in the PropList and check for whether they are valid, invalid, or deprecated.
 
-	List<String> invalids = new Vector<>();
-	List<String> deprecateds = new Vector<>();
+	List<String> invalids = new ArrayList<>();
+	List<String> deprecateds = new ArrayList<>();
 
 	String removeInvalidString = "";
 	if ( removeInvalid ) {
