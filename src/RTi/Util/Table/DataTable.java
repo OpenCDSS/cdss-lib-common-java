@@ -1796,17 +1796,19 @@ Return the field index associated with the given field name.
 @param field_name Field name to look up.
 @exception Exception if the field name is not found.
 */
-public int getFieldIndex ( String field_name )
+public int getFieldIndex ( String fieldName )
 throws Exception {
+	//String routine = getClass().getSimpleName() + ".getFieldndex";
 	int num = _table_fields.size();
-	for ( int i=0; i<num; i++ ) {
-		if ((_table_fields.get(i)).getName().equalsIgnoreCase(field_name)) {
+	for ( int i = 0; i < num; i++ ) {
+		//Message.printStatus(2, routine, "Checking field name \"" + _table_fields.get(i).getName() + "\" to find \"" + fieldName + "\".");
+		if ((_table_fields.get(i)).getName().equalsIgnoreCase(fieldName)) {
 			return i;
         }
 	}
 
 	// If this line is reached, the given field was never found.
-	throw new Exception( "Unable to find table field with name \"" + field_name + "\" in table \"" + getTableID() + "\"" );
+	throw new Exception( "Unable to find table field with name \"" + fieldName + "\" in table \"" + getTableID() + "\"" );
 }
 
 /**
@@ -2923,7 +2925,7 @@ throws Exception {
 	String col = null;
 
 	// Create an array to use for determining the maximum size of all the fields that are Strings.
-	// This will be used to set the width of the data values for those fields so thatthe width of the field is
+	// This will be used to set the width of the data values for those fields so that the width of the field is
 	// equal to the width of the longest string.
 	// This is mostly important for when the table is to be placed within a DataTable_TableModel,
 	// so that the String field data are not truncated.
@@ -3086,12 +3088,21 @@ The lines in delimited files do not need to all have the same number of columns:
 the number of columns in the returned DataTable will be
 the same as the line in the file with the most delimited columns,
 all others will be padded with empty value columns on the right of the table.
-@param filename the name of the file from which to read the table data.
+@param filename the name of the file from which to read the table data,
+will be ignored if the BufferedReader property is provided.
 @param props a PropList with settings for how the file should be read and handled.<p>
 Properties and their effects:<br>
 <table width=100% cellpadding=10 cellspacing=0 border=2>
 <tr>
 <td><b>Property</b></td>    <td><b>Description</b></td> <td><b>Default</b></td>
+</tr>
+
+<tr>
+<td><b>BufferedReader</b></td>
+<td>A BufferedReader that has been opened for the filename to read,
+for example if the file is being read from a Jar file resource.
+The BufferedReader must be set as the property contents (not the string value).</td>
+<td>The specified file will be read.</td>
 </tr>
 
 <tr>
@@ -3274,7 +3285,8 @@ throws Exception {
             // Determine the list of rows for the header.
             List<String> headerRowList = StringUtil.breakStringList ( propVal, ", ", StringUtil.DELIM_SKIP_BLANKS );
             if ( headerRowList.size() > 1 ) {
-            	Message.printWarning(3, routine, "Currently only know how to handle a single header line (headers must be on one line in file).");
+            	Message.printWarning(3, routine,
+            		"Currently only know how to handle a single header line (headers must be on one line in file).");
             	// Remove the remaining header line numbers.
             	for ( int i = (headerRowList.size() - 1); i > 0; --i ) {
             		headerRowList.remove(i);
@@ -3464,7 +3476,16 @@ throws Exception {
 	int maxColumns = 0;
 	int numColumnsParsed = 0;
 
-	BufferedReader in = new BufferedReader(new FileReader(filename));
+	Object object = props.getContents("BufferedReader");
+	BufferedReader in = null;
+	if ( object != null ) {
+		// Use the provided BufferedReader.
+		in = (BufferedReader)object;
+	}
+	else {
+		// Open the file.
+		in = new BufferedReader(new FileReader(filename));
+	}
 	String line;
 
 	// TODO JTS 2006-06-05
@@ -3524,12 +3545,15 @@ throws Exception {
 		// - header lines MUST come before data lines
 		// - currently only handle one header line
 
+        //Message.printStatus(2, routine, "headers_found=" + headers_found + ", dataLineCount=" + dataLineCount +
+        //	", HeaderLines_Auto_boolean=" + HeaderLines_Auto_boolean + ", HeaderLineList=" + HeaderLineList );
 		if ( !headers_found && (dataLineCount == 0) &&
 			(HeaderLines_Auto_boolean || ((HeaderLineList != null) && (dataLineCount == 0)) ) ) { //&& (headerLineCount <= HeaderLinesList_maxval)) ) ) {}
 		    if ( HeaderLines_Auto_boolean ) {
 		        // If a quote is detected, then this line is assumed to contain the name of the columns.
         	    if (line.startsWith("\"")) {
         	    	// HeaderLineCount
+		            Message.printStatus(2, routine, "Header line to parse:" + line);
         	        tableFields = parseFile_ParseHeaderLine ( line, linecount0, TrimInput_Boolean, Delimiter, parseFlagHeader );
         	        numFields = tableFields.size();
         	        // Go to the top of the loop to read another line.
@@ -3763,7 +3787,8 @@ throws Exception {
     	    	tableField.setDataType(TableField.DATA_TYPE_DATETIME);
     	        tableFieldType[icol] = TableField.DATA_TYPE_DATETIME;
     	        Message.printStatus ( 2, routine, "Column [" + icol +
-    	            "] type is date/time as determined from specified column type (" + count_int[icol] +
+    	            "] \"" + tableField.getName() + "\" type \"" + TableField.getDataTypeAsString(tableField.getDataType()) +
+    	            "\" is date/time as determined from specified column type (" + count_int[icol] +
                     " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings, " +
                     count_blank[icol] + " blanks, width=" + lenmax_string[icol] + ", precision=" + precision[icol] + ".");
     	    }
@@ -3771,7 +3796,8 @@ throws Exception {
     	    	tableField.setDataType(TableField.DATA_TYPE_DOUBLE);
     	        tableFieldType[icol] = TableField.DATA_TYPE_DOUBLE;
     	        Message.printStatus ( 2, routine, "Column [" + icol +
-    	            "] type is double as determined from specified column type (" + count_int[icol] +
+    	            "] \"" + tableField.getName() + "\" type \"" + TableField.getDataTypeAsString(tableField.getDataType()) +
+    	            "\" is double as determined from specified column type (" + count_int[icol] +
                     " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings, " +
                     count_blank[icol] + " blanks, width=" + lenmax_string[icol] + ", precision=" + precision[icol] + ".");
                 tableField.setWidth (lenmax_string[icol] );
@@ -3784,7 +3810,8 @@ throws Exception {
     	    	tableField.setDataType(TableField.DATA_TYPE_INT);
     	        tableFieldType[icol] = TableField.DATA_TYPE_INT;
     	        Message.printStatus ( 2, routine, "Column [" + icol +
-    	            "] type is integer as determined from specified column type (" + count_int[icol] +
+    	            "] \"" + tableField.getName() + "\" type \"" + TableField.getDataTypeAsString(tableField.getDataType()) +
+    	            "\" is integer as determined from specified column type (" + count_int[icol] +
                     " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings, " +
                     count_blank[icol] + " blanks, width=" + lenmax_string[icol] + ", precision=" + precision[icol] + ".");
     	    }
@@ -3799,7 +3826,8 @@ throws Exception {
     	            tableField.setWidth (lenmax_string[icol] );
     	        }
     	        Message.printStatus ( 2, routine, "Column [" + icol +
-    	            "] type is string as determined from specified column type (" + count_int[icol] +
+    	            "] \"" + tableField.getName() + "\" type \"" + TableField.getDataTypeAsString(tableField.getDataType()) +
+    	            "\" is string as determined from specified column type (" + count_int[icol] +
                     " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings, " +
                     count_blank[icol] + " blanks, width=" + lenmax_string[icol] + ", precision=" + precision[icol] + ".");
     	    }
@@ -3812,7 +3840,8 @@ throws Exception {
     	        tableFieldType[icol] = TableField.DATA_TYPE_INT;
     	        tableField.setWidth (lenmax_string[icol] );
     	        Message.printStatus ( 2, routine, "Column [" + icol +
-    	            "] type is integer as determined from examining data (" + count_int[icol] +
+    	            "] \"" + tableField.getName() + "\" type \"" + TableField.getDataTypeAsString(tableField.getDataType()) +
+    	            "\" is integer as determined from examining data (" + count_int[icol] +
     	            " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings, " +
                     count_blank[icol] + " blanks).");
     	    }
@@ -3823,7 +3852,8 @@ throws Exception {
                 tableField.setWidth (lenmax_string[icol] );
                 tableField.setPrecision ( precision[icol] );
                 Message.printStatus ( 2, routine, "Column [" + icol +
-                    "] type is double as determined from examining data (" + count_int[icol] +
+                    "] \"" + tableField.getName() + "\" type \"" + TableField.getDataTypeAsString(tableField.getDataType()) +
+    	            "\" is double as determined from examining data (" + count_int[icol] +
                     " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings, " +
                     count_blank[icol] + " blanks, width=" + lenmax_string[icol] + ", precision=" + precision[icol] + ".");
             }
@@ -3839,7 +3869,8 @@ throws Exception {
     	            tableField.setWidth (lenmax_string[icol] );
     	        }
     	        Message.printStatus ( 2, routine, "Column [" + icol +
-                    "] type is string as determined from examining data (" + count_int[icol] +
+                    "] \"" + tableField.getName() + "\" type \"" + TableField.getDataTypeAsString(tableField.getDataType()) +
+    	            "\" is string as determined from examining data (" + count_int[icol] +
                     " integers, " + count_double[icol] + " doubles, " + count_string[icol] + " strings), " +
                     count_blank[icol] + " blanks.");
     	       // Message.printStatus ( 2, routine, "length max=" + lenmax_string[icol] );
@@ -3853,8 +3884,9 @@ throws Exception {
 	        tableField.setDataType(TableField.DATA_TYPE_STRING);
 	        tableFieldType[icol] = TableField.DATA_TYPE_STRING;
 	        tableField.setWidth (lenmax_string[icol] );
-	        Message.printStatus ( 2, routine,"Column [" + icol + "] type is " +
-	            tableField.getDataType() + " all strings assumed, width =" + tableField.getWidth() );
+	        Message.printStatus ( 2, routine,"Column [" + icol + "] \"" + tableField.getName() +
+	        	"\" type \"" + TableField.getDataTypeAsString(tableField.getDataType()) +
+    	        "\" is " + tableField.getDataType() + " all strings assumed, width=" + tableField.getWidth() );
 	    }
 	}
 	// The data fields may have less columns than the headers and if so set the field type of the unknown columns to string.
@@ -4050,7 +4082,8 @@ private static List<TableField> parseFile_ParseHeaderLine (
         }
         tableField = new TableField();
         tableField.setName(temp);
-        // All table fields by default are treated as strings.
+        // All table fields by default are treated as strings:
+        // - the column type will be set after reading the data lines
         tableField.setDataType(TableField.DATA_TYPE_STRING);
         tableFields.add(tableField);
     }
@@ -4715,11 +4748,19 @@ Sort the table rows by sorting a column's values.
 @param sortColumns the name of the columns to be sorted, allowed to be integer, double, string, or DateTime type.
 @param sortOrder order to sort (specify as 0+ to sort ascending and < 0 to sort descending)
 @return the sort order array indicating the position in the original data
-(useful if a parallel sort of data needs to occur)
+(useful if a parallel sort of data needs to occur), default is ascending
 */
 public int [] sortTable ( String [] sortColumns, int [] sortOrder ) {
 	String routine = getClass().getSimpleName() + ".sortTable";
     int [] sortColumnsNum = new int[sortColumns.length];
+    if ( sortOrder == null ) {
+    	// Default to ascending.
+    	sortOrder = new int[sortColumns.length];
+    	for ( int i = 0; i < sortOrder.length; i++ ) {
+    		sortOrder[i] = 0;
+    	}
+    }
+    // List of sort column names that are not found in the table.
     List<String> errors = new ArrayList<>();
     for ( int i = 0; i < sortColumns.length; i++ ) {
     	sortColumnsNum[i] = -1;
@@ -5237,7 +5278,7 @@ throws Exception {
 	if ( !commentLinePrefix.equals("") ) {
 	    commentLinePrefix2 = commentLinePrefix + " "; // Add space for readability.
 	}
-	
+
 	// Check whether should append.
 	boolean append = false;
 	Object propO = writeProps.get("Append");
