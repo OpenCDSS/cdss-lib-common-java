@@ -195,15 +195,14 @@ private List<String> __choiceInternalList = null;
 /**
 Used when the choices are not simple strings but contain informational notes.
 For example "Station - Streamflow" would have a delimiter of "-".
-The surruounding spaces are typically handled by UI code.
+The surrounding spaces are typically handled by UI code.
 */
 private String __choiceDelimiter = null;
 
 /**
 Used when the choices are not simple strings but contain informational notes.
 Index (relatative to 0) for the token position containing choice data for selection.
-For example "Station - Streamflow" would use a value of 1 to indicate that "Streamflow" is the data
-to be used in the choice.
+For example "Station - Streamflow" would use a value of 1 to indicate that "Streamflow" is the data to be used in the choice.
 */
 private int __choiceToken = 0;
 
@@ -580,10 +579,11 @@ public String getInput ( boolean return_full ) {
 	else if ( __inputComponent instanceof SimpleJComboBox ) {
 		SimpleJComboBox cb = (SimpleJComboBox)__inputComponent;
 		if ( return_full || (__choiceDelimiter == null) ) {
-			// Input choices are not formatted.
+			// Input choices are not formatted with additional information.
 			return cb.getSelected();
 		}
 		else {
+			// Input choices are formatted with additional information (e.g., "data - note").
 		    // Return a token from the input choices.
 			return StringUtil.getToken(cb.getSelected(), __choiceDelimiter,
 				StringUtil.DELIM_SKIP_BLANKS, __choiceToken );
@@ -630,11 +630,14 @@ If the input component is a JTextField, the visible input is returned.
 public String getInputInternal () {
 	if ( __inputComponent instanceof SimpleJComboBox ) {
 		SimpleJComboBox cb = (SimpleJComboBox)__inputComponent;
+		// Get the token index that should be used.
 		int pos = cb.getSelectedIndex();
 		if (pos == -1) {
+			// ComboBox item was not selected so return the text field value.
 			return cb.getFieldText();
 		}
 		else {
+			// Combobox item was selected so return the value at the index.
 			return __choiceInternalList.get(pos);
 		}
 	}
