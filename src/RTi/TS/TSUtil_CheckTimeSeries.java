@@ -128,6 +128,11 @@ Column number for __tableTSIDColumn.
 private int __tableTSIDColumnNum = 4;
 
 /**
+Format of TSID for table TSID column.
+*/
+private String __tableTSIDFormat = null;
+
+/**
 Name of table column for date/time.
 */
 private String __tableDateTimeColumn = null;
@@ -181,11 +186,6 @@ private String __tableCheckMessageColumn = null;
 Column number for __tableCheckMessageColumn.
 */
 private int __tableCheckMessageColumnNum = -1;
-
-/**
-Format of TSID for table TSID column.
-*/
-private String __tableTSIDFormat = null;
 
 /**
 Constructor.

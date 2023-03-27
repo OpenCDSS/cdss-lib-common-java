@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,21 +29,22 @@ import java.util.List;
 import RTi.Util.Message.Message;
 
 /**
-The TimeInterval class provide methods to convert intervals from
-integer to string representations.  Common usage is to call the parseInterval()
-method to parse a string and then use the integer values to increase
-performance.  The TimeInterval data members can be used when creating DateTime instances.
+The TimeInterval class provide methods to convert intervals from integer to string representations.
+Common usage is to call the parseInterval() method to parse a string and then use the integer values to increase performance.
+The TimeInterval data members can be used when creating DateTime instances.
 A lookup of string interval names from the integer values may not return
 exactly the string that is allowed in a parse (due to case being ignored, etc.).
 */
 public class TimeInterval
 {
 /**
-Time interval base values.  These intervals are guaranteed to have values less
-than 256 (this should allow for addition of other intervals if necessary).  The
-interval values may change in the future.  The values assigned to intervals
-increase with the magnitude of the interval (e.g., YEAR > MONTH).  Only irregular has no place in
-the order.  Flags above >= 256 are reserved for DateTime constructor flags.
+Time interval base values.
+These intervals are guaranteed to have values less than 256
+(this should allow for addition of other intervals if necessary).
+The interval values may change in the future.
+The values assigned to intervals increase with the magnitude of the interval (e.g., YEAR > MONTH).
+Only irregular has no place in the order.
+Flags above >= 256 are reserved for DateTime constructor flags.
 These values are set as the DateTime.PRECISION* values to maintain consistency.
 */
 public static final int UNKNOWN = -1; // Unknown, e.g., for initialization.
@@ -98,16 +99,16 @@ private int irregularPrecision = UNKNOWN;
 /**
 Construct and initialize data to zeros and empty strings.
 */
-public TimeInterval ()
-{	init();
+public TimeInterval () {
+	init();
 }
 
 /**
 Copy constructor.
 @param interval TSInterval to copy.
 */
-public TimeInterval ( TimeInterval interval )
-{	init();
+public TimeInterval ( TimeInterval interval ) {
+	init();
 	__intervalBase = interval.getBase ();
 	__intervalMult = interval.getMultiplier ();
 	__intervalBaseString = interval.getBaseString ();
@@ -117,14 +118,13 @@ public TimeInterval ( TimeInterval interval )
 /**
 Constructor from the integer base and multiplier.
 The string base name is set to defaults.
-The multiplier is not relevant if the base is IRREGULAR, although in the future
-intervals like IrregMonth may be allowed.
+The multiplier is not relevant if the base is IRREGULAR, although in the future intervals like IrregMonth may be allowed.
 @param base Interval base.
 @param mult Interval multiplier.  If set to <= 0, the multiplier string returned
 from getMultiplierString() will be set to "" and the integer multiplier will be set to 1.
 */
-public TimeInterval ( int base, int mult )
-{	init();
+public TimeInterval ( int base, int mult ) {
+	init();
 	__intervalBase = base;
 	__intervalMult = mult;
 	__intervalBaseString = getName ( base );
@@ -147,8 +147,8 @@ Instead use equivalent(), lessThanOrEqualTo(), or greterThanOrEqualTo().
 @param interval TimeInterval to compare.
 @return true if the integer interval base and multiplier are equal, false otherwise.
 */
-public boolean equals ( TimeInterval interval )
-{	if ( (__intervalBase == interval.getBase() ) && (__intervalMult == interval.getMultiplier()) ) {
+public boolean equals ( TimeInterval interval ) {
+	if ( (__intervalBase == interval.getBase() ) && (__intervalMult == interval.getMultiplier()) ) {
 		return true;
 	}
 	else {
@@ -162,8 +162,7 @@ This method does not check for cases like 60Minute = 1Hour (false will be return
 Instead use equivalent(), lessThanOrEqualTo(), or greterThanOrEqualTo().
 Makes sure the object passed in is a TimeInterval and then calls equals(TimeInterval).
 @param o an Object to compare with
-@return true if the object is a time interval and if the integer interval base 
-and multiplier are equal, false otherwise.
+@return true if the object is a time interval and if the integer interval base and multiplier are equal, false otherwise.
 */
 public boolean equals(Object o) {
     boolean eq = o instanceof TimeInterval;
@@ -174,16 +173,16 @@ public boolean equals(Object o) {
 }
 
 /*
-Determine if two instances are equivalent.  The intervals are equivalent if the
-interval information matches exactly and in cases like the following:
+Determine if two instances are equivalent.
+The intervals are equivalent if the interval information matches exactly and in cases like the following:
 60Minute = 1Hour.
 @param interval TimeInterval to compare.
 @return true if the integer interval base and multiplier are equivalent, false
 otherwise.
 */
-/* TODO SAM 2005-03-03 Need to implement when there is time
-public boolean equivalent ( TimeInterval interval )
-{	// Do simple check.
+/* TODO SAM 2005-03-03 Need to implement when there is time.
+public boolean equivalent ( TimeInterval interval ) {
+	// Do simple check.
 	if ( equals(interval) ) {
 		return true;
 	}
@@ -203,14 +202,15 @@ public int getBase ()
 Return the interval base as a string.
 @return The interval base as a string.
 */
-public String getBaseString ()
-{	return __intervalBaseString;
+public String getBaseString () {
+	return __intervalBaseString;
 }
 
 /**
  * Return the precision for irregular interval time series.
  * This is more explicit than relying on date/time used in irregular time series.
- * @return the precision for irregular interval time series, for example SECOND is returned if interval is "IrregSecond"
+ * @return the precision for irregular interval time series, for example SECOND is returned if interval is "IrregSecond",
+ * and UNKNOWN if "Irregular"
  */
 public int getIrregularIntervalPrecision () {
 	return this.irregularPrecision;
@@ -220,16 +220,16 @@ public int getIrregularIntervalPrecision () {
 Return the interval multiplier.
 @return The interval multiplier.
 */
-public int getMultiplier ()
-{	return __intervalMult;
+public int getMultiplier () {
+	return __intervalMult;
 }
 
 /**
 Return the interval base as a string.
 @return The interval base as a string.
 */
-public String getMultiplierString ()
-{	return __intervalMultString;
+public String getMultiplierString () {
+	return __intervalMultString;
 }
 
 /**
@@ -252,8 +252,8 @@ Note that the string is upper-case.  Convert the 2nd+ characters to lower-case i
 if 0 return mixed/camel case (e.g., "Day", which will be useful if additional irregular data interval strings are supported),
 if 1 return uppercase (e.g., "DAY").
 */
-public static String getName ( int interval, int format )
-{	String name = "";
+public static String getName ( int interval, int format ) {
+	String name = "";
 	if ( interval == YEAR ) {
 		name = "Year";
 	}
@@ -316,8 +316,8 @@ This version does NOT include the Irregular time step.
 @param pad_zeros If true, pad the strings with zeros (e.g., "06Hour").  If false do not pad (e.g., "6Hour").
 @param sort_order Specify zero or 1 to sort ascending (small interval to large), -1 to sort descending.
 */
-public static List<String> getTimeIntervalChoices ( int start_interval, int end_interval, boolean pad_zeros, int sort_order )
-{	return getTimeIntervalChoices ( start_interval, end_interval, pad_zeros, sort_order, false );
+public static List<String> getTimeIntervalChoices ( int start_interval, int end_interval, boolean pad_zeros, int sort_order ) {
+	return getTimeIntervalChoices ( start_interval, end_interval, pad_zeros, sort_order, false );
 }
 
 /**
@@ -331,8 +331,8 @@ optionally including the Irregular time step.  No multipliers are prefixed on th
 If included, "Irregular" is always at the end of the list.
 */
 public static List<String> getTimeIntervalBaseChoices ( int startInterval, int endInterval,
-    int sortOrder, boolean includeIrregular )
-{   // Add in ascending order and sort to descending later if requested.
+    int sortOrder, boolean includeIrregular ) {
+    // Add in ascending order and sort to descending later if requested.
     List<String> v = new ArrayList<>();
     if ( startInterval > endInterval ) {
         // Swap (only rely on sort_order for ordering).
@@ -423,8 +423,8 @@ public static List<String> getTimeIntervalBaseChoices ( int startInterval, int e
 
 /**
 Return a list of interval strings (e.g., "Year", "6Hour"),
-optionally including the Irregular time step.  Only evenly divisible choices are returned
-(no "5Hour" because it does not divide into the day).
+optionally including the Irregular time step.
+Only evenly divisible choices are returned (no "5Hour" because it does not divide into the day).
 @return a list of interval strings.
 @param startInterval The starting (smallest) interval base to return.
 @param endInterval The ending (largest) interval base to return.
@@ -435,8 +435,8 @@ If false do not pad (e.g., "6Hour").
 If included, "Irregular" is always at the end of the list.
 */
 public static List<String> getTimeIntervalChoices ( int startInterval, int endInterval,
-	boolean pad_zeros, int sort_order, boolean include_irregular )
-{	// Add in ascending order and sort to descending later if requested.
+	boolean pad_zeros, int sort_order, boolean include_irregular ) {
+	// Add in ascending order and sort to descending later if requested.
 	List<String> v = new ArrayList<>();
 	if ( startInterval > endInterval ) {
 		// Swap (only rely on sort_order for ordering).
@@ -586,15 +586,14 @@ public static List<String> getTimeIntervalChoices ( int startInterval, int endIn
 }
 
 /*
-Determine whether the given TimeInterval is greater than the instance based on
-a comparison of the length of the interval.
+Determine whether the given TimeInterval is greater than the instance based on a comparison of the length of the interval.
 Only intervals that can be explicitly compared should be evaluated with this method.
 @return true if the instance is greater than the given TimeInterval.
 @param interval The TimeInterval to compare to the instance.
 */
-/* TODO 2005-03-03 SAM do later no time.
-public boolean greaterThan ( TimeInterval interval )
-{	int seconds1 = toSeconds();
+/* TODO 2005-03-03 SAM do later no time..
+public boolean greaterThan ( TimeInterval interval ) {
+	int seconds1 = toSeconds();
 	int seconds2 = interval.toSeconds();
 	if ( (seconds1 >= 0) && (seconds2 >= 0) ) {
 		// Intervals are less than month so a simple comparison can be made.
@@ -607,6 +606,21 @@ public boolean greaterThan ( TimeInterval interval )
 	}
 }
 */
+
+/**
+ * Determine whether a string is a recognized interval string.
+ * @param intervalString interval string to check
+ * @return true if 'parseInterval' is successful, and false if the interval can't be parsed
+ */
+public static boolean isInterval ( String intervalString ) {
+	try {
+		parseInterval ( intervalString );
+		return true;
+	}
+	catch ( Exception e ) {
+		return false;
+	}
+}
 
 /**
 Determine whether the interval is irregular.
@@ -622,11 +636,28 @@ public boolean isIrregularInterval ( ) {
 }
 
 /**
+ * Determine whether a string is a recognized irregular interval string.
+ * The string must parse and be an irregular interval.
+ * @param intervalString interval string to check
+ * @return true if 'parseInterval' is successful and is an irregular interval, and false otherwise
+ */
+public static boolean isIrregularInterval ( String intervalString ) {
+	try {
+		TimeInterval interval = parseInterval ( intervalString );
+		// Return the reverse o the regular interval check.
+		return !interval.isIrregularInterval();
+	}
+	catch ( Exception e ) {
+		return false;
+	}
+}
+
+/**
 Determine whether the interval is regular.
 @return true if the interval is regular, false if not (unknown or irregular).
 */
-public boolean isRegularInterval ( )
-{	if ( (__intervalBase >= HSECOND) && (__intervalBase <= YEAR) ) {
+public boolean isRegularInterval ( ) {
+	if ( (__intervalBase >= HSECOND) && (__intervalBase <= YEAR) ) {
 		return true;
 	}
     // Irregular and unknown are what are left.
@@ -634,12 +665,28 @@ public boolean isRegularInterval ( )
 }
 
 /**
+ * Determine whether a string is a recognized regular interval string.
+ * The string must parse and be a regular interval.
+ * @param intervalString interval string to check
+ * @return true if 'parseInterval' is successful, and false if the interval can't be parsed
+ */
+public static boolean isRegularInterval ( String intervalString ) {
+	try {
+		TimeInterval interval = parseInterval ( intervalString );
+		return interval.isIrregularInterval();
+	}
+	catch ( Exception e ) {
+		return false;
+	}
+}
+
+/**
 Determine whether an interval is regular.
 @param intervalBase the time interval base to check
 @return true if the interval is regular, false if not (unknown or irregular).
 */
-public static boolean isRegularInterval ( int intervalBase )
-{	if ( (intervalBase >= HSECOND) && (intervalBase <= YEAR) ) {
+public static boolean isRegularInterval ( int intervalBase ) {
+	if ( (intervalBase >= HSECOND) && (intervalBase <= YEAR) ) {
 		return true;
 	}
     // Irregular and unknown are what are left.
@@ -653,14 +700,13 @@ Determine whether the given TimeInterval is less than the instance based on
 a comparison of the length of the interval, for intervals with base Second to Year.
 For the sake of comparing largely different intervals, months are assumed to have 30 days.
 Time intervals of 28Day, 29Day, and 31Day will explicitly be treated as 1Month.
-Comparisons for intervals < Month are done using the number
-of seconds in the interval.
+Comparisons for intervals < Month are done using the number of seconds in the interval.
 @return true if the instance is less than the given TimeInterval.
 @param interval The TimeInterval to compare to the instance.
 */
 /* TODO SAM 2005-03-03 No time - do later.
-public boolean lessThan ( TimeInterval interval )
-{	int seconds1 = toSecondsApproximate();
+public boolean lessThan ( TimeInterval interval ) {
+	int seconds1 = toSecondsApproximate();
 	int seconds2 = interval.toSecondsApproximate();
 	if ( (seconds1 >= 0) && (seconds2 >= 0) ) {
 		// Intervals are less than month so a simple comparison can be made.
@@ -679,13 +725,13 @@ public boolean lessThan ( TimeInterval interval )
 }
 */
 
-// TODO need to put in lessThanOrEquivalent()
+// TODO need to put in lessThanOrEquivalent().
 
 /**
 Initialize the data.
 */
-private void init ()
-{	__intervalBase = 0;
+private void init () {
+	__intervalBase = 0;
 	__intervalBaseString = "";
 	__intervalMult = 0;
 	__intervalMultString = "";
@@ -700,17 +746,15 @@ Day interval always returns 1-31 and should be limited by the calling code based
 Note that this method returns valid interval multipliers,
 which may not be the same as the maximum value for a date/time component.
 For example, the maximum multiplier for an hourly interval is 24 whereas the maximum hour value is 23.
-@return an array of multipliers for for the interval string, or null if the
-interval_base string is not recognized.
+@return an array of multipliers for for the interval string, or null if the interval_base string is not recognized.
 @param interval_base An interval base string that is recognized by parseInterval().
 @param divisible If true, the interval multipliers that are returned will result
-in intervals that divide evenly into the next interval base.  If false, then all
-valid multipliers for the base are returned.
-@param include_zero If true, then a zero multiplier is included with all
-returned output.  Normally zero is not included.
+in intervals that divide evenly into the next interval base.
+If false, then all valid multipliers for the base are returned.
+@param include_zero If true, then a zero multiplier is included with all returned output.  Normally zero is not included.
 */
-public static int [] multipliersForIntervalBase ( String interval_base, boolean divisible, boolean include_zero )
-{	TimeInterval interval = null;
+public static int [] multipliersForIntervalBase ( String interval_base, boolean divisible, boolean include_zero ) {
+	TimeInterval interval = null;
 	try {
 	    interval = parseInterval ( interval_base );
 	}
@@ -866,8 +910,8 @@ public static int [] multipliersForIntervalBase ( String interval_base, boolean 
 
 /**
 Parse an interval string like "6Day" into its parts and return as a TimeInterval.
-If the multiplier is not specified, the value returned from
-getMultiplierString() will be "", even if the getMultiplier() is 1.
+If the multiplier is not specified, the value returned from getMultiplierString() will be "",
+even if the getMultiplier() is 1.
 The following are example interval strings:
    Hour
    1Hour
@@ -875,13 +919,12 @@ The following are example interval strings:
    IrregSecond
    IrregMillisecond
 @return The TimeInterval that is parsed from the string.
-@param intervalString Time series interval as a string, containing an
-interval string and an optional multiplier.
+@param intervalString Time series interval as a string, containing an interval string and an optional multiplier.
 @exception InvalidTimeIntervalException if the interval string cannot be parsed.
 */
 public static TimeInterval parseInterval ( String intervalString )
 throws InvalidTimeIntervalException {
-	String routine = "TimeInterval.parseInterval";
+	String routine = TimeInterval.class.getSimpleName() + ".parseInterval";
 	int	digitCount = 0; // Count of digits at start of the interval string.
 	int dl = 10;
 	int i = 0;
@@ -1122,8 +1165,8 @@ public void setMultiplier ( int mult ) {
 Set the interval multiplier string.  This is normally only called by other methods within this class.
 @param multiplier_string Time series interval base as string.
 */
-public void setMultiplierString ( String multiplier_string )
-{	if ( multiplier_string != null ) {
+public void setMultiplierString ( String multiplier_string ) {
+	if ( multiplier_string != null ) {
 		__intervalMultString = multiplier_string;
 	}
 }
@@ -1135,8 +1178,8 @@ can be processed because of the different number of days in a month.
 See toSecondsApproximate() for a version that will handle all intervals.
 @return Number of seconds in an interval, or -1 if the interval cannot be processed.
 */
-public int toSeconds ()
-{	if ( __intervalBase == SECOND ) {
+public int toSeconds () {
+	if ( __intervalBase == SECOND ) {
 		return __intervalMult;
 	}
 	else if ( __intervalBase == MINUTE ) {
@@ -1207,12 +1250,12 @@ public int toSecondsApproximate () {
 
 /**
 Return a string representation of the interval (e.g., "1Month").
-If irregular, the base string is returned.  If regular, the multiplier + the
-base string is returned (the multiplier may be "" or a number).
+If irregular, the base string is returned.
+If regular, the multiplier + the base string is returned (the multiplier may be "" or a number).
 @return a string representation of the interval (e.g., "1Month").
 */
-public String toString ()
-{	return __intervalMultString + __intervalBaseString;
+public String toString () {
+	return __intervalMultString + __intervalBaseString;
 }
 
 }

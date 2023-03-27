@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,19 +24,20 @@ NoticeEnd */
 package RTi.TS;
 
 /**
-This enumeration stores values for a trend, meaning whether data values increase over time, decrease, or
-are variable.  For example, the trend for accumulated precipitation data is that values increase over time.
+This enumeration stores values for a trend, meaning whether data values increase over time, decrease, or are variable.
+For example, the trend for accumulated precipitation data is that values increase over time.
 */
-public enum TrendType
-{
+public enum TrendType {
     /**
      * Trend in data is decreasing.
      */
     DECREASING("Decreasing"),
+
     /**
      * Trend in data is increasing.
      */
     INCREASING("Increasing"),
+
 	/**
 	 * Trend in values is variable (some increasing and decreasing).
 	 */
@@ -55,30 +56,32 @@ public enum TrendType
         this.displayName = displayName;
     }
 
-/**
- * Return the display name for the enumeration.  This is usually the same as the
- * value but using appropriate mixed case.
- * @return the display name.
- */
-@Override
-public String toString() {
-    return displayName;
-}
+    /**
+     * Return the display name for the enumeration.
+     * This is usually the same as the value but using appropriate mixed case.
+     * @return the display name.
+     */
+    @Override
+    public String toString() {
+        return displayName;
+    }
 
-/**
- * Return the enumeration value given a string name (case-independent).
- * @return the enumeration value given a string name (case-independent), or null if not matched.
- */
-public static TrendType valueOfIgnoreCase(String name)
-{
-    TrendType [] values = values();
-    // Currently supported values
-    for ( TrendType t : values ) {
-        if ( name.equalsIgnoreCase(t.toString()) ) {
-            return t;
-        }
-    } 
-    return null;
-}
+    /**
+     * Return the enumeration value given a string name (case-independent).
+     * @return the enumeration value given a string name (case-independent), or null if not matched.
+     */
+    public static TrendType valueOfIgnoreCase(String name) {
+    	if ( name == null ) {
+    		return null;
+    	}
+        TrendType [] values = values();
+        // Currently supported values.
+        for ( TrendType t : values ) {
+            if ( name.equalsIgnoreCase(t.toString()) ) {
+                return t;
+            }
+        } 
+        return null;
+    }
 
 }

@@ -248,14 +248,21 @@ The added fields are initialized with blank strings or NaN, as appropriate.
 @return the field index (0+).
 */
 public int addField ( int insertPos, TableField tableField, Object initValue, DataTableFunctionType initFunction ) {
+	String routine = getClass().getSimpleName() + ".addField";
 	boolean addAtEnd = false;
     if ( (insertPos < 0) || (insertPos >= _table_fields.size()) ) {
         // Add at the end.
+    	if ( Message.isDebugOn ) {
+    		Message.printDebug(1, routine, "Adding table field \"" + tableField.getName() + "\" at end index=" + getNumberOfFields());
+    	}
         _table_fields.add ( tableField );
         addAtEnd = true;
     }
     else {
         // Insert at the specified column location.
+    	if ( Message.isDebugOn ) {
+    		Message.printDebug(1, routine, "Adding table field \"" + tableField.getName() + "\" at index=" + insertPos);
+    	}
         _table_fields.add(insertPos,tableField);
     }
     // Add value to each record in the table to be consistent with the field data.
