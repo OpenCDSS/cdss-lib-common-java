@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -142,18 +142,6 @@ private Class<?>[] determineClasses(int[] dataTypes) {
 }
 
 /**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	IOUtil.nullArray(__fieldClasses);
-	__dataTable = null;
-	IOUtil.nullArray(__fieldFormats);
-	IOUtil.nullArray(__fieldNames);
-	super.finalize();
-}
-
-/**
 Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
@@ -195,8 +183,7 @@ public String[] getColumnToolTips() {
 }
 
 /**
-Returns an array containing the widths (in number of characters) that the
-fields in the table should be sized to.
+Returns an array containing the widths (in number of characters) that the fields in the table should be sized to.
 @return an integer array containing the widths for each field.
 */
 public int[] getColumnWidths() {
@@ -262,8 +249,8 @@ public Object getValueAt(int row, int col) {
 }
 
 /**
-Returns whether the cell at the given position is editable or not.  In this
-table model all columns above #2 are editable.
+Returns whether the cell at the given position is editable or not.
+In this table model all columns above #2 are editable.
 @param rowIndex unused
 @param columnIndex the index of the column to check for whether it is editable.
 @return whether the cell at the given position is editable.
