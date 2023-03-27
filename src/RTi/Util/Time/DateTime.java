@@ -1076,7 +1076,7 @@ public void addHSecond ( int add ) {
 Add a time series interval to the DateTime (see TimeInterval).  This is useful when iterating a date.
 An irregular interval is ignored (the date is not changed).
 @param interval time series base interval
-@param add multiple of the base interval
+@param add multiple of the base interval, can be negative
 */
 public void addInterval ( int interval, int add ) {
 	if ( add == 0 ) {
