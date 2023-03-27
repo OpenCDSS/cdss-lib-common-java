@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -77,7 +77,7 @@ The name of the file from which to read data for the worksheet.
 private String __filename = null;
 
 /**
-Constructor.  This sets up the worksheet with a default set of properties:<br>
+Constructor.  Set up the worksheet with a default set of properties:
 <ul>
 <li>JWorksheet.ShowPopupMenu=true</li>
 <li>JWorksheet.SelectionMode=SingleRowSelection</li>
@@ -88,7 +88,7 @@ To display with other properties, use the other constructor.
 @param table the table to display in the panel.
 @throws NullPointerException if any of the parameters are null.
 */
-public DataTable_JPanel(JFrame parent, DataTable table) 
+public DataTable_JPanel(JFrame parent, DataTable table)
 throws Exception {
 	if (parent == null || table == null) {
 		throw new NullPointerException();
@@ -107,15 +107,15 @@ throws Exception {
 }
 
 /**
-Constructor.  
+Constructor.
 @param parent the JFrame in which this panel is displayed.
 @param table the table to display in this panel.
 @param props the Properties to use to define the worksheet's characteristics.
 @throws NullPointerException if any of the parameters are null.
 */
-public DataTable_JPanel(DataTable_JFrame parent, DataTable table, PropList props) 
+public DataTable_JPanel(DataTable_JFrame parent, DataTable table, PropList props)
 throws Exception {
-	if (parent == null || table == null || props == null) {	
+	if (parent == null || table == null || props == null) {
 		throw new NullPointerException();
 	}
 
@@ -128,7 +128,7 @@ throws Exception {
 }
 
 /**
-Constructor.  This sets up the worksheet with a default set of properties:<br>
+Constructor.  This sets up the worksheet with a default set of properties:
 <ul>
 <li>JWorksheet.ShowPopupMenu=true</li>
 <li>JWorksheet.SelectionMode=SingleRowSelection</li>
@@ -139,9 +139,9 @@ To display with other properties, use the other constructor.
 @param filename the name of the file from which to read worksheet data.
 @throws NullPointerException if any of the parameters are null.
 */
-public DataTable_JPanel(DataTable_JFrame parent, String filename) 
+public DataTable_JPanel(DataTable_JFrame parent, String filename)
 throws Exception {
-	if (parent == null || filename == null) {	
+	if (parent == null || filename == null) {
 		throw new NullPointerException();
 	}
 
@@ -157,13 +157,13 @@ throws Exception {
 }
 
 /**
-Constructor.  
+Constructor.
 @param parent the JFrame in which this panel is displayed.
 @param filename the name of the file from which to read worksheet data.
 @param props the Properties to use to define the worksheet's characteristics.
 @throws NullPointerException if any of the parameters are null.
 */
-public DataTable_JPanel(DataTable_JFrame parent, String filename, PropList props) 
+public DataTable_JPanel(DataTable_JFrame parent, String filename, PropList props)
 throws Exception {
 	if (parent == null || filename == null || props == null) {
 		throw new NullPointerException();
@@ -179,7 +179,7 @@ throws Exception {
 /**
 Cleans up member variables.
 */
-public void finalize() 
+public void finalize()
 throws Throwable {
 	if (__table != null) {
 		if (__table instanceof DbaseDataTable) {
@@ -191,7 +191,7 @@ throws Throwable {
 	__widths = null;
 	__worksheet = null;
 	__props = null;
-	__filename = null;	
+	__filename = null;
 	super.finalize();
 }
 
@@ -220,10 +220,10 @@ public int getWorksheetRowCount() {
 /**
 Sets up the GUI.
 */
-private void setupGUI() 
+private void setupGUI()
 throws Exception {
+	String routine = getClass().getSimpleName() + ".setupGUI";
 	setLayout(new GridBagLayout());
-	String routine = "DataTable_JPanel.setupGUI";
 
 	boolean fileReadOK = false;
 
@@ -245,16 +245,14 @@ throws Exception {
 			}
 		}
 		else {
-			Message.printStatus(2, routine, 
-				"Data table in filename '" + __filename + "' is not supported for reading.");
-			throw new Exception("Data table type in filename '" + __filename 
-				+ "' is not supported for reading.");
+			Message.printStatus(2, routine, "Data table in filename '" + __filename + "' is not supported for reading.");
+			throw new Exception("Data table type in filename '" + __filename + "' is not supported for reading.");
 		}
 	}
 
 	if (!fileReadOK) {
 		JGUIUtil.addComponent(this, new JLabel("Attributes are not available for this layer."),
-			0, 0, 1, 1, 1, 1, 
+			0, 0, 1, 1, 1, 1,
 			GridBagConstraints.NONE, GridBagConstraints.NORTHWEST);
 		return;
 	}
@@ -263,7 +261,7 @@ throws Exception {
 	try {
 		DataTable_TableModel tm = new DataTable_TableModel(__table);
 		DataTable_CellRenderer cr = new DataTable_CellRenderer(tm);
-	
+
 		jsw = new JScrollWorksheet(cr, tm, __props);
 		__worksheet = jsw.getJWorksheet();
 		__widths = cr.getColumnWidths();
@@ -275,10 +273,10 @@ throws Exception {
 	}
 	__worksheet.setPreferredScrollableViewportSize(null);
 	__worksheet.setHourglassJFrame(__parent);
-	//__worksheet.addMouseListener(this);	
+	//__worksheet.addMouseListener(this);
 	//__worksheet.addKeyListener(this);
 
-	JGUIUtil.addComponent(this, jsw, 
+	JGUIUtil.addComponent(this, jsw,
 		0, 0, 1, 1, 1, 1,
 		GridBagConstraints.BOTH, GridBagConstraints.CENTER);
 }

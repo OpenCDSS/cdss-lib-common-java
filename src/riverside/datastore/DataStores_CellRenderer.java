@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -74,22 +74,22 @@ boolean isSelected, boolean hasFocus, int row, int column) {
 
  	JWorksheet ws = (JWorksheet)table;
 	int abscolumn = ws.getAbsoluteColumn(column);
-	
+
 	String format = getFormat(abscolumn);
-	
+
 	int justification = SwingConstants.LEFT;
 
 	if (value instanceof Integer) {
 		justification = SwingConstants.RIGHT;
 		str = StringUtil.formatString(value, format);
-	}	
-	else if (value instanceof Double) {		
+	}
+	else if (value instanceof Double) {
 		justification = SwingConstants.RIGHT;
 		str = StringUtil.formatString(value, format);
 	}
 	else if (value instanceof Date) {
-		justification = SwingConstants.LEFT;		
-		// FYI: str has been set above with str = value.toString()
+		justification = SwingConstants.LEFT;
+		// FYI: str has been set above with str = value.toString().
 	}
 	else if (value instanceof String) {
 		justification = SwingConstants.LEFT;
@@ -105,21 +105,20 @@ boolean isSelected, boolean hasFocus, int row, int column) {
 
 	str = str.trim();
 
-	// call DefaultTableCellRenderer's version of this method so that
-	// all the cell highlighting is handled properly.
-	super.getTableCellRendererComponent(table, str, isSelected, hasFocus, row, column);	
-	
+	// Call DefaultTableCellRenderer's version of this method so that all the cell highlighting is handled properly.
+	super.getTableCellRendererComponent(table, str, isSelected, hasFocus, row, column);
+
 	int tableAlignment = ws.getColumnAlignment(abscolumn);
 	if (tableAlignment != JWorksheet.DEFAULT) {
 		justification = tableAlignment;
 	}
-	
+
 	setHorizontalAlignment(justification);
 	setFont(ws.getCellFont());
-	
+
 	if ( column == __tableModel.COL_NAME ) {
-		// Set the foreground to yellow if the column is the datastore name and is a duplicate
-		// This is brute force but there are not that many datastores so OK
+		// Set the foreground to yellow if the column is the datastore name and is a duplicate.
+		// This is brute force but there are not that many datastores so OK.
 		// Yellow is easier to read as background.
 		boolean duplicate = false;
 		for ( int irow = 0; irow < __tableModel.getRowCount(); irow++ ) {
@@ -142,7 +141,7 @@ boolean isSelected, boolean hasFocus, int row, int column) {
 	}
 	else if ( column == __tableModel.COL_STATUS ) {
 		if ( str.toUpperCase().indexOf("ERROR") >= 0 ) {
-			// Some type of error so highlight
+			// Some type of error so highlight.
 			JWorksheet_CellAttributes ca = ws.getCellAttributes(row, column);
 			if ( ca == null ) {
 				ca = new JWorksheet_CellAttributes();
@@ -153,7 +152,7 @@ boolean isSelected, boolean hasFocus, int row, int column) {
 	}
 	else if ( column == __tableModel.COL_STATUS_MESSAGE ) {
 		if ( !str.isEmpty() ) {
-			// Some type of error so highlight
+			// Some type of error so highlight.
 			JWorksheet_CellAttributes ca = ws.getCellAttributes(row, column);
 			if ( ca == null ) {
 				ca = new JWorksheet_CellAttributes();

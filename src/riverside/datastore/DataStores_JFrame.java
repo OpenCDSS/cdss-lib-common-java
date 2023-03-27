@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -57,11 +57,14 @@ The panel containing the worksheet that will be displayed in the frame.
 private DataStores_JPanel __dataTablePanel = null;
 
 /**
-Message bar text fields.
+Message bar text field.
 */
-private JTextField
-	__messageJTextField,
-	__statusJTextField;
+private JTextField __messageJTextField = null;
+
+/**
+Status text field.
+*/
+private JTextField __statusJTextField = null;
 
 /**
 Constructor.
@@ -70,9 +73,9 @@ Constructor.
 @param dataStoreSubstituteList list of substitute datastore names
 @throws Exception if table is null.
 */
-public DataStores_JFrame(String title, Component parent, List<DataStore> dataStoreList, List<DataStoreSubstitute> dataStoreSubstituteList ) 
-throws Exception
-{	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
+public DataStores_JFrame(String title, Component parent, List<DataStore> dataStoreList, List<DataStoreSubstitute> dataStoreSubstituteList )
+throws Exception {
+	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
 	if ( title == null ) {
 		if ( (JGUIUtil.getAppNameForWindows() == null) || JGUIUtil.getAppNameForWindows().equals("") ) {
 			setTitle ( "Table" );
@@ -91,7 +94,7 @@ throws Exception
 	}
 	this.__dataStoreList = dataStoreList;
 	this.__dataStoreSubstituteList = dataStoreSubstituteList;
-	
+
 	setupGUI(parent);
 }
 
@@ -112,9 +115,8 @@ public void setMessageStatus(String message, String status) {
 /**
 Sets up the GUI.
 */
-private void setupGUI(Component parent) 
-throws Exception
-{
+private void setupGUI(Component parent)
+throws Exception {
 	__dataTablePanel = new DataStores_JPanel(this, this.__dataStoreList, this.__dataStoreSubstituteList);
 
 	getContentPane().add("Center", __dataTablePanel);
@@ -136,7 +138,12 @@ throws Exception
 	getContentPane().add("South", statusBar);
 
 	setSize(800, 400);
-	JGUIUtil.center(this,parent);
+	if ( parent == null ) {
+		JGUIUtil.center(this);
+	}
+	else {
+		JGUIUtil.center(this, parent);
+	}
 
 	int count = __dataTablePanel.getWorksheetRowCount();
 	String plural = "s";
@@ -149,8 +156,7 @@ throws Exception
         plural_col = "";
     }
 
-	setMessageStatus("Displaying " + count + " row" + plural +
-	        ", " + count_col + " column" + plural_col + ".", "Ready");
+	setMessageStatus("Displaying " + count + " row" + plural + ", " + count_col + " column" + plural_col + ".", "Ready");
 
 	setVisible(true);
 

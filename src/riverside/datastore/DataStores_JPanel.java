@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,14 +38,14 @@ import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 
 /**
-Panel to contain the JWorksheet that displays data stores data.
+Panel to contain the JWorksheet that displays datastore metadata.
 */
 @SuppressWarnings("serial")
 public class DataStores_JPanel extends JPanel
 {
 
 /**
-The list of data stores to display in the worksheet.
+The list of datastores to display in the worksheet.
 */
 private List<DataStore> __dataStoreList = null;
 
@@ -72,7 +72,7 @@ private JWorksheet __worksheet = null;
 /**
 Properties for how the worksheet should display.
 */
-private PropList __props;
+private PropList __props = null;
 
 /**
 Constructor.  This sets up the worksheet with a default set of properties:<br>
@@ -87,9 +87,8 @@ To display with other properties, use the other constructor.
 @param dataStoreSubstituteList the list of datastore substitutes
 @throws NullPointerException if any of the parameters are null.
 */
-public DataStores_JPanel(DataStores_JFrame parent, List<DataStore> dataStoreList, List<DataStoreSubstitute> dataStoreSubstituteList ) 
-throws Exception
-{
+public DataStores_JPanel(DataStores_JFrame parent, List<DataStore> dataStoreList, List<DataStoreSubstitute> dataStoreSubstituteList )
+throws Exception {
 	if (parent == null || dataStoreList == null) {
 		throw new NullPointerException();
 	}
@@ -98,7 +97,7 @@ throws Exception
 	this.__dataStoreList = dataStoreList;
 	this.__dataStoreSubstituteList = dataStoreSubstituteList;
 
-	__props = new PropList("DataTable_JPanel.JWorksheet");
+	__props = new PropList("DataStores_JPanel.JWorksheet");
 	__props.add("JWorksheet.ShowPopupMenu=true");
 	__props.add("JWorksheet.SelectionMode=ExcelSelection");
 	__props.add("JWorksheet.AllowCopy=true");
@@ -107,24 +106,23 @@ throws Exception
 }
 
 /**
-Constructor.  
+Constructor.
 @param parent the JFrame in which this panel is displayed.
 @param table the table to display in this panel.
 @param props the Properties to use to define the worksheet's characteristics.
 @throws NullPointerException if any of the parameters are null.
 */
-public DataStores_JPanel(DataStores_JFrame parent, List<DataStore> dataStoreList, PropList props) 
-throws Exception
-{
-	if (parent == null || dataStoreList == null ) {	
+public DataStores_JPanel(DataStores_JFrame parent, List<DataStore> dataStoreList, PropList props)
+throws Exception {
+	if (parent == null || dataStoreList == null ) {
 		throw new NullPointerException();
 	}
 	if ( props == null ) {
-	    props = new PropList("DataTable_JPanel.JWorksheet");
-	    props.add("JWorksheet.ShowPopupMenu=true");
-	    props.add("JWorksheet.SelectionMode=ExcelSelection");
-	    props.add("JWorksheet.AllowCopy=true");
+	    props = new PropList("DataStores_JPanel.JWorksheet");
 	}
+	props.add("JWorksheet.ShowPopupMenu=true");
+	props.add("JWorksheet.SelectionMode=ExcelSelection");
+	props.add("JWorksheet.AllowCopy=true");
 
 	__parent = parent;
 	__dataStoreList = dataStoreList;
@@ -134,13 +132,13 @@ throws Exception
 }
 
 /**
-Constructor.  
+Constructor.
 @param parent the JFrame in which this panel is displayed.
 @param filename the name of the file from which to read worksheet data.
 @param props the Properties to use to define the worksheet's characteristics.
 @throws NullPointerException if any of the parameters are null.
 */
-public DataStores_JPanel(DataStores_JFrame parent, String filename, PropList props) 
+public DataStores_JPanel(DataStores_JFrame parent, String filename, PropList props)
 throws Exception {
 	if (parent == null || filename == null || props == null) {
 		throw new NullPointerException();
@@ -177,16 +175,16 @@ public int getWorksheetRowCount() {
 /**
 Sets up the GUI.
 */
-private void setupGUI() 
+private void setupGUI()
 throws Exception {
 	setLayout(new GridBagLayout());
-	String routine = "DataTable_JPanel.setupGUI";
+	String routine = getClass().getSimpleName() + ".setupGUI";
 
 	JScrollWorksheet jsw = null;
 	try {
 		DataStores_TableModel tm = new DataStores_TableModel(__dataStoreList, this.__dataStoreSubstituteList);
 		DataStores_CellRenderer cr = new DataStores_CellRenderer(tm);
-	
+
 		jsw = new JScrollWorksheet(cr, tm, __props);
 		__worksheet = jsw.getJWorksheet();
 		__widths = cr.getColumnWidths();
@@ -198,17 +196,17 @@ throws Exception {
 	}
 	__worksheet.setPreferredScrollableViewportSize(null);
 	__worksheet.setHourglassJFrame(__parent);
-	//__worksheet.addMouseListener(this);	
+	//__worksheet.addMouseListener(this);
 	//__worksheet.addKeyListener(this);
 
-	JGUIUtil.addComponent(this, jsw, 
+	JGUIUtil.addComponent(this, jsw,
 		0, 0, 1, 1, 1, 1,
 		GridBagConstraints.BOTH, GridBagConstraints.CENTER);
 }
 
 /**
-Sets the worksheet's column widths.  This should be called after the frame
-in which the panel is found has called setVisible(true).
+Sets the worksheet's column widths.
+This should be called after the frame in which the panel is found has called setVisible(true).
 */
 public void setWorksheetColumnWidths() {
 	if (__worksheet != null) {

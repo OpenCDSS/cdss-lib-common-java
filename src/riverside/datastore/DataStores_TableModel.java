@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -83,7 +83,7 @@ public final int COL_PLUGIN_DESCRIPTION = 17;
 public final int COL_PLUGIN_AUTHOR = 18;
 public final int COL_PLUGIN_VERSION = 19;
 // Used for testing.
-public final int COL_SUBSTITUTE_TO_USE = 20; // Same as COL_NAME
+public final int COL_SUBSTITUTE_TO_USE = 20; // Same as COL_NAME.
 public final int COL_SUBSTITUTE_IN_COMMANDS = 21;
 
 /**
@@ -91,7 +91,7 @@ Constructor.
 @param dataStoreList the list of data stores to show in a worksheet.
 @throws NullPointerException if the dataTable is null.
 */
-public DataStores_TableModel(List<DataStore> dataStoreList) 
+public DataStores_TableModel(List<DataStore> dataStoreList)
 throws Exception {
 	// Call the overloaded constructor.
 	this(dataStoreList, null);
@@ -103,7 +103,7 @@ Constructor.
 @param dataStoreSubstituteList list of datastore substitutes (old, new names)
 @throws NullPointerException if the dataTable is null.
 */
-public DataStores_TableModel(List<DataStore> dataStoreList, List<DataStoreSubstitute> dataStoreSubstituteList ) 
+public DataStores_TableModel(List<DataStore> dataStoreList, List<DataStoreSubstitute> dataStoreSubstituteList )
 throws Exception {
     if ( dataStoreList == null ) {
         _rows = 0;
@@ -116,13 +116,13 @@ throws Exception {
 }
 
 /**
-From AbstractTableModel.  Returns the class of the data stored in a given
-column.  All values are treated as strings.
+From AbstractTableModel.  Returns the class of the data stored in a given column.
+All values are treated as strings.
 @param columnIndex the column for which to return the data class.
 */
 public Class<?> getColumnClass (int columnIndex) {
     switch (columnIndex) {
-        // All handled as strings
+        // All handled as strings.
         default: return String.class;
     }
 }
@@ -221,8 +221,8 @@ From AbstractTableMode.  Returns the data that should be placed in the JTable at
 @param col the absolute column for which to return data.
 @return the data that should be placed in the JTable at the given row and column.
 */
-public Object getValueAt(int row, int col)
-{   // make sure the row numbers are never sorted ...
+public Object getValueAt(int row, int col) {
+    // Make sure the row numbers are never sorted.
 
     if (_sortOrder != null) {
         row = _sortOrder[row];
@@ -246,7 +246,7 @@ public Object getValueAt(int row, int col)
     }
     switch (col) {
         case COL_TYPE:
-            // Use the class name but don't include the package
+            // Use the class name but don't include the package.
             String clazz = dataStore.getClass().getName();
             String [] parts = clazz.split("\\.");
             return parts[parts.length - 1];
@@ -403,7 +403,7 @@ public Object getValueAt(int row, int col)
         	}
         case COL_SUBSTITUTE_TO_USE:
         	// This is informational so make as complete as possible.
-        	
+
         	// If the datastore name is involved in a substitute, there are two potential cases:
         	// - datastore in commands matching this datastore is ignored and a substitute is used
         	//   (this datastore is the substitute hashmap value)
@@ -480,7 +480,7 @@ public Object getValueAt(int row, int col)
         		}
         	}
         	else {
-        		// If this datastore name is used in commands
+        		// If this datastore name is used in commands.
        		    return "";
         	}
         	// Fall through.
