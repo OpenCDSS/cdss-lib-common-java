@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -226,8 +226,7 @@ private static String __homeDir = null;
 
 /**
  * List of classpath items (jar files and folders with wildcards).
- * This is used, for example, to allow code to run a separate Java program using the
- * application's startup environment.
+ * This is used, for example, to allow code to run a separate Java program using the application's startup environment.
  */
 private static List<String> applicationPluginClasspathList = new ArrayList<>();
 
@@ -623,7 +622,7 @@ Read in a file and store it in a string list (list of String).
 public static List<String> fileToStringList ( String filename )
 throws IOException {
 	List<String> list = null;
-	String message, routine = "IOUtil.fileToStringList", tempstr;
+	String message, routine = IOUtil.class.getSimpleName() + ".fileToStringList", tempstr;
 	
 	if ( filename == null ) {
 		message = "Filename is NULL";
@@ -1058,7 +1057,7 @@ but those comments are to be ignored each time the header is read.
 @see #processFileHeaders
 */
 public static FileHeader getFileHeader ( String fileName, List<String> commentIndicators,
-						List<String> ignoredCommentIndicators, int flags ) {
+	List<String> ignoredCommentIndicators, int flags ) {
 	String	routine = IOUtil.class.getSimpleName() + ".getFileHeader", string;
 	int	dl = 30, header_first = -1, header_last = -1, header_revision, i, len, revlen;
 	boolean	iscomment, isignore;
@@ -1212,14 +1211,241 @@ public static FileHeader getFileHeader ( String fileName, List<String> commentIn
 }
 
 /**
+ * Get a list of files and/or folders.
+ * This is the most general method.
+ * @param startingFolder starting folder to list
+ * @param listRecursive if true, list sub-folder contents recursively
+ * @param listFiles if true, include files in output
+ * @param listFolders if true, include folders in output
+ * @param includePatterns if specified, include only the filenames that match the pattern (leading path is not checked) - use glob-style wildcards
+ * @param excludePatterns if specified, exclude filenames that match the pattern (after includePatterns is evaluated) - use glob-style wildcards
+ */
+public static List<File> getFiles ( File startingFolder, boolean listRecursive, boolean listFiles, boolean listFolders,
+		List<String> includePatterns, List<String> excludePatterns ) throws IOException {
+	String routine = IOUtil.class.getSimpleName() + ".getFiles";
+	if ( Message.isDebugOn ) {
+		Message.printStatus(2, routine, "Listing startFolder=\"" + startingFolder
+			+ "\" listRecursive=" + listRecursive
+			+ " listFiles=" + listFiles
+			+ " listFolders=" + listFolders );
+	}
+	List<File> matchingFiles = new ArrayList<>();
+	if ( startingFolder == null ) {
+		// Could not find a starting folder, should not happen.
+		return matchingFiles;
+	}
+	String startingFolderString = startingFolder.getAbsolutePath();
+	// Get the starting folder length, used to strip the starting folder below to check for subfolders.
+	int startingFolderLen0 = startingFolderString.length();
+	if ( !startingFolderString.endsWith("/") && !startingFolderString.endsWith("\\") ) {
+		// Have to add to skip over the / immediately after the starting folder in results.
+		// TODO smalers 2023-03-28 is this fragile because of how the path is changed during processing?
+		startingFolderLen0 +=1;
+	}
+	// Needed because inner block below needs final.
+	final int startingFolderLen = startingFolderLen0;
+	
+	// The pathMatcher is for the entire absolute path.
+	//PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher(pattern);
+
+	// Use the walkFileTree() method:
+	// - see: https://docs.oracle.com/javase/tutorial/displayCode.html?code=https://docs.oracle.com/javase/tutorial/essential/io/examples/Find.java
+	// - the starting folder limits the paths that are evaluated but each path is still the full absolute path
+	Path startingFolderPath = Paths.get(startingFolder.getAbsolutePath());
+	Files.walkFileTree(startingFolderPath, new SimpleFileVisitor<Path>() {
+		
+		// The methods below handle directories (folder) separate from files.
+		
+		/**
+		 * Handle each directory that is visited, necessary to include directories.
+		 */
+		@Override
+		public FileVisitResult preVisitDirectory(Path dirPath, BasicFileAttributes attrs) throws IOException {
+			File file = dirPath.toFile();
+
+			if ( Message.isDebugOn ) {
+				Message.printStatus(2, routine, "  Checking folder path=\"" + dirPath + "\"");
+			}
+
+			// Default is to add all files and will constrain based on calling parameters.
+			boolean okToAdd = true;
+
+			if ( startingFolderString.equals(file.getAbsolutePath()) ) {
+				// Do not include the folder itself.
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2, routine, "  Skipping because starting folder is the same as directory.");
+				}
+				okToAdd = false;
+			}
+			else if ( file.isDirectory() && !listFolders ) {
+				// Do not include if folders are not included.
+				okToAdd = false;
+			}
+			else if ( !listRecursive ) {
+				String pathEnd = file.getAbsolutePath().substring(startingFolderLen);
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2, routine, "  Checking pathEnd=\"" + pathEnd);
+				}
+				if ( (pathEnd.indexOf("/") > 0) || (pathEnd.indexOf("\\") > 0) ) {
+					// Don't want recursive listing:
+					// - check whether the path after the starting folder contains / or \
+					//   and if yes, then a sub-folder is being listed
+					// - TODO smalers 2023-03-28 there is probably a way to break out of the walk
+					okToAdd = false;
+				}
+			}
+
+			// Check to see if the folder only (not leading path) matches the pattern filters.
+			if ( okToAdd ) {
+				String fileName = file.getName();
+				if ( (includePatterns != null) && (includePatterns.size() > 0) ) {
+					// Only include if the path matches one of the filters.
+					boolean matchedInclude = false;
+					for ( String includePattern : includePatterns ) {
+						if ( fileName.matches(includePattern) ) {
+							matchedInclude = true;
+						}
+					}
+					if ( !matchedInclude ) {
+						okToAdd = false;
+					}
+				}
+				if ( okToAdd ) {
+					if ( (excludePatterns != null) && (excludePatterns.size() > 0) ) {
+						// Check the excludes.
+						for ( String excludePattern : excludePatterns ) {
+							if ( fileName.matches(excludePattern) ) {
+								okToAdd = false;
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			// If was not filtered out, add to the list.
+			if ( okToAdd ) {
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2, routine, "  Adding \"" + file + "\"");
+				}
+				matchingFiles.add(file);
+			}
+			else {
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2, routine, "  Skipping \"" + file + "\"");
+				}
+			}
+
+			return FileVisitResult.CONTINUE;
+		}
+
+		/**
+		 * Handle each file that is visited.
+		 * This does not handle folders.
+		 */
+		@Override
+		public FileVisitResult visitFile(Path filePath, BasicFileAttributes attrs) throws IOException {
+			File file = filePath.toFile();
+
+			if ( Message.isDebugOn ) {
+				Message.printStatus(2, routine, "  Checking file path=\"" + filePath + "\"");
+			}
+
+			// Default is to add all files and will constrain based on calling parameters.
+			boolean okToAdd = true;
+			/* TODO smalers 2023-03-28 Evaluate whether to use a PathMatcher instead of the following code:
+			 * - a PathMatcher might perform better
+			if ( Message.isDebugOn ) {
+				Message.printDebug(1, routine, "Checking path \"" + path + "\" using pattern \"" + pattern + "\"");
+			}
+			if ( pathMatcher.matches(path) ) {
+				if ( Message.isDebugOn ) {
+					Message.printDebug(1, routine, "Matched file \"" + path + "\" using pattern \"" + pattern + "\"");
+				}
+				files.add(path.toFile());
+			}
+			*/
+
+			if ( file.isFile() && !listFiles ) {
+				// Do not include if files are not included.
+				okToAdd = false;
+			}
+			else if ( !listRecursive ) {
+				String pathEnd = file.getAbsolutePath().substring(startingFolderLen);
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2, routine, "  Checking pathEnd=\"" + pathEnd);
+				}
+				if ( (pathEnd.indexOf("/") > 0) || (pathEnd.indexOf("\\") > 0) ) {
+					// Don't want recursive listing:
+					// - check whether the path after the starting folder contains / or \
+					//   and if yes, then a sub-folder is being listed
+					// - TODO smalers 2023-03-28 there is probably a way to break out of the walk
+					okToAdd = false;
+				}
+			}
+			
+			// Check to see if the file only (not leading path) matches the pattern filters.
+			if ( okToAdd ) {
+				String fileName = file.getName();
+				if ( (includePatterns != null) && (includePatterns.size() > 0) ) {
+					// Only include if the path matches one of the filters.
+					boolean matchedInclude = false;
+					for ( String includePattern : includePatterns ) {
+						if ( fileName.matches(includePattern) ) {
+							matchedInclude = true;
+						}
+					}
+					if ( !matchedInclude ) {
+						okToAdd = false;
+					}
+				}
+				if ( okToAdd ) {
+					if ( (excludePatterns != null) && (excludePatterns.size() > 0) ) {
+						// Check the excludes.
+						for ( String excludePattern : excludePatterns ) {
+							if ( fileName.matches(excludePattern) ) {
+								okToAdd = false;
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			// If was not filtered out, add to the list.
+			if ( okToAdd ) {
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2, routine, "  Adding \"" + file + "\"");
+				}
+				matchingFiles.add(file);
+			}
+			else {
+				if ( Message.isDebugOn ) {
+					Message.printStatus(2, routine, "  Skipping \"" + file + "\"");
+				}
+			}
+			return FileVisitResult.CONTINUE;
+		}
+		
+		@Override
+		public FileVisitResult visitFileFailed(Path file, IOException exc ) throws IOException {
+			return FileVisitResult.CONTINUE;
+		}
+		
+	});
+	return matchingFiles;
+}
+
+/**
 Get a list of files from a path list.
+This does not check the file systems.  It just manipulates the paths.
 @return a list of paths to a file given a prefix path and a file name.
 The files do not need to exist.  Return null if there is a problem with input.
 @param paths Paths to prefix the file with.
 @param file Name of file to append to paths.
 */
 public static List<String> getFilesFromPathList ( List<String> paths, String file ) {
-	String fullfile, routine = "IOUtil.getFilesFromPathList";
+	String fullfile, routine = IOUtil.class.getSimpleName() + ".getFilesFromPathList";
 	List<String> newlist = null;
 	int	i, npaths;
 
@@ -1247,12 +1473,13 @@ public static List<String> getFilesFromPathList ( List<String> paths, String fil
 
 /**
 Return a list of files matching a pattern.
+The listing is recursive.
 @param pattern file pattern to match relative to the starting folder, as "glob:..." string used with java.nio package,
 should be an absolute path with only Linux folder separator (/)
 @return a list of matching File, guaranteed to exist but may be an empty list
 */
 public static List<File> getFilesMatchingPattern(String pattern) throws IOException {
-	String routine = "getFilesMatchingPattern";
+	String routine = IOUtil.class.getSimpleName() + ".getFilesMatchingPattern";
 	if ( Message.isDebugOn ) {
 		Message.printDebug(1, routine, "Getting matching files for: " + pattern);
 	}
@@ -1397,8 +1624,6 @@ For this reason, the manifest data are sorted alphabetically in the list.
 @return the contents of the manifests of the Jar files in a Vector of Strings.
 */
 public static List<String> getJarFilesManifests() {
-	String routine = "IOUtil.getJarFilesManifests";
-
 	// Get the Classpath and split it into a String array.
 	// The order of the elements in the array is the same as the order in which things are included in the classpath.
 	String[] jars = System.getProperty("java.class.path").split(System.getProperty("path.separator"));
@@ -1452,6 +1677,7 @@ public static List<String> getJarFilesManifests() {
 			}			
 		}
 		catch (Exception e) {
+			String routine = IOUtil.class.getSimpleName() + ".getJarFilesManifests";
 			Message.printWarning(2, routine, "An error occurred while reading the manifest for: '" + jars[i] + "'.");
 			Message.printWarning(3, routine, e);
 			v.add(tab + "An error occurred while reading the manifest.");
@@ -1539,7 +1765,7 @@ Return a path considering the working directory set by setProgramWorkingDir().  
 @return a path considering the working directory.
 */
 public static String getPathUsingWorkingDir ( String path ) {
-    String routine = "IOUtil.getPathUsingWorkingDir";
+    String routine = IOUtil.class.getSimpleName() + ".getPathUsingWorkingDir";
     if ( (path == null) || (path.length() == 0) ) {
 		return path;
 	}
@@ -2052,11 +2278,11 @@ public static int getVendor() {
 }
 
 /**
-Initialize the global data.  setApplet() should be called first in an applet
-to allow some of the if statements below to be executed properly.
+Initialize the global data.
+The setApplet() method should be called first in an applet to allow some of the if statements below to be executed properly.
 */
 private static void initialize () {
-	String routine = "IOUtil.initialize";
+	String routine = IOUtil.class.getSimpleName() + ".initialize";
 	int dl = 1;
 
 	if ( Message.isDebugOn ) {
@@ -2269,7 +2495,7 @@ Count the number of lines in a file.
 */
 public static int lineCount ( File file)
 throws IOException {
-	String message, routine = "IOUtil.lineCount", tempstr;
+	String message, routine = IOUtil.class.getSimpleName() + ".lineCount", tempstr;
 	
 	if ( file == null ) {
 		message = "Filename is null.";
@@ -2317,7 +2543,7 @@ return the number of pattern matches (more than one match per line is allowed)
 */
 public static int matchCount ( File file, String pattern, boolean countLines )
 throws IOException {
-	String message, routine = "IOUtil.matchCount", tempstr;
+	String message, tempstr;
 	
 	if ( file == null ) {
 		message = "Filename is null.";
@@ -2337,6 +2563,7 @@ throws IOException {
 	    fp = new BufferedReader ( new InputStreamReader(IOUtil.getInputStream( file.getAbsolutePath()) ));
 	}
 	catch ( Exception e ) {
+		String routine = IOUtil.class.getSimpleName() + ".matchCount";
 		message = "Unable to read file \"" + file.getAbsolutePath() + "\" (" + e + ").";
 		Message.printWarning ( 3, routine, message );
 		throw new IOException ( message );
@@ -2439,7 +2666,6 @@ The opening and closing XML tags must be added before and after calling this met
 @return 0 if successful, 1 if not.
 */
 public static int printCreatorHeader ( PrintWriter ofp, String commentLinePrefix, int maxwidth, int flag, PropList props ) {
-	String routine = IOUtil.class.getSimpleName() + ".printCreatorHeader";
 	boolean isXml = false;
 	// Figure out properties.
 	if ( props != null ) {
@@ -2451,6 +2677,7 @@ public static int printCreatorHeader ( PrintWriter ofp, String commentLinePrefix
 	}
 
 	if ( ofp == null ) {
+		String routine = IOUtil.class.getSimpleName() + ".printCreatorHeader";
 		Message.printWarning ( 2, routine, "Output file pointer is NULL" );
 		return 1;
 	}
@@ -2477,7 +2704,6 @@ Print a list of strings to a file.  The file is created, opened, and closed.
 */
 public static void printStringList ( String file, List<String> strings )
 throws IOException {
-	String message, routine = "IOUtil.printStringList";
 	PrintWriter	ofp;
 
 	// Open the file.
@@ -2486,7 +2712,8 @@ throws IOException {
 	    ofp = new PrintWriter ( new FileOutputStream(file) );
 	}
 	catch ( Exception e ) {
-		message = "Unable to open output file \"" + file + "\"";
+		String routine = IOUtil.class.getSimpleName() + ".printStringList";
+		String message = "Unable to open output file \"" + file + "\"";
 		Message.printWarning ( 2, routine, message );
 		throw new IOException ( message );
 	}
@@ -2573,7 +2800,7 @@ can be ignored in the next revision (e.g., lines that describe the file format t
 public static PrintWriter processFileHeaders ( String oldFile, String newFile, List<String> newComments,
 		List<String> commentIndicators, List<String> ignoredCommentIndicators, int flags ) {
 	String comment;
-	String routine = "IOUtil.processFileHeaders";
+	String routine = IOUtil.class.getSimpleName() + ".processFileHeaders";
 	FileHeader oldheader;
 	PrintWriter	ofp = null;
 	int dl = 50, i, header_last = -1, header_revision, wl = 20;
@@ -3411,8 +3638,6 @@ contains line break characters.
 */
 public static void writeFile ( String filename, String contents )
 throws IOException {
-	String message, routine = "IOUtil.writeFile";
-
 	BufferedWriter fp = null;
 	try {
 	    fp = new BufferedWriter ( new FileWriter( filename ));
@@ -3420,7 +3645,8 @@ throws IOException {
 		fp.close ();
 	}
 	catch ( Exception e ) {
-		message = "Unable to open file \"" + filename + "\"";
+		String routine = IOUtil.class.getSimpleName() + ".writeFile";
+		String message = "Unable to open file \"" + filename + "\"";
 		Message.printWarning ( 2, routine, message );
 		throw new IOException ( message );
 	}
