@@ -25,9 +25,12 @@ NoticeEnd */
 package RTi.Util.Time;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 //import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -898,7 +901,7 @@ public DateTime ( double double_date, boolean use_month ) {
 
 /**
 Construct using an OffsetDateTime and a time zone to convert to at construction.
-@param t DateTime to copy.
+@param t Java OffsetDateTime to use as input to create a new DateTime.
 @param behaviorFlag control behavior (see bitmasks) - if <= 0 do not change from default.
 Typically the behaviorFlag is used to indicate the precision of the DateTime.
 @param newtz Time zone to use in the resulting DateTime.
@@ -933,6 +936,56 @@ public DateTime ( OffsetDateTime t, int behaviorFlag, String newtz ) {
 		
 		// The following just saves the time zone string.
 		setTimeZone( newtz );
+		// Reset internal data like leap year, etc.
+		reset();
+	}
+	else {
+        // Constructing from null usually means that there is a code logic problem with exception handling.
+		Message.printWarning ( 2, "DateTime", "Constructing DateTime from null - will have zero date!" );
+		setToZero ();
+	}
+	if ( behaviorFlag > 0 ) {
+		__behavior_flag = behaviorFlag;
+		setPrecision(behaviorFlag);
+	}
+	reset();
+}
+
+/**
+Construct using an Instant and a time zone to convert to at construction.
+@param instant Java Instant to use as input to create a new DateTime.
+@param behaviorFlag control behavior (see bitmasks) - if <= 0 do not change from default.
+Typically the behaviorFlag is used to indicate the precision of the DateTime.
+@param tz the time zone to use, if null use the local time
+*/
+public DateTime ( Instant instant, int behaviorFlag, String tz ) {
+	if ( instant != null ) {
+		// Create a ZonedDateTime.
+		ZoneId zone = null;
+		if ( tz == null ) {
+			zone = ZoneId.systemDefault();
+		}
+		else {
+			zone = ZoneId.of(tz);
+		}
+		ZonedDateTime zdt = instant.atZone( zone );
+
+		__nano = zdt.getNano();
+		__second = zdt.getSecond();
+		__minute = zdt.getMinute();
+		__hour = zdt.getHour();
+		__day = zdt.getDayOfMonth();
+		__month = zdt.getMonthValue();
+		__year = zdt.getYear();
+		// The following are calculated with reset() call below.
+		//__isleap
+		//__iszero
+		//__weekday
+		//__yearday
+		//__abs_month
+		
+		// The following just saves the time zone string.
+		setTimeZone( tz );
 		// Reset internal data like leap year, etc.
 		reset();
 	}
