@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,39 +20,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// GRPSDrawingArea - GR PostScript drawing area class
-// ----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// Notes:	(1)	This class is the driver for drawing to PostScript
-//			files.  These drawing capabilities are independent of
-//			the Java API and can be used to create true PostScript
-//			files (desirable for high resolution output).
-//		(2)	All commands should assume that they can print with
-//			no leading space and end with a newline.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 10 Aug 1997	Steven A. Malers, RTi	Initial Java version as port of C++/C
-//					code.
-// 28 Mar 1998	SAM, RTi		Revisit the code and implement a
-//					a totally new design that is 100%
-//					object oriented.
-// 29 Aug 1998	SAM, RTi		Copy the GRDrawingArea class and fill
-//					in code from the C/C++ code.
-// 08 Nov 1999	SAM, RTi		Enable line dash code.
-// 2002-01-18	SAM, RTi		Change setFont() to take a style.
-// 2003-05-01	J. Thomas Sapienza, RTi	Made changes to accomodate the massive
-//					restructuring of GR.java.
-// 2003-05-02	JTS, RTi		Added some methods because GRDrawingArea
-//					was made abstract.
-// 2005-04-20	JTS, RTi		* Added setClip().
-//					* Added getClip().
-// 2005-04-26	JTS, RTi		Added finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
 
 package RTi.GR;
 
@@ -103,8 +70,7 @@ Postscript fonts.
 private static GRPSFontData [] _psfonts = null;
 
 /**
-GRPSDevice associated with this GRPSDrawingArea.  This is a cast of the 
-device stored in GRDevice.
+GRPSDevice associated with this GRPSDrawingArea.  This is a cast of the device stored in GRDevice.
 */
 private GRPSDevice _psdev = null;
 
@@ -113,24 +79,20 @@ General constructor.
 @param dev GRDevice associated with the drawing area.
 @param name A name for the drawing area.
 @param aspect Aspect for the axes of the drawing area.
-@param draw_limits Drawing limits (device coordinates to attach the lower-left
-and upper-right corner of the drawing area).
+@param draw_limits Drawing limits (device coordinates to attach the lower-left and upper-right corner of the drawing area).
 @param units Units of the limits (will be converted to device units).
-@param flag Modifier for drawing limits.  If GRLimits.UNIT, then the limits are
-assumed to be percentages of the device (0.0 to 1.0) and the units are not
-used.
-@param data_limits Data limits associated with the lower-left and upper-right
-corners of the drawing area.
+@param flag Modifier for drawing limits.  If GRLimits.UNIT,
+then the limits are assumed to be percentages of the device (0.0 to 1.0) and the units are not used.
+@param data_limits Data limits associated with the lower-left and upper-right corners of the drawing area.
 @see GRAspect
 */
 public GRPSDrawingArea ( GRPSDevice dev, String name, int aspect,
 			GRLimits draw_limits, int units, int flag,
-			GRLimits data_limits )
-{	String routine = "GRPSDrawingArea(...)";
+			GRLimits data_limits ) {
+	String routine = getClass().getSimpleName() + ".GRPSDrawingArea(...)";
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 10, routine,
-		"Constructing using all arguments, name=\"" + name + "\"" );
+		Message.printDebug ( 10, routine, "Constructing using all arguments, name=\"" + name + "\"" );
 	}
 	initialize ( dev, name, aspect, draw_limits, units, flag, data_limits );
 }
@@ -141,17 +103,16 @@ Constructor.
 @param props PropList with drawing area settings.
 */
 public GRPSDrawingArea ( GRPSDevice dev, PropList props )
-throws GRException
-{	
-	// Call parent...
+throws GRException {
+	// Call parent.
 
 	super ( dev, props );
-	String routine = "GRPSDrawingArea(GRPSDevice,PropList)";
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 10, routine,
-		"Constructing using PropList" );
+		String routine = getClass().getSimpleName() + ".GRPSDrawingArea(GRPSDevice,PropList)";
+		Message.printDebug ( 10, routine, "Constructing using PropList." );
 	}
-	try {	initialize ( dev, props );
+	try {
+		initialize ( dev, props );
 	}
 	catch ( GRException e ) {
 		throw e;
@@ -159,31 +120,27 @@ throws GRException
 }
 
 /**
-Clear the drawing area (draw in the current color).
-This has no effect in PostScript.
+Clear the drawing area (draw in the current color). This has no effect in PostScript.
 */
-public void clear ( )
-{
+public void clear ( ) {
 }
 
 /**
-Set the clip on/off for the drawing area.  The full drawing area is used for
-clipping (ignoring aspect).
+Set the clip on/off for the drawing area.  The full drawing area is used for clipping (ignoring aspect).
 @param flag Indicates whether clipping should be on or off.
 */
-public void clip ( boolean flag )
-{
+public void clip ( boolean flag ) {
 	if ( flag ) {
-		// Set clip path to drawing area limits...
+		// Set clip path to drawing area limits.
 		_fp.print ( "gsave" + " " +
-				_drawx1 + " " + _drawy1 + " moveto " +
-				_drawx2 + " " + _drawy1 + " lineto " +
-				_drawx2 + " " + _drawy2 + " lineto " +
-				_drawx1 + " " + _drawy2 +
-				" lineto closepath clip newpath " + _nl );
+			_drawx1 + " " + _drawy1 + " moveto " +
+			_drawx2 + " " + _drawy1 + " lineto " +
+			_drawx2 + " " + _drawy2 + " lineto " +
+			_drawx1 + " " + _drawy2 +
+			" lineto closepath clip newpath " + _nl );
 	}
-	else {	// Set the clip path to the previous limits (assume to be full
-		// page)...
+	else {
+		// Set the clip path to the previous limits (assume to be full page).
 		_fp.print ( "grestore" + _nl );
 	}
 }
@@ -192,38 +149,32 @@ public void clip ( boolean flag )
 Add a comment to the output file.
 @param comment Comment to add to file.
 */
-public void comment ( String comment )
-{
+public void comment ( String comment ) {
 	_fp.print ( "%% " + comment + _nl );
 }
 
 /**
 Draw an arc using the current color, line, etc.
-@param a1 Initial angle to start drawing (0 is at 3 o'clock, then
-counterclockwise).
+@param a1 Initial angle to start drawing (0 is at 3 o'clock, then counterclockwise).
 @param a2 Ending angle.
 @param x X-coordinate of center.
 @param xr X-radius.
 @param y Y-coordinate of center.
 @param yr Y-radius.
 */
-public void drawArc (	double x, double y, double xr, double yr, double a1,
-			double a2 )
-{
-	// For the time being, assume we are dealing with circles...
+public void drawArc ( double x, double y, double xr, double yr, double a1, double a2 ) {
+	// For the time being, assume we are dealing with circles.
 
-	_fp.print ( "newpath" + _nl + x + " " + y + " " + xr + " " + a1 + " " +
-	a2 + " arc" + _nl );
+	_fp.print ( "newpath" + _nl + x + " " + y + " " + xr + " " + a1 + " " + a2 + " arc" + _nl );
 	stroke ();
 }
 
 /**
 Not implemented
 */
-public void drawCompoundText ( List<String> text, GRColor color, double x, double y, double angle, int flag )
-{	String routine = "GRPSDrawingArea.drawCompoundText";
-	Message.printWarning ( 1, routine,
-	"GRPSDrawingArea.drawCompoundText not implemnted" );
+public void drawCompoundText ( List<String> text, GRColor color, double x, double y, double angle, int flag ) {
+	String routine = getClass().getSimpleName() + ".drawCompoundText";
+	Message.printWarning ( 1, routine, "GRPSDrawingArea.drawCompoundText not implemnted" );
 }
 
 /**
@@ -231,8 +182,8 @@ Draw a line.
 @param x array of x points.
 @param y array of y points.
 */
-public void drawLine ( double x[], double y[] )
-{	moveTo ( x[0], y[0] );
+public void drawLine ( double x[], double y[] ) {
+	moveTo ( x[0], y[0] );
 	lineTo ( x[1], y[1] );
 }
 
@@ -243,8 +194,8 @@ Draw a line
 @param x1 the end x coordinate
 @param y1 the end y coordinate
 */
-public void drawLine ( double x0, double y0, double x1, double y1 )
-{	moveTo ( x0, y0 );
+public void drawLine ( double x0, double y0, double x1, double y1 ) {
+	moveTo ( x0, y0 );
 	lineTo ( x1, y1 );
 }
 
@@ -253,8 +204,7 @@ Draws a polygon.
 @param x an array of x coordinates
 @param y an array of y coordinates.
 */
-public void drawPolygon ( double x[], double y[] )
-{
+public void drawPolygon ( double x[], double y[] ) {
 	int npts = x.length;
 	drawPolygon ( npts, x, y );
 }
@@ -265,8 +215,7 @@ Draws a polygon.
 @param x an array of x coordinates
 @param y an array of y coordinates.
 */
-public void drawPolygon ( int npts, double x[], double y[] )
-{
+public void drawPolygon ( int npts, double x[], double y[] ) {
 	int i = 0;
 	if ( npts > 0 ) {
 		moveTo ( x[0], y[0] );
@@ -282,23 +231,21 @@ public void drawPolygon ( int npts, double x[], double y[] )
 }
 
 /**
-Draws a polyline 
+Draws a polyline.
 @param x an array of x coordinates
 @param y an array of y coordinates.
 */
-public void drawPolyline ( double x[], double y[] )
-{
+public void drawPolyline ( double x[], double y[] ) {
 	drawPolyline ( x.length, x, y );
 }
 
 /**
-Draws a polyline 
+Draws a polyline.
 @param npts the number of points in the polyline
 @param x an array of x coordinates
 @param y an array of y coordinates.
 */
-public void drawPolyline ( int npts, double x[], double y[] )
-{
+public void drawPolyline ( int npts, double x[], double y[] ) {
 	if ( npts > 0 ) {
 		moveTo ( x[0], y[0] );
 	}
@@ -315,8 +262,7 @@ Draws a rectangle in the current color.
 @param width the width of the rectangle
 @param height the height of the rectangle
 */
-public void drawRectangle ( double xll, double yll, double width, double height)
-{
+public void drawRectangle ( double xll, double yll, double width, double height) {
 	moveTo ( xll, yll );
 	lineTo ( xll + width, yll );
 	lineTo ( xll + width, yll + height );
@@ -346,9 +292,8 @@ Draw text.
 @param flag one of the GRText.* values specifying how to draw the string.
 @param rotationDegrees degrees the text is rotated (UNUSED)
 */
-public void drawText ( String text, double x, double y, double a, int flag,
-double rotationDegrees)
-{	int	aflag;
+public void drawText ( String text, double x, double y, double a, int flag, double rotationDegrees) {
+	int	aflag;
 	double	px, py;
 
 	if ( (a < .001) && (a > -.001) ) {
@@ -357,12 +302,12 @@ double rotationDegrees)
 	else {	aflag = 1;
 	}
 	if ( aflag != 0 ) {
-		_fp.print ( "gsave " + x + " " + y + " translate " + a +
-		" rotate " );
+		_fp.print ( "gsave " + x + " " + y + " translate " + a + " rotate " );
 		px = 0.0;
 		py = 0.0;
 	}
-	else {	px = x;
+	else {
+		px = x;
 		py = y;
 	}
 	if ( (flag & GRText.CENTER_Y) != 0 ) {
@@ -381,7 +326,7 @@ double rotationDegrees)
 		drawText2 ( text );
 		_fp.print ( ") " + px + " " + py + " RS" + _nl);
 	}
-	else {	_fp.print ( "(" );	// default
+	else {	_fp.print ( "(" );	// Default.
 		drawText2 ( text );
 		_fp.print ( ") " + px + " " + py + " LS" + _nl);
 	}
@@ -392,11 +337,10 @@ double rotationDegrees)
 }
 
 /**
-Draw text to file, replacing ( with \( and ) with \)
+Draw text to file, replacing ( with \( and ) with \).
 @param text the text string to draw.
 */
-public void drawText2 ( String text )
-{
+public void drawText2 ( String text ) {
 	if ( text == null ) {
 		return;
 	}
@@ -422,15 +366,12 @@ Fill an arc using the current color, line, etc.
 @param a1 Initial angle to start drawing (0 is at 3 o'clock, then
 counterclockwise).
 @param a2 Ending angle.
-@param fillmode Fill mode for arc (see GR.FILL_CHORD or GR.FILL_PIE).
+@param fillmode Fill mode for arc (GRFillArcType.CHORD or GRFillArcType.PIE).
 */
-public void fillArc (		double x, double y, double rx, double ry,
-				double a1, double a2, int fillmode )
-{
-	// For the time being, assume we are dealing with circles...
+public void fillArc ( double x, double y, double rx, double ry, double a1, double a2, GRArcFillType fillmode ) {
+	// For the time being, assume we are dealing with circles.
 
-	_fp.print ( "newpath" + _nl + x + " " + y + " " + rx + " " + a1 + " " +
-	a2 + " arc closepath fill" + _nl );
+	_fp.print ( "newpath" + _nl + x + " " + y + " " + rx + " " + a1 + " " + a2 + " arc closepath fill" + _nl );
 	stroke ();
 }
 
@@ -439,8 +380,7 @@ FIlls a polygon with the current color.
 @param x an array of x coordinates
 @param y an array of y coordinates
 */
-public void fillPolygon ( double [] x, double [] y )
-{
+public void fillPolygon ( double [] x, double [] y ) {
 	int n = x.length;
 	fillPolygon ( n, x, y );
 }
@@ -451,8 +391,7 @@ Fill a polygon with the current color.
 @param x X-coordinates of points in polygon.
 @param y Y-coordinates of points in polygon.
 */
-public void fillPolygon ( int n, double [] x, double [] y )
-{
+public void fillPolygon ( int n, double [] x, double [] y ) {
 	int ny = y.length;
 	if ( ny < n ) {
 		n = ny;
@@ -472,28 +411,17 @@ public void fillPolygon ( int n, double [] x, double [] y )
 }
 
 /**
-Cleans up member variables.
-*/
-public void finalize() 
-throws Throwable {
-	_fp = null;
-	_psdev = null;
-	super.finalize();
-}
-
-/**
 Flush the drawing area (and device).
 */
-public void flush ()
-{
+public void flush () {
 	stroke();
 }
 
 /**
 Not implemented.
 */
-public GRLimits getBoundingBoxFromFile ( String filename )
-{	String routine = "GRPSDrawingArea.getBoundingBoxFromFile";
+public GRLimits getBoundingBoxFromFile ( String filename ) {
+	String routine = getClass().getSimpleName() + ".getBoundingBoxFromFile";
 	Message.printWarning ( 1, routine, routine + " not implemented" );
 	return null;
 }
@@ -511,48 +439,43 @@ Get the device extents of data limits.  Simple returns <tt>limits</tt>.
 @param flag unused
 @return the limits parameter.
 */
-public GRLimits getDataExtents ( GRLimits limits, int flag )
-{
-	// temporary...
+public GRLimits getDataExtents ( GRLimits limits, int flag ) {
+	// Temporary.
 	return limits;
 }
 
 /**
-Get the data values for device coordinates.  This is typically used when
-interpreting a mouse action and therefore for a PostScript file has little use.
+Get the data values for device coordinates.
+This is typically used when interpreting a mouse action and therefore for a PostScript file has little use.
 @return A GRPoint with the data point.
 @param devx Device x-coordinate.
 @param devy Device y-coordinate.
-@param flag GR.COORD_DEVICE if the coordinates are originating with the device
-(e.g., a mouse) or GR.COORD_PLOT if the coordinates are plotting coordinates
+@param coordinateType GRCoordinateType.DEVICE if the coordinates are originating with the device
+(e.g., a mouse) or GRCoordinateType.PLOT if the coordinates are plotting coordinates
 (this flag affects how the y-axis is reversed on some devices).
 */
-public GRPoint getDataXY ( double devx, double devy, int flag )
-{	double x = MathUtil.interpolate ( devx, _plotx1, _plotx2, 
-		_datax1, _datax2 );
-	double y = MathUtil.interpolate ( devy, _ploty1, _ploty2, 
-		_datay1, _datay2 );
+public GRPoint getDataXY ( double devx, double devy, GRCoordinateType coordinateType ) {
+	double x = MathUtil.interpolate ( devx, _plotx1, _plotx2, _datax1, _datax2 );
+	double y = MathUtil.interpolate ( devy, _ploty1, _ploty2, _datay1, _datay2 );
 	return new GRPoint ( x, y );
 }
+
 /**
 Initialize drawing area settings.
 @param dev GRDevice associated with the drawing area.
 @param name A name for the drawing area.
 @param aspect Aspect for the axes of the drawing area.
-@param draw_limits Drawing limits (device coordinates to attach the lower-left
-and upper-right corner of the drawing area).
+@param draw_limits Drawing limits (device coordinates to attach the lower-left and upper-right corner of the drawing area).
 @param units Units of the limits (will be converted to device units).
-@param flag Modifier for drawing limits.  If GRLimits.UNIT, then the limits are
-assumed to be percentages of the device (0.0 to 1.0) and the units are not
-used.
+@param flag Modifier for drawing limits.
+If GRLimits.UNIT, then the limits are assumed to be percentages of the device (0.0 to 1.0) and the units are not used.
 @param data_limits Data limits associated with the lower-left and upper-right
 corners of the drawing area.
 */
 private void initialize ( GRPSDevice dev, String name, int aspect,
 			GRLimits draw_limits, int units, int flag,
-			GRLimits data_limits )
-{
-	String	routine = "GRDrawingArea.initialize(args)";
+			GRLimits data_limits ) {
+	String routine = getClass().getSimpleName() + ".initialize(args)";
 	Message.printWarning ( 1, routine, "Use PropList version" );
 }
 
@@ -562,19 +485,19 @@ Initialize drawing area settings.
 @param props PropList with drawing area settings.
 */
 private void initialize ( GRPSDevice dev, PropList props )
-throws GRException
-{	String	routine = "GRDrawingArea.initialize(PropList)";
+throws GRException {
+	String routine = getClass().getSimpleName() + ".initialize(PropList)";
 	int	dl = 10;
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine, "Initializing" );
 	}
 
-	// Initialize the basic data members...
+	// Initialize the basic data members.
 
 	_status		= GRUtil.STAT_OPEN;
-	_axisx		= GRAxis.LINEAR;
-	_axisy		= GRAxis.LINEAR;
+	_axisx		= GRAxisScaleType.LINEAR;
+	_axisy		= GRAxisScaleType.LINEAR;
 	_color		= GRColor.white;
 	_dataset	= false;
 	_datax1		= 0.0;
@@ -596,14 +519,14 @@ throws GRException
 	_lineary2	= 0.0;
 	_name		= new String ();
 
-	// Device data that we want reference to here...
+	// Device data that we want reference to here.
 
-	_psdev		= (GRPSDevice)_dev;
-	_fp		= _psdev._fp;
+	_psdev = (GRPSDevice)_dev;
+	_fp = _psdev._fp;
 
-	// Set passed-in values that are not set in the base GRPSDevice class...
+	// Set passed-in values that are not set in the base GRPSDevice class.
 
-/* Need to make separate call or add props...
+	/* Need to make separate call or add props.
 	setDrawingLimits ( draw_limits, units, flag );
 	setDataLimits ( data_limits );
 	_devyshift = dev.getLimits().getTopY ();
@@ -611,44 +534,31 @@ throws GRException
 		Message.printDebug ( 10, routine, "Device height is " +
 		_devyshift );
 	}
-*/
-	// Set the newline...
+	 */
+	// Set the newline.
 
 	if ( _nl == null ) {
 		_nl = System.getProperty ( "line.separator" );
 	}
 
-	// Set the shared font data...
+	// Set the shared font data.
 
 	if ( _psfonts == null ) {
 		_psfonts = new GRPSFontData[14];
 		_psfonts[0] = new GRPSFontData ( "courier", "Courier" );
-		_psfonts[1] = new GRPSFontData ( "courier-bold",
-				"Courier-Bold" );
-		_psfonts[2] = new GRPSFontData ( "courier-boldoblique",
-				"Courier-BoldOblique");
-		_psfonts[3] = new GRPSFontData ( "courier-oblique",
-				"Courier-Oblique" );
-		_psfonts[4] = new GRPSFontData ( "helvetica",
-				"Helvetica" );
-		_psfonts[5] = new GRPSFontData ( "helvetica-bold",
-				"Helvetica-Bold" );
-		_psfonts[6] = new GRPSFontData ( "helvetica-boldoblique",
-				"Helvetica-BoldOblique" );
-		_psfonts[7] = new GRPSFontData ( "helvetica-oblique",
-				"Helvetica-Oblique" );
-		_psfonts[8] = new GRPSFontData ( "symbol",
-				"Symbol" );
-		_psfonts[9] = new GRPSFontData ( "times",
-				"Times-Roman" );
-		_psfonts[10] = new GRPSFontData ( "times-bold",
-				"Times-Bold" );
-		_psfonts[11] = new GRPSFontData ( "times-bolditalic",
-				"Times-BoldItalic" );
-		_psfonts[12] = new GRPSFontData ( "times-italic",
-				"Times-Italic" );
-		_psfonts[13] = new GRPSFontData ( "times-roman",
-				"Times-Roman" );
+		_psfonts[1] = new GRPSFontData ( "courier-bold", "Courier-Bold" );
+		_psfonts[2] = new GRPSFontData ( "courier-boldoblique", "Courier-BoldOblique");
+		_psfonts[3] = new GRPSFontData ( "courier-oblique", "Courier-Oblique" );
+		_psfonts[4] = new GRPSFontData ( "helvetica", "Helvetica" );
+		_psfonts[5] = new GRPSFontData ( "helvetica-bold", "Helvetica-Bold" );
+		_psfonts[6] = new GRPSFontData ( "helvetica-boldoblique", "Helvetica-BoldOblique" );
+		_psfonts[7] = new GRPSFontData ( "helvetica-oblique", "Helvetica-Oblique" );
+		_psfonts[8] = new GRPSFontData ( "symbol", "Symbol" );
+		_psfonts[9] = new GRPSFontData ( "times", "Times-Roman" );
+		_psfonts[10] = new GRPSFontData ( "times-bold", "Times-Bold" );
+		_psfonts[11] = new GRPSFontData ( "times-bolditalic", "Times-BoldItalic" );
+		_psfonts[12] = new GRPSFontData ( "times-italic", "Times-Italic" );
+		_psfonts[13] = new GRPSFontData ( "times-roman", "Times-Roman" );
 	}
 }
 
@@ -657,8 +567,7 @@ Draws a line to a point from the last-drawn or position point.
 @param x the x coordinate
 @param y the y coordinate
 */
-public void lineTo ( double x, double y )
-{	
+public void lineTo ( double x, double y ) {
 	_fp.print ( x + " " + y + " LT" + _nl );
 	++_psdev._LineTo_count;
 	if ( _psdev._LineTo_count >= GRPSDevice._MAXLineTo_count ) {
@@ -671,8 +580,7 @@ public void lineTo ( double x, double y )
 Draws a line to a point from the last-drawn or positioned point.
 @param point GRPoint defining where to draw to.
 */
-public void lineTo ( GRPoint point )
-{
+public void lineTo ( GRPoint point ) {
 	lineTo ( point.getX(), point.getY() );
 }
 
@@ -681,8 +589,7 @@ Moves the pen to a point
 @param x the x coordinate to move to
 @param y the y coordinate to move to
 */
-public void moveTo ( double x, double y )
-{
+public void moveTo ( double x, double y ) {
 	_fp.print ( x + " " + y + " MT" + _nl );
 }
 
@@ -690,8 +597,7 @@ public void moveTo ( double x, double y )
 Moves the pen to a point
 @param point the GRPoint to move to
 */
-public void moveTo ( GRPoint point )
-{
+public void moveTo ( GRPoint point ) {
 	moveTo ( point.getX(), point.getY() );
 }
 
@@ -706,43 +612,40 @@ public void pageEnd ( )
 /**
 Starts the page.
 */
-public void pageStart ( )
-{
+public void pageStart ( ) {
 	_psdev.pageStart();
 }
 
 /**
 Not implemented.
 */
-public void print ()
-{
+public void print () {
 }
 
 /**
 Not implemented.
 */
-public void setClip(GRLimits deviceLimits) {}
+public void setClip(GRLimits deviceLimits) {
+}
 
 /**
 Not implemented.
 */
-public void setClip(Shape clipShape) {}
+public void setClip(Shape clipShape) {
+}
 
 /**
 Set the current color.
 @param color GRColor to use.
 @see GRColor
 */
-public void setColor ( GRColor color )
-{	
+public void setColor ( GRColor color ) {
 	if ( color == null ) {
-		String routine = "GRPSDrawingArea.setColor";
+		String routine = getClass().getSimpleName() + ".setColor";
 		Message.printWarning ( 2, routine, "Null color" );
 	}
 	_color = color;
-	setColor (	(double)color.getRed()/255.0,
-			(double)color.getGreen()/255.0,
-			(double)color.getBlue()/255.0 );
+	setColor ( (double)color.getRed()/255.0, (double)color.getGreen()/255.0, (double)color.getBlue()/255.0 );
 }
 
 /**
@@ -751,8 +654,8 @@ Set the current color.
 @param g Green component in range 0.0 to 1.0.
 @param b Blue component in range 0.0 to 1.0.
 */
-public void setColor ( double r, double g, double b )
-{	_color = new GRColor ( r, g, b );
+public void setColor ( double r, double g, double b ) {
+	_color = new GRColor ( r, g, b );
 	_fp.print ( r + " " + g + " " + b + " setrgbcolor" + _nl );
 }
 
@@ -762,19 +665,18 @@ Set the current color.
 @param g Green component in range 0.0 to 1.0.
 @param b Blue component in range 0.0 to 1.0.
 */
-public void setColor ( float r, float g, float b )
-{	setColor ( (double)r, (double)g, (double)b );
+public void setColor ( float r, float g, float b ) {
+	setColor ( (double)r, (double)g, (double)b );
 }
 
 /**
 Set the font for the drawing area.
 @param font Font name (e.g., "Helvetica").
-@param style Font style ("Plain", "Bold", or "Italic").  Currently this is
-ignored for PostScript.
+@param style Font style ("Plain", "Bold", or "Italic").  Currently this is ignored for PostScript.
 @param fontht Font height in points.
 */
-public void setFont ( String font, String style, double fontht )
-{	int nfonts = _psfonts.length;
+public void setFont ( String font, String style, double fontht ) {
+	int nfonts = _psfonts.length;
 	for ( int i = 0; i < nfonts; i++ ) {
 		if (	font.equalsIgnoreCase( _psfonts[i].grname) ) {
 			_font = font;
@@ -790,17 +692,16 @@ public void setFont ( String font, String style, double fontht )
 
 /**
 Sets the line cap style, as defined in GRDrawingAreaUtil.CAP*
-@param linecap the linecap style.
+@param linecap the line cap style.
 */
-public void setLineCap ( int linecap )
-{
-	if ( linecap == GRDrawingAreaUtil.CAP_BUTT ) {
+public void setLineCap ( GRLineCapStyleType linecap ) {
+	if ( linecap == GRLineCapStyleType.BUTT ) {
 		_fp.print ( "0 setlinecap" + _nl );
 	}
-	else if ( linecap == GRDrawingAreaUtil.CAP_ROUND ) {
+	else if ( linecap == GRLineCapStyleType.ROUND ) {
 		_fp.print ( "1 setlinecap" + _nl );
 	}
-	else if ( linecap == GRDrawingAreaUtil.CAP_PROJECT ) {
+	else if ( linecap == GRLineCapStyleType.PROJECT ) {
 		_fp.print ( "2 setlinecap" + _nl );
 	}
 }
@@ -810,16 +711,15 @@ Sets the line dash pattern.
 @param dash array defining the dash pattern
 @param offset line offset.
 */
-public void setLineDash ( double dash[], double offset )
-{
+public void setLineDash ( double dash[], double offset ) {
 	if ( dash == null ) {
-		// Set to solid line...
+		// Set to solid line.
 		_fp.print ( "[] 0 setdash" + _nl );
 		return;
 	}
 	int ndash = dash.length;
 	if ( ndash == 0 ) {
-		// Set to solid line...
+		// Set to solid line.
 		_fp.print ( "[] 0 setdash" + _nl );
 		return;
 	}
@@ -835,17 +735,19 @@ public void setLineDash ( double dash[], double offset )
 
 /**
 Sets the line join style.
-@param join the line join style, as definied in GRDrawingAreaUtil.JOIN*
+@param join the line join style
 */
-public void setLineJoin ( int join )
-{
-	if ( join == GRDrawingAreaUtil.JOIN_MITER ) {
+public void setLineJoin ( GRLineJoinStyleType join ) {
+	if ( join == GRLineJoinStyleType.MITER ) {
+		// No line join.
 		_fp.print ( "0 setlinejoin" + _nl );
 	}
-	else if ( join == GRDrawingAreaUtil.JOIN_MITER ) {
+	else if ( join == GRLineJoinStyleType.ROUND ) {
+		// Round line join.
 		_fp.print ( "1 setlinejoin" + _nl );
 	}
-	else if ( join == GRDrawingAreaUtil.JOIN_MITER ) {
+	else if ( join == GRLineJoinStyleType.BEVEL ) {
+		// Square line join.
 		_fp.print ( "2 setlinejoin" + _nl );
 	}
 }
@@ -854,8 +756,7 @@ public void setLineJoin ( int join )
 Sets the line width.
 @param linewidth the width of the line
 */
-public void setLineWidth ( double linewidth )
-{
+public void setLineWidth ( double linewidth ) {
 	_fp.print ( "" + linewidth + " setlinewidth" + _nl );
 	_linewidth = linewidth;
 }
@@ -863,8 +764,7 @@ public void setLineWidth ( double linewidth )
 /**
 Stroke.
 */
-public void stroke ()
-{
+public void stroke () {
 	_fp.print ( "ST" + _nl );
 	_psdev._LineTo_count = 0;
 }
@@ -872,42 +772,53 @@ public void stroke ()
 /**
 Not implemented.
 */
-public void grid (int nxg, double xg[], int nyg, double yg[], int flag) {}
+public void grid (int nxg, double xg[], int nyg, double yg[], int flag) {
+}
 
 /**
 Not implemented.
 */
-public double getYData(double ydev) { return -999.99; }
+public double getYData(double ydev) {
+	return -999.99;
+}
 
 /**
 Not implemented.
 */
-public double getXData(double xdev) { return -999.99; }
+public double getXData(double xdev) {
+	return -999.99;
+}
 
 /**
 Not implemented.
 */
-public int getUnits() { return -999; }
+public int getUnits() {
+	return -999;
+}
 
 /**
 Not implemented.
 */
-public GRLimits getTextExtents (String text, int flag) { return null; }
+public GRLimits getTextExtents (String text, int flag) {
+	return null;
+}
 
 /**
 Not implemented.
 */
-public void fillRectangle (double xll, double yll, double width, double height)
-{}
+public void fillRectangle (double xll, double yll, double width, double height) {
+}
 
 /**
 Not implemented.
 */
-public void fillRectangle (GRLimits limits) {}
+public void fillRectangle (GRLimits limits) {
+}
 
 /**
 Not implemented.
 */
-public void fillPolygon (int npts, double x[], double y[], int transparency) {}
+public void fillPolygon (int npts, double x[], double y[], int transparency) {
+}
 
-} // End class GRPSDrawingArea
+}

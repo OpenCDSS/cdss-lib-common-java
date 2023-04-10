@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,28 +27,27 @@ package RTi.GR;
 Ways to connect points when drawing, needed for example to represent instantaneous values, averages, etc.
 Handling of missing values with gaps is expected to occur as appropriate but is not indicated by this type.
 */
-public enum GRPointConnectType
-{
+public enum GRPointConnectType {
     /**
      * Connect points.
      */
     CONNECT("Connect"),
-    
+
     /**
-     * Step-function with line drawn backward from the point (point's y-coordinate is end of step). 
+     * Step-function with line drawn backward from the point (point's y-coordinate is end of step).
      */
     STEP_BACKWARD("StepBackward"),
-    
+
     /**
-     * Step-function with line drawn forward from the point (point's y-coordinate is start of step). 
+     * Step-function with line drawn forward from the point (point's y-coordinate is start of step).
      */
     STEP_FORWARD("StepForward");
-    
+
     /**
      * The string name that should be displayed.
      */
     private final String displayName;
-    
+
     /**
      * Construct a point connect type enumeration value.
      * @param displayName name that should be displayed in choices, etc.
@@ -56,7 +55,7 @@ public enum GRPointConnectType
     private GRPointConnectType(String displayName) {
         this.displayName = displayName;
     }
-    
+
     /**
      * Equals method to prevent common programming error of using the equals method instead of ==.
      */
@@ -68,32 +67,31 @@ public enum GRPointConnectType
             return false;
         }
     }
-	
+
     /**
-     * Return the display name for the arrow style type.  This is usually the same as the
-     * value but using appropriate mixed case.
+     * Return the display name for the arrow style type.
+     * This is usually the same as the value but using appropriate mixed case.
      * @return the display name.
      */
     @Override
     public String toString() {
         return displayName;
     }
-	
+
 	/**
 	 * Return the enumeration value given a string name (case-independent).
 	 * @return the enumeration value given a string name (case-independent), or null if not matched.
 	 */
-	public static GRPointConnectType valueOfIgnoreCase(String name)
-	{
+	public static GRPointConnectType valueOfIgnoreCase(String name) {
 	    if ( name == null ) {
 	        return null;
 	    }
-	    // Currently supported values
+	    // Currently supported values.
 	    for ( GRPointConnectType t : values() ) {
 	        if ( name.equalsIgnoreCase(t.toString()) ) {
 	            return t;
 	        }
-	    } 
+	    }
 	    return null;
 	}
 }

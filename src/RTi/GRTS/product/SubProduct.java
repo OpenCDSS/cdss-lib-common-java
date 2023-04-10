@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,10 +33,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 /**
  * Representation of a subproduct, such as graph, within a product.
- * @author sam
- *
  */
-@JsonIgnoreProperties(ignoreUnknown=true) // If Json is ever read in, this will help with unknown Json properties
+@JsonIgnoreProperties(ignoreUnknown=true) // If Json is ever read in, this will help with unknown Json properties.
 @JsonPropertyOrder({"properties","data","annotations"})
 public class SubProduct {
 
@@ -46,7 +44,7 @@ public class SubProduct {
 	 * consistent with the legacy time series product properties.
 	 */
 	private HashMap<String,Object> properties = new LinkedHashMap<>();
-	
+
 	/**
 	 * List of Data (time series) for this SubProduct.
 	 */
@@ -61,7 +59,6 @@ public class SubProduct {
 	 * Constructor.
 	 */
 	public SubProduct () {
-		
 	}
 
 	/**
@@ -105,7 +102,7 @@ public class SubProduct {
 	public Object getProperty ( String key ) {
 		return this.properties.get(key);
 	}
-	
+
 	/**
 	 * Set a property value.
 	 */

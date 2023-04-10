@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,23 +26,22 @@ package RTi.GR;
 /**
 Graph axis directions.
 */
-public enum GRAxisDirectionType
-{
+public enum GRAxisDirectionType {
     /**
-     * Axis has normal direction (e.g., Y-axis values on simple graph increase vertically).
+     * Axis has normal direction (e.g., Y-axis values on simple graph increase vertically with the highest value at the top).
      */
     NORMAL("Normal"),
-    
+
     /**
-     * Reversed axis. 
+     * Reversed axis (e.g., Y-axis values on simple graph decrease vertically with highest value at the bottom).
      */
     REVERSE("Reverse");
-    
+
     /**
      * The string name that should be displayed.
      */
     private final String displayName;
-    
+
     /**
      * Construct an enumeration value.
      * @param displayName name that should be displayed in choices, etc.
@@ -50,7 +49,7 @@ public enum GRAxisDirectionType
     private GRAxisDirectionType(String displayName) {
         this.displayName = displayName;
     }
-    
+
     /**
      * Equals method to prevent common programming error of using the equals method instead of ==.
      */
@@ -62,32 +61,31 @@ public enum GRAxisDirectionType
             return false;
         }
     }
-	
+
     /**
-     * Return the display name for the enumeration.  This is usually the same as the
-     * value but using appropriate mixed case.
+     * Return the display name for the enumeration.
+     * This is usually the same as the value but using appropriate mixed case.
      * @return the display name.
      */
     @Override
     public String toString() {
         return displayName;
     }
-	
+
 	/**
 	 * Return the enumeration value given a string name (case-independent).
 	 * @return the enumeration value given a string name (case-independent), or null if not matched.
 	 */
-	public static GRAxisDirectionType valueOfIgnoreCase(String name)
-	{
+	public static GRAxisDirectionType valueOfIgnoreCase(String name) {
 	    if ( name == null ) {
 	        return null;
 	    }
-	    // Currently supported values
+	    // Currently supported values.
 	    for ( GRAxisDirectionType t : values() ) {
 	        if ( name.equalsIgnoreCase(t.toString()) ) {
 	            return t;
 	        }
-	    } 
+	    }
 	    return null;
 	}
 }

@@ -212,8 +212,7 @@ If true, then for screen output the mouse position is shown in a TextField below
 
 <tr>
 <td><b>GraphType</b></td>
-<td>Type of graph ("Bar", "Double-Mass", "Duration", "Line", "PeriodOfRecord",
-"XY-Scatter").
+<td>Type of graph (e.g., "Bar", "Double-Mass", "Duration", "Line", "PeriodOfRecord", "Point", "Raster", "XY-Scatter").
 </td>
 <td>"Line"</td>
 </tr>

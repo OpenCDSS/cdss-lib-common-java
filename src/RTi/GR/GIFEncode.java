@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,10 +20,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// History:
-//
-// 2007-05-08  Steven A. Malers, RTi  Clean up based on Eclipse feedback.
 
 package RTi.GR;
 
@@ -68,8 +64,7 @@ class BitStream {
     int currentBits = 0;
     int accumulator = 0;
     void write(int code, int nBits) throws IOException {
-	System.out.println("Bitstream writing " + code + " as " +
-			   nBits + " bits");
+	System.out.println("Bitstream writing " + code + " as " + nBits + " bits");
 	if (currentBits > 0) {
 	    accumulator &= (1<<currentBits)-1;
 	    accumulator |= code<<currentBits;
@@ -107,17 +102,18 @@ class Compressor {
 	clearCode = (1 << (initBits - 1));
 	eofCode = clearCode + 1;
 	this.os = os;
-	// Write the initial code size
+	// Write the initial code size.
 	os.write(initCodeSize);
 	bitStream = new BitStream(os);
 	nBits = initBits;
 	clearHashTable();
     }
+
     /**
      * Clear out the hash table
      */
     void clearHashTable() throws IOException {
-	// Output the clear code
+	// Output the clear code.
 	bitStream.write(clearCode, nBits);
 	freeEntry = eofCode + 1;
 	nBits = initBits;
@@ -127,36 +123,41 @@ class Compressor {
 	    hashTable[i] = -1;
 	}
     }
+
     /**
-     * Hash table to look up prefix/suffix pairs
-     * This table contains the search keys
+     * Hash table to look up prefix/suffix pairs.
+     * This table contains the search keys.
      */
     int[] hashTable = new int[HASH_TABLE_SIZE];
+
     /**
-     * Code mappings for hash table entries
-     * i.e. search key -> new code value
+     * Code mappings for hash table entries (i.e. search key -> new code value).
      */
     int[] codeTable = new int[HASH_TABLE_SIZE];
+
     /**
-     * Size of the hash table
-     * This gives an occupancy of 4096/5003 (over 80%)
-     * since we can have at most 4096 (2^MAX_BITS) codes to look up
+     * Size of the hash table.
+     * This gives an occupancy of 4096/5003 (over 80%) since can have at most 4096 (2^MAX_BITS) codes to look up.
      */
     final static int HASH_TABLE_SIZE = 5003;
+
     /**
-     * Maximum bits allowed for encoding
+     * Maximum bits allowed for encoding.
      */
     final static int MAX_BITS = 12;
+
     /**
-     * Maximum code for maximum bits; never generated
+     * Maximum code for maximum bits; never generated.
      */
     final static int MAX_MAX_CODE = 1<<MAX_BITS;
+
     /**
-     * Shift amount for generating primary hash code
+     * Shift amount for generating primary hash code.
      */
     final static int HASH_SHIFT = 4;
+
     /**
-     * Compress a data stream
+     * Compress a data stream.
      */
     void noCompress(byte[] data, int length) throws IOException {
 	int byteNo;
@@ -164,10 +165,10 @@ class Compressor {
 	    int c = data[byteNo]&0xff;
 	    bitStream.write(c, nBits);
 	}
-	// Write the end of the compressed stream
+	// Write the end of the compressed stream.
 	bitStream.write(eofCode, nBits);
 	bitStream.flush();
-	// Write the block terminator
+	// Write the block terminator.
 	os.write(0);
     }
     void compress(byte[] data, int length) throws IOException {
@@ -175,12 +176,12 @@ class Compressor {
 	int byteNo;
 	for (byteNo = 1; byteNo < length; byteNo++) {
 	    int suffixCode = data[byteNo]&0xff;
-	    // look up the prefix followed by suffix in the hash table
+	    // look up the prefix followed by suffix in the hash table.
 	    int searchKey = (suffixCode << MAX_BITS) + prefixCode;
 	    int hash = (suffixCode << HASH_SHIFT) ^ prefixCode;
 	    if (hashTable[hash] != searchKey &&
 		hashTable[hash] >= 0) {
-		// not found on primary hash; try secondary hash
+		// Not found on primary hash; try secondary hash.
 		int displacement;
 		if (hash == 0) {
 		    displacement = 1;
@@ -196,14 +197,13 @@ class Compressor {
 			 hashTable[hash] >= 0);
 	    }
 	    if (hashTable[hash] == searchKey) {
-		// we have a code for prefix followed by suffix
+		// Have a code for prefix followed by suffix.
 		prefixCode = codeTable[hash];
 		continue;
 	    } else {
 		// empty slot
 		bitStream.write(prefixCode, nBits);
-		// If the next entry is going to be too big for the code size,
-		// then increase it, if possible.
+		// If the next entry is going to be too big for the code size, then increase it, if possible.
 		if (freeEntry > maxCode) {
 		    nBits++;
 		    if (nBits == MAX_BITS) {
@@ -215,19 +215,18 @@ class Compressor {
 		prefixCode = suffixCode;
 
 		if (freeEntry < MAX_MAX_CODE) {
-		    // put this entry in the hash table
+		    // Put this entry in the hash table.
 		    hashTable[hash] = searchKey;
 		    codeTable[hash] = freeEntry++;
 		} else {
-		    // Clear out the hash table
+		    // Clear out the hash table.
 		    clearHashTable();
 		}
 	    }
 	}
-	// Write the final code
+	// Write the final code.
 	bitStream.write(prefixCode, nBits);
-	// If the next entry is going to be too big for the code size,
-	// then increase it, if possible.
+	// If the next entry is going to be too big for the code size, then increase it, if possible.
 	if (freeEntry > maxCode) {
 	    nBits++;
 	    if (nBits == MAX_BITS) {
@@ -236,10 +235,10 @@ class Compressor {
 		maxCode = (1<<nBits) - 1;
 	    }
 	}
-	// Write the end of the compressed stream
+	// Write the end of the compressed stream.
 	bitStream.write(eofCode, nBits);
 	bitStream.flush();
-	// Write the block terminator
+	// Write the block terminator.
 	os.write(0);
     }
 }
@@ -254,9 +253,8 @@ public class GIFEncode {
     }
     static void writeImageData(int bitsPerPixel, int width, int height,
 			byte[] pixels, OutputStream os) throws IOException {
-	System.out.println("Writing image data " + bitsPerPixel + " " +
-			   width + " " + height);
-	// Compress the data
+	System.out.println("Writing image data " + bitsPerPixel + " " + width + " " + height);
+	// Compress the data.
 	Compressor compressor = new Compressor(bitsPerPixel, os);
 	compressor.compress(pixels, width*height);
     }
@@ -265,7 +263,7 @@ public class GIFEncode {
 		       byte[] red, byte[] green, byte[] blue,
 		       byte[] pixels, OutputStream os) throws IOException {
 
-	// Determine the number of bits per pixel
+	// Determine the number of bits per pixel.
 	int bitsPerPixel;
 	for (bitsPerPixel = 1; bitsPerPixel < 8; bitsPerPixel++) {
 	    if ((1<<bitsPerPixel) >= numberColors) {
@@ -276,7 +274,7 @@ public class GIFEncode {
 	int colorMapSize = 1<<bitsPerPixel;
 	Message.printStatus ( 1, "encode", "colorMapSize = " + colorMapSize );
 
-	// Write the Header
+	// Write the Header.
 	String signature = "GIF";
 	String version = "87a";
 	putByte(os, signature.charAt(0));
@@ -286,7 +284,7 @@ public class GIFEncode {
 	putByte(os, version.charAt(1));
 	putByte(os, version.charAt(2));
 
-	// Write the Logical Screen Descriptor
+	// Write the Logical Screen Descriptor.
 	boolean globalColorTable = true;
 	int colorResolution = 8;
 	boolean globalSortFlag = false;
@@ -303,7 +301,7 @@ public class GIFEncode {
 	putByte(os, backgroundColorIndex);
 	putByte(os, pixelAspectRatio);
 
-	// Write the global color table
+	// Write the global color table.
 	int i;
 	for (i = 0; i < colorMapSize; i++) {
 	    byte r, g, b;
@@ -321,7 +319,7 @@ public class GIFEncode {
 	    putByte(os, b);
 	}
 
-	// Write the image descriptor
+	// Write the image descriptor.
 	byte imageSeparator = 0x2C;
 	int imageLeftPosition = 0;
 	int imageTopPosition = 0;
@@ -343,10 +341,10 @@ public class GIFEncode {
 	imageFlags |= localColorTableSize;
 	putByte(os, imageFlags);
 
-	// Write the image data
+	// Write the image data.
 	writeImageData(bitsPerPixel, width, height, pixels, os);
 
-	// Write Trailer
+	// Write Trailer.
 	byte trailer = 0x3B;
 	putByte(os, trailer);
     }

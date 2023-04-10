@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,16 +21,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
 
 NoticeEnd */
 
-//------------------------------------------------------------------------------
-// GRException - Exception class for handling GR-related exceptions
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// History:
-// 
-// 11 Sep 1998	Steven A. Malers, RTi	Copy TSException and modify.
-//------------------------------------------------------------------------------
-
 package RTi.GR;
 
 import java.lang.Exception;
@@ -39,7 +29,7 @@ import java.lang.Exception;
 This class provides an exception class for the graphics package.
 */
 @SuppressWarnings("serial")
-public class GRException 
+public class GRException
 extends Exception
 {
 
@@ -47,9 +37,8 @@ extends Exception
 Construct a GRException with a string message.
 @param s String message.
 */
-public GRException( String s )
-{
+public GRException( String s ) {
 	super( s );
 }
 
-} // End of GRException class
+}

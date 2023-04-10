@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,27 +21,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
 
 NoticeEnd */
 
-// ---------------------------------------------------------------------------
-// GRColor - class to store GRColors and color methods.
-// ---------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file
-// ---------------------------------------------------------------------------
-// History:
-//
-// ?		Steven A. Malers, RTi	Initial version.
-// 2000-10-15	SAM, RTi		Add COLOR_NAMES[], parseColor(),
-//					toIngeter(), and toString().
-// 2001-06-28	SAM, RTi		Change parseColor() to return a GRColor.
-//					Try using 0, 0, -1 for None color for
-//					transparency - does not work.  To
-//					support, transparency, add
-//					isTransparent().  Allow parseColor() to
-//					parse strings with floating point or
-//					integer RGB values.
-// 2003-05-07	J. Thomas Sapienza, RTi	Made changes following review by SAM.
-// 2004-10-27	JTS, RTi		Implements Cloneable.
-// ---------------------------------------------------------------------------
-
 package RTi.GR;
 
 import java.awt.Color;
@@ -51,11 +30,11 @@ import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
 /**
-Class to store a color.  This class extends Color and adds features like using
-named colors to simplify use with GUIs.
+Class to store a color.
+This class extends Color and adds features like using named colors to simplify use with GUIs.
 */
 @SuppressWarnings("serial")
-public class GRColor 
+public class GRColor
 extends Color
 implements Cloneable
 {
@@ -64,7 +43,7 @@ implements Cloneable
 Names of colors.
 */
 public static final String[] COLOR_NAMES = {
-	"None",	// Transparent
+	"None",	// Transparent.
 	"Black",
 	"Blue",
 	"Cyan",
@@ -125,8 +104,8 @@ Constructor.  Builds a GRColor with the given red, green and blue values.
 @param g the green value in the range (0.0 - 1.0)
 @param b the blue value in the range (0.0 - 1.0)
 */
-public GRColor ( double r, double g, double b )
-{	// Default is opaque.
+public GRColor ( double r, double g, double b ) {
+	// Default is opaque.
 	super ( (float)r, (float)g, (float)b, (float)1.0 );
 }
 
@@ -135,15 +114,14 @@ Constructor.  Builds a GRColor with the given color.
 <p>
 From the Color.java javadocs:
 <p>
-Creates an opaque sRGB color with the specified combined RGB value consisting of the red 
-component in bits 16-23, the green component in bits 8-15, and the blue 
-component in bits 0-7. The actual color used in rendering depends on 
-finding the best match given the color space available for a particular 
-output device. Alpha is defaulted to 255.
+Creates an opaque sRGB color with the specified combined RGB value consisting of the red
+component in bits 16-23, the green component in bits 8-15, and the blue component in bits 0-7.
+The actual color used in rendering depends on finding the best match given the color
+space available for a particular output device. Alpha is defaulted to 255.
 @param rgb the color to set this GRColor to.
 */
-public GRColor ( int rgb )
-{	super ( rgb );
+public GRColor ( int rgb ) {
+	super ( rgb );
 }
 
 /**
@@ -152,8 +130,8 @@ Constructor.  Builds a GRColor with the given red, green and blue values.
 @param g the green value in the range (0 - 255)
 @param b the blue value in the range (0 - 255)
 */
-public GRColor ( int r, int g, int b )
-{	// Default is opaque.
+public GRColor ( int r, int g, int b ) {
+	// Default is opaque.
 	super ( r, g, b, 255 );
 }
 
@@ -164,8 +142,8 @@ Constructor.  Builds a GRColor with the given red, green and blue values.
 @param b the blue value in the range (0 - 255)
 @param a the opacity in the range (0-255)
 */
-public GRColor ( int r, int g, int b, int a )
-{	super ( r, g, b, a );
+public GRColor ( int r, int g, int b, int a ) {
+	super ( r, g, b, a );
 }
 
 /**
@@ -175,8 +153,7 @@ Opacity (alpha) is set to 1.0.
 @param g the green value in the range (0.0 - 1.0)
 @param b the blue value in the range (0.0 - 1.0)
 */
-public GRColor ( float r, float g, float b )
-{
+public GRColor ( float r, float g, float b ) {
 	this (r, g, b, (float)1.0);
 }
 
@@ -186,21 +163,18 @@ Constructor.  Builds a GRColor with the given red, green and blue values.
 @param g the green value in the range (0.0 - 1.0)
 @param b the blue value in the range (0.0 - 1.0)
 */
-public GRColor ( float r, float g, float b, float alpha )
-{
+public GRColor ( float r, float g, float b, float alpha ) {
 // NOTE!!
-// This code is UGLY, but it's that way for a reason.  The original intent 
-// was to have the constructor check to make sure that the color levels are
-// in the bounds of 0.0 to 1.0, but since the call to "super" has be the
-// first statement in a constructor, this was the only way to do it.
+// This code is UGLY, but it's that way for a reason.
+// The original intent was to have the constructor check to make sure that the color levels are in the bounds of 0.0 to 1.0,
+// but since the call to "super" has be the first statement in a constructor, this was the only way to do it.
 
-// Each parameter of the call to super (float, float, float) is a decision
-// tree that first checks:
+// Each parameter of the call to super (float, float, float) is a decision tree that first checks:
 // is the color (r, g, or b) less than 0.0?
 //     if so --> pass in 0.0 as the parameter otherwise ...
 //     is the color greater than 1.0?
 //         if so --> pass in 1.0 as the parameter otherwise ...
-//         pass in the color itself.  
+//         pass in the color itself.
 	super (
 		((r < 0) ? (float)0.0 : (r > 1.0) ?	(float)1.0 : r),
 		((g < 0) ? (float)0.0 : (g > 1.0) ?	(float)1.0 : g),
@@ -238,8 +212,8 @@ Indicate whether color is transparent (no color).
 This corresponds to an opacity (alpha) of 0.
 @return true if transparent.
 */
-public boolean isTransparent ()
-{	if ( getAlpha() == 0 ) {
+public boolean isTransparent () {
+	if ( getAlpha() == 0 ) {
 		return true;
 	}
 	else {
@@ -266,13 +240,12 @@ Valid color strings include the following:
 <li>	Hexadecimal value for #rrggbbaa.</li>
 <li>	Hexadecimal value with opacity (e.g., #rrggbbaa).</li>
 </ul>
-Extra 00 on the left of hexadecimal values are OK and will be ignored
-because the rightmost values are significant.
+Extra 00 on the left of hexadecimal values are OK and will be ignored because the rightmost values are significant.
 @param color Name of color (see COLOR_NAMES).
 @return a new Color instance, or black if the name cannot be matched or an error occurs.
 */
-public static GRColor parseColor ( String color )
-{	if ( (color.indexOf(',') >= 0) && (color.indexOf('.') >= 0) ) {
+public static GRColor parseColor ( String color ) {
+	if ( (color.indexOf(',') >= 0) && (color.indexOf('.') >= 0) ) {
 		// Assume 0.0-1.0 RGB values separated by commas.
 		List<String> v = StringUtil.breakStringList(color,",",StringUtil.DELIM_SKIP_BLANKS );
 		if ( (v == null) || (v.size() < 3) ) {
@@ -373,7 +346,7 @@ public static GRColor parseColor ( String color )
 		String routine = GRColor.class.getSimpleName() + ".parse";
 		Message.printWarning ( 3, routine, "Error parsing color string \"" + color + "\"" );
 		Message.printWarning ( 3, routine, e );
-		; // just return black below
+		; // Just return black below.
 	}
 	// Fall through is black.
 	return new GRColor(0);
@@ -417,15 +390,15 @@ public String toHex ( boolean includeAlpha ) {
 }
 
 /**
-Return the RGB integer value for a named color (00RRGGBB).  If the color
-cannot be matched, the integer version of the color is returned (e.g., if the
-String is "0x000000ff", then 255 will be returned.  If no conversion can be
-made, then zero (black) is returned.
+Return the RGB integer value for a named color (00RRGGBB).
+If the color cannot be matched, the integer version of the color is returned
+(e.g., if the String is "0x000000ff", then 255 will be returned.
+If no conversion can be made, then zero (black) is returned.
 @param color Name of color (see COLOR_NAMES).
 @return integer value corresponding to the color or -1 if not found as a named color.
 */
-public static int toInteger ( String color )
-{	if ( color.equalsIgnoreCase("black") ) {
+public static int toInteger ( String color ) {
+	if ( color.equalsIgnoreCase("black") ) {
 		return 0x00000000;
 	}
 	else if ( color.equalsIgnoreCase("blue") ) {
@@ -474,13 +447,13 @@ public static int toInteger ( String color )
 }
 
 /**
-Return the named String value matching an integer RGB color.  If a named color
-cannot be determined, then the integer value is returned as a string.
+Return the named String value matching an integer RGB color.
+If a named color cannot be determined, then the integer value is returned as a string.
 @param color Color as integer.
 @return String value corresponding to the color or null if not found as a named color.
 */
-public static String toString ( int color )
-{	if ( color == 0x00000000 ) {
+public static String toString ( int color ) {
+	if ( color == 0x00000000 ) {
 		return "Black";
 	}
 	else if ( color == 0x000000ff ) {
@@ -529,8 +502,8 @@ public static String toString ( int color )
 Return string value.
 @return String representation of color.
 */
-public String toString ()
-{	return toString ( getRGB() );
+public String toString () {
+	return toString ( getRGB() );
 }
 
 }

@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,12 +26,12 @@ package RTi.GR;
 import RTi.Util.Message.Message;
 
 /**
- * Single row for a color table, consistent with TSTool raster change and web development. 
+ * Single row for a color table, consistent with TSTool raster change and web development.
  * @author sam
  *
  */
 public class GRSymbolTableRow {
-	
+
 	/*
 	 * Values for operators, to streamline evaluating values for the range.
 	 */
@@ -40,7 +40,7 @@ public class GRSymbolTableRow {
 	public static final int LT = 2;
 	public static final int GE = 3;
 	public static final int GT = 4;
-	
+
 	/*
 	 * Minimum value as a string, one of: -Infinity, Infinity, <Value, <=Value, >Value, >=Value.
 	 */
@@ -50,12 +50,12 @@ public class GRSymbolTableRow {
 	 * Minimum value as a double.
 	 */
 	private double valueMinDouble;
-	
+
 	/*
 	 * Minimum value operator.
 	 */
 	private int valueMinOperator = UNKNOWN;
-	
+
 	/*
 	 * Indicate whether the minimum value is negative infinity.
 	 */
@@ -80,12 +80,12 @@ public class GRSymbolTableRow {
 	 * Indicate whether the maximum value is infinity.
 	 */
 	private boolean valueMaxIsInfinity = false;
-	
+
 	/*
 	 * Border color.
 	 */
 	private GRColor color = null;
-	
+
 	/*
 	 * Opacity.  0.0 is no opacity (solid), 1.0 is transparent.
 	 */
@@ -95,7 +95,7 @@ public class GRSymbolTableRow {
 	 * Fill color.
 	 */
 	private GRColor fillColor = null;
-	
+
 	/*
 	 * Fill opacity.  0.0 is no opacity (solid), 1.0 is transparent.
 	 */
@@ -105,12 +105,12 @@ public class GRSymbolTableRow {
 	 * Weight for drawing vector features.
 	 */
 	private double weight = 1.0;
-	
+
 	/**
 	 * Whether a NoData row.
 	 */
 	private boolean isNoDataRow = false;
-	
+
 	/**
 	 * Constructor
 	 * @param minValueString minimum value string as in <N, <=N, >N, >=N, -Infinity, Infinity
@@ -146,7 +146,7 @@ public class GRSymbolTableRow {
 		this.opacity = opacity;
 		this.fillOpacity = fillOpacity;
 	}
-	
+
 	/**
 	 * Get the color.
 	 */
@@ -195,7 +195,7 @@ public class GRSymbolTableRow {
 	public double getWeight () {
 		return this.weight;
 	}
-	
+
 	/**
 	 * Indicate whether the row is a NoData row.
 	 */
@@ -324,5 +324,5 @@ public class GRSymbolTableRow {
 		}
 		return result;
 	}
-	
+
 }

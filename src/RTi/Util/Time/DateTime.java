@@ -191,6 +191,12 @@ The following are used to format date/time output.
 	Z = time zone
 </pre>
 */
+
+/**
+The following can be used to initialize a format to unknown value, for example prior to determining the date/time precision from data.
+*/
+public static final int FORMAT_UNKNOWN = -1;
+
 /**
 The following returns an empty string for formatting but can be used to indicate no formatting in other code.
 */

@@ -44,10 +44,10 @@ import javax.swing.JFrame;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 
-import RTi.GR.GRAspect;
+import RTi.GR.GRAspectType;
 import RTi.GR.GRAxis;
 import RTi.GR.GRColor;
-import RTi.GR.GRDrawingArea;
+import RTi.GR.GRCoordinateType;
 import RTi.GR.GRDrawingAreaUtil;
 import RTi.GR.GRJComponentDevice;
 import RTi.GR.GRJComponentDrawingArea;
@@ -166,7 +166,7 @@ private GeoViewProject __project = null;
 /**
 Bounds of the JComponent (not the same as __drawLimits, which are in right-hand coordinate system).
 */
-private Rectangle __bounds = null;		// Set with update.
+private Rectangle __bounds = null; // Set with update.
 
 /**
 Frame that is including the GeoView as a component.  This is set to null if used in an applet.
@@ -518,7 +518,7 @@ public void addLayerView ( GeoLayerView layerView, boolean reset_limits ) {
 	if ( __grda == null ) {
 		// Have not had data to draw but do now.
 		// Set up one drawing area on the view.
-		__grda = new GRJComponentDrawingArea( this, "GeoView", GRAspect.TRUE,
+		__grda = new GRJComponentDrawingArea( this, "GeoView", GRAspectType.TRUE,
 			__drawLimits, GRUnits.DEVICE, GRLimits.DEVICE, __dataLimits );
 	}
 	else {
@@ -540,7 +540,7 @@ public void addLayerView ( GeoLayerView layerView, boolean reset_limits ) {
 				__dataLimits = __dataLimits.max ( getProjectedLayerLimits(layer) );
 			}
 		}
-		// Save the maximum regardless of reset...
+		// Save the maximum regardless of reset.
 		__maxDataLimits = new GRLimits ( __dataLimits.max( getProjectedLayerLimits(layer) ) );
 	}
 	if ( __grda == null ) {
@@ -561,7 +561,7 @@ public void addLayerView ( GeoLayerView layerView, boolean reset_limits ) {
 }
 
 /**
-Adds a reminded repainted -- an object that will be informed every time this object is repainted.
+Adds a reminded repainted.  An object that will be informed every time this object is repainted.
 @param c the GeoViewJComponent object to be reminded.
 */
 public void addRemindedRepainter(GeoViewJComponent c) {
@@ -572,8 +572,7 @@ public void addRemindedRepainter(GeoViewJComponent c) {
 /**
 Clear annotations.
 */
-public void clearAnnotations ()
-{
+public void clearAnnotations () {
 	List<GeoViewAnnotationData> annotationDataList = getAnnotationData();
 	int size = annotationDataList.size();
 	annotationDataList.clear();
@@ -585,12 +584,12 @@ public void clearAnnotations ()
 }
 
 /**
-Clear the view.  Need to do this manually rather than rely on default update()
-to make sure it happens at the right time.
+Clear the view.
+Need to do this manually rather than rely on default update() to make sure it happens at the right time.
 */
 public void clearView () {
 	if ( !_printing ) {
-		// Fill in the background color.  Need this because update() does not do (becaus of zooming).
+		// Fill in the background color.  Need this because update() does not do (because of zooming).
 		_graphics.setColor ( getBackground() );
 		__bounds = getBounds();
 		_graphics.fillRect ( 0, 0, __bounds.width, __bounds.height );
@@ -1109,8 +1108,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine, __prefix + "Drawing limits: " + __grda.getDrawingLimits() );
 			Message.printDebug ( 1, routine, __prefix + "Data limits: " + __grda.getDataLimits() );
-			Message.printDebug ( 1, routine, __prefix + "Plotting limits: "
-				+ __grda.getPlotLimits(GRDrawingArea.COORD_PLOT) );
+			Message.printDebug ( 1, routine, __prefix + "Plotting limits: " + __grda.getPlotLimits(GRCoordinateType.PLOT) );
 		}
 	
 		// Set the symbol, color, etc., based on the layer view settings.
@@ -2188,7 +2186,7 @@ public void mouseDragged ( MouseEvent event ) {
 	if ( __grda == null ) {
 		return;
 	}
-	GRPoint datapt = __grda.getDataXY ( x, y, GRDrawingArea.COORD_DEVICE );
+	GRPoint datapt = __grda.getDataXY ( x, y, GRCoordinateType.DEVICE );
 	if ( __isReferenceGeoview ) {
 		if ( !__maxDataLimits.contains(datapt) ) {
 			// Mouse not within drawing area so don't track.
@@ -2257,7 +2255,7 @@ public void mouseMoved ( MouseEvent event ) {
 
 	// Data units.
 
-	GRPoint datapt = __grda.getDataXY ( x, y, GRDrawingArea.COORD_DEVICE );
+	GRPoint datapt = __grda.getDataXY ( x, y, GRCoordinateType.DEVICE );
 	if ( __isReferenceGeoview ) {
 		if ( !__maxDataLimits.contains(datapt) ) {
 			// Mouse not within drawing area so don't track.
@@ -2361,7 +2359,7 @@ public void mouseReleased ( MouseEvent event ) {
 				// Selecting a point.
 				// Assume they want the original point.
 				GRPoint devpt = new GRPoint ( (double)__mouseX1, (double)__mouseY1 );
-				GRPoint datapt = __grda.getDataXY ( __mouseX1, __mouseY1, GRDrawingArea.COORD_DEVICE );
+				GRPoint datapt = __grda.getDataXY ( __mouseX1, __mouseY1, GRCoordinateType.DEVICE );
 				List<GeoRecord> records = null;
 				if ( __listeners != null ) {
 					if ( __selectGeoRecords ) {
@@ -2438,8 +2436,8 @@ public void mouseReleased ( MouseEvent event ) {
 		}
 		GRLimits mouse_limits = new GRLimits ( xmin, ymin, xmax, ymax );
 		// Reverse Y so we get the right values in GR.
-		GRPoint pt1 = __grda.getDataXY ( xmin, ymax, GRDrawingArea.COORD_DEVICE );
-		GRPoint pt2 = __grda.getDataXY ( xmax, ymin, GRDrawingArea.COORD_DEVICE );
+		GRPoint pt1 = __grda.getDataXY ( xmin, ymax, GRCoordinateType.DEVICE );
+		GRPoint pt2 = __grda.getDataXY ( xmax, ymin, GRCoordinateType.DEVICE );
 		GRLimits newdata_limits = new GRLimits ( pt1, pt2 );
 		pt1 = null;
 		pt2 = null;
@@ -2498,8 +2496,8 @@ public void mouseReleased ( MouseEvent event ) {
 			}
 
 			// Now get the data limits that correspond to the plot limits.
-			GRPoint plot1 = __grda.getDataXY ( 0, 0, GRDrawingArea.COORD_PLOT );
-			GRPoint plot2 = __grda.getDataXY ( __bounds.width, __bounds.height, GRDrawingArea.COORD_PLOT );
+			GRPoint plot1 = __grda.getDataXY ( 0, 0, GRCoordinateType.PLOT );
+			GRPoint plot2 = __grda.getDataXY ( __bounds.width, __bounds.height, GRCoordinateType.PLOT );
 			// Now reset the data limits for the full device.
 			if ( !__isReferenceGeoview ) {
 				__dataLimits = new GRLimits ( plot1, plot2 );
@@ -3550,9 +3548,9 @@ public void zoomOut () {
 		// Set the maximum so the plot limits recalculate.
 		__grda.setDataLimits ( __maxDataLimits );
 		// Now get the data limits that correspond to the plot limits.
-		GRPoint plot1 = __grda.getDataXY ( 0, 0, GRDrawingArea.COORD_PLOT );
+		GRPoint plot1 = __grda.getDataXY ( 0, 0, GRCoordinateType.PLOT );
 		//__bounds = getBounds();
-		GRPoint plot2 = __grda.getDataXY ( __bounds.width, __bounds.height, GRDrawingArea.COORD_PLOT );
+		GRPoint plot2 = __grda.getDataXY ( __bounds.width, __bounds.height, GRCoordinateType.PLOT );
 		// Now reset the data limits for the full device.
 		__dataLimits = new GRLimits ( plot1, plot2 );
 		plot1 = null;
@@ -3566,7 +3564,7 @@ public void zoomOut () {
 		if ( __listeners != null ) {
 			int size = __listeners.length;
 			for ( int i = 0; i < size; i++ ) {
-				__listeners[i].geoViewZoom (__grda.getPlotLimits( GRDrawingArea.COORD_DEVICE), __dataLimits );
+				__listeners[i].geoViewZoom (__grda.getPlotLimits( GRCoordinateType.DEVICE), __dataLimits );
 			}
 		}
 	}
@@ -3709,9 +3707,9 @@ public void drawLegend() {
 
 	if (!__inPrinting) {		
 		// If not printing then set the data units to be the drawable screen area.
-		GRPoint plot1 = __grda.getDataXY(0, 0,GRDrawingArea.COORD_PLOT);
+		GRPoint plot1 = __grda.getDataXY(0, 0,GRCoordinateType.PLOT);
 		__bounds = getBounds();
-		GRPoint plot2 = __grda.getDataXY(__bounds.width, __bounds.height, GRDrawingArea.COORD_PLOT);	
+		GRPoint plot2 = __grda.getDataXY(__bounds.width, __bounds.height, GRCoordinateType.PLOT);	
 		__legendDataLimits = new GRLimits(plot1, plot2);
 	}
 	else {
