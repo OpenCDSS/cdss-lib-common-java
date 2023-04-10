@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,23 +26,22 @@ package RTi.GR;
 /**
 Line styles.  If a pattern is required, then other data will be needed to specify the pattern.
 */
-public enum GRLineStyleType
-{
+public enum GRLineStyleType {
     /**
      * A sequence of short lines separated by equal length spaces.
      */
     DASHED("Dashed"),
-    
+
     /**
-     * Solid line. 
+     * Solid line.
      */
     SOLID("Solid");
-    
+
     /**
      * The string name that should be displayed.
      */
     private final String displayName;
-    
+
     /**
      * Construct a time series list type enumeration value.
      * @param displayName name that should be displayed in choices, etc.
@@ -50,7 +49,7 @@ public enum GRLineStyleType
     private GRLineStyleType(String displayName) {
         this.displayName = displayName;
     }
-    
+
     /**
      * Equals method to prevent common programming error of using the equals method instead of ==.
      */
@@ -62,7 +61,7 @@ public enum GRLineStyleType
             return false;
         }
     }
-	
+
     /**
      * Return the display name for the line style type.  This is usually the same as the
      * value but using appropriate mixed case.
@@ -72,22 +71,21 @@ public enum GRLineStyleType
     public String toString() {
         return displayName;
     }
-	
+
 	/**
 	 * Return the enumeration value given a string name (case-independent).
 	 * @return the enumeration value given a string name (case-independent), or null if not matched.
 	 */
-	public static GRLineStyleType valueOfIgnoreCase(String name)
-	{
+	public static GRLineStyleType valueOfIgnoreCase(String name) {
 	    if ( name == null ) {
 	        return null;
 	    }
-	    // Currently supported values
+	    // Currently supported values.
 	    for ( GRLineStyleType t : values() ) {
 	        if ( name.equalsIgnoreCase(t.toString()) ) {
 	            return t;
 	        }
-	    } 
+	    }
 	    return null;
 	}
 }

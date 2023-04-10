@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,21 +26,22 @@ package RTi.GRTS;
 /**
 Format for TSProduct text representation, indicating formatting before display or writing to file.
 */
-public enum TSProductFormatType
-{
+public enum TSProductFormatType {
     /**
     Legacy properties list, similar to INI file.
     */
     PROPERTIES("Properties"),
+
     /**
     JSON without line breaks or pretty formatting.
     */
     JSON_COMPACT ("JSONCompact"),
+
     /**
     JSON with line breaks and pretty formatting.
     */
     JSON_PRETTY("JSONPretty");
-    
+
     private final String displayName;
 
     /**
@@ -59,19 +60,21 @@ public enum TSProductFormatType
     public String toString() {
         return displayName;
     }
-    
+
     /**
      * Return the enumeration value given a string name (case-independent).
      * @return the enumeration value given a string name (case-independent), or null if not matched.
      */
-    public static TSProductFormatType valueOfIgnoreCase(String name)
-    {
+    public static TSProductFormatType valueOfIgnoreCase(String name) {
+    	if ( name == null ) {
+    		return null;
+    	}
         TSProductFormatType [] values = values();
         for ( TSProductFormatType t : values ) {
             if ( name.equalsIgnoreCase(t.toString()) ) {
                 return t;
             }
-        } 
+        }
         return null;
     }
 }

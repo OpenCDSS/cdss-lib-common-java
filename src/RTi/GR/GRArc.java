@@ -1,10 +1,10 @@
-// GRArc - GR arc (ellipsoid) 
+// GRArc - GR arc (ellipsoid)
 
 /* NoticeStart
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,26 +21,11 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
 
 NoticeEnd */
 
-// ----------------------------------------------------------------------------
-// GRArc - GR arc (ellipsoid) 
-// ----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2001-12-08	Steven A. Malers	Initial Java version.
-// 2001-12-09	SAM			Change primitive X, Y to a GRPoint.
-//					This takes up a little more overhead;
-//					however, it is easier to do manipulation
-//					because many other methods work on
-//					GRPoint (e.g., the GeoProjection) code.
-// ----------------------------------------------------------------------------
-
 package RTi.GR;
 
 /**
-The GRArc class stores an ellipsoid shape.  Data are public but the set methods
-should be called to set data so that coordinate limits can be computed.
+The GRArc class stores an ellipsoid shape.
+Data are public but the set methods should be called to set data so that coordinate limits can be computed.
 */
 public class GRArc extends GRShape
 {
@@ -73,8 +58,8 @@ public GRPoint pt;
 /**
 Construct and initialize to (0,0).
 */
-public GRArc ()
-{	super ();
+public GRArc () {
+	super ();
 	type = ARC;
 	xmax = xmin = xradius = yradius = 0.0;
 	pt = new GRPoint();
@@ -92,8 +77,8 @@ Construct given necessary data pair.
 */
 public GRArc (	GRPoint pt_set,
 		double xradius_set, double yradius_set,
-		double angle1_set, double angle2_set )
-{	super ();
+		double angle1_set, double angle2_set ) {
+	super ();
 	type = ARC;
 	pt = pt_set;
 	xradius = xradius_set;
@@ -116,10 +101,10 @@ Construct given necessary data pair.
 @param angle1_set Starting angle for draw.
 @param angle2_set Ending angle for draw.
 */
-public GRArc (		double x_set, double y_set,
+public GRArc ( double x_set, double y_set,
 			double xradius_set, double yradius_set,
-			double angle1_set, double angle2_set )
-{	super ();
+			double angle1_set, double angle2_set ) {
+	super ();
 	type = ARC;
 	pt = new GRPoint ( x_set, y_set );
 	xradius = xradius_set;
@@ -142,10 +127,10 @@ Construct given the attribute lookup key and shape data.
 @param angle1_set Starting angle for draw.
 @param angle2_set Ending angle for draw.
 */
-public GRArc (	long attkey, GRPoint pt_set,
+public GRArc ( long attkey, GRPoint pt_set,
 		double xradius_set, double yradius_set,
-		double angle1_set, double angle2_set )
-{	super ( attkey );
+		double angle1_set, double angle2_set ) {
+	super ( attkey );
 	type = ARC;
 	pt = pt_set;
 	xradius = xradius_set;
@@ -163,15 +148,15 @@ public GRArc (	long attkey, GRPoint pt_set,
 Copy constructor.
 @param arc GRArc to copy.
 */
-public GRArc ( GRArc arc )
-{	super ( arc.index );
+public GRArc ( GRArc arc ) {
+	super ( arc.index );
 	type = ARC;
 	pt = new GRPoint ( arc.pt );
 	xradius = arc.xradius;
 	yradius = arc.yradius;
 	angle1 = arc.angle1;
 	angle2 = arc.angle2;
-	// Base class does not have a constructor for this yet...
+	// Base class does not have a constructor for this yet.
 	is_visible = arc.is_visible;
 	is_selected = arc.is_selected;
 	associated_object = arc.associated_object;
@@ -185,8 +170,8 @@ for the check.  Additional capability will be added later.
 @param shape Shape to check.
 @return true if the arc contains the shape, false if it does not
 */
-public boolean contains ( GRShape shape, boolean contains_completely )
-{	if ( shape.type == GRShape.POINT ) {
+public boolean contains ( GRShape shape, boolean contains_completely ) {
+	if ( shape.type == GRShape.POINT ) {
 		GRPoint pt2 = (GRPoint)shape;
 		double dx = pt2.x - pt.x;
 		double dy = pt2.y - pt.y;
@@ -196,20 +181,18 @@ public boolean contains ( GRShape shape, boolean contains_completely )
 		pt2 = null;
 		return false;
 	}
-	// For other shapes would need to loop through the coordinates and do
-	// something similar.  For now return the more course method in the
-	// base class...
+	// For other shapes would need to loop through the coordinates and do something similar.
+	// For now return the more course method in the base class.
 	return super.contains ( shape, contains_completely );
 }
 
 /**
-Determine whether shapes are equal.  The center coordinates, radii, and angles
-are checked.
+Determine whether shapes are equal.  The center coordinates, radii, and angles are checked.
 @param arc the arc to compare against this arc
 @return true if the shapes are equal.
 */
-public boolean equals ( GRArc arc )
-{	if (	(arc.pt == pt) &&
+public boolean equals ( GRArc arc ) {
+	if ( (arc.pt == pt) &&
 		(arc.xradius == xradius) && (arc.yradius == yradius) &&
 		(arc.angle1 == angle1) && (arc.angle2 == angle2) ) {
 		return true;
@@ -218,23 +201,13 @@ public boolean equals ( GRArc arc )
 }
 
 /**
-Finalize before garbage collection.
-@exception Throwable if there is an error.
-*/
-protected void finalize ()
-throws Throwable
-{	pt = null;
-	super.finalize();
-}
-
-/**
-Set the center point.  It is assumed that the radius is in the same units as
-the center point so that the shape extents can be properly computed.
+Set the center point.
+It is assumed that the radius is in the same units as the center point so that the shape extents can be properly computed.
 A reference to the given point is saved, not a copy of the data.
 @param pt_set Point to set (null points are not allowed).
 */
-public void setPoint ( GRPoint pt_set )
-{	pt = pt_set;
+public void setPoint ( GRPoint pt_set ) {
+	pt = pt_set;
 	xmin = pt.x - xradius;
 	xmax = pt.x + xradius;
 	ymin = pt.y - yradius;
@@ -243,12 +216,10 @@ public void setPoint ( GRPoint pt_set )
 
 /**
 Return a string representation of the arc.
-@return A string representation of the arc in the format
-"x,y,xradius,yradius,angle1,angle2".
+@return A string representation of the arc in the format "x,y,xradius,yradius,angle1,angle2".
 */
-public String toString ()
-{	return "GRArc(" + pt.x + "," + pt.y + "," + xradius + "," + yradius +
-		"," + angle1 + "," + angle2 + ")";
+public String toString () {
+	return "GRArc(" + pt.x + "," + pt.y + "," + xradius + "," + yradius + "," + angle1 + "," + angle2 + ")";
 }
 
-} // End GRArc class
+}

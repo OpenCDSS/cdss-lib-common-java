@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,19 +20,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// -----------------------------------------------------------------------------
-// GRPolypoint - GR Polypoint class
-// -----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// -----------------------------------------------------------------------------
-// History:
-//
-// 01 Nov 1998	Steven A. Malers, RTi	Initial version.
-// 2001-12-07	SAM, RTi		Make data public to speed performance,
-//					similar to other classes.
-// 2005-04-26	J. Thomas Sapienza, RTi	Added finalize().
-// ----------------------------------------------------------------------------
 
 package RTi.GR;
 
@@ -59,8 +46,8 @@ public GRPoint[] pts = null;
 /**
 Construct with zero points.
 */
-public GRPolypoint ( )
-{	super ();
+public GRPolypoint ( ) {
+	super ();
 	type = POLYPOINT;
 	xmin = xmax = 0.0;
 	ymin = ymax = 0.0;
@@ -68,23 +55,23 @@ public GRPolypoint ( )
 }
 
 /**
-Construct with the specified number of points.  The array space for the points
-is created but not initialized.  setPoint() should be called to set the points.
+Construct with the specified number of points.  The array space for the points is created but not initialized.
+The setPoint() method should be called to set the points.
 @param npts Number of points.
 */
-public GRPolypoint ( int npts )
-{	super ();
+public GRPolypoint ( int npts ) {
+	super ();
 	type = POLYPOINT;
 	setNumPoints ( npts );
 }
 
 /**
-Constuct and set the shape index and number of points.
+Construct and set the shape index and number of points.
 @param index Attribute index.
 @param npts Number of points.
 */
-public GRPolypoint ( long index, int npts )
-{	super ( index );
+public GRPolypoint ( long index, int npts ) {
+	super ( index );
 	type = POLYPOINT;
 	setNumPoints ( npts );
 }
@@ -93,14 +80,14 @@ public GRPolypoint ( long index, int npts )
 Copy constructor.  A deep copy is made.
 @param polypoint the polypoint to duplicate.
 */
-public GRPolypoint ( GRPolypoint polypoint )
-{	super ( polypoint.index );
+public GRPolypoint ( GRPolypoint polypoint ) {
+	super ( polypoint.index );
 	type = POLYPOINT;
 	setNumPoints ( polypoint.npts );
 	for ( int i = 0; i < npts; i++ ) {
 		setPoint ( i, new GRPoint ( polypoint.pts[i]) );
 	}
-	// Set base class data here...
+	// Set base class data here.
 	xmin = polypoint.xmin;
 	xmax = polypoint.xmax;
 	ymin = polypoint.ymin;
@@ -112,28 +99,18 @@ public GRPolypoint ( GRPolypoint polypoint )
 }
 
 /**
-Cleans up member variables.
-*/
-public void finalize() 
-throws Throwable {
-	IOUtil.nullArray(pts);
-	super.finalize();
-}
-
-/**
-Reinitialize the points array to the specified size.  The point data must
-be re-set.
+Reinitialize the points array to the specified size.  The point data must be re-set.
 @param npts_set Number of points to size the points array.
 */
-public void setNumPoints ( int npts_set )
-{	try {	pts = new GRPoint[npts_set];
+public void setNumPoints ( int npts_set ) {
+	try {
+		pts = new GRPoint[npts_set];
 		npts = npts_set;
 		xmin = xmax = ymin = ymax = 0.0;
 		limits_found = false;
 	}
 	catch ( Throwable t ) {
-		Message.printWarning ( 2, "GRPolypoint.setNumPoints",
-		"Error allocating array for " + npts_set + " points." );
+		Message.printWarning ( 2, "GRPolypoint.setNumPoints", "Error allocating array for " + npts_set + " points." );
 	}
 }
 
@@ -142,13 +119,13 @@ Set the point at an index in the list.
 @param i Point index.
 @param pt Point to set.
 */
-public void setPoint ( int i, GRPoint pt )
-{	if ( (i < 0) || (i > (npts - 1)) ) {
+public void setPoint ( int i, GRPoint pt ) {
+	if ( (i < 0) || (i > (npts - 1)) ) {
 		return;
 	}
 	pts[i] = pt;
 	if ( !limits_found ) {
-		// Set the limits...
+		// Set the limits.
 		xmin = xmax = pt.x;
 		ymin = ymax = pt.y;
 		limits_found = true;
@@ -174,18 +151,19 @@ Set the point at an index in the list.
 @param x X coordinate of point.
 @param y Y coordinate of point.
 */
-public void setPoint ( int i, double x, double y )
-{	if ( (i < 0) || (i > (npts - 1)) ) {
+public void setPoint ( int i, double x, double y ) {
+	if ( (i < 0) || (i > (npts - 1)) ) {
 		return;
 	}
 	pts[i].setXY ( x, y );
 	if ( !limits_found ) {
-		// Set the limits...
+		// Set the limits.
 		xmin = xmax = x;
 		ymin = ymax = y;
 		limits_found = true;
 	}
-	else {	if ( x > xmax ) {
+	else {
+		if ( x > xmax ) {
 			xmax = x;
 		}
 		if ( x < xmin ) {
@@ -200,4 +178,4 @@ public void setPoint ( int i, double x, double y )
 	}
 }
 
-} // End of GRPolypoint
+}

@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,51 +40,63 @@ Device units
 */
 public static final int DEVICE = 0;
 private static final int UNIT_MIN = DEVICE;
+
 /**
 Data units
 Device default.
 */
 public static final int DATA = 1;
+
 /**
 Centimeters.
 */
 public static final int CM = 1;
+
 /**
 Foot.
 */
 public static final int FOOT = 2;
+
 /**
 HPGL units.
 */
 public static final int HPGL = 3;
+
 /**
 Inch.
 */
 public static final int INCH = 4;
+
 /**
 Kilometers.
 */
 public static final int KM = 5;
+
 /**
 Meters.
 */
 public static final int M = 6;
+
 /**
 Millimeters.
 */
 public static final int MM = 7;
+
 /**
 Pixels.
 */
 public static final int PIXEL = 8;
+
 /**
 Points.
 */
 public static final int POINT = 9;
+
 /**
 Yards.
 */
 public static final int YARD = 10;
+
 /**
 The maximum unit type.
 */
@@ -102,22 +114,20 @@ Converts from one unit type to another.
 @param to the units to which to convert
 @return the value in units of the converted value.
 */
-public static double convert ( double x, int from, int to )
-{
+public static double convert ( double x, int from, int to ) {
 	if ( from == to ) {
-		// No conversion necessary...
+		// No conversion necessary.
 		return x;
 	}
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 10, "GRUnits.convert",
-		"Converting " + x + " from units " + from + " to units " + to );
+		Message.printDebug ( 10, "GRUnits.convert", "Converting " + x + " from units " + from + " to units " + to );
 	}
 
-	// Base unit is millimeter...
+	// Base unit is millimeter.
 
 	if ( _GRUnits_conversion_data == null ) {
-		// Assign the data...
+		// Assign the data.
 		_GRUnits_conversion_data = new GRUnitsData[UNIT_MAX + 1];
 		_GRUnits_conversion_data[0] = new GRUnitsData (DEVICE,0.0,"device default");
 		_GRUnits_conversion_data[1] = new GRUnitsData (CM,10.0,"cm");
@@ -148,8 +158,7 @@ public static double convert ( double x, int from, int to )
 		UNIT_MAX + "=" +_GRUnits_conversion_data[UNIT_MAX].abbreviation+ ")" );
 		return x;
 	}
-	return	( x*_GRUnits_conversion_data[from].conversionFactor /
-			_GRUnits_conversion_data[to].conversionFactor);
+	return	( x*_GRUnits_conversion_data[from].conversionFactor / _GRUnits_conversion_data[to].conversionFactor);
 }
 
 }

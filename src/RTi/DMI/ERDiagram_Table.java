@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,29 +21,11 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
 
 NoticeEnd */
 
-// ----------------------------------------------------------------------------
-// ERDiagram_Table - class representing a table object in an ER Diagram
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2003-07-28	J. Thomas Sapienza, RTi	Initial version.
-// 2003-07-29	JTS, RTi		* Completed first version of drawing
-//					  code.
-//					* Added toString().
-//					* Added getFieldY().
-//					* Javadoc'd.
-// 2003-07-31	JTS, RTi		Added contains().
-// 2003-08-27	JTS, RTi		Added __textVisible setting.
-// 2003-12-11	JTS, RTi		Added __titleVisible setting.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package RTi.DMI;
 
 import java.awt.Point;
 
+import RTi.GR.GRArcFillType;
 import RTi.GR.GRColor;
 import RTi.GR.GRDrawingAreaUtil;
 import RTi.GR.GRLimits;
@@ -52,21 +34,21 @@ import RTi.GR.GRUnits;
 import RTi.Util.Message.Message;
 
 /**
-This class is the object representing a table in an ER Diagram.  It stores 
-graphical information about the table and can draw itself on a drawing area.
+This class is the object representing a table in an ER Diagram.
+It stores graphical information about the table and can draw itself on a drawing area.
 */
 public class ERDiagram_Table extends DMIDataObject {
 
 /**
-Whether the bounds have been calculated for the current settings.  If false,
-the bounds (the height and width necessary for drawing the table) will be
-recalculated at the next time the table is drawn.
+Whether the bounds have been calculated for the current settings.
+If false, the bounds (the height and width necessary for drawing the table)
+will be recalculated at the next time the table is drawn.
 */
 private boolean __boundsCalculated = false;
 
 /**
 Whether to draw the framework of the table (true), or the actual table.
-Drawing the table as a framework is much faster, because only the outline lines are drawn. 
+Drawing the table as a framework is much faster, because only the outline lines are drawn.
 */
 private boolean __drawFramework = false;
 
@@ -96,15 +78,14 @@ The thickness (in pixels) of the border around the table fields.
 private double __borderThickness;
 
 /**
-The radius (in pixels) of the curve at the corner of the table's 
-rectangular-ish shape.  If set to 0, the table will be stored in a true rectangle.
+The radius (in pixels) of the curve at the corner of the table's rectangular-ish shape.
+If set to 0, the table will be stored in a true rectangle.
 */
 private double __cornerRadius = 0;
 
 /**
-The space (in pixels) on either side of the line separating key fields from 
-non-key fields.  It is calculated to be 1/2 of the average height of the text 
-in the table, in calculateBounds().
+The space (in pixels) on either side of the line separating key fields from non-key fields.
+It is calculated to be 1/2 of the average height of the text in the table, in calculateBounds().
 */
 private double __dividerFieldHeight;
 
@@ -114,9 +95,9 @@ The thickness (in pixels) of the line separating key fields from non-key fields.
 private double __dividerLineThickness;
 
 /**
-The distance (in pixels) that the dropshadow is off-set from the table.  If 
-set to 0, there will be no drop shadow.  With a positive value, the drop shadow
-is displaced the specified number of pixels to the right of and below the table.
+The distance (in pixels) that the dropshadow is off-set from the table.
+If set to 0, there will be no drop shadow.
+With a positive value, the drop shadow is displaced the specified number of pixels to the right of and below the table.
 If the number is negative, the drop shadow will appear to the left and above the table.
 */
 private double __dropShadowOffset;
@@ -127,8 +108,8 @@ The spacing (in pixels) between the sides of the border and the longest text str
 private double __fieldNameHorizontalSpacing;
 
 /**
-The spacing (in pixels) between the top border and the first key field, and
-the spacing between the last field and the bottom border.
+The spacing (in pixels) between the top border and the first key field,
+and the spacing between the last field and the bottom border.
 */
 private double __fieldNameVerticalSpacing;
 
@@ -163,8 +144,8 @@ The color in which the drop shadow is drawn.
 private GRColor __dropShadowColor;
 
 /**
-The old background color in which the table was drawn.  Used when the table
-is highlighted during a search, in order to restore the original table color when the table is deselected.
+The old background color in which the table was drawn.
+Used when the table is highlighted during a search, in order to restore the original table color when the table is deselected.
 */
 private GRColor __oldBackgroundColor;
 
@@ -202,7 +183,7 @@ Constructor.  Creates a table with the specified name.
 public ERDiagram_Table(String name) {
 	setName(name);
 
-	// initialize some default settings.
+	// Initialize some default settings.
 	__width = 0;
 	__height = 0;
 	__x = -10000;
@@ -263,18 +244,18 @@ public boolean areBoundsCalculated() {
 }
 
 /**
-Based on table settings, such as border thickness and the number and length 
-of field names, this method recalculates some internal settings necessary to
-draw the table properly.  If a call is made to most set*() methods, then the
-setBoundsCalculated() flag will be set so that the bounds are reset next time draw() is called.
+Based on table settings, such as border thickness and the number and length of field names,
+this method recalculates some internal settings necessary to draw the table properly.
+If a call is made to most set*() methods,
+then the setBoundsCalculated() flag will be set so that the bounds are reset next time draw() is called.
 @param da the DrawingArea used to calculate some GRLimits (such as when getting text extents)
 */
-public void calculateBounds(ERDiagram_DrawingArea da)
-{	String routine = getClass().getSimpleName() + ".calculateBounds";
+public void calculateBounds(ERDiagram_DrawingArea da) {
+	String routine = getClass().getSimpleName() + ".calculateBounds";
 	setBoundsCalculated(true);
 
 	double height = (__borderThickness * 2);
-	
+
 	double maxTextWidth = 0;
 
 	GRLimits limits = null;
@@ -283,7 +264,7 @@ public void calculateBounds(ERDiagram_DrawingArea da)
 
 	double averageTextHeight = 0;
 	int count = 0;
-	
+
 	GRDrawingAreaUtil.setFont(da, "Arial", 10);
 	if (__keyFields != null) {
 		length = __keyFields.length;
@@ -292,12 +273,12 @@ public void calculateBounds(ERDiagram_DrawingArea da)
 		count++;
 		limits = GRDrawingAreaUtil.getTextExtents(da, __keyFields[i], GRUnits.DEVICE);
 
-		if (limits.getWidth() > maxTextWidth) {	
+		if (limits.getWidth() > maxTextWidth) {
 			maxTextWidth = limits.getWidth();
 		}
 
 		averageTextHeight += limits.getHeight();
-	
+
 		if (i < (length - 1)) {
 			height += getFieldNameVerticalSpacing() + limits.getHeight();
 		}
@@ -313,10 +294,10 @@ public void calculateBounds(ERDiagram_DrawingArea da)
 		count++;
 		limits = GRDrawingAreaUtil.getTextExtents(da, __nonKeyFields[i], GRUnits.DEVICE);
 
-		if (limits.getWidth() > maxTextWidth) {	
+		if (limits.getWidth() > maxTextWidth) {
 			maxTextWidth = limits.getWidth();
 		}
-		
+
 		averageTextHeight += limits.getHeight();
 
 		if (i < (length - 1)) {
@@ -324,7 +305,7 @@ public void calculateBounds(ERDiagram_DrawingArea da)
 		}
 		else {
 			height += limits.getHeight();
-		}		
+		}
 	}
 
 	averageTextHeight /= count;
@@ -337,11 +318,11 @@ public void calculateBounds(ERDiagram_DrawingArea da)
 	height += (__dividerFieldHeight * 2) + __dividerLineThickness;
 
 	height += getFieldNameVerticalSpacing() + (__cornerRadius * 2);
-	
+
 	__height = height;
-	
+
 	maxTextWidth += (__fieldNameHorizontalSpacing * 2) + (__borderThickness * 2);
-	
+
 	__width = maxTextWidth + (2 * __cornerRadius);
 	if (__cornerRadius == 0) {
 		__width += 5;
@@ -351,10 +332,10 @@ public void calculateBounds(ERDiagram_DrawingArea da)
 		__cornerRadius = 0;
 	}
 
-	//System.out.println("name: " + __name + " __x: " + __x + "  __y : " 
+	//System.out.println("name: " + __name + " __x: " + __x + "  __y : "
 	//	+ __y + "  __width: " + __width + "  __height: " + __height);
 	if (((__x + __width) < 0) && ((__y + __height) < 0)) {
-		Message.printStatus(2, routine, "Setting table to visible=false name =" + __name + " __x: " + __x + " __y : " 
+		Message.printStatus(2, routine, "Setting table to visible=false name =" + __name + " __x: " + __x + " __y : "
 			+ __y + "  __width: " + __width + "  __height: " + __height);
 		__visible = false;
 	}
@@ -373,7 +354,7 @@ public boolean contains(double x, double y) {
 			return true;
 		}
 	}
-		
+
 	return false;
 }
 
@@ -381,22 +362,22 @@ public boolean contains(double x, double y) {
 Draws the table to the specified drawing area.
 @param da the drawing are to which to draw the table.
 */
-public void draw(ERDiagram_DrawingArea da)
-{	String routine = "draw";
+public void draw(ERDiagram_DrawingArea da) {
+	String routine = "draw";
 	if (!areBoundsCalculated()) {
 		calculateBounds(da);
 	}
 
 	double[] xs = new double[2];
 	double[] ys = new double[2];
-	
+
 	Message.printStatus(2,routine,"Drawing table \"" + getName() + "\" at " + __x + ", " + __y );
 
 	int length = 0;
-	String text = null;	
+	String text = null;
 	GRLimits limits = null;
 	double ypos = 0;
-	double xpos = 0;	
+	double xpos = 0;
 
 	xs[0] = __x + __cornerRadius;
 	xs[1] = __x + __width - __cornerRadius;
@@ -408,30 +389,22 @@ public void draw(ERDiagram_DrawingArea da)
 		if (__dropShadowOffset > 0) {
 			xs[0] += __dropShadowOffset;
 			xs[1] += __dropShadowOffset;
-	
+
 			ys[0] -= __dropShadowOffset;
-			ys[1] -= __dropShadowOffset;		
+			ys[1] -= __dropShadowOffset;
 			GRDrawingAreaUtil.setColor(da, __dropShadowColor);
-	
-			GRDrawingAreaUtil.fillRectangle(da, 
-				__x + __dropShadowOffset, 
-				ys[0], __width, ys[1] - ys[0]);
-			GRDrawingAreaUtil.fillRectangle(da, xs[0], 
-				__y - __dropShadowOffset, xs[1] - xs[0], 
-				__height);
-	
-			GRDrawingAreaUtil.fillArc(da, xs[0], ys[0], 
-				__cornerRadius, __cornerRadius, 180, 90, 0);
-			GRDrawingAreaUtil.fillArc(da, xs[1], ys[1], 
-				__cornerRadius, __cornerRadius, 0, 90, 0);	
-			GRDrawingAreaUtil.fillArc(da, xs[0], ys[1], 
-				__cornerRadius, __cornerRadius, 180, -90, 0);
-			GRDrawingAreaUtil.fillArc(da, xs[1], ys[0], 
-				__cornerRadius, __cornerRadius, 0, -90, 0);
-	
+
+			GRDrawingAreaUtil.fillRectangle(da, __x + __dropShadowOffset, ys[0], __width, ys[1] - ys[0]);
+			GRDrawingAreaUtil.fillRectangle(da, xs[0], __y - __dropShadowOffset, xs[1] - xs[0], __height);
+
+			GRDrawingAreaUtil.fillArc(da, xs[0], ys[0], __cornerRadius, __cornerRadius, 180, 90, GRArcFillType.CHORD);
+			GRDrawingAreaUtil.fillArc(da, xs[1], ys[1], __cornerRadius, __cornerRadius, 0, 90, GRArcFillType.CHORD);
+			GRDrawingAreaUtil.fillArc(da, xs[0], ys[1], __cornerRadius, __cornerRadius, 180, -90, GRArcFillType.CHORD);
+			GRDrawingAreaUtil.fillArc(da, xs[1], ys[0], __cornerRadius, __cornerRadius, 0, -90, GRArcFillType.CHORD);
+
 			xs[0] -= __dropShadowOffset;
 			xs[1] -= __dropShadowOffset;
-	
+
 			ys[0] += __dropShadowOffset;
 			ys[1] += __dropShadowOffset;
 		}
@@ -440,53 +413,35 @@ public void draw(ERDiagram_DrawingArea da)
 	}
 	else {
 		GRDrawingAreaUtil.setColor(da, GRColor.lightGray);
-		GRDrawingAreaUtil.drawRectangle(da, __x, ys[0], __width, 
-			ys[1] - ys[0]);
-		GRDrawingAreaUtil.drawRectangle(da, xs[0], __y, xs[1] - xs[0], 
-			__height);
-		GRDrawingAreaUtil.drawArc(da, xs[0], ys[0], 
-			__cornerRadius, __cornerRadius, 180, 90);
-		GRDrawingAreaUtil.drawArc(da, xs[1], ys[1], 
-			__cornerRadius, __cornerRadius, 0, 90);		
-		GRDrawingAreaUtil.drawArc(da, xs[0], ys[1], 
-			__cornerRadius, __cornerRadius, 180, -90);
-		GRDrawingAreaUtil.drawArc(da, xs[1], ys[0], 
-			__cornerRadius, __cornerRadius, 0, -90);	
+		GRDrawingAreaUtil.drawRectangle(da, __x, ys[0], __width, ys[1] - ys[0]);
+		GRDrawingAreaUtil.drawRectangle(da, xs[0], __y, xs[1] - xs[0], __height);
+		GRDrawingAreaUtil.drawArc(da, xs[0], ys[0], __cornerRadius, __cornerRadius, 180, 90);
+		GRDrawingAreaUtil.drawArc(da, xs[1], ys[1], __cornerRadius, __cornerRadius, 0, 90);
+		GRDrawingAreaUtil.drawArc(da, xs[0], ys[1], __cornerRadius, __cornerRadius, 180, -90);
+		GRDrawingAreaUtil.drawArc(da, xs[1], ys[0], __cornerRadius, __cornerRadius, 0, -90);
 	}
 
-	if (!__drawFramework) {	
-		GRDrawingAreaUtil.fillRectangle(da, __x, ys[0], __width, 
-			ys[1] - ys[0]);
-		GRDrawingAreaUtil.fillRectangle(da, xs[0], __y, xs[1] - xs[0], 
-			__height);
-		GRDrawingAreaUtil.fillArc(da, xs[0], ys[0], 
-			__cornerRadius, __cornerRadius, 180, 90, 0);
-		GRDrawingAreaUtil.fillArc(da, xs[1], ys[1], 
-			__cornerRadius, __cornerRadius, 0, 90, 0);		
-		GRDrawingAreaUtil.fillArc(da, xs[0], ys[1], 
-			__cornerRadius, __cornerRadius, 180, -90, 0);
-		GRDrawingAreaUtil.fillArc(da, xs[1], ys[0], 
-			__cornerRadius, __cornerRadius, 0, -90, 0);
-	
+	if (!__drawFramework) {
+		GRDrawingAreaUtil.fillRectangle(da, __x, ys[0], __width, ys[1] - ys[0]);
+		GRDrawingAreaUtil.fillRectangle(da, xs[0], __y, xs[1] - xs[0], __height);
+		GRDrawingAreaUtil.fillArc(da, xs[0], ys[0], __cornerRadius, __cornerRadius, 180, 90, GRArcFillType.CHORD);
+		GRDrawingAreaUtil.fillArc(da, xs[1], ys[1], __cornerRadius, __cornerRadius, 0, 90, GRArcFillType.CHORD);
+		GRDrawingAreaUtil.fillArc(da, xs[0], ys[1], __cornerRadius, __cornerRadius, 180, -90, GRArcFillType.CHORD);
+		GRDrawingAreaUtil.fillArc(da, xs[1], ys[0], __cornerRadius, __cornerRadius, 0, -90, GRArcFillType.CHORD);
+
 		GRDrawingAreaUtil.setColor(da, __outlineColor);
-		
+
 		GRDrawingAreaUtil.drawLine(da, xs[0], __y, xs[1], __y);
-		GRDrawingAreaUtil.drawLine(da, xs[0], __y + __height, xs[1], 
-			__y + __height);
-	
+		GRDrawingAreaUtil.drawLine(da, xs[0], __y + __height, xs[1], __y + __height);
+
 		GRDrawingAreaUtil.drawLine(da, __x, ys[0], __x, ys[1]);
-		GRDrawingAreaUtil.drawLine(da, __x + __width, ys[0], 
-			__x + __width, ys[1]);
-		
-		GRDrawingAreaUtil.drawArc(da, xs[0], ys[0], 
-			__cornerRadius, __cornerRadius, 180, 90);
-		GRDrawingAreaUtil.drawArc(da, xs[1], ys[1], 
-			__cornerRadius, __cornerRadius, 0, 90);		
-		GRDrawingAreaUtil.drawArc(da, xs[0], ys[1], 
-			__cornerRadius, __cornerRadius, 180, -90);
-		GRDrawingAreaUtil.drawArc(da, xs[1], ys[0], 
-			__cornerRadius, __cornerRadius, 0, -90);
-	
+		GRDrawingAreaUtil.drawLine(da, __x + __width, ys[0], __x + __width, ys[1]);
+
+		GRDrawingAreaUtil.drawArc(da, xs[0], ys[0], __cornerRadius, __cornerRadius, 180, 90);
+		GRDrawingAreaUtil.drawArc(da, xs[1], ys[1], __cornerRadius, __cornerRadius, 0, 90);
+		GRDrawingAreaUtil.drawArc(da, xs[0], ys[1], __cornerRadius, __cornerRadius, 180, -90);
+		GRDrawingAreaUtil.drawArc(da, xs[1], ys[0], __cornerRadius, __cornerRadius, 0, -90);
+
 		ypos = __y + __height - __cornerRadius;
 		if (__cornerRadius == 0) {
 			xpos = __x + 5;
@@ -495,17 +450,16 @@ public void draw(ERDiagram_DrawingArea da)
 			xpos = __x + __cornerRadius;
 		}
 	}
-	
+
 	String loc = " (" + __x + ", " + __y + ")";
 	loc = "";
 	GRDrawingAreaUtil.setFont(da, "Arial", 10);
-	
+
 	if (__titleVisible) {
-		GRDrawingAreaUtil.drawText(da, __name + loc, __x, 
-			__y + __height + 3, 0, GRText.BOTTOM);
+		GRDrawingAreaUtil.drawText(da, __name + loc, __x, __y + __height + 3, 0, GRText.BOTTOM);
 	}
-	
-	if (!__drawFramework) {		
+
+	if (!__drawFramework) {
 		GRDrawingAreaUtil.setFont(da, "Arial", 10);
 		if (__keyFields != null) {
 			length = __keyFields.length;
@@ -513,17 +467,14 @@ public void draw(ERDiagram_DrawingArea da)
 
 		for (int i = 0; i < length; i++) {
 			text = __keyFields[i];
-			limits = GRDrawingAreaUtil.getTextExtents(da, text,
-				GRUnits.DEVICE);
-			
+			limits = GRDrawingAreaUtil.getTextExtents(da, text, GRUnits.DEVICE);
+
 			if (__textVisible) {
-			GRDrawingAreaUtil.drawText(da, text, xpos, ypos,
-				0, GRText.TOP);
+				GRDrawingAreaUtil.drawText(da, text, xpos, ypos, 0, GRText.TOP);
 			}
-	
-			if (i < (length - 1)) {		
-				ypos -= limits.getHeight() 
-					+ __fieldNameVerticalSpacing;
+
+			if (i < (length - 1)) {
+				ypos -= limits.getHeight() + __fieldNameVerticalSpacing;
 			}
 			else {
 				ypos -= limits.getHeight();
@@ -533,24 +484,21 @@ public void draw(ERDiagram_DrawingArea da)
 		GRDrawingAreaUtil.drawLine(da, __x, ypos,  __x + __width, ypos);
 		ypos -= __dividerLineThickness;
 		ypos -= __dividerFieldHeight;
-	
+
 		if (__nonKeyFields != null) {
 			length = __nonKeyFields.length;
 		}
 
 		for (int i = 0; i < length; i++) {
 			text = __nonKeyFields[i];
-			limits = GRDrawingAreaUtil.getTextExtents(da, text,
-				GRUnits.DEVICE);
-		
+			limits = GRDrawingAreaUtil.getTextExtents(da, text, GRUnits.DEVICE);
+
 			if (__textVisible) {
-			GRDrawingAreaUtil.drawText(da, text, xpos, ypos,
-				0, GRText.TOP);
+				GRDrawingAreaUtil.drawText(da, text, xpos, ypos, 0, GRText.TOP);
 			}
-	
-			if (i < (length - 1)) {		
-				ypos -= limits.getHeight() 
-					+ __fieldNameVerticalSpacing;
+
+			if (i < (length - 1)) {
+				ypos -= limits.getHeight() + __fieldNameVerticalSpacing;
 			}
 		}
 	}
@@ -600,10 +548,8 @@ public double getDividerFieldHeight() {
 }
 
 /**
-Returns the thickness (in pixels) of the line separating the key and non-key
-fields.
-@return the thickness (in pixels) of the line separating the key and non-key
-fields.
+Returns the thickness (in pixels) of the line separating the key and non-key fields.
+@return the thickness (in pixels) of the line separating the key and non-key fields.
 */
 public double getDividerLineThickness() {
 	return __dividerLineThickness;
@@ -626,42 +572,35 @@ public double getDropShadowOffset() {
 }
 
 /**
-Returns the spacing (in pixels) between the left and right borders and the 
-longest string in the table.
-@return the spacing (in pixels) between the left and right borders and the 
-longest string in the table.
+Returns the spacing (in pixels) between the left and right borders and the longest string in the table.
+@return the spacing (in pixels) between the left and right borders and the longest string in the table.
 */
 public double getFieldNameHorizontalSpacing() {
 	return __fieldNameHorizontalSpacing;
 }
 
 /**
-Returns the spacing (in pixels) between the top border and the first field
-and the bottom border and the last field.
-@return the spacing (in pixels) between the top border and the first field
-and the bottom border and the last field.
+Returns the spacing (in pixels) between the top border and the first field and the bottom border and the last field.
+@return the spacing (in pixels) between the top border and the first field and the bottom border and the last field.
 */
 public double getFieldNameVerticalSpacing() {
 	return __fieldNameVerticalSpacing;
 }
 
 /**
-Get the Y position of the field with the specified name (case-insensitive)
-in the table.  This is used for calculating the position of connection
-lines between tables.  This method can return the value of Y at the Top, 
-bottom, or middle of the text, depending on the value of <pre>flag</pre>.
+Get the Y position of the field with the specified name (case-insensitive) in the table.
+This is used for calculating the position of connection lines between tables.
+This method can return the value of Y at the Top, bottom,
+or middle of the text, depending on the value of <pre>flag</pre>.
 @param da the drawing are on which the table is drawn.
-@param fieldName the name of the field for which to return the Y position of
-the text.
-@param flag the flag specifying which Y value (the top, middle, or bottom)
-should be returned.  If GRText.TOP is specified, the top of the String will 
-be returned as the Y location.  If GRText.BOTTOM is specified, the bottom 
-of the String will be returned as the Y location.  If GRText.CENTER_Y is
-specified, the center of the String will be returned as the Y location.  
+@param fieldName the name of the field for which to return the Y position of the text.
+@param flag the flag specifying which Y value (the top, middle, or bottom) should be returned.
+If GRText.TOP is specified, the top of the String will be returned as the Y location.
+If GRText.BOTTOM is specified, the bottom of the String will be returned as the Y location.
+If GRText.CENTER_Y is specified, the center of the String will be returned as the Y location.
 If anything else is specified, the top of the String will be returned.
 */
-public double getFieldY(ERDiagram_DrawingArea da, String fieldName,
-int flag) {
+public double getFieldY(ERDiagram_DrawingArea da, String fieldName, int flag) {
 	if (!__boundsCalculated) {
 		calculateBounds(da);
 	}
@@ -674,7 +613,7 @@ int flag) {
 	double ypos = 0;
 	ypos = __y + __height - __cornerRadius;
 	String text = null;
-	GRLimits limits = null;	
+	GRLimits limits = null;
 	int colon;
 	for (int i = 0; i < length; i++) {
 		text = __keyFields[i];
@@ -682,8 +621,7 @@ int flag) {
 		if (colon > -1) {
 			text = text.substring(0, colon);
 		}
-		limits = GRDrawingAreaUtil.getTextExtents(da, text,
-			GRUnits.DEVICE);
+		limits = GRDrawingAreaUtil.getTextExtents(da, text, GRUnits.DEVICE);
 		if (text.equalsIgnoreCase(fieldName)) {
 			if (flag == GRText.TOP) {
 				return ypos;
@@ -692,15 +630,14 @@ int flag) {
 				return (ypos - limits.getHeight());
 			}
 			else if (flag == GRText.CENTER_Y) {
-				return (double)((int)(ypos - 
-					(limits.getHeight() / 2)));
+				return (double)((int)(ypos - (limits.getHeight() / 2)));
 			}
 			else {
 				return ypos;
 			}
 		}
 
-		if (i < (length - 1)) {		
+		if (i < (length - 1)) {
 			ypos -= limits.getHeight() + __fieldNameVerticalSpacing;
 		}
 		else {
@@ -711,7 +648,7 @@ int flag) {
 	GRDrawingAreaUtil.drawLine(da, __x, ypos,  __x + __width, ypos);
 	ypos -= __dividerLineThickness;
 	ypos -= __dividerFieldHeight;
-	
+
 	if (__nonKeyFields != null) {
 		length = __nonKeyFields.length;
 	}
@@ -721,10 +658,9 @@ int flag) {
 		colon = text.indexOf(':');
 		if (colon > -1) {
 			text = text.substring(0, colon);
-		}		
-		limits = GRDrawingAreaUtil.getTextExtents(da, text,
-			GRUnits.DEVICE);
-		
+		}
+		limits = GRDrawingAreaUtil.getTextExtents(da, text, GRUnits.DEVICE);
+
 		if (text.equalsIgnoreCase(fieldName)) {
 			if (flag == GRText.TOP) {
 				return ypos;
@@ -733,37 +669,32 @@ int flag) {
 				return (ypos - limits.getHeight());
 			}
 			else if (flag == GRText.CENTER_Y) {
-				return (double)((int)(ypos - 
-					(limits.getHeight() / 2)));
+				return (double)((int)(ypos - (limits.getHeight() / 2)));
 			}
 			else {
 				return ypos;
 			}
 		}
 
-		if (i < (length - 1)) {		
+		if (i < (length - 1)) {
 			ypos -= limits.getHeight() + __fieldNameVerticalSpacing;
 		}
 	}
-	
+
 	return -1;
 }
 
 /**
-Returns the height (in pixels) of the curved rectangle containing the table 
-data.
-@return the height (in pixels) of the curved rectangle containing the table
-data.
+Returns the height (in pixels) of the curved rectangle containing the table data.
+@return the height (in pixels) of the curved rectangle containing the table data.
 */
 public double getHeight() {
 	return __height;
 }
 
 /**
-Returns the name of the key field at the given position in the key fields
-array.
-@return the name of the key field at the given position in the key fields
-array.
+Returns the name of the key field at the given position in the key fields array.
+@return the name of the key field at the given position in the key fields array.
 */
 public String getKeyField(int field) {
 	if (__keyFields == null) {
@@ -800,10 +731,8 @@ public String getName() {
 }
 
 /**
-Returns the name of the non-key field at the given position in the non-key
-fields array.
-@return the name of the non-key field at the given position in the non-key
-fields array.
+Returns the name of the non-key field at the given position in the non-key fields array.
+@return the name of the non-key field at the given position in the non-key fields array.
 */
 public String getNonKeyField(int field) {
 	if (__nonKeyFields == null) {
@@ -827,7 +756,7 @@ public int getNonKeyFieldCount() {
 Returns the table's outline color.
 @return the table's outline color.
 */
-public GRColor getOutlineColor() {	
+public GRColor getOutlineColor() {
 	return __outlineColor;
 }
 
@@ -896,21 +825,18 @@ public boolean isVisible() {
 }
 
 /**
-Checks to see whether any portion of the table can found within the given
-GRLimits.  If so, returns true.
+Checks to see whether any portion of the table can found within the given GRLimits.  If so, returns true.
 @param limits the limits for which to check an intersection with the table.
-@return true if any portion of the table can be found within the specified
-limits.
+@return true if any portion of the table can be found within the specified limits.
 */
 public boolean isWithinLimits(GRLimits limits, double scale) {
-	return limits.contains(__x * scale, __y * scale, 
-		(__x + __width) * scale, (__y + __height) * scale, false);
+	return limits.contains(__x * scale, __y * scale, (__x + __width) * scale, (__y + __height) * scale, false);
 }
 
 /**
-Marks the table selected or not.  When the table is selected, it is currently
-drawn in a hard-coded color (red).  If the table is marked not selected, its 
-old background color will be restored.
+Marks the table selected or not.
+When the table is selected, it is currently drawn in a hard-coded color (red).
+If the table is marked not selected, its old background color will be restored.
 @param selected whether the table is selected or not.
 */
 public void markSelected(boolean selected) {
@@ -926,9 +852,8 @@ public void markSelected(boolean selected) {
 }
 
 /**
-Sets the thickness of the border around the table (in pixels).  
-If the value of the border thickness is changed, 
-calculateBounds() will be called before the table is next drawn.
+Sets the thickness of the border around the table (in pixels).
+If the value of the border thickness is changed, calculateBounds() will be called before the table is next drawn.
 @param thickness the thickness to set.
 */
 public void setBorderThickness(double thickness) {
@@ -939,20 +864,18 @@ public void setBorderThickness(double thickness) {
 }
 
 /**
-Sets whether the bounds have been calculated, or whether they need to be 
-calculated again.
-@param boundsCalculated true if the bounds have been calculated, or false if
-they should be reculated before the table is drawn next time.
+Sets whether the bounds have been calculated, or whether they need to be calculated again.
+@param boundsCalculated true if the bounds have been calculated,
+or false if they should be recalculated before the table is drawn next time.
 */
 private void setBoundsCalculated(boolean boundsCalculated) {
 	__boundsCalculated = boundsCalculated;
 }
 
 /**
-Sets the radius of the curve at the corner of the table rectangle.  
+Sets the radius of the curve at the corner of the table rectangle.
 If set to 0, the table will be stored in a true rectangle.
-If the radius size is changed, calculateBounds() will be called before the 
-table is next drawn.
+If the radius size is changed, calculateBounds() will be called before the table is next drawn.
 @param radius the radius to set.
 */
 public void setCornerRadius(double radius) {
@@ -963,8 +886,8 @@ public void setCornerRadius(double radius) {
 }
 
 /**
-Sets the thickness (in pixels) of the line separating the key fields from the 
-non-key fields.  If the thickness of the divider lines is changed, 
+Sets the thickness (in pixels) of the line separating the key fields from the non-key fields.
+If the thickness of the divider lines is changed,
 calculateBounds() will be called before the table is next drawn.
 @param thickness the thickness to be set.
 */
@@ -977,8 +900,7 @@ public void setDividerLineThickness(double thickness) {
 
 /**
 Sets whether the table's framework (outline lines) should be drawn or not.
-When the framework is drawn, no field information is visible, but it is useful
-for debugging.
+When the framework is drawn, no field information is visible, but it is useful for debugging.
 @param framework whether the framework should be drawn or not.
 */
 public void setDrawFramework(boolean framework) {
@@ -986,13 +908,11 @@ public void setDrawFramework(boolean framework) {
 }
 
 /**
-Sets the offset of the table dropshadow (in pixels). 
-If set to 0, there will be no drop 
-shadow.  With a positive value, the drop shadow is displaced the specified 
-number of pixels to the right of and below the table.  If the number is 
-negative, the drop shadow will appear to the left and above the table.
-If the drop shadow offset is changed, calculateBounds() will be called 
-before the table is next drawn.
+Sets the offset of the table dropshadow (in pixels).
+If set to 0, there will be no drop shadow.
+With a positive value, the drop shadow is displaced the specified number of pixels to the right of and below the table.
+If the number is negative, the drop shadow will appear to the left and above the table.
+If the drop shadow offset is changed, calculateBounds() will be called before the table is next drawn.
 @param offset the offset to set.
 */
 public void setDropShadowOffset(double offset) {
@@ -1003,10 +923,8 @@ public void setDropShadowOffset(double offset) {
 }
 
 /**
-Sets the spacing (in pixels) between the right and left borders and the 
-longest text string in the table.
-If the spacing is changed, calculateBounds() will be called before the table is
-next drawn.
+Sets the spacing (in pixels) between the right and left borders and the longest text string in the table.
+If the spacing is changed, calculateBounds() will be called before the table is next drawn.
 @param spacing the spacing to set.
 */
 public void setFieldNameHorizontalSpacing(double spacing) {
@@ -1017,10 +935,8 @@ public void setFieldNameHorizontalSpacing(double spacing) {
 }
 
 /**
-Sets the spacing (in pixels) between the top border and the first text field 
-and the bottom border and the last non-key field.
-If the spacing is changed, calculateBounds() will be called before the table is
-next drawn.
+Sets the spacing (in pixels) between the top border and the first text field and the bottom border and the last non-key field.
+If the spacing is changed, calculateBounds() will be called before the table is next drawn.
 @param spacing the spacing to set.
 */
 public void setFieldNameVerticalSpacing(double spacing) {
@@ -1031,8 +947,7 @@ public void setFieldNameVerticalSpacing(double spacing) {
 }
 
 /**
-Sets the key fields.  If keyFields is null, no keyfields will be put in the 
-table.
+Sets the key fields.  If keyFields is null, no keyfields will be put in the table.
 calculateBounds() will be called before the table is next drawn.
 @param keyFields the keyFields to set.  Can be null.
 */
@@ -1043,8 +958,7 @@ public void setKeyFields(String[] keyFields) {
 
 /**
 Sets the name of the table.
-If the name of the table changed, calculateBounds() will be called 
-before the table is next drawn.
+If the name of the table changed, calculateBounds() will be called before the table is next drawn.
 @param name the name of the table.
 */
 public void setName(String name) {
@@ -1060,10 +974,7 @@ public void setName(String name) {
 }
 
 /**
-Sets the non-key fields.  If nonKeyFields is null, no non-key fields will be
-put in the table.
-table.
-calculateBounds() will be called before the table is next drawn.
+Sets the non-key fields.  If nonKeyFields is null, no non-key fields will be put in the table.
 @param nonKeyFields the non-key fields to set.  Can be null.
 */
 public void setNonKeyFields(String[] nonKeyFields) {
@@ -1100,7 +1011,8 @@ public void setVisible(boolean visible) {
 }
 
 /**
-Sets the X position of the table.  If the value of X changes, calculateBounds() will be called before the table is next drawn.
+Sets the X position of the table.
+If the value of X changes, calculateBounds() will be called before the table is next drawn.
 @param x the X position of the table.
 */
 public void setX(double x) {
@@ -1111,7 +1023,8 @@ public void setX(double x) {
 }
 
 /**
-Sets the Y position of the table.  If the value of Y changes, calculateBounds() will be called before the table is next drawn.
+Sets the Y position of the table.
+If the value of Y changes, calculateBounds() will be called before the table is next drawn.
 @param y the Y position of the table.
 */
 public void setY(double y) {
@@ -1126,7 +1039,7 @@ Returns a String representing the table.
 @return a String representing the table.
 */
 public String toString() {
-	String str = 
+	String str =
 		  "Table: '" + __name + "'\n"
 		+ "  Position: " + __x + ", " + __y + "\n"
 		+ "  Width:    " + __width + "\n"

@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,20 +21,9 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
 
 NoticeEnd */
 
-// ----------------------------------------------------------------------------
-// ERDiagram_DrawingArea - the drawing area onto which the ER Diagram is
-//	drawn.
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2003-08-27	J. Thomas Sapienza, RTi	Initial changelog.  
-// ----------------------------------------------------------------------------
-
 package RTi.DMI;
 
-import RTi.GR.GRAspect;
+import RTi.GR.GRAspectType;
 import RTi.GR.GRJComponentDrawingArea;
 import RTi.GR.GRLimits;
 import RTi.GR.GRUnits;
@@ -50,7 +39,7 @@ Constructor.
 @param drawingLimits the drawingLimits of the drawing area.
 */
 public ERDiagram_DrawingArea(ERDiagram_Device dev, GRLimits drawingLimits) {
-	super(dev, "ERDiagram_DrawingArea", GRAspect.TRUE, drawingLimits,
+	super(dev, "ERDiagram_DrawingArea", GRAspectType.TRUE, drawingLimits,
 		GRUnits.DEVICE, GRLimits.DEVICE, drawingLimits);
 }
 

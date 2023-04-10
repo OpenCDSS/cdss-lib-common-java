@@ -42,10 +42,9 @@ import RTi.Util.IO.IOUtil;
 import RTi.Util.Message.Message;
 
 /**
-This class stores a list of GRPolygon, which allows storage of ESRI Arc
-shapes.  Data are public to
-increase performance during draws but the set methods should be used to set
-data.  Currently, the number of polygons cannot be dynamically extended.
+This class stores a list of GRPolygon, which allows storage of Esri Arc shapes.
+Data are public to increase performance during draws but the set methods should be used to set data.
+Currently, the number of polygons cannot be dynamically extended.
 */
 public class GRPolygonList extends GRShape
 {
@@ -68,8 +67,8 @@ public GRPolygon[] polygons = null;
 /**
 Construct with zero polygons.
 */
-public GRPolygonList ()
-{	super ();
+public GRPolygonList () {
+	super ();
 	type = POLYGON_LIST;
 	total_npts = 0;
 	xmin = xmax = 0.0;
@@ -80,8 +79,8 @@ public GRPolygonList ()
 Construct with zero polygons and set index.
 @param att_index attribute index.
 */
-public GRPolygonList ( long att_index )
-{	super ( att_index );
+public GRPolygonList ( long att_index ) {
+	super ( att_index );
 	type = POLYGON_LIST;
 	total_npts = 0;
 	xmin = xmax = 0.0;
@@ -90,13 +89,11 @@ public GRPolygonList ( long att_index )
 
 /**
 Construct with the specified number of polygons.
-The array space for the polygons
-is created but not initialized.  setPolygon should then be called to set the
-polygon.
+The array space for the polygons is created but not initialized.
+The setPolygon() method should then be called to set the polygon.
 @param npolygons_set Number of polygons.
 */
-public GRPolygonList ( int npolygons_set )
-{
+public GRPolygonList ( int npolygons_set ) {
 	super ();
 	type = POLYGON_LIST;
 	setNumPolygons ( npolygons_set );
@@ -105,14 +102,14 @@ public GRPolygonList ( int npolygons_set )
 /**
 Copy constructor.  A deep copy is made.
 */
-public GRPolygonList ( GRPolygonList polygonlist )
-{	super ( polygonlist.index );
+public GRPolygonList ( GRPolygonList polygonlist ) {
+	super ( polygonlist.index );
 	type = POLYGON_LIST;
 	setNumPolygons ( polygonlist.npolygons );
 	for ( int i = 0; i < npolygons; i++ ) {
 		setPolygon ( i, new GRPolygon ( polygonlist.polygons[i]) );
 	}
-	// Set base class data here...
+	// Set base class data here.
 	xmin = polygonlist.xmin;
 	xmax = polygonlist.xmax;
 	ymin = polygonlist.ymin;
@@ -124,12 +121,12 @@ public GRPolygonList ( GRPolygonList polygonlist )
 }
 
 /**
-Returns true if the shape matches the one being compared.  Each polygon is
-compared.  The number of polygons must agree.
-@return true if the shape matches the one being compared.  
+Returns true if the shape matches the one being compared.
+Each polygon is compared.  The number of polygons must agree.
+@return true if the shape matches the one being compared.
 */
-public boolean equals ( GRPolygonList polygonlist )
-{	if ( npolygons != polygonlist.npolygons ) {
+public boolean equals ( GRPolygonList polygonlist ) {
+	if ( npolygons != polygonlist.npolygons ) {
 		return false;
 	}
 	for ( int i = 0; i < npolygons; i++ ) {
@@ -141,20 +138,11 @@ public boolean equals ( GRPolygonList polygonlist )
 }
 
 /**
-Finalize before garbage collection.
-*/
-protected void finalize ()
-throws Throwable
-{	IOUtil.nullArray(polygons);
-	super.finalize();
-}
-
-/**
 Returns the number of polygons.
 @return the number of polygons.
 */
-public int getNumPolygons ( )
-{	return npolygons;
+public int getNumPolygons ( ) {
+	return npolygons;
 }
 
 /**
@@ -163,8 +151,8 @@ Each polygon is compared.  The number of polygons must agree.
 @return a polygon from the array or null if outside the bounds of the array.
 @param i index position in polygon array (starting at zero).
 */
-public GRPolygon getPolygon ( int i )
-{	if ( (i < 0) || (i > (npolygons - 1)) ) {
+public GRPolygon getPolygon ( int i ) {
+	if ( (i < 0) || (i > (npolygons - 1)) ) {
 		return null;
 	}
 	else {	return polygons[i];
@@ -172,12 +160,11 @@ public GRPolygon getPolygon ( int i )
 }
 
 /**
-Reinitialize the polygons array to the specified size.  The polygon data must
-then be re-set.
+Reinitialize the polygons array to the specified size.  The polygon data must then be re-set.
 @param npolygons_set Number of polygons to size the polygons array.
 */
-public void setNumPolygons ( int npolygons_set )
-{	try {	polygons = new GRPolygon[npolygons_set];
+public void setNumPolygons ( int npolygons_set ) {
+	try {	polygons = new GRPolygon[npolygons_set];
 		npolygons = npolygons_set;
 		xmin = xmax = ymin = ymax = 0.0;
 		limits_found = false;
@@ -189,27 +176,27 @@ public void setNumPolygons ( int npolygons_set )
 }
 
 /**
-Set the polygon at an index.  It is assumed that the number of polygons has
-already
-been specified, thus allocating space for the polygons.  A reference to the
-given polygon is saved, not a copy of the data.
+Set the polygon at an index.  It is assumed that the number of polygons has already been specified,
+thus allocating space for the polygons.
+A reference to the given polygon is saved, not a copy of the data.
 @param i Array position for polygon (starting at zero).
 @param polygon Polygon to set (null polygons are allowed).
 */
-public void setPolygon ( int i, GRPolygon polygon )
-{	if ( (i < 0) || (i > (npolygons - 1)) ) {
+public void setPolygon ( int i, GRPolygon polygon ) {
+	if ( (i < 0) || (i > (npolygons - 1)) ) {
 		return;
 	}
 	polygons[i] = polygon;
 	if ( !limits_found ) {
-		// Set the limits...
+		// Set the limits.
 		xmin = polygon.xmin;
 		xmax = polygon.xmax;
 		ymin = polygon.ymin;
 		ymax = polygon.ymax;
 		limits_found = true;
 	}
-	else {	if ( polygon.xmax > xmax ) {
+	else {
+		if ( polygon.xmax > xmax ) {
 			xmax = polygon.xmax;
 		}
 		if ( polygon.xmin < xmin ) {
@@ -224,4 +211,4 @@ public void setPolygon ( int i, GRPolygon polygon )
 	}
 }
 
-} // End of GRPolygonList
+}

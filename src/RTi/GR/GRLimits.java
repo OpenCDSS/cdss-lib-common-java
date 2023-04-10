@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,22 +26,21 @@ package RTi.GR;
 import java.awt.Rectangle;
 
 /**
-This class stores the limits of a rectangular area.  The coordinate systems
-can be in either direction.  This allows directions to be swapped during
-projection (e.g., to correct for downward Y-axis for screen graphics).
-Note that all data are specified in terms of the left, right, top, and bottom
-coordinates and that minimum, maximum, center, width, and height are computed
-from these values.  <b>This object should not be treated as a drawing primitive
-but can be passed as a shape if necessary.</b>
+This class stores the limits of a rectangular area.
+The coordinate systems can be in either direction.
+This allows directions to be swapped during projection (e.g., to correct for downward Y-axis for screen graphics).
+Note that all data are specified in terms of the left, right, top,
+and bottom coordinates and that minimum, maximum, center, width, and height are computed from these values.
+<b>This object should not be treated as a drawing primitive but can be passed as a shape if necessary.</b>
 */
-public class GRLimits 
+public class GRLimits
 extends GRShape
 implements Cloneable
 {
 
 /**
-Indicates that the limits are in device units.  These settings are usually
-used as parameters to methods in other classes.
+Indicates that the limits are in device units.
+These settings are usually used as parameters to methods in other classes.
 */
 public static final int DEVICE = 1;
 
@@ -54,14 +53,17 @@ public static final int UNIT = 2;
 Bottom-most Y.
 */
 protected double _bottom_y;
+
 /**
 Left-most X.
 */
 protected double _left_x;
+
 /**
 Right-most X.
 */
 protected double _right_x;
+
 /**
 Top-most Y.
 */
@@ -71,6 +73,7 @@ protected double _top_y;
 Overall height.
 */
 protected double _height;
+
 /**
 Overall width.
 */
@@ -80,6 +83,7 @@ protected double _width;
 Center X.
 */
 protected double _center_x;
+
 /**
 Center Y.
 */
@@ -89,14 +93,17 @@ protected double _center_y;
 Maximum X.
 */
 protected double _max_x;
+
 /**
 Maximum Y.
 */
 protected double _max_y;
+
 /**
 Minimum X.
 */
 protected double _min_x;
+
 /**
 Minimum Y.
 */
@@ -105,18 +112,17 @@ protected double _min_y;
 /**
 Constructor.  Initialize to a (0,0) to (1,1) square.
 */
-public GRLimits ( )
-{	initialize ();
+public GRLimits ( ) {
+	initialize ();
 }
 
 /**
-Constructor.  Build a GRLimits. using the given width and height.  
-The origin is (0.0).
+Constructor.  Build a GRLimits. using the given width and height.  The origin is (0.0).
 @param width Width of limits.
 @param height Height of limits.
 */
-public GRLimits ( double width, double height )
-{	_left_x = 0.0;
+public GRLimits ( double width, double height ) {
+	_left_x = 0.0;
 	_right_x = width;
 	_bottom_y = 0.0;
 	_top_y = height;
@@ -129,8 +135,8 @@ Constructor.  Use the points for the corners.
 @param left_bottom_pt Left, bottom point.
 @param right_top_pt Right, top point.
 */
-public GRLimits ( GRPoint left_bottom_pt, GRPoint right_top_pt )
-{	_left_x = left_bottom_pt.getX();
+public GRLimits ( GRPoint left_bottom_pt, GRPoint right_top_pt ) {
+	_left_x = left_bottom_pt.getX();
 	_bottom_y = left_bottom_pt.getY();;
 	_right_x = right_top_pt.getX();
 	_top_y = right_top_pt.getY();
@@ -145,8 +151,8 @@ Constructor.  Use the coordinates for the corners, as integers.
 @param right_x Right X-coordinate.
 @param top_y Top Y-coordinate.
 */
-public GRLimits ( int left_x, int bottom_y, int right_x, int top_y )
-{	_left_x = (double)left_x;
+public GRLimits ( int left_x, int bottom_y, int right_x, int top_y ) {
+	_left_x = (double)left_x;
 	_bottom_y = (double)bottom_y;
 	_right_x = (double)right_x;
 	_top_y = (double)top_y;
@@ -161,8 +167,8 @@ Constructor.  Use the coordinates for the corners.
 @param right_x Right X-coordinate.
 @param top_y Top Y-coordinate.
 */
-public GRLimits ( double left_x, double bottom_y, double right_x, double top_y )
-{	_left_x = left_x;
+public GRLimits ( double left_x, double bottom_y, double right_x, double top_y ) {
+	_left_x = left_x;
 	_bottom_y = bottom_y;
 	_right_x = right_x;
 	_top_y = top_y;
@@ -183,8 +189,8 @@ public GRLimits(Rectangle r) {
 Copy constructor.
 @param limits GRlimits to copy.
 */
-public GRLimits ( GRLimits limits )
-{	type = LIMITS;
+public GRLimits ( GRLimits limits ) {
+	type = LIMITS;
 	if ( limits != null ) {
 		_bottom_y = limits.getBottomY() ;
 		_left_x = limits.getLeftX();
@@ -213,8 +219,8 @@ Indicate whether the limits contain the point in question.
 @return true if the GRLimits region contains the specified point.
 The orientation of the GRLimits axes can be in either direction.
 */
-public boolean contains ( GRPoint pt )
-{	if ( (((pt.x >= _left_x) && (pt.x <= _right_x)) ||
+public boolean contains ( GRPoint pt ) {
+	if ( (((pt.x >= _left_x) && (pt.x <= _right_x)) ||
 		((pt.x <= _left_x) && (pt.x >= _right_x))) &&
 		(((pt.y >= _bottom_y) && (pt.y <= _top_y)) ||
 		((pt.y <= _bottom_y) && (pt.y >= _top_y))) ) {
@@ -230,8 +236,8 @@ The orientation of the GRLimits axes can be in either direction.
 @param y Y-coordinate of interest.
 @return true if the GRLimits region contains the specified point.
 */
-public boolean contains ( double x, double y )
-{	if ( (((x >= _left_x) && (x <= _right_x)) ||
+public boolean contains ( double x, double y ) {
+	if ( (((x >= _left_x) && (x <= _right_x)) ||
 		((x <= _left_x) && (x >= _right_x))) &&
 		(((y >= _bottom_y) && (y <= _top_y)) ||
 		((y <= _bottom_y) && (y >= _top_y))) ) {
@@ -251,8 +257,8 @@ Currently the orientation of both regions needs to be min x on the left and min 
 false, the region must only intersect.  This parameter is not currently checked.
 @return true if the GRLimits region contains the specified region.
 */
-public boolean contains ( double xmin, double ymin, double xmax, double ymax, boolean contains_completely )
-{	if ( (xmax < _left_x) || (xmin > _right_x) || (ymax < _bottom_y) || (ymin > _top_y) ) {
+public boolean contains ( double xmin, double ymin, double xmax, double ymax, boolean contains_completely ) {
+	if ( (xmax < _left_x) || (xmin > _right_x) || (ymax < _bottom_y) || (ymin > _top_y) ) {
 		return false;
 	}
 	return true;
@@ -264,8 +270,8 @@ The orientation of the GRLimits x-axis can be in either direction.
 @param x X-coordinate of interest.
 @return true if the GRLimits x-axis contains the specified point.
 */
-public boolean containsX ( double x )
-{	if ( ((x >= _left_x) && (x <= _right_x)) ||
+public boolean containsX ( double x ) {
+	if ( ((x >= _left_x) && (x <= _right_x)) ||
 		((x <= _left_x) && (x >= _right_x)) ) {
 		return true;
 	}
@@ -278,8 +284,8 @@ The orientation of the GRLimits y-axis can be in either direction.
 @param y Y-coordinate of interest.
 @return true if the GRLimits y-axis contains the specified point.
 */
-public boolean containsY ( double y )
-{	if ( ((y >= _bottom_y) && (y <= _top_y)) ||
+public boolean containsY ( double y ) {
+	if ( ((y >= _bottom_y) && (y <= _top_y)) ||
 		((y <= _bottom_y) && (y >= _top_y)) ) {
 		return true;
 	}
@@ -287,13 +293,12 @@ public boolean containsY ( double y )
 }
 
 /**
-Returns true if the limits are the same as those passed in.  The corner
-coordinates are checked but if coordinates systems for the limits are not the
-same then the limits will not match.
-@return true if the limits are the same as those passed in.  
+Returns true if the limits are the same as those passed in.
+The corner coordinates are checked but if coordinates systems for the limits are not the same then the limits will not match.
+@return true if the limits are the same as those passed in.
 */
-public boolean equals ( GRLimits limits )
-{	if ( limits.getLeftX() != _left_x ) {
+public boolean equals ( GRLimits limits ) {
+	if ( limits.getLeftX() != _left_x ) {
 		return false;
 	}
 	if ( limits.getRightX() != _right_x ) {
@@ -309,117 +314,110 @@ public boolean equals ( GRLimits limits )
 }
 
 /**
-Finalize before garbage collection.
-*/
-protected void finalize()
-throws Throwable
-{	super.finalize();
-}
-
-/**
 Return the left X-coordinate.
 @return The left X-coordinate.
 */
-public double getLeftX ( )
-{	return _left_x;
+public double getLeftX ( ) {
+	return _left_x;
 }
 
 /**
 Return the right X-coordinate.
 @return The right X-coordinate.
 */
-public double getRightX ( )
-{	return _right_x;
+public double getRightX ( ) {
+	return _right_x;
 }
 
 /**
 Return the bottom Y-coordinate.
 @return The bottom Y-coordinate.
 */
-public double getBottomY ( )
-{	return _bottom_y;
+public double getBottomY ( ) {
+	return _bottom_y;
 }
 
 /**
 Return the top Y-coordinate.
 @return The top Y-coordinate.
 */
-public double getTopY ( )
-{	return _top_y;
+public double getTopY ( ) {
+	return _top_y;
 }
 
 /**
 Return the maximum X-coordinate.
 @return The maximum X-coordinate.
 */
-public double getMaxX ( )
-{	return _max_x;
+public double getMaxX ( ) {
+	return _max_x;
 }
 
 /**
 Return the maximum Y-coordinate.
 @return The maximum Y-coordinate.
 */
-public double getMaxY ( )
-{	return _max_y;
+public double getMaxY ( ) {
+	return _max_y;
 }
 
 /**
 Return the minimum X-coordinate.
 @return The minimum X-coordinate.
 */
-public double getMinX ( )
-{	return _min_x;
+public double getMinX ( ) {
+	return _min_x;
 }
 
 /**
 Return the minimum Y-coordinate.
 @return The minimum Y-coordinate.
 */
-public double getMinY ( )
-{	return _min_y;
+public double getMinY ( ) {
+	return _min_y;
 }
 
 /**
 Return the width.
 @return The width.
 */
-public double getWidth ( )
-{	return _width;
+public double getWidth ( ) {
+	return _width;
 }
 
 /**
 Return the height.
 @return The height.
 */
-public double getHeight ( )
-{	return _height;
+public double getHeight ( ) {
+	return _height;
 }
 
 /**
 Return the center X-coordinate.
 @return The center X-coordinate.
 */
-public double getCenterX ( )
-{	return _center_x;
+public double getCenterX ( ) {
+	return _center_x;
 }
 
 /**
 Return the center Y-coordinate.
 @return The center Y-coordinate.
 */
-public double getCenterY ( )
-{	return _center_y;
+public double getCenterY ( ) {
+	return _center_y;
 }
 
 /**
-Increase the size of the limits.  The left and right limits are widened by
-increase_x/2.  The top and bottom limits are widened by increase_y/2.
+Increase the size of the limits.
+The left and right limits are widened by increase_x/2.
+The top and bottom limits are widened by increase_y/2.
 @param increase_x Amount to increase width.
 @param increase_y Amount to increase height.
 */
-public void increase ( double increase_x, double increase_y )
-{	if ( _left_x <= _right_x ) {
+public void increase ( double increase_x, double increase_y ) {
+	if ( _left_x <= _right_x ) {
 		_left_x -= increase_x/2.0;
 		_right_x += increase_x/2.0;
 	}
@@ -441,8 +439,8 @@ public void increase ( double increase_x, double increase_y )
 /**
 Initialize the data.
 */
-private void initialize ()
-{	_bottom_y = 0.0;
+private void initialize () {
+	_bottom_y = 0.0;
 	_left_x = 0.0;
 	_right_x = 1.0;
 	_top_y = 1.0;
@@ -453,23 +451,22 @@ private void initialize ()
 Return the maximum combined extents of the current limits and another GRLimits.
 All coordinates are compared and the maximum bounds are used.
 Therefore, orientation of the limits is ignored.  A new GRLimits instance is returned.
-@return the maximum combined extents of the current limits and another GRLimits instance.  
+@return the maximum combined extents of the current limits and another GRLimits instance.
 @param other Other GRLimits instance.
 */
-public GRLimits max ( GRLimits other )
-{	return max ( other, false );
+public GRLimits max ( GRLimits other ) {
+	return max ( other, false );
 }
 
 /**
-Return the maximum of two GRLimits. All coordinates are compared and the 
-maximum bounds are used.  Therefore, orientation of the limits is ignored.
-@return the maximum combined extents of the current limits and another GRLimits instance.  
+Return the maximum of two GRLimits. All coordinates are compared and the maximum bounds are used.
+Therefore, orientation of the limits is ignored.
+@return the maximum combined extents of the current limits and another GRLimits instance.
 @param other Other GRLimits instance.
-@param reuse_limits If true, the limits will be reused; if false, a new
-instance will be created.
+@param reuse_limits If true, the limits will be reused; if false, a new instance will be created.
 */
-public GRLimits max ( GRLimits other, boolean reuse_limits )
-{	if ( other == null ) {
+public GRLimits max ( GRLimits other, boolean reuse_limits ) {
+	if ( other == null ) {
 		if ( reuse_limits ) {
 			return ( this );
 		}
@@ -482,8 +479,8 @@ public GRLimits max ( GRLimits other, boolean reuse_limits )
 
 /**
 Return the maximum of two GRLimits.
-@return the maximum combined extents of the current limits and another GRLimits
-instance.  All coordinates are compared and the maximum bounds are used.
+@return the maximum combined extents of the current limits and another GRLimits instance.
+All coordinates are compared and the maximum bounds are used.
 Therefore, orientation of the limits is ignored.
 @param xmin Minimum X value to check.
 @param ymin Minimum Y value to check.
@@ -491,8 +488,8 @@ Therefore, orientation of the limits is ignored.
 @param ymax Maximum Y value to check.
 @param reuseLimits If true, the limits will be reused; if false, a new instance will be created.
 */
-public GRLimits max ( double xmin, double ymin, double xmax, double ymax, boolean reuseLimits )
-{	if ( _min_x < xmin ) {
+public GRLimits max ( double xmin, double ymin, double xmax, double ymax, boolean reuseLimits ) {
+	if ( _min_x < xmin ) {
 		xmin = _min_x;
 	}
 	if ( _min_y < ymin ) {
@@ -520,8 +517,8 @@ public GRLimits max ( double xmin, double ymin, double xmax, double ymax, boolea
 /**
 Reset the secondary data, including minimum and maximum, width and height;
 */
-private void reset ()
-{	_center_x = (_left_x + _right_x)/2.0;
+private void reset () {
+	_center_x = (_left_x + _right_x)/2.0;
 	_center_y = (_bottom_y + _top_y)/2.0;
 	if ( _left_x <= _right_x ) {
 		_min_x = _left_x;
@@ -541,7 +538,7 @@ private void reset ()
 	}
 	_width = _max_x - _min_x;
 	_height = _max_y - _min_y;
-	// Base class...
+	// Base class.
 	xmin = _left_x;
 	xmax = _right_x;
 	ymin = _bottom_y;
@@ -549,12 +546,12 @@ private void reset ()
 }
 
 /**
-Reverse the y-axis values (flip).  For example, this might be used to
-cause a graph to plot with Y increasing downward.
+Reverse the y-axis values (flip).
+For example, this might be used to cause a graph to plot with Y increasing downward.
 @return the updated GRLimits instance
 */
-public GRLimits reverseY ()
-{   double temp = _top_y;
+public GRLimits reverseY () {
+    double temp = _top_y;
     _top_y = _bottom_y;
     _bottom_y = temp;
     reset ();
@@ -565,8 +562,8 @@ public GRLimits reverseY ()
 Set the left X-coordinate.
 @param left_x The left X-coordinate.
 */
-public void setLeftX ( double left_x )
-{	_left_x = left_x;
+public void setLeftX ( double left_x ) {
+	_left_x = left_x;
 	reset ();
 }
 
@@ -574,8 +571,8 @@ public void setLeftX ( double left_x )
 Set the right X-coordinate.
 @param right_x The right X-coordinate.
 */
-public void setRightX ( double right_x )
-{	_right_x = right_x;
+public void setRightX ( double right_x ) {
+	_right_x = right_x;
 	reset ();
 }
 
@@ -583,8 +580,8 @@ public void setRightX ( double right_x )
 Set the top Y-coordinate.
 @param top_y The top Y-coordinate.
 */
-public void setTopY ( double top_y )
-{	_top_y = top_y;
+public void setTopY ( double top_y ) {
+	_top_y = top_y;
 	reset ();
 }
 
@@ -592,8 +589,8 @@ public void setTopY ( double top_y )
 Set the bottom Y-coordinate.
 @param bottom_y The bottom Y-coordinate.
 */
-public void setBottomY ( double bottom_y )
-{	_bottom_y = bottom_y;
+public void setBottomY ( double bottom_y ) {
+	_bottom_y = bottom_y;
 	reset ();
 }
 
@@ -604,8 +601,8 @@ Set the limits using the corner points
 @param right_x Right X-coordinate.
 @param top_y Top Y-coordinate.
 */
-public void setLimits (	double left_x, double bottom_y, double right_x, double top_y )
-{	_left_x = left_x;
+public void setLimits (	double left_x, double bottom_y, double right_x, double top_y ) {
+	_left_x = left_x;
 	_bottom_y = bottom_y;
 	_right_x = right_x;
 	_top_y = top_y;
@@ -615,8 +612,8 @@ public void setLimits (	double left_x, double bottom_y, double right_x, double t
 /**
 Return a string representation of the object.
 */
-public String toString ()
-{	return "(" + _left_x + "," + _bottom_y + ") (" +
+public String toString () {
+	return "(" + _left_x + "," + _bottom_y + ") (" +
 	_right_x + "," + _top_y + ") (" + _center_x + "," + _center_y + ") " +
 	_width + "x" + _height;
 }

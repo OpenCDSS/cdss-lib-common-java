@@ -35,31 +35,35 @@ import RTi.Util.Message.Message;
 
 /**
  * This class manages displaying help for an application.
- * It does so by handling setup of UI components such as dialogs with a help button
- * and when help is requested, showing the help in the default browser.
+ * It does so by handling setup of UI components such as dialogs with a help button and when help is requested,
+ * showing the help in the default browser.
+ * 
  * The HelpManager is a singleton that is requested with getInstance().
+ * The application code should call 'setUrlFormatter' at startup and implement the HelpViewerUrlFormatter to
+ * format help URLs for the application documentation.
  * @author sam
  *
  */
 public class HelpViewer {
-	
+
 	/**
 	 * Singleton instance of the HelpManager.
 	 */
 	private static HelpViewer helpViewer = null;
-	
+
 	/**
 	 * Interface implementation to format the URL.
+	 * This allows application-specific help URLs to be formatted.
 	 */
 	private HelpViewerUrlFormatter urlFormatter = null;
-	
+
 	/**
 	 * Constructor for default instance.
 	 */
 	public HelpViewer () {
-		
+
 	}
-	
+
 	/**
 	 * Return the singleton instance of the HelpManager.
 	 */
@@ -69,10 +73,11 @@ public class HelpViewer {
 		}
 		return helpViewer;
 	}
-	
+
 	/**
 	 * Set the object that will format URLs for the viewer.
 	 * This is typically called application code that has knowledge of the documentation organization.
+	 * @param urlFormatting an instance of HelpViewerUtlFormatting that will format URLs for a documentation page
 	 */
 	public void setUrlFormatter(HelpViewerUrlFormatter urlFormatter) {
 		this.urlFormatter = urlFormatter;
@@ -81,18 +86,22 @@ public class HelpViewer {
 	/**
 	 * Show the help using a web browser, using the default documentation home.
 	 * @param group the group to which the item belongs, will be passed to HelpViewerUrlFormatter().formatUrl().
+	 * For example, when used with TSTool command documentation, this is "command".
 	 * @param item the item for which to display help, will be passed to HelpViewerUrlFormatter().formatUrl().
+	 * For example, when used with TSTool command documentation, this is the command name.
 	 */
 	public void showHelp ( String group, String item ) {
 		showHelp ( group, item, null );
 	}
-	
+
 	/**
 	 * Show the help using a web browser.
 	 * @param group the group to which the item belongs, will be passed to HelpViewerUrlFormatter().formatUrl().
+	 * For example, when used with TSTool command documentation, this is "command".
 	 * @param item the item for which to display help, will be passed to HelpViewerUrlFormatter().formatUrl().
+	 * For example, when used with TSTool command documentation, this is the command name.
 	 * @param rootUrl the root URL for documentation, can be used for plugins when standard TSTool documentation is not used,
-	 * use null to use the default documentation home
+	 * use null to use the default documentation home set at application startup
 	 */
 	public void showHelp ( String group, String item, String rootUrl ) {
 		String routine = "showHelp";
@@ -139,7 +148,7 @@ public class HelpViewer {
 			}
 	    }
 	}
-	
+
 	/**
 	 * Show help by running a browser.
 	 * This is typically used on Linux because Desktop.browse() does not seem to be supported.

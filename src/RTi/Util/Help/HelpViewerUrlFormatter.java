@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,7 +25,6 @@ package RTi.Util.Help;
 
 /**
  * Interface for class that will format a URL for the HelpViewer.
- * @author sam
  */
 public interface HelpViewerUrlFormatter {
 
@@ -48,5 +47,5 @@ public interface HelpViewerUrlFormatter {
 	 * for example used by plugins that provide their own documentation URL
 	 */
 	public String formatHelpViewerUrl ( String group, String item, String rootUrl );
-	
+
 }

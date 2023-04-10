@@ -1,4 +1,4 @@
-// GRPoint - GR point 
+// GRPoint - GR point
 
 /* NoticeStart
 
@@ -21,32 +21,16 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
 
 NoticeEnd */
 
-// ----------------------------------------------------------------------------
-// GRPoint - GR point 
-// ----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 14 Aug 1997	Steven A. Malers	Initial Java version.
-// 21 Jun 1999	Steven A. Malers, RTi	Make data public to increase
-//					performance.  Inline code in
-//					constructor.  Add max/min data for
-//					parent.
-// 2001-12-07	SAM, RTI		Add to copy is_selected and
-//					associated_object.
-// ----------------------------------------------------------------------------
-
 package RTi.GR;
 
 /**
-This class stores a single 2D point.  Data are public but the set methods should
-be called to set data.
+This class stores a single 2D point.
+Data are public but the set methods should be called to set data.
 */
 public class GRPoint extends GRShape
 {
 
-// Data members...
+// Data members.
 
 public double x, y;	// Just one coordinate pair.
 
@@ -54,8 +38,8 @@ public double x, y;	// Just one coordinate pair.
 /**
 Construct and initialize to (0,0).
 */
-public GRPoint ( )
-{	super ();
+public GRPoint ( ) {
+	super ();
 	type = POINT;
 	x = xmin = xmax = 0.0;
 	y = ymin = ymax = 0.0;
@@ -66,11 +50,11 @@ Construct given an (X,Y) pair.
 @param xset X-coordinate.
 @param yset Y-coordinate.
 */
-public GRPoint ( double xset, double yset )
-{	super ();
+public GRPoint ( double xset, double yset ) {
+	super ();
 	type = POINT;
 	x = xmax = xmin = xset;
-	y = ymax = ymin = yset; 
+	y = ymax = ymin = yset;
 	limits_found = true;
 }
 
@@ -80,11 +64,11 @@ Construct given the attribute lookup key and an (X,Y) pair.
 @param yset Y-coordinate.
 @param attkey Attribute lookup key.
 */
-public GRPoint ( long attkey, double xset, double yset )
-{	super ( attkey );
+public GRPoint ( long attkey, double xset, double yset ) {
+	super ( attkey );
 	type = POINT;
 	x = xmax = xmin = xset;
-	y = ymax = ymin = yset; 
+	y = ymax = ymin = yset;
 	limits_found = true;
 }
 
@@ -92,12 +76,12 @@ public GRPoint ( long attkey, double xset, double yset )
 Copy constructor.
 @param point Point to copy.
 */
-public GRPoint ( GRPoint point )
-{	super ( point.index );
+public GRPoint ( GRPoint point ) {
+	super ( point.index );
 	type = POINT;
 	x = xmin = xmax = point.x;
 	y = ymin = ymax = point.y;
-	// Base class does not have a constructor for this yet...
+	// Base class does not have a constructor for this yet.
 	is_visible = point.is_visible;
 	is_selected = point.is_selected;
 	associated_object = point.associated_object;
@@ -108,8 +92,8 @@ public GRPoint ( GRPoint point )
 Returns true if the x and y coordinates for the shapes are equal.
 @return true if the x and y coordinates for the shapes are equal.
 */
-public boolean equals ( GRPoint pt )
-{	if ( (pt.x == x) && (pt.y == y) ) {
+public boolean equals ( GRPoint pt ) {
+	if ( (pt.x == x) && (pt.y == y) ) {
 		return true;
 	}
 	return false;
@@ -121,35 +105,27 @@ Returns true if the x and y coordinates for the shapes are equal.
 @param ypt y coordinate to compare to.
 @return true if the x and y coordinates for the shapes are equal.
 */
-public boolean equals ( double xpt, double ypt )
-{	if ( (xpt == x) && (ypt == y) ) {
+public boolean equals ( double xpt, double ypt ) {
+	if ( (xpt == x) && (ypt == y) ) {
 		return true;
 	}
 	return false;
 }
 
 /**
-Finalize before garbage collection.
-*/
-protected void finalize ()
-throws Throwable
-{	super.finalize();
-}
-
-/**
 Returns the x coordinate.  Access the public data directly to speed performance.
-@return the X-coordinate.  
+@return the X-coordinate.
 */
-public double getX ( )
-{	return x;
+public double getX ( ) {
+	return x;
 }
 
 /**
 Returns the Y-coordinate.  Access the public data directly to speed performance.
 @return The Y-coordinate.
 */
-public double getY ( )
-{	return y;
+public double getY ( ) {
+	return y;
 }
 
 /**
@@ -158,8 +134,8 @@ Set the X-coordinate.
 @deprecated Use the version that sets both coordinates because setting one
 makes it difficult to know if limits have been completely set.
 */
-public void setX ( double xset )
-{	x = xmin = xmax = xset;
+public void setX ( double xset ) {
+	x = xmin = xmax = xset;
 }
 
 /**
@@ -168,8 +144,8 @@ Set the Y-coordinate.
 @deprecated Use the version that sets both coordinates because setting one
 makes it difficult to know if limits have been completely set.
 */
-public void setY ( double yset )
-{	y = ymin = ymax = yset;
+public void setY ( double yset ) {
+	y = ymin = ymax = yset;
 }
 
 /**
@@ -177,8 +153,8 @@ Set the X and Y-coordinates.
 @param xset X-coordinate to set.
 @param yset Y-coordinate to set.
 */
-public void setXY ( double xset, double yset )
-{	x = xmin = xmax = xset;
+public void setXY ( double xset, double yset ) {
+	x = xmin = xmax = xset;
 	y = ymin = ymax = yset;
 	limits_found = true;
 }
@@ -187,8 +163,8 @@ public void setXY ( double xset, double yset )
 Returns a String representation of the point in the format "(x,y)".
 @return A string representation of the point in the format "(x,y)".
 */
-public String toString ()
-{	return "(" + x + "," + y + ")";
+public String toString () {
+	return "(" + x + "," + y + ")";
 }
 
 }

@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 2021-2021 Colorado Department of Natural Resources
+Copyright (C) 2021-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,12 +37,12 @@ import RTi.Util.String.StringUtil;
  * including GeoProcessor and InfoMapper used to symbolize time series and map layers.
  */
 public class GRSymbolTable {
-	
+
 	/*
 	 * List of color table rows.
 	 */
 	private List<GRSymbolTableRow> symbolTableRows = new ArrayList<>();
-	
+
 	/*
 	 * NoData color.
 	 * Evaluated as rows are added.
@@ -54,7 +54,7 @@ public class GRSymbolTable {
 	 */
 	public GRSymbolTable () {
 	}
-	
+
 	/**
 	 * Add a symbol table row.
 	 */
@@ -115,7 +115,7 @@ public class GRSymbolTable {
 		}
 		return symtable;
 	}
-	
+
 	/**
 	 * Get color for a data value.  Only valid values can be processed.
 	 * Infinity and -Infinity are handled.
@@ -166,11 +166,11 @@ public class GRSymbolTable {
 		// No row found.
 		return null;
 	}
-	
+
 	/**
 	 * Read a symbol table file.
 	 * @param filepath path to the symbol table file.  An example is:
-	 * 
+	 *
 	 * # Symbol table for raster graph.
 	 * valueMin,valueMax,color,opacity,fillColor,fillOpacity
 	 * -Infinity,<2.0,#ffffff,0.0,#ffffff,0.0
@@ -275,7 +275,7 @@ public class GRSymbolTable {
 		}
 		return symtable;
 	}
-	
+
 	/**
 	 * Return the number of rows in the symbol table.
 	 */

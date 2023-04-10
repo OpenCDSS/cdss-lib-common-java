@@ -138,7 +138,7 @@ protected DateTime _date2_original;
 /**
 The data interval base.  See TimeInterval.HOUR, etc.
 */
-protected int _data_interval_base;	
+protected int _data_interval_base;
 
 /**
 The base interval multiplier (what to multiply _interval_base by to get the real interval).
@@ -169,7 +169,7 @@ protected short dataPrecision = -1;
 Number of data values inclusive of _date1 and _date2.
 Set in the allocateDataSpace() method.  This is useful for general information.
 */
-protected int _data_size;	
+protected int _data_size;
 
 /**
 Data units.  A list of units and conversions is typically maintained in the DataUnits* classes.
@@ -207,7 +207,7 @@ Input source information.  Filename if read from file or perhaps a database
 name and table (e.g., HydroBase.daily_flow).  This is the actual location read,
 which should not be confused with the TSIdent storage name (which may not be fully expanded).
 */
-protected String _input_name;	
+protected String _input_name;
 
 /**
 Time series identifier, which provides a unique and absolute handle on the time series.

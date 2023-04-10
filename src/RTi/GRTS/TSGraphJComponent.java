@@ -45,8 +45,9 @@ import java.util.Vector;
 import javax.swing.JFrame;
 import javax.swing.JPopupMenu;
 
-import RTi.GR.GRAspect;
+import RTi.GR.GRAspectType;
 import RTi.GR.GRColor;
+import RTi.GR.GRCoordinateType;
 import RTi.GR.GRDrawingArea;
 import RTi.GR.GRDrawingAreaUtil;
 import RTi.GR.GRJComponentDevice;
@@ -772,7 +773,23 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List<TSGraph> tsgraphs 
 				}
 			}
 			else if ( graphType == TSGraphType.PERIOD ) {
+				// Special Y-axis title:
+				// - legend entries have the time series number (1+)
 				tsproduct.setPropValue ( "LeftYAxisTitleString", "Legend Index", isub, -1 );
+			}
+			else if ( graphType == TSGraphType.RASTER ) {
+				if ( this._tslist.size() == 1 ) {
+					// Special Y-axis title:
+					// - units are in the raster legend so no additional note is needed
+					// - use one space so that the vertical space does allow for the upper y-axis labels
+					// - months are shown above the graph and below the graph to make it easier to read the graph
+					tsproduct.setPropValue ( "LeftYAxisTitleString", " ", isub, -1 );
+				}
+				if ( this._tslist.size() > 1 ) {
+					// Special Y-axis title:
+					// - legend entries have the time series number (1+)
+					tsproduct.setPropValue ( "LeftYAxisTitleString", "Legend Index", isub, -1 );
+				}
 			}
 			else {
 			    // Title is the units that are displayed on the axis.
@@ -1608,7 +1625,7 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 		// - give it a name GraphNum.LeftDaName
 		GRJComponentDrawingArea da = new GRJComponentDrawingArea ( glassPane,
 			"" + itsgraph + "." + tsgraph.getLeftYAxisGraphDrawingArea().getName(),
-			GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null );
+			GRAspectType.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null );
 		da.setDataLimits(new GRLimits(tsgraph.getLeftYAxisGraphDrawingArea().getDataLimits()));
 		da.setDrawingLimits(new GRLimits(tsgraph.getLeftYAxisGraphDrawingArea().getDrawingLimits()),GRUnits.DEVICE, GRLimits.DEVICE);
 		GRDrawingAreaUtil.setAxes(da, tsgraph.getLeftYAxisGraphDrawingArea().getXAxisType(), tsgraph.getLeftYAxisGraphDrawingArea().getYAxisType());
@@ -1617,7 +1634,7 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 		if ( tsgraph.getRightYAxisGraphDrawingArea() != null ) {
 			da = new GRJComponentDrawingArea ( glassPane,
 				"" + itsgraph + "." + tsgraph.getRightYAxisGraphDrawingArea().getName(),
-				GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null );
+				GRAspectType.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null );
 			da.setDataLimits(new GRLimits(tsgraph.getRightYAxisGraphDrawingArea().getDataLimits()));
 			da.setDrawingLimits(new GRLimits(tsgraph.getRightYAxisGraphDrawingArea().getDrawingLimits()),GRUnits.DEVICE, GRLimits.DEVICE);
 			GRDrawingAreaUtil.setAxes(da, tsgraph.getRightYAxisGraphDrawingArea().getXAxisType(), tsgraph.getRightYAxisGraphDrawingArea().getYAxisType());
@@ -1738,7 +1755,7 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 				g.drawLine(devx,(devHeight-(int)daDrawLimits.getBottomY()),devx,(devHeight-(int)daDrawLimits.getTopY()));
 				// Loop through the time series and get the data closest to the horizontal coordinate.
 				// First back-calculate the data x-coordinate (date) so it can be used to look up time series values.
-				GRPoint datapt = daGraph.getDataXY( devx, devy, GRDrawingArea.COORD_DEVICE );
+				GRPoint datapt = daGraph.getDataXY( devx, devy, GRCoordinateType.DEVICE );
 				// The X coordinate is a floating-point representation of the date/time.
 				DateTime dt = new DateTime(datapt.getX(),true);
 				//System.out.println("Mouse date/time=" + dt);
@@ -2219,7 +2236,7 @@ private TSGraph getEventTSGraph ( GRPoint pt, boolean includeGraphArea, boolean 
 				// Don't check the graph.
 				continue;
 			}
-			if ( tsgraph.getLeftYAxisGraphDrawingArea().getPlotLimits(GRDrawingArea.COORD_DEVICE).contains(pt) ) {
+			if ( tsgraph.getLeftYAxisGraphDrawingArea().getPlotLimits(GRCoordinateType.DEVICE).contains(pt) ) {
 				return tsgraph;
 			}
 		}
@@ -2232,7 +2249,7 @@ private TSGraph getEventTSGraph ( GRPoint pt, boolean includeGraphArea, boolean 
 				// Don't check the graph.
 				continue;
 			}
-			if ( tsgraph.getPageDrawingArea().getPlotLimits(GRDrawingArea.COORD_DEVICE).contains(pt) ) {
+			if ( tsgraph.getPageDrawingArea().getPlotLimits(GRCoordinateType.DEVICE).contains(pt) ) {
 				return tsgraph;
 			}
 		}
@@ -2477,9 +2494,9 @@ public void mouseClicked ( MouseEvent event ) {
  * @param tsgraph
  */
 private void editPoint(MouseEvent event,TSGraph tsgraph) {
-  GRLimits daLimits = tsgraph.getLeftYAxisGraphDrawingArea().getPlotLimits( GRDrawingArea.COORD_DEVICE);
+  GRLimits daLimits = tsgraph.getLeftYAxisGraphDrawingArea().getPlotLimits( GRCoordinateType.DEVICE);
   if (isInside(event, daLimits)) {
-      GRPoint datapt = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY( event.getX(), event.getY(), GRDrawingArea.COORD_DEVICE );
+      GRPoint datapt = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY( event.getX(), event.getY(), GRCoordinateType.DEVICE );
       _tsGraphEditor.editPoint(datapt);
     }
 }
@@ -2549,7 +2566,7 @@ public void mouseDragged ( MouseEvent event ) {
 	_rubber_banding = true;
 	// Let listeners know so the tracker can be updated to help size the rubber band box.
 	// Data units.
-	GRPoint datapt = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY ( _mouse_x2, _mouse_y2, GRDrawingArea.COORD_DEVICE );
+	GRPoint datapt = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY ( _mouse_x2, _mouse_y2, GRCoordinateType.DEVICE );
 	if ( datapt == null ) {
 		// Generally only happens when the graph cannot be displayed.
 		return;
@@ -2615,14 +2632,13 @@ public void mouseMoved ( MouseEvent event ) {
 
 	// Update cross-hair cursor.
 	if (getInteractionMode()== INTERACTION_EDIT) {
-	    _cursorDecorator.mouseMoved(event,tsgraph.getLeftYAxisGraphDrawingArea().getPlotLimits(
-	        GRDrawingArea.COORD_DEVICE));
+	    _cursorDecorator.mouseMoved(event,tsgraph.getLeftYAxisGraphDrawingArea().getPlotLimits( GRCoordinateType.DEVICE));
 	    //  refresh(false);
 	}
 
 	// Get coordinates in data units.
 
-	GRPoint datapt = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY( x, y, GRDrawingArea.COORD_DEVICE );
+	GRPoint datapt = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY( x, y, GRCoordinateType.DEVICE );
 
 	GRPoint devpt = new GRPoint ( x, y );
 	if ( tsgraph.getLeftYAxisGraphType() == TSGraphType.RASTER ) {
@@ -2631,9 +2647,27 @@ public void mouseMoved ( MouseEvent event ) {
     	boolean includeLeftYAxis = true;
     	boolean includeRightYAxis = false;
 	    List<TS> tslist = tsgraph.getEnabledTSList(includeLeftYAxis,includeRightYAxis);
-	    if ( tslist.size() > 0 ) {
+	    if ( tslist.size() == 1 ) {
+	    	// Single time series in the raster graph use the first time series.
 	        datapt.associated_object = tslist.get(0);
 	        devpt.associated_object = tslist.get(0);
+	    }
+	    else {
+	    	// Multiple time series so must look up the time series from the Y-position:
+	    	// - y is the time series position, should be >= 0 and <= tslist.size(),
+	    	//   where the maximum is used allow drawing a pixel block but is not allowed for the time series position
+	    	// - y is zero index so just round
+	    	int yPos = (int)datapt.y;
+	    	if ( yPos < 0 ) {
+	    		// Right on the edge so use zero index.
+	    		yPos = 0;
+	    	}
+	    	else if ( yPos >= tslist.size() ) {
+	    		// Right on the edge so decrement by one.
+	    		--yPos;
+	    	}
+	        datapt.associated_object = tslist.get(yPos);
+	        devpt.associated_object = tslist.get(yPos);
 	    }
 	}
 
@@ -2786,8 +2820,7 @@ public void mouseReleased ( MouseEvent event ) {
 			if ( _interaction_mode == INTERACTION_SELECT ) {
 				// Assume they want the original point.
 				GRPoint devpt = new GRPoint ( (double)_mouse_x1, (double)_mouse_y1 );
-				GRPoint datapt = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY(
-					_mouse_x1, _mouse_y1, GRDrawingArea.COORD_DEVICE );
+				GRPoint datapt = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY(_mouse_x1, _mouse_y1, GRCoordinateType.DEVICE );
 				if ( _listeners != null ) {
 					int size = _listeners.length;
 					// Need to figure out which time series was selected.
@@ -2839,8 +2872,8 @@ public void mouseReleased ( MouseEvent event ) {
 
 		GRLimits mouseLimits = new GRLimits ( xmin, ymin, xmax, ymax );
 		// Reverse Y so we get the right values in GR.
-		GRPoint pt1 = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY ( xmin, ymax, GRDrawingArea.COORD_DEVICE );
-		GRPoint pt2 = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY ( xmax, ymin, GRDrawingArea.COORD_DEVICE );
+		GRPoint pt1 = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY ( xmin, ymax, GRCoordinateType.DEVICE );
+		GRPoint pt2 = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY ( xmax, ymin, GRCoordinateType.DEVICE );
 
 		GRLimits newDataLimits = new GRLimits ( pt1, pt2 );
 
@@ -2935,14 +2968,14 @@ private void openDrawingAreas () {
 	// Full page.
 
 	_da_page = new GRJComponentDrawingArea ( this, "TSGraphJComponent.Page",
-			GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null );
+			GRAspectType.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null );
 	_datalim_page = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
 	_da_page.setDataLimits ( _datalim_page );
 
 	// Drawing area for main title (data are just unit).
 
 	_da_maintitle = new GRJComponentDrawingArea ( this,
-			"TSGraphJComponent.MainTitle", GRAspect.FILL,
+			"TSGraphJComponent.MainTitle", GRAspectType.FILL,
 			null, GRUnits.DEVICE, GRLimits.DEVICE, null );
 	_datalim_maintitle = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
 	_da_maintitle.setDataLimits ( _datalim_maintitle );
@@ -2950,7 +2983,7 @@ private void openDrawingAreas () {
 	// Drawing area for sub title (data are just unit).
 
 	_da_subtitle = new GRJComponentDrawingArea ( this,
-			"TSGraphJComponent.SubTitle", GRAspect.FILL,
+			"TSGraphJComponent.SubTitle", GRAspectType.FILL,
 			null, GRUnits.DEVICE, GRLimits.DEVICE, null );
 	_datalim_subtitle = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
 	_da_subtitle.setDataLimits ( _datalim_subtitle );
@@ -2959,7 +2992,7 @@ private void openDrawingAreas () {
 
 	_da_graphs = new GRJComponentDrawingArea ( this,
 			"TSGraphJComponent.Graphs",
-			GRAspect.FILL, null, GRUnits.DEVICE,
+			GRAspectType.FILL, null, GRUnits.DEVICE,
 			GRLimits.DEVICE, null );
 	_datalim_graphs = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
 	_da_graphs.setDataLimits ( _datalim_graphs );
@@ -2968,7 +3001,7 @@ private void openDrawingAreas () {
 
 	_da_leftfoot = new GRJComponentDrawingArea ( this,
 			"TSGraphJComponent.LeftFooter",
-			GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE,
+			GRAspectType.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE,
 			null );
 	_datalim_leftfoot = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
 	_da_leftfoot.setDataLimits ( _datalim_leftfoot );
@@ -2977,7 +3010,7 @@ private void openDrawingAreas () {
 
 	_da_centerfoot = new GRJComponentDrawingArea ( this,
 			"TSGraphJComponent.CenterFooter",
-			GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE,
+			GRAspectType.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE,
 			null );
 	_datalim_centerfoot = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
 	_da_centerfoot.setDataLimits ( _datalim_centerfoot );
@@ -2986,7 +3019,7 @@ private void openDrawingAreas () {
 
 	_da_rightfoot = new GRJComponentDrawingArea ( this,
 			"TSGraphJComponent.RightFooter",
-			GRAspect.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE,
+			GRAspectType.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE,
 			null );
 	_datalim_rightfoot = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
 	_da_rightfoot.setDataLimits ( _datalim_rightfoot );
@@ -3005,7 +3038,7 @@ public void paint ( Graphics g ) {
 	_double_buffering = true;
 
 	if ( g == null ) {
-		Message.printDebug( 1, routine, "Null Graphics in paint()" );
+		Message.printDebug( 1, routine, "Null Graphics in paint()." );
 		return;
 	}
 
@@ -4393,7 +4426,7 @@ Show an information dialog indicating the closest time series and value to the c
 @param y Y-coordinate of mouse click, from event handler.
 */
 public void showInfoDialog ( TSGraph tsgraph, int x, int y ) {
-	GRPoint datapt = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY ( x, y, GRDrawingArea.COORD_DEVICE );
+	GRPoint datapt = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY ( x, y, GRCoordinateType.DEVICE );
 	if ( datapt == null ) {
 		return;
 	}

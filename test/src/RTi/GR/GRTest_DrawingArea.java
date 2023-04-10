@@ -1,16 +1,10 @@
 // ----------------------------------------------------------------------------
 // GRTest_DrawingArea - the drawing area for GRTest.
 // ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2004-06-03	J. Thomas Sapienza, RTi	Initial changelog.  
-// ----------------------------------------------------------------------------
 
 package RTi.GR;
 
-import RTi.GR.GRAspect;
+import RTi.GR.GRAspectType;
 import RTi.GR.GRJComponentDrawingArea;
 import RTi.GR.GRLimits;
 import RTi.GR.GRUnits;
@@ -18,7 +12,7 @@ import RTi.GR.GRUnits;
 /**
 Class that is used as the drawing area for an ER Diagram.
 */
-public class GRTest_DrawingArea 
+public class GRTest_DrawingArea
 extends GRJComponentDrawingArea {
 
 /**
@@ -28,8 +22,7 @@ Constructor.
 */
 public GRTest_DrawingArea(GRTest_Device dev, GRLimits drawingLimits,
 GRLimits dataLimits) {
-	super(dev, "GRTest_DrawingArea", GRAspect.FILL, drawingLimits,
-		GRUnits.DEVICE, GRLimits.DEVICE, dataLimits);
+	super(dev, "GRTest_DrawingArea", GRAspectType.FILL, drawingLimits, GRUnits.DEVICE, GRLimits.DEVICE, dataLimits);
 }
 
 }
