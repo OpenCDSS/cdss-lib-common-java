@@ -3594,10 +3594,10 @@ private GRSymbolTable createRasterSymbolTable ( List<TS> tslist ) {
 		String filename = IOUtil.verifyPathForOS( IOUtil.toAbsolutePath( f.getParent(), propValue) );
 		try {
 			symtable = GRSymbolTable.readFile ( filename );
-			Message.printStatus ( 2, routine, "Read " + symtable.size() + " rows for raster symbol table.");
+			Message.printStatus ( 2, routine, "Read " + symtable.size() + " rows for raster symbol table from \"" + filename + "\".");
 		}
 		catch ( IOException e ) {
-			Message.printWarning(3, routine, "Error reading symbol table - will use default.");
+			Message.printWarning(3, routine, "Error reading symbol table (" + filename + ") - will use default.");
 			Message.printWarning(3, routine, e);
 		}
 	}
@@ -8706,6 +8706,8 @@ public String formatMouseTrackerDataPoint ( GRPoint devpt, GRPoint datapt ) {
        	}
     	else {
     		// Multiple time series.
+    		// The 'mouseDate' is calculated from the mouse position and not an even time series interval.
+    		// However, since raster plot time axes is "blocked", can do a more precise mapping of time to data values
     		DateTime mouseDate = new DateTime(datapt.x, true);
     		mouseDate.setPrecision ( this._xaxis_date_precision );
     		// Increment the mouse pointer since zero index.
@@ -8717,7 +8719,29 @@ public String formatMouseTrackerDataPoint ( GRPoint devpt, GRPoint datapt ) {
 			boolean isMissing = true;
 			double value = Double.NaN;
             if ( ts != null ) {
-            	TSData tsdata = ts.getDataPoint(mouseDate, null);
+            	int intervalBase = ts.getDataIntervalBase();
+            	int intervalMult = ts.getDataIntervalMult();
+            	boolean useTime = true;
+        		if ( (intervalBase == TimeInterval.DAY)
+        			|| (intervalBase == TimeInterval.MONTH)
+        			|| (intervalBase == TimeInterval.YEAR) ) {
+        			// Not using time.
+        			useTime = false;
+        		}
+            	TSData tsdata = null;
+            	if ( useTime ) {
+            		// Date/time precision is date and time:
+            		// - time series value is the end of the interval
+            		// - therefore actually want the value corresponding to the interval ending the 'mouseDate'
+            		mouseDate.round(1, intervalBase, intervalMult);
+            		tsdata = ts.getDataPoint(mouseDate, null);
+            	}
+            	else {
+            		// Date/time precision is date:
+            		// - date (when partial days are truncated) is retained until the next date
+            		// - therefore the value should be OK.
+            		tsdata = ts.getDataPoint(mouseDate, null);
+            	}
             	value = tsdata.getDataValue();
             	String flag = tsdata.getDataFlag();
             	String flagString = "";
