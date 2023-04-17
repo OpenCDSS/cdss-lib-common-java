@@ -1,4 +1,4 @@
-// ResetType - enumeration to store values for how time series accumulation resets
+// DayBoundaryType - enumeration to store values for how midnight is handled for day boundary
 
 /* NoticeStart
 
@@ -24,32 +24,26 @@ NoticeEnd */
 package RTi.TS;
 
 /**
-This enumeration stores values for how a time series accumulation resets.
-For example, cumulative precipitation may reset when it reaches the limit of a tipping bucket counter.
+This enumeration stores values for how a day's boundary is handled when time is considered.
+For example, when computing interval output time series,
+should input time series considers before, at, or after midnight,
+depending on whether at the start or end of the interval.
 */
-public enum ResetType {
+public enum DayBoundaryType {
     /**
-     * Automatically detect reset, typically when the accumulation value goes the other direction from expected.
-     * Requires that the trend direction is specified.
+     * Values before midnight are considered to be OK for a dataset.
      */
-    AUTO("Auto"),
+    BEFORE_MIDNIGHT("BeforeMidnight"),
 
     /**
      * The data are not expected to reset (will continue increasing indefinitely, or decreasing indefinitely).
      */
-    NONE("None"),
+    MIDNIGHT("Midnight"),
 
 	/**
 	 * The reset occurs at a value, such as roll-over of a maximum sensor value.
 	 */
-	ROLLOVER("Rollover"),
-
-	/**
-	 * Unknown reset type.
-	 */
-	UNKNOWN("Unknown");
-
-	// TODO smalers 2023-03-31 RestTime, ResetDate, ResetDateTime to reset at a point in time such as day of the year.
+	AFTER_MIDNIGHT("AfterMidnight");
 
     /**
      * The name that should be displayed when the best fit type is used in UIs and reports.
@@ -60,7 +54,7 @@ public enum ResetType {
      * Construct an enumeration value.
      * @param displayName name that should be displayed in choices, etc.
      */
-    private ResetType(String displayName) {
+    private DayBoundaryType(String displayName) {
         this.displayName = displayName;
     }
 
@@ -78,14 +72,14 @@ public enum ResetType {
      * Return the enumeration value given a string name (case-independent).
      * @return the enumeration value given a string name (case-independent), or null if not matched.
      */
-    public static ResetType valueOfIgnoreCase(String name) {
+    public static DayBoundaryType valueOfIgnoreCase(String name) {
     	if ( name == null ) {
     		return null;
     	}
 
-    	ResetType [] values = values();
+    	DayBoundaryType [] values = values();
     	// Currently supported values.
-    	for ( ResetType t : values ) {
+    	for ( DayBoundaryType t : values ) {
         	if ( name.equalsIgnoreCase(t.toString()) ) {
             	return t;
         	}

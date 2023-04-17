@@ -126,11 +126,11 @@ but previous data values will be retained.  If false, the array will be realloca
 */
 public void allocateDataFlagSpace (	String initialValue, boolean retain_previous_values )
 throws Exception {
-	String	routine="MinuteTS.allocateDataFlagSpace", message;
+	String routine = getClass().getSimpleName() + ".allocateDataFlagSpace", message;
 	int	i;
 
 	if ( (_date1 == null) || (_date2 == null) ) {
-		message ="Dates have not been set.  Cannot allocate data space.";
+		message = "Dates have not been set.  Cannot allocate data space.";
 		Message.printWarning ( 2, routine, message );
 		throw new Exception ( message );
 	}
@@ -139,15 +139,15 @@ throws Exception {
 		Message.printWarning ( 3, routine, message );
 		throw new Exception ( message );
 	}
-	
+
 	if ( initialValue == null ) {
 	    initialValue = "";
 	}
-	
+
 	int nmonths = _date2.getAbsoluteMonth() - _date1.getAbsoluteMonth() + 1;
 
 	if ( nmonths == 0 ) {
-		message="TS has 0 months POR, maybe Dates haven't been set yet.";
+		message = "TS has 0 months POR, maybe Dates haven't been set yet.";
 		Message.printWarning( 2, routine, message );
 		throw new Exception ( message );
 	}
@@ -158,7 +158,7 @@ throws Exception {
 		dataFlagsPrev = _dataFlags;
 	}
 	else {
-	    // Turn on the flags...
+	    // Turn on the flags.
 		_has_data_flags = true;
 	}
 	// Top-level allocation...
@@ -197,7 +197,7 @@ throws Exception {
 					continue;
 				}
 			}
-			// Else we do allocate memory for some data during the day.
+			// Else do allocate memory for some data during the day.
 			// If a non-valid interval, an exception was thrown above.
 			nvals = 24*(60/_data_interval_mult);
 			_dataFlags[i][j] = new String[nvals];
@@ -231,7 +231,7 @@ The beginning and ending dates and interval multiplier must have been set.
 @return 0 if successful, 1 if failure.
 */
 public int allocateDataSpace( ) {
-	String	routine="MinuteTS.allocateDataSpace";
+	String routine = getClass().getSimpleName() + ".allocateDataSpace";
 	int	dl = 10, imon, ndays_in_month, nmonths=0, nvals;
 
 	if ( (_date1 == null) || (_date2 == null) ) {
@@ -255,7 +255,7 @@ public int allocateDataSpace( ) {
 		_dataFlags = new String[nmonths][][];
 	}
 
-	// Probably need to catch an exception here in case we run out of memory.
+	// Probably need to catch an exception here in case run out of memory.
 
 	// Set the counter date to match the starting month.
 	// This date is used to determine the number of days in each month.
@@ -336,16 +336,16 @@ Determine the number of points between two dates.
 @param interval_mult The time series data interval multiplier.
 */
 public static int calculateDataSize ( DateTime start_date, DateTime end_date, int interval_mult ) {
-	String routine = "MinuteTS.calculateDataSize";
+	String routine = MinuteTS.class.getSimpleName() + ".calculateDataSize";
 	int datasize = 0;
 
 	if ( start_date == null ) {
-		Message.printWarning ( 2, routine, "Start date is null" );
+		Message.printWarning ( 2, routine, "Start date is null." );
 		routine = null;
 		return 0;
 	}
 	if ( end_date == null ) {
-		Message.printWarning ( 2, routine, "End date is null" );
+		Message.printWarning ( 2, routine, "End date is null." );
 		routine = null;
 		return 0;
 	}
@@ -379,8 +379,8 @@ If the period is shortened, data will be lost.
 */
 public void changePeriodOfRecord ( DateTime date1, DateTime date2 )
 throws TSException {
-	String	routine="MinuteTS.changePeriodOfRecord";
-	String	message;
+	String routine = getClass().getSimpleName() + ".changePeriodOfRecord";
+	String message;
 
 	// To transfer, allocate a new data space.  In any case, need to get the dates established.
 	if ( (date1 == null) && (date2 == null) ) {
@@ -565,12 +565,20 @@ public Object clone () {
 }
 
 /**
+ * Indicate whether the data interval uses time.
+ * @return true always
+ */
+public boolean dataIntervalUsesTime () {
+	return true;
+}
+
+/**
 Finalize before garbage collection.
 @exception Throwable if there is an error.
 */
 protected void finalize ()
-throws Throwable
-{	_data = null;
+throws Throwable {
+	_data = null;
 	_dataFlags = null;
 	_pos = null;
 	super.finalize();
@@ -717,8 +725,8 @@ This can be used when the entire header is formatted elsewhere.
 */
 public List<String> formatOutput( PropList proplist )
 throws TSException {
-	String message = "", routine = "MinuteTS.formatOutput", year_column = "";
-	List<String> strings = new ArrayList<String>();
+	String message = "", routine = getClass().getSimpleName() + ".formatOutput", year_column = "";
+	List<String> strings = new ArrayList<>();
 	PropList props = null;
 	String data_format = "%9.1f", prop_value = null;
 
@@ -726,15 +734,15 @@ throws TSException {
 	// (in the future may automatically convert to correct interval).
 
 	if ( _data_interval_mult > 60 ) {
-		message = "Can only do summary for <= 60 minute time series";
+		message = "Can only do summary for <= 60 minute time series.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
 
-	// If the property list is null, allocate one here so we don't have to constantly check for null.
+	// If the property list is null, allocate one here so don't have to constantly check for null.
 
 	if ( proplist == null ) {
-		// Create a PropList so we don't have to check for nulls all the time.
+		// Create a PropList so don't have to check for nulls all the time.
 		props = new PropList ( "formatOutput" );
 	}
 	else {
@@ -859,7 +867,7 @@ throws TSException {
 			StringUtil.addListToStringList ( strings, strings2 );
 		}
 	}
-		
+
 	// Add comments if available.
 
 	prop_value = props.getValue ( "PrintComments" );
@@ -892,7 +900,7 @@ throws TSException {
 			strings.add( "No comments available.");
 		}
 	}
-	
+
 	// Print the genesis information.
 
 	prop_value = props.getValue ( "PrintGenesis" );
@@ -929,12 +937,12 @@ Format the time series for output.
 public List<String> formatOutput ( PrintWriter fp, PropList props )
 throws TSException {
 	List<String> formatted_output = null;
-	String routine = "MinuteTS.formatOutput";
+	String routine = getClass().getSimpleName() + ".formatOutput";
 	int	dl = 20;
 	String message;
 
 	if ( fp == null) {
-		message = "Null PrintWriter for output";
+		message = "Null PrintWriter for output.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
@@ -945,9 +953,9 @@ throws TSException {
 		formatted_output = formatOutput ( props );
 		if ( formatted_output != null ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine, "Formatted output is " + formatted_output.size() + " lines" );
+				Message.printDebug ( dl, routine, "Formatted output is " + formatted_output.size() + " lines." );
 			}
-	
+
 			// Now write each string to the writer.
 
 			String newline = System.getProperty ( "line.separator");
@@ -1134,14 +1142,15 @@ If non-null, the provided instance will be used (this is often desirable during 
 decrease memory use and increase performance).
 @return a TSData for the specified date/time.
 */
-public TSData getDataPoint ( DateTime date, TSData tsdata ) {	
+public TSData getDataPoint ( DateTime date, TSData tsdata ) {
     if ( tsdata == null ) {
 		// Allocate it.
 		tsdata = new TSData();
 	}
 	if ( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 50, "MinuteTS.getDataValue",
+			String routine = getClass().getSimpleName() + ".getDataPoint";
+			Message.printDebug ( 50, routine,
 			date + " not within POR (" + _date1 + " - " + _date2 + ")" );
 		}
 		tsdata.setValues ( date, _missing, _data_units, "", 0 );
@@ -1172,11 +1181,13 @@ The position array is re-used and values should be copied if there is a need to 
 @param date Date of interest.
 */
 private int [] getDataPosition ( DateTime date ) {
-	// Do not define routine here to improve performance.
+	String routine = null;
+	if ( Message.isDebugOn ) {
+		routine = getClass().getSimpleName() + ".getDataPosition";
+	}
 	String tz, tz1;
 
-	// This is where we would calculate the shift between the requested
-	// time zone and the time zone that we have stored.
+	// This is where would calculate the shift between the requested time zone and the time zone that have stored.
 	// For now, just check the time zones against each other and print a warning if not compatible.
 	// When there is time, calculate the shift.
 
@@ -1188,8 +1199,7 @@ private int [] getDataPosition ( DateTime date ) {
 	}
 	else {
 		if ( Message.isDebugOn ) {
-			Message.printWarning ( 10, "MinuteTS.getDataPosition",
-			"Do not know how to shift time zones yet (\"" + tz1 + "\" to \"" + tz + "\"" );
+			Message.printWarning ( 10, routine, "Do not know how to shift time zones yet (\"" + tz1 + "\" to \"" + tz + "\"" );
 			//tzshift = 0;
 		}
 	}
@@ -1197,7 +1207,7 @@ private int [] getDataPosition ( DateTime date ) {
 	// Calculate the row position of the data.
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 50, "MinuteTS.getDataPosition",
+		Message.printDebug( 50, routine,
 		"Using " + date + "(" + date.getAbsoluteMonth() + ") and start date: " +
 		_date1 + "(" + _date1.getAbsoluteMonth() + ") for row-col calculation." );
 	}
@@ -1215,8 +1225,7 @@ private int [] getDataPosition ( DateTime date ) {
 	_interval_pos = (date.getHour()*60 + date.getMinute())/_data_interval_mult;
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 50, "MinuteTS.getDataPosition", "Month=[" + _month_pos +
-		"] Day=[" + _day_pos +"] interval=[" + _interval_pos +"]" );
+		Message.printDebug ( 50, routine, "Month=[" + _month_pos + "] Day=[" + _day_pos +"] interval=[" + _interval_pos +"]" );
 	}
 
 	_pos[0] = _month_pos;
@@ -1233,7 +1242,10 @@ Minute data are stored in a three-dimensional array:
 @param date Date of interest.
 */
 public double getDataValue( DateTime date ) {
-	// Do not define routine here to increase performance.
+	String routine = null;
+	if ( Message.isDebugOn ) {
+		routine = getClass().getSimpleName() + ".getDataValue";
+	}
 
 	if ( (date == null) || (_data == null) ) {
 		return _missing;
@@ -1244,19 +1256,18 @@ public double getDataValue( DateTime date ) {
 	if(	(date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
 			// Wrap in debug to increase performance.
-			Message.printWarning( 3, "MinuteTS.getDataValue",
-			date + " not within POR (" + _date1 + " - " + _date2 + ")" );
+			Message.printWarning( 3, routine, date + " not within POR (" + _date1 + " - " + _date2 + ")." );
 		}
 		return _missing;
 	}
 
 	// Set the data position in the class data.
-	// There should be no problem since we already checked the dates above.
+	// There should be no problem since already checked the dates above.
 
 	getDataPosition(date);
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 50, "MinuteTS.getDataValue",
+		Message.printDebug( 50, routine,
 		_data[_month_pos][_day_pos][_interval_pos] + " for " + date +
 		" from _data[" + _month_pos + "][" + _day_pos + "][" + _interval_pos + "]" );
 	}
@@ -1264,6 +1275,7 @@ public double getDataValue( DateTime date ) {
 	return _data[_month_pos][_day_pos][_interval_pos];
 }
 
+// TODO smalers 2023-04-16 need to move UI code out of this data object.
 /**
 Returns the data in the specified DataFlavor, or null if no matching flavor exists.
 From the Transferable interface.  Supported data flavors are:<br>
@@ -1289,6 +1301,7 @@ public Object getTransferData(DataFlavor flavor) {
 	}
 }
 
+// TODO smalers 2023-04-16 need to move UI code out of this data object.
 /**
 Returns the flavors in which data can be transferred.  From the Transferable interface.
 The order of the dataflavors that are returned are:<br>
@@ -1370,25 +1383,47 @@ public boolean isDataFlavorSupported(DataFlavor flavor) {
 }
 
 /**
+ * Indicate whether an irregular interval time series (always false).
+ * @return false always
+ */
+@Override
+public boolean isIrregularInterval () {
+	return false;
+}
+
+/**
+ * Indicate whether a regular interval time series (always true).
+ * @return true always
+ */
+@Override
+public boolean isRegularInterval () {
+	return true;
+}
+
+/**
 Refresh the derived data (e.g., data limits) if the time series has changed.
 This is generally only called by methods within the package.
 */
 public void refresh () {
 	TSLimits limits = null;
+	String routine = null;
+	if ( Message.isDebugOn ) {
+		routine = getClass().getSimpleName() + ".refresh";
+	}
 
-	// If the data is not dirty, then we do not have to refresh the other information.
+	// If the data is not dirty, then do not have to refresh the other information.
 
 	if ( !_dirty ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 30, "MinuteTS.refresh", "Time series is not dirty.  Not recomputing limits" );
+			Message.printDebug ( 30, routine, "Time series is not dirty.  Not recomputing limits" );
 		}
 		return;
 	}
 
-	// Else we need to refresh.
+	// Else need to refresh.
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 30, "MinuteTS.refresh", "Time Series is dirty. Recomputing limits" );
+		Message.printDebug( 30, routine, "Time Series is dirty. Recomputing limits" );
 	}
 
 	limits = TSUtil.getDataLimits ( this, _date1, _date2, false );
@@ -1408,7 +1443,10 @@ Set the data value at a date.
 @param return the number of values set, 0 or 1, useful to know when a value is outside the allocated period
 */
 public int setDataValue( DateTime date, double value ) {
-	// Do not define routine here to increase performance.
+	String routine = null;
+	if ( Message.isDebugOn ) {
+		routine = getClass().getSimpleName() + ".setDataValue";
+	}
 
 	if ( date == null ) {
 		return 0;
@@ -1417,8 +1455,7 @@ public int setDataValue( DateTime date, double value ) {
 	if ( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
 			// Wrap in debug to perform better.
-			Message.printWarning( 10, "MinuteTS.setDataValue",
-			"Date " + date + " is outside bounds " + _date1 + " - " + _date2 );
+			Message.printWarning( 10, routine, "Date " + date + " is outside bounds " + _date1 + " - " + _date2 );
 		}
 		return 0;
 	}
@@ -1428,15 +1465,15 @@ public int setDataValue( DateTime date, double value ) {
 	getDataPosition ( date );
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 50, "MinuteTS.setDataValue",
+		Message.printDebug( 50, routine,
 		"Setting " + value + " for " + date + " at [" + _month_pos + "][" + _day_pos + "][" + _interval_pos + "]" );
 	}
 
-	// Set the dirty flag so that we know to recompute the limits if desired.
+	// Set the dirty flag so that know to recompute the limits if desired.
 
 	_dirty = true;
 	_data[_month_pos][_day_pos][_interval_pos] = value;
-	
+
 	return 1;
 }
 
@@ -1449,10 +1486,13 @@ Set the data value and associated information for the date.
 @param return the number of values set, 0 or 1, useful to know when a value is outside the allocated period
 */
 public int setDataValue ( DateTime date, double value, String dataFlag, int duration ) {
+	String routine = null;
+	if ( Message.isDebugOn ) {
+		routine = getClass().getSimpleName() + ".setDataValue";
+	}
 	if ( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
-			Message.printWarning( 10, "MinuteTS.setDataValue",
-			"Date " + date + " is outside bounds " + _date1 + " - " + _date2 );
+			Message.printWarning( 10, routine, "Date " + date + " is outside bounds " + _date1 + " - " + _date2 );
 		}
 		return 0;
 	}
@@ -1460,11 +1500,11 @@ public int setDataValue ( DateTime date, double value, String dataFlag, int dura
 	getDataPosition ( date );
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 30, "MinuteTS.setDataValue",
+		Message.printDebug( 30, routine,
 		"Setting " + value + " for " + date + " at [" + _month_pos + "][" + _day_pos + "][" + _interval_pos + "]" );
 	}
 
-	// Set the dirty flag so that we know to recompute the limits if desired.
+	// Set the dirty flag so that know to recompute the limits if desired.
 
 	_dirty = true;
 
@@ -1478,8 +1518,7 @@ public int setDataValue ( DateTime date, double value, String dataFlag, int dura
             catch ( Exception e ) {
                 // Generally should not happen - log as debug because could generate a lot of warnings.
                 if ( Message.isDebugOn ) {
-                    Message.printDebug(30, "MinuteTS.setDataValue", "Error allocating data flag space (" + e +
-                        ") - will not use flags." );
+                    Message.printDebug(30, routine, "Error allocating data flag space (" + e + ") - will not use flags." );
                 }
                 // Make sure to turn flags off.
                 _has_data_flags = false;
@@ -1494,7 +1533,7 @@ public int setDataValue ( DateTime date, double value, String dataFlag, int dura
 		    _dataFlags[_month_pos][_day_pos][_interval_pos] = dataFlag;
 		}
 	}
-	
+
 	return 1;
 }
 

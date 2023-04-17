@@ -89,7 +89,7 @@ The DataFlavor for transferring this specific class.
 */
 public static DataFlavor hourTSFlavor = new DataFlavor(RTi.TS.HourTS.class, "RTi.TS.HourTS");
 
-// Data members...
+// Data members.
 
 /**
 Data space for hourly time series.
@@ -167,13 +167,13 @@ Use this method when the data durations need to be allocated upon seeing the dat
 but previous data values will be retained.  If false, the array will be reallocated and initialized to 0s.
 @exception Exception if there is an error allocating the memory.
 */
-/** TODO SAM 2012-05-03 Enable later.
+/* TODO SAM 2012-05-03 Enable later.
 public void allocateDataDurationSpace ( Integer initialValue, boolean retainPreviousValues ) throws Exception {
-    String routine="HourTS.allocateDataDurationSpace", message;
+    String routine = getClass().getSimpleName() + ".allocateDataDurationSpace", message;
 	int	i;
 
 	if ( (_date1 == null) || (_date2 == null) ) {
-		message ="Dates have not been set.  Cannot allocate data space";
+		message ="Dates have not been set.  Cannot allocate data space.";
 		Message.printWarning ( 2, routine, message );
 		throw new Exception ( message );
 	}
@@ -182,15 +182,15 @@ public void allocateDataDurationSpace ( Integer initialValue, boolean retainPrev
 		Message.printWarning ( 3, routine, message );
 		throw new Exception ( message );
 	}
-	
+
 	if ( initialValue == null ) {
 	    initialValue = 0;
 	}
-	
+
 	int nmonths = _date2.getAbsoluteMonth() - _date1.getAbsoluteMonth() + 1;
 
 	if ( nmonths == 0 ) {
-		message="TS has 0 months POR, maybe Dates haven't been set yet";
+		message = "TS has 0 months POR, maybe Dates haven't been set yet.";
 		Message.printWarning( 2, routine, message );
 		throw new Exception ( message );
 	}
@@ -206,20 +206,20 @@ public void allocateDataDurationSpace ( Integer initialValue, boolean retainPrev
     // Top-level allocation...
 	_durations = new int[nmonths][];
 
-	// Set the counter date to match the starting month.  This date is used
-	// to determine the number of days in each month.
+	// Set the counter date to match the starting month.
+	// This date is used to determine the number of days in each month.
 
 	DateTime date = new DateTime(DateTime.DATE_FAST);
 	date.setMonth( _date1.getMonth() );
 	date.setYear( _date1.getYear() );
 
-	// Allocate memory...
+	// Allocate memory.
 
 	int j = 0;
 	int nvals = 0;
 	int ndaysInMonth = 0;
 	for ( i = 0; i < nmonths; i++, date.addMonth(1) ) {
-		// If a non-valid interval, an exception was thrown above...
+		// If a non-valid interval, an exception was thrown above.
 		ndaysInMonth = TimeUtil.numDaysInMonth ( date );
 		nvals = ndaysInMonth*(24/_data_interval_mult);
 
@@ -248,11 +248,11 @@ but previous data values will be retained.  If false, the array will be realloca
 */
 public void allocateDataFlagSpace (	String initialValue, boolean retainPreviousValues )
 throws Exception {
-	String	routine="HourTS.allocateDataFlagSpace", message;
+	String routine = getClass().getSimpleName() + ".allocateDataFlagSpace", message;
 	int	i;
 
 	if ( (_date1 == null) || (_date2 == null) ) {
-		message ="Dates have not been set.  Cannot allocate data space.";
+		message = "Dates have not been set.  Cannot allocate data space.";
 		Message.printWarning ( 2, routine, message );
 		throw new Exception ( message );
 	}
@@ -261,15 +261,15 @@ throws Exception {
 		Message.printWarning ( 3, routine, message );
 		throw new Exception ( message );
 	}
-	
+
 	if ( initialValue == null ) {
 	    initialValue = "";
 	}
-	
+
 	int nmonths = _date2.getAbsoluteMonth() - _date1.getAbsoluteMonth() + 1;
 
 	if ( nmonths == 0 ) {
-		message="TS has 0 months POR, maybe Dates haven't been set yet";
+		message = "TS has 0 months POR, maybe Dates haven't been set yet.";
 		Message.printWarning( 2, routine, message );
 		throw new Exception ( message );
 	}
@@ -334,7 +334,7 @@ Allocate the data space.  The start and end dates and the interval multiplier sh
 @return 0 if success, 1 if failure.
 */
 public int allocateDataSpace( ) {
-	String	routine = "HourTS.allocateDataSpace";
+	String routine = getClass().getSimpleName() + ".allocateDataSpace";
 	int	dl = 30, i, ndaysInMonth, nvals;
 
 	if ( (_date1 == null) || (_date2 == null) ) {
@@ -358,7 +358,7 @@ public int allocateDataSpace( ) {
 		_dataFlags = new String[nmonths][];
 	}
 
-	// Probably need to catch an exception here in case we run out of memory.
+	// Probably need to catch an exception here in case run out of memory.
 
 	// Set the counter date to match the starting month.
 	// This date is used to determine the number of days in each month.
@@ -410,7 +410,7 @@ Determine the total number of points between two dates, given an interval multip
 @param interval_mult The time series data interval multiplier.
 */
 public static int calculateDataSize ( DateTime startDate, DateTime endDate, int interval_mult ) {
-	String routine = "HourTS.calculateDataSize";
+	String routine = HourTS.class.getSimpleName() + ".calculateDataSize";
 	int datasize = 0;
 
 	if ( startDate == null ) {
@@ -439,7 +439,6 @@ public static int calculateDataSize ( DateTime startDate, DateTime endDate, int 
 	datasize -= (ndays_in_month - endDate.getDay())*24/interval_mult;
 	// Now subtract the readings at the end of the last day.
 	datasize -= (23 - endDate.getHour())/interval_mult;
-	routine = null;
 	return datasize;
 }
 
@@ -453,7 +452,7 @@ If the period is shortened, data will be lost.
 */
 public void changePeriodOfRecord ( DateTime date1, DateTime date2 )
 throws TSException {
-	String routine="HourTS.changePeriodOfRecord";
+	String routine = getClass().getSimpleName() + ".changePeriodOfRecord";
 	String message;
 
 	// To transfer, allocate a new data space.  In any case, need to get the dates established.
@@ -618,12 +617,20 @@ public Object clone () {
 }
 
 /**
+ * Indicate whether the data interval uses time.
+ * @return true always
+ */
+public boolean dataIntervalUsesTime () {
+	return true;
+}
+
+/**
 Finalize before garbage collection.
 @exception Throwable if there is an error.
 */
 protected void finalize ()
-throws Throwable
-{	_data = null;
+throws Throwable {
+	_data = null;
 	_dataFlags = null;
 	_pos = null;
 	super.finalize();
@@ -768,24 +775,24 @@ This can be used when the entire header is formatted elsewhere.
 */
 public List<String> formatOutput( PropList proplist )
 throws TSException {
-	String message = "", routine = "HourTS.formatOutput", year_column = "";
-    List<String> strings = new ArrayList<String>(20);
+	String message = "", routine = getClass().getSimpleName() + ".formatOutput", year_column = "";
+    List<String> strings = new ArrayList<>(20);
 	PropList props = null;
 	String dataFormat = "%9.1f", propValue = null;
 
-	// Only know how to do this 1 to 24-hour time series (in the future may
-	// automatically convert to correct interval).
+	// Only know how to do this 1 to 24-hour time series
+	// (in the future may automatically convert to correct interval).
 
 	if ( _data_interval_mult > 24 ) {
-		message = "Can only do summary for <= 24 hour time series";
+		message = "Can only do summary for <= 24 hour time series.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
 
-	// If the property list is null, allocate one here so we don't have to constantly check for null.
+	// If the property list is null, allocate one here so don't have to constantly check for null.
 
 	if ( proplist == null ) {
-		// Create a PropList so we don't have to check for nulls all the time.
+		// Create a PropList so don't have to check for nulls all the time.
 		props = new PropList ( "formatOutput" );
 	}
 	else {
@@ -909,7 +916,7 @@ throws TSException {
 			StringUtil.addListToStringList ( strings, strings2 );
 		}
 	}
-		
+
 	// Add comments if available.
 
 	propValue = props.getValue ( "PrintComments" );
@@ -941,7 +948,7 @@ throws TSException {
 		    strings.add( "No comments available.");
 		}
 	}
-	
+
 	// Print the genesis information.
 
 	propValue = props.getValue ( "PrintGenesis" );
@@ -980,12 +987,12 @@ Format the time series for output.
 public List<String> formatOutput ( PrintWriter fp, PropList props )
 throws TSException {
 	List<String> formattedOutput = null;
-	String routine = "HourTS.formatOutput";
+	String routine = getClass().getSimpleName() + ".formatOutput";
 	int	dl = 20;
 	String message;
 
 	if ( fp == null) {
-		message = "Null PrintWriter for output";
+		message = "Null PrintWriter for output.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
@@ -996,9 +1003,9 @@ throws TSException {
 	    formattedOutput = formatOutput ( props );
 		if ( formattedOutput != null ) {
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine, "Formatted output is " + formattedOutput.size() + " lines" );
+				Message.printDebug ( dl, routine, "Formatted output is " + formattedOutput.size() + " lines." );
 			}
-	
+
 			// Now write each string to the writer.
 
 			String newline = System.getProperty ( "line.separator");
@@ -1074,7 +1081,7 @@ Format the body of the report for 24-hour data.
 */
 private void formatOutput24Hour ( List<String> strings, PropList props, YearType calendar, String dataFormat,
 					DateTime startDate, DateTime endDate, String reqUnits, String totalColumn ) {
-	String propValue = null, routine = "HourTS.formatOutput24Hour";
+	String propValue = null, routine = getClass().getSimpleName() + ".formatOutput24Hour";
 	int	column = 0, dl = 20, row = 0;
 
 	strings.add ( "" );
@@ -1088,8 +1095,8 @@ private void formatOutput24Hour ( List<String> strings, PropList props, YearType
 	// statistics
 	//
 	// Repeat for each year.
-		
-	// Adjust the start and end dates to be on full years for the calendar that is requested...
+
+	// Adjust the start and end dates to be on full years for the calendar that is requested.
 
 	int yearOffset = 0;
 	int monthToStart = 1;	// First month in year.
@@ -1104,43 +1111,43 @@ private void formatOutput24Hour ( List<String> strings, PropList props, YearType
 		monthToEnd = 12;
 	}
 	else if ( calendar == YearType.NOV_TO_OCT ) {
-		// Need to adjust for the irrigation year to make sure that the first month is Nov and the last is Oct.
+		// Need to adjust for the irrigation year to make sure that the first month is November and the last is October.
 		if ( startDate.getMonth() < 11 ) {
 			// Need to shift to include the previous irrigation year.
 			startDate.addYear ( -1 );
 		}
-		// Always set the start month to Nov.
+		// Always set the start month to November.
 		startDate.setMonth ( 11 );
 		startDate.setDay ( 1 );
 		if ( endDate.getMonth() > 11 ) {
 			// Need to include the next irrigation year.
 			endDate.addYear ( 1 );
 		}
-		// Always set the end month to Oct...
+		// Always set the end month to Oct.
 		endDate.setMonth ( 10 );
 		endDate.setDay ( 31 );
-		// The year that is printed in the summary is actually later than the calendar for the Nov month.
+		// The year that is printed in the summary is actually later than the calendar for the November month.
 		yearOffset = 1;
 		monthToStart = 11;
 		monthToEnd = 10;
 	}
 	else if ( calendar == YearType.WATER ) {
-		// Need to adjust for the water year to make sure that the first month is Oct and the last is Sep.
+		// Need to adjust for the water year to make sure that the first month is October and the last is September.
 		if ( startDate.getMonth() < 10 ) {
 			// Need to shift to include the previous water year.
 			startDate.addYear ( -1 );
 		}
-		// Always set the start month to Oct.
+		// Always set the start month to October.
 		startDate.setMonth ( 10 );
 		startDate.setDay ( 1 );
 		if ( endDate.getMonth() > 9 ) {
 			// Need to include the next water year.
 			endDate.addYear ( 1 );
 		}
-		// Always set the end month to Sep.
+		// Always set the end month to September.
 		endDate.setMonth ( 9 );
 		endDate.setDay ( 30 );
-		// The year that is printed in the summary is actually later than the calendar for the Oct month.
+		// The year that is printed in the summary is actually later than the calendar for the October month.
 		yearOffset = 1;
 		monthToStart = 10;
 		monthToEnd = 9;
@@ -1156,11 +1163,11 @@ private void formatOutput24Hour ( List<String> strings, PropList props, YearType
 	double data[][] = new double[31][12];
 
 	// Now loop through the time series and transfer to the proper location in the matrix.
-	// Since days are vertical, cannot print any results until we have completed a month.
+	// Since days are vertical, cannot print any results until have completed a month.
 	double dataValue;
 	DateTime date = new DateTime(startDate,DateTime.DATE_FAST);
-	StringBuffer buffer = new StringBuffer();	// Allocate up front and then reuse
-	// Have adjusted the dates above, so we always start in column 0 (first day of first month in year).
+	StringBuffer buffer = new StringBuffer();	// Allocate up front and then reuse.
+	// Have adjusted the dates above, so always start in column 0 (first day of first month in year).
 	column = 0;
 	row = 0;
 	double missing = getMissing();
@@ -1276,7 +1283,7 @@ private void formatOutput24Hour ( List<String> strings, PropList props, YearType
 			strings.add (
 "---- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- --------- ---------" );
 			// Now to do the statistics.  Loop through each column.
-			// First check to see if all stats should be printed (can be dangerous if we add new statistics).
+			// First check to see if all statistics should be printed (can be dangerous if add new statistics).
 			propValue = props.getValue ( "PrintAllStats" );
 			String printAllStats = null;
 			if ( propValue == null ) {
@@ -1486,7 +1493,7 @@ Format the output statistics row given the data array.
 @return strings to be added to the output.
 */
 private List<String> formatOutputStats ( double[][] data, String label, String dataFormat ) {
-	List<String> strings = new ArrayList<String>();
+	List<String> strings = new ArrayList<>();
 	double stat = 0.0;
 	StringBuffer buffer = null;
 	double [] array = new double[31];
@@ -1558,13 +1565,17 @@ If non-null, the provided instance will be used
 @see TSData
 */
 public TSData getDataPoint ( DateTime date, TSData tsdata ) {
+	String routine = null;
+	if ( Message.isDebugOn ) {
+		routine = getClass().getSimpleName() + ".getDataPoint";
+	}
 	if ( tsdata == null ) {
 		// Allocate it.
 		tsdata = new TSData();
 	}
 	if ( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 50, "HourTS.getDataValue", date + " not within POR (" + _date1 + " - " + _date2 + ")" );
+			Message.printDebug ( 50, routine, date + " not within POR (" + _date1 + " - " + _date2 + ")" );
 		}
 		tsdata.setValues ( date, _missing, _data_units, "", 0 );
 		return tsdata;
@@ -1599,44 +1610,48 @@ Compute the data position corresponding to the date.
   		    \|/
   		   month
 </pre>
-@return row and column positions in an int[].  Note that this array is reused
-and the contents of the array may change.  This information is typically only used internally.
+@return row and column positions in an int[].
+Note that this array is reused and the contents of the array may change.
+This information is typically only used internally.
 @param date Date of interest.
 */
-private int [] getDataPosition ( DateTime date )
-{	// Do not define routine here to increase performance.
+private int [] getDataPosition ( DateTime date ) {
+	String routine = null;
+	if ( Message.isDebugOn ) {
+		routine = getClass().getSimpleName() + ".getDataPosition";
+	}
 	// String tzshift;
 
 	if ( date == null ) {
 		return null;
 	}
 
-	// This is where we would calculate the shift between the requested time zone and the time zone that we have stored.
+	// This is where would calculate the shift between the requested time zone and the time zone that have stored.
 	// For now, just check the time zones against each other and print a warning if not compatible.
 	// When there is time, use the HM routines to calculate the shift.
 
-/* TODO SAM Comment out for now - don't know how to handle.
+	/* TODO SAM Comment out for now - don't know how to handle.
 	tz = date.getTimeZoneAbbr();
 	tz1 = _date1.getTimeZoneAbbr();
 	if ( (tz.length() == 0) || tz.equals(tz1) ) {
-		// We are OK doing a straight retrieval
+		// Are OK doing a straight retrieval.
 		tzshift = 0;
 	}
-	else {	if ( Message.isDebugOn ) {
-			Message.printWarning ( 10, "HourTS.getDataPosition",
-			"Do not know how to shift time zones yet (\"" + tz1 +
-			"\" to \"" + tz + "\"" );
+	else {
+		if ( Message.isDebugOn ) {
+			Message.printWarning ( 10, routine,
+			"Do not know how to shift time zones yet (\"" + tz1 + "\" to \"" + tz + "\"" );
 			tzshift = 0;
 		}
 	}
-*/
+	 */
 
 	// Don't check date range because calling routine should have done so.
 
 	// Calculate the row position of the data.
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 50, "HourTS.getDataPosition",
+		Message.printDebug( 50, routine,
 		"Using " + date + "(" + date.getAbsoluteMonth() + ") and start date: " +
 		_date1 + "(" + _date1.getAbsoluteMonth() + ") for row-col calculation." );
 	}
@@ -1648,7 +1663,7 @@ private int [] getDataPosition ( DateTime date )
 
     _column = ((date.getDay()-1)*24 + date.getHour())/_data_interval_mult;
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 50, "HourTS.getDataPosition", "Row=" + _row + " Column=" + _column );
+		Message.printDebug ( 50, routine, "Row=" + _row + " Column=" + _column );
 	}
 
 	_pos[0] = _row;
@@ -1669,7 +1684,10 @@ Return the data value for the date.
 @param date Date of interest (checked to hourly precision).
 */
 public double getDataValue( DateTime date ) {
-	// Do not define routine here to increase performance.
+	String routine = null;
+	if ( Message.isDebugOn ) {
+		routine = getClass().getSimpleName() + ".getDataPosition";
+	}
 
 	// Check the date coming in.
 
@@ -1680,7 +1698,7 @@ public double getDataValue( DateTime date ) {
 	if(	(date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
 			// Wrap in debug to improve performance.
-			Message.printWarning( 2, "HourTS.getDataValue", date + " not within POR (" + _date1 + " - " + _date2 + ")" );
+			Message.printWarning( 2, routine, date + " not within POR (" + _date1 + " - " + _date2 + ")" );
 		}
 		return _missing;
 	}
@@ -1690,13 +1708,14 @@ public double getDataValue( DateTime date ) {
 	getDataPosition(date);
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 50, "HourTS.getDataValue",
+		Message.printDebug( 50, routine,
 		_data[_row][_column] + " for " + date + " from _data[" + _row + "][" + _column + "]" );
 	}
 
 	return _data[_row][_column];
 }
 
+// TODO smalers 2023-04-16 need to move UI code out of this data class.
 /**
 Returns the data in the specified DataFlavor, or null if no matching flavor exists.
 From the Transferable interface.  Supported data flavors are:<br>
@@ -1722,6 +1741,7 @@ public Object getTransferData(DataFlavor flavor) {
 	}
 }
 
+// TODO smalers 2023-04-16 need to move UI code out of this data class.
 /**
 Returns the flavors in which data can be transferred.  From the Transferable interface.
 The order of the data flavors that are returned are:<br>
@@ -1800,23 +1820,46 @@ public boolean isDataFlavorSupported(DataFlavor flavor) {
 }
 
 /**
+ * Indicate whether an irregular interval time series (always false).
+ * @return false always
+ */
+@Override
+public boolean isIrregularInterval () {
+	return false;
+}
+
+/**
+ * Indicate whether a regular interval time series (always true).
+ * @return true always
+ */
+@Override
+public boolean isRegularInterval () {
+	return true;
+}
+
+/**
 Refresh the derived data (e.g., data limits) if data have been set.
 This is normally only called from other package routines.
 */
 public void refresh () {
-	// If the data is not dirty, then we do not have to refresh the other information.
+	String routine = null;
+	if ( Message.isDebugOn ) {
+		routine = getClass().getSimpleName() + ".refresh";
+	}
+
+	// If the data are not dirty, then do not have to refresh the other information.
 
 	if ( !_dirty ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 30, "HourTS.refresh", "Time series is not dirty.  Not recomputing limits" );
+			Message.printDebug ( 30, routine, "Time series is not dirty.  Not recomputing limits" );
 		}
 		return;
 	}
 
-	// Else we need to refresh.
+	// Else need to refresh.
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 30, "HourTS.refresh", "Time Series is dirty. Recomputing limits" );
+		Message.printDebug( 30, routine, "Time Series is dirty. Recomputing limits" );
 	}
 
 	TSLimits limits = TSUtil.getDataLimits ( this, _date1, _date2, false );
@@ -1835,7 +1878,10 @@ Set the data value for the date.
 @param return the number of values set, 0 or 1, useful to know when a value is outside the allocated period
 */
 public int setDataValue( DateTime date, double value ) {
-	// Do not define routine here to increase performance.
+	String routine = null;
+	if ( Message.isDebugOn ) {
+		routine = getClass().getSimpleName() + ".setDataValue";
+	}
 
 	if ( date == null ) {
 		return 0;
@@ -1844,20 +1890,20 @@ public int setDataValue( DateTime date, double value ) {
 	if ( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
 			// Wrap in debug to optimize performance.
-			Message.printWarning( 10, "HourTS.setDataValue", "Date " + date + " is outside bounds " + _date1 + " - " + _date2 );
+			Message.printWarning( 10, routine, "Date " + date + " is outside bounds " + _date1 + " - " + _date2 );
 		}
 		return 0;
 	}
 
-	// Get the data position.  This should be safe because we checked dates above.
+	// Get the data position.  This should be safe because checked dates above.
 
 	getDataPosition ( date );
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 50, "HourTS.setDataValue", "Setting " + value + " for " + date + " at " + _row + "," + _column );
+		Message.printDebug( 50, routine, "Setting " + value + " for " + date + " at " + _row + "," + _column );
 	}
 
-	// Set the dirty flag so that we know to recompute the limits if desired.
+	// Set the dirty flag so that know to recompute the limits if desired.
 
 	_dirty = true;
 
@@ -1875,9 +1921,13 @@ Set the data value and associated information for the date.
 @param return the number of values set, 0 or 1, useful to know when a value is outside the allocated period
 */
 public int setDataValue ( DateTime date, double value, String data_flag, int duration ) {
+	String routine = null;
+	if ( Message.isDebugOn ) {
+		routine = getClass().getSimpleName() + ".setDataValue";
+	}
 	if( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
-			Message.printWarning( 10, "HourTS.setDataValue", "Date " + date + " is outside bounds " + _date1 + " - " + _date2 );
+			Message.printWarning( 10, routine, "Date " + date + " is outside bounds " + _date1 + " - " + _date2 );
 		}
 		return 0;
 	}
@@ -1885,10 +1935,10 @@ public int setDataValue ( DateTime date, double value, String data_flag, int dur
 	getDataPosition ( date );
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 30, "HourTS.setDataValue", "Setting " + value + " for " + date + " at " + _row + "," + _column );
+		Message.printDebug( 30, routine, "Setting " + value + " for " + date + " at " + _row + "," + _column );
 	}
 
-	// Set the dirty flag so that we know to recompute the limits if desired.
+	// Set the dirty flag so that know to recompute the limits if desired.
 
 	_dirty = true;
 
@@ -1902,8 +1952,7 @@ public int setDataValue ( DateTime date, double value, String data_flag, int dur
             catch ( Exception e ) {
                 // Generally should not happen - log as debug because could generate a lot of warnings.
                 if ( Message.isDebugOn ) {
-                    Message.printDebug(30, "HourTS.setDataValue", "Error allocating data flag space (" + e +
-                        ") - will not use flags." );
+                    Message.printDebug(30, routine, "Error allocating data flag space (" + e + ") - will not use flags." );
                 }
                 // Make sure to turn flags off.
                 _has_data_flags = false;

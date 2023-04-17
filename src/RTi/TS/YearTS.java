@@ -24,7 +24,8 @@ NoticeEnd */
 // ----------------------------------------------------------------------------
 // YearTS - base class from which all yearly time series are derived
 // ----------------------------------------------------------------------------
-// Notes:	(1)	This base class is provided so that specific yearly
+// Notes:
+//		(1)	This base class is provided so that specific yearly
 //			time series can derived from this class.
 //		(2)	Data for this time series interval is stored as follows:
 //
@@ -145,28 +146,28 @@ but previous data values will be retained.  If false, the array will be realloca
 */
 public void allocateDataFlagSpace ( String initialValue, boolean retainPreviousValues )
 throws Exception {
-	String routine="YearTS.allocateDataFlagSpace", message;
+	String routine = getClass().getSimpleName() + ".allocateDataFlagSpace", message;
 
 	if ( (_date1 == null) || (_date2 == null) ) {
-		message = "Dates have not been set.  Cannot allocate data flag space";
+		message = "Dates have not been set.  Cannot allocate data flag space.";
 		Message.printWarning ( 2, routine, message );
 		throw new Exception ( message );
 	}
 	if ( _data_interval_mult != 1 ) {
 		// Do not know how to handle N-year interval.
-		message = "Only know how to handle 1 year data, not " + _data_interval_mult + "-year";
+		message = "Only know how to handle 1 year data, not " + _data_interval_mult + "-year.";
 		Message.printWarning ( 3, routine, message );
 		throw new Exception ( message );
 	}
-	
+
 	if ( initialValue == null ) {
 	    initialValue = "";
 	}
-	
+
 	int nyears = _date2.getYear() - _date1.getYear() + 1;
 
 	if ( nyears == 0 ) {
-		message="TS has 0 years POR, maybe dates haven't been set yet.";
+		message = "TS has 0 years POR, maybe dates haven't been set yet.";
 		Message.printWarning( 2, routine, message );
 		throw new Exception ( message );
 	}
@@ -219,15 +220,16 @@ Allocate the data space and initialize using the specified data value.
 @param value Value used to initialize data space.
 */
 public int allocateDataSpace( double value ) {
+	String routine = getClass().getSimpleName() + ".allocateDataSpace";
 	if ( (_date1 == null) || (_date2 == null) ) {
-		Message.printWarning ( 2, "YearTS.allocateDataSpace", "Dates have not been set.  Cannot allocate data space" );
+		Message.printWarning ( 2, routine, "Dates have not been set.  Cannot allocate data space." );
 		return 1;
 	}
-	
+
 	int nyears = _date2.getYear() - _date1.getYear() + 1;
 
 	if( nyears == 0 ){
-		Message.printWarning( 2, "YearTS.allocateDataSpace", "TS has 0 years POR, maybe Dates haven't been set yet" );
+		Message.printWarning( 2, routine, "TS has 0 years POR, maybe Dates haven't been set yet." );
 		return 1;
 	}
 
@@ -255,8 +257,8 @@ public int allocateDataSpace( double value ) {
 	_year2 = _date2.getYear();
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 10, "YearTS.allocateDataSpace", "Successfully allocated " + nyears +
-		" years of memory " + _year1 + " to " + _year2 + " (" + datasize + " values)" );
+		Message.printDebug( 10, routine, "Successfully allocated " + nyears +
+		" years of memory " + _year1 + " to " + _year2 + " (" + datasize + " values)." );
 	}
 
 	return 0;
@@ -271,25 +273,24 @@ given the data interval multiplier for the specified period.
 @param interval_mult The time series data interval multiplier.
 */
 public static int calculateDataSize ( DateTime start_date, DateTime end_date, int interval_mult ) {
-	String routine = "YearTS.calculateDataSize";
+	String routine = YearTS.class.getSimpleName() + ".calculateDataSize";
 
 	if ( start_date == null ) {
-		Message.printWarning ( 2, routine, "Start date is null" );
+		Message.printWarning ( 2, routine, "Start date is null." );
 		routine = null;
 		return 0;
 	}
 	if ( end_date == null ) {
-		Message.printWarning ( 2, routine, "End date is null" );
+		Message.printWarning ( 2, routine, "End date is null." );
 		routine = null;
 		return 0;
 	}
 	if ( interval_mult != 1 ) {
-		Message.printWarning ( 1, routine, "Do not know how to handle N-year (" + interval_mult + ") time series" );
+		Message.printWarning ( 1, routine, "Do not know how to handle N-year (" + interval_mult + ") time series." );
 		routine = null;
 		return 0;
 	}
 	int datasize = end_date.getYear() - start_date.getYear() + 1;
-	routine = null;
 	return datasize;
 }
 
@@ -302,10 +303,10 @@ missing data will be used to fill the time series.  If the period is shortened, 
 */
 public void changePeriodOfRecord ( DateTime date1, DateTime date2 )
 throws TSException {
-	String routine="YearTS.changePeriodOfRecord";
+	String routine = getClass().getSimpleName() + ".changePeriodOfRecord";
 	String message;
 
-	// To transfer, we need to allocate a new data space. In any case, need to establish the dates.
+	// To transfer, need to allocate a new data space. In any case, need to establish the dates.
 	if ( (date1 == null) && (date2 == null) ) {
 		// No dates.  Cannot change.
 		message = "\"" + _id + "\": period dates are null.  Cannot change the period.";
@@ -431,7 +432,7 @@ public Object clone () {
 	        ts._dataFlags = null;
 	    }
     	else {
-    		// Allocate months...
+    		// Allocate months.
     		ts._dataFlags = new String[_dataFlags.length];
     		for ( int iYear = 0; iYear < _dataFlags.length; iYear++ ) {
     		    if ( internDataFlagStrings ) {
@@ -446,6 +447,14 @@ public Object clone () {
 	ts._year1 = _year1;
 	ts._year2 = _year2;
 	return ts;
+}
+
+/**
+ * Indicate whether the data interval uses time.
+ * @return false always
+ */
+public boolean dataIntervalUsesTime () {
+	return false;
 }
 
 /**
@@ -597,15 +606,15 @@ This can be used when the entire header is formatted elsewhere.
 */
 public List<String> formatOutput( PropList proplist )
 throws TSException {
-	String message = "", routine = "YearTS.formatOutput", year_column = "";
-	List<String> strings = new ArrayList<String>();
+	String message = "", routine = getClass().getSimpleName() + ".formatOutput", year_column = "";
+	List<String> strings = new ArrayList<>();
 	PropList props = null;
 	String data_format = "%13.1f", prop_value = null;
 
 	// If the property list is null, allocate one here so don't have to constantly check for null.
 
 	if ( proplist == null ) {
-		// Create a PropList so we don't have to check for nulls all the time.
+		// Create a PropList so don't have to check for nulls all the time.
 		props = new PropList ( "formatOutput" );
 	}
 	else {
@@ -636,7 +645,7 @@ throws TSException {
 		year_column = "Average";
 	}
 
-	// Get the precision...
+	// Get the precision.
 
 	prop_value = props.getValue ( "OutputPrecision" );
 	if ( prop_value == null ) {
@@ -673,7 +682,7 @@ throws TSException {
 	// Determine the period to output.  For now always output the total.
 
 	if ( (_date1 == null) || (_date2 == null) ) {
-		message = "Null period dates for time series";
+		message = "Null period dates for time series.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
@@ -731,7 +740,7 @@ throws TSException {
 			StringUtil.addListToStringList ( strings, strings2 );
 		}
 	}
-		
+
 	// Add comments if available.
 
 	prop_value = props.getValue ( "PrintComments" );
@@ -764,7 +773,7 @@ throws TSException {
 			strings.add( "No comments available.");
 		}
 	}
-	
+
 	// Print the genesis information.
 
 	prop_value = props.getValue ( "PrintGenesis" );
@@ -799,12 +808,12 @@ Format the time series for output.
 public List<String> formatOutput ( PrintWriter fp, PropList props )
 throws TSException {
 	List<String> formatted_output = null;
-	String	routine = "YearTS.formatOutput";
+	String routine = getClass().getSimpleName() + ".formatOutput";
 	int	dl = 20;
 	String	message;
 
 	if ( fp == null) {
-		message = "Null PrintWriter for output";
+		message = "Null PrintWriter for output.";
 		Message.printWarning ( 2, routine, message );
 		throw new TSException ( message );
 	}
@@ -817,7 +826,7 @@ throws TSException {
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( dl, routine, "Formatted output is " + formatted_output.size() + " lines" );
 			}
-	
+
 			// Now write each string to the writer.
 
 			String newline = System.getProperty ( "line.separator");
@@ -858,7 +867,7 @@ throws TSException {
 		stream = new PrintWriter ( new FileWriter(full_fname) );
 	}
 	catch ( Exception e ) {
-		message = "Unable to open file \"" + full_fname + "\"";
+		message = "Unable to open file \"" + full_fname + "\".";
 		throw new TSException ( message );
 	}
 
@@ -945,7 +954,7 @@ during iteration to decrease memory use and increase performance).
 @see TSData
 */
 public TSData getDataPoint ( DateTime date, TSData tsdata ) {
-	// Initialize data to most of what we need.
+	// Initialize data to most of what need.
 	if ( tsdata == null ) {
 		// Allocate it.
 		tsdata = new TSData();
@@ -958,7 +967,8 @@ public TSData getDataPoint ( DateTime date, TSData tsdata ) {
     }
 	if ( (date.lessThan(_date1)) || (date.greaterThan(_date2)) ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 50, "YearTS.getDataValue", date + " not within POR (" + _date1 + " - " + _date2 + ")" );
+			String routine = getClass().getSimpleName() + ".getDataPoint";
+			Message.printDebug ( 50, routine, date + " not within POR (" + _date1 + " - " + _date2 + ")" );
 		}
 		tsdata.setValues ( date, _missing, _data_units, "", 0 );
 		return tsdata;
@@ -997,6 +1007,10 @@ If the date is not found in the period, a missing data value is returned.
 @param date Date of interest.
 */
 public double getDataValue ( DateTime date ) {
+	String routine = null;
+	if ( Message.isDebugOn ) {
+		routine = getClass().getSimpleName() + ".getDataValue";
+	}
 	// Check the date coming in.
 
 	if ( (_data == null) || (date == null) ) {
@@ -1008,7 +1022,7 @@ public double getDataValue ( DateTime date ) {
 	if(	(year < _year1) || (year > _year2) ) {
 		// Wrap in debug to improve performance.
 		if ( Message.isDebugOn ) {
-			Message.printWarning( 2, "YearTS.getDataValue", year + " not within POR (" + _year1 + " - " + _year2 + ")" );
+			Message.printWarning( 2, routine, year + " not within POR (" + _year1 + " - " + _year2 + ")." );
 		}
 		return _missing;
 	}
@@ -1020,12 +1034,13 @@ public double getDataValue ( DateTime date ) {
 	// ... END MATCHING CODE
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 30, "YearTS.getDataValue", _data[row] + " for " + year + " from _data[" + row + "]" );
+		Message.printDebug( 30, routine, _data[row] + " for " + year + " from _data[" + row + "]." );
 	}
 
 	return _data[row];
 }
 
+// TODO smalers 2023-04-16 need to move UI code out of this data class.
 /**
 Returns the data in the specified DataFlavor, or null if no matching flavor exists.
 From the Transferable interface.  Supported data-flavors are:<br>
@@ -1051,6 +1066,7 @@ public Object getTransferData(DataFlavor flavor) {
 	}
 }
 
+// TODO smalers 2023-04-16 need to move UI code out of this data class.
 /**
 Returns the flavors in which data can be transferred.  From the Transferable interface.
 The order of the data-flavors that are returned are:<br>
@@ -1100,6 +1116,7 @@ private void init() {
 	_year2 = 0;
 }
 
+// TODO smalers 2023-04-16 need to move UI code out of this data class.
 /**
 Determines whether the specified flavor is supported as a transfer flavor.
 From the Transferable interface.  Supported data-flavors are:<br>
@@ -1126,23 +1143,42 @@ public boolean isDataFlavorSupported(DataFlavor flavor) {
 }
 
 /**
+ * Indicate whether an irregular interval time series (always false).
+ * @return false always
+ */
+@Override
+public boolean isIrregularInterval () {
+	return false;
+}
+
+/**
+ * Indicate whether a regular interval time series (always true).
+ * @return true always
+ */
+@Override
+public boolean isRegularInterval () {
+	return true;
+}
+
+/**
 Refresh the dependent time series data, such as limits.
 This routine is called when retrieving secondary data (like limits) to make sure that the values are current.
 */
 public void refresh () {
-	// If the data is not dirty, then we do not have to refresh the other information.
+	String routine = getClass().getSimpleName() + ".refresh";
+	// If the data is not dirty, then do not have to refresh the other information.
 
 	if ( !_dirty ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 10, "TSLimits.refresh", "Time series is not dirty.  Not recomputing limits" );
+			Message.printDebug ( 10, routine, "Time series is not dirty.  Not recomputing limits." );
 		}
 		return;
 	}
 
-	// Else we need to refresh.
+	// Else to refresh.
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 10, "TSLimits.refresh", "Time Series is dirty. Recomputing limits" );
+		Message.printDebug( 10, routine, "Time Series is dirty. Recomputing limits." );
 	}
 
 	TSLimits limits = TSUtil.getDataLimits ( this, _date1, _date2, false );
@@ -1161,6 +1197,10 @@ Set the data value for the given date.
 @param return the number of values set, 0 or 1, useful to know when a value is outside the allocated period
 */
 public int setDataValue( DateTime date, double value ) {
+	String routine = null;
+	if ( Message.isDebugOn ) {
+		routine = getClass().getSimpleName() + ".setDataValue";
+	}
 	if ( date == null ) {
 		return 0;
 	}
@@ -1170,7 +1210,7 @@ public int setDataValue( DateTime date, double value ) {
 	if(	(year < _year1) || (year > _year2) ) {
 		// Wrap in debug to improve performance.
 		if ( Message.isDebugOn ) {
-			Message.printWarning( 2, "YearTS.setDataValue", year + " not within POR (" + _year1 + " - " + _year2 + ")" );
+			Message.printWarning( 2, routine, year + " not within POR (" + _year1 + " - " + _year2 + ")" );
 		}
 		return 0;
 	}
@@ -1182,15 +1222,15 @@ public int setDataValue( DateTime date, double value ) {
 	// ... END MATCHING CODE
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 30, "YearTS.setDataValue", "Setting " + value + " " + year + " at " + row );
+		Message.printDebug( 30, routine, "Setting " + value + " " + year + " at " + row );
 	}
 
-	// Set the dirty flag so that we know to recompute the limits if desired.
+	// Set the dirty flag so that know to recompute the limits if desired.
 
 	_dirty = true;
 
 	_data[row] = value;
-	
+
 	return 1;
 }
 
@@ -1203,6 +1243,11 @@ Set the data value for the given date.
 @param return the number of values set, 0 or 1, useful to know when a value is outside the allocated period
 */
 public int setDataValue ( DateTime date, double value, String data_flag, int duration ) {
+	String routine = null;
+	if ( Message.isDebugOn ) {
+		routine = getClass().getSimpleName() + ".setDataValue";
+	}
+
 	if ( date == null ) {
 		return 0;
 	}
@@ -1212,7 +1257,7 @@ public int setDataValue ( DateTime date, double value, String data_flag, int dur
 	if(	(year < _year1) || (year > _year2) ) {
 		// Wrap in debug to improve performance.
 		if ( Message.isDebugOn ) {
-			Message.printWarning( 2, "YearTS.setDataValue", year + " not within POR (" + _year1 + " - " + _year2 + ")" );
+			Message.printWarning( 2, routine, year + " not within POR (" + _year1 + " - " + _year2 + ")" );
 		}
 		return 0;
 	}
@@ -1224,10 +1269,10 @@ public int setDataValue ( DateTime date, double value, String data_flag, int dur
 	// ... END MATCHING CODE
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 30, "YearTS.setDataValue", "Setting " + value + " " + year + " at " + row );
+		Message.printDebug( 30, routine, "Setting " + value + " " + year + " at " + row );
 	}
 
-	// Set the dirty flag so that we know to recompute the limits if desired.
+	// Set the dirty flag so that know to recompute the limits if desired.
 
 	_dirty = true;
 
@@ -1241,8 +1286,7 @@ public int setDataValue ( DateTime date, double value, String data_flag, int dur
             catch ( Exception e ) {
                 // Generally should not happen - log as debug because could generate a lot of warnings.
                 if ( Message.isDebugOn ) {
-                    Message.printDebug(30, "YearTS.setDataValue", "Error allocating data flag space (" + e +
-                        ") - will not use flags." );
+                    Message.printDebug(30, routine, "Error allocating data flag space (" + e + ") - will not use flags." );
                 }
                 // Make sure to turn flags off.
                 _has_data_flags = false;
@@ -1257,7 +1301,7 @@ public int setDataValue ( DateTime date, double value, String data_flag, int dur
 	        _dataFlags[row] = data_flag;
 	    }
 	}
-	
+
 	return 1;
 }
 

@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,13 +36,13 @@ import RTi.Util.Time.TimeScaleType;
 import RTi.Util.Time.TimeUtil;
 import RTi.Util.Time.YearType;
 
-// TODO SAM 2009-10-14 Migrate computational code from TSAnalyst to here
+// TODO SAM 2009-10-14 Migrate computational code from TSAnalyst to here.
 /**
 Compute a YearTS that has a statistic for each year in the period.
 */
 public class TSUtil_NewStatisticYearTS
 {
-    
+
 /**
 Enumerations used when processing the statistic.
 */
@@ -51,8 +51,8 @@ private enum TestType {
     GT, // Test >
     LE, // Test <=
     LT, // Test <
-    NOT_USED }; // Unknown test
-    
+    NOT_USED }; // Unknown test.
+
 /**
 Time series to analyze.
 */
@@ -67,6 +67,16 @@ private String __newTSID = null;
 Output year type when new interval is year.
 */
 private YearType __outputYearType = null;
+
+/**
+ * How midnight is handled for the start of the year and analysis window.
+ */
+private DayBoundaryType yearStartTime = null;
+
+/**
+ * How midnight is handled for the end of the year and analysis window.
+ */
+private DayBoundaryType yearEndTime = null;
 
 /**
 Starting date/time for analysis.
@@ -112,19 +122,21 @@ private DateTime __analysisWindowEnd = null;
 Search start date/time for analysis window, within a year.
 */
 private DateTime __searchStart = null;
-    
+
 /**
 Construct the analysis object with required input.  Values will be checked for validity.
 Execute the newStatisticYearTS() method to perform the analysis.
 @param ts time series to analyze
-@param analysisStart Starting date/time for analysis, in precision of the original data.
-@param analysisEnd Ending date for analysis, in precision of the original data.
 @param newTSID the new time series identifier to be assigned to the time series.
 @param statisticType the statistic type for the output time series.
 @param value1 test value (e.g., threshold value) needed to process some statistics.
-@param allowMissingCount the number of values allowed to be missing in the sample.
+@param allowMissingCount the number of values allowed to be missing in the sample, ignored for irregular interval time series.
 @param minimumSampleSize the minimum sample size to allow to compute the statistic.
 @param outputYearType output year type for annual time series - if null output will be calendar year.
+@param yearStartTime indicate how midnight should be handled for the start of year and analysis window
+@param yearEndTime indicate how midnight should be handled for the end of year and analysis window
+@param analysisStart Starting date/time for analysis, calendar dates, in precision of the original data.
+@param analysisEnd Ending date for analysis, calendar dates, in precision of the original data.
 @param analysisWindowStart Starting date/time (year is ignored) for analysis within the year,
 in precision of the original data.  If null, the entire year of data will be analyzed.
 @param analysisWindowEnd Ending date (year is ignored) for analysis within the year,
@@ -135,13 +147,13 @@ This is used when a starting point is needed, such as when first and last values
 */
 public TSUtil_NewStatisticYearTS ( TS ts, String newTSID, TSStatisticType statisticType, Double value1,
     Integer allowMissingCount, Integer minimumSampleSize,
-    YearType outputYearType, DateTime analysisStart, DateTime analysisEnd,
-    DateTime analysisWindowStart, DateTime analysisWindowEnd, DateTime searchStart )
-{   String routine = getClass().getSimpleName();
+    YearType outputYearType, DayBoundaryType yearStartTime, DayBoundaryType yearEndTime, DateTime analysisStart, DateTime analysisEnd,
+    DateTime analysisWindowStart, DateTime analysisWindowEnd, DateTime searchStart ) {
+    String routine = getClass().getSimpleName();
     String message;
-    
+
     if ( ts == null ) {
-        // Nothing to do...
+        // Nothing to do.
         message = "Null input time series - cannot calculate statistic time series.";
         Message.printWarning ( 3, routine, message );
         throw new InvalidParameterException ( message );
@@ -151,41 +163,42 @@ public TSUtil_NewStatisticYearTS ( TS ts, String newTSID, TSStatisticType statis
     try {
         if ( (newTSID != null) && (newTSID.length() > 0) ) {
             TSIdent tsident = new TSIdent ( newTSID );
-            // Make sure that the output interval is Year
+            // Make sure that the output interval is Year.
             if ( !tsident.getInterval().equalsIgnoreCase("Year") ) {
                 throw new IllegalArgumentException (
-                    "New time series identifier \"" + newTSID + "\" must have an interval of Year - " +
-                    	"cannot calculate statistic time series." );
+                    "New time series identifier \"" + newTSID +
+                    "\" must have an interval of Year - cannot calculate statistic time series." );
             }
         }
     }
     catch ( Exception e ) {
-        throw new IllegalArgumentException (
-            "New time series identifier \"" + newTSID + "\" is invalid (" + e + ")." );
+        throw new IllegalArgumentException ( "New time series identifier \"" + newTSID + "\" is invalid (" + e + ")." );
     }
     setStatisticType ( statisticType );
     setValue1 ( value1 );
     if ( allowMissingCount == null ) {
-        allowMissingCount = new Integer(-1); // default
+        allowMissingCount = new Integer(-1); // Default.
     }
     setAllowMissingCount ( allowMissingCount.intValue() );
     if ( minimumSampleSize == null ) {
-        minimumSampleSize = new Integer(-1); // default
+        minimumSampleSize = new Integer(-1); // Default.
     }
     setMinimumSampleSize ( minimumSampleSize );
-    
+
     if ( outputYearType == null ) {
         outputYearType = YearType.CALENDAR;
     }
     setOutputYearType ( outputYearType );
+    this.yearStartTime = yearStartTime;
+    this.yearEndTime = yearEndTime;
     setAnalysisStart ( analysisStart );
     setAnalysisEnd ( analysisEnd );
-    
-    // FIXME SAM 2009-11-04 Need to make this check specific to the time series interval and time scale
+
+    // FIXME SAM 2009-11-04 Need to make this check specific to the time series interval and time scale.
     if ( !isStatisticSupported(statisticType, TimeInterval.UNKNOWN, null) ) {
         throw new InvalidParameterException ( "Statistic \"" + statisticType + "\" is not supported.");
     }
-    
+
     setAnalysisWindowStart ( analysisWindowStart );
     setAnalysisWindowEnd ( analysisWindowEnd );
     setSearchStart ( searchStart );
@@ -216,29 +229,26 @@ Process a time series to create the the following annual statistics:
 <li>    Total</li>
 </ol>
 @param ts Time series to analyze.
-@param yearts YearTS to fill with the statistic.
+@param yearts YearTS to fill with the statistic, which will have had its start and end dates set in the output year type.
 @param statisticType statistic to calculate.
 @param value1 a number to test against for some statistics (e.g., COUNT_LE).
 @param analysisStart Start of the analysis (precision matching ts).
 @param analysisEnd End of the analysis (precision matching ts).
 @param allowMissingCount the number of missing values allowed in input and still compute the statistic.
 @param minimumSampleSize the minimum number of values required in input to compute the statistic.
-@param analysisWindowStart If not null, specify the start of the window within
-the year for data, for example to specify a season.
+@param analysisWindowStart If not null, specify the start of the window within the year for data, for example to specify a season.
 Currently only Month... to precision are evaluated (not day... etc.).
-@param analysisWindowEnd If not null, specify the end of the window within
-the year for data, for example to specify a season.
+@param analysisWindowEnd If not null, specify the end of the window within the year for data, for example to specify a season.
 Currently only Month... to precision are evaluated (not day... etc.).
-@param searchStart starting date/time in the year to analyze, in particular to condition
-seasonal data processing.
+@param searchStart starting date/time in the year to analyze, in particular to condition seasonal data processing.
 */
 private void calculateStatistic (
     TS ts, YearTS yearts, TSStatisticType statisticType,
     Double value1, YearType outputYearType,
     DateTime analysisStart, DateTime analysisEnd, int allowMissingCount, int minimumSampleSize,
-    DateTime analysisWindowStart, DateTime analysisWindowEnd, DateTime searchStart )
-{   String routine = getClass().getSimpleName() + ".calculateStatistic";
-    // Initialize the settings to evaluate the statistic and set appropriate information in the time series
+    DateTime analysisWindowStart, DateTime analysisWindowEnd, DateTime searchStart ) {
+    String routine = getClass().getSimpleName() + ".calculateStatistic";
+    // Initialize the settings to evaluate the statistic and set appropriate information in the time series.
     boolean statisticIsCount = isStatisticCount(statisticType);
     boolean statisticIsDayOf = isStatisticDayOf(statisticType);
     boolean statisticIsMonthOf = isStatisticMonthOf(statisticType);
@@ -250,115 +260,160 @@ private void calculateStatistic (
         statisticIsCount, statisticIsDayOf, statisticIsMonthOf, statisticIsFirst, statisticIsLast ) );
     yearts.setDataUnits(getStatisticTimeSeriesDataUnits(statisticType, statisticIsCount, statisticIsDayOf,
         statisticIsMonthOf, ts.getDataUnits()) );
-    
-    Message.printStatus ( 2, routine, "Overall analysis period is " + analysisStart + " to " + analysisEnd );
-    
-    double testValueDouble = Double.NaN; // OK to initialize to this because checks will have verified real value
+
+    // Whether to check time.
+    boolean doCheckTime = ts.dataIntervalUsesTime();
+
+    Message.printStatus ( 2, routine, "Overall analysis period based on data and requested analysis period is "
+    	+ analysisStart + " to " + analysisEnd + " doCheckTime=" + doCheckTime );
+
+    double testValueDouble = Double.NaN; // OK to initialize to this because checks will have verified real value.
     if ( isTestValueNeeded( statisticType ) ) {
         testValueDouble = value1.doubleValue();
     }
-    // For debugging...
+    // For debugging.
     //Message.printStatus(2,routine,"StatisticType=" + statisticType + " TestType=" + testType +
     //    " testValueDouble=" + testValueDouble );
-
-    // Create dates that have the correct precision (matching the analysis period) and initialize for
-    // the first year.  These are used to step through the input time series one full year at a time.
-    // The iteration year based on the old time series dates may start one year too early but that
+    
+    // Create dates that have the correct precision (matching the analysis period) and initialize for the first year.
+    // These are used to step through the input time series one full year at a time.
+    // The iteration year based on the input time series dates may start one year too early but that
     // is OK since the output time series will simply not have a value added out of period.
-    // yearStart and yearEnd are in calendar year
-    // but outputYear is the output year in the output year type
-    DateTime yearStart = new DateTime ( ts.getDate1() ); // To set precision to that of the input time series
+    // 'yearStart' and 'yearEnd' are in calendar year but outputYear is the output year in the output year type.
+    DateTime yearStart = new DateTime ( ts.getDate1() ); // To set precision to that of the input time series.
     yearStart.setYear( yearts.getDate1().getYear() );
     yearStart.addYear( outputYearType.getStartYearOffset() );
     yearStart.setMonth( outputYearType.getStartMonth() );
-    yearStart.setDay( 1 ); // Will not be used if monthly input
-    yearStart.setHour ( 0 );
-    yearStart.setMinute ( 0 );
-    yearStart.setSecond ( 0 );
-    yearStart.setHSecond( 0 );
-    DateTime yearEnd = new DateTime ( yearStart );
-    yearEnd.addMonth ( 11 );
-    yearEnd.setDay ( TimeUtil.numDaysInMonth(yearEnd.getMonth(), yearEnd.getYear()));
-    yearEnd.setHour ( 23 );
-    yearEnd.setMinute ( 59 );
-    yearEnd.setSecond ( 59 );
-    yearEnd.setHSecond( 99 ); // TODO smalers 2020-08-04 maybe change logic to do < and use exact interval?
-    // Always create a new instance of date for the iterator to protect original data
-    double value;  // The value in the original time series
-    // Year for output (reverse the year offset from the window)...
+    yearStart.setDay( 1 ); // Will not be used if monthly input.
+    if ( doCheckTime ) {
+    	// Initialized to midnight:
+    	// - may be part of the previous year and will be checked below
+    	yearStart.setHour ( 0 );
+    	yearStart.setMinute ( 0 );
+    	yearStart.setSecond ( 0 );
+    	yearStart.setHSecond( 0 );
+    }
+    // Always create a new instance of date for the iterator to protect original data.
+    double value;  // The value in the original time series.
+    // Year for output (reverse the year offset from the window):
+    // - is incremented at the end of the loop
     DateTime outputYear = new DateTime(yearStart,DateTime.PRECISION_YEAR);
     outputYear.addYear( -1*outputYearType.getStartYearOffset() );
-    // Dates for iteration in a year, adjusted for the analysis window
-    // Use these internal to the loop below so as to not interfere with the full-year iteration
+    // Dates for iteration in a year, adjusted for the analysis window.
+    // Use these internal to the loop below so as to not interfere with the full-year iteration.
     DateTime yearStartForAnalysisWindow = null;
     DateTime yearEndForAnalysisWindow = null;
-    // Loop until all the output years are processed.
-    // The new time series period should have been defined to align with the output year type.
+    // Loop until all the output years are processed (uses output year type).
+    // The output time series period will have been defined to align with the output year type.
     // Checking the year start will allow any period - with missing values filling in if necessary.
     while ( yearStart.lessThanOrEqualTo(analysisEnd) ) {
-        // Initialize for the new year
+        // Initialize for the new year.
         double sum = 0.0;
         int nMissing = 0;
         int nNotMissing = 0;
-        // Extract data from the old time series for the new year
-        // This loops over the full year so that missing values on the end will impact results
+
+        // The end is exactly a year after the start:
+        // - if time is used, it will be midnight of the year end, which is hour zero of the next day
+        DateTime yearEnd = new DateTime ( yearStart );
+        yearEnd.addMonth ( 11 );
+        yearEnd.setDay ( TimeUtil.numDaysInMonth(yearEnd.getMonth(), yearEnd.getYear()));
+        // For times the values for the input iterator needs to include midnight, which will roll over to hour zero of the next day.
+        // The following will be ignored if only dates are used.
+        if ( doCheckTime ) {
+    	    // Initialized to midnight:
+    	    // - may be part of the previous year and will be checked below
+    	    yearEnd.setHour ( 23 );
+    	    yearEnd.setMinute ( 0 );
+    	    yearEnd.setSecond ( 0 );
+    	    yearEnd.setHSecond( 0 );
+    	    yearEnd.addHour(1); // Forces internal midnight.
+        }
+
+        // Extract data from the old time series for the new year.
+        // This loops over the full year so that missing values on the end will impact results.
         Message.printStatus(2, routine, "Processing input time series for " + yearStart + " to " + yearEnd +
             " to create output year " + outputYear );
-        // Change the window within the year based on the analysis window.  This will shorten the
-        // number of iterations and potentially lessen the missing data count.  This is OK to set here
-        // because the year is initialized outside the loop above and is incremented at the end of the
-        // loop below.  If not using calendar year, the analysis window start may have a month that is
-        // later than the end month, but that is OK because the calendar years for the start and end
-        // will be different.
+        if ( doCheckTime ) {
+        	Message.printStatus(2, routine, "  Year start and end midnight is checked using YearStartTime=" + yearStartTime
+        		+ " YearEndTime=" + yearEndTime);
+        }
+        // Change the window within the year based on the analysis window.
+        // This will shorten the number of iterations and potentially lessen the missing data count.
+        // This is OK to set here because the year is initialized outside the loop above and is incremented at the end of the loop below.
+        // If not using calendar year, the analysis window start may have a month that is later than the end month,
+        // but that is OK because the calendar years for the start and end will be different.
         if ( analysisWindowStart == null ) {
-            // OK to use full years
+            // OK to use full years.
             yearStartForAnalysisWindow = yearStart;
         }
         else {
-            // Make a copy of the date/time for iteration within years
+            // Make a copy of the date/time for iteration within years.
             yearStartForAnalysisWindow = new DateTime(yearStart);
             int analysisWindowStartMonth = analysisWindowStart.getMonth();
             if ( (outputYearType.getStartYearOffset() < 0) &&
                 (analysisWindowStartMonth < outputYearType.getStartMonth()) &&
                 (yearStart.getYear() < yearEnd.getYear())) {
-                // Need to adjust the year because the default start of year is in the previous year
-                // The check on the years above is redundant but put in just in case
+                // Need to adjust the year because the default start of year is in the previous year.
+                // The check on the years above is redundant but put in just in case.
                 yearStartForAnalysisWindow.setYear(yearEnd.getYear());
             }
             yearStartForAnalysisWindow.setMonth(analysisWindowStart.getMonth());
             yearStartForAnalysisWindow.setDay(analysisWindowStart.getDay());
-            yearStartForAnalysisWindow.setHour(analysisWindowStart.getHour());
-            yearStartForAnalysisWindow.setMinute(analysisWindowStart.getMinute());
-            yearStartForAnalysisWindow.setSecond(analysisWindowStart.getSecond());
-            yearStartForAnalysisWindow.setHSecond(analysisWindowStart.getHSecond());
+            if ( doCheckTime ) {
+            	yearStartForAnalysisWindow.setHour(analysisWindowStart.getHour());
+            	yearStartForAnalysisWindow.setMinute(analysisWindowStart.getMinute());
+            	yearStartForAnalysisWindow.setSecond(analysisWindowStart.getSecond());
+            	yearStartForAnalysisWindow.setHSecond(analysisWindowStart.getHSecond());
+            }
         }
         if ( analysisWindowEnd == null ) {
-            // OK to use full years
+            // OK to use full years.
             yearEndForAnalysisWindow = yearEnd;
         }
         else {
-            // Make a copy of the date/time for iteration within years
+            // Make a copy of the date/time for iteration within years.
             yearEndForAnalysisWindow = new DateTime(yearEnd);
             int analysisWindowEndMonth = analysisWindowEnd.getMonth();
             if ( (outputYearType.getStartYearOffset() < 0) &&
                 (analysisWindowEndMonth >= outputYearType.getStartMonth()) &&
                 (yearStart.getYear() < yearEnd.getYear())) {
-                // Need to adjust the year because the default end of year is in the next year
-                // The check on the years above is redundant but put in just in case
+                // Need to adjust the year because the default end of year is in the next year.
+                // The check on the years above is redundant but put in just in case.
                 yearEndForAnalysisWindow.setYear(yearStart.getYear());
             }
             yearEndForAnalysisWindow.setMonth(analysisWindowEnd.getMonth());
             yearEndForAnalysisWindow.setDay(analysisWindowEnd.getDay());
-            yearEndForAnalysisWindow.setHour(analysisWindowEnd.getHour());
-            yearEndForAnalysisWindow.setMinute(analysisWindowEnd.getMinute());
-            yearEndForAnalysisWindow.setSecond(analysisWindowEnd.getSecond());
-            yearEndForAnalysisWindow.setHSecond(analysisWindowEnd.getHSecond());
+            if ( doCheckTime ) {
+            	yearEndForAnalysisWindow.setHour(analysisWindowEnd.getHour());
+            	// Currently the analysis window end only goes to hour so the following have no real effect.
+            	yearEndForAnalysisWindow.setMinute(analysisWindowEnd.getMinute());
+            	yearEndForAnalysisWindow.setSecond(analysisWindowEnd.getSecond());
+            	yearEndForAnalysisWindow.setHSecond(analysisWindowEnd.getHSecond());
+            }
+            // For times the values for the input iterator needs to include midnight, which will roll over to hour zero of the next day.
+            // The following will be ignored if only dates are used.
+            if ( doCheckTime ) {
+    	        // Initialized to midnight:
+    	        // - may be part of the previous year and will be checked below
+    	        yearEndForAnalysisWindow.setHour ( 23 );
+    	        yearEndForAnalysisWindow.setMinute ( 0 );
+    	        yearEndForAnalysisWindow.setSecond ( 0 );
+    	        yearEndForAnalysisWindow.setHSecond( 0 );
+    	        yearEndForAnalysisWindow.addHour(1); // Forces internal midnight.
+            }
         }
         if ( (analysisWindowStart != null) || (analysisWindowEnd != null) ) {
-            Message.printStatus(2, routine, "Resetting input analysis window to requested " +
-                yearStartForAnalysisWindow + " to " + yearEndForAnalysisWindow );
+        	if ( doCheckTime ) {
+        		Message.printStatus(2, routine, "  Resetting input analysis window to requested " +
+        			yearStartForAnalysisWindow + " to " + yearEndForAnalysisWindow
+        			+ " (will consider YearStartTime=" + yearStartTime + " and YearEndTime=" + yearEndTime + ")." );
+        	}
+        	else {
+        		Message.printStatus(2, routine, "  Resetting input analysis window to requested " +
+        			yearStartForAnalysisWindow + " to " + yearEndForAnalysisWindow );
+        	}
         }
-        // Further adjust the analysis window based on the search start
+        // Further adjust the analysis window based on the search start.
         if ( searchStart != null ) {
             // Reset the start or end of the analysis window depending on whether
             // iterating forward (reset start) or backward (reset end).
@@ -368,16 +423,18 @@ private void calculateStatistic (
                 if ( (outputYearType.getStartYearOffset() < 0) &&
                     (searchStartMonth < outputYearType.getStartMonth()) &&
                     (yearStart.getYear() < yearEnd.getYear())) {
-                    // Need to adjust the year because the default start of year is in the previous year
-                    // The check on the years above is redundant but put in just in case
+                    // Need to adjust the year because the default start of year is in the previous year.
+                    // The check on the years above is redundant but put in just in case.
                     yearStartForAnalysisWindow.setYear(yearEnd.getYear());
                 }
                 yearStartForAnalysisWindow.setMonth(searchStart.getMonth());
                 yearStartForAnalysisWindow.setDay(searchStart.getDay());
-                yearStartForAnalysisWindow.setHour(searchStart.getHour());
-                yearStartForAnalysisWindow.setMinute(searchStart.getMinute());
-                yearStartForAnalysisWindow.setSecond(searchStart.getSecond());
-                yearStartForAnalysisWindow.setHSecond(searchStart.getHSecond());
+                if ( doCheckTime ) {
+                	yearStartForAnalysisWindow.setHour(searchStart.getHour());
+                	yearStartForAnalysisWindow.setMinute(searchStart.getMinute());
+                	yearStartForAnalysisWindow.setSecond(searchStart.getSecond());
+                	yearStartForAnalysisWindow.setHSecond(searchStart.getHSecond());
+                }
             }
             else {
                 yearEndForAnalysisWindow = new DateTime(yearEnd);
@@ -385,85 +442,143 @@ private void calculateStatistic (
                 if ( (outputYearType.getStartYearOffset() < 0) &&
                     (searchStartMonth >= outputYearType.getStartMonth()) &&
                     (yearStart.getYear() < yearEnd.getYear())) {
-                    // Need to adjust the year because the default end of year is in the next year
-                    // The check on the years above is redundant but put in just in case
+                    // Need to adjust the year because the default end of year is in the next year.
+                    // The check on the years above is redundant but put in just in case.
                     yearEndForAnalysisWindow.setYear(yearStart.getYear());
                 }
                 yearEndForAnalysisWindow.setMonth(searchStart.getMonth());
                 yearEndForAnalysisWindow.setDay(searchStart.getDay());
-                yearEndForAnalysisWindow.setHour(searchStart.getHour());
-                yearEndForAnalysisWindow.setMinute(searchStart.getMinute());
-                yearEndForAnalysisWindow.setSecond(searchStart.getSecond());
-                yearEndForAnalysisWindow.setHSecond(searchStart.getHSecond());
+                if ( doCheckTime ) {
+                	yearEndForAnalysisWindow.setHour(searchStart.getHour());
+                	yearEndForAnalysisWindow.setMinute(searchStart.getMinute());
+                	yearEndForAnalysisWindow.setSecond(searchStart.getSecond());
+                	yearEndForAnalysisWindow.setHSecond(searchStart.getHSecond());
+                }
             }
             Message.printStatus(2, routine,
-                "Resetting input analysis window using SearchStart to requested " +
+                "  Resetting input analysis window using SearchStart to requested " +
                 yearStartForAnalysisWindow + " to " + yearEndForAnalysisWindow );
         }
-        // Create an iterator for the data...
+        // Create an iterator for the data:
+        // - if times are used, this should include midnight to midnight and yearStartTime and yearEndTime are checked below
+        //   to determine if the value is included in the sample
         TSIterator tsi = null;
         try {
             if ( Message.isDebugOn ) {
-                Message.printDebug ( 10, routine, "Initializing iterator for " +
+                Message.printDebug ( 1, routine, "  Initializing iterator for year's sample: " +
                 	yearStartForAnalysisWindow + " to " + yearEndForAnalysisWindow );
             }
        		tsi = ts.iterator(yearStartForAnalysisWindow,yearEndForAnalysisWindow);
         }
         catch ( Exception e ) {
-            throw new RuntimeException ( "Exception initializing time series iterator for analysis window " +
+            throw new RuntimeException ( "  Exception initializing time series iterator for analysis window " +
                 yearStartForAnalysisWindow + " to " + yearEndForAnalysisWindow + " (" + e + ")." );
         }
-        TSData data; // Data from the iterator
-        DateTime date; // Date of the data value
-        // Initialize the value of the statistic in the year to missing.  Do this each time an input
-        // year is processed.
-        double yearValue = yearts.getMissing(); // Data value for output time series
-        double dayMoment = 0.0; // Day of year * value, for DayOfCentroid statistic
-        double monthMoment = 0.0; // Month of year * value, for MonthOfCentroid statistic
+        TSData data; // Data from the iterator.
+        DateTime date; // Date of the data value.
+        // Initialize the value of the statistic in the year to missing.  Do this each time an input year is processed.
+        double yearValue = yearts.getMissing(); // Data value for output time series.
+        double dayMoment = 0.0; // Day of year * value, for DayOfCentroid statistic.
+        double monthMoment = 0.0; // Month of year * value, for MonthOfCentroid statistic.
         double extremeValue = yearts.getMissing(); // Used for DayOfMin, etc., where check and day are tracked.
-        boolean doneAnalyzing = false; // If true, there is no more data or a statistic is complete
-        // Loop through the data in the analysis window
-        Message.printDebug ( 10, routine, "Procoessing data..." );
+        boolean doneAnalyzing = false; // If true, there is no more data or a statistic is complete.
+        // Loop through the data in the analysis window.
+        Message.printDebug ( 10, routine, "  Procoessing data..." );
         while ( true ) {
             if ( iterateForward ) {
-                // First call will initialize and return first point.
-                data = tsi.next();  
+                // First call will initialize and return first point:
+            	// - if irregular, the closest value will be found to initialize the internal lookup
+                data = tsi.next();
             }
             else {
-                // First call will initialize and return last point.
-                data = tsi.previous();  
+                // First call will initialize and return last point:
+            	// - if irregular, the closest value will be found to initialize the internal lookup
+                data = tsi.previous();
             }
             if ( data != null ) {
-                // Still analyzing data in the analysis window
+                // Still analyzing data in the analysis window.
                 date = tsi.getDate();
                 value = tsi.getDataValue();
-                // For debugging...
+                // For debugging.
                 if ( Message.isDebugOn ) {
-                    Message.printDebug ( 10, routine, "Data value on " + date + " is " + value );
+                    Message.printDebug ( 10, routine, "    Data value on " + date + " is " + value );
+                }
+                if ( doCheckTime ) {
+                	// An additional check is necessary for to check the start and end against midnight:
+                	// - iterator was initialized with midnight to midnight 
+                	// - only need to check for the case where other than midnight is the boundary
+                	// - however, logic is complicated so do the extra check to make sure no values slip into the sample
+                	if ( yearStartTime == DayBoundaryType.MIDNIGHT ) {
+                		if ( !date.greaterThanOrEqualTo(yearStartForAnalysisWindow) ) {
+                			// Skip the data point.
+                			if ( Message.isDebugOn ) {
+                    			Message.printDebug ( 10, routine, "      Skipping " + date + " since not >= starting midnight." );
+                			}
+                			continue;
+                		}
+                	}
+                	else if ( yearStartTime == DayBoundaryType.AFTER_MIDNIGHT ) {
+                		if ( !date.greaterThan(yearStartForAnalysisWindow) ) {
+                			// Skip the data point.
+                			if ( Message.isDebugOn ) {
+                    			Message.printDebug ( 10, routine, "      Skipping " + date + " since not > starting midnight." );
+                			}
+                			continue;
+                		}
+                	}
+                	else {
+                		if ( Message.isDebugOn ) {
+                    		Message.printDebug ( 10, routine, "      Skipping " + date + " since < starting midnight." );
+                		}
+                		continue;
+                	}
+                	if ( yearEndTime == DayBoundaryType.MIDNIGHT ) {
+                		if ( !date.lessThanOrEqualTo(yearEndForAnalysisWindow) ) {
+                			// Skip the data point.
+                			if ( Message.isDebugOn ) {
+                    			Message.printDebug ( 10, routine, "      Skipping " + date + " since not <= ending midnight." );
+                			}
+                			continue;
+                		}
+                	}
+                	else if ( yearEndTime == DayBoundaryType.BEFORE_MIDNIGHT ) {
+                		if ( !date.lessThan(yearEndForAnalysisWindow) ) {
+                			// Skip the data point.
+                			if ( Message.isDebugOn ) {
+                    			Message.printDebug ( 10, routine, "      Skipping " + date + " since not < ending midnight." );
+                			}
+                			continue;
+                		}
+                	}
+                	else {
+                		if ( Message.isDebugOn ) {
+                    		Message.printDebug ( 10, routine, "      Skipping " + date + " since > ending midnight." );
+                		}
+                		continue;
+                	}
                 }
                 if ( ts.isDataMissing(value) ) {
                     // Data value is missing so increment the counter and continue to the next value.
-                    // "data == null" will be true even for missing values and therefore when data
-                    // run out, statistics that depend on the missing count will be processed correctly
-                    // below.
+                    // "data == null" will be true even for missing values and therefore when data run out,
+                	// statistics that depend on the missing count will be processed correctly below.
                     ++nMissing;
                     continue;
                 }
                 else {
                     // Data value is not missing so process below.
                     ++nNotMissing;
-                    // Always increment the sum because it is easy to compute and is needed by
-                    // some statistics...
+                    // Always increment the sum because it is easy to compute and is needed by some statistics.
                     sum += value;
-                    // Evaluate the test and/or statistic type to compute the value to be assigned to
-                    // the year.  In some cases this is a single value and then done.  In other cases
-                    // the value gets updated as more values are examined.
-                    // The year value is examined to see if it is missing in order to know whether to
-                    // initialize or update the value.
-                    // If evaluating statistics like FIRST_DAY_GE, missing data will accumulate prior
-                    // to the non-missing value, and the first non-missing value will cause further
-                    // evaluation of input data to be skipped.  The determination on whether missing
-                    // data are an issue is made when setting the yearly value at the end of the year loop.
+                    if ( Message.isDebugOn ) {
+                    	Message.printStatus(2, routine, "    Processing " + date + " value=" + value + " sum=" + sum);
+                    }
+                    // Evaluate the test and/or statistic type to compute the value to be assigned to the year.
+                    // In some cases this is a single value and then done.
+                    // In other cases the value gets updated as more values are examined.
+                    // The year value is examined to see if it is missing in order to know whether to initialize or update the value.
+                    // If evaluating statistics like FIRST_DAY_GE, missing data will accumulate prior to the non-missing value,
+                    // and the first non-missing value will cause further evaluation of input data to be skipped.
+                    // The determination on whether missing data are an issue is made when setting the yearly value at the end of the year loop.
                     if ( (testType == TestType.GE) && (value >= testValueDouble) ) {
                         if ( (statisticType == TSStatisticType.GE_COUNT) ||
                             (statisticType == TSStatisticType.GE_PERCENT) ){
@@ -507,8 +622,7 @@ private void calculateStatistic (
                         }
                     }
                     else if((testType == TestType.LE) && (value <= testValueDouble) ) {
-                        Message.printStatus(2, routine, "Found value " + value + " <= " +
-                            testValueDouble + " on " + date );
+                        Message.printStatus(2, routine, "      Found value " + value + " <= " + testValueDouble + " on " + date );
                         if ( (statisticType == TSStatisticType.LE_COUNT) ||
                             (statisticType == TSStatisticType.LE_PERCENT) ) {
                             if(yearts.isDataMissing( yearValue) ) {
@@ -560,7 +674,7 @@ private void calculateStatistic (
                         (statisticType == TSStatisticType.MONTH_OF_MAX) ||
                         (statisticType == TSStatisticType.MAX) ) {
                         if(yearts.isDataMissing(extremeValue)||(value > extremeValue) ) {
-                            // Set the max...
+                            // Set the max.
                             if ( statisticType == TSStatisticType.DAY_OF_MAX ) {
                                 extremeValue = value;
                                 yearValue = TimeUtil.dayOfYear( date, outputYearType );
@@ -580,8 +694,8 @@ private void calculateStatistic (
                         (statisticType == TSStatisticType.MONTH_OF_MIN) ||
                         (statisticType == TSStatisticType.MIN) ) {
                         if(yearts.isDataMissing(extremeValue)||(value < extremeValue) ) {
-                            Message.printStatus(2,routine,"Found new min " + value + " on " + date );
-                            // Set the min...
+                            Message.printStatus(2,routine,"      Found new min " + value + " on " + date );
+                            // Set the min.
                             if ( statisticType == TSStatisticType.DAY_OF_MIN ) {
                                 extremeValue = value;
                                 yearValue = TimeUtil.dayOfYear( date, outputYearType );
@@ -599,8 +713,8 @@ private void calculateStatistic (
                     }
                     else if( (statisticType == TSStatisticType.MEAN) ||
                         (statisticType == TSStatisticType.TOTAL) ) {
-                        // Need to accumulate the value (for Mean or Total)
-                        // Accumulate into the year_value
+                        // Need to accumulate the value (for Mean or Total).
+                        // Accumulate into the year_value.
                         if(yearts.isDataMissing( yearValue) ) {
                             yearValue = value;
                         }
@@ -611,12 +725,12 @@ private void calculateStatistic (
                 }
             }
             else {
-                // End of the data.  Compute the statistic and assign for the year
+                // End of the data.  Compute the statistic and assign for the year.
                 doneAnalyzing = true;
             }
             if ( doneAnalyzing ) {
-                // Save the results
-                Message.printStatus(2, routine, "For output year " + outputYear + ", sum=" + sum + ", nMissing=" +
+                // Save the results.
+                Message.printStatus(2, routine, "    For output year " + outputYear + ", sum=" + sum + ", nMissing=" +
                     nMissing + ", nNotMissing=" + nNotMissing );
                 if ( statisticType == TSStatisticType.DAY_OF_CENTROID ) {
                     if ( (nNotMissing > 0) &&
@@ -631,11 +745,11 @@ private void calculateStatistic (
                     }
                 }
                 else if ( statisticType == TSStatisticType.MISSING_COUNT ) {
-                    // Always assign
+                    // Always assign.
                     yearts.setDataValue ( outputYear, (double)nMissing );
                 }
                 else if ( statisticType == TSStatisticType.MISSING_PERCENT ) {
-                    // Always assign
+                    // Always assign.
                     if ( (nMissing + nNotMissing) > 0 ) {
                         yearts.setDataValue ( outputYear, 100.0*(double)nMissing/(double)(nMissing + nNotMissing) );
                     }
@@ -645,13 +759,13 @@ private void calculateStatistic (
                         okToSetYearStatistic(nMissing, nNotMissing, allowMissingCount, minimumSampleSize) ) {
                         yearts.setDataValue ( outputYear, monthMoment/sum );
                     }
-                }         
+                }
                 else if ( statisticType == TSStatisticType.NONMISSING_COUNT ) {
-                    // Always assign
+                    // Always assign.
                     yearts.setDataValue ( outputYear, (double)nNotMissing );
                 }
                 else if ( statisticType == TSStatisticType.NONMISSING_PERCENT ) {
-                    // Always assign
+                    // Always assign.
                     if ( (nMissing + nNotMissing) > 0 ) {
                         yearts.setDataValue ( outputYear, 100.0*(double)nNotMissing/(double)(nMissing + nNotMissing) );
                     }
@@ -663,7 +777,7 @@ private void calculateStatistic (
                     }
                 }
                 else {
-                    Message.printStatus(2,routine,"Year " + outputYear + " value=" + yearValue );
+                    Message.printStatus(2,routine,"    Year " + outputYear + " value=" + yearValue );
                     if ( !yearts.isDataMissing(yearValue) &&
                         okToSetYearStatistic(nMissing, nNotMissing, allowMissingCount, minimumSampleSize) ) {
                         // No additional processing is needed.
@@ -672,8 +786,7 @@ private void calculateStatistic (
                             (statisticType == TSStatisticType.LE_PERCENT) ||
                             (statisticType == TSStatisticType.LT_PERCENT) ) {
                             if ( (nMissing + nNotMissing) > 0 ) {
-                                // Note that these statistics are for total number of points (not just
-                                // non-missing points).
+                                // Note that these statistics are for total number of points (not just non-missing points).
                                 yearts.setDataValue ( outputYear, 100.0*yearValue/(nMissing + nNotMissing) );
                             }
                         }
@@ -686,11 +799,12 @@ private void calculateStatistic (
                 // Increment the dates in the full output years.
                 // The dates may be changed for the analysis window in the next loop.
                 yearStart.addYear ( 1 );
-                // Also reset the day because the number of days in the month may depend on the year
-                yearEnd.addYear ( 1 );
-                yearEnd.setDay ( TimeUtil.numDaysInMonth(yearEnd.getMonth(), yearEnd.getYear()));
+                // Also reset the day because the number of days in the month may depend on the year:
+                // - do this at the top of the loop so adjustments are made relative to the yearStart
+                //yearEnd.addYear ( 1 );
+                //yearEnd.setDay ( TimeUtil.numDaysInMonth(yearEnd.getMonth(), yearEnd.getYear()));
                 outputYear.addYear ( 1 );
-                break; // Will go to the next year of input, with new iterator
+                break; // Will go to the next year of input, with new iterator.
             }
         }
     }
@@ -700,8 +814,7 @@ private void calculateStatistic (
 Return the number of missing values allowed in sample.
 @return the number of missing values allowed in sample.
 */
-private Integer getAllowMissingCount ()
-{
+private Integer getAllowMissingCount () {
     return __allowMissingCount;
 }
 
@@ -709,8 +822,7 @@ private Integer getAllowMissingCount ()
 Return the analysis end date/time.
 @return the analysis end date/time.
 */
-private DateTime getAnalysisEnd ()
-{
+private DateTime getAnalysisEnd () {
     return __analysisEnd;
 }
 
@@ -718,8 +830,7 @@ private DateTime getAnalysisEnd ()
 Return the analysis start date/time.
 @return the analysis start date/time.
 */
-private DateTime getAnalysisStart ()
-{
+private DateTime getAnalysisStart () {
     return __analysisStart;
 }
 
@@ -727,8 +838,7 @@ private DateTime getAnalysisStart ()
 Return the analysis window end date/time.
 @return the analysis window end date/time.
 */
-private DateTime getAnalysisWindowEnd ()
-{
+private DateTime getAnalysisWindowEnd () {
     return __analysisWindowEnd;
 }
 
@@ -736,8 +846,7 @@ private DateTime getAnalysisWindowEnd ()
 Return the analysis window start date/time.
 @return the analysis window start date/time.
 */
-private DateTime getAnalysisWindowStart ()
-{
+private DateTime getAnalysisWindowStart () {
     return __analysisWindowStart;
 }
 
@@ -745,8 +854,7 @@ private DateTime getAnalysisWindowStart ()
 Return the minimum sample size allowed to compute the statistic.
 @return the minimum sample size allowed to compute the statistic.
 */
-private Integer getMinimumSampleSize ()
-{
+private Integer getMinimumSampleSize () {
     return __minimumSampleSize;
 }
 
@@ -754,8 +862,7 @@ private Integer getMinimumSampleSize ()
 Return the time series identifier for the new time series.
 @return the time series identifier for the new time series.
 */
-private String getNewTSID ()
-{
+private String getNewTSID () {
     return __newTSID;
 }
 
@@ -763,8 +870,7 @@ private String getNewTSID ()
 Return the output year type.
 @return the output year type.
 */
-private YearType getOutputYearType ()
-{
+private YearType getOutputYearType () {
     return __outputYearType;
 }
 
@@ -772,25 +878,24 @@ private YearType getOutputYearType ()
 Return the search start date/time.
 @return the search start date/time.
 */
-private DateTime getSearchStart ()
-{
+private DateTime getSearchStart () {
     return __searchStart;
 }
 
 /**
 Return a list of statistic choices for the requested interval and scale.
-These strings are suitable for listing in a user interface.  The statistics are
-listed in ascending alphabetical order.  Parameters can be used to limit the
-choices (these features will be phased in over time as statistics are added).
-@param interval TimeInterval.DAY, etc., indicating the interval of data for the
-statistic (e.g., average value for the year).  Pass TimeInterval.UNKNOWN to get all choices.
-@param timescale indicates whether the statistic is
-expected on accumulated, mean, instantaneous data.  Pass null to get all choices.  CURRENTLY NOT USED.
+These strings are suitable for listing in a user interface.
+The statistics are listed in ascending alphabetical order.
+Parameters can be used to limit the choices (these features will be phased in over time as statistics are added).
+@param interval TimeInterval.DAY, etc., indicating the interval of data for the statistic (e.g., average value for the year).
+Pass TimeInterval.UNKNOWN to get all choices.
+@param timescale indicates whether the statistic is expected on accumulated, mean, instantaneous data.
+Pass null to get all choices.  CURRENTLY NOT USED.
 */
-public static List<TSStatisticType> getStatisticChoicesForInterval ( int interval, TimeScaleType timescale )
-{   List<TSStatisticType> statistics = new ArrayList<TSStatisticType>();
+public static List<TSStatisticType> getStatisticChoicesForInterval ( int interval, TimeScaleType timescale ) {
+    List<TSStatisticType> statistics = new ArrayList<TSStatisticType>();
     // Add in alphabetical order, splitting up by interval as appropriate.
-    // Daily or finer...
+    // Daily or finer.
     if ( (interval <= TimeInterval.DAY) || (interval == TimeInterval.UNKNOWN) ) {
         statistics.add ( TSStatisticType.DAY_OF_CENTROID );
         statistics.add ( TSStatisticType.DAY_OF_FIRST_GE );
@@ -804,7 +909,7 @@ public static List<TSStatisticType> getStatisticChoicesForInterval ( int interva
         statistics.add ( TSStatisticType.DAY_OF_MAX );
         statistics.add ( TSStatisticType.DAY_OF_MIN );
     }
-    // All intervals...
+    // All intervals.
     statistics.add ( TSStatisticType.GE_COUNT );
     statistics.add ( TSStatisticType.GE_PERCENT );
     statistics.add ( TSStatisticType.GT_COUNT );
@@ -814,13 +919,13 @@ public static List<TSStatisticType> getStatisticChoicesForInterval ( int interva
     statistics.add ( TSStatisticType.LT_COUNT );
     statistics.add ( TSStatisticType.LT_PERCENT );
     statistics.add ( TSStatisticType.MAX );
-    // TODO SAM 2009-10-14 Need to support median
+    // TODO SAM 2009-10-14 Need to support median.
     //statistics.add ( TSStatisticType.MEDIAN );
     statistics.add ( TSStatisticType.MEAN );
     statistics.add ( TSStatisticType.MIN );
     statistics.add ( TSStatisticType.MISSING_COUNT );
     statistics.add ( TSStatisticType.MISSING_PERCENT );
-    // Monthly or finer...
+    // Monthly or finer.
     if ( (interval <= TimeInterval.MONTH) || (interval == TimeInterval.UNKNOWN) ) {
         statistics.add ( TSStatisticType.MONTH_OF_CENTROID );
         statistics.add ( TSStatisticType.MONTH_OF_FIRST_GE );
@@ -842,18 +947,18 @@ public static List<TSStatisticType> getStatisticChoicesForInterval ( int interva
 
 /**
 Return a list of statistic choices for the requested interval and scale.
-These strings are suitable for listing in a user interface.  The statistics are
-listed in ascending alphabetical order.  Parameters can be used to limit the
-choices (these features will be phased in over time as statistics are added).
+These strings are suitable for listing in a user interface.
+The statistics are listed in ascending alphabetical order.
+Parameters can be used to limit the choices (these features will be phased in over time as statistics are added).
 @param interval TimeInterval.DAY, etc., indicating the interval of data for the
 statistic (e.g., average value for the year).  Pass TimeInterval.UNKNOWN to get all choices.
-@param timescale MeasTimeScale.ACCM, etc., indicating whether the statistic is
-expected on accumulated, mean, instantaneous data.  Pass null to get all choices.  CURRENTLY NOT USED.
+@param timescale MeasTimeScale.ACCM, etc.,
+indicating whether the statistic is expected on accumulated, mean, instantaneous data.
+Pass null to get all choices.  CURRENTLY NOT USED.
 */
-public static List<String> getStatisticChoicesForIntervalAsStrings ( int interval, TimeScaleType timescale )
-{
+public static List<String> getStatisticChoicesForIntervalAsStrings ( int interval, TimeScaleType timescale ) {
     List<TSStatisticType> choices = getStatisticChoicesForInterval( interval, timescale);
-    List<String> stringChoices = new ArrayList<String>();
+    List<String> stringChoices = new ArrayList<>();
     for ( int i = 0; i < choices.size(); i++ ) {
         stringChoices.add ( "" + choices.get(i) );
     }
@@ -865,8 +970,7 @@ Determine the statistic test type, when comparing against a test value.
 @param statisticType a statistic type to check.
 @return the test type for the statistic or NOT_USED if the test is not used for a statistic.
 */
-private TestType getStatisticTestType ( TSStatisticType statisticType )
-{
+private TestType getStatisticTestType ( TSStatisticType statisticType ) {
     if ( (statisticType == TSStatisticType.GE_COUNT) ||
         (statisticType == TSStatisticType.GE_PERCENT) ||
         (statisticType == TSStatisticType.DAY_OF_FIRST_GE) ||
@@ -912,8 +1016,7 @@ Determine the statistic time series data units.
 @return the description for the time series, given the statistic and test types.
 */
 private String getStatisticTimeSeriesDataUnits ( TSStatisticType statisticType,
-    boolean statisticIsCount, boolean statisticIsDayOf, boolean statisticIsMonthOf, String tsUnits )
-{
+    boolean statisticIsCount, boolean statisticIsDayOf, boolean statisticIsMonthOf, String tsUnits ) {
     if ( statisticIsCount ) {
         if ( (statisticType == TSStatisticType.GE_PERCENT) ||
             (statisticType == TSStatisticType.GT_PERCENT) ||
@@ -947,8 +1050,8 @@ Determine the statistic time series description.
 */
 private String getStatisticTimeSeriesDescription ( TSStatisticType statisticType, TestType testType,
     Double testValue, boolean statisticIsCount, boolean statisticIsDayOf, boolean statisticIsMonthOf,
-    boolean statisticIsFirst, boolean statisticIsLast )
-{   String testString = "?test?";
+    boolean statisticIsFirst, boolean statisticIsLast ) {
+    String testString = "?test?";
     String testValueString = "?testValue?";
     String desc = "?";
     if ( testValue != null ) {
@@ -1015,7 +1118,7 @@ private String getStatisticTimeSeriesDescription ( TSStatisticType statisticType
         // MAX, MEAN, etc.
         desc = "" + statisticType;
     }
-    // If not set will fall through to default
+    // If not set will fall through to default.
     return desc;
 }
 
@@ -1023,8 +1126,7 @@ private String getStatisticTimeSeriesDescription ( TSStatisticType statisticType
 Return the name of the statistic being calculated.
 @return the name of the statistic being calculated.
 */
-public TSStatisticType getStatisticType ()
-{
+public TSStatisticType getStatisticType () {
     return __statisticType;
 }
 
@@ -1032,8 +1134,7 @@ public TSStatisticType getStatisticType ()
 Return the test value used to calculate some statistics.
 @return the test value used to calculate some statistics.
 */
-private Double getValue1 ()
-{
+private Double getValue1 () {
     return __value1;
 }
 
@@ -1041,18 +1142,16 @@ private Double getValue1 ()
 Return the time series being analyzed.
 @return the time series being analyzed.
 */
-public TS getTimeSeries ()
-{
+public TS getTimeSeries () {
     return __ts;
 }
 
 /**
 Indicate whether the statistic is a count.
-Percents are handled as counts initially and are then converted to percent as the last assignment
+Percents are handled as counts initially and are then converted to percent as the last assignment.
 @param statisticType a statistic type to check.
 */
-private boolean isStatisticCount ( TSStatisticType statisticType )
-{
+private boolean isStatisticCount ( TSStatisticType statisticType ) {
     if ( (statisticType == TSStatisticType.GE_COUNT) ||
         (statisticType == TSStatisticType.GE_PERCENT) ||
         (statisticType == TSStatisticType.GT_COUNT) ||
@@ -1074,8 +1173,7 @@ private boolean isStatisticCount ( TSStatisticType statisticType )
 Indicate whether the statistic is a "DayOf" statistic.
 @param statisticType a statistic type to check.
 */
-private boolean isStatisticDayOf ( TSStatisticType statisticType )
-{
+private boolean isStatisticDayOf ( TSStatisticType statisticType ) {
     if ( (statisticType == TSStatisticType.DAY_OF_CENTROID) ||
         (statisticType == TSStatisticType.DAY_OF_FIRST_GE) ||
         (statisticType == TSStatisticType.DAY_OF_FIRST_GT) ||
@@ -1098,8 +1196,7 @@ private boolean isStatisticDayOf ( TSStatisticType statisticType )
 Indicate whether the statistic is a "First" statistic.
 @param statisticType a statistic type to check.
 */
-private boolean isStatisticFirst ( TSStatisticType statisticType )
-{
+private boolean isStatisticFirst ( TSStatisticType statisticType ) {
     if ( (statisticType == TSStatisticType.DAY_OF_FIRST_GE) ||
         (statisticType == TSStatisticType.DAY_OF_FIRST_GT) ||
         (statisticType == TSStatisticType.DAY_OF_FIRST_LE) ||
@@ -1119,8 +1216,7 @@ private boolean isStatisticFirst ( TSStatisticType statisticType )
 Indicate whether the statistic is a "Last" statistic.
 @param statisticType a statistic type to check.
 */
-private boolean isStatisticLast ( TSStatisticType statisticType )
-{
+private boolean isStatisticLast ( TSStatisticType statisticType ) {
     if ( (statisticType == TSStatisticType.DAY_OF_LAST_GE) ||
         (statisticType == TSStatisticType.DAY_OF_LAST_GT) ||
         (statisticType == TSStatisticType.DAY_OF_LAST_LE) ||
@@ -1140,8 +1236,7 @@ private boolean isStatisticLast ( TSStatisticType statisticType )
 Indicate whether the statistic is a "MonthOf" statistic.
 @param statisticType a statistic type to check.
 */
-private boolean isStatisticMonthOf ( TSStatisticType statisticType )
-{
+private boolean isStatisticMonthOf ( TSStatisticType statisticType ) {
     if ( (statisticType == TSStatisticType.MONTH_OF_CENTROID) ||
         (statisticType == TSStatisticType.MONTH_OF_FIRST_GE) ||
         (statisticType == TSStatisticType.MONTH_OF_FIRST_GT) ||
@@ -1165,8 +1260,7 @@ Indicate whether the statistic is determined by iterating forward or backward.
 @param statisticType a statistic type to check.
 @return true if the statistic is determined by iterating forward, false if iterating backward.
 */
-private boolean isStatisticIterateForward ( TSStatisticType statisticType )
-{
+private boolean isStatisticIterateForward ( TSStatisticType statisticType ) {
     if ( (statisticType == TSStatisticType.DAY_OF_LAST_GE) ||
         (statisticType == TSStatisticType.DAY_OF_LAST_GT) ||
         (statisticType == TSStatisticType.DAY_OF_LAST_LE) ||
@@ -1175,11 +1269,11 @@ private boolean isStatisticIterateForward ( TSStatisticType statisticType )
         (statisticType == TSStatisticType.MONTH_OF_LAST_GT) ||
         (statisticType == TSStatisticType.MONTH_OF_LAST_LE) ||
         (statisticType == TSStatisticType.MONTH_OF_LAST_LT)) {
-        // Iterate backward
+        // Iterate backward.
         return false;
     }
     else {
-        return true; // By default most statistics are determined by iterating forward
+        return true; // By default most statistics are determined by iterating forward.
     }
 }
 
@@ -1189,8 +1283,7 @@ Indicate whether a statistic is supported.
 @param interval time interval base to check, or TimeInterval.UNKNOWN if interval is not to be considered.
 @param timeScale time scale to check, or null if not considered.
 */
-public static boolean isStatisticSupported ( TSStatisticType statisticType, int interval, TimeScaleType timeScale )
-{
+public static boolean isStatisticSupported ( TSStatisticType statisticType, int interval, TimeScaleType timeScale ) {
     List<TSStatisticType> choices = getStatisticChoicesForInterval ( interval, timeScale );
     for ( int i = 0; i < choices.size(); i++ ) {
         if ( choices.get(i) == statisticType ) {
@@ -1204,8 +1297,7 @@ public static boolean isStatisticSupported ( TSStatisticType statisticType, int 
 Indicate whether the statistic requires that a test value be supplied.
 @param statisticType a statistic type to check.
 */
-public static boolean isTestValueNeeded ( TSStatisticType statisticType )
-{
+public static boolean isTestValueNeeded ( TSStatisticType statisticType ) {
     if ( (statisticType == TSStatisticType.DAY_OF_FIRST_GE) ||
         (statisticType == TSStatisticType.DAY_OF_FIRST_GT) ||
         (statisticType == TSStatisticType.DAY_OF_FIRST_LE) ||
@@ -1238,22 +1330,25 @@ public static boolean isTestValueNeeded ( TSStatisticType statisticType )
 }
 
 /**
-Create a year time series that contains statistics in each data value (e.g.,
-percent missing, percent not missing).
+Create a year time series that contains statistics in each data value (e.g., percent missing, percent not missing).
 @param createData if true, calculate the data value array; if false, only assign metadata
 @return The statistics time series.
 */
-public YearTS newStatisticYearTS ( boolean createData )
-{   String message, routine = getClass().getSimpleName() + ".newStatisticYearTS";
+public YearTS newStatisticYearTS ( boolean createData ) {
+    String message, routine = getClass().getSimpleName() + ".newStatisticYearTS";
     int dl = 10;
 
-    // Get the data needed for the analysis - originally provided in the constructor
-    
+    // Get the data needed for the analysis - originally provided in the constructor.
+
     TS ts = getTimeSeries();
     String newTSID = getNewTSID();
     TSStatisticType statisticType = getStatisticType();
     Double testValue = getValue1();
     Integer allowMissingCount = getAllowMissingCount();
+    if ( this.__ts.isIrregularInterval() ) {
+    	// Irregular interval so 'allowMissingCount' is ignored.
+    	allowMissingCount = -1;
+    }
     Integer minimumSampleSize = getMinimumSampleSize();
     DateTime analysisStart = getAnalysisStart();
     DateTime analysisEnd = getAnalysisEnd();
@@ -1261,39 +1356,39 @@ public YearTS newStatisticYearTS ( boolean createData )
     DateTime analysisWindowStart = getAnalysisWindowStart();
     DateTime analysisWindowEnd = getAnalysisWindowEnd();
     DateTime searchStart = getSearchStart();
-    
+
     if ( Message.isDebugOn ) {
-	   Message.printDebug ( dl, routine, "Trying to create statistic year TS for time series \"" + ts.getIdentifierString() + "\"" );
+	   Message.printDebug ( dl, routine, "Creating statistic year TS for time series \"" + ts.getIdentifierString() + "\"." );
     }
 
-    // Get valid dates for the output time series because the ones passed in may have been null...
+    // Get valid dates for the output time series because the ones passed in may have been null.
 
     TSLimits validDates = TSUtil.getValidPeriod ( ts, analysisStart, analysisEnd );
-    // Reset because these are handled generically below whether passed in or defaulted to "ts"
+    // Reset because these are handled generically below whether passed in or defaulted to "ts".
     analysisStart = new DateTime ( validDates.getDate1() );
     analysisEnd = new DateTime ( validDates.getDate2() );
 
-    // Create a year time series to be filled...
+    // Create a year interval time series to be filled.
 
     YearTS yearts = new YearTS();
-	yearts.addToGenesis ( "Initialized statistic year time series from \"" + ts.getIdentifierString() + "\"" );
+	yearts.addToGenesis ( "Initialized statistic year time series from \"" + ts.getIdentifierString() + "\"." );
     yearts.copyHeader ( ts );
 
-    // Reset the identifier if the user has specified it...
+    // Reset the identifier if the user has specified it.
 
     try {
         if ( (newTSID != null) && (newTSID.length() > 0) ) {
-        	// Expand the new TSID using the input time series
+        	// Expand the new TSID using the input time series.
         	String newTSIDExpanded = ts.formatLegend(newTSID);
             TSIdent tsident = new TSIdent ( newTSIDExpanded );
-            // Make sure that the output interval is Year
+            // Make sure that the output interval is Year.
             if ( !tsident.getInterval().equalsIgnoreCase("Year") ) {
                 tsident.setInterval("Year");
             }
             yearts.setIdentifier ( tsident );
         }
         else {
-            // Default is to set the scenario to the statistic...
+            // Default is to set the scenario to the statistic.
             yearts.getIdentifier().setScenario ( "" + statisticType );
         }
     }
@@ -1304,28 +1399,28 @@ public YearTS newStatisticYearTS ( boolean createData )
         throw new RuntimeException(message);
     }
 
-    // Need to make sure the base and multiplier are correct...
+    // Need to make sure the base and multiplier are correct.
     yearts.setDataInterval ( TimeInterval.YEAR, 1 );
 
-    // Automatically sets the precision to Year for these dates...
+    // Automatically sets the precision to Year for these dates.
     DateTimeRange yeartsDateRange = TimeUtil.determineOutputYearTypeRange(analysisStart, analysisEnd, outputYearType);
     yearts.setDate1 ( yeartsDateRange.getStart() );
     yearts.setDate2 ( yeartsDateRange.getEnd() );
     if ( Message.isDebugOn ) {
         Message.printDebug(1, routine, "Output year type " + outputYearType + " period is " + yearts.getDate1() +
-            " to " + yearts.getDate2() );
+            " to " + yearts.getDate2() + ".");
     }
-    
+
     if ( !createData ) {
         return yearts;
     }
 
-    // This will fill with missing data...
+    // This will fill with missing data.
     yearts.allocateDataSpace();
 
-    // Process the statistic of interest...
+    // Process the statistic of interest.
 
-    // FIXME SAM 2009-11-06 Legacy method that seems too complicated.
+    // FIXME smalers 2009-11-06 Legacy method that seems too complicated.
     //    processStatistic ( ts, yearts, statisticType, testValue, start, end,
     //        allowMissingCount, minimumSampleSize, analysisWindowStart, analysisWindowEnd );
     calculateStatistic (
@@ -1333,7 +1428,7 @@ public YearTS newStatisticYearTS ( boolean createData )
             analysisStart, analysisEnd, allowMissingCount, minimumSampleSize,
             analysisWindowStart, analysisWindowEnd, searchStart );
 
-    // Return the statistic result...
+    // Return the statistic result.
     return yearts;
 }
 
@@ -1344,12 +1439,10 @@ Determine whether it is OK to set a yearly statistic based on handling of missin
 @param allowMissingCount the number of values allowed to be missing in a year (or -1 if no limit).
 @param minimumSampleSize the minimum sample size, or -1 if no limit.
  */
-private boolean okToSetYearStatistic ( int missingCount, int nonMissingCount,
-    int allowMissingCount, int minimumSampleSize )
-{
-    // Check the missing count...
+private boolean okToSetYearStatistic ( int missingCount, int nonMissingCount, int allowMissingCount, int minimumSampleSize ) {
+    // Check the missing count.
     if ( (allowMissingCount < 0) || (missingCount <= allowMissingCount) ) {
-        // So far OK to set, but check sample size
+        // So far OK to set, but check sample size.
         if ( (minimumSampleSize < 0) || (nonMissingCount >= minimumSampleSize) ) {
             return true;
         }
@@ -1390,11 +1483,9 @@ Process a time series to create the the following annual statistics:
 @param yearts YearTS to fill with the statistic.
 @param start Start of the analysis (precision matching ts).
 @param end End of the analysis (precision matching ts).
-@param analysisWindowStart If not null, specify the start of the window within
-the year for data, for example to specify a season.
+@param analysisWindowStart If not null, specify the start of the window within the year for data, for example to specify a season.
 Currently only Month... to precision are evaluated (not day... etc.).
-@param analysisWindowEnd If not null, specify the end of the window within
-the year for data, for example to specify a season.
+@param analysisWindowEnd If not null, specify the end of the window within the year for data, for example to specify a season.
 Currently only Month... to precision are evaluated (not day... etc.).
 @param searchStart date/time to start search within each year.
 */
@@ -1419,7 +1510,7 @@ private void processStatistic ( TS ts, YearTS yearts, TSStatisticType statisticT
         throw new InvalidParameterException ( message );
     }
     boolean isRegular = TimeInterval.isRegularInterval(interval_base);
-    
+
     double testValueDouble = -1; // OK to initialize to this because checks will have verified real value
     if ( isTestValueNeeded( statisticType ) ) {
         testValueDouble = testValue.doubleValue();
@@ -1429,7 +1520,7 @@ private void processStatistic ( TS ts, YearTS yearts, TSStatisticType statisticT
     if ( searchStart != null ) {
         searchStartString = "" + searchStart;
     }
-    
+
     TestType testType = TestType.NOT_USED;
 
     boolean statisticIsCount = isStatisticCount(statisticType);
@@ -1599,11 +1690,11 @@ private void processStatistic ( TS ts, YearTS yearts, TSStatisticType statisticT
     while ( true ) {
         if ( iterateForward ) {
             // First call will initialize and return first point.
-            data = tsi.next();  
+            data = tsi.next();
         }
         else {
             // First call will initialize and return last point.
-            data = tsi.previous();  
+            data = tsi.previous();
         }
         if ( data != null ) {
             date = tsi.getDate();
@@ -1813,7 +1904,7 @@ private void processStatistic ( TS ts, YearTS yearts, TSStatisticType statisticT
                     else if ((statisticType == TSStatisticType.DAY_OF_FIRST_GE) ||
                         (statisticType == TSStatisticType.DAY_OF_LAST_GE) ){
                         yearValue = TimeUtil.dayOfYear(date);
-                        needToAnalyze = false;    
+                        needToAnalyze = false;
                         // Found value for the year.
                     }
                 }
@@ -1829,7 +1920,7 @@ private void processStatistic ( TS ts, YearTS yearts, TSStatisticType statisticT
                     else if ((statisticType == TSStatisticType.DAY_OF_FIRST_GT) ||
                         (statisticType == TSStatisticType.DAY_OF_LAST_GT) ){
                         yearValue = TimeUtil.dayOfYear( date);
-                        needToAnalyze = false;    
+                        needToAnalyze = false;
                         // Found value for the year.
                     }
                 }
@@ -1845,7 +1936,7 @@ private void processStatistic ( TS ts, YearTS yearts, TSStatisticType statisticT
                     else if ((statisticType == TSStatisticType.DAY_OF_FIRST_LE) ||
                         (statisticType == TSStatisticType.DAY_OF_LAST_LE) ){
                         yearValue = TimeUtil.dayOfYear( date);
-                        needToAnalyze = false;    
+                        needToAnalyze = false;
                         // Found value for the year.
                     }
                 }
@@ -1861,7 +1952,7 @@ private void processStatistic ( TS ts, YearTS yearts, TSStatisticType statisticT
                     else if ((statisticType == TSStatisticType.DAY_OF_FIRST_LT) ||
                         (statisticType == TSStatisticType.DAY_OF_LAST_LT) ){
                         yearValue = TimeUtil.dayOfYear( date);
-                        needToAnalyze = false;    
+                        needToAnalyze = false;
                         // Found value for the year.
                     }
                 }
@@ -1921,8 +2012,7 @@ private void processStatistic ( TS ts, YearTS yearts, TSStatisticType statisticT
 Set the number of values allowed to be missing in the sample.
 @param allowMissingCount the number of values allowed to be missing in the sample.
 */
-private void setAllowMissingCount ( int allowMissingCount )
-{
+private void setAllowMissingCount ( int allowMissingCount ) {
     __allowMissingCount = allowMissingCount;
 }
 
@@ -1930,8 +2020,7 @@ private void setAllowMissingCount ( int allowMissingCount )
 Set the end for the analysis.
 @param analysisEnd end date/time for the analysis.
 */
-private void setAnalysisEnd ( DateTime analysisEnd )
-{
+private void setAnalysisEnd ( DateTime analysisEnd ) {
     __analysisEnd = analysisEnd;
 }
 
@@ -1939,8 +2028,7 @@ private void setAnalysisEnd ( DateTime analysisEnd )
 Set the start for the analysis.
 @param analysisStart start date/time for the analysis.
 */
-private void setAnalysisStart ( DateTime analysisStart )
-{
+private void setAnalysisStart ( DateTime analysisStart ) {
     __analysisStart = analysisStart;
 }
 
@@ -1948,8 +2036,7 @@ private void setAnalysisStart ( DateTime analysisStart )
 Set the end for the analysis window.
 @param analysisEnd end date/time for the analysis window.
 */
-private void setAnalysisWindowEnd ( DateTime analysisWindowEnd )
-{
+private void setAnalysisWindowEnd ( DateTime analysisWindowEnd ) {
     __analysisWindowEnd = analysisWindowEnd;
 }
 
@@ -1957,8 +2044,7 @@ private void setAnalysisWindowEnd ( DateTime analysisWindowEnd )
 Set the start for the analysis window.
 @param analysisStart start date/time for the analysis window.
 */
-private void setAnalysisWindowStart ( DateTime analysisWindowStart )
-{
+private void setAnalysisWindowStart ( DateTime analysisWindowStart ) {
     __analysisWindowStart = analysisWindowStart;
 }
 
@@ -1966,8 +2052,7 @@ private void setAnalysisWindowStart ( DateTime analysisWindowStart )
 Set the minimum sample size.
 @param minimumSampleSize the minimum sample size.
 */
-private void setMinimumSampleSize ( int minimumSampleSize )
-{
+private void setMinimumSampleSize ( int minimumSampleSize ) {
     __minimumSampleSize = minimumSampleSize;
 }
 
@@ -1975,8 +2060,7 @@ private void setMinimumSampleSize ( int minimumSampleSize )
 Set the new time series identifier.
 @param newTSID the new time series identifier.
 */
-private void setNewTSID ( String newTSID )
-{
+private void setNewTSID ( String newTSID ) {
     __newTSID = newTSID;
 }
 
@@ -1984,8 +2068,7 @@ private void setNewTSID ( String newTSID )
 Set the output year type.
 @param outputYearType output year type.
 */
-private void setOutputYearType ( YearType outputYearType )
-{
+private void setOutputYearType ( YearType outputYearType ) {
     __outputYearType = outputYearType;
 }
 
@@ -1993,8 +2076,7 @@ private void setOutputYearType ( YearType outputYearType )
 Set the search start.
 @param searchStart start date/time processing in a year.
 */
-private void setSearchStart ( DateTime searchStart )
-{
+private void setSearchStart ( DateTime searchStart ) {
     __searchStart = searchStart;
 }
 
@@ -2002,8 +2084,7 @@ private void setSearchStart ( DateTime searchStart )
 Set the statistic type.
 @param statisticType statistic type to calculate.
 */
-private void setStatisticType ( TSStatisticType statisticType )
-{
+private void setStatisticType ( TSStatisticType statisticType ) {
     __statisticType = statisticType;
 }
 
@@ -2011,8 +2092,7 @@ private void setStatisticType ( TSStatisticType statisticType )
 Set the test value used with some statistics.
 @param testValue the test value used with some statistics.
 */
-private void setValue1 ( Double testValue )
-{
+private void setValue1 ( Double testValue ) {
     __value1 = testValue;
 }
 
@@ -2020,8 +2100,7 @@ private void setValue1 ( Double testValue )
 Set the time series being analyzed.
 @param ts time series being analyzed.
 */
-private void setTimeSeries ( TS ts )
-{
+private void setTimeSeries ( TS ts ) {
     __ts = ts;
 }
 
