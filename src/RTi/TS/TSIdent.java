@@ -217,6 +217,11 @@ The data interval multiplier.
 private int	__interval_mult;
 
 /**
+ * The irregular interval precision, if an irregular interval time series, initialized to TimeInterval.UNKNOWN.
+ */
+private int __irregularIntervalPrecision = TimeInterval.UNKNOWN;
+
+/**
 The time series scenario.
 */
 private String __scenario;
@@ -674,6 +679,14 @@ Return the data interval multiplier.
 */
 public int getIntervalMult () {
 	return __interval_mult;
+}
+
+/**
+Return the irregular data interval precision as an int.
+@return The irregular data interval precision (see TimeInterval.*).
+*/
+public int getIrregularIntervalPrecision () {
+	return __irregularIntervalPrecision;
 }
 
 /**
@@ -1757,13 +1770,15 @@ throws Exception {
         if ( tsinterval != null ) {
     		__interval_base = tsinterval.getBase();
     		__interval_mult = tsinterval.getMultiplier();
+    		if ( __interval_base == TimeInterval.IRREGULAR ) {
+    			__irregularIntervalPrecision = tsinterval.getIrregularIntervalPrecision();
+    		}
     		if ( Message.isDebugOn ) {
     			Message.printDebug ( dl, routine, "Setting interval base to " + __interval_base	+ " (" +
     				TimeInterval.getName(__interval_base, 0) + ") mult: " + __interval_mult );
     			if ( tsinterval.isIrregularInterval() ) {
     				Message.printDebug ( dl, routine, "  Interval is irregular, precision is " +
-    					tsinterval.getIrregularIntervalPrecision()	+ " (" +
-    					TimeInterval.getName(tsinterval.getIrregularIntervalPrecision(), 0) + ")." );
+    					this.__irregularIntervalPrecision + " (" + TimeInterval.getName(this.__irregularIntervalPrecision, 0) + ")." );
     			}
     		}
         }

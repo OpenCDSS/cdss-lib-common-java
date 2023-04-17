@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ import RTi.Util.Time.YearType;
  */
 public class TSUtil_ChangeInterval
 {
-    
+
 /**
 How to handle interval end-points when going from smaller interval to larger interval.
 */
@@ -135,8 +135,7 @@ private double __tolerance = 0.01;
 Legacy constructor used when running old methods in this class.
 For most conversions use the constructor with the full list of parameters.
 */
-public TSUtil_ChangeInterval ()
-{
+public TSUtil_ChangeInterval () {
 }
 
 /**
@@ -144,37 +143,39 @@ Constructor.
 @param oldTS Time series used as data to generate the new time series.
 @param newInterval New interval as a string that can be parsed by RTi.Util.Time.TimeInterval.parseInterval(),
 indicating the new interval for the time series.
-@param oldTimeScale The old time scale indicates whether values in the old time series are accumulated over
-the interval ("ACCM"), an average over the interval ("MEAN"), or instantaneous for the point in time ("INST")).
-@param newTimeScale The new time scale indicates whether values in the new time series are accumulated over
-the interval ("ACCM"), an average over the interval ("MEAN"), or instantaneous for the point in time ("INST")).
-@param statisticType the output statistic type, support for some calculations (currently only INST-small
-to INST-large), for example compute daily max from instantaneous small interval.  Specify null to use the
-default statistic for the time scale and interval combination.
+@param oldTimeScale The old time scale indicates whether values in the old time series are accumulated over the interval ("ACCM"),
+an average over the interval ("MEAN"), or instantaneous for the point in time ("INST")).
+@param newTimeScale The new time scale indicates whether values in the new time series are accumulated over the interval ("ACCM"),
+an average over the interval ("MEAN"), or instantaneous for the point in time ("INST")).
+@param statisticType the output statistic type, support for some calculations (currently only INST-small to INST-large),
+for example compute daily max from instantaneous small interval.
+Specify null to use the default statistic for the time scale and interval combination.
 @param outputYearType output year type used when the new interval is year (if null use calendar).
-@param newDataType the data type for the new time series.  If null, the data type from the old time series
-will be used (Warning: for some systems, the meaning of the data type changes depending on the interval.
+@param newDataType the data type for the new time series.  If null, the data type from the old time series will be used
+(Warning: for some systems, the meaning of the data type changes depending on the interval.
 For example "Streamflow" may be instantaneous for irregular data and mean for daily data.)
 @param newUnits Units for the new time series.  If null, use the units from the original time series.
 @param tolerance Used when converting large interval MEAN data to small interval INST data - see TSTool documentation.
-@param handleEndpointsHow when changing from INST to MEAN, small interval to large interval (but only daily or
-smaller), indicate how the end-points should be handled.
-@param allowMissingCount Indicate the number of missing values that can be missing in the input data and still
-allow computation of the result. For example, if daily data are being converted to monthly, a value of 5 would
+@param handleEndpointsHow when changing from INST to MEAN, small interval to large interval (but only daily or smaller),
+indicate how the end-points should be handled.
+@param allowMissingCount Indicate the number of missing values that can be missing in the
+input data and still allow computation of the result.
+For example, if daily data are being converted to monthly, a value of 5 would
 allow <= 5 missing values to be present in a month's daily data, and still generate a monthly value.
 The missing values are evaluated for the block of input needed to compute the result.
-This parameter is not used for conversion from irregular time series or conversions from larger
-intervals to smaller ones.  If specified as null, the default value is 0, meaning that any missing data in
-the input data will result in missing data in the result.
+This parameter is not used for conversion from irregular time series or conversions from larger intervals to smaller ones.
+If specified as null, the default value is 0,
+meaning that any missing data in the input data will result in missing data in the result.
 @param allowMissingPercent Indicate the percent of missing values that can be missing in the input data and
-still allow computation of the result.  For example, if daily data are being converted to monthly,
-a value of 25 would allow <= 25% missing values to be present in a month's daily data, and still
-generate a monthly value.  The missing values are evaluated for the block of input needed to compute the result.
-Because months have different numbers of days, using a percentage may result in a different threshold for
-different months. This argument is not used for conversion from irregular time series or conversions
-from larger intervals to smaller ones.  If specified as null, the default value is 0,
-meaning that any missing data in the input data will result in missing data in the result.  However, if the
-allowMissingCount is specified, it will override this default.
+still allow computation of the result.
+For example, if daily data are being converted to monthly,
+a value of 25 would allow <= 25% missing values to be present in a month's daily data, and still generate a monthly value.
+The missing values are evaluated for the block of input needed to compute the result.
+Because months have different numbers of days, using a percentage may result in a different threshold for different months.
+This argument is not used for conversion from irregular time series or conversions from larger intervals to smaller ones.
+If specified as null, the default value is 0,
+meaning that any missing data in the input data will result in missing data in the result.
+However, if the allowMissingCount is specified, it will override this default.
 @param allowMissingConsecutive the number of consecutive missing values allowed and still compute the result,
 considered at the same time as allowMissingCount
 @param outputFillMethod This property is used only by conversions from INST to MEAN when the conversion
@@ -196,8 +197,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
     TSUtil_ChangeInterval_HandleEndpointsHowType handleEndpointsHow,
     TSUtil_ChangeInterval_OutputFillMethodType outputFillMethod,
     TSUtil_ChangeInterval_HandleMissingInputHowType handleMissingInputHow,
-    Integer allowMissingCount, Double allowMissingPercent, Integer allowMissingConsecutive )
-{
+    Integer allowMissingCount, Double allowMissingPercent, Integer allowMissingConsecutive ) {
     // Check controlling information.
     // OldTS - Make sure it is not null and has a not zero length period of record.
     if ( oldTS == null ) {
@@ -209,12 +209,12 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
     //}
     setOldTimeSeries ( oldTS );
     int oldIntervalBase = oldTS.getDataIntervalBase();
-    
+
     if ( newInterval == null ) {
         throw new IllegalArgumentException ( "New interval is null.  Cannot change interval." );
     }
     setNewInterval ( newInterval );
-    
+
     // Time scale for the old time series.
     if ( oldTimeScale == null ) {
         throw new IllegalArgumentException ( "Old time scale is null.  Cannot change interval.");
@@ -226,7 +226,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
         throw new IllegalArgumentException ( "New time scale is null.  Cannot change interval.");
     }
     setNewTimeScale ( newTimeScale );
-    
+
     // Statistic is only allowed for INST (small) to INST (large).
     if ( statisticType != null ) {
         if ( oldTimeScale != TimeScaleType.INST ) {
@@ -250,12 +250,12 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
         }
     }
     setStatistic ( statisticType );
-    
+
     if ( outputYearType == null ) {
         outputYearType = YearType.CALENDAR;
     }
     setOutputYearType ( outputYearType );
-    
+
     if ( (newDataType == null) || newDataType.equals("")  ) {
         // Assume the data type of the old time series.
         setNewDataType( oldTS.getDataType() );
@@ -263,14 +263,14 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
     else {
         setNewDataType ( newDataType );
     }
-    
+
     if ( (newUnits == null) || newUnits.equals("") ) {
         setNewUnits ( oldTS.getDataUnits() );
     }
     else {
         setNewUnits ( newUnits );
     }
-    
+
     if ( tolerance == null ) {
         tolerance = new Double ( 0.01 ); // Default.
     }
@@ -280,7 +280,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
             "Cannot change interval.");
     }
     setTolerance ( tolerance.doubleValue() );
-    
+
     // HandleEndpointsHow - Used when changing from INST to MEAN, small interval to large (daily or less) interval.
     if ( (oldTimeScale == TimeScaleType.INST) && (newTimeScale == TimeScaleType.MEAN) &&
         (newInterval.getBase() <= TimeInterval.DAY) && (oldIntervalBase < TimeInterval.DAY) ) {
@@ -302,13 +302,13 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
         }
     }
     setHandleEndpointsHow ( handleEndpointsHow );
-    
+
     // OutputFillMethod - Used when changing from INST to MEAN time series going from larger to smaller Time interval.
     if ( outputFillMethod == null ) {
         outputFillMethod = TSUtil_ChangeInterval_OutputFillMethodType.REPEAT; // Default.
     }
     setOutputFillMethod ( outputFillMethod );
-    
+
     // Check HandleMissingInputHow.
     if ( handleMissingInputHow == null ) {
         handleMissingInputHow = TSUtil_ChangeInterval_HandleMissingInputHowType.KEEP_MISSING; // Default.
@@ -321,7 +321,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
             "HandleMissingInputHow cannot be specified for MEAN or ACCM, Year interval output." );
     }
     setHandleMissingInputHow ( handleMissingInputHow );
-    
+
     // AllowMissingCount or AllowMissingPercent properties.
     // Only one of these properties is expected.
     // If both are given, throw an exception.
@@ -329,7 +329,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
         throw new IllegalArgumentException ( "Only one of these parameters should be provided as non-null: " +
             "AllowMissingCount or AllowMissingPercent.  Cannot change interval." );
     }
-    
+
     // Check AllowMissingCount.
     if ( allowMissingCount == null ) {
         allowMissingCount = new Integer(0); // Default is don't allow missing.
@@ -354,7 +354,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
         }
         setAllowMissingPercent ( allowMissingPercent.doubleValue() );
     }
-    
+
     // Check AllowMissingConsecutive.
     if ( allowMissingConsecutive == null ) {
         if ( allowMissingCount > 0 ) {
@@ -374,19 +374,18 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
 }
 
     /**
-     * Once a simulated instantaneous time series has been created, compare it to an
-     * existing mean time series.  After summing the simulated instantaneous values
-     * over each mean interval (using the average of the end-points), if the difference
-     * between the simulated and given values is outside a given tolerance, adjust
-     * each value in the simulated accordingly.  The beginning end-point is actually
-     * an average of the current and previous simulated values.
+     * Once a simulated instantaneous time series has been created, compare it to an * existing mean time series.
+     * After summing the simulated instantaneous values over each mean interval (using the average of the end-points),
+     * if the difference between the simulated and given values is outside a given tolerance,
+     * adjust each value in the simulated accordingly.
+     * The beginning end-point is actually an average of the current and previous simulated values.
      *
      * @param TSMean - old Mean TS we are trying to change to instantaneous
      * @param TSInst - newly created instantaneous TS
      * @param tolerance - a fraction 0 to 1
      */
     private void adjustInstantaneousBasedOnMean(TS oldTS, TS newTS, double tolerance ) throws Exception {
-        String routine = "TSUtil_ChangeInterval_adjustInstantaneousBaseOnMean";
+        String routine = getClass().getSimpleName() + ".adjustInstantaneousBasedOnMean";
         int oldIntervalBase = oldTS.getDataIntervalBase();
         int oldIntervalMult = oldTS.getDataIntervalMult();
         int newIntervalBase = newTS.getDataIntervalBase();
@@ -457,7 +456,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
                         tmp = newTS.getDataValue(currentDateNew);
                         newTS.setDataValue(currentDateNew, ((tmp + (tmp * ratio))) / 2.0 );
                         currentDateNew.addInterval(newIntervalBase, newIntervalMult);
-                        
+
                         // MIDDLE VALUES:
                         for ( int i=0; i<nintervals-1; i++) {
                             newTS.setDataValue(currentDateNew, newTS.getDataValue(currentDateNew) * ratio );
@@ -505,8 +504,8 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
      */
     public TS changeInterval ( boolean createData )
     throws Exception {
-        String routine = "changeInterval", status, warning;
-        
+        String routine = getClass().getSimpleName() + ".changeInterval", status, warning;
+
         TS oldTS = getOldTimeSeries();
         TimeInterval newInterval = getNewInterval();
         int newtsBase = newInterval.getBase();
@@ -559,7 +558,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
             newTS.setDate1Original(oldTS.getDate1());
             newTS.setDate2Original(oldTS.getDate2());
         }
-        
+
         // If the output is a different year type, adjust the output time series to fully
         // encompass the original time series period.
         if ( (newInterval.getBase() == TimeInterval.YEAR) && (outputYearType != YearType.CALENDAR) ) {
@@ -584,12 +583,12 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
                     " to align with " + outputYearType + " year type." );
             }
         }
-        
+
         // Set the units if specified.
         if ( (newUnits != null) && !newUnits.equals("") ) {
             newTS.setDataUnits( newUnits );
         }
-        
+
         if ( !createData ) {
             return newTS;
         }
@@ -639,7 +638,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
         // If the AllowMissingPercent property was given (is not the initial -1 value), get the its value.
         // Indicate the percent of missing values that can
         // be missing in the input data and still allow computation of the result.
-        
+
          if ( allowMissingPercent >= 0.0 ) {
              // Compute the number of missing data points allowed per interval
              // based on the AllowMissingPercent property value.
@@ -654,7 +653,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
              }
              setAllowMissingCount ( allowMissingCount );
          }
-         
+
         // Define the OldTS iterator.
         TSIterator oldTSi = null;
         oldTSi = oldTS.iterator(oldTS.getDate1(), oldTS.getDate2());
@@ -764,7 +763,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
                     }
                 }
                 else if ( newTimeScale == TimeScaleType.INST ) {
-                    if (changeInterval_toINST(oldTSi, newTSi, intervalRelation, 
+                    if (changeInterval_toINST(oldTSi, newTSi, intervalRelation,
                         oldTimeScale, newTimeScale, handleMissingInputHow, tolerance )) {
                         returnTS = true;
                     }
@@ -834,7 +833,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
         TSUtil_ChangeInterval_HandleMissingInputHowType handleMissingInputHow, int allowMissingCount,
         int allowMissingConsecutive )
         throws Exception {
-        String routine = "TSUtil.changeInterval_fromINST", warning;
+        String routine = getClass().getSimpleName() + ".changeInterval_fromINST", warning;
 
         // Make sure the required conversion is supported.
         if ( (oldTimeScale == TimeScaleType.INST) && (newTimeScale == TimeScaleType.INST) ) {
@@ -873,7 +872,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
                 nMissingConsecutive = 0;
                 nMissingConsecutiveMax = 0;
                 previousIsMissing = false;
-                
+
                 // Just use the last recorded instantaneous old currentValue within the new interval.
                 while (oldData != null && oldTSi.getDate().lessThanOrEqualTo(newTSi.getDate())) {
 
@@ -902,9 +901,9 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
                         // for use in calls in the above clause.
                         lastValue = currentValue;
                     }
-                    
+
                     //Message.printStatus(2,routine,"" + oldTSi.getDate() + " currentValue=" + currentValue );
-                    
+
                     // If a statistic is being computed, save each of the old values as they are iterated.
                     if ( statistic != null ) {
                         // Save the value in the sample, but only if not missing.
@@ -1024,7 +1023,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
      * <td><b>MEAN</b></td>
      * </tr>
      * </table>
-     * 
+     *
      * @param oldTSi Reference to the iterator object for the old time series.
      * @param newTSi Reference to the iterator object for the new time series.
      * @param intervalRelation ratio of intervals, negative if newTS interval is longer oldTS.
@@ -1272,7 +1271,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
      * <td><b>INST</b></td>
      * </tr>
      * </table>
-     * 
+     *
      * @param oldTSi Reference to the iterator object for the old time series.
      * @param newTSi Reference to the iterator object for the new time series.
      * @param oldTimeScale The time scale of the old time series. This parameter is used only for verification.
@@ -1283,7 +1282,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
         TimeScaleType oldTimeScale, TimeScaleType newTimeScale,
         TSUtil_ChangeInterval_HandleMissingInputHowType handleMissingInputHow )
         throws Exception {
-        String routine = "TSUtil.changeInterval_fromIRREGULAR", warning;
+        String routine = getClass().getSimpleName() + ".changeInterval_fromIRREGULAR", warning;
 
         // Make sure the required conversion is supported.
 
@@ -1726,7 +1725,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
             TimeScaleType oldTimeScale, TimeScaleType newTimeScale,
             TSUtil_ChangeInterval_HandleMissingInputHowType handleMissingInputHow, double tolerance )
         throws Exception {
-        String routine = "TSUtil.changeInterval_toINST", warning;
+        String routine = getClass().getSimpleName() + ".changeInterval_toINST", warning;
 
         // Make sure the required conversion is supported.
         if ( (oldTimeScale == TimeScaleType.MEAN) && (newTimeScale == TimeScaleType.INST) ) {
@@ -1927,7 +1926,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
                     changeIntervalToInstByInterpolation ( newTSi,
                         midpointDate, midpointValue,
                         endEndPointDate, endValue );
-                } 
+                }
 
                 // Set the previous values to the current ones.
                 oldPreviousValue = oldCurrentValue;
@@ -1957,7 +1956,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
             throw new IllegalArgumentException(warning);
         }
     }
-    
+
 /**
 Change the time series interval to a new output year type.  This is a simpler method that operates only
 on daily and monthly interval input; consequently, all input interval data fall nicely in the output interval
@@ -1968,8 +1967,8 @@ accumulated) and MEAN (in which case the input values are averaged).
 input interval is <= the specified count.
 */
 private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
-    TimeScaleType newTimeScale, YearType outputYearType, int allowMissingCount, int allowMissingConsecutive )
-{   String routine = getClass().getName() + ".changeIntervalToDifferentYearType";
+    TimeScaleType newTimeScale, YearType outputYearType, int allowMissingCount, int allowMissingConsecutive ) {
+    String routine = getClass().getName() + ".changeIntervalToDifferentYearType";
     // Create dates that have the correct precision (matching the old time series) and initialize for the first year.
 	// These are used to step through the time series.
     // The iteration year based on the old time series dates may start one year too early but that
@@ -2069,8 +2068,8 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
             DateTime previousDate, double previousValue,
             DateTime nextDate, double nextValue ) {
 
-            String routine = "TSUtil_ChangeInterval.changeIntervalToInstByInterpolation";
-            double previousDateDouble = previousDate.toDouble(); 
+            String routine = getClass().getSimpleName() + ".changeIntervalToInstByInterpolation";
+            double previousDateDouble = previousDate.toDouble();
             double diffValue, intervalLength, offsetLength, newValue;
             DateTime newDate;
             TS newTS = newTSi.getTS();
@@ -2102,7 +2101,7 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
                 newTS.setDataValue(newDate, newValue);
                 newTSi.next();
             }
-            
+
             return true;
     }
 
@@ -2117,7 +2116,7 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
             DateTime nextDate, double nextValue,
             double Qinpre, double Qtoday, double Qtom ) {
 
-            String routine = "TSUtil_ChangeInterval.changeIntervalToInstByNWSRFSInterpolation";
+            String routine = getClass().getSimpleName() + ".changeIntervalToInstByNWSRFSInterpolation";
             double change, newValue;
             int nintervals;
             DateTime newDate = new DateTime(newTSi.getDate());
@@ -2135,7 +2134,7 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
             // newValue = previousValue + 1/(nintervals-n) * change * preDiff/postDiff
             // change, preDiff, postDiff don't change so let's set that ratio.
             double ratio = 1;
-            
+
             // Note that the .01 below is not the same as the tolerance.
             if ( preDiff > postDiff ) {
                 ratio = preDiff > 0.01 ? change*postDiff/preDiff : change;
@@ -2155,12 +2154,12 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
                 }
                 newDate = new DateTime(newTSi.getDate());
                 Message.printStatus(10, routine, "Date: " + newDate + ": " + newValue );
- 
+
                 // Saving.
                 newTS.setDataValue(newDate, newValue);
                 newTSi.next();
             }
-            
+
             if ( newTSi != null ) {
                 // Set last data value.
                 newTS.setDataValue(new DateTime(newTSi.getDate()), nextValue);
@@ -2198,25 +2197,24 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
      * <td><b>ACCM</b></td>
      * </tr>
      * </table>
-     * 
+     *
      * @param oldTSi Reference to the iterator object for the old time series.
      * @param newTSi Reference to the iterator object for the new time series.
      * @param intervalRelation ratio of intervals, negative if newTS interval is longer oldTS.
-     * @param oldTimeScale the time scale of the old time series: MeasTimeScale.INST if the oldTS is an
-     * instantaneous, MeasTimeScale.ACCM if the oldTS is an
-     * accumulation, MeasTimeScale.MEAN if the oldTS is mean.
-     * @param newTimeScale the time scale of the new time series, MeasTimeScale.ACCM if the newTS is an
-     * accumulation, MeasTimeScale.MEAN if the newTS is mean.
+     * @param oldTimeScale the time scale of the old time series: MeasTimeScale.INST if the oldTS is an instantaneous,
+     * MeasTimeScale.ACCM if the oldTS is an accumulation, MeasTimeScale.MEAN if the oldTS is mean.
+     * @param newTimeScale the time scale of the new time series, MeasTimeScale.ACCM if the newTS is an accumulation,
+     * MeasTimeScale.MEAN if the newTS is mean.
      * @param handleMissingInputHow Indicates how to treat missing values in the input TS
-     * @param maxMissingPerInterval the maximum number of missing value in the old time series allowed per
-     * new time series interval. New value will be considered missing if this max value is exceeded.
+     * @param maxMissingPerInterval the maximum number of missing value in the old time series allowed per new time series interval.
+     * New value will be considered missing if this max value is exceeded.
      * This is only applicable when going from larger intervals to shorter ones.
      * @param allowMissingConsecutive if >= 0, only compute the new data value if the number of
      * consecutive missing in the input interval is <= the specified count.
      * @param outputFillMethod this argument is only used when going from larger intervals to smaller.
      * It allow for the new values to be interpolated (INTERPOLATE) between the old data point,
-     * carried forward (CARRYFORWARD) from the 1st data point of the oldTS interval or
-     * backward (CARRYBACKWARD) from the last data point of the oldTS time interval.
+     * carried forward (CARRYFORWARD) from the 1st data point of the oldTS interval or backward (CARRYBACKWARD)
+     * from the last data point of the oldTS time interval.
      * @param handleEndpointsHow when changing from small interval to large interval (but only daily or smaller),
      * indicate how the end-points should be handled.
      * @return true if successful or false if an error.
@@ -2227,7 +2225,7 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
        int allowMissingConsecutive, TSUtil_ChangeInterval_OutputFillMethodType outputFillMethod,
        TSUtil_ChangeInterval_HandleEndpointsHowType handleEndpointsHow )
    throws Exception {
-        String routine = "TSUtil.changeInterval_toMEANorACCM", warning;
+        String routine = getClass().getSimpleName() + ".changeInterval_toMEANorACCM", warning;
         int dl = 40;
 
         // Make sure the required conversion is supported - use if statements to filter valid combinations.
@@ -2670,7 +2668,7 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
      * @param newmult New daily time series.
      */
     public DayTS OLDchangeToDayTS(IrregularTS oldts, int newmult ) {
-        String routine = "TSUtil.changeToDayTS(IrregularTS)";
+        String routine = getClass().getSimpleName() + ".changeToDayTS(IrregularTS)";
         int dl = 20;
 
         if (Message.isDebugOn) {
@@ -2784,11 +2782,11 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
         }
         return newts;
     }
- 
+
     /**
      * Convert a daily time series to monthly by searching for values near the end of the month.
      * This is used to convert daily reservoir observations to end of month value, for example.
-     * 
+     *
      * @param oldts Daily time series to convert.
      * @param newmult Interval multiplier for monthly time series.
      * @param bracket number of days to search the daily time series from the end of the month, to find
@@ -3028,7 +3026,7 @@ private void changeIntervalToDifferentYearType ( TS oldTS, TS newTS,
         return newts;
     }
     */
- 
+
 /**
 Return the allowMissingConsecutive value.
 @return the allowMissingConsecutive value.
@@ -3036,7 +3034,7 @@ Return the allowMissingConsecutive value.
 private int getAllowMissingConsecutive () {
     return __allowMissingConsecutive;
 }
-    
+
 /**
 Return the allowMissingCount value.
 @return the allowMissingCount value.
@@ -3064,7 +3062,7 @@ private double getAllowMissingPercent () {
      * future in order to better determine the dates depending on data type and recording method (e.g. to round to the previous interval or round to the nearest ending
      * interval depending on whether the data are instantaneous, sums, averages, etc.). Currently, the date bounds are always extended in both directions, possibly
      * resulting in missing data at the ends when the changes is performed.
-     * 
+     *
      * @return Array of two DateTime containing bounding dates for the new time series.
      * @param oldts Original time series that is being changed to a different interval.
      * @param newbase Base data interval for new time series.
@@ -3072,7 +3070,7 @@ private double getAllowMissingPercent () {
      */
     public static DateTime[] getBoundingDatesForChangeInterval(TS oldts, int newbase, int newmult) {
         DateTime newts_date[] = new DateTime[2];
-        String routine = "TSUtil.getBoundingDatesForChangeInterval";
+        String routine = TSUtil_ChangeInterval.class.getSimpleName() + ".getBoundingDatesForChangeInterval";
 
         // Depending on the desired interval, round the dates appropriately.
 
@@ -3216,7 +3214,7 @@ private double getAllowMissingPercent () {
         Message.printStatus(10, routine, "Bounding dates for new time series are: " + newts_date[0] + " to " + newts_date[1]);
         return newts_date;
     }
-    
+
 /**
 Return the handleEndpointsHow value.
 @return the handleEndpointsHow value.
@@ -3232,10 +3230,10 @@ Return the handleMissingInputHow value.
 private TSUtil_ChangeInterval_HandleMissingInputHowType getHandleMissingInputHow () {
     return __handleMissingInputHow;
 }
-    
+
 /**
  * Get the interval relation between two time series while making sure they are multiples of each other.
- * 
+ *
  * @param TS1 Reference to 1st time series (older).
  * @param TS2 Reference to 2nd time series (newer).
  * @return -1 * TS2IntSeconds/TS1IntSeconds if the 1st time series interval is shorter than the 2nd,
@@ -3245,7 +3243,7 @@ private TSUtil_ChangeInterval_HandleMissingInputHowType getHandleMissingInputHow
  * 1 if the 2nd or both time series interval is IRREGULAR (not supported).
  */
 private int getIntervalRelation(TS TS1, TS TS2) {
-    String routine = "TSUtil.getIntervalRelation", warning;
+    String routine = getClass().getSimpleName() + ".getIntervalRelation", warning;
 
     // For an irregular time series, assume that it's interval is shorter than the other one.
     if (TS1.getDataIntervalBase() == TimeInterval.IRREGULAR) {
@@ -3334,7 +3332,7 @@ Return the old time scale.
 private TimeScaleType getOldTimeScale () {
     return __oldTimeScale;
 }
-    
+
 /**
 Return the old time series.
 @return the old time series.
@@ -3403,7 +3401,7 @@ private double getTolerance () {
 
     /**
      * Replaces a missing data value according to flag. This method is used by the new changeInterval method.
-     * 
+     *
      * @param handleMissingInputHow indicate how to handle missing values in input
      * @param replacementValue used to replace a data value when handleMissingInputHow = REPEAT
      * @param defaultReplacementValue used to replace a data value when handleMissingInputHow is not REPEAT or
@@ -3428,7 +3426,7 @@ Set the number of input values allowed to be missing and still compute the resul
 private void setAllowMissingConsecutive ( int allowMissingConsecutive ) {
     __allowMissingConsecutive = allowMissingConsecutive;
 }
-    
+
 /**
 Set the number of input values allowed to be missing and still compute the result.
 @param allowMissingCount number of input values allowed to be missing and still compute the result.
@@ -3444,7 +3442,7 @@ Set the percentage of input values allowed to be missing and still compute the r
 private void setAllowMissingPercent ( double allowMissingPercent ) {
     __allowMissingPercent = allowMissingPercent;
 }
-    
+
 /**
 Set the handleEndpointsHow property.
 @param handleEndpointsHow method.
@@ -3460,7 +3458,7 @@ Set the handleMissingInputHow property.
 private void setHandleMissingInputHow ( TSUtil_ChangeInterval_HandleMissingInputHowType handleMissingInputHow ) {
     __handleMissingInputHow = handleMissingInputHow;
 }
-    
+
 /**
 Set the new time series data type.
 @param newDataType new time series data type.
@@ -3476,7 +3474,7 @@ Set the new interval.
 private void setNewInterval ( TimeInterval newInterval ) {
     __newInterval = newInterval;
 }
-    
+
 /**
 Set the new time scale.
 @param newTimeScale new time scale.
@@ -3492,7 +3490,7 @@ Set the new time series data units.
 private void setNewUnits ( String newUnits ) {
     __newUnits = newUnits;
 }
-    
+
 /**
 Set the old time scale.
 @param oldTimeScale old time scale (from the original time series).

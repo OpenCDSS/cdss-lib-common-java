@@ -736,6 +736,33 @@ public void copyHeader ( TS ts ) {
 }
 
 /**
+ * Indicate whether the data interval uses time.
+ * If irregular interval, the irregular interval precision is checked.
+ * @return true if the data interval uses time, false if not
+ */
+public boolean dataIntervalUsesTime () {
+	// The following are default checks:
+	// - classes can overload with more robust logic
+    if ( isRegularInterval() ) {
+    	if ( (getDataIntervalBase() == TimeInterval.DAY) ||
+    		(getDataIntervalBase() == TimeInterval.MONTH) ||
+    		(getDataIntervalBase() == TimeInterval.YEAR) ) {
+    		return false;
+    	}
+    }
+    else {
+    	// Irregular interval, must check the irregular precision.
+    	if ( (getIdentifier().getIrregularIntervalPrecision() == TimeInterval.DAY) ||
+    		(getIdentifier().getIrregularIntervalPrecision() == TimeInterval.MONTH) ||
+    		(getIdentifier().getIrregularIntervalPrecision() == TimeInterval.YEAR) ) {
+    		return false;
+    	}
+    }
+    // Default is to use time.
+    return true;
+}
+
+/**
 Return a formatted extended legend string without changing saved legend.
 @return A formatted extended legend string for the time series but do not update the time series extended legend data.
 The format is the same as for formatLegend().
@@ -1746,6 +1773,25 @@ Indicate whether the time series is editable.
 */
 public boolean isEditable () {
 	return _editable;
+}
+
+/**
+ * Indicate whether an irregular interval time series (always true).
+ * Overriding this method in derived class is more foolproof in case the interval string has not been initialized.
+ * @return true if an irregular interval time series, false if a regular interval time series
+ */
+public boolean isIrregularInterval () {
+	// Attempt to determine from the interval.
+	return TimeInterval.isIrregularInterval(getIdentifier().getInterval());
+}
+
+/**
+ * Indicate whether a regular interval time series (always false).
+ * Overriding this method in derived class is more foolproof in case the interval string has not been initialized.
+ * @return true if a regular interval time series, false if an irregular interval time series
+ */
+public boolean isRegularInterval () {
+	return TimeInterval.isRegularInterval(getIdentifier().getInterval());
 }
 
 /**

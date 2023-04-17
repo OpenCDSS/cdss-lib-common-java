@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -50,8 +50,8 @@ import RTi.Util.Time.TimeInterval;
 
 /**
 This class is a table model for displaying regular TS data.
-It is more complicated than most table models, primarily in order to achieve performance
-gains with getting values out of a time series.
+It is more complicated than most table models,
+primarily in order to achieve performance gains with getting values out of a time series.
 The following is a brief description of some of the performance gain efforts made in this class.
 These caching methods are both found in getValueAt().<p>
 <b>Date Caching</b><p>
@@ -59,11 +59,9 @@ At creation time, dates throughout the range of the time series are cached into 
 Then, when a row of data needs to be drawn in the worksheet,
 the date nearest the row to be drawn is used instead of calculating the date from the first row.<p>
 This is because adding many intervals at once to a date/time is an expensive operation.
-Using a day time series as an example,
-adding X days to a date/time takes X times as long as adding 1 day.
+Using a day time series as an example, adding X days to a date/time takes X times as long as adding 1 day.
 Thus, by caching dates along the entire span of the time series,
-it can be ensured that __cacheInterval will be
-the greatest number of intervals ever added to a single date/time at once.<p>
+it can be ensured that __cacheInterval will be the greatest number of intervals ever added to a single date/time at once.<p>
 <b>Caching of the Top-Most Visible Row Number After Each Scroll Event</b><p>
 Caching is also done of the top-most visible row every time the worksheet is scrolled,
 and involves the __firstVisibleRowDate and __previousTopmostVisibleY member variables.
@@ -71,8 +69,7 @@ Each time getValueAt() is called, it checks to see if the
 top Y value of the worksheet is different from it was when getValueAt() was last called.
 If so, then the worksheet has been scrolled.
 Each time the worksheet is scrolled, the date/time of the top-most visible row is calculated using date caching.
-Then, the date of each row that is drawn for the
-current scroll position is calculated from the date of the top-most visible row.<p>
+Then, the date of each row that is drawn for the current scroll position is calculated from the date of the top-most visible row.<p>
 <b>Notes</b>
 These caching steps may seem overkill, but JTS found during extensive testing
 that they increase the speed of browsing through a table of time series dramatically.
@@ -84,15 +81,13 @@ public class TSViewTable_TableModel extends JWorksheet_AbstractRowTableModel<TS>
 {
 
 /**
-Whether to use the TS extended legend as the TS's column title.  If false,
-the TS normal legend will be used.
+Whether to use the TS extended legend as the TS's column title.  If false, the TS normal legend will be used.
 */
 private boolean __useExtendedLegend = false;
 
 /**
-An array of DateTime values that are pre-calculated in order to speed up
-calculation of DateTimes in the middle of the dataset.
-Each element in this array contains the DateTime for the row at N*(__cacheInterval)
+An array of DateTime values that are pre-calculated in order to speed up calculation of DateTimes in the middle of the dataset.
+Each element in this array contains the DateTime for the row at N*(__cacheInterval).
 */
 private DateTime[] __cachedDates;
 
@@ -217,8 +212,7 @@ TODO SAM 2014-04-06 Remove when not needed.
 private boolean __showRow = false;
 
 /**
-Constructor.  This builds the Model for displaying the given TS data and
-pre-calculates and caches every 50th row's date.
+Constructor.  This builds the Model for displaying the given TS data and pre-calculates and caches every 50th row's date.
 @param data Vector of TS to graph in the table.
 The TS must have the same data interval and data units, but this will not be checked in the table model;
 it should have been done previously.
@@ -226,11 +220,10 @@ it should have been done previously.
 @param intervalBase the TS data interval (from TimeInterval.*)
 @param intervalMult the TS data multiplier.
 @param dateFormat the format in which to display the date column (column 0).
-@param dataFormats the formats in which to display the data columns (columns 1
-through N).  The format for data column N should be at array position N-1.
-@param useExtendedLegend whether to use the extended TS legend for the TS column
-title, or the normal legend.  This is determined by the value of the propvalue
-"Table.UseExtendedLegend" passed into the TSViewJFrame.
+@param dataFormats the formats in which to display the data columns (columns 1 through N).
+The format for data column N should be at array position N-1.
+@param useExtendedLegend whether to use the extended TS legend for the TS column title, or the normal legend.
+This is determined by the value of the propvalue "Table.UseExtendedLegend" passed into the TSViewJFrame.
 @throws Exception if an invalid data or dmi was passed in.
 */
 public TSViewTable_TableModel(List<TS> data, DateTime start,
@@ -242,32 +235,28 @@ throws Exception {
 
 /**
 Constructor.  This builds the Model for displaying the given TS data.
-@param data list of TS to graph in the table.  The TS must have the same
-data interval and data units, but this will not be checked in the table model;
-it should have been done previously.
+@param data list of TS to graph in the table.  The TS must have the same data interval and data units,
+but this will not be checked in the table model; it should have been done previously.
 @param start the first day of data to display in the table.
 @param intervalBase the TS data interval (from TimeInterval.*)
 @param intervalMult the TS data multiplier.
 @param dateFormat the format in which to display the date column (column 0).
 @param dataFormats the formats in which to display the data columns (columns 1 through N).
 The format for data column N should be at array position N-1.
-@param useExtendedLegend whether to use the extended TS legend for the TS column
-title, or the normal legend.  This is determined by the value of the propvalue
-"Table.UseExtendedLegend" passed into the TSViewJFrame.
-@param cacheInterval the interval of dates to pre-calculate and cache.  Every
-Nth date in the entire table, where N == cacheInterval, will be pre-calculated
-and cached to improve performance.  The other constructor passes in a value of
-50 for the interval, and this value has been found to be adequate for most table needs.
-It takes some experimenting to find the optimal value where
-speed is most increased but not too much memory is used.<p>
+@param useExtendedLegend whether to use the extended TS legend for the TS column title, or the normal legend.
+This is determined by the value of the propvalue "Table.UseExtendedLegend" passed into the TSViewJFrame.
+@param cacheInterval the interval of dates to pre-calculate and cache.
+Every Nth date in the entire table, where N == cacheInterval, will be pre-calculated and cached to improve performance.
+The other constructor passes in a value of 50 for the interval,
+and this value has been found to be adequate for most table needs.
+It takes some experimenting to find the optimal value where speed is most increased but not too much memory is used.<p>
 JTS recommends that if a table will display at most X rows at once, that the cacheInterval be no less than X*2.
 @throws Exception if an invalid data or dmi was passed in.
 */
 public TSViewTable_TableModel(List<TS> data, DateTime start,
 int intervalBase, int intervalMult, int dateFormat, String[] dataFormats,
 boolean useExtendedLegend, int cacheInterval )
-throws Exception
-{
+throws Exception {
     //Message.printStatus(2,"TSView_TableModel","data=" + data + " start=" + start + " intervalBase=" + intervalBase +
     //    " intervalMult=" + intervalMult );
     //if ( data != null ) {
@@ -276,7 +265,7 @@ throws Exception
 
 	if (data == null) {
 		throw new Exception ("Null data list passed to TSViewTable_TableModel constructor.");
-	}	
+	}
 	_data = data;
 	__columns = data.size() + 1;
 	if ( intervalBase == TimeInterval.IRREGULAR ) {
@@ -291,8 +280,8 @@ throws Exception
 	    // Determine if all the time series have a consistent time zone.
 	    // If yes, the time zone will be displayed in the date/time column.  If no, the time zone is removed.
 	    // Column tool-tips include the time zone.
-	    // Also save a prototype DateTime for each time series that matches Date1, which will be used for getValue()
-	    // to make sure the time zone is handled.
+	    // Also save a prototype DateTime for each time series that matches Date1,
+	    // which will be used for getValue() to make sure the time zone is handled.
 	    __irregularTZSame = true;
 	    __irregularTZ = null;
 	    __irregularPrototypeDateTime = new DateTime[__columns - 1];
@@ -330,8 +319,8 @@ throws Exception
 	__dataFormats = dataFormats;
 	__useExtendedLegend = useExtendedLegend;
 	__start = start;
-	
-	if (__columns > 1) {		
+
+	if (__columns > 1) {
 		TSLimits limits = TSUtil.getPeriodFromTS(data, TSUtil.MAX_POR);
 		DateTime end = limits.getDate2();
 		if ( intervalBase == TimeInterval.IRREGULAR ) {
@@ -361,13 +350,13 @@ throws Exception
 
     		if (__intervalBase == TimeInterval.MINUTE) {
     			__cachedDates[i].addMinute(__cacheInterval * __intervalMult);
-    		}	
+    		}
     		else if (__intervalBase == TimeInterval.HOUR) {
     			__cachedDates[i].addHour(__cacheInterval * __intervalMult);
     		}
     		else if (__intervalBase == TimeInterval.DAY) {
     			__cachedDates[i].addDay(__cacheInterval * __intervalMult);
-    		}	
+    		}
     		else if (__intervalBase == TimeInterval.MONTH) {
     			__cachedDates[i].addMonth(__cacheInterval * __intervalMult);
     		}
@@ -387,8 +376,8 @@ Create a cache of date/times for irregular time series (all date/times that occu
 The worksheet row=0 will correspond to the first date/time.
 */
 private void createIrregularTSDateTimeCache ()
-throws TSException
-{   String routine = getClass().getSimpleName() + ".createIrregularTSDateTimeCache";
+throws TSException {
+    String routine = getClass().getSimpleName() + ".createIrregularTSDateTimeCache";
     // More than one irregular time series.  They at least have to have the same date/time precision for the period.
 	// Otherwise it will be difficult to navigate the data.
     int irrPrecision = __irregularDateTimePrecision;
@@ -447,8 +436,7 @@ throws TSException
     int its;
     TSIterator itsIterator;
     // Use the following to extract dates from each time series.
-    // A call to the iterator next() method will return null when no more data, which is
-    // the safest way to process the data.
+    // A call to the iterator next() method will return null when no more data, which is the safest way to process the data.
     TSData [] tsdata = new TSData[tslist.size()];
     TSData tsdataMin = null; // Used to find min date/time for all the iterators.
     DateTime dtMin = null; // Used to compare date/times for all the iterators.
@@ -478,7 +466,7 @@ throws TSException
         dtMin = null;
         for ( its = 0; its < size; its++ ) {
             if ( tsdataMin == null ) {
-                // Find the first date/time for all the iterators at their current positions
+                // Find the first date/time for all the iterators at their current positions.
                 if ( tsdata[its] != null ) {
                     tsdataMin = tsdata[its];
                     dtMin = tsdataMin.getDate();
@@ -596,9 +584,10 @@ public int getColumnCount() {
 
 /**
 Returns the name of the column at the given position.
-For column 0, the name will be DATE or DATE/TIME depending on the date/time precision.  For time series the string will
-be alias (or location), sequence number, data type, units.  If a time series property TableViewHeaderFormat is set, then this
-format will be used to format the string.  The format can contain % and ${ts:Property} specifiers.
+For column 0, the name will be DATE or DATE/TIME depending on the date/time precision.
+For time series the string will be alias (or location), sequence number, data type, units.
+If a time series property TableViewHeaderFormat is set, then this format will be used to format the string.
+The format can contain % and ${ts:Property} specifiers.
 @return the name of the column at the given position.
 */
 public String getColumnName(int columnIndex) {
@@ -619,7 +608,7 @@ public String getColumnName(int columnIndex) {
 	else if ( __showRow && (columnIndex == (__columns - 1)) ) {
 	    return "ROW";
 	}
-	
+
 	// Otherwise the column names depends on time series properties.
     TS ts = (TS)_data.get(columnIndex - 1);
 
@@ -629,9 +618,8 @@ public String getColumnName(int columnIndex) {
         return ts.formatLegend(format);
     }
 
-	// The following are expensive String operations (concats, etc),
-    // but this method is not called very often (just once when the table is
-	// first displayed?) so this shouldn't be a problem.
+	// The following are expensive String operations (concatenations, etc),
+    // but this method is not called very often (just once when the table is first displayed?) so this shouldn't be a problem.
 
 	if (__useExtendedLegend && (ts.getExtendedLegend().length() != 0)) {
 		return ts.formatLegend(ts.getExtendedLegend());
@@ -639,7 +627,7 @@ public String getColumnName(int columnIndex) {
 	else if (ts.getLegend().length() > 0) {
 		return ts.formatLegend(ts.getLegend());
 	}
-	else {	
+	else {
 		String unitsString = "";
 		String datatypeString = "";
 		String sequenceString = "";
@@ -720,7 +708,12 @@ See JWorksheet for more information on consecutive reads.
 @return the value at the specified row and column.
 */
 public Object getConsecutiveValueAt(int row, int col) {
-	if (shouldResetGetConsecutiveValueAt()) {	
+    if ( __intervalBase == TimeInterval.IRREGULAR ) {
+        // Irregular data have all the date/times cached consistent with rows so handle specifically.
+        return getValueAtIrregular(row,col);
+    }
+
+	if (shouldResetGetConsecutiveValueAt()) {
 		shouldResetGetConsecutiveValueAt(false);
 		__priorRow = -1;
 	}
@@ -729,13 +722,13 @@ public Object getConsecutiveValueAt(int row, int col) {
 		DateTime temp = new DateTime( __cachedDates[row / __cacheInterval]);
 		if (__intervalBase == TimeInterval.MINUTE) {
 			temp.addMinute((row % __cacheInterval) * __intervalMult);
-		}	
+		}
 		else if (__intervalBase == TimeInterval.HOUR) {
 			temp.addHour((row % __cacheInterval) * __intervalMult);
 		}
 		else if (__intervalBase == TimeInterval.DAY) {
 			temp.addDay((row % __cacheInterval) * __intervalMult);
-		}	
+		}
 		else if (__intervalBase == TimeInterval.MONTH) {
 			temp.addMonth((row % __cacheInterval) * __intervalMult);
 		}
@@ -744,17 +737,17 @@ public Object getConsecutiveValueAt(int row, int col) {
 		}
 		__priorDateTime = temp;
 		__priorRow = row;
-	}			
+	}
 	else if (__priorRow != row) {
 		if (__intervalBase == TimeInterval.MINUTE) {
 			__priorDateTime.addMinute(1 * __intervalMult);
-		}	
+		}
 		else if (__intervalBase == TimeInterval.HOUR) {
 			__priorDateTime.addHour(1 * __intervalMult);
 		}
 		else if (__intervalBase == TimeInterval.DAY) {
 			__priorDateTime.addDay(1 * __intervalMult);
-		}	
+		}
 		else if (__intervalBase == TimeInterval.MONTH) {
 			__priorDateTime.addMonth(1 * __intervalMult);
 		}
@@ -763,9 +756,9 @@ public Object getConsecutiveValueAt(int row, int col) {
 		}
 		__priorRow = row;
 	}
-	
+
 	if (col > 0) {
-		TS ts = (TS)_data.get(col-1);
+		TS ts = _data.get(col-1);
 		return new Double(ts.getDataValue(__priorDateTime));
 	}
 	else {
@@ -777,8 +770,7 @@ public Object getConsecutiveValueAt(int row, int col) {
 Returns the total number of characters in a DateTime object formatted with __dateFormat.
 @return the total number of characters in a DateTime object formatted with __dateFormat.
 */
-private int getDateFormatLength()
-{
+private int getDateFormatLength() {
 	// TODO (SAM - 2003-07-21) might add something similar to DateTime.
 	switch (__dateFormat) {
 		case DateTime.FORMAT_MM:
@@ -829,8 +821,7 @@ private int getDateFormatLength()
 }
 
 /**
-Returns the format that the specified column should be displayed in when
-the table is being displayed in the given table format.
+Returns the format that the specified column should be displayed in when the table is being displayed in the given table format.
 @param column column for which to return the format.
 @return the format (as used by StringUtil.formatString() in which to display the column.
 */
@@ -862,8 +853,8 @@ public int getIntervalBase() {
 }
 
 /**
-Returns the interval mult for the time series.
-@return the interval mult for the time series.
+Returns the interval multiplier for the time series.
+@return the interval multiplier for the time series.
 */
 public int getIntervalMult() {
 	return __intervalMult;
@@ -889,8 +880,7 @@ public int getRowCount() {
 Returns the time series.
 @return the time series at a specific index i.
 */
-public TS getTS ( int i )
-{	
+public TS getTS ( int i ) {
 	return (TS)_data.get(i);
 }
 
@@ -898,7 +888,7 @@ public TS getTS ( int i )
 Returns the time series.
 @return the Vector of time series.
 */
-public List<TS> getTSList() {	
+public List<TS> getTSList() {
 	return _data;
 }
 
@@ -919,8 +909,8 @@ public Object getValueAt(int row, int col) {
 		return getConsecutiveValueAt(row, col);
 	}
 
-	double y = __worksheet.getVisibleRect().getY();	
-	
+	double y = __worksheet.getVisibleRect().getY();
+
 	// If it's a new Y point from the last time getValueAt was called,
 	// then that means some scrolling has occurred and the top-most row is new.
 	// Need to recalculate the date of the top most row.
@@ -929,14 +919,13 @@ public Object getValueAt(int row, int col) {
 		__previousTopmostVisibleY = y;
 		__firstVisibleRow = __worksheet.rowAtPoint(new Point(0,(int)y));
 
-		// Calculate its date time by looking up the nearest
-		// cached one and adding the remainder of intervals to it.
+		// Calculate its date time by looking up the nearest cached one and adding the remainder of intervals to it.
 		__firstVisibleRowDate = new DateTime( __cachedDates[__firstVisibleRow / __cacheInterval]);
 		int precision = 0;
 		if (__intervalBase == TimeInterval.MINUTE) {
 			precision = DateTime.PRECISION_MINUTE;
 			__firstVisibleRowDate.addMinute( (__firstVisibleRow % __cacheInterval) * __intervalMult);
-		}	
+		}
 		else if (__intervalBase == TimeInterval.HOUR) {
 			precision = DateTime.PRECISION_HOUR;
 			__firstVisibleRowDate.addHour( (__firstVisibleRow % __cacheInterval) * __intervalMult);
@@ -944,7 +933,7 @@ public Object getValueAt(int row, int col) {
 		else if (__intervalBase == TimeInterval.DAY) {
 			precision = DateTime.PRECISION_DAY;
 			__firstVisibleRowDate.addDay( (__firstVisibleRow % __cacheInterval) * __intervalMult);
-		}	
+		}
 		else if (__intervalBase == TimeInterval.MONTH) {
 			precision = DateTime.PRECISION_MONTH;
 			__firstVisibleRowDate.addMonth( (__firstVisibleRow % __cacheInterval) * __intervalMult);
@@ -966,8 +955,8 @@ public Object getValueAt(int row, int col) {
 	}
 
 	// The getValueAt function is called row-by-row when a worksheet displays its data,
-	// so the current working date (with which data for the current
-	// row is read) only needs to be recalculated when a new row is moved to.
+	// so the current working date (with which data for the current row is read)
+	// only needs to be recalculated when a new row is moved to.
 	if (row != __lastRowRead) {
 		__lastRowRead = row;
 
@@ -983,13 +972,13 @@ public Object getValueAt(int row, int col) {
 		// Calculate the date for the current row read.
 		if (__intervalBase == TimeInterval.MINUTE) {
 			__workingDate.addMinute(((row - __firstVisibleRow)* __intervalMult));
-		}	
+		}
 		else if (__intervalBase == TimeInterval.HOUR) {
 			__workingDate.addHour(((row - __firstVisibleRow)* __intervalMult));
 		}
 		else if (__intervalBase == TimeInterval.DAY) {
 			__workingDate.addDay(((row - __firstVisibleRow)* __intervalMult));
-		}	
+		}
 		else if (__intervalBase == TimeInterval.MONTH) {
 			__workingDate.addMonth(((row - __firstVisibleRow)* __intervalMult));
 		}
@@ -997,7 +986,7 @@ public Object getValueAt(int row, int col) {
 			__workingDate.addYear(((row - __firstVisibleRow)* __intervalMult));
 		}
 	}
-	
+
 	if (col == 0) {
 		return __workingDate.toString();
 	}
@@ -1054,8 +1043,7 @@ Returns the data that should be placed in the JTable at the given row and column
 @param col the column for which to return data.
 @return the data that should be placed in the JTable at the given row and col.
 */
-public Object getValueAtIrregular(int row, int col)
-{
+public Object getValueAtIrregular(int row, int col) {
     if (_sortOrder != null) {
         row = _sortOrder[row];
     }
@@ -1099,15 +1087,14 @@ public Object getValueAtIrregular(int row, int col)
 }
 
 /**
-Returns an array containing the widths (in number of characters) that the
-fields in the table should be sized to.
+Returns an array containing the widths (in number of characters) that the fields in the table should be sized to.
 @return an integer array containing the widths for each field.
 */
 public int[] getColumnWidths() {
 	int[] widths = new int[__columns];
 	String colName = null;
 	int len = 0;
-	
+
 	if (__columns > 0) {
 		widths[0] = getDateFormatLength() + (int)(getDateFormatLength() / 10) + 1;
 	}
@@ -1161,9 +1148,9 @@ public void setDataFlagVisualizationType ( TSDataFlagVisualizationType dataFlagV
 Sets the value at the specified position to the specified value.
 @param value the value to set the cell to.
 @param row the row of the cell for which to set the value.
-@param col the col of the cell for which to set the value.
+@param col the column of the cell for which to set the value.
 */
-public void setValueAt(Object value, int row, int col) {	
+public void setValueAt(Object value, int row, int col) {
 	DateTime d = null;
 	try {
 		d = DateTime.parse((String)getValueAt(row, 0));
@@ -1190,7 +1177,7 @@ public void setValueAt(Object value, int row, int col) {
 	else if (value instanceof String) {
 		ts.setDataValue(d, (new Double((String)value)).doubleValue());
 	}
-	
+
 	super.setValueAt(value, row, col);
 }
 

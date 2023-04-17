@@ -5,7 +5,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,33 +37,29 @@ import java.awt.event.KeyEvent;
 import java.util.List;
 
 import javax.swing.JComponent;
-import javax.swing.JFrame; 
+import javax.swing.JFrame;
 import javax.swing.KeyStroke;
 
 import RTi.DMI.DMIUtil;
 
 import RTi.Util.GUI.ResponseJDialog;
 
-import RTi.Util.IO.IOUtil;
-
 import RTi.Util.Message.Message;
 
 import RTi.Util.String.StringUtil;
 
 /**
-This class copies data from selected rows and columns into a format that can
-be easily pasted into Microsoft Excel.  That format is (for two rows of 
-three columns):<pre>
+This class copies data from selected rows and columns into a format that can be easily pasted into Microsoft Excel.
+That format is (for two rows of three columns):<pre>
 	value<b>[tab]</b>value<b>[tab]</b>value<b>[newline]</b>
 	value<b>[tab]</b>value<b>[tab]</b>value<b>[newline]</b>
 </pre>
 It also has code for pasting values from Excel back into the JWorksheet;
 however that has been commented out and will need further review.
 
-The copy and paste code right now only responds to control-C and
-control-insert (Copy) and control-V and shift-insert (paste) actions.
+The copy and paste code right now only responds to control-C and control-insert (Copy) and control-V and shift-insert (paste) actions.
 */
-public class JWorksheet_CopyPasteAdapter 
+public class JWorksheet_CopyPasteAdapter
 implements ActionListener {
 
 /**
@@ -100,7 +96,7 @@ private JWorksheet __worksheet;
 /**
 Strings to refer to copy and paste operations.
 */
-private final String 
+private final String
 	__COPY = "Copy",
 	__COPY_HEADER = "Copy Header",
 	__COPY_ALL = "Copy All",
@@ -121,10 +117,10 @@ public JWorksheet_CopyPasteAdapter (JWorksheet worksheet) {
 
 	KeyStroke pasteV = KeyStroke.getKeyStroke(KeyEvent.VK_V, ActionEvent.CTRL_MASK, false);
 	__worksheet.registerKeyboardAction(this, __PASTE, pasteV, JComponent.WHEN_FOCUSED);
-	
+
 	KeyStroke pasteIns = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, ActionEvent.SHIFT_MASK, false);
 	__worksheet.registerKeyboardAction(this, __PASTE, pasteIns, JComponent.WHEN_FOCUSED);
-	
+
 	__system = Toolkit.getDefaultToolkit().getSystemClipboard();
 }
 
@@ -136,9 +132,9 @@ public void actionPerformed(ActionEvent e) {
 	if (__worksheet == null) {
 		return;
 	}
-	
+
 	String action = e.getActionCommand();
-	
+
 	JGUIUtil.setWaitCursor(__worksheet.getHourglassJFrame(), true);
 
 	boolean copyHeader = false;
@@ -152,10 +148,8 @@ public void actionPerformed(ActionEvent e) {
 		copyHeader = true;
 	}
 
-	if (action.equalsIgnoreCase(__COPY_ALL) 
-	    || action.equalsIgnoreCase(__COPY_ALL_HEADER)) {
-		// copy all is easier than the normal copy -- no checks need
-		// to be made for contiguous rows and columns.
+	if (action.equalsIgnoreCase(__COPY_ALL) || action.equalsIgnoreCase(__COPY_ALL_HEADER)) {
+		// Copy all is easier than the normal copy because no checks need to be made for contiguous rows and columns.
 		StringBuffer sbf = new StringBuffer();
 		int numCols = __worksheet.getColumnCount();
 		int numRows = __worksheet.getRowCount();
@@ -168,16 +162,15 @@ public void actionPerformed(ActionEvent e) {
 		if (__worksheet.getCellRenderer() instanceof JWorksheet_AbstractExcelCellRenderer) {
 			__canFormat = true;
 		}
-	
-		ProgressJDialog progressDialog = new ProgressJDialog(
-			__worksheet.getHourglassJFrame(), "Copy progress", 0, (numRows * numCols));
+
+		ProgressJDialog progressDialog = new ProgressJDialog( __worksheet.getHourglassJFrame(), "Copy progress", 0, (numRows * numCols));
 
 		int count = 1;
 
 		progressDialog.setVisible(true);
 
 		__worksheet.startNewConsecutiveRead();
-		
+
 		if (copyHeader) {
 			for (int j = 0; j < numCols; j++) {
 				sbf.append(__worksheet.getColumnName(j, true));
@@ -193,7 +186,7 @@ public void actionPerformed(ActionEvent e) {
     		for (int i = 0; i < numCols; i++) {
     			absCols[i] = __worksheet.getAbsoluteColumn(i);
     		}
-    
+
     		for (int i = 0; i < numRows; i++) {
     			for (int j = 0; j < numCols; j++) {
     				progressDialog.setProgressBarValue(count++);
@@ -203,19 +196,23 @@ public void actionPerformed(ActionEvent e) {
     				}
     			}
     			sbf.append("\n");
-    		}		
-    
+    		}
+
     		progressDialog.dispose();
-    		
+
     		StringSelection stsel = new StringSelection(sbf.toString());
     		__system = Toolkit.getDefaultToolkit().getSystemClipboard();
     		__system.setContents(stsel, stsel);
 		}
 		catch (Exception ex) {
-			new ResponseJDialog(__worksheet.getHourglassJFrame(),
-				"Copy Error", "Copy Error", ResponseJDialog.OK).response();
-			Message.printWarning(2, "", ex);
-		}			
+			String routine = getClass().getSimpleName() + ".actionPerformed";
+			Message.printWarning(2, routine, "Error copying the worksheet to the clipboard.");
+			Message.printWarning(2, routine, ex);
+    		if ( progressDialog != null ) {
+    			progressDialog.dispose();
+    		}
+			new ResponseJDialog(__worksheet.getHourglassJFrame(), "Copy Error", "Copy Error", ResponseJDialog.OK).response();
+		}
 	}
 	else if (action.equalsIgnoreCase(__COPY) && __copyEnabled) {
 		StringBuffer sbf = new StringBuffer();
@@ -234,7 +231,7 @@ public void actionPerformed(ActionEvent e) {
 		}
 
 		if (numRows == 1 && numCols == 1) {
-			// Trivial case -- this will always be a successful copy.  This case is just a placeholder.
+			// Trivial case that will always be a successful copy.  This case is just a placeholder.
 		}
 		else if (numRows == 1) {
 			// The rows are valid; the only thing left to check is whether the columns are contiguous.
@@ -255,7 +252,7 @@ public void actionPerformed(ActionEvent e) {
 			if (!areCellsContiguous(numRows, selectedRows, numCols, visibleCols)) {
 				showCopyErrorDialog("You must select a contiguous block\nof rows and columns.");
 				return;
-			}			
+			}
 		}
 
 		int numColumns = __worksheet.getColumnCount();
@@ -267,16 +264,15 @@ public void actionPerformed(ActionEvent e) {
 		if (__worksheet.getCellRenderer() instanceof JWorksheet_AbstractExcelCellRenderer) {
 			__canFormat = true;
 		}
-	
-		ProgressJDialog progressDialog = new ProgressJDialog(
-			__worksheet.getHourglassJFrame(), "Copy progress", 0, (numRows * numCols));
+
+		ProgressJDialog progressDialog = new ProgressJDialog( __worksheet.getHourglassJFrame(), "Copy progress", 0, (numRows * numCols));
 
 		int count = 1;
 
 		progressDialog.setVisible(true);
 
 		__worksheet.startNewConsecutiveRead();
-		
+
 		if (copyHeader) {
 			for (int j = 0; j < numCols; j++) {
 				sbf.append(__worksheet.getColumnName(visibleCols[j], true));
@@ -294,7 +290,7 @@ public void actionPerformed(ActionEvent e) {
     				if (test) {
     					Message.printStatus(1, "", ""
     						+ "Copying row, col: "
-    						+ selectedRows[i] + ", " 
+    						+ selectedRows[i] + ", "
     						+ selectedCols[j]);
     				}
     			*/
@@ -305,19 +301,21 @@ public void actionPerformed(ActionEvent e) {
     				}
     			}
     			sbf.append("\n");
-    		}		
-    
+    		}
+
     		progressDialog.dispose();
-    		
+
     		StringSelection stsel = new StringSelection(sbf.toString());
     		__system = Toolkit.getDefaultToolkit().getSystemClipboard();
     		__system.setContents(stsel, stsel);
 		}
 		catch (Exception ex) {
-			new ResponseJDialog(__worksheet.getHourglassJFrame(),
-				"Copy Error", "Copy Error", ResponseJDialog.OK).response();
+			new ResponseJDialog(__worksheet.getHourglassJFrame(), "Copy Error", "Copy Error", ResponseJDialog.OK).response();
 			Message.printWarning(2, "", ex);
-		}		
+    		if ( progressDialog != null ) {
+    			progressDialog.dispose();
+    		}
+		}
 	}
 	else if (action.equalsIgnoreCase(__PASTE) && __pasteEnabled) {
 		int startRow = (__worksheet.getSelectedRows())[0];
@@ -330,7 +328,7 @@ public void actionPerformed(ActionEvent e) {
 		for (int i = 0; i < selectedCols.length; i++) {
 			visibleCols[i] = __worksheet.getVisibleColumn(selectedCols[i]);
 		}
-		
+
 		if (!areCellsContiguous(numRows, selectedRows, numCols, visibleCols)) {
 			new ResponseJDialog(__worksheet.getHourglassJFrame(),
 				"Paste Error", "Must select a contiguous range of cells.", ResponseJDialog.OK);
@@ -342,7 +340,7 @@ public void actionPerformed(ActionEvent e) {
 		try {
 			String trstring = (String)(__system.getContents(this).getTransferData(DataFlavor.stringFlavor));
 			List<String> v1 = StringUtil.breakStringList(trstring,"\n",0);
-			
+
 			int size1 = v1.size();
 			int size2 = -1;
 			boolean columnPasteCheck = false;
@@ -374,8 +372,7 @@ public void actionPerformed(ActionEvent e) {
 			}
 		}
 		catch (Exception ex) {
-			new ResponseJDialog(__worksheet.getHourglassJFrame(),
-				"Paste Error", "Paste Error", ResponseJDialog.OK).response();
+			new ResponseJDialog(__worksheet.getHourglassJFrame(), "Paste Error", "Paste Error", ResponseJDialog.OK).response();
 			Message.printWarning(2, "", ex);
 		}
 		JGUIUtil.forceRepaint(__worksheet);
@@ -384,7 +381,7 @@ public void actionPerformed(ActionEvent e) {
 }
 
 /**
-Checks whether a selection of rows and columns is contiguous. 
+Checks whether a selection of rows and columns is contiguous.
 @param numRows the number of rows that are selected
 @param selectedRows an integer array containing the numbers of the rows that are selected.
 @param numCols the number of columns that are selected.
@@ -395,9 +392,9 @@ private boolean areCellsContiguous(int numRows, int[] selectedRows, int numCols,
 	//    1) numCols/numRows is > 1.  It should have been checked already in the calling code.
 	//    2) the values in selectedCols/selectedRows are sorted from lowest (at pos 0) to highest.
 
-	// trivial case is to make sure that the number of selected rows/columns
-	// is equal to the difference between the number of the highest and lowest-selected rows/columns
-	
+	// Trivial case is to make sure that the number of selected rows/columns
+	// is equal to the difference between the number of the highest and lowest-selected rows/columns.
+
 	if (Message.isDebugOn) {
 		for (int i = 0; i < selectedRows.length; i++) {
 			Message.printDebug(2, "", "selectedRows[" + i + "]: " + selectedRows[i]);
@@ -406,7 +403,7 @@ private boolean areCellsContiguous(int numRows, int[] selectedRows, int numCols,
 			Message.printDebug(2, "", "selectedCols[" + i + "]: " + selectedCols[i]);
 		}
 	}
-	
+
 	if ((selectedCols[selectedCols.length - 1] - selectedCols[0]) + 1 != numCols) {
 
 		if (Message.isDebugOn) {
@@ -420,15 +417,15 @@ private boolean areCellsContiguous(int numRows, int[] selectedRows, int numCols,
 	if ( ((selectedRows[selectedRows.length - 1] - selectedRows[0]) + 1) != numRows) {
 
 		if (Message.isDebugOn) {
-			Message.printDebug(2, "", "Number of rows doesn't match row span ((" 
+			Message.printDebug(2, "", "Number of rows doesn't match row span (("
 				+ selectedRows[selectedRows.length - 1] + " - " + selectedRows[0] + ") + 1 != " + numRows +")");
 		}
 
 		return false;
 	}
 
-	// Otherwise, need to scan through the block made by the 
-	// top-left-most (lowest row and col) cell and the bottom-right-most (biggest row and col) cell.
+	// Otherwise, need to scan through the block made by the top-left-most
+	// (lowest row and col) cell and the bottom-right-most (biggest row and col) cell.
 	for (int i = selectedRows[0]; i <= selectedRows[numRows-1]; i++) {
 
 		if (Message.isDebugOn) {
@@ -460,7 +457,7 @@ public void copyAll() {
 /**
 Copies all table cells to the clipboard.
 @param includeHeader whether to include the header data for the copied cells
-in the first line of copied information. 
+in the first line of copied information.
 */
 public void copyAll(boolean includeHeader) {
 	if (includeHeader) {
@@ -482,8 +479,7 @@ public void copy() {
 
 /**
 Copies the selected table cells to the clipboard.
-@param includeHeader whether to include the header data for the copied cells
-in the first line of copied information. 
+@param includeHeader whether to include the header data for the copied cells in the first line of copied information.
 */
 public void copy(boolean includeHeader) {
 	if (includeHeader) {
@@ -502,7 +498,7 @@ Fills a contiguous range of cells with a single value.
 @param selectedRows the array of the selected rows (already checked that it is contiguous).
 @param selectedCols the array of the selected cols (already checked that is is contiguous).
 */
-private void fillCells(String value, int selectedRows[], int selectedCols[]) 
+private void fillCells(String value, int selectedRows[], int selectedCols[])
 throws Exception {
 	for (int i = 0; i < selectedCols.length; i++) {
 		selectedCols[i] = __worksheet.getVisibleColumn(selectedCols[i]);
@@ -517,17 +513,6 @@ throws Exception {
 }
 
 /**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	IOUtil.nullArray(__classes);
-	__system = null;
-	__worksheet = null;
-	super.finalize();
-}
-
-/**
 Returns the worksheet used with this adapter.
 @return the JWorksheet used with this adapter.
 */
@@ -537,8 +522,8 @@ public JWorksheet getJWorksheet() {
 
 /**
 Pulls a value out of the worksheet from the specified cell and formats it
-according to the formatting instructions stored in the cell renderer.  In 
-addition, blank data are returned as "".
+according to the formatting instructions stored in the cell renderer.
+In addition, blank data are returned as "".
 @param row the row of the cell
 @param absoluteCol the <b>absolute</b> column of the cell
 @return the cell data formatted properly in string format.
@@ -601,17 +586,15 @@ private String getValue(int row, int absoluteCol) {
     		else {
     			return StringUtil.formatString(I,format);
     		}
-    	}	
+    	}
     	else {
-    		return "" + o;		
+    		return "" + o;
     	}
 	}
 	catch (Exception e) {
 		Message.printWarning(2,"JWorksheet_CopyPasteAdapter.getValue()", "Error while copying value.");
-		Message.printWarning(2,"JWorksheet_CopyPasteAdapter.getValue()",
-			"   Class[" + visibleCol + "]: " + __classes[visibleCol]);
-		Message.printWarning(2,"JWorksheet_CopyPasteAdapter.getValue()",
-			"    o: " + o.getClass() + "  (" + o + ")");
+		Message.printWarning(2,"JWorksheet_CopyPasteAdapter.getValue()", "   Class[" + visibleCol + "]: " + __classes[visibleCol]);
+		Message.printWarning(2,"JWorksheet_CopyPasteAdapter.getValue()", "    o: " + o.getClass() + "  (" + o + ")");
 		Message.printWarning(2,"JWorksheet_CopyPasteAdapter.getValue()", e);
 		return "" + o;
 	}
