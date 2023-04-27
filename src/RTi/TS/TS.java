@@ -91,6 +91,8 @@ import RTi.Util.Time.TimeInterval;
 
 /**
 This class is the base class for all time series classes.
+General functionality is implemented in this class and specific functionality such as data set/get must be
+implemented in derived classes.
 */
 @SuppressWarnings("serial")
 public class TS implements Cloneable, Serializable, Transferable
@@ -260,6 +262,13 @@ Properties for the time series beyond the built-in properties.
 For example, location information like county and state can be set as a property.
 */
 private LinkedHashMap<String,Object> __property_HashMap = null;
+
+/**
+ * Map of associated time series where the key is an identifying string, similar to a property name,
+ * and the value is a time series.
+ * This is used, for example, in graphing code for dynamically created data.
+*/
+private HashMap<String,TS> __associatedTimeSeries_HashMap = new HashMap<>();
 
 /**
 The missing data value.  Default for some legacy formats is -999.0 but increasingly Double.NaN is used.
@@ -1175,6 +1184,16 @@ public String getAlias( ) {
 }
 
 /**
+ * Get an associated time series.
+ * @param name name to use to look up the time series, similar to a property name
+ * @return the associated time series matching the name
+ */
+public TS getAssociatedTimeSeries ( String name ) {
+	return this.__associatedTimeSeries_HashMap.get(name);
+}
+
+
+/**
 Return the time series comments.
 @return The comments list.
 */
@@ -1841,6 +1860,15 @@ public void setAlias ( String alias ) {
 	if ( alias != null ) {
 		_id.setAlias( alias );
 	}
+}
+
+/**
+ * Set an associated time series.
+ * @param name name to use for the time series, similar to a property name
+ * @param ts associated time series to set
+ */
+public void setAssociatedTimeSeries ( String name, TS ts ) {
+	this.__associatedTimeSeries_HashMap.put(name, ts);
 }
 
 /**
