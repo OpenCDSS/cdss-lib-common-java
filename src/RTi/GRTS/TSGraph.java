@@ -8824,10 +8824,9 @@ public GRLimits getDataLimits() {
 
 /**
 Return the derived time series list used for graphing.
-@param enabledOnly if true return only time series that are enabled.  If false, return all.
 @return the derived time series list being graphed.
 */
-public List<TS> getDerivedTSList() {
+private List<TS> getDerivedTSList() {
     return __derivedTSList;
 }
 
@@ -9370,7 +9369,7 @@ private List<TS> getTSListToRender ( boolean enabledOnly, boolean includeLeftYAx
         }
         return tsToRender;
     }
-    /* TODO smalers 2023-04-07 can now handle 1+ tme series.
+    /* TODO smalers 2023-04-07 can now handle 1+ time series.
     else if ( includeLeftYAxis && (leftYAxisGraphType == TSGraphType.RASTER) ) {
         // Return the first time series in the list since only one time series can be displayed.
         List<TS> tsToRender = new ArrayList<>();

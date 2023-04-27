@@ -4753,7 +4753,9 @@ private void maybeShowPopup(MouseEvent event) {
 				//__copyIncludeMissingMenuItem.setEnabled(true);
 				//__copyWithHeaderMenuItem.setEnabled(true);
 				//__copyWithHeaderIncludeMissingMenuItem.setEnabled(true);
-				__pasteMenuItem.setEnabled(true);
+				if ( this.__pasteMenuItem != null ) {
+					__pasteMenuItem.setEnabled(true);
+				}
 				__deselectAllMenuItem.setEnabled(true);
 				__selectAllMenuItem.setEnabled(true);
 				__viewCellContentsMenuItem.setEnabled(true);
@@ -4764,7 +4766,9 @@ private void maybeShowPopup(MouseEvent event) {
 				//__copyIncludeMissingMenuItem.setEnabled(false);
 				//__copyWithHeaderMenuItem.setEnabled(false);
 				//__copyWithHeaderIncludeMissingMenuItem.setEnabled(false);
-				__pasteMenuItem.setEnabled(false);
+				if ( this.__pasteMenuItem != null ) {
+					__pasteMenuItem.setEnabled(false);
+				}
 				__deselectAllMenuItem.setEnabled(false);
 				__selectAllMenuItem.setEnabled(true); // Always enabled
 				__viewCellContentsMenuItem.setEnabled(false);

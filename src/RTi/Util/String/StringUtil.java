@@ -817,12 +817,18 @@ public static boolean endsWithIgnoreCase ( String s, String pattern ) {
 
 /**
  * Expand a string by replacing ${Property}.
+ * This is a simpler and more generic function than expanding parameters in the TSCommandProcessorUtil function.
  * This currently does not handled nested properties.
  * @param s String to expand, optionally containing ${Property} notation.
  * @param map Map of properties where key is the property name and value is used for the property.
+ * If null, the original string is returned.
  * Objects are converted to string only if the value is not null.
  */
 public static String expandForProperties ( String s, HashMap<String,Object> map ) {
+	if ( map == null ) {
+		// Return the original string.
+		return s;
+	}
 	// Iterate through the map and replace strings.
 	String sExpanded = s;
 	String sValue;
