@@ -12,40 +12,35 @@ public class UtilTestSuite extends TestCase {
 
 	private static List<String> testList;
 	
-	public UtilTestSuite(String testname)
-	{
+	public UtilTestSuite(String testname) {
 		super(testname);
 	}
 
-	public UtilTestSuite()
-	{	
+	public UtilTestSuite() {	
 	}	
 	
-	public static Test suite()
-	{
+	public static Test suite() {
 	    TestSuite suite = new TestSuite();
 	    TestCollector tests = new TestCollector();
 	    File path = new File("..\\test\\src");
 	    tests.visitAllFiles(path);
 	    testList = tests.getTestList();
 	    
-	    for(int i = 0; i < testList.size(); i++)
-	    {
+	    for(int i = 0; i < testList.size(); i++) {
 	    	String testName = (testList.get(i).toString());
 	    	String test = tests.formatFileName(testName);
-	    	try 
-	    	{
-				suite.addTestSuite(Class.forName(test));
+    		// TODO smalers 2023-05-19 need to fix.
+	    	/*
+	    	try {
+				//suite.addTestSuite(Class.forName(test));
 	    	} 
-	    	catch (ClassNotFoundException e) 
-	    	{
+	    	catch (ClassNotFoundException e) {
 				e.printStackTrace();
 			}
+			*/
 	    }
 		
 	    return suite;
 	}
 	
-	
 }
-

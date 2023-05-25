@@ -1,22 +1,22 @@
-// InputFilter_JPanel - class to display and manage a Vector of InputFilter
+// InputFilter_JPanel - class to display and manage a list of InputFilter in a JPanel
 
 /* NoticeStart
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -44,7 +44,6 @@ import javax.swing.text.JTextComponent;
 
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJComboBox;
-import RTi.Util.IO.IOUtil;
 //import RTi.Util.IO.PropList;
 
 import RTi.Util.Message.Message;
@@ -73,9 +72,11 @@ public class InputFilter_JPanel extends JPanel implements ItemListener
 
 /**
 Number of filter groups to display.  Each filter group will list all filters.
+The number of filter groups is the number of "Where:" that are shown in the panel.
 */
 private int __numFilterGroups = 1;
 
+// TODO smalers 2023-05-22 how can this be constant across all filters in the panel?
 /**
 Number of where choices to display in combobox choices.
 */
@@ -332,6 +333,7 @@ public boolean checkInput ( boolean displayWarning ) {
 
 /**
 Clears all the selections the user has made to the combo boxes in the panel.
+This assumes that the first item in the combobox is an empty string, indicating no selection.
 */
 public void clearInput() {
 	SimpleJComboBox cb = null;
@@ -504,7 +506,7 @@ public InputFilter getInputFilter ( int ifg ) {
 
 /**
 Return the input filters that have been entered in the panel, for a requested parameter.
-If the requested where_label is not selected in any of the input filters, a zero length vector will be returned.
+If the requested where_label is not selected in any of the input filters, a zero length list will be returned.
 @param whereLabel The visible label for the input filter.
 @return the input filters that match the requested persistent where label.
 */
@@ -618,6 +620,28 @@ public String getText () {
     else {
         return __textArea.getText();
     }
+}
+
+/**
+ * Indicate if any of the input filters in the panel has input (is non-blank).
+ * This can be used to check whether an input filter has input that needs to be processed.
+ * @return true if at least input value is provided
+ */
+public boolean hasInput () {
+	int hasInputCount = 0;
+	for ( int ifg = 0; ifg < __numFilterGroups; ifg++ ) {
+		InputFilter filter = getInputFilter(ifg);
+		String input = filter.getInput(false).trim();
+		if ( (input != null) && !input.isEmpty() ) {
+			++hasInputCount;
+		}
+	}
+	if ( hasInputCount > 0 ) {
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 /**
@@ -1038,8 +1062,8 @@ public void setNumFilterGroups ( int numFilterGroups ) {
 }
 
 /**
-Set the number of where choices in a .
-@param numFilterGroups number of where choices to display.
+Set the number of where choices in the JComboBox.
+@param numFilterGroups number of where choices to display, -1 to automatically determine.
 */
 public void setNumWhereChoicesToDisplay ( int numWhereChoicesToDisplay ) {
     __numWhereChoicesToDisplay = numWhereChoicesToDisplay;
