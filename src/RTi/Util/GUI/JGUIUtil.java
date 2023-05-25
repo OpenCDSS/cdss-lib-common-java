@@ -401,7 +401,8 @@ Determine if the specified compare String exists within a SimpleJComboBox - CASE
 currently any trimmed substring that matches will return true
 @param delimiter String containing delimiter(s) to parse for flag=CHECK_SUBSTRINGS.
 Each character in the string will be considered a delimiter.
-However, if the delimiter string starts with "seq:" the multi-character string is used for the delimiter.
+However, if the delimiter string starts with "seq:" the multi-character string is used for the delimiter
+(e.g. "seq: - " to use a dash surrouned by spaces).
 @param compareIndex if >= 0, the substring part to compare (e.g.,
 may be null if using flag=NONE; specify -1 to compare all parts
 @param index Index location in ComboBox data where the compare String was located

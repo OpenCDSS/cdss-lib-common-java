@@ -59,6 +59,12 @@ The item separator.
 private final String itemSep = ",";
 
 /**
+ * Constructor to use with 'add' method calls.
+ */
+public MultiKeyStringDictionary () {
+}
+
+/**
 Construct the parser by specifying the input string, the key/value separator, and the dictionary item separator.
 @param s string dictionary to parse of format:  key1:value1,key2:value2,...
 If the value contains special characters, it can be surrounded by single quotes.
@@ -172,6 +178,17 @@ public MultiKeyStringDictionary ( String dictString, String keyValueSep, String 
     	    }
 	    }
     }
+}
+
+/**
+ * Add a key value pair.
+ * Previous keys are not checked, which allows duplicates to be added.
+ * @param key hashmap key
+ * @param value hashmap value
+ */
+public void add ( String key, String value ) {
+	this.keyList.add(key);
+	this.valueList.add(value);
 }
 
 /**

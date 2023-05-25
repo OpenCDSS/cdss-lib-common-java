@@ -349,7 +349,7 @@ public int allocateDataSpace( ) {
 	int nmonths = _date2.getAbsoluteMonth() - _date1.getAbsoluteMonth() + 1;
 
 	if( nmonths == 0 ){
-		Message.printWarning( 2, routine, "TS has 0 months POR, maybe dates haven't been set yet." );
+		Message.printWarning( 2, routine, "TS has 0 months POR, maybe dates haven't been set yet or end is not after start." );
 		return 1;
 	}
 

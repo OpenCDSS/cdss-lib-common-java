@@ -49,7 +49,7 @@ public enum GRPointConnectType {
     private final String displayName;
 
     /**
-     * Construct a point connect type enumeration value.
+     * Construct an enumeration value.
      * @param displayName name that should be displayed in choices, etc.
      */
     private GRPointConnectType(String displayName) {

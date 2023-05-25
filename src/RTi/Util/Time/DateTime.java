@@ -26,11 +26,13 @@ package RTi.Util.Time;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 //import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.zone.ZoneRulesException;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -906,6 +908,62 @@ public DateTime ( double double_date, boolean use_month ) {
 }
 
 /**
+Construct using a LocalDateTime and a time zone to convert to at construction.
+@param t Java LocalDateTime to use as input to create a new DateTime.
+@param behaviorFlag control behavior (see bitmasks) - if <= 0 do not change from default.
+Typically the behaviorFlag is used to indicate the precision of the DateTime.
+@param newtz Time zone to use in the resulting DateTime.
+If null or blank then it is assumed that the application is aware of time zones and is making consistent
+(or that time zone is not relevant because precision is for date).
+If a time zone string is specified, it is expected to be a valid Java 8 time zone appropriate for the LocalDateTime.
+For example, if a series of LocalDateTime are being processed from a database for Mountain time zone.
+The zone shift specified should either be a named zone such as "America/Denver" indicating
+that all the date/times are local time.
+If 'newtz' is null, the local zone will be determined from 't', but this is slower, if processing many date/time.
+*/
+public DateTime ( LocalDateTime t, int behaviorFlag, String newtz ) {
+	if ( t != null ) {
+		// First copy.
+
+		__nano = t.getNano();
+		__second = t.getSecond();
+		__minute = t.getMinute();
+		__hour = t.getHour();
+		__day = t.getDayOfMonth();
+		__month = t.getMonthValue();
+		__year = t.getYear();
+		// The following are calculated with reset() call below.
+		//__isleap
+		//__iszero
+		//__weekday
+		//__yearday
+		//__abs_month
+		
+		// The following just saves the time zone string:
+		// - for example, "America/Denver" is passed in
+		if ( newtz != null ) {
+			setTimeZone( newtz );
+		}
+		else {
+			ZoneId zoneId = ZoneId.from(t);
+			setTimeZone( zoneId.toString() );
+		}
+		// Reset internal data like leap year, etc.
+		reset();
+	}
+	else {
+        // Constructing from null usually means that there is a code logic problem with exception handling.
+		Message.printWarning ( 2, "DateTime", "Constructing DateTime from null LocalDateTime - will have zero date!" );
+		setToZero ();
+	}
+	if ( behaviorFlag > 0 ) {
+		__behavior_flag = behaviorFlag;
+		setPrecision(behaviorFlag);
+	}
+	reset();
+}
+
+/**
 Construct using an OffsetDateTime and a time zone to convert to at construction.
 @param t Java OffsetDateTime to use as input to create a new DateTime.
 @param behaviorFlag control behavior (see bitmasks) - if <= 0 do not change from default.
@@ -947,7 +1005,63 @@ public DateTime ( OffsetDateTime t, int behaviorFlag, String newtz ) {
 	}
 	else {
         // Constructing from null usually means that there is a code logic problem with exception handling.
-		Message.printWarning ( 2, "DateTime", "Constructing DateTime from null - will have zero date!" );
+		Message.printWarning ( 2, "DateTime", "Constructing DateTime from null OffsetDateTime - will have zero date!" );
+		setToZero ();
+	}
+	if ( behaviorFlag > 0 ) {
+		__behavior_flag = behaviorFlag;
+		setPrecision(behaviorFlag);
+	}
+	reset();
+}
+
+/**
+Construct using a ZonedDateTime and a time zone to convert to at construction.
+@param t Java ZonedDateTime to use as input to create a new DateTime.
+@param behaviorFlag control behavior (see bitmasks) - if <= 0 do not change from default.
+Typically the behaviorFlag is used to indicate the precision of the DateTime.
+@param newtz Time zone to use in the resulting DateTime.
+If null or blank then it is assumed that the application is aware of time zones and is making consistent
+(or that time zone is not relevant because precision is for date).
+If a time zone string is specified, it is expected to be a valid Java 8 time zone appropriate for the LocalDateTime.
+For example, if a series of LocalDateTime are being processed from a database for Mountain time zone.
+The zone shift specified should either be a named zone such as "America/Denver" indicating
+that all the date/times are local time.
+If 'newtz' is null, the local zone will be determined from 't', but this is slower, if processing many date/time.
+*/
+public DateTime ( ZonedDateTime t, int behaviorFlag, String newtz ) {
+	if ( t != null ) {
+		// First copy.
+
+		__nano = t.getNano();
+		__second = t.getSecond();
+		__minute = t.getMinute();
+		__hour = t.getHour();
+		__day = t.getDayOfMonth();
+		__month = t.getMonthValue();
+		__year = t.getYear();
+		// The following are calculated with reset() call below.
+		//__isleap
+		//__iszero
+		//__weekday
+		//__yearday
+		//__abs_month
+		
+		// The following just saves the time zone string:
+		// - for example, "America/Denver" is passed in
+		if ( newtz != null ) {
+			setTimeZone( newtz );
+		}
+		else {
+			ZoneId zoneId = ZoneId.from(t);
+			setTimeZone( zoneId.toString() );
+		}
+		// Reset internal data like leap year, etc.
+		reset();
+	}
+	else {
+        // Constructing from null usually means that there is a code logic problem with exception handling.
+		Message.printWarning ( 2, "DateTime", "Constructing DateTime from null ZonedDateTime - will have zero date!" );
 		setToZero ();
 	}
 	if ( behaviorFlag > 0 ) {
@@ -4485,9 +4599,28 @@ private void setYearDay() {
 }
 
 /**
-Shift the data to the specified time zone, resulting in the hours and possibly minutes being changed.
-@param zone Time zone to switch to.  This method shifts the hour/minutes and
+Shift the data to the specified time zone.
+This time zone is shifted using a one or two step process, with GMT as the 
+This method shifts the hour/minutes and
 then sets the time zone for the instance to the requested time zone.
+@param zone Time zone to switch to.
+@exception Exception if the time zone cannot be shifted (unknown time zone).
+*/
+/* TODO smalers 2023-05-22 need to implement something like this, or maybe pass in ZoneId.
+public void shiftTimeZone ( ZoneOffset zoneOffset ) {
+	String routine = getClass().getSimpleName() + ".shiftTimeZone";
+	if ( Message.isDebugOn ) {
+		// Not sure why this is printed.
+		Message.printStatus(2, routine, "Shifting time zone using offse \"" + zoneOffset + "\".");
+	}
+}
+*/
+
+/**
+Shift the data to the specified time zone.
+This method shifts the hour/minutes and
+then sets the time zone for the instance to the requested time zone.
+@param zone Time zone to switch to.
 @exception Exception if the time zone cannot be shifted (unknown time zone).
 */
 public void shiftTimeZone ( String zone ) {
@@ -4605,6 +4738,115 @@ public double toDouble ( ) {
 	d += ((double)(__nano/10000000))/8640000; // 100*60*60*24
 	return (dt + d/ydays);
 }
+
+/**
+Return ZonedDateTime representation of the date and time.
+The time zone must be set in the DateTime instance, for example "America/Denver" or "-06:00".
+@param defaultZoneId if the DateTime time zone is not set, use this for the ZoneId,of("GMT") for GMT.
+for example, call with ZoneId.systemDefault() to get the local zone or ZoneId
+@return ZonedDateTime representation of the date,
+setting parts to default values (zero, month and day to 1) if not used by the DateTime precision.
+*/
+public ZonedDateTime toZonedDateTime ( ZoneId defaultZoneId) {
+	// Initialize all to default values and set below based on the precision.
+	int year = 0;
+	int month = 1;
+	int day = 1;
+	int hour = 0;
+	int minute = 0;
+	int second = 0;
+	int nanosecond = 0;
+	
+	ZoneId zoneId = null;
+	if ( (this.__tz == null) || this.__tz.isEmpty() ) {
+		// Use the default passed in (check for null below).
+		zoneId = defaultZoneId;
+	}
+	else {
+		// Get the ZoneId from the DateTime time zone string.
+		zoneId = ZoneId.of(this.__tz);
+	}
+	if ( zoneId == null ) {
+		// Not allowed:
+		// - use ZoneRulesException, which extends RunTimeException so does not need to be declared for the method
+		throw new ZoneRulesException ("No time zone specified for DateTime.  Cannot covnert to ZonedDateTime.");
+	}
+
+	// Arrange these in probable order of use.
+	if ( this.__precision <= PRECISION_YEAR ) {
+		year = this.__year;
+	}
+	if ( __precision <= PRECISION_MONTH ) {
+		month = this.__month;
+	}
+	if ( __precision <= PRECISION_DAY ) {
+		day = this.__day;
+	}
+	if ( __precision <= PRECISION_HOUR ) {
+		hour = this.__hour;
+	}
+	if ( __precision <= PRECISION_MINUTE ) {
+		minute = this.__minute;
+	}
+	if ( __precision <= PRECISION_SECOND ) {
+		second = this.__second;
+	}
+	if ( __precision <= PRECISION_HSECOND ) {
+		// Handles all sub-second parts.
+		nanosecond = this.__nano;
+	}
+	ZonedDateTime zdt = ZonedDateTime.of(year, month, day, hour, minute, second, nanosecond, zoneId);
+	return zdt;
+}
+
+/**
+Return OffsetDateTime representation of the date and time.
+@return LocalDateTime representation of the date,
+setting parts to default values (zero, month and day to 1) if not used by the DateTime precision.
+@param zoneId the time zone ID for the local time, if null the DateTime time zone is used,
+and if that is not specified default local zone is used
+*/
+/* TODO smalers 2023-05-22 need to enable, also need toOffsetDateTime
+public OffsetDateTime toLocalDateTime ( ZoneId zoneId ) {
+	// Initialize all to default values and set below based on the precision.
+	int year = 0;
+	int month = 1;
+	int day = 1;
+	int hour = 0;
+	int minute = 0;
+	int second = 0;
+	int nanosecond = 0;
+	
+	if ( zoneId == null ) {
+		zoneId = ZoneId.systemDefault();
+	}
+
+	// Arrange these in probable order of use.
+	if ( this.__precision <= PRECISION_YEAR ) {
+		year = this.__year;
+	}
+	if ( __precision <= PRECISION_MONTH ) {
+		month = this.__month;
+	}
+	if ( __precision <= PRECISION_DAY ) {
+		day = this.__day;
+	}
+	if ( __precision <= PRECISION_HOUR ) {
+		hour = this.__hour;
+	}
+	if ( __precision <= PRECISION_MINUTE ) {
+		minute = this.__minute;
+	}
+	if ( __precision <= PRECISION_SECOND ) {
+		second = this.__second;
+	}
+	if ( __precision <= PRECISION_HSECOND ) {
+		// Handles all sub-second parts.
+		nanosecond = this.__nano;
+	}
+	ZoneOffset offset = ZoneOffset.
+}
+*/
 
 /**
 Return string representation of the date and time.

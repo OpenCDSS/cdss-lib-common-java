@@ -1819,13 +1819,32 @@ public static String getSystemTimeString ( String format ) {
 }
 
 /**
- * Get the time zone offset for a time zone, for use with OffsetDateTime.of().
+ * Get the time zone offset for a time zone for the current time,
+ * for example use with OffsetDateTime.of().
  * @param timeZone time zone string like "-07:00", "MST" or "America/Denver".
  * @return the zone offset, or null if it can't be found.
  */
 public static ZoneOffset getTimeZoneOffset(String timeZone) {
 	try {
 		LocalDateTime dt = LocalDateTime.now();
+		ZoneId zone = ZoneId.of(timeZone,ZoneId.SHORT_IDS);
+		ZonedDateTime zdt = dt.atZone(zone);
+		return zdt.getOffset();
+	}
+	catch ( DateTimeException e1 ) {
+		// Time zone abbreviation is not recognized.
+		return null;
+	}
+}
+
+/**
+ * Get the time zone offset for a time zone for a local time.
+ * @param timeZone time zone string like "-07:00", "MST" or "America/Denver".
+ * @param dt LocalDateTime instance
+ * @return the zone offset, or null if it can't be found.
+ */
+public static ZoneOffset getTimeZoneOffset(String timeZone, LocalDateTime dt ) {
+	try {
 		ZoneId zone = ZoneId.of(timeZone,ZoneId.SHORT_IDS);
 		ZonedDateTime zdt = dt.atZone(zone);
 		return zdt.getOffset();
