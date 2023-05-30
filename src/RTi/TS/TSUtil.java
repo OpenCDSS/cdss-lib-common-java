@@ -6458,7 +6458,7 @@ protected static TSLimits getDataLimits ( TS ts, DateTime start0, DateTime end0,
 	}
 
 	if ( !found ) {
-		Message.printWarning( 3, routine, "\"" + ts.getIdentifierString() + "\": problems finding limits, whole POR missing!" );
+		Message.printWarning( 3, routine, "\"" + ts.getIdentifierString() + "\": problems finding limits, whole period is missing." );
 		return new TSLimits();
 	}
 
@@ -6609,6 +6609,7 @@ throws Exception {
 	DataUnitsConversion conversion = null;
 	DateTime tslimits_date;
 	double add = 0.0, tslimits_value = 0.0, mult = 1.0, value = 0.0;
+	int countTsWithLimits = 0;
 	for ( int i = 0; i < size; i++ ) {
 		ts = tslist.get(i);
 		if ( ts == null ) {
@@ -6626,6 +6627,10 @@ throws Exception {
 		}
 		if ( tslimits == null ) {
 			continue;
+		}
+		else {
+			// Increment the counter for the debug message at the end.
+			++countTsWithLimits;
 		}
 		// Get the units for the time series and get conversion factors.
 		// If necessary (this will throw an exception if the units are not found).
@@ -6688,6 +6693,9 @@ throws Exception {
 
 	// Return the overall limits.
 
+	if ( Message.isDebugOn ) {
+		Message.printDebug(1, routine, "" + countTsWithLimits + " of " + tslist.size() + " time series had limits.");
+	}
 	limits.setLimitsFound ( true );
 	return limits;
 }

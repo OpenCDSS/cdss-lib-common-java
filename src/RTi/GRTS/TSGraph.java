@@ -3614,6 +3614,9 @@ private GRSymbolTable createRasterSymbolTable ( List<TS> tslist ) {
 			limits = TSUtil.getDataLimits(tslist);
 		}
 		catch ( Exception e ) {
+			// Log the exception.
+			Message.printWarning(3, routine, "Error creating default symbol table:");
+			Message.printWarning(3, routine, e);
 		}
 		if ( limits != null ) {
 			//double tsMin = ts.getDataLimits().getMinValue();
@@ -3630,6 +3633,8 @@ private GRSymbolTable createRasterSymbolTable ( List<TS> tslist ) {
 	if ( symtable == null ) {
 		// Create an empty symbol table:
 		// - will probably result in full black raster graph
+		Message.printStatus ( 2, routine,
+			"Created an empty symbol table because could not get data limits.");
 		symtable = new GRSymbolTable();
 	}
 	return symtable;
@@ -5545,6 +5550,9 @@ private void drawLegend ( GRAxisEdgeType axis ) {
  */
 private void drawLegendRaster ( TSProduct tsproduct, int subproduct ) {
 	String routine = getClass().getSimpleName() + ".drawLegendRaster";
+	if ( Message.isDebugOn ) {
+		Message.printStatus(2, routine, "Drawing the raster legend.");
+	}
 	// Left y-axis may be only axis used or may be used with right y-axis.
 	String legendPosition = _tsproduct.getLayeredPropValue("RasterGraphLegendPosition", _subproduct, 0, false);
 	if ( (legendPosition == null) || (legendPosition.isEmpty())) {
@@ -5565,6 +5573,7 @@ private void drawLegendRaster ( TSProduct tsproduct, int subproduct ) {
 	}
 	else {
 		// Don't know how to handle.
+		Message.printWarning(3, routine, "Don't know how to draw the raster legend other than in position Right.");
 		return;
 	}
 
@@ -6965,6 +6974,7 @@ private void drawTSRenderAreaGraph ( int its, TS ts, TSGraphType graphType, Prop
 
 /**
  * Draw a raster graph for multiple time series.
+ * Time series with no data are drawn as all missing.
  * @param tslist multiple time series to draw
  * @param overrideProps runtime override properties to use when drawing
  */
@@ -6988,23 +6998,45 @@ private void drawTSRenderRasterGraphMultiple ( List<TS> tslist, PropList overrid
     Shape clip = GRDrawingAreaUtil.getClip(_da_lefty_graph);
     GRDrawingAreaUtil.setClip(_da_lefty_graph, _da_lefty_graph.getDataLimits());
 
+    // Fill the entire raster graph with missing color:
+    // - then don't need to draw missing for specific pixels below
+    _da_lefty_graph.setColor(nodataColor);
+    double x0Full = _da_lefty_graph.getPlotLimits(GRCoordinateType.DATA).getLeftX();
+    double y0Full = _da_lefty_graph.getPlotLimits(GRCoordinateType.DATA).getTopY();
+    double width = _da_lefty_graph.getPlotLimits(GRCoordinateType.DATA).getWidth();
+    double height = _da_lefty_graph.getPlotLimits(GRCoordinateType.DATA).getHeight();
+    GRDrawingAreaUtil.fillRectangle(_da_lefty_graph, x0Full, y0Full, width, height);
+
     GRColor tscolor = null;
     int its = -1;
     for ( TS ts : tslist ) {
     	++its;
+    	double x0 = 0.0; // X coordinate converted from date/time (interval start), left edge of rectangle.
+    	double y0 = 0.0; // Y coordinate corresponding to time series index 0+, upper edge of rectangle since reversed y-axis.
+
     	//DateTime start = drawTSHelperGetStartDateTime(ts);
     	//DateTime end = drawTSHelperGetEndDateTime(ts);
     	// FIXME SAM 2013-07-21 The above gets messed up because the data limits are set to an integer range.
+
+    	if ( ts == null ) {
+    		// Totally missing time series.
+        	// Unable to draw individual pixels (lack of data).
+    		continue;
+    	}
+
     	DateTime start = ts.getDate1();
     	DateTime end = ts.getDate2();
+    	if ( (start == null) || (end == null) ) {
+    		// Time series with no data.
+        	// Unable to draw individual pixels (lack of data).
+    		continue;
+    	}
 
     	// Loop using addInterval.
     	DateTime date = new DateTime(start);
     	// Make sure the time zone is not set
     	date.setTimeZone("");
 
-    	double x0 = 0.0; // X coordinate converted from date/time (interval start), left edge of rectangle.
-    	double y0 = 0.0; // Y coordinate corresponding to time series index 0+, upper edge of rectangle since reversed y-axis.
     	// Iterate through data with the iterator.
     	TSData tsdata = null;
     	TSIterator tsi = null;
@@ -7012,8 +7044,9 @@ private void drawTSRenderRasterGraphMultiple ( List<TS> tslist, PropList overrid
         	tsi = ts.iterator ( start, end );
     	}
     	catch ( Exception e ) {
-        	// Unable to draw (lack of data).
-        	return;
+    		// Time series with no data or other issue.
+        	// Unable to draw individual pixels (lack of data).
+        	continue;
     	}
     	double value;
     	double valuePrev = Double.MAX_VALUE;
@@ -8587,6 +8620,7 @@ Handles special cases for graph types that have other than simple axes.
 @param datapt Data point to format.
 */
 public String formatMouseTrackerDataPoint ( GRPoint devpt, GRPoint datapt ) {
+	try {
 	if ( datapt == null ) {
 		return "";
 	}
@@ -8700,7 +8734,13 @@ public String formatMouseTrackerDataPoint ( GRPoint devpt, GRPoint datapt ) {
         			return "X: " + xString + ",  Y: " + yString + ", " + valueString;
         		}
         		else {
-        			return "X: " + xString + ",  Y: " + yString + ", " + valueString + ", Range: " + getRasterRangeString(value);
+        			String rangeString = getRasterRangeString(value);
+        			if ( rangeString.isEmpty() ) {
+        				return "X: " + xString + ",  Y: " + yString + ", " + valueString + ", Range: ?";
+        			}
+        			else {
+        				return "X: " + xString + ",  Y: " + yString + ", " + valueString + ", Range: " + rangeString;
+        			}
         		}
         	}
        	}
@@ -8718,7 +8758,11 @@ public String formatMouseTrackerDataPoint ( GRPoint devpt, GRPoint datapt ) {
 			String valueString = "";
 			boolean isMissing = true;
 			double value = Double.NaN;
-            if ( ts != null ) {
+           	// Make sure that the time series is OK:
+			// - not null
+			// - has data (start and end defined and data array exists)
+			// - otherwise will get NullPointerException in called code
+            if ( (ts != null) && ts.hasData() ) {
             	int intervalBase = ts.getDataIntervalBase();
             	int intervalMult = ts.getDataIntervalMult();
             	boolean useTime = true;
@@ -8809,6 +8853,13 @@ public String formatMouseTrackerDataPoint ( GRPoint devpt, GRPoint datapt ) {
 				return leftYString;
 			}
 		}
+	}
+	}
+	catch ( Exception e ) {
+		// For troubleshooting.
+		String routine = getClass().getSimpleName() + "formaMouseTrackerDataPoint";
+		Message.printWarning(3, routine, e);
+		return "";
 	}
 }
 
@@ -9200,17 +9251,22 @@ private String getRasterRangeString ( double value ) {
 	else {
 		StringBuilder b = new StringBuilder();
 		GRSymbolTableRow row = this.rasterSymbolTable.getSymbolTableRowForValue(value);
-		if ( !row.getValueMinFullString().equalsIgnoreCase("-Infinity") ) {
-			b.append (row.getValueMinFullString());
+		if ( row == null ) {
+			return "";
 		}
-		if ( !row.getValueMinFullString().equalsIgnoreCase("-Infinity") &&
-			!row.getValueMaxFullString().equalsIgnoreCase("Infinity") ) {
-			b.append (" AND ");
+		else {
+			if ( !row.getValueMinFullString().equalsIgnoreCase("-Infinity") ) {
+				b.append (row.getValueMinFullString());
+			}
+			if ( !row.getValueMinFullString().equalsIgnoreCase("-Infinity") &&
+				!row.getValueMaxFullString().equalsIgnoreCase("Infinity") ) {
+				b.append (" AND ");
+			}
+			if ( !row.getValueMaxFullString().equalsIgnoreCase("Infinity") ) {
+				b.append ( row.getValueMaxFullString() );
+			}
+			return b.toString();
 		}
-		if ( !row.getValueMaxFullString().equalsIgnoreCase("Infinity") ) {
-			b.append ( row.getValueMaxFullString() );
-		}
-		return b.toString();
 	}
 }
 

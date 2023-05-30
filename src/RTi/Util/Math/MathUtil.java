@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ package RTi.Util.Math;
 import	RTi.Util.Message.Message;
 
 import java.lang.Math;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
@@ -39,10 +40,12 @@ public class MathUtil
 Sort using a bubble sort.
 */
 public static final int SORT_BUBBLE = 1;
+
 /**
 Sort using a heap sort.
 */
 public static final int SORT_HEAP = 2;
+
 /**
 Sort using a quick sort.
 */
@@ -52,6 +55,7 @@ public static final int SORT_QUICK = 3;
 Sort into ascending order.
 */
 public static final int SORT_ASCENDING = 1;
+
 /**
 Sort into descending order.
 */
@@ -63,8 +67,8 @@ Method to integrate a function:  Gaussian quadrature integration.
 public static final int INTEGRATE_GAUSSIAN_QUADRATURE = 1;
 
 /**
-Compute the angle on a standard circle (0=3 o'clock and from there counterclockwise), essentially
-the bearing from one point to another
+Compute the angle on a standard circle (0=3 o'clock and from there counterclockwise),
+essentially the bearing from one point to another.
 @param x0 x-coordinate of first point (center of circle)
 @param y0 y-coordinate of first point (center of circle)
 @param x1 x-coordinate of second point
@@ -93,8 +97,8 @@ public static double angleFromPoints ( double x0, double y0, double x1, double y
 			angle = Math.PI/2.0;
 		}
 		else {
-			// Second quadrant - atan will be negative with angle measured counter-clockwise from vertical
-			// so subtract result.
+			// Second quadrant.
+			// atan() will be negative with angle measured counter-clockwise from vertical so subtract result.
 			angle = Math.PI/2.0 - Math.atan(xDiff/yDiff);
 		}
 	}
@@ -103,16 +107,16 @@ public static double angleFromPoints ( double x0, double y0, double x1, double y
 	}
 	else if ( yDiff < 0.0 ) {
 		if ( xDiff < 0.0 ){
-			// Third quadrant - atan will be positive when measured counter-clockwise from horizontal left
-			// so add result.
+			// Third quadrant
+			// atan() will be positive when measured counter-clockwise from horizontal left so add result.
 			angle = Math.PI + Math.atan(yDiff/xDiff);
 		}
 		else if ( xDiff == 0.0 ) {
 			angle = Math.PI*1.5;
 		}
 		else {
-			// Fourth quadrant - atan will be negative when measured counter-clockwise from vertical down
-			// so subtract result.
+			// Fourth quadrant.
+			// atan() will be negative when measured counter-clockwise from vertical down so subtract result.
 			angle = Math.PI*1.5 - Math.atan(xDiff/yDiff);
 		}
 	}
@@ -129,8 +133,8 @@ If 0, return all common denominators, largest value first.
 @return an array of common denominators, controlled by the "return_num" flag,
 or null if no appropriate denominators can be determined.
 */
-public static int[] commonDenominators ( int values[], int return_num )
-{	int nvalues = 0;
+public static int[] commonDenominators ( int values[], int return_num ) {
+	int nvalues = 0;
 	if ( values != null ) {
 		nvalues = values.length;
 	}
@@ -147,7 +151,7 @@ public static int[] commonDenominators ( int values[], int return_num )
 	}
 	int j = 0;
 	boolean divisible;
-	List<Integer> common_denominators = new Vector<Integer>();
+	List<Integer> common_denominators = new ArrayList<>();
 	for ( int i = max_value; i > 1; i-- ) {
 		divisible = true;
 		for ( j = 0; j < nvalues; j++ ) {
@@ -228,16 +232,16 @@ private static String decimalToHexHelper(int num) {
 }
 
 /**
-Calculate the exceedance probability.  Values are sorted in descending order (position 1 is largest value and
-smallest exceedance probability).
+Calculate the exceedance probability.
+Values are sorted in descending order (position 1 is largest value and smallest exceedance probability).
 @return The exceedance probability given the sample and one of the values in the sample.
 @param n the number of values in the sample array to process
 @param x sample values
 @param xi specific value for which to compute the exceedance probability (must be in the range of values in x array)
 @exception IllegalArgumentException If the number of points is <= 0 or xi is outside the range of the data array
 */
-public static double exceedanceProbability ( int n, double x[], double xi )
-{   String routine = "MathUtil.exceedanceProbability";
+public static double exceedanceProbability ( int n, double x[], double xi ) {
+    String routine = MathUtil.class.getSimpleName() + ".exceedanceProbability";
 
     if ( n <= 0 ) {
         String message = "Number of points <= 0";
@@ -248,7 +252,7 @@ public static double exceedanceProbability ( int n, double x[], double xi )
     double [] x2 = new double[x.length];
     System.arraycopy(x, 0, x2, 0, n);
     sort(x2, SORT_QUICK, SORT_DESCENDING, null, false);
-    
+
     // Find the first matching value and return the exceedance probability using the plotting position:
     // = rank/(n + 1), where largest value = position 1
     for ( int i = 0; i < n; i++ ) {
@@ -286,8 +290,8 @@ public static double exceedanceProbability ( int n, double x[], double xi )
 @param probability the exceedance probability to consider (0.0 to 1.0)
 @exception IllegalArgumentException If the number of points is <= 0
 */
-public static double exceedanceProbabilityValue ( int n, double x[], double probability )
-{   String routine = "MathUtil.exceedanceProbabilityValue";
+public static double exceedanceProbabilityValue ( int n, double x[], double probability ) {
+    String routine = MathUtil.class.getSimpleName() + ".exceedanceProbabilityValue";
     double value = 0;
 
     if ( n <= 0 ) {
@@ -299,7 +303,7 @@ public static double exceedanceProbabilityValue ( int n, double x[], double prob
     double [] x2 = new double[x.length];
     System.arraycopy(x, 0, x2, 0, n);
     sort(x2, SORT_QUICK, SORT_ASCENDING, null, false);
-    
+
     // Calculate the distribution information.
     double [] eProb = new double[n];
     int n1 = n + 1;
@@ -311,11 +315,11 @@ public static double exceedanceProbabilityValue ( int n, double x[], double prob
             eProb[i] = (n - i)/(double)n1;
         }
     }
-    
+
     // Calculate the value for the requested probability.
     // Do so by going past the value and then interpolating back to the value using bracketing points.
     // If the requested probability is outside the
-    // range of the data use the appropriate endpoint (this is conservative).
+    // range of the data use the appropriate end point (this is conservative).
     // The data values are in ascending order, so the exceedance probabilities will be in descending order.
     // Do not extrapolate past the ends of the data (will be conservative
     // on the high data end and inaccurate on the low data end).
@@ -357,8 +361,8 @@ Compute the geometric mean of an array of values.
 @param x array of values
 @exception IllegalArgumentException if the number of points is <= 0.
 */
-public static double geometricMean ( int n, double x[] )
-{   String message, routine = "MathUtil.geometricMean";
+public static double geometricMean ( int n, double x[] ) {
+    String message, routine = MathUtil.class.getSimpleName() + ".geometricMean";
 
     if ( n <= 0 ) {
         message = "Number of values <= 0";
@@ -387,8 +391,8 @@ Perform integration for a function.
 @param b0 Right end point for entire interval.
 @param nseg Number of segments to divide interval (use higher number for functions that are not smooth).
 */
-public static double integrate ( int method, Function func, double a0, double b0, int nseg )
-{	double a, b; // End-points used for integration.
+public static double integrate ( int method, Function func, double a0, double b0, int nseg ) {
+	double a, b; // End-points used for integration.
 	double dx; // Increment to map "gx" values to real values.
 	double s; // Integration value.
 	double seglen; // Segment length.
@@ -403,20 +407,20 @@ public static double integrate ( int method, Function func, double a0, double b0
 				0.4333953941,
 				0.6794095682,
 				0.8650633666,
-				0.9739065285 },
-		gw[] = {
+				0.9739065285 };
+	double gw[] = {
 	            0.2955242247, // Gauss weights corresponding to "gx".
 				0.2692667193,
 				0.2190863625,
 				0.1494513491,
 				0.0666713443 };
-	
+
 	if ( nseg <= 0 ) {
 		nseg = 1;
 	}
 
-	// Divide the interval into segments and integrate each (helps with
-	// functions that are not smooth, and long intervals).
+	// Divide the interval into segments and integrate each
+	// (helps with functions that are not smooth, and long intervals).
 
 	seglen = (b0 - a0)/nseg;
 	stot = 0.0;
@@ -432,8 +436,8 @@ public static double integrate ( int method, Function func, double a0, double b0
 
 		for ( i = 0; i < ng; i++ ) {
 			dx = xr*gx[i];
-			func_input1[0] = xm + dx; 
-			func_input2[0] = xm - dx; 
+			func_input1[0] = xm + dx;
+			func_input2[0] = xm - dx;
 			s += gw[i]*(func.evaluate(func_input1) + func.evaluate(func_input2));
 		}
 		s *= xr;
@@ -474,8 +478,8 @@ Calculate the lag-k auto correlation, defined as:
 @param k lag (a lag of zero should return a autocorrelation of 1
 @return lag-k auto correlation value
 */
-public static double lagAutoCorrelation ( int n, double y[], int k )
-{   //String message, routine = "MathUtil.lagAutoCorrelation";
+public static double lagAutoCorrelation ( int n, double y[], int k ) {
+    //String message, routine = MathUtil.class.getSimpleName() + ".lagAutoCorrelation";
 
     double mean = mean ( n, y );
     double numeratorSum = 0.0;
@@ -563,9 +567,9 @@ public static double max ( double x[] ) {
 @param x array of values
 @exception IllegalArgumentException If the number of points is <= 0.
 */
-public static double max ( int n, double x[] )
-{	int	i;
-	String routine = "MathUtil.max";
+public static double max ( int n, double x[] ) {
+	int	i;
+	String routine = MathUtil.class.getSimpleName() + ".max";
 	double m = 0.0;
 
 	if ( n <= 0 ) {
@@ -575,7 +579,7 @@ public static double max ( int n, double x[] )
 	}
 	m = x[0];
 	for ( i = 1; i < n; i++ ) {
-		if ( x[i] > m ) {	
+		if ( x[i] > m ) {
 			m = x[i];
 		}
 	}
@@ -611,9 +615,9 @@ public static int max ( int x[] ) {
 @param x array of values
 @exception IllegalArgumentException if the number of points is <= 0.
 */
-public static int max ( int n, int x[] )
-{	int	i;
-	String routine = "MathUtil.max";
+public static int max ( int n, int x[] ) {
+	int	i;
+	String routine = MathUtil.class.getSimpleName() + ".max";
 	int	m = 0;
 
 	if ( n <= 0 ) {
@@ -623,7 +627,7 @@ public static int max ( int n, int x[] )
 	}
 	m = x[0];
 	for ( i = 1; i < n; i++ ) {
-		if ( x[i] > m ) {	
+		if ( x[i] > m ) {
 			m = x[i];
 		}
 	}
@@ -646,8 +650,8 @@ Compute the mean of an array of values.
 @param x array of values
 @exception IllegalArgumentException if the number of points is <= 0.
 */
-public static double mean ( int n, double x[] )
-{	String message, routine = "MathUtil.mean";
+public static double mean ( int n, double x[] ) {
+	String message, routine = MathUtil.class.getSimpleName() + ".mean";
 	double thesum;
 
 	if ( n <= 0 ) {
@@ -667,8 +671,8 @@ Compute the mean of an array of values.
 @param missing Missing data value (to ignore)
 @exception IllegalArgumentException if the number of points is <= 0.
 */
-public static double mean ( int n, double x[], double missing )
-{	String message, routine = "MathUtil.mean";
+public static double mean ( int n, double x[], double missing ) {
+	String message, routine = MathUtil.class.getSimpleName() + ".mean";
 	double thesum = 0.0;
 
 	if ( n <= 0 ) {
@@ -678,7 +682,7 @@ public static double mean ( int n, double x[], double missing )
 	}
 	int n2 = 0;
     for ( int i = 0; i < n; i++ ) {
-		if ( x[i] != missing ) { 
+		if ( x[i] != missing ) {
 			thesum += x[i];
 			++n2;
 		}
@@ -692,7 +696,8 @@ public static double mean ( int n, double x[], double missing )
 }
 
 /**
-Find the median value in an array.  If the number of values is even, the average of the middle two values is returned.
+Find the median value in an array.
+If the number of values is even, the average of the middle two values is returned.
 @param n Number of values from x to evaluate.
 @param x The array to evaluate.
 @return the median value from x
@@ -720,8 +725,8 @@ Find the minimum of two values but ignore missing.
 @param y Second value to check.
 @param missing Value to consider as missing - matching values will be ignored.
 */
-public static double min ( double x, double y, double missing )
-{	// Don't call array overload (try to optimize performance)!
+public static double min ( double x, double y, double missing ) {
+	// Don't call array overload (try to optimize performance).
 	if ( (x == missing) && (y == missing) ) {
 		// Both are missing so return missing.
 		return missing;
@@ -767,9 +772,9 @@ public static double min ( double x[] ) {
 @param x array of values
 @exception IllegalArgumentException if the number of points is <= 0.
 */
-public static double min ( int n, double x[] )
-{	int	i;
-	String routine = "MathUtil.min";
+public static double min ( int n, double x[] ) {
+	int	i;
+	String routine = MathUtil.class.getSimpleName() + ".min";
 	double m = 0.0;
 
 	if ( n <= 0 ) {
@@ -816,9 +821,9 @@ public static int min ( int x[] ) {
 @param x array of values
 @exception IllegalArgumentException if the number of points is <= 0.
 */
-public static int min ( int n, int x[] )
-{	int	i;
-	String routine = "MathUtil.min";
+public static int min ( int n, int x[] ) {
+	int	i;
+	String routine = MathUtil.class.getSimpleName() + ".min";
 	int	m = 0;
 
 	if ( n <= 0 ) {
@@ -860,21 +865,22 @@ public static double nonexceedanceProbabilityValue ( int n, double x[], double n
 }
 
 /**
-Perform an ordinary least squares regression on data that has already been transformed and processed for
-missing data.  A minimal number of analysis statistics and results are saved and
-can be retrieved using RegressionResults methods, in particular:
+Perform an ordinary least squares regression on data that has already been transformed and processed for missing data.
+A minimal number of analysis statistics and results are saved and can be retrieved using RegressionResults methods,
+in particular:
 <ol>
 </ol>
 @return a RegressionResults object for the analysis.
 @param data regression data, from which the following are extracted for the analysis:<br>
 x1 Array of non-missing independent (X) values that overlap y1.<br>
 y1 Array of non-missing dependent (Y) values that overlap x1.
-@param forcedIntercept the intercept to force (currently the intercept must be zero if specified) or null to not force intercept.
+@param forcedIntercept the intercept to force
+(currently the intercept must be zero if specified) or null to not force intercept.
 @exception IllegalArgumentException if no data are available to be regressed (e.g.,
 all missing), or data array lengths are unequal.
 */
-public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData data, Double forcedIntercept )
-{   String rtn = "ordinaryLeastSquaresRegression";
+public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData data, Double forcedIntercept ) {
+    String rtn = MathUtil.class.getSimpleName() + ".ordinaryLeastSquaresRegression";
     double [] x1 = data.getX1();
     double [] y1 = data.getY1();
     if ( x1.length != y1.length ) {
@@ -898,7 +904,7 @@ public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData 
     Double a = null;
     Double b = null;
     Double r = null;
-    
+
     for ( int i = 0; i < n1; i++ ) {
         totalX1Y1 += (x1[i] * y1[i]);
         totalX1 += x1[i];
@@ -909,7 +915,7 @@ public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData 
             Message.printDebug ( 50, rtn, "X1: " + x1[i] + ", Y1: " + y1[i] );
         }
     }
-    
+
     // TODO SAM 2012-12-15 Logic was kept migrating legacy code and consequently
     // the math does not simply use standard deviation, etc.
     // This adds a little inefficiency computing statistics below.  For now leave as is.
@@ -936,7 +942,7 @@ public static RegressionResults ordinaryLeastSquaresRegression ( RegressionData 
 
     double denom = Math.sqrt ((((double)n1 * totalX1_sq) -
         (totalX1*totalX1)) * (((double)n1 * totalY1_sq) - (totalY1*totalY1)));
-        
+
     if ( denom > 0 ) {
         r = (((double)n1 * totalX1Y1) - (totalX1 * totalY1))/denom;
     }
@@ -1034,9 +1040,11 @@ throws Exception {
 }
 
 /**
-Calculate the plotting position for a distribution.  Values are sorted in the specified order prior to determining the rank.
+Calculate the plotting position for a distribution.
+Values are sorted in the specified order prior to determining the rank.
 Plotting position is then calculated from the rank based on the equation for the distribution.
-If the value is tied with others, the average of the ranks for the tied values is used to compute the plotting position.
+If the value is tied with others,
+the average of the ranks for the tied values is used to compute the plotting position.
 @return The plotting position (0 to 1) given the sample and one of the values in the sample.
 @param n the number of values in the sample array to process
 @param x sample values
@@ -1044,8 +1052,8 @@ If the value is tied with others, the average of the ranks for the tied values i
 @exception IllegalArgumentException If the number of points is <= 0 or xi does not exactly match a value in the data array
 */
 public static double plottingPosition ( int n, double x[], SortOrderType sortOrderType, DistributionType distributionType,
-    Hashtable<String,String> distributionParameters, double xi )
-{   String routine = "MathUtil.plottingPosition";
+    Hashtable<String,String> distributionParameters, double xi ) {
+    String routine = MathUtil.class.getSimpleName() + ".plottingPosition";
 
     if ( n <= 0 ) {
         String message = "Number of points <= 0";
@@ -1101,8 +1109,8 @@ If the value is tied with others, the average of the ranks for the tied values i
 @param xi specific value for which to compute the rank (must match one of the values in x array)
 @exception IllegalArgumentException If the number of points is <= 0 or xi does not exactly match a value in the data array
 */
-public static double rank ( int n, double x[], SortOrderType sortOrderType, double xi )
-{   String routine = "MathUtil.rank";
+public static double rank ( int n, double x[], SortOrderType sortOrderType, double xi ) {
+    String routine = MathUtil.class.getSimpleName() + ".rank";
 
     if ( n <= 0 ) {
         String message = "Number of points <= 0";
@@ -1118,12 +1126,12 @@ public static double rank ( int n, double x[], SortOrderType sortOrderType, doub
     else {
         sort(x2, SORT_QUICK, SORT_ASCENDING, null, false);
     }
-    
+
     // Find the first matching value and return the position.
     for ( int i = 0; i < n; i++ ) {
         if ( x2[i] == xi ) {
-            // Value is in sample - search adjoining values to see if there are additional matches and if so
-            // return the average of the ranks.
+            // Value is in sample.
+        	// Search adjoining values to see if there are additional matches and if so return the average of the ranks.
             int count = 1;
             double rank = (double)(i + 1);
             for ( int j = (i + 1); j < n; j++ ) {
@@ -1145,8 +1153,8 @@ Perform an ordinary least squares regression on two arrays of data.
 See the Regression class methods for more information.
 Analysis results are saved and can be retrieved using Regression class methods.
 If no regression can be performed, the limits are set to the missing data value indicator.
-In addition to the results needed for the regression, additional statistics are
-computed and are available in the Regression object.
+In addition to the results needed for the regression,
+additional statistics are computed and are available in the Regression object.
 Statistics that cannot be computed are set to -999 (e.g., when N2 is 0, the X2 mean is set to -999).
 @return a Regression object for the analysis.
 @param xArray Array of independent (X) values.
@@ -1161,8 +1169,8 @@ all missing), or data array lengths are unequal.
 @param intercept the intercept to force (currently the intercept must be zero) or null to not force intercept.
 */
 public static Regression regress ( double [] xArray, double [] yArray, boolean useMissing, double missingx,
-	double missingy, Double intercept )
-{	return regress (xArray, yArray, useMissing, missingx, missingy, false, intercept );
+	double missingy, Double intercept ) {
+	return regress (xArray, yArray, useMissing, missingx, missingy, false, intercept );
 }
 
 /**
@@ -1170,8 +1178,8 @@ Perform an ordinary least squares regression on two arrays of data.
 See the Regression class methods for more information.
 Analysis results are saved and can be retrieved using Regression class methods.
 If no regression can be performed, the limits are set to the missing data value indicator.
-In addition to the results needed for the regression, additional statistics are
-computed and are available in the Regression object.
+In addition to the results needed for the regression,
+additional statistics are computed and are available in the Regression object.
 Statistics that cannot be computed are set to -999 (e.g., when N2 is 0, the X2 mean is set to -999).
 @return a Regression object for the analysis.
 @param xArray Array of independent (X) values.
@@ -1188,8 +1196,8 @@ If so the RMSE are saved in the transformed RMSE data member.
 or data array lengths are unequal.
 */
 private static Regression regress (	double [] xArray, double [] yArray, boolean useMissing, double missingx,
-	double missingy, boolean data_transformed, Double intercept )
-{	String rtn = "MathUtil.regress";
+	double missingy, boolean data_transformed, Double intercept ) {
+	String rtn = MathUtil.class.getSimpleName() + ".regress";
 	if ( xArray.length != yArray.length ) {
 		String message = "Lengths of arrays are unequal.";
 		Message.printWarning ( 2, rtn, message );
@@ -1325,7 +1333,7 @@ private static Regression regress (	double [] xArray, double [] yArray, boolean 
 
 	double denom = Math.sqrt ((((double)n1 * totalX1_sq) -
 		(totalX1*totalX1)) * (((double)n1 * totalY1_sq) - (totalY1*totalY1)));
-		
+
 	if ( denom > 0 ) {
 		r = (((double)n1 * totalX1Y1) - (totalX1 * totalY1))/denom;
 	}
@@ -1460,8 +1468,7 @@ private static Regression regress (	double [] xArray, double [] yArray, boolean 
 }
 
 /**
-Perform an ordinary least squares regression on two arrays of data, by first
-transforming the data using log10().
+Perform an ordinary least squares regression on two arrays of data by first transforming the data using log10().
 See the Regression class methods for more information.
 Analysis results are saved and can be retrieved using Regression class methods.
 If no regression can be performed, the limits are set to the missing data value indicator.
@@ -1474,17 +1481,17 @@ If no regression can be performed, the limits are set to the missing data value 
 calculations (if false the values are not checked against "missingx" and "missingy").
 @exception IllegalArgumentException if the length of the two arrays differ.
 */
-public static Regression regressLog ( double [] xArray, double [] yArray, 
+public static Regression regressLog ( double [] xArray, double [] yArray,
 	boolean useMissing, double missingx, double missingy )
-throws Exception
-{	String rtn = "MathUtil.regressLog";
+throws Exception {
+	String rtn = MathUtil.class.getSimpleName() + ".regressLog";
 	if ( xArray.length != yArray.length ) {
 		String message = "Lengths of arrays are unequal.";
 		Message.printWarning ( 2, rtn, message );
 		throw new IllegalArgumentException ( message );
 	}
 
-	// Move all the information in each array into a new array which
+	// Move all the information in each array into a new array that
 	// is the log10 value for each item in the respective arrays.
 
 	int length = xArray.length;
@@ -1547,10 +1554,10 @@ Reverse an array of doubles.
 @return Zero if successful and 1 if not successful.
 @param data An array of doubles to be reversed.
 */
-public static int reverseArray(	double[] data )
-{	int	i, j, half, ndata = data.length;
+public static int reverseArray(	double[] data ) {
+	int	i, j, half, ndata = data.length;
 	double tempf;
-	String routine="MathUtil.reverseArray";
+	String routine = MathUtil.class.getSimpleName() + ".reverseArray";
 
 	half = ndata / 2;
 	j = ndata - 1;
@@ -1579,10 +1586,10 @@ Reverse an array of integers.
 @return Zero if successful and 1 if not successful.
 @param data An array of integers to be reversed.
 */
-public static int reverseArray(	int[] data )
-{	int	i, j, half, ndata = data.length;
+public static int reverseArray(	int[] data ) {
+	int	i, j, half, ndata = data.length;
 	int	tempi;
-	String routine="MathUtil.reverseArray";
+	String routine = MathUtil.class.getSimpleName() + ".reverseArray";
 
 	half = ndata / 2;
 	j = ndata - 1;
@@ -1611,10 +1618,10 @@ Reverse an array of longs.
 @return Zero if successful and 1 if not successful.
 @param data An array of longs to be reversed.
 */
-public static int reverseArray( long[] data )
-{   int i, j, half, ndata = data.length;
+public static int reverseArray( long[] data ) {
+    int i, j, half, ndata = data.length;
     long tempi;
-    String routine="MathUtil.reverseArray";
+    String routine = MathUtil.class.getSimpleName() + ".reverseArray";
 
     half = ndata / 2;
     j = ndata - 1;
@@ -1650,8 +1657,8 @@ If true, then having missing data in either array causes both array values to be
 @return the RMS error for the data set.  Return 0 if the number of points considered is 0.
 */
 public static double RMSError ( int n, double x[], double y[],
-	boolean use_missing, double xmissing, double ymissing )
-{	int n2 = 0;
+	boolean use_missing, double xmissing, double ymissing ) {
+	int n2 = 0;
 	double sume2 = 0.0;
 	for ( int i = 0; i < n; i++ ) {
 		if ( use_missing ) {
@@ -1676,8 +1683,8 @@ Round a floating point value to percent.
 @param mflag fag indicating whether maximum value is 1.0 (0) or 100.0 (1).
 @param rflag flag indicating whether value should be rounded up (1), down (-1) or to nearest (0).
 */
-public static double roundToPercent ( double x, double interval, int mflag, int rflag )
-{	String message, routine = "MathUtil.roundToPercent";
+public static double roundToPercent ( double x, double interval, int mflag, int rflag ) {
+	String message, routine = MathUtil.class.getSimpleName() + ".roundToPercent";
 	double fact;
 	double interval100; // Interval with 100.0 as the maximum value.
 	double xhigh; // High even interval value.
@@ -1698,7 +1705,7 @@ public static double roundToPercent ( double x, double interval, int mflag, int 
 		fact = 1.0; // Factor to convert all data to 100.0 maximum scale.
 		interval100	= interval;
 		xs = x;
-		
+
 	}
 	else {
 	    if ( (x < 0.0) || (x > 100.0) ) {
@@ -1742,8 +1749,8 @@ See Applied Hydrology, Chow, et. al.
 @param x sample set
 @return skew coefficient
 */
-public static double skew ( int n, double x[] )
-{   String message, routine = "MathUtil.skew";
+public static double skew ( int n, double x[] ) {
+    String message, routine = MathUtil.class.getSimpleName() + ".skew";
 
     if ( n < 3 ) {
         message = "Number in sample (" + n + ") must be >= 3.  Cannot compute skew.";
@@ -1772,16 +1779,16 @@ Sort an array of doubles.
 @param data Array of doubles to sort.
 @param method Method to use for sorting (see SORT_*).
 @param order Order to sort (SORT_ASCENDING or SORT_DESCENDING).
-@param sort_order Original locations of data after sort (array needs to be
-allocated to the same size as the data array before calling routine).
-For example, first sort double-data and then
-sort associated data by using new_other_data[i] = old_other_data[sort_order[i]];
+@param sort_order Original locations of data after sort
+(array needs to be allocated to the same size as the data array before calling routine).
+For example, first sort double-data and then sort associated data by using:
+new_other_data[i] = old_other_data[sort_order[i]];
 Can be null if sflag is false.
 @param sflag Indicates whether "sort_order" is to be filled.
 */
-public static int sort(double[] data, int method, int order, int[] sort_order, boolean sflag )
-{	String routine="MathUtil.sort(double[]...)";
-	int	i=0, ndata=data.length;
+public static int sort(double[] data, int method, int order, int[] sort_order, boolean sflag ) {
+	String routine = MathUtil.class.getSimpleName() + ".sort(double[]...)";
+	int ndata = data.length;
 
 	if ( sflag && (sort_order == null) ) {
 		Message.printWarning( 2, routine, "Incoming sort_order array is NULL, cannot sort." );
@@ -1795,9 +1802,9 @@ public static int sort(double[] data, int method, int order, int[] sort_order, b
 	}
 
 	// Initialize "sort_order" to sequential numbers.
-	
+
 	if ( sflag ) {
-		for ( i = 0; i < ndata; i++ ) {
+		for ( int i = 0; i < ndata; i++ ) {
 			sort_order[i] = i;
 		}
 	}
@@ -1846,8 +1853,8 @@ Sort an array of integers.
 @param sort_order Original locations of data after sort (array needs to be allocated before calling routine).
 @param sflag Indicates whether "sort_order" is to be filled.
 */
-public static int sort (int[] data, int method, int order, int[] sort_order, boolean sflag )
-{	String routine="MathUtil.sort(int[]...)";
+public static int sort (int[] data, int method, int order, int[] sort_order, boolean sflag ) {
+	String routine = MathUtil.class.getSimpleName() + ".sort(int[]...)";
 	int	i=0, ndata=data.length;
 
 	if ( sflag && (sort_order == null) ) {
@@ -1862,7 +1869,7 @@ public static int sort (int[] data, int method, int order, int[] sort_order, boo
 	}
 
 	// Initialize "sort_order" to sequential numbers.
-	
+
 	if ( sflag ) {
 		for ( i = 0; i < ndata; i++ ) {
 			sort_order[i] = i;
@@ -1913,8 +1920,8 @@ Sort an array of longs.
 @param sort_order Original locations of data after sort (array needs to be allocated before calling routine).
 @param sflag Indicates whether "sort_order" is to be filled.
 */
-public static int sort (long[] data, int method, int order, int[] sort_order, boolean sflag )
-{   String routine="MathUtil.sort(int[]...)";
+public static int sort (long[] data, int method, int order, int[] sort_order, boolean sflag ) {
+    String routine = MathUtil.class.getSimpleName() + ".sort(int[]...)";
     int i=0, ndata=data.length;
 
     if ( sflag && (sort_order == null) ) {
@@ -1929,7 +1936,7 @@ public static int sort (long[] data, int method, int order, int[] sort_order, bo
     }
 
     // Initialize "sort_order" to sequential numbers.
-    
+
     if ( sflag ) {
         for ( i = 0; i < ndata; i++ ) {
             sort_order[i] = i;
@@ -2128,12 +2135,12 @@ Sort an array of integers into ascending order using the quick sort method.
 allocated before calling routine).
 @param sflag Indicates whether "sort_order" is to be filled.
 */
-public static int sortIQuick ( int[] data, int[] sort_order, boolean sflag )
-{	int	i, ia=0, insertmax = 7, ndata=data.length, ir = ndata - 1, 
+public static int sortIQuick ( int[] data, int[] sort_order, boolean sflag ) {
+	int	i, ia=0, insertmax = 7, ndata=data.length, ir = ndata - 1,
 		itemp, j, jstack = 0, k, l = 0, NSTACK = 500;
 	int[]	istack;
 	int	a, temp;
-	String	routine="MathUtil.sortIQuick";
+	String	routine = MathUtil.class.getSimpleName() + ".sortIQuick";
 
 	istack = new int [ NSTACK ];
 
@@ -2260,16 +2267,16 @@ public static int sortIQuick ( int[] data, int[] sort_order, boolean sflag )
 Sort an array of longs into ascending order using the quick sort method.
 @return Zero if successful and 1 if not successful.
 @param data Array of longs to sort.
-@param sort_order Original locations of data after sort (array needs to be
-allocated before calling routine).
+@param sort_order Original locations of data after sort
+(array needs to be allocated before calling routine).
 @param sflag Indicates whether "sort_order" is to be filled.
 */
-public static int sortLQuick ( long[] data, int[] sort_order, boolean sflag )
-{   int i, ia=0, insertmax = 7, ndata=data.length, ir = ndata - 1, 
+public static int sortLQuick ( long[] data, int[] sort_order, boolean sflag ) {
+    int i, ia=0, insertmax = 7, ndata=data.length, ir = ndata - 1,
         itemp, j, jstack = 0, k, l = 0, NSTACK = 500;
     int[] istack;
     long a, temp;
-    String routine="MathUtil.sortLQuick";
+    String routine = MathUtil.class.getSimpleName() + ".sortLQuick";
 
     istack = new int [ NSTACK ];
 
@@ -2408,8 +2415,8 @@ Compute the sample standard deviation (square root of the sample variance).
 @return the sample standard deviation
 @throws IllegalArgumentException if the number of values is < 2 or variance is zero
 */
-public static double standardDeviation ( int n, double x[] )
-{	String message, routine = "MathUtil.standardDeviation";
+public static double standardDeviation ( int n, double x[] ) {
+	String message, routine = MathUtil.class.getSimpleName() + ".standardDeviation";
 	double var;
 
 	try {
@@ -2436,8 +2443,8 @@ Compute the sample standard deviation (square root of the sample variance).
 @return the sample standard deviation
 @throws IllegalArgumentException if the number of values is < 2 or variance is zero
 */
-public static double standardDeviation ( int n, double x[], double missing )
-{	String message, routine = "MathUtil.standardDeviation";
+public static double standardDeviation ( int n, double x[], double missing ) {
+	String message, routine = MathUtil.class.getSimpleName() + ".standardDeviation";
 	double var;
 
 	try {
@@ -2461,8 +2468,8 @@ Calculate the sum of a list of numbers.
 @return the sum of a list of numbers, or zero if no values.
 @param x Array of numbers.
 */
-public static double sum ( double x[] )
-{	return sum ( x.length, x );
+public static double sum ( double x[] ) {
+	return sum ( x.length, x );
 }
 
 /**
@@ -2471,8 +2478,8 @@ Calculate the sum of a list of numbers.
 @param n number of values to use from array
 @param x array of numbers
 */
-public static double sum ( int n, double x[] )
-{	double thesum = 0.0;
+public static double sum ( int n, double x[] ) {
+	double thesum = 0.0;
 
 	for ( int i = 0; i < n; i++ ) {
 		thesum += x[i];
@@ -2487,8 +2494,8 @@ Calculate the sum of a list of numbers.
 @param x array of numbers
 @param missing value to consider as missing - matching values will be ignored
 */
-public static double sum ( int n, double x[], double missing )
-{	double thesum = 0.0;
+public static double sum ( int n, double x[], double missing ) {
+	double thesum = 0.0;
 
 	for ( int i = 0; i < n; i++ ) {
 		if ( x[i] != missing ) {
@@ -2504,8 +2511,8 @@ Compute the sample variance (sum(x_i - mean(x))^2)/(n - 1).
 @param x the sample array
 */
 public static double variance ( double x[] )
-throws Exception
-{	return variance ( x.length, x );
+throws Exception {
+	return variance ( x.length, x );
 }
 
 /**
@@ -2516,10 +2523,10 @@ Compute the sample variance (sum(x_i - mean(x))^2)/(n - 1).
 @exception IllegalArgumentException if n is < 2, which would result in division by zero.
 */
 public static double variance ( int n, double x[] )
-throws Exception
-{	int	i;
+throws Exception {
+	int	i;
 	double dif, meanx;
-	String routine = "MathUtil.variance";
+	String routine = MathUtil.class.getSimpleName() + ".variance";
 
 	double var = 0.0;
 	if ( n <= 1 ) {
@@ -2551,10 +2558,10 @@ Compute the sample variance (sum(x_i - mean(x))^2)/(n - 1).
 @throws IllegalArgumentException if the sample size after considering missing values is < 2,
 which would result in division by zero
 */
-public static double variance ( int n, double x[], double missing )
-{	int	i;
+public static double variance ( int n, double x[], double missing ) {
+	int	i;
 	double dif, meanx;
-	String message, routine = "MathUtil.variance";
+	String message, routine = MathUtil.class.getSimpleName() + ".variance";
 
 	double var = 0.0;
 	if ( n <= 1 ) {
