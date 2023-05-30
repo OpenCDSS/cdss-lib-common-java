@@ -182,25 +182,35 @@ public class GRSymbolTable {
 	 * NoData,NoData,#000000,0.0,#000000,0.0
 	 */
 	public static GRSymbolTable readFile ( String filepath ) throws IOException {
+		String routine = GRSymbolTable.class.getSimpleName() + ".readFile";
+		if ( Message.isDebugOn ) {
+			Message.printDebug(1,routine, "Reading symbol table file:  " + filepath);
+		}
 		List<String> lines = IOUtil.fileToStringList(filepath);
 		GRSymbolTable symtable = new GRSymbolTable();
 		boolean headerRead = false;
+		// Initialize the column numbers to handle missing.
 		int valueMinCol = -1, valueMaxCol = -1, colorCol = -1, fillColorCol = -1, fillOpacityCol = - 1, opacityCol = -1;
-		String valueMin, valueMax, color, fillColor;
+		// Column text values before parsing.
+		String valueMin = null, valueMax = null, color = null, fillColor = null;
+		// Currently 'opacity' and 'fillOpacity' are not used.
 		double opacity, fillOpacity;
+		int iLine = 0; // Line count (1+) for logging.
 		for ( String line : lines ) {
+			++iLine;
 			line = line.trim();
 			if ( Message.isDebugOn ) {
-				Message.printDebug(1,"", "Processing:  " + line);
+				Message.printDebug(1,routine, "Processing:  " + line);
 			}
 			if ( (line.length() == 0) || (line.charAt(0) == '#') ) {
 				// Comment.
 				continue;
 			}
-			List<String> parts = StringUtil.breakStringList(line,",", 0);
+			// Allow CSV file parts to include quoted strings.
+			List<String> parts = StringUtil.breakStringList(line,",", StringUtil.DELIM_ALLOW_STRINGS);
 			if ( !headerRead ) {
 				// First line in the file is the header:
-				// - determine the column numbers
+				// - determine the column numbers for standard properties
 				int icol = -1;
 				for ( String part : parts ) {
 					++icol;
@@ -224,6 +234,30 @@ public class GRSymbolTable {
 						valueMinCol = icol;
 					}
 				}
+				// Check to make sure that the columns were found:
+				// - list in the typical order of the file
+				if ( valueMinCol < 0 ) {
+					Message.printWarning(3, routine, "No 'valueMin' column in the symbol table file.");
+				}
+				if ( valueMaxCol < 0 ) {
+					Message.printWarning(3, routine, "No 'valueMax' column in the symbol table file.");
+				}
+				if ( colorCol < 0 ) {
+					Message.printWarning(3, routine, "No 'color' column in the symbol table file.");
+				}
+				/*
+				if ( opacityCol < 0 ) {
+					Message.printWarning(3, routine, "No 'opacity' column in the symbol table file.");
+				}
+				*/
+				if ( fillColorCol < 0 ) {
+					Message.printWarning(3, routine, "No 'fillColor' column in the symbol table file.");
+				}
+				/*
+				if ( fillOpacityCol < 0 ) {
+					Message.printWarning(3, routine, "No 'fillOpacity' column in the symbol table file.");
+				}
+				*/
 				headerRead = true;
 			}
 			else {
@@ -268,9 +302,30 @@ public class GRSymbolTable {
 						}
 					}
 				}
-				// Create a new row.
-				GRSymbolTableRow row = new GRSymbolTableRow ( valueMin, valueMax, color, opacity, fillColor, fillOpacity );
-				symtable.addRow(row);
+				// Create a new row:
+				// - only do so if the necessary parts are specified
+				// - list in the typical order of the file
+				boolean okToAdd = true;
+				if ( valueMin == null ) {
+					Message.printWarning(3, routine, "No 'valueMin' value specified in symbol table file line " + iLine );
+					okToAdd = false;
+				}
+				if ( valueMax == null ) {
+					Message.printWarning(3, routine, "No 'valueMax' value specified in symbol table file line " + iLine );
+					okToAdd = false;
+				}
+				if ( color == null ) {
+					Message.printWarning(3, routine, "No 'color' value specified in symbol table file line " + iLine );
+					okToAdd = false;
+				}
+				if ( fillColor == null ) {
+					Message.printWarning(3, routine, "No 'fillColor' value specified in symbol table file line " + iLine );
+					okToAdd = false;
+				}
+				if ( okToAdd ) {
+					GRSymbolTableRow row = new GRSymbolTableRow ( valueMin, valueMax, color, opacity, fillColor, fillOpacity );
+					symtable.addRow(row);
+				}
 			}
 		}
 		return symtable;
