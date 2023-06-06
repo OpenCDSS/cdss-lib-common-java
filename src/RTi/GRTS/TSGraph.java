@@ -958,7 +958,7 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 		this.__tslist = new ArrayList<>();
 	}
 	else if ( __leftYAxisGraphType != TSGraphType.RASTER ) {
-	    // OK to display all time series
+	    // OK to display all time series.
         this.__tslist = tslist;
 	}
 	else if ( __leftYAxisGraphType == TSGraphType.RASTER ) {
@@ -1988,19 +1988,6 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod ) {
 					_max_tslimits_lefty.setMaxValue(0.0);
 					_max_tslimits_lefty.setMinValue(getEnabledTSList(includeLeftYAxis,includeRightYAxis).size() + 1);
 				}
-				else if ( graphType == TSGraphType.RASTER ) {
-					// Raster graph:
-					// - the limits should be a count of the time series,
-					//   0 to the time series count so that each time series is rendered in 1 vertical unit
-					// - reverse the axis so zero is at the top
-					// - TODO smalers 2023-04-09 not sure this is needed since limits are handled below
-					/*
-					if ( this.__tslist.size() > 1 ) {
-						_max_tslimits_lefty.setMaxValue(0.0);
-						_max_tslimits_lefty.setMinValue(getEnabledTSList(includeLeftYAxis,includeRightYAxis).size());
-					}
-					*/
-				}
 			}
 			catch ( Exception e ) {
 				// This typically throws an exception if the data are not of consistent units.
@@ -2290,16 +2277,30 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod ) {
 				_data_lefty_limits = new GRLimits ( _start_date.toDouble(), minValue, _end_date.toDouble(), maxValue);
 			}
 	        else if ( __leftYAxisGraphType == TSGraphType.RASTER ) {
-	        	if ( this.__tslist.size() == 1 ) {
+	        	if ( (this.__tslist.size() == 1)
+	        		&& ((this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() != TimeInterval.YEAR)) ) {
 	        		// Single time series:
-	        		// - X limits are 0 to 367 if daily, 1 to 13 if monthly (right side is at edge of next interval.
-	        		// - Y limits are based on the year of the period of the time series.
+	        		// - for month and day interval:
+	        		//   - X limits are 0 to 367 if daily, 1 to 13 if monthly (right side is at edge of next interval)
+	        		//   - Y limits are based on the year of the period of the time series
+	        		// - for hour and minute interval:
+	        		//   - X limits are 0 to 24 hour
+	        		//   - Y limits are days with most recent at the top
+	        		// - for year interval, above check will cause multiple time series logic to be used
 	        		int intervalBase = TimeInterval.UNKNOWN;
 	        		TS ts = this.__tslist.get(0);
 	        		if ( ts != null ) {
 	        			intervalBase = ts.getDataIntervalBase();
 	        		}
-	        		if ( intervalBase == TimeInterval.DAY ) {
+	        		// List from largest to smallest.
+	        		if ( intervalBase == TimeInterval.MONTH ) {
+	        			_data_lefty_limits = new GRLimits (
+	        				1.0,                                         // First month of the year.
+	        				_tslimits_lefty.getDate1().getYear(),        // First year (oldest).
+	        				13.0,                                        // Last month of year +1 to allow for full month pixel to be drawn.
+	        				_tslimits_lefty.getDate2().getYear() + 1 );  // Last year (newest) + 1 to allow for full year pixel to be drawn.
+	        		}
+	        		else if ( intervalBase == TimeInterval.DAY ) {
 	        			// TODO SAM 2013-07-20 Need to figure out how to handle leap year, for now always include.
 	        			_data_lefty_limits = new GRLimits (
 	        				1.0,                                         // First day of the year.
@@ -2307,16 +2308,27 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod ) {
 	        				367.0,                                       // Last day of year + 1 to allow for full day pixel to be drawn.
 	        				_tslimits_lefty.getDate2().getYear() + 1 );  // Last year (newest) + 1 to allow for full year pixel to be drawn.
 	        		}
-	        		else if ( intervalBase == TimeInterval.MONTH ) {
+	        		else if ( (intervalBase == TimeInterval.HOUR) || (intervalBase == TimeInterval.MINUTE) ) {
+	        			int day1 = _tslimits_lefty.getDate1().getAbsoluteDay();
+	        			int day2 = _tslimits_lefty.getDate2().getAbsoluteDay();
+	        			// Can't use YYYYMMDD because axis label code results in invalid months and days.
+	        			//int day1 = _tslimits_lefty.getDate1().getYear()*10000
+	        			//	+ _tslimits_lefty.getDate1().getMonth()*100 +
+	        			//	+ _tslimits_lefty.getDate1().getDay();
+	        			//int day2 = _tslimits_lefty.getDate2().getYear()*10000
+	        			//	+ _tslimits_lefty.getDate2().getMonth()*100 +
+	        			//	+ _tslimits_lefty.getDate2().getDay();
 	        			_data_lefty_limits = new GRLimits (
-	        				1.0,                                         // First month of the year.
-	        				_tslimits_lefty.getDate1().getYear(),        // First year (oldest).
-	        				13.0,                                        // Last month of year +1 to allow for full month pixel to be drawn.
-	        				_tslimits_lefty.getDate2().getYear() + 1 );  // Last year (newest) + 1 to allow for full year pixel to be drawn.
+	        				0.0,                                         // Hour zero.
+	        				day1,                                        // First day (oldest).
+	        				24.0,                                        // Midnight to allow for full hour pixel to be drawn.
+	        				day2 + 1 );                                  // Last day (newest) + 1 to allow for full day pixel to be drawn.
 	        		}
 	        	}
-	        	else {
-	        		// Multiple time series:
+	        	else if ( (this.__tslist.size() > 1)
+	       			|| ((this.__tslist.size() == 1)
+	       				&& (this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() == TimeInterval.YEAR)) ) {
+	        		// Multiple time series (or single year interval time series):
 	        		// - X limits are date/time limits
 	        		// - Y limits are 0 (top) to number of time series (bottom)
 	        		// - TODO smalers 2023-04-09 need to adjust start and end to accommodate dates and times to render pixel
@@ -2672,7 +2684,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 
 	// Now get recompute the limits to be nice.  First do the Y axis.
 	// The maximum number of labels is based on the font height and the drawing area height.
-	// However, in most cases, we want at least a spacing of 3 times the font height,
+	// However, in most cases, want at least a spacing of 3 times the font height,
 	// unless this results in less than 3 labels.
 	double height, width;
 	// Format a label based on the font for the Y axis.
@@ -2742,46 +2754,54 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
         	// No time series to process.
             return;
         }
-        else if ( nts == 1 ) {
+        else if ( (nts == 1) 
+       		&& ((this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() != TimeInterval.YEAR)) ) {
         	// Single time series:
         	// - Y-axis is years
         	// - Y-labels are whole numbers integer years from data period.
-        	while ( minlabels >= 3 ) {
-        		if ( _data_lefty_limits == null ) {
-        			Message.printWarning(3,routine,
-        				"Null left y-axis limits computing labels for for raster graph - unsupported time series interval?");
-        			break;
-        		}
-        		else {
-	            	_ylabels_lefty = GRAxis.findNLabels ( _data_lefty_limits.getMinY(), _data_lefty_limits.getMaxY(), true, minlabels, maxlabels );
-	            	if ( _ylabels_lefty != null ) {
-	                	break;
-	            	}
-	            	--minlabels;
+        	TS intervalTs = TSUtil.getTSThatHasInterval(tslist);
+        	int intervalBase = TimeInterval.UNKNOWN;
+        	if ( intervalTs != null ) {
+        		intervalBase = intervalTs.getDataIntervalBase();
+        	}
+       		// Y axis is the year.
+       		while ( minlabels >= 3 ) {
+       			if ( _data_lefty_limits == null ) {
+       				Message.printWarning(3,routine,
+       					"Null left y-axis limits computing labels for for raster graph - unsupported time series interval?");
+       				break;
+       			}
+       			else {
+       				// Compute "nice" labels (ticks) based on the Y-axis extremes.
+       				if ( (intervalBase == TimeInterval.MONTH) || (intervalBase == TimeInterval.DAY) ) { 
+	            		_ylabels_lefty = GRAxis.findNLabels ( _data_lefty_limits.getMinY(), _data_lefty_limits.getMaxY(),
+	            			true, minlabels, maxlabels );
+       				}
+       				else if ( (intervalBase == TimeInterval.HOUR) || (intervalBase == TimeInterval.MINUTE) ) { 
+       					// Allow maximum number of labels to 
+       					maxlabels = (int)(_drawlim_lefty_graph.getHeight()/(height));
+        				_ylabels_lefty = findYAxisDateLabels (
+       						_data_lefty_limits.getMinY(), _data_lefty_limits.getMaxY(),
+        					true, minlabels, maxlabels, DateTime.PRECISION_DAY );
+       				}
+	           		if ( _ylabels_lefty != null ) {
+	               		break;
+	           		}
+	           		--minlabels;
         		}
         	}
         }
-        else {
-        	// Multiple time series:
+        else if ( (nts > 1) 
+       		|| ((nts == 1) && (this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() == TimeInterval.YEAR)) ) {
+        	// Multiple time series or single year interval time series:
         	// - Y-axis is similar to period of record graph
         	// - labels will be between ticks since raster is a rectangular pixel
         	// - Y-axis range is larger than label position range
         	// - for now always label for each time series
-        	boolean doFull = true;
-        	if ( doFull ) {
-        		// Only label at full ticks.
-        		_ylabels_lefty = new double[tslist.size() + 1];
-        		for ( int i = 0; i <= tslist.size(); i++ ) {
-        			_ylabels_lefty[i] = i;
-        		}
-        	}
-        	else {
-        		// Only label at mid-ticks.
-        		// TODO smalers 2023-04-09 does not seem to work because the labels impact the y-axis range for graph size
-        		_ylabels_lefty = new double[tslist.size()];
-        		for ( int i = 0; i < tslist.size(); i++ ) {
-        			_ylabels_lefty[i] = (double)i + .5;
-        		}
+        	// - positions are at full ticks (labels will be drawn at mid-tick)
+        	_ylabels_lefty = new double[tslist.size() + 1];
+        	for ( int i = 0; i <= tslist.size(); i++ ) {
+        		_ylabels_lefty[i] = i;
         	}
         }
     }
@@ -2802,6 +2822,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 			}
 		}
 		else {
+			// All other graph types.
 		    while ( minlabels >= 3 ) {
 				_ylabels_lefty = GRAxis.findNLabels ( limitsLeftYAxis.getMinValue(),limitsLeftYAxis.getMaxValue(), false, minlabels, maxlabels );
 				if ( _ylabels_lefty != null ) {
@@ -2856,8 +2877,11 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 				_end_date.toDouble(), // Right: period end.
 				0.0); // Top:  zero to allow for whitespace
 		}
-		else if ( (__leftYAxisGraphType == TSGraphType.RASTER) && (this.__tslist.size() > 1) ) {
-			// Raster graph for multiple time series:
+		else if ( (__leftYAxisGraphType == TSGraphType.RASTER) &&
+			((this.__tslist.size() > 1)
+       		|| ((this.__tslist.size() == 1)
+       			&& (this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() == TimeInterval.YEAR))) ) {
+			// Raster graph for multiple time series or single year-interval time series:
 			// - reverse the y-axis
 			// - use range 0 (top y) to time series size +1 (bottom y) to allow raster pixel boxes to be drawn
 			boolean includeLeftYAxis = true;
@@ -3032,7 +3056,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 	// If normal plot, based on the dates for the current zoom.
 	// If a scatter plot, based on data limits.
 	// If a duration plot, based on 0 - 100 percent.
-	// If a raster plot, based on days or months in year.
+	// If a raster plot, based on days or months in year (for day or month interval).
 
 	fontname = _tsproduct.getLayeredPropValue (	"BottomXAxisLabelFontName", _subproduct, -1, false );
 	fontsize = _tsproduct.getLayeredPropValue (	"BottomXAxisLabelFontSize", _subproduct, -1, false );
@@ -3094,14 +3118,21 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
         	// No time series to process.
             return;
         }
-        else if ( nts == 1 ) {
-        	// Single time series:
+        else if ( (nts == 1) 
+   			&& ((this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() != TimeInterval.YEAR)) ) {
+        	// Single time series but not year interval:
         	// - X-axis is short time period (e.g., year for day or month interval)
         	// - Y-axis is historical years
-        	this._xlabels = new double[13];
         	TS ts = tslist.get(0);
         	int intervalBase = ts.getDataIntervalBase();
-        	if ( intervalBase == TimeInterval.DAY ) {
+        	if ( intervalBase == TimeInterval.MONTH ) {
+        		this._xlabels = new double[13];
+            	for ( int ix = 1; ix <= 13; ix++ ) {
+                	_xlabels[ix - 1] = ix;
+            	}
+        	}
+        	else if ( intervalBase == TimeInterval.DAY ) {
+        		this._xlabels = new double[13];
             	DateTime d = new DateTime();
             	d.setYear(2000); // A leap year.
             	d.setDay(1);
@@ -3113,9 +3144,15 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
             	d.setDay(TimeUtil.numDaysInMonth(d));
             	_xlabels[_xlabels.length - 1] = TimeUtil.dayOfYear(d);
         	}
-        	else if ( intervalBase == TimeInterval.MONTH ) {
-            	for ( int ix = 1; ix <= 13; ix++ ) {
-                	_xlabels[ix - 1] = ix;
+        	else if ( (intervalBase == TimeInterval.HOUR) || (intervalBase == TimeInterval.MINUTE) ) {
+        		// Number of labels is constant for hours:
+        		// - always full 24 hours
+        		// - graph can get pretty narrow
+        		// - hour 0 on the left (midnight of previous day = start of current day)
+        		// - hour 24 (midnight) on the right (also labeled as 0 when rendering)
+        		this._xlabels = new double[25];
+            	for ( int ix = 0; ix <= 24; ix++ ) {
+                	_xlabels[ix] = ix;
             	}
         	}
         	/* TODO SAM 2013-07-21 Decide if this is needed given special handling of labels.
@@ -3152,8 +3189,9 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
         	this._da_lefty_graph.setDataLimits ( _data_lefty_limits );
         	return;
         }
-        else {
-        	// Multiple time series:
+        else if ( (nts > 1)
+   			|| ((nts == 1) && (this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() == TimeInterval.YEAR)) ) {
+        	// Multiple time series or single year interval time series:
         	// - X-axis is limits of time series
         	// - Y-axis is ordinal position for time series (first at the top), similar to period of record
         	// - use the logic after these 'if' checks, similar to a normal time series
@@ -3565,29 +3603,6 @@ private GRSymbolTable createRasterSymbolTable ( List<TS> tslist ) {
 		}
 	}
 
-	// Find the time series.  This code matches drawGraphRaster().
-	/* TODO smalers 2023-04-08 now handle 1+ time series.
-	TS ts = null;
-    for ( int its = 0; its < tslist.size(); its++ ) {
-        ts = tslist.get(its);
-        int dataInterval = ts.getDataIntervalBase();
-        int dataMult = ts.getDataIntervalMult();
-        if ( (dataInterval != TimeInterval.DAY) && (dataInterval != TimeInterval.MONTH) ) {
-        	Message.printWarning(3, routine, "Raster graphs are only supported for 1Day and 1Month intervals.");
-        	continue;
-        }
-        if ( dataMult != 1 ) {
-        	// Not supported.
-        	Message.printWarning(3, routine, "Raster graphs are only supported for 1Day and 1Month intervals.");
-        	continue;
-        }
-        if ( ts != null ) {
-        	// Found an acceptable time series.
-            break;
-        }
-    }
-    */
-
 	if ( (propValue != null) && !propValue.isEmpty() ) {
 		// The file is either absolute or relative to the time series product file.
 		File f = new File( _tsproduct.getPropList().getPersistentName() );
@@ -3601,7 +3616,6 @@ private GRSymbolTable createRasterSymbolTable ( List<TS> tslist ) {
 			Message.printWarning(3, routine, e);
 		}
 	}
-	//if ( (symtable == null) && (ts != null) ) {
 	if ( symtable == null ) {
 		// Define a default symbol table:
 		// - base on data limits
@@ -4304,6 +4318,18 @@ private void drawAxesFront ( TSProduct tsproduct, int subproduct,
     }
 	GRDrawingAreaUtil.setFont ( daLeftYAxisLabel, fontname, fontstyle, StringUtil.atod(fontsize) );
 	GRDrawingAreaUtil.setColor ( daLeftYAxisLabel, GRColor.black );
+
+	// Used to handle raster graphs.
+    int dataInterval = TimeInterval.UNKNOWN;
+    int dataMult = -1;
+    if ( this.__tslist.size() == 1 ) {
+    	TS ts = this.__tslist.get(0);
+    	if ( ts != null ) {
+    		dataInterval = ts.getDataIntervalBase();
+    		dataMult = ts.getDataIntervalMult();
+    	}
+    }
+
 	if ( leftYAxisLogY ) {
 		// Only draw major labels.
 		double [] ylabels_log = new double[(ylabelsLeftYAxis.length)/9 + 1];
@@ -4326,7 +4352,9 @@ private void drawAxesFront ( TSProduct tsproduct, int subproduct,
 					ylabelsLeftYAxis, datalimLeftYAxisLabel.getRightX(),
 					GRAxisDimensionType.Y, "%." + leftYAxisPrecision + "f", GRText.RIGHT|GRText.CENTER_Y);
 			}
-			else if ( (leftYAxisGraphType == TSGraphType.RASTER) && (this.__tslist.size() > 1) ) {
+			else if ( (leftYAxisGraphType == TSGraphType.RASTER)
+				&& ((this.__tslist.size() > 1) || ((this.__tslist.size() == 1) && (dataInterval == TimeInterval.YEAR))) ) {
+				// Raster graph for multiple time series.
 				// The legend labels were previously calculated at the edges of time series pixels,
 				// but draw the labels shifted to the middle of the time series y-axis range.
 				double [] ylabelsLeftYAxis2 = new double[ylabelsLeftYAxis.length - 1];
@@ -4338,7 +4366,26 @@ private void drawAxesFront ( TSProduct tsproduct, int subproduct,
 					ylabelsLeftYAxis2, datalimLeftYAxisLabel.getRightX(),
 					GRAxisDimensionType.Y, "%." + leftYAxisPrecision + "f", GRText.RIGHT|GRText.CENTER_Y);
 			}
+			else if ( (leftYAxisGraphType == TSGraphType.RASTER) && (this.__tslist.size() == 1) &&
+				( (dataInterval == TimeInterval.HOUR) || (dataInterval == TimeInterval.MINUTE)) ) {
+				// Single time series raster graph:
+				// - Y-axis positioning uses absolute day
+				// - convert to a formatted date
+				String [] labels = new String[ylabelsLeftYAxis.length];
+				for ( int iLabel = 0; iLabel < labels.length; iLabel++ ) {
+					// Convert floating point label to an integer.
+					int ylabelInt = (int)(ylabelsLeftYAxis[iLabel] + .1);
+					int [] dateParts = TimeUtil.getYearMonthDayFromAbsoluteDay(ylabelInt);
+					labels[iLabel] = "" + dateParts[0] + "-"
+						+ String.format("%02d", dateParts[1]) + "-"
+						+ String.format("%02d", dateParts[2]);
+				}
+			    GRAxis.drawLabels ( daLeftYAxisLabel, ylabelsLeftYAxis.length,
+			    	ylabelsLeftYAxis, labels, datalimLeftYAxisLabel.getRightX(),
+			    	GRAxisDimensionType.Y, "%." + leftYAxisPrecision + "f", GRText.RIGHT|GRText.CENTER_Y);
+			}
 			else {
+				// All other graph types.
 			    GRAxis.drawLabels ( daLeftYAxisLabel, ylabelsLeftYAxis.length,
 			    	ylabelsLeftYAxis, datalimLeftYAxisLabel.getRightX(),
 			    	GRAxisDimensionType.Y, "%." + leftYAxisPrecision + "f", GRText.RIGHT|GRText.CENTER_Y);
@@ -4468,7 +4515,7 @@ private void drawAxesFront ( TSProduct tsproduct, int subproduct,
 		double[] xt = new double[2];
 		double[] yt = new double[2];
 		double[] yt2 = new double[2];
-		double tic_height = 0.0; // Height of major tick marks.
+		double tick_height = 0.0; // Height of major tick marks.
 		yt[0] = ylabelsLeftYAxis[0];
 		yt2[0] = ylabelsLeftYAxis[0];
 	    if ( yaxisDirReverse ) {
@@ -4478,21 +4525,21 @@ private void drawAxesFront ( TSProduct tsproduct, int subproduct,
 		// Figure out the y-positions and tick height (same regardless of intervals being used for labels).
 		if ( leftYAxisLogY ) {
 			// Need to make sure the line is nice length.
-			tic_height = yt[0]*.05;
-			yt[1] = yt[0] + tic_height;
-			yt2[1] = yt2[0] + tic_height/2.0;
+			tick_height = yt[0]*.05;
+			yt[1] = yt[0] + tick_height;
+			yt2[1] = yt2[0] + tick_height/2.0;
 		}
 		else {
-		    tic_height = datalimLeftYAxisGraph.getHeight()*.02;
+		    tick_height = datalimLeftYAxisGraph.getHeight()*.02;
 		    if ( yaxisDirReverse ) {
 		        // Reverse Y axis orientation.
-                yt[1] = yt[0] - tic_height;
-                yt2[1] = yt2[0] - tic_height/2.0;
+                yt[1] = yt[0] - tick_height;
+                yt2[1] = yt2[0] - tick_height/2.0;
 		    }
 		    else {
 		        // Normal Y axis orientation.
-    			yt[1] = yt[0] + tic_height;
-    			yt2[1] = yt2[0] + tic_height/2.0;
+    			yt[1] = yt[0] + tick_height;
+    			yt2[1] = yt2[0] + tick_height/2.0;
 		    }
 		}
 		for ( int i = 0; i < xlabelsBottomXAxis.length; i++ ) {
@@ -5009,8 +5056,9 @@ private void drawGraphRaster ( TSProduct tsproduct, int subproduct, List<TS> tsl
 	if ( nts == 0 ) {
 		return;
 	}
-	else if ( nts == 1 ) {
-		// Single time series is being drawn:
+	else if ( (nts == 1) 
+  		&& ((this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() != TimeInterval.YEAR)) ) {
+		// Single time series (but not year interval) is being drawn:
 		// - currently only day and month interval are supported
 		TS ts = null;
 		int its = 0;
@@ -5020,14 +5068,15 @@ private void drawGraphRaster ( TSProduct tsproduct, int subproduct, List<TS> tsl
             return;
         }
         int dataInterval = ts.getDataIntervalBase();
-        if ( (dataInterval != TimeInterval.DAY) && (dataInterval != TimeInterval.MONTH) ) {
-        	Message.printWarning(3, routine, "Raster graphs are only supported for 1Day and 1Month intervals.");
-        	return;
-        }
         int dataMult = ts.getDataIntervalMult();
-        if ( dataMult != 1 ) {
-        	// Not supported.
-        	Message.printWarning(3, routine, "Raster graphs are only supported for 1Day and 1Month intervals.");
+        if ( ((dataInterval == TimeInterval.MONTH) && (dataMult == 1))
+        	|| ((dataInterval == TimeInterval.DAY) && (dataMult == 1))
+        	|| (dataInterval == TimeInterval.HOUR)
+        	|| (dataInterval == TimeInterval.MINUTE) ) {
+        	// OK.
+        }
+        else {
+        	Message.printWarning(3, routine, "Raster graphs are only supported for 1-month, 1-day, 1-hour, and N-minute intervals.");
         	return;
         }
         // Draw the time series, which will fill in the graph are with "pixels".
@@ -5042,7 +5091,7 @@ private void drawGraphRaster ( TSProduct tsproduct, int subproduct, List<TS> tsl
         drawLegendRaster ( tsproduct, subproduct );
     }
 	else {
-		// Multiple time series.
+		// Multiple time series (or single year interval time series).
 		PropList overrideProps = null;
 		// Do not call 'drawTS' but instead call the following, which handles multiple time series.
         drawTSRenderRasterGraphMultiple ( tslist, overrideProps );
@@ -7207,18 +7256,27 @@ private void drawTSRenderRasterGraphSingle ( TS ts, PropList overrideProps ) {
     double value;
     double valuePrev = Double.MAX_VALUE;
     int intervalBase = ts.getDataIntervalBase();
+    int intervalMult = ts.getDataIntervalMult();
     int yearDay; // Day of year for daily data.
     if ( Message.isDebugOn ) {
     	Message.printStatus(2,"","Drawing raster graph for start=" + start + " end=" + end + " ts.date1=" + ts.getDate1() +
             " ts.date2=" + ts.getDate2() + " data limits = " + _da_lefty_graph.getDataLimits() );
     }
     boolean isLeapYear = false;
-    int day = -1;
     int month = -1;
+    int day = -1;
+    int hour = -1;
+    // Width and height of the pixel to draw, in data units.
+    double pixelWidth = 0.0, pixelHeight = 0.0;
     while ( (tsdata = tsi.next()) != null ) {
         date = tsdata.getDate();
-        y0 = date.getYear();
-        if ( intervalBase == TimeInterval.DAY ) {
+        if ( intervalBase == TimeInterval.MONTH ) {
+            x0 = date.getMonth();
+            y0 = date.getYear();
+            pixelWidth = 1.0;
+            pixelHeight = 1.0;
+        }
+        else if ( intervalBase == TimeInterval.DAY ) {
             yearDay = date.getYearDay();
             isLeapYear = TimeUtil.isLeapYear(date.getYear());
             month = date.getMonth();
@@ -7228,9 +7286,44 @@ private void drawTSRenderRasterGraphSingle ( TS ts, PropList overrideProps ) {
                 ++yearDay;
             }
             x0 = yearDay;
+            y0 = date.getYear();
+            pixelWidth = 1.0;
+            pixelHeight = 1.0;
         }
-        else if ( intervalBase == TimeInterval.MONTH ) {
-            x0 = date.getMonth();
+        else if ( intervalBase == TimeInterval.HOUR ) {
+        	// Whole hours.
+            pixelWidth = intervalMult; // Hours, can be >= 1.
+            pixelHeight = 1.0; // 1 day.
+            hour = date.getHour(); // Time series hour is at the interval end.
+            // Time series hour is interval-ending so subtract an hour to align with the left edge of the pixel.
+            x0 = hour - pixelWidth;
+            if ( x0 >= 0.0 ) {
+            	// Day is OK.
+            	y0 = date.getAbsoluteDay(); // Pixel at y0 and above (to next day) corresponds to the value.
+            }
+            else {
+            	// Have shifted to the last hour of previous day.
+            	// TODO smalers 2023-06-02 need to handle time series that don't evenly align with midnight.
+            	x0 = 24.0 - pixelWidth;
+            	y0 = date.getAbsoluteDay() - 1.0; // Pixel at y0 and above (to next day) corresponds to the value.
+            }
+        }
+        else if ( intervalBase == TimeInterval.MINUTE ) {
+        	// Fractional hours.
+            pixelWidth = intervalMult/60.0; // Fraction of hour.
+            pixelHeight = 1.0; // 1 day.
+            hour = date.getHour();
+            x0 = hour + date.getMinute()/60.0 - pixelWidth; // Adjust to the left edge of the pixel for TSTool interval-end data.
+            if ( x0 >= 0.0 ) {
+            	// Day is OK.
+            	y0 = date.getAbsoluteDay();
+            }
+            else {
+            	// Have shifted to the last hour of previous day.
+            	// TODO smalers 2023-06-02 need to handle time series that don't evenly align with midnight.
+            	x0 = 24.0 - pixelWidth;
+            	y0 = date.getAbsoluteDay() - 1.0; // Pixel at y0 and above (to next day) corresponds to the value.
+            }
         }
         value = tsdata.getDataValue();
        	if ( value != valuePrev ) {
@@ -7287,13 +7380,13 @@ private void drawTSRenderRasterGraphSingle ( TS ts, PropList overrideProps ) {
         //    Message.printStatus(2,"","Drawing raster value " + date + " " + value + " color="+
         //            tscolor.getRed() + "," + tscolor.getGreen() + "," + tscolor.getBlue() + ",");
         //}
-        GRDrawingAreaUtil.fillRectangle(_da_lefty_graph, x0, y0, 1.0, 1.0);
+        GRDrawingAreaUtil.fillRectangle(_da_lefty_graph, x0, y0, pixelWidth, pixelHeight);
         // Also fill in the February 29 value for non-leap years to the same color as the February 28 value.
         // This ensures that a distracting white line is not shown.
         if ( (intervalBase == TimeInterval.DAY) && (month == 2) && (day == 28) && !isLeapYear ) {
             // Also draw the February 29, which will not otherwise be encountered because the time series is iterating
             // through the actual dates.  Use the same color as February 28.
-            GRDrawingAreaUtil.fillRectangle(_da_lefty_graph, (x0 + 1.0), y0, 1.0, 1.0);
+            GRDrawingAreaUtil.fillRectangle(_da_lefty_graph, (x0 + pixelWidth), y0, pixelWidth, pixelHeight);
         }
     }
 
@@ -7390,12 +7483,19 @@ private void drawXAxisDateLabels ( TSGraphType graphType, boolean drawGrid ) {
 	}
 	GRDrawingAreaUtil.setFont ( _da_bottomx_label, fontname, fontstyle,	StringUtil.atod(fontsize) );
 
+	// Raster graph with multiple time series has count of time series for Y axis with 1 at the top:
+	// - need to reverse the y-values so ticks are drawn in the correct location
+	// - single year-interval time series is handled as multiple but reversing 1 time series won't matter
+    if ( (graphType == TSGraphType.RASTER) && (this.__tslist.size() > 1) ) {
+	    yaxisDirReverse = true;
+    }
+
 	// Tick mark positions.
     double[] xt = new double[2]; // Major ticks.
     double[] xt2 = new double[2]; // Minor ticks.
     double[] yt = new double[2]; // Major ticks.
     double[] yt2 = new double[2]; // Minor ticks.
-    double tic_height = 0.0; // Height of major tick marks.
+    double tick_height = 0.0; // Height of major tick marks.
     yt[0] = _ylabels_lefty[0];
     yt2[0] = _ylabels_lefty[0];
     if ( yaxisDirReverse ) {
@@ -7407,32 +7507,32 @@ private void drawXAxisDateLabels ( TSGraphType graphType, boolean drawGrid ) {
     // - same regardless of intervals being used for labels
     // - default is to use 8 pixels converted back to data units
     // - override for log axes and other cases if necessary
-    tic_height = _data_lefty_limits.getHeight()*.02;
+    tick_height = _data_lefty_limits.getHeight()*.02;
 	GRLimits dalim = new GRLimits(8.0, 8.0);
 	GRLimits datalim2 = GRDrawingAreaUtil.getDataExtents(_da_lefty_graph, dalim, 0);
-	tic_height = datalim2.getHeight();
+	tick_height = datalim2.getHeight();
     if (log_y) {
         // TODO sam 2017-02-08 Need to make sure the line is nice length.
-        tic_height = yt[0]*.05;
-        yt[1] = yt[0] + tic_height;
-        yt2[1] = yt2[0] + tic_height/2.0;
+        tick_height = yt[0]*.05;
+        yt[1] = yt[0] + tick_height;
+        yt2[1] = yt2[0] + tick_height/2.0;
     }
     else if (log_xy_scatter) {
     	// TODO sam 2017-02-08 Need to make sure the line is nice length.
-        tic_height = yt[0]*.05;
-        yt[1] = yt[0] + tic_height;
-        yt2[1] = yt2[0] + tic_height/2.0;
+        tick_height = yt[0]*.05;
+        yt[1] = yt[0] + tick_height;
+        yt2[1] = yt2[0] + tick_height/2.0;
     }
     else {
         if ( yaxisDirReverse ) {
             // Reverse y axis direction so ticks will properly be at bottom where labels are.
-            yt[1] = yt[0] - tic_height;
-            yt2[1] = yt2[0] - tic_height/2.0;
+            yt[1] = yt[0] - tick_height;
+            yt2[1] = yt2[0] - tick_height/2.0;
         }
         else {
             // Normal y axis direction so ticks will be at bottom.
-            yt[1] = yt[0] + tic_height;
-            yt2[1] = yt2[0] + tic_height/2.0;
+            yt[1] = yt[0] + tick_height;
+            yt2[1] = yt2[0] + tick_height/2.0;
         }
     }
     if ( __leftYAxisGraphType == TSGraphType.PERIOD ) {
@@ -7440,9 +7540,9 @@ private void drawXAxisDateLabels ( TSGraphType graphType, boolean drawGrid ) {
     	List<TS> tslist = getEnabledTSList(true,false);
         yt[0] = tslist.size() + 1;
         yt2[0] = tslist.size() + 1;
-        tic_height = _data_lefty_limits.getHeight()*.02;
-        yt[1] = yt[0] - tic_height;
-        yt2[1] = yt2[0] - tic_height/2.0;
+        tick_height = _data_lefty_limits.getHeight()*.02;
+        yt[1] = yt[0] - tick_height;
+        yt2[1] = yt2[0] - tick_height/2.0;
     }
     if ( drawGrid ) {
         // Reset with the maximum values.
@@ -7451,48 +7551,93 @@ private void drawXAxisDateLabels ( TSGraphType graphType, boolean drawGrid ) {
     }
 
     if ( graphType == TSGraphType.RASTER ) {
-    	if ( this.__tslist.size() == 1 ) {
+    	if ( (this.__tslist.size() == 1)
+    		&& ((this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() != TimeInterval.YEAR)) ) {
     		// Single time series:
-    		// - tick lines are drawn at the month boundaries
-    		// - the axis should be labeled with months, with month labels centered between ticks
+    		// - if time is involved, the values are interval ending
+    		// - if only date, the value applies to the entire date (day or month)
     		double x;
-    		// Loop through all of the months.
-    		for ( int i = 1; i <= 12; i++ ) {
-    			x = (_xlabels[i - 1] + _xlabels[i])/2.0;
-    			// Draw tick marks at the labels (only internal ticks, not edges of graph which should be drawn as a surrounding graph box).
-    			if ( i != 12 ) {
-    				xt[0] = _xlabels[i];
-    				xt[1] = xt[0];
-    				// Draw at the bottom of the raster graph.
-    				yt[0] = _ylabels_lefty[0];
-    				yt[1] = yt[0] + tic_height;
-    				GRDrawingAreaUtil.drawLine (_da_lefty_graph, xt, yt );
-    				// Draw at the top of the raster graph.
-    				yt[0] = _ylabels_lefty[_ylabels_lefty.length - 1];
-    				yt[1] = yt[0] - tic_height;
-    				GRDrawingAreaUtil.drawLine (_da_lefty_graph, xt, yt );
+    		int intervalBase = this.__tslist.get(0).getDataIntervalBase();
+    		if ( (intervalBase == TimeInterval.MONTH) || (intervalBase == TimeInterval.DAY) ) {
+    			// Loop through all of the months:
+    			// - label with month centered between the start/end ticks
+    			for ( int i = 1; i <= 12; i++ ) {
+    				x = (_xlabels[i - 1] + _xlabels[i])/2.0;
+    				// Draw tick marks at the labels (only internal ticks, not edges of graph which should be drawn as a surrounding graph box).
+    				if ( i != 12 ) {
+    					xt[0] = _xlabels[i];
+    					xt[1] = xt[0];
+    					// Draw at the bottom of the raster graph.
+    					yt[0] = _ylabels_lefty[0];
+    					yt[1] = yt[0] + tick_height;
+    					GRDrawingAreaUtil.drawLine (_da_lefty_graph, xt, yt );
+    					// Draw at the top of the raster graph.
+    					yt[0] = _ylabels_lefty[_ylabels_lefty.length - 1];
+    					yt[1] = yt[0] - tick_height;
+    					GRDrawingAreaUtil.drawLine (_da_lefty_graph, xt, yt );
+    				}
+    				// Draw the month names centered between ticks on the bottom.
+    				GRDrawingAreaUtil.drawText ( _da_bottomx_label, TimeUtil.monthAbbreviation(i), x,
+   						_datalim_bottomx_label.getTopY(), 0.0, GRText.CENTER_X|GRText.TOP );
+    				// Also draw on the top:
+    				// - TODO smalers 2023-04-09 need to use the upper X-axis label drawing area
+    				boolean useLabelDrawingArea = false;
+    				if ( useLabelDrawingArea ) {
+    					GRDrawingAreaUtil.drawText ( _da_topx_label, TimeUtil.monthAbbreviation(i), x,
+   							_datalim_topx_label.getBottomY(), 0.0, GRText.CENTER_X|GRText.BOTTOM );
+    				}
+    				else {
+    					// Draw the upper labels using the graph drawing area.
+    					GRDrawingAreaUtil.drawText ( _da_lefty_graph, TimeUtil.monthAbbreviation(i), x,
+    						this._da_lefty_graph.getDataLimits().getTopY(),
+   							0.0, GRText.CENTER_X|GRText.BOTTOM );
+    				}
     			}
-    			// Draw the month names centered between ticks on the bottom.
-    			GRDrawingAreaUtil.drawText ( _da_bottomx_label, TimeUtil.monthAbbreviation(i), x,
-   					_datalim_bottomx_label.getTopY(), 0.0, GRText.CENTER_X|GRText.TOP );
-    			// Also draw on the top:
-    			// - TODO smalers 2023-04-09 need to use the upper X-axis label drawing area
-    			boolean useLabelDrawingArea = false;
-    			if ( useLabelDrawingArea ) {
-    				GRDrawingAreaUtil.drawText ( _da_topx_label, TimeUtil.monthAbbreviation(i), x,
-   						_datalim_topx_label.getBottomY(), 0.0, GRText.CENTER_X|GRText.BOTTOM );
-    			}
-    			else {
-    				// Draw the upper labels using the graph drawing area.
-    				GRDrawingAreaUtil.drawText ( _da_lefty_graph, TimeUtil.monthAbbreviation(i), x,
-    					this._da_lefty_graph.getDataLimits().getTopY(),
-   						0.0, GRText.CENTER_X|GRText.BOTTOM );
+    		}
+    		else if ( (intervalBase == TimeInterval.HOUR) || (intervalBase == TimeInterval.MINUTE) ) {
+    			// Loop through all of the hours:
+    			// - label with hour at the tick, indicating that values are interval-ending
+    			for ( int i = 0; i <= 24; i++ ) {
+    				x = _xlabels[i];
+    				// Draw tick marks at the labels (only internal ticks, not edges of graph which should be drawn as a surrounding graph box).
+    				//if ( i != 12 ) {
+    					xt[0] = _xlabels[i];
+    					xt[1] = xt[0];
+    					// Draw at the bottom of the raster graph.
+    					yt[0] = _ylabels_lefty[0];
+    					yt[1] = yt[0] + tick_height;
+    					GRDrawingAreaUtil.drawLine (_da_lefty_graph, xt, yt );
+    					// Draw at the top of the raster graph.
+    					yt[0] = _ylabels_lefty[_ylabels_lefty.length - 1];
+    					yt[1] = yt[0] - tick_height;
+    					GRDrawingAreaUtil.drawLine (_da_lefty_graph, xt, yt );
+    				//}
+    				// Draw the month names centered between ticks on the bottom.
+    				int labelHour = i;
+    				if ( i == 24 ) {
+    					labelHour = 0;
+    				}
+    				GRDrawingAreaUtil.drawText ( _da_bottomx_label, "" + labelHour, x,
+   						_datalim_bottomx_label.getTopY(), 0.0, GRText.CENTER_X|GRText.TOP );
+    				// Also draw on the top:
+    				// - TODO smalers 2023-04-09 need to use the upper X-axis label drawing area
+    				boolean useLabelDrawingArea = false;
+    				if ( useLabelDrawingArea ) {
+    					GRDrawingAreaUtil.drawText ( _da_topx_label, "" + labelHour, x,
+   							_datalim_topx_label.getBottomY(), 0.0, GRText.CENTER_X|GRText.BOTTOM );
+    				}
+    				else {
+    					// Draw the upper labels using the graph drawing area.
+    					GRDrawingAreaUtil.drawText ( _da_lefty_graph, "" + labelHour, x,
+    						this._da_lefty_graph.getDataLimits().getTopY(),
+   							0.0, GRText.CENTER_X|GRText.BOTTOM );
+    				}
     			}
     		}
     		return;
     	}
     	else {
-    		// Multiple time series:
+    		// Multiple time series or single year interval time series:
     		// - draw a normal time axis using the code below
     		// - by default, this results in date axis being drawn at the bottom and ticks being drawn at the top
     		// - therefore add some logic below to draw ticks on the bottom X=axis.
@@ -7536,11 +7681,10 @@ private void drawXAxisDateLabels ( TSGraphType graphType, boolean drawGrid ) {
 		}
 		// First try with the visible start date and see if all years can be shown.
 		// Determine by seeing if the first two overlap.
-		int[] year_increments ={ 1, 2, 5, 10, 20, 25, 50, 100 };
+		int[] year_increments = { 1, 2, 5, 10, 20, 25, 50, 100 };
 		int year_increment = 1;
 		boolean found = false;
-		for (	int itry = 0;
-			itry < year_increments.length; itry++ ) {
+		for ( int itry = 0; itry < year_increments.length; itry++ ) {
 			start = new DateTime ( _start_date );
 			start.setPrecision(DateTime.PRECISION_YEAR );
 
@@ -7548,8 +7692,8 @@ private void drawXAxisDateLabels ( TSGraphType graphType, boolean drawGrid ) {
 			start.setYear((start.getYear()/year_increment)*year_increment );
 			label_date = new DateTime ( start );
 			label_date.addYear ( year_increment );
-			label0_devx=(int)_da_bottomx_label.scaleXData( start.toDouble());
-			label1_devx=(int)_da_bottomx_label.scaleXData( label_date.toDouble());
+			label0_devx = (int)_da_bottomx_label.scaleXData( start.toDouble());
+			label1_devx = (int)_da_bottomx_label.scaleXData( label_date.toDouble());
 			label_spacing = label1_devx - label0_devx + 1;
 			if ( label_spacing >= (label_width + buffer) ) {
 				found = true;
@@ -7576,7 +7720,7 @@ private void drawXAxisDateLabels ( TSGraphType graphType, boolean drawGrid ) {
     					// Work backwards.
     					for ( int it = 0; it < 11; it++ ) {
     						label_date.addMonth(-1);
-    						x=label_date.toDouble();
+    						x = label_date.toDouble();
     						if (x < _data_lefty_limits.getMinX()){
     							continue;
     						}
@@ -7594,7 +7738,7 @@ private void drawXAxisDateLabels ( TSGraphType graphType, boolean drawGrid ) {
     					label_date.setPrecision ( DateTime.PRECISION_MONTH );
     					label_date.setMonth ( 1 );
     					label_date.addMonth ( -6 );
-    					x=label_date.toDouble();
+    					x = label_date.toDouble();
     					if((x>=_data_lefty_limits.getMinX())&& (x <= _data_lefty_limits.getMaxX())){
     						xt2[0] = x;
     						xt2[1] = x;
@@ -7608,7 +7752,7 @@ private void drawXAxisDateLabels ( TSGraphType graphType, boolean drawGrid ) {
     				// Work backwards.
     				for ( int it = 0; it < 4; it++ ) {
     					label_date.addYear(-1);
-    					x=label_date.toDouble();
+    					x = label_date.toDouble();
     					if ( x <_data_lefty_limits.getMinX()){
     						continue;
     					}
@@ -7624,7 +7768,7 @@ private void drawXAxisDateLabels ( TSGraphType graphType, boolean drawGrid ) {
     				// Have enough room for a minor tick in the middle.
     				label_date = new DateTime ( date);
     				label_date.addYear ( -year_increment/2);
-    				x=label_date.toDouble();
+    				x = label_date.toDouble();
     				if ( (x >= _data_lefty_limits.getMinX()) && (x <= _data_lefty_limits.getMaxX())){
     					xt2[0] = x;
     					xt2[1] = x;
@@ -7657,7 +7801,7 @@ private void drawXAxisDateLabels ( TSGraphType graphType, boolean drawGrid ) {
 			}
 		}
 	}
-	else if ((_xaxis_date_precision==DateTime.PRECISION_MONTH)||
+	else if ((_xaxis_date_precision==DateTime.PRECISION_MONTH) ||
 		((_end_date.getAbsoluteDay() - _start_date.getAbsoluteDay() > 90)) ){
 		// Months less than 36 months or higher precision data more than 90 days.
 		//
@@ -7696,8 +7840,8 @@ private void drawXAxisDateLabels ( TSGraphType graphType, boolean drawGrid ) {
 			}
 			label_date = new DateTime ( start );
 			label_date.addMonth ( month_increment );
-			label0_devx=(int)_da_bottomx_label.scaleXData( start.toDouble());
-			label1_devx=(int)_da_bottomx_label.scaleXData( label_date.toDouble());
+			label0_devx = (int)_da_bottomx_label.scaleXData( start.toDouble());
+			label1_devx = (int)_da_bottomx_label.scaleXData( label_date.toDouble());
 			label_spacing = label1_devx - label0_devx + 1;
 			if ( label_spacing >= (label_width + buffer) ) {
 				found = true;
@@ -7796,8 +7940,8 @@ private void drawXAxisDateLabels ( TSGraphType graphType, boolean drawGrid ) {
 			}
 			label_date = new DateTime ( start );
 			label_date.addDay ( day_increment );
-			label0_devx=(int)_da_bottomx_label.scaleXData(start.toDouble());
-			label1_devx=(int)_da_bottomx_label.scaleXData(label_date.toDouble());
+			label0_devx = (int)_da_bottomx_label.scaleXData(start.toDouble());
+			label1_devx = (int)_da_bottomx_label.scaleXData(label_date.toDouble());
 			label_spacing = label1_devx - label0_devx + 1;
 			if ( label_spacing >= (label_width + buffer) ) {
 				found = true;
@@ -7831,7 +7975,7 @@ private void drawXAxisDateLabels ( TSGraphType graphType, boolean drawGrid ) {
                 GRDrawingAreaUtil.drawText ( _da_bottomx_label,	"" + date.getDay(), x,
 					_datalim_bottomx_label.getTopY(), 0.0, GRText.CENTER_X|GRText.TOP );
 				if ( date.getDay() <= day_increment ) {
-					// Label the year and month...
+					// Label the year and month.
 					GRDrawingAreaUtil.drawText ( _da_bottomx_label, date.toString(DateTime.FORMAT_YYYY_MM),
 					x, _datalim_bottomx_label.getBottomY(), 0.0, GRText.CENTER_X|GRText.BOTTOM );
 					++nlabel2;
@@ -7892,8 +8036,8 @@ private void drawXAxisDateLabels ( TSGraphType graphType, boolean drawGrid ) {
 			start.setHour((start.getHour()/hour_increment)*hour_increment );
 			label_date = new DateTime ( start );
 			label_date.addHour ( hour_increment );
-			label0_devx=(int)_da_bottomx_label.scaleXData( start.toDouble());
-			label1_devx=(int)_da_bottomx_label.scaleXData( label_date.toDouble());
+			label0_devx = (int)_da_bottomx_label.scaleXData( start.toDouble());
+			label1_devx = (int)_da_bottomx_label.scaleXData( label_date.toDouble());
 			label_spacing = label1_devx - label0_devx + 1;
 			if ( label_spacing >= (label_width + buffer) ) {
 				found = true;
@@ -7996,8 +8140,8 @@ private void drawXAxisDateLabels ( TSGraphType graphType, boolean drawGrid ) {
 			start.setMinute((start.getMinute()/minute_increment)*minute_increment );
 			label_date = new DateTime ( start );
 			label_date.addMinute ( minute_increment );
-			label0_devx=(int)_da_bottomx_label.scaleXData(start.toDouble());
-			label1_devx=(int)_da_bottomx_label.scaleXData(label_date.toDouble());
+			label0_devx = (int)_da_bottomx_label.scaleXData(start.toDouble());
+			label1_devx = (int)_da_bottomx_label.scaleXData(label_date.toDouble());
 			label_spacing = label1_devx - label0_devx + 1;
 			if ( label_spacing >= (label_width + buffer) ) {
 				found = true;
@@ -8457,6 +8601,7 @@ private void drawXYScatterPlot ( GRDrawingArea daGraph, TSProduct tsproduct, int
 Draw the Y-axis grid lines and tick marks.
 */
 private void drawYAxisGrid() {
+	String routine = getClass().getSimpleName() + ".drawYAxisGrid";
 	// Left y-axis grid lines.
 	String propValue = _tsproduct.getLayeredPropValue ( "LeftYAxisMajorGridColor", _subproduct, -1, false );
 	if ( (propValue != null) && !propValue.equalsIgnoreCase("None") ) {
@@ -8494,6 +8639,9 @@ private void drawYAxisGrid() {
 		_da_lefty_graph.setColor ( color );
 		_da_lefty_graph.setLineWidth ( 1 );
 		GRAxis.drawTicks(_da_lefty_graph, GRAxisDimensionType.Y, GRAxisEdgeType.LEFT, _ylabels_lefty.length, _ylabels_lefty, -1.0, 0.0 );
+	}
+	else {
+		Message.printStatus(2, routine, "Not drawing left y-axis tick marks because LeftYAxisMajorTickColor=" + propValue);
 	}
 
 	// Right y-axis grid lines.
@@ -8613,6 +8761,80 @@ throws Throwable {
 */
 
 /**
+ * Find Y-axis labels for date.
+ * Currently this calls the normal double-number label generator and saves whole numbers only once (fractions are ignored),
+ * to ensure that whole days are used.
+ * @param minimum absolute day
+ * @param maximum absolute day
+ * @param includeEndPoints if true, the end values must be included in the labels
+ * @param minLabels the minimum number of labels to include
+ * @param maxLabels the maximum number of labels to include
+ * @param precision DateTime precision for output, used to indicate the minimum spacing,
+ * currently always handled as DateTime.PRECISION_DAY
+ * @return array of floating point absolute day for the Y-axis ticks.
+ */
+double [] findYAxisDateLabels ( double minDay, double maxDay, boolean includeEndPoints, int minLabels, int maxLabels, int precision ) {
+	double [] labels = new double[0];
+	// First try to use the normal method.
+    labels = GRAxis.findNLabels ( minDay, maxDay, includeEndPoints, minLabels, maxLabels );
+    if ( labels == null ) {
+    	return null;
+    }
+    // Loop through the list and remove redundant values, when formatted as an integer.
+    double [] labels2 = new double[labels.length];
+    int nlabel = 0;
+   	double tolerance = .0001;
+   	double fraction;
+   	double day;
+   	double dayPrev = -1;
+    if ( minDay <= maxDay ) {
+    	// Always add the first label.
+    	//labels2[nlabel++] = labels[0];
+    	for ( int i = 0; i < labels.length; i++ ) {
+    		day = (int)labels[i];
+    		if ( nlabel == 0 ) {
+    			// Always add.
+    			labels2[nlabel++] = day;
+    		}
+    		else {
+    			// Only add if not previously added.
+    			if ( day != dayPrev ) {
+    				labels2[nlabel++] = day;
+    			}
+    		}
+    		// Save the day for the next iteration.
+    		dayPrev = day;
+    	}
+    }
+    else {
+    	// Moving backwards in time so iterate from the end value first.
+    	// Always add the last label.
+    	//labels2[nlabel++] = labels[labels.length - 1];
+    	for ( int i = labels.length - 1; i >= 0; i-- ) {
+    		day = (int)labels[i];
+    		if ( nlabel == 0 ) {
+    			// Always add.
+    			labels2[nlabel++] = day;
+    		}
+    		else {
+    			// Only add if not previously added.
+    			if ( day != dayPrev ) {
+    				labels2[nlabel++] = day;
+    			}
+    		}
+    		// Save the day for the next iteration.
+    		dayPrev = day;
+    	}
+    }
+    // Size the returned array to contain only the final values.
+    labels = new double[nlabel];
+    for ( int i = 0; i < nlabel; i++ ) {
+    	labels[i] = labels2[i];
+    }
+	return labels;
+}
+
+/**
 Format a data point for a tracker "X: xxxxx,  Y: yyyyy".
 If right y-axis is used, format as:  "LEFT X: xxxxx,  Y: yyyyy / RIGHT X: xxxxx,  Y:  yyyyy".
 Handles special cases for graph types that have other than simple axes.
@@ -8620,6 +8842,7 @@ Handles special cases for graph types that have other than simple axes.
 @param datapt Data point to format.
 */
 public String formatMouseTrackerDataPoint ( GRPoint devpt, GRPoint datapt ) {
+	String routine = getClass().getSimpleName() + ".formatMouseTrackerDataPoint";
 	try {
 	if ( datapt == null ) {
 		return "";
@@ -8637,7 +8860,8 @@ public String formatMouseTrackerDataPoint ( GRPoint devpt, GRPoint datapt ) {
    				ts = (TS)datapt.associated_object;
    			}
    		}
-    	if ( this.__tslist.size() == 1 ) {
+    	if ( (this.__tslist.size() == 1)
+    		&& ((this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() != TimeInterval.YEAR)) ) {
     		String xString = "";
     		String yString = "";
     		String valueString = "";
@@ -8645,13 +8869,22 @@ public String formatMouseTrackerDataPoint ( GRPoint devpt, GRPoint datapt ) {
     		double value = Double.NaN;
     		String flag = "", flagString = "";
     		int year = (int)(datapt.y);
-    		yString = "Year " + year;
     		boolean isMissing = false;
     		if ( ts == null ) {
-    			Message.printStatus(2,"","Time series is null for data point x=" + datapt.x + " y=" + datapt.y);
+    			if ( Message.isDebugOn ) {
+    				Message.printStatus(2,"","Time series is null for data point x=" + datapt.x + " y=" + datapt.y);
+    			}
     		}
     		else {
     			DateTime d = new DateTime(DateTime.DATE_FAST);
+           		if ( ts.getDataIntervalBase() == TimeInterval.HOUR ) {
+           			// Keep minutes because used for adjustments:
+           			// - tracker is formatted manually and does not use DateTime.toString()
+           			d.setPrecision(DateTime.PRECISION_MINUTE);
+          		}
+           		else if ( ts.getDataIntervalBase() == TimeInterval.MINUTE ) {
+           			d.setPrecision(DateTime.PRECISION_MINUTE);
+           		}
     			d.setYear(year);
     			if ( ts.getDataIntervalBase() == TimeInterval.MONTH ) {
     				//if ( _data_lefty_limits.getMaxX() <= 12.0 ) { }
@@ -8665,6 +8898,7 @@ public String formatMouseTrackerDataPoint ( GRPoint devpt, GRPoint datapt ) {
     					month = 12;
     				}
     				xString = "Month " + month + " (" + TimeUtil.monthAbbreviation(month) + ")";
+    				yString = "Year " + year;
     				d.setMonth(month);
     				if ( ts != null ) {
     					// New TSData is created each time:
@@ -8705,6 +8939,7 @@ public String formatMouseTrackerDataPoint ( GRPoint devpt, GRPoint datapt ) {
                 		}
                 		md = TimeUtil.getMonthAndDayFromDayOfYear(year, dayInYear);
                 		xString = "Day " + dayInYear + " (" + TimeUtil.monthAbbreviation(md[0]) + " " + md[1] + ")";
+                		yString = "Year " + year;
                 		d.setMonth(md[0]);
                 		d.setDay(md[1]);
                 		if ( ts != null ) {
@@ -8724,6 +8959,104 @@ public String formatMouseTrackerDataPoint ( GRPoint devpt, GRPoint datapt ) {
                     		}
                 		}
                 	}
+            	}
+    			else if ( (ts.getDataIntervalBase() == TimeInterval.HOUR) || (ts.getDataIntervalBase() == TimeInterval.MINUTE) ) {
+            		// X axis goes from 0 (start midnight) to 24 (end midnight):
+    				// - mouse position will typically not be at exactly hour 0 or 24.
+    				//
+    				//  |             |
+    				//  |      x      |
+    				//  hour         hour+1
+    				//               time series interval-ending hour
+            		int hourOfDay = (int)datapt.x;
+            		if ( hourOfDay >= 24 ) {
+            			// Typically only when the mouse is exactly on the right border of the graph.
+            			// - treat as if still in hour 23 of the last pixel in the day
+            			hourOfDay = 23;
+            		}
+            		// Top of pixel is the later day, bottom of pixel is the earlier (time series value) day,
+            		// so should be OK without shifting, because day will roll over at the top of the pixel.
+					int [] dateParts = TimeUtil.getYearMonthDayFromAbsoluteDay((int)(datapt.y));
+               		d.setYear(dateParts[0]);
+               		d.setMonth(dateParts[1]);
+               		d.setDay(dateParts[2]);
+               		// Get the minutes as fraction of day:
+               		// - dayFraction should be less than 1.0 until multiplied by 24
+               		double hoursRemainder = datapt.x - (int)datapt.x;
+               		// Above remainder should be minutes.
+               		double minutesFraction = hoursRemainder*60;
+               		int minutes = (int)minutesFraction;
+               		// Initially set the hour of the day to the in-interval hour (not interval end):
+               		// - will adjust below to agree with the time series value
+               		d.setHour(hourOfDay);
+               		d.setMinute(minutes);
+               		//Message.printStatus(2, routine, "Mouse position from graph: " + d);
+               		if ( ts.getDataIntervalBase() == TimeInterval.HOUR ) {
+               			// Minutes are used only to see if mouse is right at an even hour.
+               			if ( datapt.x > (24 - ts.getDataIntervalMult()) ) {
+               				// Last interval of the day but in the time series is the first interval of the next day:
+               				// - for example, for 1-hour data, 23.1 hours is > 23 hours so last interval
+               				// - shift the date by the data interval to match what should be in the time series table view
+               				d.addHour(ts.getDataIntervalMult());
+               				// Minute does not matter.
+               				d.setMinute(0);
+               			}
+               			else if ( d.getMinute() > 0 ) {
+               				// In the middle of an hour:
+               				// - set to the interval-ending time to agree with the time series
+               				d.setMinute(0);
+               				d.addHour(1);
+               			}
+               		}
+               		else if ( ts.getDataIntervalBase() == TimeInterval.MINUTE ) {
+               			if ( (d.getHour() > 23) && (d.getMinute() > (60 - ts.getDataIntervalMult())) ) {
+               				// Last interval of the day but in the time series is the first interval of the next day:
+               				// - for example, for 1-hour data, 23.1 hours is > 23 hours so last interval
+               				// - shift the date by the data interval to match what should be in the time series table view
+               				d.addHour(1);
+               				d.setMinute(0);
+               			}
+               			else if ( d.getMinute()%ts.getDataIntervalMult() > 0 ) {
+               				// In the middle of a minute interval:
+               				// - set to the interval-ending time to agree with the time series
+               				// - OK to roll over hour because won't be at the end of the day (which is handled above)
+               				d.setMinute(((d.getMinute()/ts.getDataIntervalMult()) + 1)*ts.getDataIntervalMult());
+               				if ( d.getMinute() == 60 ) {
+               					d.setMinute(0);
+               					d.addHour(1);
+               				}
+               			}
+               		}
+               		//Message.printStatus(2, routine, "Mouse position after adjusting for time series: " + d);
+           			yString = "Date " + String.format("%04d", d.getYear())
+			 			+ "-" + String.format("%02d", d.getMonth())
+			 			+ "-" + String.format("%02d", d.getDay());
+               		if ( ts.getDataIntervalBase() == TimeInterval.MINUTE ) {
+               			// X includes hour and minute.
+               			xString = "Time <= " + String.format("%02d", d.getHour()) + ":" + String.format("%02d", d.getMinute());
+               		}
+               		else {
+               			// X includes only hour.
+               			xString = "Time <= " + String.format("%02d", d.getHour());
+               		}
+               		if ( ts != null ) {
+               			// For time series data retrieval, need interval end so add the interval.
+               			//d.addInterval(ts.getDataIntervalBase(), ts.getDataIntervalMult());
+                   		tsdata = ts.getDataPoint(d, null);
+                   		value = tsdata.getDataValue();
+                   		flag = tsdata.getDataFlag();
+                   		if ( (flag != null) && !flag.equals("") ) {
+                       		flagString = " (" + flag + ")";
+                   		}
+                   		if ( ts.isDataMissing(value) ) {
+                       		valueString = "Value: missing" + flagString;
+                       		isMissing = true;
+                   		}
+                   		else {
+                       		valueString = "Value: " + StringUtil.formatString(value,"%.2f") + " " +
+                       			ts.getDataUnits() + flagString;
+                   		}
+               		}
             	}
     		} // End ts != null
     		if ( valueString.isEmpty() ) {
@@ -8745,7 +9078,7 @@ public String formatMouseTrackerDataPoint ( GRPoint devpt, GRPoint datapt ) {
         	}
        	}
     	else {
-    		// Multiple time series.
+    		// Multiple time series or single year-interval time series.
     		// The 'mouseDate' is calculated from the mouse position and not an even time series interval.
     		// However, since raster plot time axes is "blocked", can do a more precise mapping of time to data values
     		DateTime mouseDate = new DateTime(datapt.x, true);
@@ -8857,7 +9190,6 @@ public String formatMouseTrackerDataPoint ( GRPoint devpt, GRPoint datapt ) {
 	}
 	catch ( Exception e ) {
 		// For troubleshooting.
-		String routine = getClass().getSimpleName() + "formaMouseTrackerDataPoint";
 		Message.printWarning(3, routine, e);
 		return "";
 	}
@@ -9131,7 +9463,9 @@ private String getLegendString ( TS ts, int its ) {
 		legend = (its + 1) + ") " + legend;
 	}
 	else if ( __leftYAxisGraphType == TSGraphType.RASTER ) {
-		if ( this.__tslist.size() > 1 ) {
+		if ( (this.__tslist.size() > 1)
+    		|| ((this.__tslist.size() == 1)
+    			&& (this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() == TimeInterval.YEAR)) ) {
 			legend = (its + 1) + ") " + legend;
 		}
 	}
@@ -9883,10 +10217,10 @@ public void paint ( Graphics g ) {
 			_da_righty_graph, _da_righty_title, _da_righty_label,
 			_data_righty_limits, _datalim_righty_title, _datalim_righty_label,
 			_ylabels_righty, _righty_precision,
-			//__drawBottomxLabels, // TODO SAM 2016-10-23 Enable in the future
+			//__drawBottomxLabels, // TODO SAM 2016-10-23 Enable in the future.
 			_da_bottomx_title, _da_bottomx_label,
 			_datalim_bottomx_title, _datalim_bottomx_label,
-			_xlabels ); // Draw axes components that are in front of data
+			_xlabels ); // Draw axes components that are in front of data.
 		drawCurrentDateTime (); // Draw the current date/time line (TODO SAM 2016-10-20 should this be attempted multiple times like annotations?).
 		drawLegend ( GRAxisEdgeType.LEFT ); // Draw the left y-axis legend, which may be on top of the graph.
 		drawLegend ( GRAxisEdgeType.RIGHT ); // Draw the right y-axis legend, which may be on top of the graph.
@@ -9995,11 +10329,14 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph ) {
 				}
 				else if (__leftYAxisGraphType == TSGraphType.RASTER) {
 				    // Reset the y-axis values to the year - use Max because don't allow zoom.
-					if ( this.__tslist.size() == 1 ) {
+					if ( (this.__tslist.size() == 1) 
+						&& ((this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() != TimeInterval.YEAR)) ) {
+    					// Single time series.
 						_tslimits_lefty.setMinValue(_max_tslimits_lefty.getDate1().getYear());
 						_tslimits_lefty.setMaxValue(_max_tslimits_lefty.getDate2().getYear() + 1);
 					}
 					else {
+						// Multiple time series or single year interval time series.
 						// Treat similar to period of record graph.
 						// Set the minimum value to 0 and the maximum value to the number of time series.
 						// Reverse the limits to number the same as the legend so the first time series is at the top.
@@ -10072,12 +10409,15 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph ) {
 					_tslimits_righty.setMinValue( tslistToRender.size() + 1);
 				}
 				else if (__rightYAxisGraphType == TSGraphType.RASTER) {
-					if ( this.__tslist.size() == 1 ) {
+					if ( (this.__tslist.size() == 1)
+						&& ((this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() != TimeInterval.YEAR)) ) {
+						// Single time series that is not year interval.
 						// Reset the y-axis values to the year - use Max because don't allow zoom.
 						_tslimits_righty.setMinValue(_max_tslimits_righty.getDate1().getYear());
 						_tslimits_righty.setMaxValue(_max_tslimits_righty.getDate2().getYear() + 1);
 					}
 					else {
+						// Multiple time series or single year interval time series.
 						// Treat similar to period of record graph.
 						// Set the minimum value to 0 and the maximum value to the number of time series.
 						// Reverse the limits to number the same as the legend so the first time series is at the top.

@@ -457,7 +457,7 @@ The property will not be reset automatically but will be handled internally usin
 <tr>
 <td><b>LeftYAxisMajorTickColor</b></td>
 <td>Color to use for the left y-axis major ticks.</td>
-<td>Most graph types automatically set to "none".</td>
+<td>Most graph types automatically set to "None" because a grid is drawn.</td>
 </tr>
 
 <tr>
@@ -1173,7 +1173,7 @@ throws Exception {
 
 /**
 Construct a TSProduct from a product file (.tsp).  The product file is read into a PropList.
-@param filename Name of gvp file to process.
+@param filename Name of tsp file to process.
 @param overridePropList Properties that override the properties in the file.
 @exception Exception if there is an error processing the file.
 */
@@ -1188,8 +1188,8 @@ throws Exception {
 }
 
 /**
-Construct a TSProduct from a PropList.  The properties in the PropList must
-conform to the organization of a time series product file.
+Construct a TSProduct from a PropList.
+The properties in the PropList must conform to the organization of a time series product file.
 @param proplist Properties describing the time series product.
 @param override_proplist Properties that override the properties first PropList (e.g., display properties).
 Specify as null if no override properties are given.
@@ -1873,8 +1873,11 @@ public void checkGraphProperties ( int nsubs ) {
 		}
 
 		if ( getLayeredPropValue("LeftYAxisMajorTickColor", isub, -1, false ) == null ) {
-		    setPropValue ( "LeftYAxisMajorTickColor",
-			getDefaultPropValue("LeftYAxisMajorTickColor", isub,-1), isub, -1 );
+		    //setPropValue ( "LeftYAxisMajorTickColor",
+			//getDefaultPropValue("LeftYAxisMajorTickColor", isub,-1), isub, -1 );
+
+	        // Need this to be set because raster graphs default to ticks and other graphs don't use ticks.
+	        setPropValue ( "LeftYAxisMajorTickColor",getDefaultPropValue("LeftYAxisMajorTickColor",isub,-1,false,graphType), isub, -1);
 		}
 
 		if ( getLayeredPropValue("LeftYAxisMax", isub, -1, false ) == null ) {
@@ -2369,6 +2372,7 @@ public List<Prop> getAllProps() {
 Return the default value for a property.
 This can be used to internally assign properties.  Currently the defaults are hard-coded.
 At some point code may be added to get the defaults from a database, etc.
+The graph type is not considered.
 @param param Property to get value for.
 @param subproduct Sub-product number (starting at zero).
 A prefix of "SubProduct X." will be used for the property, where X is the subproduct.
@@ -2386,6 +2390,7 @@ public String getDefaultPropValue ( String param, int subproduct, int its ) {
 Return the default value for a property.
 This can be used to internally assign properties.  Currently the defaults are hard-coded.
 At some point code may be added to get the defaults from a database, etc.
+The graph type is not considered.
 @param param Property to get value for.
 @param subproduct Sub-product number (starting at zero).
 A prefix of "SubProduct X." will be used for the property, where X is the subproduct.
@@ -2399,7 +2404,8 @@ annotation under the given subproduct, rather than a time series under the given
 @return value of property or null if not found.
 */
 public String getDefaultPropValue ( String param, int subproduct, int its, boolean isAnnotation) {
-	return getDefaultPropValue(param, subproduct, its, isAnnotation, null);
+	TSGraphType graphType = null;
+	return getDefaultPropValue(param, subproduct, its, isAnnotation, graphType);
 }
 
 /**
@@ -2662,10 +2668,25 @@ public String getDefaultPropValue ( String param, int subproduct, int its, boole
 			return "BottomLeft";
 		}
 		else if ( param.equalsIgnoreCase("LeftYAxisMajorGridColor") ){
-			return "lightgray";
+			if ( graphType == TSGraphType.RASTER ) {
+				return "None";
+			}
+			else {
+				return "lightgray";
+			}
 		}
-		else if ( param.equalsIgnoreCase("LeftYAxisMajorTickColor") ){
-			return "None";
+		else if ( param.equalsIgnoreCase("LeftYAxisMajorTickColor") ) {
+			String routine = getClass().getSimpleName() + ".getDefaultPropValue";
+			Message.printStatus ( 2, routine, "graphType=" + graphType );
+			// For most graphs, "None" is used because a grid is drawn.
+			// However, for raster graphs tick marks are drawn.
+			if ( graphType == TSGraphType.RASTER ) {
+				return "black";
+			}
+			else {
+				// Most graphs use grid and not tick marks.
+				return "None";
+			}
 		}
 		// "LeftYAxisLabelPrecision" determined at run-time.
 		else if ( param.equalsIgnoreCase("LeftYAxisMax") ) {
@@ -2886,7 +2907,8 @@ public String getDefaultPropValue ( String param, int subproduct, int its, boole
 			return "True";
 		}
         else if ( param.equalsIgnoreCase("FlaggedDataSymbolStyle") ){
-            // Same as "SymbolStyle".
+            // Same as "SymbolStyle":
+        	// - recursively call this method
             return getDefaultPropValue ( "SymbolStyle", subproduct, its, isAnnotation, graphType );
         }
 		else if ( param.equalsIgnoreCase("GraphType") ){
@@ -3000,8 +3022,8 @@ If negative, the data item property will not be checked.
 TODO SAM make sure that override properties can contain annotations.
 Problem: how to dynamically add annotations without conflict.
 */
-public String getLayeredPropValue ( String property, int subproduct, int its )
-{	return getLayeredPropValue ( property, subproduct, its, true );
+public String getLayeredPropValue ( String property, int subproduct, int its ) {
+	return getLayeredPropValue ( property, subproduct, its, true );
 }
 
 /**

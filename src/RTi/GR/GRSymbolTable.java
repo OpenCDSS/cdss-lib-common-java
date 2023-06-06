@@ -323,6 +323,7 @@ public class GRSymbolTable {
 					okToAdd = false;
 				}
 				if ( okToAdd ) {
+					// Required columns were found in the symbol table so add the symbol table row.
 					GRSymbolTableRow row = new GRSymbolTableRow ( valueMin, valueMax, color, opacity, fillColor, fillOpacity );
 					symtable.addRow(row);
 				}
