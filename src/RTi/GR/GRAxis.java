@@ -36,10 +36,12 @@ public class GRAxis
 Draw a box around a set of axes.
 */
 public static final int GRID_BOX = 0x1;
+
 /**
 Use solid lines for the grid.
 */
 public static final int GRID_SOLID = 0x2;
+
 /**
 Use dotted lines for the grid.
 */
@@ -95,31 +97,52 @@ public static void drawGrid ( GRDrawingArea da, int nxg, double [] xg, int nyg, 
 }
 
 /**
-Label an axis given a list of floating point numbers
+Label an axis given a list of floating point numbers.
+The numbers will be formatted using 'reqFormat'.
 @param da Drawing area.
 @param nl Number of labels.
 @param xl Coordinates of labels.
 @param ref Reference coordinate for axis (in plane of axis).
 @param axis Indicates which axis is being plotted (X or Y).
-@param req_format Format for labels for the StringUtil.formatString() method (if null, %g is used).
+@param reqFormat Format for labels for the StringUtil.formatString() method (if null, %g is used).
 If the label value is less than the precision, label with more precision.
-Otherwise, for example,
-the graph will have duplicate labels like "0", "0" for small numbers.
+Otherwise, for example, the graph will have duplicate labels like "0", "0" for small numbers.
 @param tflag Text attributes flag for labels (see GRText).
 */
-public static void drawLabels (	GRDrawingArea da, int nl, double xl[], double ref, GRAxisDimensionType axis, String req_format, int tflag ) {
+public static void drawLabels ( GRDrawingArea da, int nl, double xl[], double ref, GRAxisDimensionType axis, String reqFormat, int tflag ) {
+	// Don't specify labels (axis values will be formatted in the called code).
+	String [] labels = null;
+	drawLabels ( da, nl, xl, labels, ref, axis, reqFormat, tflag );
+
+}
+
+/**
+Label an axis given a list of floating point numbers.
+@param da Drawing area.
+@param nl Number of labels.
+@param xl Coordinates of labels.
+@param labels String labels to use.  If null, the numbers will be formatted using 'reqFormat'.
+@param ref Reference coordinate for axis (in plane of axis).
+@param axis Indicates which axis is being plotted (X or Y).
+@param req_format Format for labels for the StringUtil.formatString() method (if null, %g is used).
+If the label value is less than the precision, label with more precision.
+Otherwise, for example, the graph will have duplicate labels like "0", "0" for small numbers.
+@param tflag Text attributes flag for labels (see GRText).
+*/
+public static void drawLabels (	GRDrawingArea da, int nl, double xl[], String [] labels, double ref,
+	GRAxisDimensionType axis, String reqFormat, int tflag ) {
 	int	dl = 30, i, iend;
 	int iplot; // Indicates which value to plot (depends on whether GRText.REVERSE_LABELS is specified).
 	String default_format = "%g", format = null, routine = GRAxis.class.getSimpleName() + ".drawLabels", string;
 	int	tflag2;
 
-	// Always assume that we are plotting in the following order:
+	// Always assume that are plotting in the following order:
 	//
 	// X	left to right
 	// Y	bottom to top
 	//
 	// Regardless of whether the limits of the data are reversed (lower data value at top of Y or right on X).
-	// In other words, in this code are always assuming that we are plotting the axes from bottom to top (Y) or left to right (X).
+	// In other words, in this code are always assuming that are plotting the axes from bottom to top (Y) or left to right (X).
 	// As for shifting the ends, let GRText handle that.
 
 	iend = nl - 1;
@@ -133,6 +156,20 @@ public static void drawLabels (	GRDrawingArea da, int nl, double xl[], double re
 			Message.printDebug ( dl, routine, "Shifting ends." );
 		}
 	}
+
+	// Determine the format for the labels.
+    if ( labels == null ) {
+    	// Format the label coordinate.
+    	if ( (reqFormat == null) || reqFormat.isEmpty() ) {
+    		// Use the default format.
+        	format = default_format;
+    	}
+    	else {
+    		// Use the requested format.
+        	format = reqFormat;
+    	}
+    }
+
 	for ( i = 0; i <= iend; i++ ) {
 		if ( (tflag & GRText.REVERSE_LABELS) != 0 ) {
 			// The labels that are coming in not specified from bottom to top or left to right.
@@ -143,17 +180,22 @@ public static void drawLabels (	GRDrawingArea da, int nl, double xl[], double re
 		    // The labels ARE specified from bottom to top or left to right.
 			iplot = i;
 		}
-		// Figure out the format.
-	    if ( req_format == null) {
-	        format = default_format;
-	    }
-	    else if ( req_format.equals("") ) {
-	        format = default_format;
+
+	    if ( labels == null ) {
+	    	// Format the label coordinate.
+	    	if ( (reqFormat == null) || reqFormat.isEmpty() ) {
+	        	format = default_format;
+	    	}
+	    	else {
+	        	format = reqFormat;
+	    	}
+	    	string = StringUtil.formatString(xl[iplot], format);
 	    }
 	    else {
-	        format = req_format;
+	    	// Use the provided label.
+	    	string = labels[iplot];
 	    }
-		string = StringUtil.formatString(xl[iplot],format);
+
 	    // If necessary, adjust the format in case the number is too small to be visible as formatted.
 		// For example, a label of .0015.
 		/* FIXME SAM 2010-11-29 Need to consider not only this value but adjoining to make sure that the label is unique.
@@ -169,7 +211,7 @@ public static void drawLabels (	GRDrawingArea da, int nl, double xl[], double re
 				// topmost label has its top on the tick mark.
 				// Assume that the first label is at the bottom.
 				if ( (i == 0) || (i == iend) ) {
-					// Clear the flags...
+					// Clear the flags.
 					if ( (tflag2 & GRText.CENTER_X) != 0 ) {
 						tflag2 ^= GRText.CENTER_X;
 					}
@@ -180,11 +222,11 @@ public static void drawLabels (	GRDrawingArea da, int nl, double xl[], double re
 						tflag2 ^= GRText.LEFT;
 					}
 					if ( i == 0 ) {
-						// Doing the leftmost label and we want the left edge to be against the tick.
+						// Doing the leftmost label and want the left edge to be against the tick.
 						tflag2 |= GRText.LEFT;
 					}
 					else if ( i == iend ) {
-						// Doing the rightmost label and we want the right edge to be against the tick.
+						// Doing the rightmost label and want the right edge to be against the tick.
 						tflag2 |= GRText.RIGHT;
 					}
 				}
@@ -335,19 +377,19 @@ It assumes that this will be handled with other routines.</li>
 </ul>
 @param xmin0 Minimum value in data.
 @param xmax0 Maximum value in data.
-@param include_end_points Indicates whether ends are to agree with minimum and maximum data (true),
+@param includeEndPoints Indicates whether ends are to agree with minimum and maximum data (true),
 or are they to extend past the data to have the same interval as the rest of the data (false).
 @param pflag Indicates the nearness (power) that labels should be to data within the range (see findLimits).
 @return label points for a graph given limits of data.
 */
-public static double [] findLabels ( double xmin0, double xmax0, boolean include_end_points, int pflag ) {
-	String routine = GRAxis.class.getSimpleName() + "findLabels";
+public static double [] findLabels ( double xmin0, double xmax0, boolean includeEndPoints, int pflag ) {
+	String routine = GRAxis.class.getSimpleName() + ".findLabels";
 	int	i, nlabels0 = 100;	// Size of "xlabel" array.
 	boolean	rflag = false; // Indicates whether values need to be reversed afterwards.
-	double	incx,			// Largest of "ixmax", "ixmin".
-		lxmax, lxmin,		// "nice" label limits.
-		x,			// Value for min-points (tick marks).
-		xmax, xmin;
+	double incx; // Largest of "ixmax", "ixmin".
+	double lxmax, lxmin; // "nice" label limits.
+	double x;  // Value for min-points (tick marks).
+	double xmax, xmin;
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 20, routine,
@@ -383,7 +425,7 @@ public static double [] findLabels ( double xmin0, double xmax0, boolean include
 	lxmax = limits.getRightX();
 	incx = limits.getBottomY();
 
-	if ( include_end_points ) {
+	if ( includeEndPoints ) {
 		xlabel[nlabels++] = xmin;
 	}
 	else {
@@ -434,7 +476,7 @@ public static double [] findLabels ( double xmin0, double xmax0, boolean include
 		--nlabels;
 	}
 
-	if ( include_end_points ) {
+	if ( includeEndPoints ) {
 		// Maximum endpoint.
 		xlabel[nlabels++] = xmax;
 	}
@@ -542,7 +584,7 @@ public static GRLimits findLimits ( double xmin, double xmax, int pflag ) {
 	lxmax = incx*(double)((int)(axmax/incx));
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 10, "GRAxis.findLimits",
+		Message.printDebug ( 10, routine,
 		"Look for nice lim using incx=" + incx + " lxmin=" + lxmin + " lxmax=" + lxmax + " pflag=" + pflag );
 	}
 
@@ -705,29 +747,26 @@ The internal number representation is not optimized for the number of decimal po
 therefore, call formatLabels() if necessary.
 @param xmin0 Minimum value in data.
 @param xmax0 Maximum value in data.
-@param include_end_points true if end-points are to be used as labels.
+@param includeEndPoints true if end-points are to be used as labels.
 @param minl Minimum number of labels.
 @param maxl Maximum number of labels.
 @return labels for a set of data.
 */
-public static double [] findNLabels ( double xmin0, double xmax0, boolean include_end_points, int minl, int maxl ) {
-	int		dl = 1,	// Debug level.
-			i, nlabels = 0,	// Dimension of "xlabel".
-			npflag = 0,
-			pflag[] = null;	// Nearness flag (see findLabels).
-			// "Nearness" flag (see findLabels).
-	String routine = "GRAxis.findNLabels";
+public static double [] findNLabels ( double xmin0, double xmax0, boolean includeEndPoints, int minl, int maxl ) {
+	String routine = GRAxis.class.getSimpleName() + ".findNLabels";
+	int dl = 1;	// Debug level.
+	int nlabels = 0; // Size of of "xlabel".
+	int npflag = 0; // size of "pflag".
+	int pflag[] = null;	// Nearness flag (see findLabels).
 	double xmax = 0.0, xmin = 0.0;	// Maximum & minimum data values.
 	double [] xlabel = null;		// Label values.
 
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, routine,
-		"Trying to find " + minl + "-" + maxl + " labels for " + xmin0 + "," + xmax0 );
+		Message.printDebug ( dl, routine, "Trying to find " + minl + "-" + maxl + " labels for " + xmin0 + "," + xmax0 );
 	}
 
 	if ( minl >= maxl ) {
-		Message.printWarning ( 20, routine,
-		"Min # of labels (" + minl + ") >= Max # of labels (" + maxl + ")" );
+		Message.printWarning ( 20, routine, "Min # of labels (" + minl + ") >= Max # of labels (" + maxl + ")" );
 		return null;
 	}
 
@@ -741,13 +780,13 @@ public static double [] findNLabels ( double xmin0, double xmax0, boolean includ
 			Message.printWarning ( 20, routine, "Both xmin and xmax == 0.  Setting to 0, 1 for labels");
 		}
 		else if ( xmin0 > 0.0 ) {
-			// Reset so that we go from 0 to the maximum.
+			// Reset so that the range is 0 to the maximum.
 			xmin = 0.0;
 			xmax = xmax0;
 			Message.printWarning ( 20, routine, "xmin == xmax (" + xmin0 + ").  Setting xmin to 0 for labels" );
 		}
 		else if ( xmin0 < 0.0 ) {
-			// Reset so that we go from the minimum to 0.
+			// Reset so that the range is the minimum to 0.
 			xmin = xmin0;
 			xmax = 0.0;
 			Message.printWarning ( 20, routine, "xmin == xmax (" + xmin0 + ").  Setting xmax to 0 for labels" );
@@ -775,8 +814,7 @@ public static double [] findNLabels ( double xmin0, double xmax0, boolean includ
 		double newmax = marcio_limits.getRightX();
 		double newinc = marcio_limits.getBottomY();
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, "GRAxis.findNLabels",
-			"Found nice min " + newmin + " max " + newmax + " increment " + newinc );
+			Message.printDebug ( 1, routine, "Found nice min " + newmin + " max " + newmax + " increment " + newinc );
 		}
 		// Always add one on the endpoint.
 		int size = (int)(((newmax - newmin)/newinc) + 1.01);
@@ -803,7 +841,7 @@ public static double [] findNLabels ( double xmin0, double xmax0, boolean includ
 	if ( ratio < 100.0 ) {
 		// Range of numbers is generally less than the magnitudes so want to use small increments.
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, "GRAxis.findNLabels", "range/average is low: " + ratio );
+			Message.printDebug ( dl, routine, "range/average is low: " + ratio );
 		}
 		npflag = 16;
 		pflag = new int[npflag];
@@ -827,7 +865,7 @@ public static double [] findNLabels ( double xmin0, double xmax0, boolean includ
 	else {
 	    // Range of numbers is generally similar to magnitudes so use larger increments.
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, "GRAxis.findNLabels", "range/average is high: " + ratio );
+			Message.printDebug ( dl, routine, "range/average is high: " + ratio );
 		}
 		npflag = 16;
 		pflag = new int[npflag];
@@ -858,10 +896,10 @@ public static double [] findNLabels ( double xmin0, double xmax0, boolean includ
 	// Break out below.
 	while ( true ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, "GRAxis.findNLabels", "Trying to find " + nlabels_i + " labels" );
+			Message.printDebug ( dl, routine, "Trying to find " + nlabels_i + " labels" );
 		}
-		for ( i = 0; i < npflag; i++ ) {
-			xlabel = findLabels(xmin, xmax, include_end_points, pflag[i]);
+		for ( int i = 0; i < npflag; i++ ) {
+			xlabel = findLabels(xmin, xmax, includeEndPoints, pflag[i]);
 			if ( xlabel == null ) {
 				Message.printWarning ( 20, routine, "Error getting labels" );
 				continue;
@@ -896,8 +934,7 @@ public static double [] findNLabels ( double xmin0, double xmax0, boolean includ
 	double newmax = marcio_limits.getRightX();
 	double newinc = marcio_limits.getBottomY();
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, "GRAxis.findNLabels",
-		"Found nice min " + newmin + " max " + newmax + " increment " + newinc );
+		Message.printDebug ( 1, routine, "Found nice min " + newmin + " max " + newmax + " increment " + newinc );
 	}
 	// Always add one on the endpoint.
 	int size = (int)(((newmax - newmin)/newinc) + 1.01);
@@ -1024,7 +1061,7 @@ static GRLimits chooseLabels ( double minValue, double maxValue, int minLabels, 
 This method takes a number and tries to round it up to the next "nice" number.
 @param number the number to try to round up.
 @return the next "nice" number.
-TODO (JTS - 2003-05-05) we should have an example here -- what is a "nice" number?
+TODO (JTS - 2003-05-05) should have an example here -- what is a "nice" number?
 And maybe should this be moved to MathUtil?
 SAM: Actually, functionality should be in MathUtil.  Revisit later.
 */

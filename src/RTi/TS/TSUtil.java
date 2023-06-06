@@ -7687,6 +7687,32 @@ public static String[] getTSFormatSpecifiers(boolean includeDescription ) {
 }
 
 /**
+Get the first time series in a list that has a valid interval (not TimeInterval.UNKNOWN).
+This allows calling code to process a list of time series that contains nulls,
+in which case the null time series need to be ignored.
+@param tsList List of time series to check
+@return TS instance with base and multiplier set, or null if no valid time series are in the list
+*/
+public static TS getTSThatHasInterval ( List<TS> tsList ) {
+	if ( tsList == null ) {
+		return null;
+	}
+	if ( tsList.size() == 0 ) {
+		return null;
+	}
+	// Find first non-null time series to compare.
+	for ( TS ts : tsList ) {
+		if ( ts != null ) {
+		    if ( ts.getDataIntervalBase() != TimeInterval.UNKNOWN ) {
+		    	return ts;
+		    }
+		}
+	}
+	// Could not find non-null time series to check.
+	return null;
+}
+
+/**
 This method takes two dates which are generally the start and end dates for an iteration.
 If they are specified, they are used (even if they are outside the range of the time series).
 If a date is not specified, then the appropriate date from the time series is used.
