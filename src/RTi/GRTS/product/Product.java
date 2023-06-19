@@ -33,10 +33,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 /**
  * Representation of a high-level data product, consistent with "TSProduct".
- * @author sam
- *
  */
-@JsonIgnoreProperties(ignoreUnknown=true) // If Json is ever read in, this will help with unknown Json properties
+@JsonIgnoreProperties(ignoreUnknown=true) // If Json is ever read in, this will help with unknown Json properties.
 @JsonPropertyOrder({"properties","subProducts"})
 public class Product {
 
