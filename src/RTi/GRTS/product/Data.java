@@ -50,7 +50,6 @@ public class Data {
 	 * Constructor.
 	 */
 	public Data () {
-
 	}
 
 	/**
