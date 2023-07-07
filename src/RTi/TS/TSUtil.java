@@ -11,12 +11,12 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -8768,7 +8768,9 @@ The data range is checked regardless of whether the missing data value is in the
 a simple case-dependent string match is performed
 @param newValue Replacement data value (optional - do not need if action is specified).
 @param action Action to perform: "Remove" to remove the point (only for irregular interval,
-treated as SetMissing for regular interval data), "SetMissing" to set values to missing, and otherwise use "newvalue" to replace.
+treated as SetMissing for regular interval data),
+"RemoveMissing" to remove missing values (only for irregular interval),
+"SetMissing" to set values to missing, and otherwise use "newvalue" to replace.
 @param analysisWindowStart the starting date/time within a year to start the replacement, consistent with the time series interval
 @param analysisWindowEnd the ending date/time within a year to start the replacement, consistent with the time series interval
 @param setFlag flag value to set on data values when resetting a value
@@ -8783,8 +8785,14 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
             "Neither new value or action have been specified.  Cannot replace value in time series." );
     }
     if ( (minValue == null) && ((matchFlag == null) || matchFlag.equals("")) ) {
-        throw new InvalidParameterException(
-            "Neither minimum value or match flag have been specified.  Cannot replace value in time series." );
+    	// No range or flag has been specified to match.
+		if ( ts.isIrregularInterval() && (action != null) && action.equalsIgnoreCase("RemoveMissing") ) {
+			// Also allowed.
+		}
+		else {
+			throw new InvalidParameterException(
+				"Neither minimum value or match flag have been specified.  Cannot replace value in time series." );
+		}
     }
     double minvalue = Double.NaN;
     if ( minValue != null ) {
@@ -8806,11 +8814,15 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 	//	Message.printDebug(1, routine, "Period for replace is " + start + " to " + end);
 	//}
 	boolean doRemove = false;
+	boolean doRemoveMissing = false;
 	boolean doSetMissing = false;
 	double missing = ts.getMissing();
 	if ( action != null ) {
 	    if ( action.equalsIgnoreCase("Remove") ) {
 	        doRemove = true;
+	    }
+	    else if ( action.equalsIgnoreCase("RemoveMissing") ) {
+	        doRemoveMissing = true;
 	    }
 	    else if ( action.equalsIgnoreCase("SetMissing") ) {
             doSetMissing = true;
@@ -8872,21 +8884,30 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 				// Past the end of where we want to go so quit.
 				break;
 			}
-			if ( doMatchValue ) {
+			if ( doMatchValue || doRemoveMissing ) {
 				value = tsdata.getDataValue();
 				// Check the value.
-				if ( maxValue == null ) {
-					// Only checking minimum.
-					if ( value >= minvalue ) {
-						// Found a value to process.
+				if ( ts.isDataMissing(value) ) {
+					if ( doRemoveMissing ) {
+						// Special case for removing missing values.
 						matchedForReplace = true;
 					}
 				}
-				else if ( (value >= minvalue) && (value <= maxvalue) ) {
-					// Checking minimum and maximum values.
-					// Found a value to process.
-					matchedForReplace = true;
-    			}
+				else {
+					// Not missing so can check the value against the range.
+					if ( maxValue == null ) {
+						// Only checking minimum.
+						if ( value >= minvalue ) {
+							// Found a value to process.
+							matchedForReplace = true;
+						}
+					}
+					else if ( (value >= minvalue) && (value <= maxvalue) ) {
+						// Checking minimum and maximum values.
+						// Found a value to process.
+						matchedForReplace = true;
+    				}
+				}
 			}
     	    if ( doMatchFlag ) {
     	    	// Also check the flag - this is ANDed with the value.
@@ -8920,14 +8941,14 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
                     }
                 }
 	            // If here have matched the value for replacement.
-			    if ( doRemove ) {
+			    if ( doRemove || doRemoveMissing ) {
 			        // This will remove the point at the date (there should only be one matching date/time).
 			    	// The following is a performance hit because it searches the entire time series.
 			    	// Just remove from the data array.
 			        //pointRemoved = irrts.removeDataPoint(date);
 			    	pointRemoved = irrts.removeDataPoint(i);
 			    	if ( pointRemoved ) {
-			    		// TODO SAM 2010-08-18 Evaluate changing to iterator and remove following code.
+			    		// TODO SAM 2010-08-18 Evaluate changing to iterator and remove the following code.
 			    		// Decrement counters.
 			    		--i;
 			    		--nalltsdata;
@@ -8954,7 +8975,8 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 		}
 	}
 	else {
-	    // Loop using addInterval.
+	    // Regular interval time series:
+		// - loop using addInterval
 		DateTime date = new DateTime ( start );
 		TSData tsdata = new TSData();
 		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
