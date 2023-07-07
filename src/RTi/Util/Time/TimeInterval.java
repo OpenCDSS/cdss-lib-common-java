@@ -644,7 +644,7 @@ public boolean isIrregularInterval ( ) {
 public static boolean isIrregularInterval ( String intervalString ) {
 	try {
 		TimeInterval interval = parseInterval ( intervalString );
-		// Return the reverse o the regular interval check.
+		// Return the inverse of the regular interval check.
 		return !interval.isIrregularInterval();
 	}
 	catch ( Exception e ) {
