@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -37,12 +37,10 @@ import RTi.Util.Message.Message;
  * This class manages displaying help for an application.
  * It does so by handling setup of UI components such as dialogs with a help button and when help is requested,
  * showing the help in the default browser.
- * 
+ *
  * The HelpManager is a singleton that is requested with getInstance().
  * The application code should call 'setUrlFormatter' at startup and implement the HelpViewerUrlFormatter to
  * format help URLs for the application documentation.
- * @author sam
- *
  */
 public class HelpViewer {
 
@@ -61,7 +59,6 @@ public class HelpViewer {
 	 * Constructor for default instance.
 	 */
 	public HelpViewer () {
-
 	}
 
 	/**
@@ -114,11 +111,12 @@ public class HelpViewer {
 			// Format the URL for the item.
 			String docUri = this.urlFormatter.formatHelpViewerUrl(group, item, rootUrl);
 			if ( docUri == null ) {
-				Message.printWarning(1, "", "Unable to determine documentation URL for group=\"" + group + "\", item=\"" + item + "\"." );
+				Message.printWarning(1, "", "Unable to determine documentation URL for group=\"" + group + "\", item=\""
+					+ item + "\", rootUrl=\"" + rootUrl + "\"." );
 			}
-	        // Now display using the default application for the file extension
+	        // Now display using the default application for the file extension.
 	        Message.printStatus(2, routine, "Opening documentation \"" + docUri + "\"" );
-			// Use the desktop to display documentation
+			// Use the desktop to display documentation.
 			if ( !Desktop.isDesktopSupported() ) {
 				if ( IOUtil.isUNIXMachine() ) {
 					// Only try on Linux since Windows Desktop seems to work OK.
@@ -155,7 +153,7 @@ public class HelpViewer {
 	 */
 	private void showHelpRunBrowserUnix ( String docUri ) {
 		boolean browserOk = false;
-		// First try using xdg-open
+		// First try using xdg-open.
 		Message.printWarning(2, "", "Attempting call to xdg-open." );
 		try {
 			ProcessManager pm = new ProcessManager("xdg-open " + docUri);
@@ -163,7 +161,7 @@ public class HelpViewer {
 			thread.start ();	// This executes the run() method in ProcessManager.
 			browserOk = true;
 			// TODO smalers 2019-10-17 maybe there is a way to check the xdg-open command,
-			// but not sure how exit status for a thread would work
+			// but not sure how exit status for a thread would work.
 		}
 		catch ( Exception e ) {
 			Message.printWarning(3, "",  "Error running: xdg-open " + docUri);
@@ -171,14 +169,14 @@ public class HelpViewer {
 		}
 		if ( !browserOk ) {
 			Message.printWarning(2, "", "Attempting direct call to browsers." );
-			// Try running browser directly
+			// Try running browser directly.
 			List<String> browsers = new ArrayList<>();
 			browsers.add("chromium");
 			browsers.add("chromium.exe");
 			browsers.add("firefox");
 			browsers.add("firefox.exe");
 			for ( String browser : browsers ) {
-				// Find the browser in the path
+				// Find the browser in the path.
 				File programFile = IOUtil.findProgramInPath(browser);
 				if ( programFile != null ) {
 					try {

@@ -11,12 +11,12 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -236,7 +236,7 @@ public Object clone() {
 	}
 	// TODO smalers 2012-03-23 Need to evaluate use of the index.
 	//ts.__data_index = __data_index;
-	addToGenesis ( "Cloned from \"" + ts.getIdentifierString() + "\"" );
+	ts.addToGenesis ( "Cloned from \"" + ts.getIdentifierString() + "\"" );
 	return ts;
 }
 
@@ -1349,21 +1349,36 @@ public void refresh () {
 /**
 Remove a data point corresponding to the index of the data array.
 This is used in internal code.
+The 'next' and 'prev' pointers in the TSData objects are repositioned around the removed item.
 @param index index in the data array (0+)
 @return true if the point was removed, false if not (index was not found)
 */
 public boolean removeDataPoint ( int index ) {
-	int size = __tsDataList.size();
-	if ( index < size ) {
+	int size = this.__tsDataList.size();
+	if ( (index >= 0) && (index < size) ) {
 		// Index is in the array space.
-        __tsDataList.remove(index);
-        // Mark dirty so that recompute the data limits.
-        _dirty  = true;
+		// Get the existing item.
+		TSData tsdata = this.__tsDataList.get(index);
+		// Remove the requested item.
+        this.__tsDataList.remove(index);
+        // Repoint the linked list references in the previous, and next items.
+        if ( tsdata.getPrevious() != null ) {
+        	// Reset the pointer on the previous data point (OK if setting to null).
+        	tsdata.getPrevious().setNext(tsdata.getNext());
+        }
+        if ( tsdata.getNext() != null ) {
+        	// Reset the pointer on the next data point (OK if setting to null).
+        	tsdata.getNext().setPrevious(tsdata.getPrevious());
+        }
+        // Mark dirty so that the data limits will be recomputed.
+        this._dirty  = true;
         // Decrement the data size.
         setDataSize ( getDataSize() - 1 );
+        // Data point was removed.
         return true;
 	}
 	else {
+		// Data point was not removed.
 		return false;
 	}
 }
