@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -85,26 +85,27 @@ import RTi.Util.Time.StopWatch;
 import RTi.Util.Time.TimeInterval;
 
 /**
-The TSViewTableJFrame provides a table view for a list of time series and is
-managed by the TSViewJFrame parent.  The GUI can display multiple time series 
-of different interval bases and multipliers.  All the TS of the same interval
-base and multiplier are displayed in the same Worksheet.  Different 
-interval multiplier TS with the same interval base are shown in worksheets 
-next to other worksheets with the same interval base.  Minute TS are the top 
-row, the next row are Hour TS, the next are Day TS, the next are Month TS and
-the bottom row are Year TS.<p>
-If there are no TS of a particular interval base (e.g., Day), the row for 
-that kind of TS is not displayed.  If more than one interval base is to be 
-displayed on the same form, a JCheckbox will appear for each interval base
-so that it can be turned on or off.  If only one interval base appears on 
-the form, no such Checkbox will appear.
+<p>
+The TSViewTableJFrame provides a table view for a list of time series and is managed by the TSViewJFrame parent.
+The GUI can display multiple time series of different interval bases and multipliers.
+All the TS of the same interval base and multiplier are displayed in the same Worksheet.
+Different interval multiplier TS with the same interval base are shown in worksheets
+next to other worksheets with the same interval base.
+Minute TS are the top row, the next row are Hour TS, the next are Day TS,
+the next are Month TS and the bottom row are Year TS.</p>
+<p>
+If there are no TS of a particular interval base (e.g., Day), the row for that kind of TS is not displayed.
+If more than one interval base is to be displayed on the same form,
+a JCheckbox will appear for each interval base so that it can be turned on or off.
+If only one interval base appears on the form, no such Checkbox will appear.
+</p>
 */
 @SuppressWarnings("serial")
 public class TSViewTableJFrame extends JFrame
 implements ActionListener, ItemListener, MouseListener, PropertyChangeListener, WindowListener {
 
 /**
-The number of characters in the table double values.
+The number of characters in the table double values:
 - TODO smalers 2022-03-05 does not seem to be necessary and constrains formatting, especially numbers with high precision
 */
 //private final int __OUTPUT_WIDTH = 10;
@@ -112,8 +113,8 @@ The number of characters in the table double values.
 /**
 JButton and JPopupMenu Strings.
 */
-private final String 
-	__BUTTON_CLOSE = "Close",	
+private final String
+	__BUTTON_CLOSE = "Close",
 	__BUTTON_GRAPH = "Graph",
 	__BUTTON_HELP = "Help",
 	__BUTTON_SAVE = "Save",
@@ -124,7 +125,7 @@ private final String
 	__MENU_PASTE = "Paste";
 
 /**
-Boolean to keep track of whether the main JPanel has been removed from the 
+Boolean to keep track of whether the main JPanel has been removed from the
 Center position of the content pane and placed in the North position, or not.
 The main panel will be moved to the north panel when the user has deselected
 all the checkboxes on the form and has no TS interval types visible.
@@ -132,33 +133,33 @@ all the checkboxes on the form and has no TS interval types visible.
 private boolean __mainJPanelNorth = false;
 
 /**
-Whether worksheets should be built in displayed in the opposite of the normal
-order, from minute to year instead of year to minute.
+Whether worksheets should be built in displayed in the opposite of the normal order,
+from minute to year instead of year to minute.
 */
 private boolean __reverseNormalOrder = false;
 
 /**
-Boolean to keep track of whether the save button should always be enabled, 
-no matter what.  This is only true if there is a single worksheet displayed on the GUI.
+Boolean to keep track of whether the save button should always be enabled, no matter what.
+This is only true if there is a single worksheet displayed on the GUI.
 */
 private boolean __saveAlwaysEnabled = false;
 
 /**
-The original border set up for a JScrollPane, before the border is changed
-because the scrollpane's worksheet was selected.
+The original border set up for a JScrollPane,
+before the border is changed because the scrollpane's worksheet was selected.
 */
 private Border __originalScrollPaneBorder = null;
 
 /**
-A counter that tracks how many panels and checkboxes have been added to the 
-main panel, so that the Y placement in the grid bag can be done correctly.
+A counter that tracks how many panels and checkboxes have been added to the main panel,
+so that the Y placement in the grid bag can be done correctly.
 */
 private int __panelCount = 0;
 
 /**
 Checkboxes corresponding to each TS data interval for turning on and off the table displays.
 */
-private JCheckBox 
+private JCheckBox
 	__dayJCheckBox,
 	__hourJCheckBox,
 	__irregularMinuteJCheckBox,
@@ -191,10 +192,10 @@ private JPanel
 	__yearJPanel;
 
 /**
-JScrollPanes for each of the associated ts worksheets, in order to highlight
-the proper JScrollPane border after a worksheet is clicked on and selected.
+JScrollPanes for each of the associated ts worksheets,
+in order to highlight the proper JScrollPane border after a worksheet is clicked on and selected.
 */
-private JScrollPane[] 
+private JScrollPane[]
 	__dayScrollPanes,
 	__hourScrollPanes,
 	__minuteScrollPanes,
@@ -244,7 +245,7 @@ private PropList __props;
 /**
 Buttons that appear at the bottom of the GUI, for doing special operations.
 */
-private SimpleJButton 
+private SimpleJButton
 	__summaryJButton,
 	__graphJButton,
 	__closeJButton,
@@ -255,7 +256,7 @@ private SimpleJComboBox __flagJComboBox = null;
 /**
 TSViewJFrame parent that displays this gui.
 */
-private TSViewJFrame __tsviewJFrame;	
+private TSViewJFrame __tsviewJFrame;
 
 /**
 Table models for each of the different worksheets (one for each interval type) for each different TS.
@@ -273,9 +274,8 @@ private TSViewTable_TableModel[]
 	__irregularYearModels = new TSViewTable_TableModel[0];
 
 /**
-Lists of the mouse listeners that have been set up for all of the different
-kinds of worksheets.  These are used in order to find which worksheet was 
-clicked on after a mouse press on the JScrollPane associated with a worksheet.
+Lists of the mouse listeners that have been set up for all of the different kinds of worksheets.
+These are used in order to find which worksheet was clicked on after a mouse press on the JScrollPane associated with a worksheet.
 */
 private List<List<MouseListener>>
 	__dayMouseListeners,
@@ -294,17 +294,17 @@ List of Time Series to be displayed in the GUI.
 __tslist is set from a list passed in to this GUI at construction,
 and then the other lists are formed from the TS split out of __tslist.
 */
-private List<TS> __day;
-private List<TS> __hour;
-private List<TS> __minute;
-private List<TS> __month;
-private List<TS> __irregularMinute;
-private List<TS> __irregularHour;
-private List<TS> __irregularDay;
-private List<TS> __irregularMonth;
-private List<TS> __irregularYear;
-private List<TS> __tslist;
-private List<TS> __year;
+private List<TS> __tslist; // All time series.
+private List<TS> __dayTSList;
+private List<TS> __hourTSList;
+private List<TS> __minuteTSList;
+private List<TS> __monthTSList;
+private List<TS> __irregularMinuteTSList;
+private List<TS> __irregularHourTSList;
+private List<TS> __irregularDayTSList;
+private List<TS> __irregularMonthTSList;
+private List<TS> __irregularYearTSList;
+private List<TS> __yearTSList;
 
 /**
 Constructor.
@@ -312,8 +312,8 @@ Constructor.
 @param tslist List of time series to view.
 @param props Properties for display (currently same list passed in to TSViewJFrame).
 */
-public TSViewTableJFrame(TSViewJFrame tsviewJFrame, List<TS> tslist, PropList props)
-{	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
+public TSViewTableJFrame(TSViewJFrame tsviewJFrame, List<TS> tslist, PropList props) {
+	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
 
 	__tsviewJFrame = tsviewJFrame;
 	__tslist = tslist;
@@ -344,7 +344,7 @@ public TSViewTableJFrame(TSViewJFrame tsviewJFrame, List<TS> tslist, PropList pr
 			__reverseNormalOrder = true;
 		}
 	}
-	setupGUI(true);	
+	setupGUI(true);
 }
 
 /**
@@ -400,8 +400,8 @@ public void actionPerformed(ActionEvent event) {
 }
 
 /**
-Adds worksheets of the same interval base to their panel and also adds 
-the appropriate check box, as long as more than one kid of interval base will be displayed on the GUI.
+Adds worksheets of the same interval base to their panel and also adds the appropriate check box,
+as long as more than one kid of interval base will be displayed on the GUI.
 @param panel the main panel to which to add the panels (__mainJPanel).
 @param subPanel the panel to which to add the checkbox and worksheets.
 @param intervalDescription a text string that concisely names the kind of interval being dealt with
@@ -411,10 +411,9 @@ the appropriate check box, as long as more than one kid of interval base will be
 @param mouseListeners a list of lists used to store mouse listeners for the
 worksheets' scrollpanes so that the last selected worksheet can be tracked.
 */
-private void addWorksheetsToPanel(JPanel panel, String intervalDescription, 
-JPanel subPanel, JCheckBox checkBox, JWorksheet[] worksheets, 
-JWorksheet[] headers, JScrollPane[] scrollPanes, List<List<MouseListener>> mouseListeners)
-{
+private void addWorksheetsToPanel(JPanel panel, String intervalDescription,
+JPanel subPanel, JCheckBox checkBox, JWorksheet[] worksheets,
+JWorksheet[] headers, JScrollPane[] scrollPanes, List<List<MouseListener>> mouseListeners) {
     if ( Message.isDebugOn ) {
         Message.printDebug(1,"TSViewTableJFrame.addWorksheetsToPanel","panel="+panel+" intervalDescription="+intervalDescription+
             " subPanel=" + subPanel + " checkBox=" + checkBox + " worksheets=" + worksheets + " headers=" + headers +
@@ -425,7 +424,7 @@ JWorksheet[] headers, JScrollPane[] scrollPanes, List<List<MouseListener>> mouse
 		checkBox.setSelected(false);
 		return;
 	}
-	
+
 	int numWorksheets = worksheets.length;
 
 	// Create the panel into which these worksheets will be placed, and give it a GridBagLayout.
@@ -440,18 +439,17 @@ JWorksheet[] headers, JScrollPane[] scrollPanes, List<List<MouseListener>> mouse
 	for (int i = 0; i < numWorksheets; i++) {
 		scrollPanes[i] = new JScrollPane(worksheets[i]);
 
-		if (IOUtil.isUNIXMachine()) {	
+		if (IOUtil.isUNIXMachine()) {
 			// For the reason why this is done, see JWorksheet.adjustmentValueChanged().
 			scrollPanes[i].getVerticalScrollBar().addAdjustmentListener(worksheets[i]);
 			scrollPanes[i].getHorizontalScrollBar().addAdjustmentListener(worksheets[i]);
 		}
 
-		// Add lots of mouse listeners, so that (hopefully) anywhere
-		// a user clicks it will count as a click on the worksheet.
-		
+		// Add lots of mouse listeners, so that (hopefully) anywhere a user clicks it will count as a click on the worksheet.
+
 		worksheets[i].addMouseListener(this);
 
-		// The header worksheet will be used to control selection 
+		// The header worksheet will be used to control selection
 		// events on the other worksheets for which the header worksheet is the row header.
 		headers[i].setRowSelectionModelPartner(worksheets[i].getRowSelectionModel());
 
@@ -479,20 +477,19 @@ JWorksheet[] headers, JScrollPane[] scrollPanes, List<List<MouseListener>> mouse
 
 		scrollPanes[i].getHorizontalScrollBar().addMouseListener(worksheets[i]);
         JGUIUtil.addComponent(subPanel, scrollPanes[i],
-			i, 0, 1, 1, 1, 1, 
-			GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST); 
+			i, 0, 1, 1, 1, 1,
+			GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST);
 
 		// The next line looks weird, but is done because somewhere
-		// the pointer to the worksheet that the models have is getting
-		// mis-pointed.  This makes sure the models know their worksheet.
+		// the pointer to the worksheet that the models have is getting mis-pointed.
+        // This makes sure the models know their worksheet.
 		((TSViewTable_TableModel)worksheets[i].getModel()).setWorksheet(worksheets[i]);
 		mouseListeners.set(i, worksheetMouseListeners);
 	}
-	
+
 	// If only one panel of worksheet data will appear on the GUI
 	// (and each GUI panel contains the data for a specific Interval base)
-	// then it's not necessary to include the checkbox for selecting and
-	// deselecting specific interval bases.
+	// then it's not necessary to include the checkbox for selecting and deselecting specific interval bases.
 	if (calculateNumberOfPanels() > 1) {
 		JGUIUtil.addComponent(panel, checkBox,
 			0,__panelCount++, 1, 1, 1, 0,
@@ -501,8 +498,8 @@ JWorksheet[] headers, JScrollPane[] scrollPanes, List<List<MouseListener>> mouse
 
 	subPanel.setBorder(BorderFactory.createTitledBorder(intervalDescription + " Interval"));
       	JGUIUtil.addComponent(panel, subPanel,
-		0, __panelCount++, 1, 1, 1, 1, 
-		GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST); 	
+		0, __panelCount++, 1, 1, 1, 1,
+		GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST);
 }
 
 /**
@@ -514,10 +511,10 @@ private List<List<MouseListener>> buildMouseListeners(JWorksheet[] worksheets) {
 	if (worksheets == null) {
 		return null;
 	}
-	
+
 	int numWorksheets = worksheets.length;
 	List<List<MouseListener>> mouseListenerList = new ArrayList<List<MouseListener>>(numWorksheets);
-	// Fill in the listeners with null so there is at least a slot.
+	// Fill in the listeners with null so there is at least a slot:
 	// - this was the behavior in legacy code that used an array of List
 	for ( int i = 0; i < numWorksheets; i++ ) {
 		mouseListenerList.add(null); // Other code will set the list at this position.
@@ -527,11 +524,11 @@ private List<List<MouseListener>> buildMouseListeners(JWorksheet[] worksheets) {
 
 /**
  * Copy the selected cells (or all none are selected) to a new worksheet,
- * add a column for the statistic type, calculate the statistics,
- * and display in a new worksheet.
+ * add a column for the statistic type, calculate the statistics, and display in a new worksheet.
  * This method handles generic JWorksheets.
- * If more specific behavior is needed (for example time series data with potentially
- * inconsistent missing data values), then create a JWorksheet and set the properties
+ * If more specific behavior is needed
+ * (for example time series data with potentially inconsistent missing data values),
+ * then create a JWorksheet and set the properties
  * <pre>
  * JWorksheet.AllowCalculateStatistics=true
  * JWorksheet.DelegateCalculateStatistics=true
@@ -553,14 +550,14 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 		for (int icol = 0; icol < selectedCols.length; icol++) {
 			visibleCols[icol] = worksheet.getVisibleColumn(selectedCols[icol]);
 		}
-	
+
 		// No data to process.
 		if (numSelectedCols == 0 || numSelectedRows == 0) {
 			JGUIUtil.setWaitCursor(worksheet.getHourglassJFrame(), false);
 			return;
 		}
 
-		/** TODO sam 2017-04-01 the following may or may not be helpful.
+		/** TODO sam 2017-04-01 the following may or may not be helpful:
 		 *  - the statistics code implemented below processes the bounding block rather than specific selections
 		if (numSelectedRows == 1 && numSelectedCols == 1) {
 			// Trivial case -- this will always be a successful copy.  This case is just a placeholder.
@@ -584,10 +581,10 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 			if (!areCellsContiguous(numSelectedRows, selectedRows, numSelectedCols, visibleCols)) {
 				showCopyErrorDialog("You must select a contiguous block\nof rows and columns.");
 				return;
-			}			
+			}
 		}
 		*/
-	
+
 		int numColumns = worksheet.getColumnCount();
 		@SuppressWarnings("rawtypes")
 		Class[] classes = new Class[numColumns];
@@ -595,7 +592,7 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 		// Arrays for statistics.
 		int count [] = new int[numColumns];
 		// Allocate arrays for all columns, but only some will be used.
-		// Use highest precision types and then cast to lower if needed
+		// Use highest precision types and then cast to lower if needed.
 		// For floating point results,
 		// time series will generally only have double values but leave other
 		// cases in order to handle separate columns for flags, etc. that may be added to table.
@@ -622,8 +619,8 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 			imin[icol] = Long.MAX_VALUE;
 			imax[icol] = Long.MIN_VALUE;
 			// There are no hidden columns but need to align the time series with selected columns:
-			// - First column is date/time
-			// - Therefore time series 0 is actually in column 1
+			// - first column is date/time
+			// - therefore time series 0 is actually in column 1
 			int absCol = worksheet.getAbsoluteColumn(selectedCols[icol]);
 			ts[icol] = null;
 			if ( absCol != 0 ) {
@@ -635,8 +632,8 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 					if (precisionProp != null) {
 						tsPrec[icol] = StringUtil.atoi(precisionProp);
 					}
-					else {	
-						try {	
+					else {
+						try {
 							DataUnits units = DataUnits.lookupUnits(ts[icol].getDataUnits());
 							tsPrec[icol] = units.getOutputPrecision();
 						}
@@ -648,7 +645,7 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 				}
 			}
 		}
-	
+
 		// Initialize the list of table fields that contains a leftmost column "Statistic".
 		List<TableField> tableFieldList = new Vector<TableField>();
 		tableFieldList.add(new TableField(TableField.DATA_TYPE_STRING, "Statistic", -1, -1));
@@ -686,7 +683,7 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 				}
 			}
 		}
-		
+
 		// Create the table.
 		DataTable table = new DataTable(tableFieldList);
 
@@ -833,22 +830,22 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 		for ( int icol = 0; icol < numSelectedCols; icol++ ) {
 			if ( canCalcStats[icol]) {
 				if ( classes[icol] == Double.class) {
-					if ( (count[icol] > 0) && !Double.isNaN(sum[icol]) ) { 
+					if ( (count[icol] > 0) && !Double.isNaN(sum[icol]) ) {
 						rec.setFieldValue((icol+1), new Double(sum[icol])/count[icol]);
 					}
 				}
 				else if ( classes[icol] == Float.class) {
-					if ( (count[icol] > 0) && !Double.isNaN(sum[icol]) ) { 
+					if ( (count[icol] > 0) && !Double.isNaN(sum[icol]) ) {
 						rec.setFieldValue((icol+1), new Float(sum[icol])/count[icol]);
 					}
 				}
 				else if ( classes[icol] == Long.class) {
-					if ( count[icol] > 0 ) { 
+					if ( count[icol] > 0 ) {
 						rec.setFieldValue((icol+1), new Long(isum[icol])/count[icol]);
 					}
 				}
 				else if ( classes[icol] == Integer.class) {
-					if ( count[icol] > 0 ) { 
+					if ( count[icol] > 0 ) {
 						rec.setFieldValue((icol+1), new Integer((int)isum[icol])/count[icol]);
 					}
 				}
@@ -860,22 +857,22 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 		for ( int icol = 0; icol < numSelectedCols; icol++ ) {
 			if ( canCalcStats[icol]) {
 				if ( classes[icol] == Double.class) {
-					if ( !Double.isNaN(min[icol]) ) { 
+					if ( !Double.isNaN(min[icol]) ) {
 						rec.setFieldValue((icol+1), new Double(min[icol]));
 					}
 				}
 				else if ( classes[icol] == Float.class) {
-					if ( !Double.isNaN(min[icol]) ) { 
+					if ( !Double.isNaN(min[icol]) ) {
 						rec.setFieldValue((icol+1), new Float(min[icol]));
 					}
 				}
 				else if ( classes[icol] == Long.class) {
-					if ( imin[icol] != Long.MAX_VALUE ) { 
+					if ( imin[icol] != Long.MAX_VALUE ) {
 						rec.setFieldValue((icol+1), new Long(imin[icol]));
 					}
 				}
 				else if ( classes[icol] == Integer.class) {
-					if ( imin[icol] != Long.MAX_VALUE ) { 
+					if ( imin[icol] != Long.MAX_VALUE ) {
 						rec.setFieldValue((icol+1), new Integer((int)imin[icol]));
 					}
 				}
@@ -887,22 +884,22 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 		for ( int icol = 0; icol < numSelectedCols; icol++ ) {
 			if ( canCalcStats[icol]) {
 				if ( classes[icol] == Double.class) {
-					if ( !Double.isNaN(max[icol]) ) { 
+					if ( !Double.isNaN(max[icol]) ) {
 						rec.setFieldValue((icol+1), new Double(max[icol]));
 					}
 				}
 				else if ( classes[icol] == Float.class) {
-					if ( !Double.isNaN(max[icol]) ) { 
+					if ( !Double.isNaN(max[icol]) ) {
 						rec.setFieldValue((icol+1), new Float(max[icol]));
 					}
 				}
 				else if ( classes[icol] == Long.class) {
-					if ( imax[icol] != Long.MIN_VALUE ) { 
+					if ( imax[icol] != Long.MIN_VALUE ) {
 						rec.setFieldValue((icol+1), new Long(imax[icol]));
 					}
 				}
 				else if ( classes[icol] == Integer.class) {
-					if ( imax[icol] != Long.MIN_VALUE ) { 
+					if ( imax[icol] != Long.MIN_VALUE ) {
 						rec.setFieldValue((icol+1), new Long(imax[icol]));
 					}
 				}
@@ -914,12 +911,12 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 		for ( int icol = 0; icol < numSelectedCols; icol++ ) {
 			if ( canCalcStats[icol]) {
 				if ( classes[icol] == Double.class) {
-					if ( !Double.isNaN(sum[icol]) ) { 
+					if ( !Double.isNaN(sum[icol]) ) {
 						rec.setFieldValue((icol+1), new Double(sum[icol]));
 					}
 				}
 				else if ( classes[icol] == Float.class) {
-					if ( !Double.isNaN(sum[icol]) ) { 
+					if ( !Double.isNaN(sum[icol]) ) {
 						rec.setFieldValue((icol+1), new Float(sum[icol]));
 					}
 				}
@@ -932,7 +929,7 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 			}
 		}
 		table.addRecord(rec);
-	
+
 		DataTable_TableModel dttm = new DataTable_TableModel ( table );
 		DataTable_CellRenderer scr = new DataTable_CellRenderer ( dttm );
 		PropList frameProps = new PropList("");
@@ -978,19 +975,19 @@ private int calculateNumberOfPanels() {
 	if (__yearWorksheets != null && __yearWorksheets.length > 0) {
 		size++;
 	}
-	if (__irregularMinute != null && __irregularMinuteWorksheets.length > 0) {
+	if (__irregularMinuteTSList != null && __irregularMinuteWorksheets.length > 0) {
 		size++;
 	}
-    if (__irregularHour != null && __irregularHourWorksheets.length > 0) {
+    if (__irregularHourTSList != null && __irregularHourWorksheets.length > 0) {
         size++;
     }
-    if (__irregularDay != null && __irregularDayWorksheets.length > 0) {
+    if (__irregularDayTSList != null && __irregularDayWorksheets.length > 0) {
         size++;
     }
-    if (__irregularMonth != null && __irregularMonthWorksheets.length > 0) {
+    if (__irregularMonthTSList != null && __irregularMonthWorksheets.length > 0) {
         size++;
     }
-    if (__irregularYear != null && __irregularYearWorksheets.length > 0) {
+    if (__irregularYearTSList != null && __irregularYearWorksheets.length > 0) {
         size++;
     }
 	return size;
@@ -1189,7 +1186,7 @@ private void checkForSingleWorksheet() {
 	if (count != 1) {
 		return;
 	}
-	
+
 	selectWorksheet(worksheet, null);
 	__saveAlwaysEnabled = true;
 	__saveJButton.setEnabled(true);
@@ -1197,24 +1194,24 @@ private void checkForSingleWorksheet() {
 
 /**
 Takes the Time Series from the __tslist list and puts each one into a list
-specific to its data interval (e.g., Day time series go into __day, 
+specific to its data interval (e.g., Day time series go into __day,
 minute time series go into __minute, etc).
 Different multipliers are all lumped together, as long as they have the same data interval.
 Irregular time series are split out by the interval of the starting date/time.
 */
-private void createSeparateTimeSeries()
-{   String routine = getClass().getSimpleName() + ".createSeparateTimeSeries";
+private void createSeparateTimeSeriesLists() {
+    String routine = getClass().getSimpleName() + ".createSeparateTimeSeriesLists";
 	int interval;
-	__minute = new ArrayList<>();
-	__hour = new ArrayList<>();
-	__day = new ArrayList<>();
-	__month = new ArrayList<>();
-	__year = new ArrayList<>();
-	__irregularMinute = new ArrayList<>();
-	__irregularHour = new ArrayList<>();
-	__irregularDay = new ArrayList<>();
-	__irregularMonth = new ArrayList<>();
-	__irregularYear = new ArrayList<>();
+	__minuteTSList = new ArrayList<>();
+	__hourTSList = new ArrayList<>();
+	__dayTSList = new ArrayList<>();
+	__monthTSList = new ArrayList<>();
+	__yearTSList = new ArrayList<>();
+	__irregularMinuteTSList = new ArrayList<>();
+	__irregularHourTSList = new ArrayList<>();
+	__irregularDayTSList = new ArrayList<>();
+	__irregularMonthTSList = new ArrayList<>();
+	__irregularYearTSList = new ArrayList<>();
 
 	for ( TS ts : __tslist ) {
 		if (ts == null) {
@@ -1223,19 +1220,19 @@ private void createSeparateTimeSeries()
 		interval = ts.getDataIntervalBase();
 
 		if (interval == TimeInterval.MINUTE) {
-			__minute.add(ts);
+			__minuteTSList.add(ts);
 		}
 		else if (interval == TimeInterval.HOUR) {
-			__hour.add(ts);
+			__hourTSList.add(ts);
 		}
 		else if (interval == TimeInterval.DAY) {
-			__day.add(ts);
+			__dayTSList.add(ts);
 		}
 		else if (interval == TimeInterval.MONTH) {
-			__month.add(ts);
+			__monthTSList.add(ts);
 		}
 		else if (interval == TimeInterval.YEAR) {
-			__year.add(ts);
+			__yearTSList.add(ts);
 		}
         else if (interval == TimeInterval.IRREGULAR) {
             // Put in the appropriate list based on the date/time of the period start.
@@ -1247,24 +1244,24 @@ private void createSeparateTimeSeries()
                 int precision = d.getPrecision();
                 if ( (precision >= DateTime.PRECISION_NANOSECOND) && (precision <= DateTime.PRECISION_SECOND) ) {
                     // Include (sub)second precision here because most likely it is minute precision with seconds = 0.
-                    __irregularMinute.add(ts);
+                    __irregularMinuteTSList.add(ts);
                     Message.printStatus(2,routine,"Date/time precision is second, but treating as minute for table \"" +
                         ts.getIdentifierString() + "\"");
                 }
                 else if ( precision == DateTime.PRECISION_MINUTE ) {
-                    __irregularMinute.add(ts);
+                    __irregularMinuteTSList.add(ts);
                 }
                 else if ( precision == DateTime.PRECISION_HOUR ) {
-                    __irregularHour.add(ts);
+                    __irregularHourTSList.add(ts);
                 }
                 else if ( precision == DateTime.PRECISION_DAY ) {
-                    __irregularDay.add(ts);
+                    __irregularDayTSList.add(ts);
                 }
                 else if ( precision == DateTime.PRECISION_MONTH ) {
-                    __irregularMonth.add(ts);
+                    __irregularMonthTSList.add(ts);
                 }
                 else if ( precision == DateTime.PRECISION_YEAR ) {
-                    __irregularYear.add(ts);
+                    __irregularYearTSList.add(ts);
                 }
                 else {
                     // Don't handle the precision.
@@ -1273,7 +1270,7 @@ private void createSeparateTimeSeries()
                 }
             }
         }
-	}	
+	}
 }
 
 /**
@@ -1285,10 +1282,11 @@ If irregular, the time series will have been grouped by the precision of the per
 that needs to be created, or a zero-element array if no worksheets need be created for the ts type.
 */
 private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
-	String routine = "createTableModels";
+	String routine = getClass().getSimpleName() + ".createTableModels";
 
 	// If there is no data in the tslist list, there is no need to create the table models.
-	if ((tslist == null)|| tslist.size() == 0) {
+	// Return an empty array.
+	if ( (tslist == null) || (tslist.size() == 0) ) {
 		return new TSViewTable_TableModel[0];
 	}
 
@@ -1299,13 +1297,13 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
 	int[] mults = new int[numts];
 	int[] matches = new int[numts];
 	String[] tsFormatString = new String[numts];
-	
+
 	int count = 0;
 	boolean hit = false;
-	
+
 	// Get the first TS in the list and get the interval base.
 	// All other TS in the list must have the same interval base.
-	TS ts = tslist.get(0);	
+	TS ts = tslist.get(0);
 	int interval = ts.getDataIntervalBase();
 
 	// Default format is to minute.
@@ -1370,133 +1368,133 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
     }
 
 	try {
-	int tsPrecision = 2; // Default.
-	String propValue = __props.getValue("OutputPrecision");
-	int multi = 0;
+		int tsPrecision = 2; // Default.
+		String propValue = __props.getValue("OutputPrecision");
+		int multi = 0;
 
-	// Go through the time series and see how many of them have different intervals.
-	// All of the TS with the same intervals need to be placed in the same worksheet.
-	for (int i = 0; i < numts; i++) {
-		ts = tslist.get(i);
+		// Go through the time series and see how many of them have different intervals.
+		// All of the TS with the same intervals need to be placed in the same worksheet.
+		for (int i = 0; i < numts; i++) {
+			ts = tslist.get(i);
 
-	    if ( interval == TimeInterval.IRREGULAR ) {
-	        count = 1; // Only one table model needed because only interval base (from TS dates for irregular) is of concern.
-	    }
-	    else {
-	        // Regular interval time series.
-    		// Get the interval multiplier for the current TS.
-    		multi = ts.getDataIntervalMult();
-    		hit = false;
-    
-    		// Look through the array of previously-found interval
-    		// multipliers (mults[]) and see if the multiplier has already been encountered.
-    		for (int j = 0; j < count; j++) {
-    			if (mults[j] == multi) {
-    				// If true;
-    				matches[i] = j;
-    				hit = true;
-    				break;
+	    	if ( interval == TimeInterval.IRREGULAR ) {
+	        	count = 1; // Only one table model needed because only interval base (from TS dates for irregular) is of concern.
+	    	}
+	    	else {
+	        	// Regular interval time series.
+    			// Get the interval multiplier for the current TS.
+    			multi = ts.getDataIntervalMult();
+    			hit = false;
+
+    			// Look through the array of previously-found interval
+    			// multipliers (mults[]) and see if the multiplier has already been encountered.
+    			for (int j = 0; j < count; j++) {
+    				if (mults[j] == multi) {
+    					// If true;
+    					matches[i] = j;
+    					hit = true;
+    					break;
+    				}
     			}
-    		}
-    
-    		// If the interval multiplier was not found, add it to the
-    		// list of found multipliers and increment the count of
-    		// different interval multipliers that have been found.
-    		if (!hit) {
-    			mults[count] = multi;
-    			matches[i] = count;
-    			count++;
-    		}
-	    }
 
-		// Calculate the output precision of the current TS's data.
-		tsPrecision = 2;
-		if (propValue != null) {
-			// Get the precision from the property value.
-			tsPrecision = StringUtil.atoi(propValue);
-		}
-		else {	
-			// Get the precision from the time series.
-			tsPrecision = ts.getDataPrecision((short)2);
-		}
-		//tsFormatString[i] = "%" + __OUTPUT_WIDTH + "." + tsPrecision + "f";
-		tsFormatString[i] = "%." + tsPrecision + "f";
-
-	}
-
-	// Create an array of table models big enough to hold one table
-	// model for every different interval multiplier.
-	TSViewTable_TableModel[] models = new TSViewTable_TableModel[count];
-
-	boolean useExtendedLegend = false;	
-	propValue = __props.getValue("Table.UseExtendedLegend");
-	if ((propValue != null) && (propValue.equalsIgnoreCase("true"))) {
-		useExtendedLegend = true;
-	}	
-
-	TS tempTS = null;
-
-	// Loop through all of the different interval multipliers.
-	for (int i = 0; i < count; i++) {
-		List<TS> tslistForIntervalMult = new ArrayList<TS>();
-		if ( interval == TimeInterval.IRREGULAR ) {
-		    for (int j = 0; j < numts; j++) {
-		        tslistForIntervalMult.add(tslist.get(j));
-		    }
-		}
-		else {
-    		// Add all the time series with the same interval multiplier to the list.
-    		for (int j = 0; j < numts; j++) {
-    			if (matches[j] == i) {
-    				tslistForIntervalMult.add(tslist.get(j));
+    			// If the interval multiplier was not found,
+    			// add it to the list of found multipliers and increment the count of
+    			// different interval multipliers that have been found.
+    			if (!hit) {
+    				mults[count] = multi;
+    				matches[i] = count;
+    				count++;
     			}
-    		}
+	    	}
+
+			// Calculate the output precision of the current TS's data.
+			tsPrecision = 2;
+			if (propValue != null) {
+				// Get the precision from the property value.
+				tsPrecision = StringUtil.atoi(propValue);
+			}
+			else {
+				// Get the precision from the time series.
+				tsPrecision = ts.getDataPrecision((short)2);
+			}
+			//tsFormatString[i] = "%" + __OUTPUT_WIDTH + "." + tsPrecision + "f";
+			tsFormatString[i] = "%." + tsPrecision + "f";
+
 		}
 
-		// Get all the format precision strings for the TS that were found in the previous loop.
-		String[] formats = new String[tslistForIntervalMult.size()];		
-		int formatCount = 0;
-		for (int j = 0; j < numts; j++) {
-		    if ( interval == TimeInterval.IRREGULAR ) {
-		        formats[formatCount++] = tsFormatString[j];
-		    }
-		    else {
-    			if (matches[j] == i) {
-    				formats[formatCount++] = tsFormatString[j];
+		// Create an array of table models big enough to hold one table
+		// model for every different interval multiplier that is needed.
+		TSViewTable_TableModel[] models = new TSViewTable_TableModel[count];
+
+		boolean useExtendedLegend = false;
+		propValue = __props.getValue("Table.UseExtendedLegend");
+		if ((propValue != null) && (propValue.equalsIgnoreCase("true"))) {
+			useExtendedLegend = true;
+		}
+
+		TS tempTS = null;
+
+		// Loop through all of the different interval multipliers.
+		for (int i = 0; i < count; i++) {
+			List<TS> tslistForIntervalMult = new ArrayList<>();
+			if ( interval == TimeInterval.IRREGULAR ) {
+		    	for (int j = 0; j < numts; j++) {
+		        	tslistForIntervalMult.add(tslist.get(j));
+		    	}
+			}
+			else {
+    			// Add all the time series with the same interval multiplier to the list.
+    			for (int j = 0; j < numts; j++) {
+    				if (matches[j] == i) {
+    					tslistForIntervalMult.add(tslist.get(j));
+    				}
     			}
-		    }
-		}		
+			}
 
-		// Now get the starting date of data.
-		TSLimits limits = TSUtil.getPeriodFromTS(tslistForIntervalMult, TSUtil.MAX_POR);
-		DateTime start = limits.getDate1();	
+			// Get all the format precision strings for the TS that were found in the previous loop.
+			String[] formats = new String[tslistForIntervalMult.size()];
+			int formatCount = 0;
+			for (int j = 0; j < numts; j++) {
+		    	if ( interval == TimeInterval.IRREGULAR ) {
+		        	formats[formatCount++] = tsFormatString[j];
+		    	}
+		    	else {
+    				if (matches[j] == i) {
+    					formats[formatCount++] = tsFormatString[j];
+    				}
+		    	}
+			}
 
-		// ... and the interval multiplier.
-        if ( interval == TimeInterval.IRREGULAR ) {
-            // In this case multi is the precision.
-            int datePrecision = ts.getDate1().getPrecision();
-            models[i] = new TSViewTable_TableModel(tslistForIntervalMult, start, interval, datePrecision, dateFormat,
-                formats, useExtendedLegend);
-        }
-        else {
-            // Regular interval.
-    		if (tslistForIntervalMult == null || tslistForIntervalMult.size() == 0) {
-    			// In this case, use a representative TS.
-    			tempTS = tslist.get(i);
-    			multi = tempTS.getDataIntervalMult();		
-    		}
-    		else {
-    			tempTS = tslistForIntervalMult.get(0);
-    			multi = tempTS.getDataIntervalMult();
-    		}
-    		// ... and create the table model to display all the time 
-            // series with the same interval base and interval multiplier.
-            models[i] = new TSViewTable_TableModel(tslistForIntervalMult, start, interval, multi, dateFormat,
-                formats, useExtendedLegend);
-        }
-	}	
+			// Now get the starting date of data.
+			TSLimits limits = TSUtil.getPeriodFromTS(tslistForIntervalMult, TSUtil.MAX_POR);
+			DateTime start = limits.getDate1();
 
-	return models;
+			// ... and the interval multiplier.
+        	if ( interval == TimeInterval.IRREGULAR ) {
+            	// In this case multi is the precision.
+            	int datePrecision = ts.getDate1().getPrecision();
+            	models[i] = new TSViewTable_TableModel(tslistForIntervalMult, start, interval, datePrecision, dateFormat,
+                	formats, useExtendedLegend);
+        	}
+        	else {
+            	// Regular interval.
+    			if (tslistForIntervalMult == null || tslistForIntervalMult.size() == 0) {
+    				// In this case, use a representative TS.
+    				tempTS = tslist.get(i);
+    				multi = tempTS.getDataIntervalMult();
+    			}
+    			else {
+    				tempTS = tslistForIntervalMult.get(0);
+    				multi = tempTS.getDataIntervalMult();
+    			}
+    			// ... and create the table model to display all the time
+            	// series with the same interval base and interval multiplier.
+            	models[i] = new TSViewTable_TableModel(tslistForIntervalMult, start, interval, multi, dateFormat,
+                	formats, useExtendedLegend);
+        	}
+		}
+
+		return models;
 	}
 	catch (Exception e) {
 		Message.printWarning(2, routine, "Error generating table models (" + e + ").");
@@ -1576,23 +1574,23 @@ throws Throwable {
 	IOUtil.nullArray(__minuteModels);
 	IOUtil.nullArray(__monthModels);
 	IOUtil.nullArray(__yearModels);
-	__day = null;
-	__hour = null;
-	__minute = null;
-	__month = null;
+	__dayTSList = null;
+	__hourTSList = null;
+	__minuteTSList = null;
+	__monthTSList = null;
 	__tslist = null;
-	__year = null;
+	__yearTSList = null;
 	super.finalize();
 }
 
 /**
-Figures out which worksheet or worksheet header or worksheet's JScrollPane area
-was clicked on, and marks that worksheet as the last-selected one.
+Figures out which worksheet or worksheet header or worksheet's JScrollPane area was clicked on,
+and marks that worksheet as the last-selected one.
 @param e the MouseEvent that means a worksheet area was clicked on.
 */
 private JWorksheet findClickedOnJWorksheet(MouseEvent e) {
 	Object source = e.getSource();
-	if (source instanceof JWorksheet) {		
+	if (source instanceof JWorksheet) {
 		return (JWorksheet)source;
 	}
 	else if (source instanceof JWorksheet_Header) {
@@ -1664,7 +1662,7 @@ private JWorksheet findClickedOnJWorksheet(MouseEvent e) {
 }
 
 /**
-Find the JPanel associated with a specific worksheet.  
+Find the JPanel associated with a specific worksheet.
 @param worksheet the worksheet for which to find the JPanel it is in.
 @return the JPanel for a specific JWorksheet.
 */
@@ -1742,11 +1740,11 @@ public JPanel findWorksheetsJPanel(JWorksheet worksheet) {
             }
         }
     }
-	return null;	
+	return null;
 }
 
 /**
-Find the scrollpane associated with a specific worksheet.  
+Find the scrollpane associated with a specific worksheet.
 @param worksheet the worksheet for which to find the scrollpane.
 @return the JScrollPane for a specific JWorksheet.
 */
@@ -1824,7 +1822,7 @@ public JScrollPane findWorksheetsScrollPane(JWorksheet worksheet) {
             }
         }
     }
-	return null;	
+	return null;
 }
 
 /**
@@ -1834,7 +1832,7 @@ Handle events from the checkboxes, indicating which time series intervals should
 public void itemStateChanged(ItemEvent evt) {
 	Object source = evt.getSource();
 	int state = evt.getStateChange();
-	
+
     if (source == __flagJComboBox) {
         // Change the data flag visualization for all the table models.
         TSDataFlagVisualizationType vizType =
@@ -1883,15 +1881,15 @@ public void itemStateChanged(ItemEvent evt) {
         }
         return;
     }
-	
+
 	boolean visible = false;
 	if (state == ItemEvent.SELECTED) {
 		visible = true;
 	}
 	else {
 		visible = false;
-	}	
-	
+	}
+
 	if (source == __minuteJCheckBox) {
 		__minuteJPanel.setVisible(visible);
 	}
@@ -1928,12 +1926,12 @@ public void itemStateChanged(ItemEvent evt) {
 		if (__lastSelectedScrollPane != null) {
 			// Reset the border to its original state.
 			__lastSelectedScrollPane.setBorder(__originalScrollPaneBorder);
-		}	
-	
+		}
+
 		if (!__lastSelectedWorksheet.stopEditing()) {
 			__lastSelectedWorksheet.cancelEditing();
 		}
-	
+
 		__lastSelectedWorksheet = null;
 		__lastSelectedScrollPane = null;
 		__originalScrollPaneBorder = null;
@@ -1945,7 +1943,7 @@ public void itemStateChanged(ItemEvent evt) {
 
 	int[] arr = calculateVisibleWorksheetsByPanel();
 
-	if (arr[11] == 0) {		
+	if (arr[11] == 0) {
 		__mainJPanelNorth = true;
 		getContentPane().remove(__mainJPanel);
 		getContentPane().add(__mainJPanel, "North");
@@ -1962,10 +1960,10 @@ public void itemStateChanged(ItemEvent evt) {
 		if (__lastSelectedScrollPane != null) {
 			// Reset the border to its original state.
 			__lastSelectedScrollPane.setBorder((new JScrollPane()).getBorder());
-		}	
+		}
 
 		setPanelsBorder(false);
-	}	
+	}
 	else if (arr[11] > 1 && panel != null && panel.isVisible()) {
 		__lastSelectedScrollPane.setBorder(BorderFactory.createLineBorder(Color.blue, 2));
 		setPanelsBorder(true);
@@ -1979,19 +1977,22 @@ public void itemStateChanged(ItemEvent evt) {
 Responds to mouse clicked events; does nothing.
 @param e the MouseEvent that happened.
 */
-public void mouseClicked(MouseEvent e) {}
+public void mouseClicked(MouseEvent e) {
+}
 
 /**
 Responds to mouse entered events; does nothing.
 @param e the MouseEvent that happened.
 */
-public void mouseEntered(MouseEvent e) {}
+public void mouseEntered(MouseEvent e) {
+}
 
 /**
 Responds to mouse exited events; does nothing.
 @param e the MouseEvent that happened.
 */
-public void mouseExited(MouseEvent e) {}
+public void mouseExited(MouseEvent e) {
+}
 
 /**
 Responds to mouse pressed events, currently only selects the worksheet that was clicked on,
@@ -2022,10 +2023,9 @@ public void mouseReleased(MouseEvent e) {
 }
 
 /**
-Called when the user presses the "Save" button.  This gets the time series 
-stored in the most-recently selected JWorksheet and writes them to the 
-file selected by the user.  How to write the file is determined by the 
-extension of the file selected by the user.
+Called when the user presses the "Save" button.
+This gets the time series stored in the most-recently selected JWorksheet and writes them to the file selected by the user.
+How to write the file is determined by the extension of the file selected by the user.
 */
 private void saveClicked() {
 	String routine = "saveClicked";
@@ -2042,18 +2042,18 @@ private void saveClicked() {
 	SimpleFileFilter dff = new SimpleFileFilter("dv", "DateValue Time Series File");
 	fc.addChoosableFileFilter(dff);
 	SimpleFileFilter tff = new SimpleFileFilter("txt", "Tab-Delimited Text File");
-	fc.addChoosableFileFilter(tff);	
+	fc.addChoosableFileFilter(tff);
 	SimpleFileFilter cff = new SimpleFileFilter("txt", "Comma-Delimited Text File");
-	fc.addChoosableFileFilter(cff);		
+	fc.addChoosableFileFilter(cff);
 	fc.setFileFilter(tff);
 
-	if (fc.showSaveDialog(this)!= JFileChooser.APPROVE_OPTION) {		
+	if (fc.showSaveDialog(this)!= JFileChooser.APPROVE_OPTION) {
 		JGUIUtil.setWaitCursor(this, false);
 		return;
 	}
 
 	String directory = fc.getSelectedFile().getParent();
-	if (directory != null) {		
+	if (directory != null) {
 		JGUIUtil.setLastFileDialogDirectory(directory);
 	}
 	String filename = directory + File.separator + fc.getName(fc.getSelectedFile());
@@ -2061,12 +2061,12 @@ private void saveClicked() {
 	List<TS> tslist = ((TSViewTable_TableModel)__lastSelectedWorksheet.getModel()).getTSList();
 
 	if (fc.getFileFilter() == dff) {
-		try {	
+		try {
 			DateValueTS.writeTimeSeriesList(tslist, filename);
 		}
-		catch (Exception e) {		
+		catch (Exception e) {
 			Message.printWarning(1, routine, "Error saving DateValue file \"" + filename + "\"");
-			Message.printWarning(1, routine, e);			
+			Message.printWarning(1, routine, e);
 		}
 	}
 	else if (fc.getFileFilter() == tff) {
@@ -2087,8 +2087,7 @@ scrollbars (as MouseListeners) used to scroll around the worksheets in the above
 @param source the object on which a MouseEvent was triggered.
 @return the JWorksheet that was clicked on, or null if it could not be found
 */
-private JWorksheet searchListeners(JWorksheet[] worksheets, List<List<MouseListener>> mouseListeners, Object source)
-{
+private JWorksheet searchListeners(JWorksheet[] worksheets, List<List<MouseListener>> mouseListeners, Object source) {
 	if (mouseListeners == null || source == null) {
 		return null;
 	}
@@ -2113,15 +2112,14 @@ text at the bottom of the GUI to reflect which worksheet is selected.
 @param selectWorksheet the worksheet to be selected.
 @param lastWorksheet the worksheet that was previously selected.
 */
-private void selectWorksheet(JWorksheet selectWorksheet, JWorksheet lastWorksheet)
-{
+private void selectWorksheet(JWorksheet selectWorksheet, JWorksheet lastWorksheet) {
 	int[] arr = calculateVisibleWorksheetsByPanel();
 	__lastSelectedWorksheet = selectWorksheet;
 
 	if (lastWorksheet != null && lastWorksheet != selectWorksheet) {
 		if (!lastWorksheet.stopEditing()) {
 			lastWorksheet.cancelEditing();
-		}	
+		}
 	}
 	// Scroll pane for the worksheet.
 	__lastSelectedScrollPane = findWorksheetsScrollPane(selectWorksheet);
@@ -2163,7 +2161,7 @@ private void selectWorksheet(JWorksheet selectWorksheet, JWorksheet lastWorkshee
 	if ( model.getIntervalBase() == TimeInterval.IRREGULAR ) {
 	    // Returns all upper case so change to be consistent with displays.
 	    String prec = TimeInterval.getName(model.getIrregularDateTimePrecision(),0);
-	    s = base + " (" + prec + ")";
+	    s = base + " (" + prec + " precision)";
 	}
 	else {
     	if (model.getIntervalMult() == 1) {
@@ -2173,7 +2171,7 @@ private void selectWorksheet(JWorksheet selectWorksheet, JWorksheet lastWorkshee
     		s = "" + model.getIntervalMult() + base;
     	}
 	}
-	
+
 	__messageJTextField.setText("Currently-selected worksheet interval: " + s + ", " + model.getRowCount() + " data points.");
 }
 
@@ -2253,7 +2251,7 @@ Sets up the GUI.
 @param mode Indicates whether the GUI should be visible at creation.
 */
 private void setupGUI(boolean mode) {
-	String	routine = "TSViewTableJFrame.setupGUI";
+	String routine = getClass().getSimpleName() + ".setupGUI";
 
 	// Start a big try block to set up the GUI.
 	try {
@@ -2312,49 +2310,49 @@ private void setupGUI(boolean mode) {
 	p2.add("JWorksheet.SelectionMode=ExcelSelection");
 
 	// Separate the __tslist list into lists of like time series (same base interval and irregular.
-	createSeparateTimeSeries();
+	createSeparateTimeSeriesLists();
 
 	// Create all the table models and worksheets.
-	__dayModels = createTableModels(__day);
+	__dayModels = createTableModels(__dayTSList);
 	__dayWorksheets = createWorksheets(__dayModels, p);
 	JWorksheet[] dayHeaders = createWorksheets(__dayModels, p2);
 
-	__minuteModels = createTableModels(__minute);
+	__minuteModels = createTableModels(__minuteTSList);
 	__minuteWorksheets = createWorksheets(__minuteModels, p);
 	JWorksheet[] minuteHeaders = createWorksheets(__minuteModels, p2);
 
-	__hourModels = createTableModels(__hour);
+	__hourModels = createTableModels(__hourTSList);
 	__hourWorksheets = createWorksheets(__hourModels, p);
 	JWorksheet[] hourHeaders = createWorksheets(__hourModels, p2);
 
-	__monthModels = createTableModels(__month);
+	__monthModels = createTableModels(__monthTSList);
 	__monthWorksheets = createWorksheets(__monthModels, p);
 	JWorksheet[] monthHeaders = createWorksheets(__monthModels, p2);
 
-	__yearModels = createTableModels(__year);
+	__yearModels = createTableModels(__yearTSList);
 	__yearWorksheets = createWorksheets(__yearModels, p);
 	JWorksheet[] yearHeaders = createWorksheets(__yearModels, p2);
-	
-    __irregularMinuteModels = createTableModels(__irregularMinute);
+
+    __irregularMinuteModels = createTableModels(__irregularMinuteTSList);
     __irregularMinuteWorksheets = createWorksheets(__irregularMinuteModels, p);
     JWorksheet[] irregularMinuteHeaders = createWorksheets(__irregularMinuteModels, p2);
-    
-    __irregularHourModels = createTableModels(__irregularHour);
+
+    __irregularHourModels = createTableModels(__irregularHourTSList);
     __irregularHourWorksheets = createWorksheets(__irregularHourModels, p);
     JWorksheet[] irregularHourHeaders = createWorksheets(__irregularHourModels, p2);
-    
-    __irregularDayModels = createTableModels(__irregularDay);
+
+    __irregularDayModels = createTableModels(__irregularDayTSList);
     __irregularDayWorksheets = createWorksheets(__irregularDayModels, p);
     JWorksheet[] irregularDayHeaders = createWorksheets(__irregularDayModels, p2);
-    
-    __irregularMonthModels = createTableModels(__irregularMonth);
+
+    __irregularMonthModels = createTableModels(__irregularMonthTSList);
     __irregularMonthWorksheets = createWorksheets(__irregularMonthModels, p);
     JWorksheet[] irregularMonthHeaders = createWorksheets(__irregularMonthModels, p2);
-    
-    __irregularYearModels = createTableModels(__irregularYear);
+
+    __irregularYearModels = createTableModels(__irregularYearTSList);
     __irregularYearWorksheets = createWorksheets(__irregularYearModels, p);
     JWorksheet[] irregularYearHeaders = createWorksheets(__irregularYearModels, p2);
-	
+
 	// Create the panels for the interval bases.
 	__minuteJPanel = new JPanel();
 	__hourJPanel = new JPanel();
@@ -2403,23 +2401,23 @@ private void setupGUI(boolean mode) {
 
 	if (__reverseNormalOrder) {
 		__minuteMouseListeners = buildMouseListeners(__minuteWorksheets);
-		addWorksheetsToPanel(__mainJPanel, "Minute", __minuteJPanel, __minuteJCheckBox, __minuteWorksheets, 
+		addWorksheetsToPanel(__mainJPanel, "Minute", __minuteJPanel, __minuteJCheckBox, __minuteWorksheets,
 			minuteHeaders, __minuteScrollPanes, __minuteMouseListeners);
-		
+
 		__hourMouseListeners = buildMouseListeners(__hourWorksheets);
-		addWorksheetsToPanel(__mainJPanel, "Hour", __hourJPanel, __hourJCheckBox, __hourWorksheets, 
+		addWorksheetsToPanel(__mainJPanel, "Hour", __hourJPanel, __hourJCheckBox, __hourWorksheets,
 			hourHeaders, __hourScrollPanes, __hourMouseListeners);
-		
+
 		__dayMouseListeners = buildMouseListeners(__dayWorksheets);
-		addWorksheetsToPanel(__mainJPanel, "Day", __dayJPanel, __dayJCheckBox, __dayWorksheets, 
+		addWorksheetsToPanel(__mainJPanel, "Day", __dayJPanel, __dayJCheckBox, __dayWorksheets,
 			dayHeaders, __dayScrollPanes, __dayMouseListeners);
-		
+
 		__monthMouseListeners = buildMouseListeners(__monthWorksheets);
-		addWorksheetsToPanel(__mainJPanel, "Month", __monthJPanel, __monthJCheckBox, __monthWorksheets, 
+		addWorksheetsToPanel(__mainJPanel, "Month", __monthJPanel, __monthJCheckBox, __monthWorksheets,
 			monthHeaders, __monthScrollPanes, __monthMouseListeners);
-		
+
 		__yearMouseListeners = buildMouseListeners(__yearWorksheets);
-		addWorksheetsToPanel(__mainJPanel, "Year", __yearJPanel, __yearJCheckBox, __yearWorksheets, 
+		addWorksheetsToPanel(__mainJPanel, "Year", __yearJPanel, __yearJCheckBox, __yearWorksheets,
 			yearHeaders, __yearScrollPanes, __yearMouseListeners);
 
 		/*
@@ -2427,49 +2425,49 @@ private void setupGUI(boolean mode) {
 		    __irregularMinuteJPanel.setLayout(new GridBagLayout());
 		    JGUIUtil.addComponent(__irregularMinuteJPanel,
     			new JLabel("Table view for irregular data is not currently enabled.  Use the summary view."),
-    			0, 0, 1, 1, 1, 1, 
+    			0, 0, 1, 1, 1, 1,
     			GridBagConstraints.NONE, GridBagConstraints.WEST);
 	      	JGUIUtil.addComponent(__mainJPanel, __irregularMinuteJPanel,
-    			0, __panelCount++, 1, 1, 1, 1, 
-    			GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST); 				
+    			0, __panelCount++, 1, 1, 1, 1,
+    			GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST);
 		}
 		*/
 	}
 	else {
 		__yearMouseListeners = buildMouseListeners(__yearWorksheets);
-		addWorksheetsToPanel(__mainJPanel, "Year", __yearJPanel, __yearJCheckBox, __yearWorksheets, 
+		addWorksheetsToPanel(__mainJPanel, "Year", __yearJPanel, __yearJCheckBox, __yearWorksheets,
 			yearHeaders, __yearScrollPanes, __yearMouseListeners);
-	
+
 		__monthMouseListeners = buildMouseListeners(__monthWorksheets);
-		addWorksheetsToPanel(__mainJPanel, "Month", __monthJPanel, __monthJCheckBox, __monthWorksheets, 
+		addWorksheetsToPanel(__mainJPanel, "Month", __monthJPanel, __monthJCheckBox, __monthWorksheets,
 			monthHeaders, __monthScrollPanes, __monthMouseListeners);
 
 		__dayMouseListeners = buildMouseListeners(__dayWorksheets);
-		addWorksheetsToPanel(__mainJPanel, "Day", __dayJPanel, __dayJCheckBox, __dayWorksheets, 
+		addWorksheetsToPanel(__mainJPanel, "Day", __dayJPanel, __dayJCheckBox, __dayWorksheets,
 			dayHeaders, __dayScrollPanes, __dayMouseListeners);
-				
+
 		__hourMouseListeners = buildMouseListeners(__hourWorksheets);
-		addWorksheetsToPanel(__mainJPanel, "Hour", __hourJPanel, __hourJCheckBox, __hourWorksheets, 
+		addWorksheetsToPanel(__mainJPanel, "Hour", __hourJPanel, __hourJCheckBox, __hourWorksheets,
 			hourHeaders, __hourScrollPanes, __hourMouseListeners);
-		
+
 		__minuteMouseListeners = buildMouseListeners(__minuteWorksheets);
-		addWorksheetsToPanel(__mainJPanel, "Minute", __minuteJPanel, __minuteJCheckBox, __minuteWorksheets, 
-			minuteHeaders, __minuteScrollPanes, __minuteMouseListeners);		
+		addWorksheetsToPanel(__mainJPanel, "Minute", __minuteJPanel, __minuteJCheckBox, __minuteWorksheets,
+			minuteHeaders, __minuteScrollPanes, __minuteMouseListeners);
 
 		/*
 		if (__irregular != null && __irregular.size() > 0) {
 		    __irregularJPanel.setLayout(new GridBagLayout());
 		    JGUIUtil.addComponent(__irregularJPanel,
     			new JLabel("Table view for irregular data is not currently enabled.  Use the summary view."),
-    			0, 0, 1, 1, 1, 1, 
+    			0, 0, 1, 1, 1, 1,
     			GridBagConstraints.NONE, GridBagConstraints.WEST);
 	      	JGUIUtil.addComponent(__mainJPanel, __irregularJPanel,
-    			0, __panelCount++, 1, 1, 1, 1, 
+    			0, __panelCount++, 1, 1, 1, 1,
     			GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST);
 		}
 		*/
 	}
-	
+
 	// Irregular is always last.
     __irregularMinuteMouseListeners = buildMouseListeners(__irregularMinuteWorksheets);
     addWorksheetsToPanel(__mainJPanel, "Irregular (Minute)", __irregularMinuteJPanel, __irregularMinuteJCheckBox,
@@ -2501,7 +2499,7 @@ private void setupGUI(boolean mode) {
 	__messageJTextField = new JTextField();
 	__messageJTextField.setEditable(false);
 	JGUIUtil.addComponent(bottomJPanel, __messageJTextField,
-		0, 1, 7, 1, 1.0, 0.0, 
+		0, 1, 7, 1, 1.0, 0.0,
 		GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	// Put the buttons on the bottom of the window.
@@ -2516,7 +2514,7 @@ private void setupGUI(boolean mode) {
 	__flagJComboBox.setData(flagChoices);
 	__flagJComboBox.addItemListener(this);
 	__flagJComboBox.setToolTipText("Indicate how data flags should be visualized.");
-	
+
 	__graphJButton = new SimpleJButton(__BUTTON_GRAPH, this);
 	String propValue=__props.getValue("EnableGraph");
 	if ((propValue != null) && propValue.equalsIgnoreCase("false")) {
@@ -2561,7 +2559,7 @@ private void setupGUI(boolean mode) {
 
 	getContentPane().add("South", bottomJPanel);
 
-	__messageJTextField.setText("Currently-selected worksheet: (none)");	
+	__messageJTextField.setText("Currently-selected worksheet: (none)");
 
 	pack();
 	// TODO SAM 2012-04-16 Need to default size based on number of time series.
@@ -2581,7 +2579,7 @@ private void setupGUI(boolean mode) {
 		Message.printWarning(2, routine, e);
 	}
 
-	// These calls are here because they require a valid graphics 
+	// These calls are here because they require a valid graphics
 	// context to work properly (i.e., setVisible(true) must have already been called).
 	setColumnWidths(__minuteWorksheets, DateTime.PRECISION_MINUTE);
 	setColumnWidths(__hourWorksheets, DateTime.PRECISION_HOUR);
@@ -2600,8 +2598,7 @@ private void setupGUI(boolean mode) {
 /**
 Determine if any of the time series has flags.
 */
-private boolean timeSeriesHaveFlags ()
-{
+private boolean timeSeriesHaveFlags () {
     for ( TS ts : __tslist ) {
         if ( ts.hasDataFlags() ) {
             return true;
@@ -2614,13 +2611,15 @@ private boolean timeSeriesHaveFlags ()
 Responds to window activated events; does nothing.
 @param evt the WindowEvent that happened.
 */
-public void windowActivated(WindowEvent evt) {}
+public void windowActivated(WindowEvent evt) {
+}
 
 /**
 Responds to window closed events; does nothing.
 @param evt the WindowEvent that happened.
 */
-public void windowClosed(WindowEvent evt) {}
+public void windowClosed(WindowEvent evt) {
+}
 
 /**
 Responds to window closing events; does nothing.
@@ -2634,31 +2633,36 @@ public void windowClosing(WindowEvent evt) {
 Responds to window deactivated events; does nothing.
 @param evt the WindowEvent that happened.
 */
-public void windowDeactivated(WindowEvent evt) {}
+public void windowDeactivated(WindowEvent evt) {
+}
 
 /**
 Responds to window deiconified events; does nothing.
 @param evt the WindowEvent that happened.
 */
-public void windowDeiconified(WindowEvent evt) {}
+public void windowDeiconified(WindowEvent evt) {
+}
 
 /**
 Responds to window iconified events; does nothing.
 @param evt the WindowEvent that happened.
 */
-public void windowIconified(WindowEvent evt) {}
+public void windowIconified(WindowEvent evt) {
+}
 
 /**
 Responds to window opened events; does nothing.
 @param evt the WindowEvent that happened.
 */
-public void windowOpened(WindowEvent evt) {}
+public void windowOpened(WindowEvent evt) {
+}
 
 /**
 Responds to window opening events; does nothing.
 @param evt the WindowEvent that happened.
 */
-public void windowOpening(WindowEvent evt) {}
+public void windowOpening(WindowEvent evt) {
+}
 
 /**
 Write all of a worksheet's data to a text file, separating field values
@@ -2680,20 +2684,20 @@ private void writeTextFile(JWorksheet worksheet, char delimiter, String filename
 		int columns = worksheet.getColumnCount();
 
 		worksheet.startNewConsecutiveRead();
-		
+
 		StringBuffer buff = null;
 		int pct = 0;
 		int lastPct = 0;
 		for (int i = 0; i < rows; i++) {
-			// Calculate the percentage complete, and if different
-			// from the last percentage complete, update the status bar text field.
+			// Calculate the percentage complete,
+			// and if different from the last percentage complete, update the status bar text field.
 			pct = ((int)(((double)i / (double)rows) * 100));
 			if (pct != lastPct) {
 				lastPct = pct;
 				__messageJTextField.setText("Saving file \"" + filename + "\" (" + pct +  "% done)");
 				JGUIUtil.forceRepaint(__messageJTextField);
 			}
-		
+
 			buff = new StringBuffer();
 			for (int j = 0; j < columns; j++) {
 				buff.append(worksheet.getConsecutiveValueAt(i, j));
@@ -2725,7 +2729,7 @@ private void writeTextFile(JWorksheet worksheet, char delimiter, String filename
 
 /**
  * Listens for property change events (from TSGraphEditor) &
- * Notifies the model listeners (JTables/JWorksheet) that the table model has changed. 
+ * Notifies the model listeners (JTables/JWorksheet) that the table model has changed.
  */
 public void propertyChange(PropertyChangeEvent e) {
     if (e.getPropertyName().equals("TS_DATA_VALUE_CHANGE")) {
@@ -2736,15 +2740,15 @@ public void propertyChange(PropertyChangeEvent e) {
 }
 /**
  * Returns the first model encountered that contains the specified TS.
- * 
+ *
  * @param ts
  * @return model containing specified TS, or null
  */
 private TSViewTable_TableModel findModel(TS ts) {
     // TODO: Order search so that most likely models are searched first.
-    
+
     TSViewTable_TableModel target = null;
-      
+
     if ((target = findModel(__dayModels,ts)) != null) {
         return target;
     }

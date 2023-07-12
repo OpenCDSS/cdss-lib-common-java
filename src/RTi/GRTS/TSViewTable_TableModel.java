@@ -11,12 +11,12 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -88,6 +88,7 @@ private boolean __useExtendedLegend = false;
 /**
 An array of DateTime values that are pre-calculated in order to speed up calculation of DateTimes in the middle of the dataset.
 Each element in this array contains the DateTime for the row at N*(__cacheInterval).
+This is used with regular interval time series.
 */
 private DateTime[] __cachedDates;
 
@@ -132,6 +133,9 @@ private int __columns;
 
 /**
 Cache for date/times for irregular time series.
+This contains all date/times that overlap one or more time series.
+When displaying more than one time series, requesting a date/time from a time series that
+did not have the value will return an empty cell.
 */
 private List<DateTime> __irregularDateTimeCache;
 
@@ -213,7 +217,7 @@ private boolean __showRow = false;
 
 /**
 Constructor.  This builds the Model for displaying the given TS data and pre-calculates and caches every 50th row's date.
-@param data Vector of TS to graph in the table.
+@param data List of TS to graph in the table.
 The TS must have the same data interval and data units, but this will not be checked in the table model;
 it should have been done previously.
 @param start the first day of data to display in the table.
@@ -250,7 +254,7 @@ Every Nth date in the entire table, where N == cacheInterval, will be pre-calcul
 The other constructor passes in a value of 50 for the interval,
 and this value has been found to be adequate for most table needs.
 It takes some experimenting to find the optimal value where speed is most increased but not too much memory is used.<p>
-JTS recommends that if a table will display at most X rows at once, that the cacheInterval be no less than X*2.
+It is recommended that if a table will display at most X rows at once, that the cacheInterval be no less than X*2.
 @throws Exception if an invalid data or dmi was passed in.
 */
 public TSViewTable_TableModel(List<TS> data, DateTime start,
@@ -373,18 +377,23 @@ throws Exception {
 
 /**
 Create a cache of date/times for irregular time series (all date/times that occur).
+Requesting a date/time from an irregular time series will either return the matching data or blanks will be shown.
+Each time series is iterated in parallel to find the list of date/times.
 The worksheet row=0 will correspond to the first date/time.
 */
 private void createIrregularTSDateTimeCache ()
 throws TSException {
     String routine = getClass().getSimpleName() + ".createIrregularTSDateTimeCache";
+    // Use this when troubleshooting during development, not intenced for real-time troubleshooting.
+    boolean debug = false;
     // More than one irregular time series.  They at least have to have the same date/time precision for the period.
 	// Otherwise it will be difficult to navigate the data.
     int irrPrecision = __irregularDateTimePrecision;
     int tsPrecision;
     List<TS> tslist = _data;
+    
     int size = tslist.size();
-    TS ts;
+    IrregularTS ts;
     for ( int its = 0; its < size; its++ ) {
         if ( tslist.get(its) == null ) {
             continue;
@@ -411,6 +420,7 @@ throws TSException {
     }
     // Was able to determine the precision of data so can continue.
     // The logic works as follows:
+    //
     // 0) Advance the iterator for each time series to initialize
     // 1) Find the earliest date/time in the iterator current position
     // 2) Add cached date/times that will result in:
@@ -418,27 +428,39 @@ throws TSException {
     //    - values not at the same date/time result in blanks for the other time series
     // 3) For any values that will be output, advance that time series' iterator
     // 4) Go to step 1
-    // Create iterators for each time series
+    //
+    // Create iterators for each time series.
     TSIterator [] tsIteratorArray = new TSIterator[tslist.size()];
     __irregularDateTimeCache = new ArrayList<>();
     for ( int its = 0; its < size; its++ ) {
         if ( tslist.get(its) == null ) {
-            tsIteratorArray[its] = null; // Keep same order as time series.
+            // Null time series.  Create a null iterator to keep the same order as time series.
+            tsIteratorArray[its] = null;
         }
-        ts = (IrregularTS)tslist.get(its);
-        try {
-            tsIteratorArray[its] = ts.iterator(); // Iterate through full period.
-        }
-        catch ( Exception e ) {
-            tsIteratorArray[its] = null;; // Keep same order as time series.
+        else {
+        	// Have a non-null time series:
+        	// - will be an IrregularTS
+        	// - get its iterator
+        	ts = (IrregularTS)tslist.get(its);
+        	try {
+        		// Get the iterator:
+        		// - currently, iterate through full period
+        		// - will be an IrregularTSIterator
+            	tsIteratorArray[its] = ts.iterator();
+        	}
+        	catch ( Exception e ) {
+            	// Error getting an iterator.  Create a null iterator to keep the same order as time series.
+            	tsIteratorArray[its] = null;
+        	}
         }
     }
+
     int its;
     TSIterator itsIterator;
     // Use the following to extract dates from each time series.
     // A call to the iterator next() method will return null when no more data, which is the safest way to process the data.
     TSData [] tsdata = new TSData[tslist.size()];
-    TSData tsdataMin = null; // Used to find min date/time for all the iterators.
+    TSData tsdataMin = null; // Used to find the minimum date/time for all the iterators.
     DateTime dtMin = null; // Used to compare date/times for all the iterators.
     DateTime dtCached = null; // Cached date/time.
     int iteratorMin = -1;
@@ -447,6 +469,8 @@ throws TSException {
         // Using the current date/time, output the earliest value for all time series that have the value and
         // increment the iterator for each value that is output.
         ++loopCount;
+        
+        // Initialize the iterators to the first data value.
         if ( loopCount == 1 ) {
             // Need to call next() one time on all time series to initialize all iterators to the first
             // data point in the time series.  Otherwise, next() is only called below to advance.
@@ -457,16 +481,22 @@ throws TSException {
                 }
             }
         }
+
         // Loop through the iterators:
-        // 1) Find the earliest date/time
-        // 2) Add to the cache
-        // 3) Advance the iterator(s)
-        // Do this until all iterators next() have returned null
+        //
+        // 1) Find the earliest date/time for each iterator.
+        // 2) Add to the cache.
+        // 3) Advance the iterator(s) that have a date/time value matching the earliest value from step 1.
+        //
+        // Do this until all iterators next() have returned null.
+        // This allows time series with different numbers of date/times to be fully processed.
+        
+        // Initialize the minimum TSData and DateTime for this iteration.
         tsdataMin = null;
         dtMin = null;
         for ( its = 0; its < size; its++ ) {
             if ( tsdataMin == null ) {
-                // Find the first date/time for all the iterators at their current positions.
+                // Initialize the earliest date/time to the first non-null value.
                 if ( tsdata[its] != null ) {
                     tsdataMin = tsdata[its];
                     dtMin = tsdataMin.getDate();
@@ -478,21 +508,26 @@ throws TSException {
                 // Have a non-null first date/time to compare to so check this iterator against it.
                 // The lessThan() method DOES NOT compare time zone in any case.
                 if ( (tsdata[its] != null) && tsdata[its].getDate().lessThan(dtMin) ) {
-                    // Have found an earlier date/time to be used in the comparison.
-                    // Note - time zone is NOT checked.
-                    dtMin = tsdata[its].getDate();
+                    // Have found an earlier date/time:
+                    // - note that time zone is NOT checked
+                	// - save the minimum values
                     tsdataMin = tsdata[its];
+                    dtMin = tsdataMin.getDate();
                     iteratorMin = its;
                     //Message.printStatus(2, routine, "Found earlier minimum date/time [" + its + "] " + dtMin );
                 }
             }
         }
-        // 2) Add to the cache.
+
+        // If the next minimum date/time is null, all date/times from all iterators have been exhausted so done processing.
         if ( dtMin == null ) {
             // Done processing all data.
             break;
         }
-        // Create a new instance so independent of any data manipulations.
+
+        // 2) Add the minimum date/time from above to the cache.
+
+        // Create a new DateTime instance so that it is independent of any data manipulations that may occur on the time series.
         // Create a fast instance since it will be used for iteration and data access but not be manipulated or checked.
         dtCached = new DateTime(dtMin,DateTime.DATE_FAST);
         if ( !__irregularTZSame ) {
@@ -500,12 +535,16 @@ throws TSException {
             dtCached.setTimeZone("");
         }
         __irregularDateTimeCache.add(dtCached);
-        //Message.printStatus(2,routine,"Row [" + (__irregularDateTimeCache.size() - 1) + "] " + dtCached);
-        // 3) Advance the iterator for the one with the minimum date/time and all with the same date/time
-        // Note - time zone is NOT checked by equals()
+        if ( debug ) {
+        	Message.printStatus(2,routine,"Irregular TS date/time cache, row [" + (__irregularDateTimeCache.size() - 1) + "] = " + dtCached);
+        }
+
+        // 3) Advance the iterator for the one with the minimum date/time and all with the same date/time.
+        // Note - time zone is NOT checked by equals().
         for ( its = 0; its < size; its++ ) {
             // First check below increases performance a bit.
             // Use the prototype date if available to ensure that time zone is handled.
+        	// TODO smalers 2023-07-10 but the following is not checking time zone?
             if ( (__irregularPrototypeDateTime != null) && (__irregularPrototypeDateTime[its] != null) ) {
                 // Use the prototype DateTime (which has proper time zone) and overwrite the specific date/time values.
                 // Do not call setDate() because it will set whether to use time zone and defeat the purpose of the prototype.
@@ -517,9 +556,12 @@ throws TSException {
                 __irregularPrototypeDateTime[its].setSecond(dtMin.getSecond());
                 dtMin = __irregularPrototypeDateTime[its];
             }
-            if ( (iteratorMin == its) || ((tsdata[its] != null) && dtMin.equals(tsdata[its].getDate())) ) {
+            if ( (iteratorMin == its) // Know that the matched iterator can be advanced.
+            	|| ((tsdata[its] != null) && dtMin.equals(tsdata[its].getDate())) ) { // Other iterator with the same date/time.
                 tsdata[its] = tsIteratorArray[its].next();
-                //Message.printStatus(2, routine, "Advanced iterator[" + its + "] date/time to " + tsdata[its] );
+                if ( debug ) {
+                	Message.printStatus(2, routine, "Advanced iterator[" + its + "] date/time to " + tsdata[its] );
+                }
             }
         }
     }
@@ -530,10 +572,13 @@ throws TSException {
         //    " first date/time=" + __irregularDateTimeCache.get(0) +
         //    " last date/time=" + __irregularDateTimeCache.get(_rows - 1) );
     }
-    // Dump out the calls to the table model.
-    //for ( int row = 0; row < _rows; row++ ) {
-    //    Message.printStatus(2,routine + "2","Row [" + row + "] " + getValueAtIrregular(row, 0));
-    //}
+    if ( debug ) {
+    	// Dump out the date/time values column values for the table model, for troubleshooting the code.
+   	    Message.printStatus(2,routine, "All irregular time series date/times:");
+    	for ( int row = 0; row < _rows; row++ ) {
+    	    Message.printStatus(2,routine + "2","Row [" + row + "] " + getValueAtIrregular(row, 0));
+    	}
+    }
 }
 
 /**
@@ -896,7 +941,7 @@ public List<TS> getTSList() {
 Returns the data that should be placed in the JTable at the given row and column.
 @param row the row for which to return data.
 @param col the column for which to return data.
-@return the data that should be placed in the JTable at the given row and col.
+@return the data that should be placed in the JTable at the given row and column.
 */
 public Object getValueAt(int row, int col) {
     if ( __intervalBase == TimeInterval.IRREGULAR ) {
@@ -1041,7 +1086,7 @@ private String getValueAtFormatValueWithFlag ( TS ts, DateTime dt, String dataFo
 Returns the data that should be placed in the JTable at the given row and column, for irregular time series.
 @param row the row for which to return data.
 @param col the column for which to return data.
-@return the data that should be placed in the JTable at the given row and col.
+@return the data that should be placed in the JTable at the given row and column.
 */
 public Object getValueAtIrregular(int row, int col) {
     if (_sortOrder != null) {
@@ -1056,6 +1101,7 @@ public Object getValueAtIrregular(int row, int col) {
         return dt.toString();
     }
     else if ( __showRow && (col == (__columns - 1)) ) {
+    	// Row number.
         return "" + row;
     }
     else {
@@ -1064,7 +1110,7 @@ public Object getValueAtIrregular(int row, int col) {
         if ( (__irregularPrototypeDateTime != null) && (__irregularPrototypeDateTime[col - 1] != null) ) {
             // Use the prototype DateTime (which has proper time zone for the time series)
             // and overwrite the specific date/time values.
-            // Do not call setDate() because it will set whether to use time zone and defeat the purpose of the prototype
+            // Do not call setDate() because it will set whether to use time zone and defeat the purpose of the prototype.
             // Then, reset the date/time for the column to one that matches the time series and get the value.
             __irregularPrototypeDateTime[col - 1].setYear(dt.getYear());
             __irregularPrototypeDateTime[col - 1].setMonth(dt.getMonth());

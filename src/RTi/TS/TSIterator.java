@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -29,8 +29,8 @@ import RTi.Util.Message.Message;
 import RTi.Util.Time.DateTime;
 
 /**
-The TSIterator iterates through a regular-interval time series by moving the
-date/time forward or back, and returning corresponding data.
+The TSIterator iterates through a regular-interval time series by moving the date/time forward or back,
+and returning corresponding data.
 Use the IrregularTSIterator for irregular-interval time series.
 Currently, behavior is implemented in the classes rather than by adhering to an interface.
 
@@ -47,9 +47,8 @@ Use the iterator as follows:
 TS somets;
 
 // Construct an iterator or the time series.
-// Can construct with any set of dates (typically matching the
-// time series interval) or no dates, in which case the full
-// time series period will be used.
+// Can construct with any set of dates (typically matching the time series interval) or no dates,
+// in which case the full time series period will be used.
 TSIterator tsi = somets.iterator ( somets.getDate1(), somets.getDate2() );
 DateTime date;
 double value;
@@ -141,34 +140,33 @@ For irregular time series, which has a list of TSData, the object is a pointer t
 protected TSData _tsdata = null;
 
 /**
-Construct a time series iterator and set the period to be the full limits
-of the time series data.  The current date/time is set to the first date/time
-of the time series and will be returned by the first next() call.
+Construct a time series iterator and set the period to be the full limits of the time series data.
+The current date/time is set to the first date/time of the time series and will be returned by the first next() call.
 @param ts Time series to iterate on.
 @exception if the time series or date/times for the time series are null.
 */
 public TSIterator ( TS ts )
-throws Exception
-{	initialize ();
+throws Exception {
+	initialize ();
 
 	this._ts = ts;
 	this._intervalBase = this._ts.getDataIntervalBase();
 	this._intervalMult = this._ts.getDataIntervalMult();
 	if ( ts == null ) {
-		throw new Exception ( "Null time series for TSIterator" );
+		throw new Exception ( "Null time series for TSIterator." );
 	}
 	if ( ts.getDate1() == null ) {
-		throw new Exception ( "Null starting date/time for TSIterator" );
+		throw new Exception ( "Null starting date/time for TSIterator." );
 	}
 	if ( ts.getDate2() == null ) {
-		throw new Exception ( "Null ending date/time for TSIterator" );
+		throw new Exception ( "Null ending date/time for TSIterator." );
 	}
 	this._date1 = new DateTime(ts.getDate1());
 	this._date2 = new DateTime(ts.getDate2());
 	if ( this._date2.lessThan(this._date1) ) {
 		throw new InvalidParameterException("The second TSIterator date/time (" + this._date2 + ") is before the first (" + this._date1 + ").");
 	}
-	
+
 	// Initialize the current time to the start, assuming next() will be called first:
 	// - if previous() is called first, this._currentDate will be set to the this._date2
 	this._currentDate = new DateTime(this._date1);
@@ -186,17 +184,17 @@ If null, the last date in the time series will be used.
 @exception if the time series or dates for the time series are null.
 */
 public TSIterator ( TS ts, DateTime date1, DateTime date2 )
-throws Exception
-{	initialize ();
+throws Exception {
+	initialize ();
 
 	if ( ts == null ) {
-		throw new Exception ( "Null time series for TSIterator" );
+		throw new Exception ( "Null time series for TSIterator." );
 	}
 	if ( (date1 == null) && (ts.getDate1() == null) ) {
-		throw new Exception ( "Null starting date/time for TSIterator" );
+		throw new Exception ( "Null starting date/time for TSIterator." );
 	}
 	if ( (date2 == null) && (ts.getDate2() == null) ) {
-		throw new Exception ( "Null ending date/time for TSIterator" );
+		throw new Exception ( "Null ending date/time for TSIterator." );
 	}
 	this._ts = ts;
 	this._intervalBase = _ts.getDataIntervalBase();
@@ -208,7 +206,7 @@ throws Exception
 	else {
 	    this._date1 = new DateTime (ts.getDate1());
 	}
-	
+
 	if ( date2 != null ) {
 		this._date2 = new DateTime(date2);
 	}
@@ -248,8 +246,8 @@ The Object base class clone() method is called and then the TSIterator objects a
 The result is a complete deep copy.
 The time series that is being iterated is NOT cloned because only a reference is maintained by the TSIterator.
 */
-public Object clone ()
-{	try {
+public Object clone () {
+	try {
         // Clone the base class.
 		TSIterator tsi = (TSIterator)super.clone();
 		// Don't want to clone the TS reference, just set the reference.
@@ -281,8 +279,8 @@ WARNING:  the contents of this object are volatile and change with each call.
 Use the get*() methods in TSIterator to retrieve data directly prior to making subsequent calls.
 A null value is never returned.
 */
-private TSData getCurrentTSData ()
-{	return this._ts.getDataPoint ( this._currentDate, this._tsdata );
+private TSData getCurrentTSData () {
+	return this._ts.getDataPoint ( this._currentDate, this._tsdata );
 }
 
 /**
@@ -291,48 +289,48 @@ For regular interval data, the date is allowed to extend past the end of availab
 However, requesting data will return the missing data value when out of bounds.
 @return the current date/time for the iterator.
 */
-public DateTime getDate ()
-{	return this._currentDate;
+public DateTime getDate () {
+	return this._currentDate;
 }
 
 /**
 Return the starting date/time for the iterator.
 @return the starting date/time for the iterator.
 */
-public DateTime getDate1 ()
-{	return this._date1;
+public DateTime getDate1 () {
+	return this._date1;
 }
 
 /**
 Return the ending date/time for the iterator.
 @return the ending date/time for the iterator.
 */
-public DateTime getDate2 ()
-{	return this._date2;
+public DateTime getDate2 () {
+	return this._date2;
 }
 
 /**
 Return the data flag for the current date/time.
 @return the data flag for the current date/time, taken from the current TSData.
 */
-public String getDataFlag ()
-{	return this._tsdata.getDataFlag();
+public String getDataFlag () {
+	return this._tsdata.getDataFlag();
 }
 
 /**
 Return the data value for the current date/time.
 @return the data value for the current date/time, taken from the current TSData.
 */
-public double getDataValue ()
-{ 	return this._tsdata.getDataValue ();
+public double getDataValue () {
+ 	return this._tsdata.getDataValue ();
 }
 
 /**
 Return the reference to the time series being iterated.
 @return reference to the TS.
 */
-public TS getTS ()
-{	return this._ts;
+public TS getTS () {
+	return this._ts;
 }
 
 /**
@@ -363,8 +361,8 @@ If unable to go to the date/time, null is returned and the iterator state will b
 WARNING:  the contents of this object are volatile and change with each iteration.
 Use the get*() methods in TSIterator to retrieve data directly once the iterator is positioned.
 */
-public TSData goTo ( DateTime dt )
-{	DateTime date = null;
+public TSData goTo ( DateTime dt ) {
+	DateTime date = null;
 	TSData data = null;
 
 	// Test equality and end points first since fast.
@@ -468,8 +466,8 @@ WARNING:  the contents of this object are volatile and change with each iteratio
 Use the get*() methods in TSIterator to retrieve data directly.
 */
 /* TODO smalers 2020-02-22 re-enable if needed.
-public TSData goToNearestNext ( DateTime dt, boolean resetIfFail )
-{	DateTime date = null;
+public TSData goToNearestNext ( DateTime dt, boolean resetIfFail ) {
+	DateTime date = null;
 	TSData data = null;
 	// If the iterator has not fully initialized, call next() once to force it.
 	if ( !_firstDateProcessed && !_lastDateProcessed ) {
@@ -556,8 +554,8 @@ WARNING:  the contents of this object are volatile and change with each iteratio
 Use the get*() methods in TSIterator to retrieve data directly.
 */
 /* TODO smalers 2020-02-22 reenable if needed.
-public TSData goToNearestPrevious ( DateTime dt, boolean resetIfFail )
-{	DateTime date = null;
+public TSData goToNearestPrevious ( DateTime dt, boolean resetIfFail ) {
+	DateTime date = null;
 	TSData data = null;
 	// If the iterator has not fully initialized, call previous() once to force it.
 	if ( !_firstDateProcessed && !_lastDateProcessed ) {
@@ -635,8 +633,8 @@ this is less efficient than just calling next() or previous() and checking the r
 @return true if calling next() will result in the date/time being within the iterator period, and false otherwise.
 */
 public boolean hasNext () {
-	// For a regular time series, add one interval to a copy of the current date and see if
-	// it is past the end of the iterator.
+	// For a regular time series,
+	// add one interval to a copy of the current date and see if it is past the end of the iterator.
 	DateTime dt = new DateTime(this._currentDate);
 	dt.addInterval(this._intervalBase, this._intervalMult);
 	if ( dt.greaterThan(this._date2) ) {
@@ -658,8 +656,8 @@ this is less efficient than just calling next() or previous() and checking the r
 @return true if calling precious() will result in the date/time being within the iterator period, and false otherwise.
 */
 public boolean hasPrevious () {
-	// For a regular time series, subtract one interval from a copy of the current date and see if
-	// it is past the end of the iterator.
+	// For a regular time series,
+	// subtract one interval from a copy of the current date and see if it is past the end of the iterator.
 	DateTime dt = new DateTime(this._currentDate);
 	dt.addInterval(this._intervalBase, -this._intervalMult);
 	if ( dt.lessThan(this._date1) ) {
@@ -675,8 +673,8 @@ public boolean hasPrevious () {
 /**
 Initialize data.
 */
-private void initialize ()
-{	this._ts = null;
+private void initialize () {
+	this._ts = null;
 	//_firstDateProcessed = false;
 	//_lastDateProcessed = false;
 	this.calledFirst = TSIteratorMoveType.UNKNOWN;
@@ -722,12 +720,12 @@ TSData object containing the data for the current time step.
 WARNING:  The contents of this object are volatile and change with each iteration.
 Use the get*() methods in TSIterator to retrieve data directly.
 */
-public TSData next ()
-{	int dl = 30;
+public TSData next () {
+	int dl = 30;
 
 	// Set next() as the last call.
 	this.calledLast = TSIteratorMoveType.NEXT;
-	
+
 	// Clearly don't have any data so return null.
 
 	if ( (this._ts == null) || (this._ts.getDataSize() == 0) ) {
@@ -735,13 +733,13 @@ public TSData next ()
 	}
 
 	// If iteration is already complete return null.
-	
-	if ( this._isIterationComplete ) { 
+
+	if ( this._isIterationComplete ) {
 		return null;
 	}
-	
+
 	// First advance the current date/time.
-	
+
 	//if ( !_lastDateProcessed ) { // }
 	if ( ! this._isIterationComplete ) {
 		// Only advance the date if have not already gone past the end.
@@ -751,7 +749,7 @@ public TSData next ()
 			// It is possible that the date specified as input does not exactly align with a date in the time series.
 			// But it is adjusted and _currentDate is set in the constructor.
 			//_firstDateProcessed = true;
-	
+
 			// this_.currentDate does not need to be advanced because it was set to the initial value in the constructor.
 			this.calledFirst = TSIteratorMoveType.NEXT;
 		}
@@ -772,7 +770,7 @@ public TSData next ()
 	}
 
 	// Now return data or null.
-	
+
 	//if ( _lastDateProcessed ) { // }
 	if ( this._isIterationComplete ) {
 		// Have gone past the last date/time so return null.
@@ -797,8 +795,8 @@ Return a pointer to an internal TSData object containing the data for the curren
 WARNING:  the contents of this object are volatile and change with each iteration.
 Use the get*() methods in TSIterator to retrieve data directly.
 */
-public TSData previous ()
-{	int dl = 30;
+public TSData previous () {
+	int dl = 30;
 
 	// Set previous() as the last call.
 	this.calledLast = TSIteratorMoveType.PREVIOUS;
@@ -827,7 +825,7 @@ public TSData previous ()
 			this._currentDate = new DateTime ( this._date2 );
 			// Also indicate that last date has been processed because backward iteration is initializing.
 			//_lastDateProcessed = true;
-			
+
 			// Indicate that previous() was called first, indicating direction of iteration.
 			this.calledFirst = TSIteratorMoveType.PREVIOUS;
 		}
@@ -894,8 +892,8 @@ This is used in cases where iteration is jumping through the period,
 for example processing a seasonal window in each year.
 @param date1 New starting date/time for iterator.
 */
-public void setBeginTime ( DateTime date1 )
-{	this._date1 = new DateTime(date1);
+public void setBeginTime ( DateTime date1 ) {
+	this._date1 = new DateTime(date1);
 	//_firstDateProcessed = false;
 	//_lastDateProcessed = false;
 	this._isIterationComplete = false;

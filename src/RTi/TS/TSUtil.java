@@ -8775,10 +8775,13 @@ treated as SetMissing for regular interval data),
 @param analysisWindowEnd the ending date/time within a year to start the replacement, consistent with the time series interval
 @param setFlag flag value to set on data values when resetting a value
 @param setFlagDesc description for set flag
+@param description the new description for the time series (null or empty to not change),
+any expansion of the description using properties must occur in the calling code
 */
 public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date, Double minValue,
 	Double maxValue, Double newValue, String matchFlag, String action,
-	DateTime analysisWindowStart, DateTime analysisWindowEnd, String setFlag, String setFlagDescription ) {
+	DateTime analysisWindowStart, DateTime analysisWindowEnd, String setFlag, String setFlagDescription,
+	String description) {
 	//String routine = TSUtil.class.getSimpleName() + ".replaceValue";
     if ( (newValue == null) && ((action == null) || action.equals("")) ) {
         throw new InvalidParameterException(
@@ -8813,6 +8816,7 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 	//if ( Message.isDebugOn ) {
 	//	Message.printDebug(1, routine, "Period for replace is " + start + " to " + end);
 	//}
+	// Replacing values is the default.  The following are special cases.
 	boolean doRemove = false;
 	boolean doRemoveMissing = false;
 	boolean doSetMissing = false;
@@ -8857,21 +8861,29 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
     if ( (windowStart != null) && (windowEnd != null) ) {
         doAnalysisWindow = true;
     }
-    int replaceCount = 0; // Number of values modified.
+    int removeCount = 0; // Number of replaced with missing.
+    int removeMissingCount = 0; // Number of missing values removed.
+    int replaceCount = 0; // Number of values replaced.
+    int setMissingCount = 0; // Number of values set to missing.
     boolean matchedForReplace = false;
 	if ( interval_base == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the list.
 		IrregularTS irrts = (IrregularTS)ts;
-		// This returns a pointer to the full data list (not a copy).
+		// This returns a pointer to the full data list (not a copy):
+		// - changes to the list will change the time series internal data
 		List<TSData> alltsdata = irrts.getData();
 		if ( alltsdata == null ) {
 			// No data for the time series.
 			return;
 		}
+		// The following gets the full data list.
+		// If this is changed, then the logic needs to be changed below for removing a data point.
 		int nalltsdata = alltsdata.size();
 		TSData tsdata = null;
 		DateTime date = null;
 		boolean pointRemoved; // To know if remove was success.
+		boolean isMissing;
+		boolean isNaN;
 		for ( int i = 0; i < nalltsdata; i++ ) {
 		    matchedForReplace = false;
 			tsdata = alltsdata.get(i);
@@ -8884,17 +8896,22 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 				// Past the end of where we want to go so quit.
 				break;
 			}
-			if ( doMatchValue || doRemoveMissing ) {
-				value = tsdata.getDataValue();
-				// Check the value.
-				if ( ts.isDataMissing(value) ) {
-					if ( doRemoveMissing ) {
-						// Special case for removing missing values.
-						matchedForReplace = true;
-					}
+			value = tsdata.getDataValue();
+			isMissing = ts.isDataMissing(value);
+			if ( doRemoveMissing ) {
+				// Removing missing values (from irregular time series).
+				if ( isMissing ) {
+					// Special case for removing missing values:
+					// - this will match missing=NaN
+					// - it will also match missing if a special number or range is used
+					matchedForReplace = true;
 				}
-				else {
-					// Not missing so can check the value against the range.
+			}
+			if ( !matchedForReplace && doMatchValue ) {
+				// Check the value against the range.
+				isNaN = Double.isNaN(value);
+				if ( !isNaN ) {
+					// An actual number so can check against the limits.
 					if ( maxValue == null ) {
 						// Only checking minimum.
 						if ( value >= minvalue ) {
@@ -8903,14 +8920,14 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 						}
 					}
 					else if ( (value >= minvalue) && (value <= maxvalue) ) {
-						// Checking minimum and maximum values.
+					// Checking minimum and maximum values.
 						// Found a value to process.
 						matchedForReplace = true;
-    				}
+   					}
 				}
 			}
     	    if ( doMatchFlag ) {
-    	    	// Also check the flag - this is ANDed with the value.
+    	    	// Also check the flag - this is ANDed with the value (both value and flag must be matched).
     	        if ( matchFlag.equals(tsdata.getDataFlag()) ) {
     	        	// Flag matches the check value.
     	            if ( !doMatchValue || (doMatchValue && matchedForReplace) ) {
@@ -8944,21 +8961,29 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 			    if ( doRemove || doRemoveMissing ) {
 			        // This will remove the point at the date (there should only be one matching date/time).
 			    	// The following is a performance hit because it searches the entire time series.
-			    	// Just remove from the data array.
 			        //pointRemoved = irrts.removeDataPoint(date);
+			    	// Instead, just remove from the data array.
+			    	// This only works if the full TSData list is requested above because then there is 1-to-one
+			    	// agreement between the list and the time series.
 			    	pointRemoved = irrts.removeDataPoint(i);
 			    	if ( pointRemoved ) {
 			    		// TODO SAM 2010-08-18 Evaluate changing to iterator and remove the following code.
-			    		// Decrement counters.
+			    		// The 'alltsdata' list is the same list as in the time series (not a copy) so
+			    		// decrement the counters so as to not skip any data.
 			    		--i;
 			    		--nalltsdata;
-			    		++replaceCount;
+			    		if ( doRemove ) {
+			    			++removeCount;
+			    		}
+			    		else if ( doRemoveMissing ) {
+			    			++removeMissingCount;
+			    		}
 			    	}
 			    }
 			    else if ( doSetMissing ) {
 			    	// Set the value to missing.
 			        tsdata.setDataValue(missing);
-			        ++replaceCount;
+			        ++setMissingCount;
 			    }
 			    else {
 			    	// Set to the new value.
@@ -9025,11 +9050,19 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 	                }
 	            }
 			    if ( doRemove || doSetMissing ) {
+			    	// In both cases set to missing:
+			    	// - handle the counts specifically to match the requested action
 			        if ( doSetFlag ) {
 			            ts.setDataValue ( date, missing, setFlag, 1 );
 			        }
 			        else {
 			            ts.setDataValue ( date, missing );
+			        }
+			        if ( doRemove ) {
+			        	++removeCount;
+			        }
+			        else {
+			        	++setMissingCount;
 			        }
 			    }
 			    else {
@@ -9039,57 +9072,95 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 			        else {
 			            ts.setDataValue ( date, newvalue );
 			        }
+			        ++replaceCount;
 			    }
-			    ++replaceCount;
 			}
 		}
 	}
 
 	// Set the genesis information.
 
-	if ( replaceCount > 0 ) {
+	// Control setting the time series description.
+	boolean newDescriptionLogic = true;
+	if ( (removeCount > 0) || (removeMissingCount > 0) || (replaceCount > 0) || (setMissingCount > 0) ) {
+		// The time series has been changed in some way.
 		if ( (setFlagDescription != null) && !setFlagDescription.isEmpty() ) {
-			// Description was provided.
+			// The flag description was provided so use it.
 			ts.addDataFlagMetadata(new TSDataFlagMetadata(setFlag, setFlagDescription));
         }
         else {
-        	// Auto-generate flag description - set doRemove because regular time series will have missing values.
+        	// Auto-generate the flag description - set doRemove because regular time series will have missing values.
         	if ( doRemove ) {
-        		ts.addDataFlagMetadata(new TSDataFlagMetadata(setFlag, "Removed values that matched min=" +
+        		ts.addDataFlagMetadata(new TSDataFlagMetadata(setFlag, "Removed " + removeCount + " values that matched min=" +
         			StringUtil.formatString(minValue,"%.6f") + " max=" + StringUtil.formatString(maxValue,"%.6f") +
         			" flag=" + matchFlag) );
         	}
+        	else if ( doRemoveMissing ) {
+        		ts.addDataFlagMetadata(new TSDataFlagMetadata(setFlag, "Removed " + removeMissingCount + " values.") );
+        	}
         	else if ( doSetMissing ) {
-        		ts.addDataFlagMetadata(new TSDataFlagMetadata(setFlag, "Replaced values with missing for values that matched min=" +
+        		ts.addDataFlagMetadata(new TSDataFlagMetadata(setFlag, "Set " + setMissingCount
+        			+ " values to missing for values that matched min=" +
         			StringUtil.formatString(minValue,"%.6f") + " max=" + StringUtil.formatString(maxValue,"%.6f") +
         			" flag=" + matchFlag) );
         	}
         	else {
-        		ts.addDataFlagMetadata(new TSDataFlagMetadata(setFlag, "Replaced values with " +
+        		ts.addDataFlagMetadata(new TSDataFlagMetadata(setFlag, "Replaced " + replaceCount + " values with " +
         			StringUtil.formatString(newValue,"%.6f") +
         			"for values that matched min=" + StringUtil.formatString(minValue,"%.6f") +
         			" max=" + StringUtil.formatString(maxValue,"%.6f") + " flag=" + matchFlag) );
         	}
         }
-    	if ( doRemove || doSetMissing ) {
-    	    ts.setDescription ( ts.getDescription() + ", replaceValue(" +
-                StringUtil.formatString(minvalue, "%.3f") + "," +
-                StringUtil.formatString(maxvalue, "%.3f") + "," +
-                action + ")" );
-            ts.addToGenesis ( "Replace " + StringUtil.formatString(minvalue,"%.3f")+
-               " - " + StringUtil.formatString(maxvalue,"%.3f") + " using action \"" + action + "\" " +
-               start + " to " + end + " (" + replaceCount + " occurrences)." );
+		
+		if ( !newDescriptionLogic ) {
+			// Old code prior to TSTool 14.8.4:
+			// - phase out because results in ugly descriptions in graphs without adding much value
+			// - could use something with Auto, but description is ugly and maybe not worth using
+			if ( doRemove || doSetMissing ) {
+				ts.setDescription ( ts.getDescription() + ", replaceValue(" +
+					StringUtil.formatString(minvalue, "%.3f") + "," +
+					StringUtil.formatString(maxvalue, "%.3f") + "," +
+					action + ")" );
+			}
+			else {
+				ts.setDescription ( ts.getDescription() + ", replaceValue(" +
+					StringUtil.formatString(minvalue, "%.3f") + "," +
+					StringUtil.formatString(maxvalue, "%.3f") + "," +
+					StringUtil.formatString(newvalue, "%.3f") + ")" );
+			}
+		}
+		
+		// Set the genesis information.
+		if ( doRemove ) {
+			ts.addToGenesis ( "Replace " + StringUtil.formatString(minvalue,"%.3f") +
+				" - " + StringUtil.formatString(maxvalue,"%.3f") + " using action \"" + action + "\" " +
+				start + " to " + end + " (removed " + removeCount + " values)." );
+    	}
+		else if ( doRemoveMissing ) {
+			ts.addToGenesis ( "Replace " + StringUtil.formatString(minvalue,"%.3f") +
+				" - " + StringUtil.formatString(maxvalue,"%.3f") + " using action \"" + action + "\" " +
+				start + " to " + end + " (removed " + removeMissingCount + " missing values)." );
+    	}
+		else if ( doSetMissing ) {
+			ts.addToGenesis ( "Replace " + StringUtil.formatString(minvalue,"%.3f") +
+				" - " + StringUtil.formatString(maxvalue,"%.3f") + " using action \"" + action + "\" " +
+				start + " to " + end + " (set " + setMissingCount + " to missing values)." );
     	}
     	else {
-    	    ts.setDescription ( ts.getDescription() + ", replaceValue(" +
-                StringUtil.formatString(minvalue, "%.3f") + "," +
-                StringUtil.formatString(maxvalue, "%.3f") + "," +
-                StringUtil.formatString(newvalue, "%.3f") + ")" );
-        	ts.addToGenesis ( "Replace " + StringUtil.formatString(minvalue,"%.3f")+
+        	ts.addToGenesis ( "Replace " + StringUtil.formatString(minvalue,"%.3f") +
             	" - " + StringUtil.formatString(maxvalue,"%.3f") + " with " +
             	StringUtil.formatString(newvalue,"%.3f") + " " + start + " to " + end +
-            	" (" + replaceCount + " occurrences)." );
+            	" (replaced " + replaceCount + " values)." );
     	}
+	}
+
+	if ( newDescriptionLogic ) {
+		// Set the time series description.
+		// New logic.  Set the description based on user input, if requested:
+		// - any expansion of time series properties or other properties must occur in the calling code
+		if ( (description != null) && !description.isEmpty() ) {
+			ts.setDescription(description);
+		}
 	}
 }
 
