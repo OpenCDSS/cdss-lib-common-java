@@ -50,10 +50,11 @@ public class HelpViewer {
 	private static HelpViewer helpViewer = null;
 
 	/**
-	 * Interface implementation to format the URL.
+	 * Default interface implementation to format the URL.
 	 * This allows application-specific help URLs to be formatted.
+	 * For example, this is used for application URL formatting.
 	 */
-	private HelpViewerUrlFormatter urlFormatter = null;
+	private HelpViewerUrlFormatter defaultUrlFormatter = null;
 
 	/**
 	 * Constructor for default instance.
@@ -72,78 +73,86 @@ public class HelpViewer {
 	}
 
 	/**
-	 * Set the object that will format URLs for the viewer.
-	 * This is typically called application code that has knowledge of the documentation organization.
-	 * @param urlFormatting an instance of HelpViewerUtlFormatting that will format URLs for a documentation page
+	 * Set the default HelpViewUrlFormatting that will format URLs for the viewer.
+	 * This is typically called in application code that has knowledge of the documentation organization.
+	 * @param urlFormatter an instance of HelpViewerUtlFormatting that will format URLs for a documentation page
 	 */
 	public void setUrlFormatter(HelpViewerUrlFormatter urlFormatter) {
-		this.urlFormatter = urlFormatter;
+		this.defaultUrlFormatter = urlFormatter;
 	}
 
 	/**
-	 * Show the help using a web browser, using the default documentation home.
+	 * Show the help using a web browser, using the default root URL and formatting
+	 * (which are typically set from application code).
+	 * This is typically called by application code that has set a formatter.
 	 * @param group the group to which the item belongs, will be passed to HelpViewerUrlFormatter().formatUrl().
 	 * For example, when used with TSTool command documentation, this is "command".
 	 * @param item the item for which to display help, will be passed to HelpViewerUrlFormatter().formatUrl().
 	 * For example, when used with TSTool command documentation, this is the command name.
 	 */
 	public void showHelp ( String group, String item ) {
-		showHelp ( group, item, null );
+		String rootUrl = null;
+		showHelp ( group, item, rootUrl );
 	}
 
 	/**
-	 * Show the help using a web browser.
+	 * Show the help using a web browser, using the given root URL.
+	 * This has been called by plugins to override the root URL in the application URL formatter.
+	 * Newer plugin versions provide their own URL formatter that is more granular,
+	 * for example handling the plugin version.
 	 * @param group the group to which the item belongs, will be passed to HelpViewerUrlFormatter().formatUrl().
 	 * For example, when used with TSTool command documentation, this is "command".
 	 * @param item the item for which to display help, will be passed to HelpViewerUrlFormatter().formatUrl().
 	 * For example, when used with TSTool command documentation, this is the command name.
 	 * @param rootUrl the root URL for documentation, can be used for plugins when standard TSTool documentation is not used,
 	 * use null to use the default documentation home set at application startup
+	 * @deprecated use the version that provides HelpViewerUrlFormatter
 	 */
 	public void showHelp ( String group, String item, String rootUrl ) {
-		String routine = "showHelp";
+		String routine = getClass().getSimpleName() + ".showHelp";
 		// Use the default web browser application to display help.
-		if ( this.urlFormatter == null ) {
+		if ( this.defaultUrlFormatter == null ) {
 	    	Message.printWarning(1, "",
 		    	"Unable to display documentation for group \"" + group + "\" and item \"" + item + "\" - no URL formatter defined." );
 		}
 		else {
 			// Format the URL for the item.
-			String docUri = this.urlFormatter.formatHelpViewerUrl(group, item, rootUrl);
-			if ( docUri == null ) {
+			String docUrl = this.defaultUrlFormatter.formatHelpViewerUrl(group, item, rootUrl);
+			if ( docUrl == null ) {
 				Message.printWarning(1, "", "Unable to determine documentation URL for group=\"" + group + "\", item=\""
 					+ item + "\", rootUrl=\"" + rootUrl + "\"." );
 			}
-	        // Now display using the default application for the file extension.
-	        Message.printStatus(2, routine, "Opening documentation \"" + docUri + "\"" );
-			// Use the desktop to display documentation.
-			if ( !Desktop.isDesktopSupported() ) {
-				if ( IOUtil.isUNIXMachine() ) {
-					// Only try on Linux since Windows Desktop seems to work OK.
-					showHelpRunBrowserUnix(docUri);
-				}
-				else {
-					Message.printWarning(1, "", "Opening browser from software not supported.  View the following in a browser: " + docUri );
-				}
+			showWebPage ( docUrl );
+	    }
+	}
+
+	/**
+	 * Show the help using a web browser,
+	 * given a specific HelpViewerUrlFormatter.
+	 * This is used by new application plugins that format the help URL specific to a plugin version and feature.
+	 * @param group the group to which the item belongs, will be passed to HelpViewerUrlFormatter().formatUrl().
+	 * For example, when used with TSTool command documentation, this is "command".
+	 * @param item the item for which to display help, will be passed to HelpViewerUrlFormatter().formatUrl().
+	 * For example, when used with TSTool command documentation, this is the command name.
+	 * @param rootUrl the root URL for documentation, can be used for plugins when standard TSTool documentation is not used,
+	 * use null to use the default documentation home set at application startup
+	 * @param urlFormatter if null, use the default formatter (typically set for an application),
+	 * if non-null use the formatter that is provided (e.g., from an application plugin)
+	 */
+	public void showHelp ( String group, String item, HelpViewerUrlFormatter urlFormatter ) {
+		// Use the default web browser application to display help.
+		if ( urlFormatter == null ) {
+	    	Message.printWarning(1, "",
+		    	"Unable to display documentation for group \"" + group + "\" and item \"" + item + "\" - no URL formatter defined." );
+		}
+		else {
+			// Format the URL for the item.
+			String docUrl = urlFormatter.formatHelpViewerUrl(group, item);
+			if ( docUrl == null ) {
+				Message.printWarning(1, "", "Unable to determine documentation URL for group=\"" + group + "\", item=\""
+					+ item + "\"." );
 			}
-			else {
-		        // The Desktop.browse() method will always open, even if the page does not exist,
-		        // and it won't return the HTTP error code in this case.
-		        // Therefore, do a check to see if the URI is available before opening in a browser.
-		        try {
-		            Desktop desktop = Desktop.getDesktop();
-		            desktop.browse ( new URI(docUri) );
-		        }
-		        catch ( Exception e ) {
-		        	if ( IOUtil.isUNIXMachine() ) {
-					   	// Only try on Linux since Windows Desktop seems to work OK.
-					   	showHelpRunBrowserUnix(docUri);
-				    }
-		        	else {
-		        		Message.printWarning(2, "", "Unable to display documentation at \"" + docUri + "\" (" + e + ")." );
-		        	}
-		        }
-			}
+			showWebPage ( docUrl );
 	    }
 	}
 
@@ -196,6 +205,44 @@ public class HelpViewer {
 		if ( !browserOk ) {
 			Message.printWarning(1, "", "Opening browser from software not supported and unable to open in browser." +
 			   "  View the following in a browser: " + docUri );
+		}
+	}
+
+	/**
+	 * Show the web page for the given URL.
+	 * @param docUri 
+	 */
+	private void showWebPage ( String docUri ) {
+		String routine = getClass().getSimpleName() + ".showWebPage";
+	    // Now display using the default application for the file extension.
+	    Message.printStatus(2, routine, "Opening documentation \"" + docUri + "\"" );
+		// Use the desktop to display documentation.
+		if ( !Desktop.isDesktopSupported() ) {
+			if ( IOUtil.isUNIXMachine() ) {
+				// Only try on Linux since Windows Desktop seems to work OK.
+				showHelpRunBrowserUnix(docUri);
+			}
+			else {
+				Message.printWarning(1, "", "Opening browser from software not supported.  View the following in a browser: " + docUri );
+			}
+		}
+		else {
+	        // The Desktop.browse() method will always open, even if the page does not exist,
+	        // and it won't return the HTTP error code in this case.
+	        // Therefore, do a check to see if the URI is available before opening in a browser.
+	        try {
+	            Desktop desktop = Desktop.getDesktop();
+		        desktop.browse ( new URI(docUri) );
+		    }
+		    catch ( Exception e ) {
+		       	if ( IOUtil.isUNIXMachine() ) {
+				   	// Only try on Linux since Windows Desktop seems to work OK.
+				   	showHelpRunBrowserUnix(docUri);
+			    }
+		       	else {
+		       		Message.printWarning(2, "", "Unable to display documentation at \"" + docUri + "\" (" + e + ")." );
+		       	}
+		    }
 		}
 	}
 

@@ -33,6 +33,11 @@ public class UrlReader {
 	 * Optional request data (e.g., JSON).
 	 */
 	private String requestData = null;
+	
+	/**
+	 * Optional timeout (ms), used for both connect and read.
+	 */
+	private int timeout = -1;
 
 	/**
 	 * UrlReader constructor.
@@ -40,7 +45,7 @@ public class UrlReader {
 	 */
 	public UrlReader ( String url ) {
 		// Call the overloaded method.
-		this ( url, null, null);
+		this ( url, null, null, -1 );
 	}
 
 	/**
@@ -50,9 +55,23 @@ public class UrlReader {
 	 * @param requestData request data to send, can be null
 	 */
 	public UrlReader ( String url, MultiKeyStringDictionary requestProperties, String requestData ) {
+		// Call the overloaded method.
+		this ( url, requestProperties, requestData, -1 );
+	}
+
+	/**
+	 * UrlReader constructor.
+	 * @param url URL to read.
+	 * @param requestProperties request properties to send, can be null or empty map
+	 * @param requestData request data to send, can be null
+	 * @param timeout connect (time until a connection is established) and
+	 * read (time until data available for reading) timeout in milliseconds, or < 0 to not specify the timeout
+	 */
+	public UrlReader ( String url, MultiKeyStringDictionary requestProperties, String requestData, int timeout ) {
 		this.url = url;
 		this.requestProperties = requestProperties;
 		this.requestData = requestData;
+		this.timeout = timeout;
 	}
 	
 	/**
@@ -73,6 +92,10 @@ public class UrlReader {
             // Open the input stream...
             URL url = new URL(this.url);
             urlConnection = (HttpURLConnection)url.openConnection();
+            if ( this.timeout > 0 ) {
+            	urlConnection.setConnectTimeout(timeout);
+            	urlConnection.setReadTimeout(timeout);
+            }
             if ( this.requestProperties != null ) {
             	// Add the request properties.
 				for ( int i = 0; i < this.requestProperties.size(); i++ ) {
