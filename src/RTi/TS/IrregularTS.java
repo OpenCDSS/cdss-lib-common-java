@@ -1347,6 +1347,17 @@ public void refresh () {
 }
 
 /**
+ * Remove all data.
+ */
+public void removeAllData () {
+	// Set back to initial conditions.
+	this.__tsDataList = null;
+	this.__prevSetDataPointer = null;
+	this.__prevRemoveDataPointerNext = null;
+	this.__data_index = -1;
+}
+
+/**
 Remove a data point corresponding to the index of the data array.
 This is used in internal code.
 The 'next' and 'prev' pointers in the TSData objects are repositioned around the removed item.
@@ -1354,6 +1365,9 @@ The 'next' and 'prev' pointers in the TSData objects are repositioned around the
 @return true if the point was removed, false if not (index was not found)
 */
 public boolean removeDataPoint ( int index ) {
+	if ( this.__tsDataList == null ) {
+		return false;
+	}
 	int size = this.__tsDataList.size();
 	if ( (index >= 0) && (index < size) ) {
 		// Index is in the array space.

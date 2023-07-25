@@ -1,14 +1,16 @@
 package RTi.Util.Time;
 
+import RTi.Util.Message.Message;
 import junit.framework.TestCase;
 
 /**
- * Test cases for the TimeUtil class.
+ * Test cases for the TimeUtil class methods:
+ * - all methods below are alphabetized by method name
  */
 public class TestTimeUtil extends TestCase {
     
     /**
-     * Test for calendar year type in first month of year.
+     * Test 'dayOfYear' method for calendar year type in first month of year.
      */
     public void testDayOfYear_Calendar1() {
         int days = 0;
@@ -24,7 +26,7 @@ public class TestTimeUtil extends TestCase {
     }
     
     /**
-     * Test for calendar year type in second month of year.
+     * Test 'dayOfYear' method for calendar year type in second month of year.
      */
     public void testDayOfYear_Calendar2() {
         int days = 0;
@@ -40,7 +42,7 @@ public class TestTimeUtil extends TestCase {
     }
     
     /**
-     * Test for water year type in first month of year.
+     * Test 'dayOfYear' method for water year type in first month of year.
      */
     public void testDayOfYear_Water1() {
         int days = 0;
@@ -56,7 +58,7 @@ public class TestTimeUtil extends TestCase {
     }
     
     /**
-     * Test for water year type in third month of year.
+     * Test 'dayOfYear' method for water year type in third month of year.
      */
     public void testDayOfYear_Water3() {
         int days = 0;
@@ -73,7 +75,7 @@ public class TestTimeUtil extends TestCase {
    }
     
     /**
-     * Test for water year type in fourth month of year (first calendar month).
+     * Test 'dayOfYear' method for water year type in fourth month of year (first calendar month).
      */
     public void testDayOfYear_Water4() {
         int days = 0;
@@ -90,7 +92,7 @@ public class TestTimeUtil extends TestCase {
     }
     
     /**
-     * Test for water year type in 12 month of year.
+     * Test 'dayOfYear' method for water year type in 12 month of year.
      */
     public void testDayOfYear_Water12() {
         int days = 0;
@@ -107,7 +109,7 @@ public class TestTimeUtil extends TestCase {
     }
     
    /**
-    * Test for calendar year type.
+    * Test 'monthOfYear' method for calendar year type.
     */
    public void testMonthOfYear_Calendar11() {
        int months = 0;
@@ -123,7 +125,7 @@ public class TestTimeUtil extends TestCase {
    }
    
    /**
-    * Test for water year type, where the calendar month is at the start of the water year.
+    * Test 'monthOfYear' method for water year type, where the calendar month is at the start of the water year.
     */
    public void testMonthOfYear_WaterYear10() {
        int months = 0;
@@ -139,7 +141,7 @@ public class TestTimeUtil extends TestCase {
    }
    
    /**
-    * Test for water year type, where the calendar month is 12.
+    * Test 'monthOfYear' for water year type, where the calendar month is 12.
     */
    public void testMonthOfYear_WaterYear12() {
        int months = 0;
@@ -155,7 +157,7 @@ public class TestTimeUtil extends TestCase {
    }
    
    /**
-    * Test for water year type, where the calendar month is 1.
+    * Test 'monthOfYear' method for water year type, where the calendar month is 1.
     */
    public void testMonthOfYear_WaterYear11() {
        int months = 0;
@@ -171,7 +173,7 @@ public class TestTimeUtil extends TestCase {
    }
    
    /**
-    * Test for water year type, where the calendar month is 9.
+    * Test 'monthOfYear' method for water year type, where the calendar month is 9.
     */
    public void testMonthOfYear_WaterYear9() {
        int months = 0;
@@ -187,7 +189,7 @@ public class TestTimeUtil extends TestCase {
    }
    
    /**
-    * Test for null data - should generate an exception.
+    * Test 'monthOfYear' method for null data - should generate an exception.
     */
    public void testMonthOfYear_Exception() {
        try {
@@ -195,8 +197,45 @@ public class TestTimeUtil extends TestCase {
            fail ( "Exception on null data - behavior expected." );
        }
        catch ( Exception e ) {
-           // Should fail here, which means that the test passed
+           // Should fail here, which means that the test passed.
        }
    }
 
+   /**
+    * Test 'shiftTimeZone' for setting to blank'.
+    */
+   public void testShiftTimeZone_Blank() {
+	   DateTime dt = null;
+	   String routine = getClass().getSimpleName() + ".testShiftTimeZone_Blank";
+       try {
+    	   dt = DateTime.parse("2023-01-01 12:00:00 GMT");
+    	   System.out.println( routine + ": DateTime before shift: " + dt);
+    	   dt.shiftTimeZone("");
+    	   //Message.printStatus(2, routine, "DateTime after shift: " + dt);
+    	   System.out.println( routine + ": DateTime after shift: " + dt);
+       }
+       catch ( Exception e ) {
+           fail ( e.toString() );
+       }
+       assertEquals ( dt.toString(), "2023-01-01 12:00:00" );
+   }
+
+   /**
+    * Test 'shiftTimeZone' for 'GMT' to 'America/Denver'.
+    */
+   public void testShiftTimeZone_GMT_To_Denver() {
+	   DateTime dt = null;
+	   String routine = getClass().getSimpleName() + ".testShiftTimeZone_GMT_To_Denver";
+       try {
+    	   dt = DateTime.parse("2023-01-01 12:00:00 GMT");
+    	   System.out.println( routine + ": DateTime before shift: " + dt);
+    	   dt.shiftTimeZone("America/Denver");
+    	   //Message.printStatus(2, routine, "DateTime after shift: " + dt);
+    	   System.out.println( routine + ": DateTime after shift: " + dt);
+       }
+       catch ( Exception e ) {
+           fail ( e.toString() );
+       }
+       assertEquals ( dt.toString(), "2023-01-01 05:00:00 America/Denver" );
+   }
 }
