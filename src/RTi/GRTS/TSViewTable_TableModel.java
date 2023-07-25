@@ -80,11 +80,12 @@ whereas it is nearly instant with the steps taken here.
 public class TSViewTable_TableModel extends JWorksheet_AbstractRowTableModel<TS>
 {
 
-/**
-Whether to use the TS extended legend as the TS's column title.  If false, the TS normal legend will be used.
-*/
-private boolean __useExtendedLegend = false;
-
+	/**
+	 * Whether the time zones for all time series are the same.
+	 * This is used to control how the column headings are formatted.
+	 */
+	private boolean areTimeZonesSame = true;
+	
 /**
 An array of DateTime values that are pre-calculated in order to speed up calculation of DateTimes in the middle of the dataset.
 Each element in this array contains the DateTime for the row at N*(__cacheInterval).
@@ -216,6 +217,11 @@ TODO SAM 2014-04-06 Remove when not needed.
 private boolean __showRow = false;
 
 /**
+Whether to use the TS extended legend as the TS's column title.  If false, the TS normal legend will be used.
+*/
+private boolean __useExtendedLegend = false;
+
+/**
 Constructor.  This builds the Model for displaying the given TS data and pre-calculates and caches every 50th row's date.
 @param data List of TS to graph in the table.
 The TS must have the same data interval and data units, but this will not be checked in the table model;
@@ -273,7 +279,7 @@ throws Exception {
 	_data = data;
 	__columns = data.size() + 1;
 	if ( intervalBase == TimeInterval.IRREGULAR ) {
-	    TS ts = (TS)data.get(0);
+	    TS ts = data.get(0);
 	    DateTime d = ts.getDate1();
 	    if ( d == null ) {
 	        d = ts.getDate1Original();
@@ -292,7 +298,7 @@ throws Exception {
 	    if ( (__irregularDateTimePrecision == DateTime.PRECISION_MINUTE) ||
 	        (__irregularDateTimePrecision == DateTime.PRECISION_HOUR) ) {
     	    for ( int i = 1; i < __columns; i++ ) {
-    	        ts = (TS)_data.get(i - 1);
+    	        ts = _data.get(i - 1);
                 String tz = "";
                 DateTime dt = ts.getDate1();
                 __irregularPrototypeDateTime[i - 1] = null;
@@ -331,7 +337,7 @@ throws Exception {
 		    _rows = __irregularDateTimeCache.size();
 		}
 		else {
-		    _rows = TSUtil.calculateDataSize((TS)data.get(0), __start, end);
+		    _rows = TSUtil.calculateDataSize(data.get(0), __start, end);
 		}
 	}
 
@@ -369,6 +375,10 @@ throws Exception {
     		}
     	}
 	}
+
+	// Check whether time zones are the same, to help with table labeling.
+	this.areTimeZonesSame = TSUtil.areTimeZonesSame(data);
+
 	// Adjust columns if the row is being shown for troubleshooting.
     if ( __showRow ) {
         ++__columns;
@@ -379,6 +389,7 @@ throws Exception {
 Create a cache of date/times for irregular time series (all date/times that occur).
 Requesting a date/time from an irregular time series will either return the matching data or blanks will be shown.
 Each time series is iterated in parallel to find the list of date/times.
+If the time zone for the time series is different, it is not shown in the date/time column but is indicated in the column heading.
 The worksheet row=0 will correspond to the first date/time.
 */
 private void createIrregularTSDateTimeCache ()
@@ -582,21 +593,6 @@ throws TSException {
 }
 
 /**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	IOUtil.nullArray(__cachedDates);
-	__firstVisibleRowDate = null;
-	__priorDateTime = null;
-	__start = null;
-	__workingDate = null;
-	__worksheet = null;
-	IOUtil.nullArray(__dataFormats);
-	super.finalize();
-}
-
-/**
 Returns the class of the data stored in a given column.
 @param columnIndex the column for which to return the data class.
 */
@@ -655,7 +651,7 @@ public String getColumnName(int columnIndex) {
 	}
 
 	// Otherwise the column names depends on time series properties.
-    TS ts = (TS)_data.get(columnIndex - 1);
+    TS ts = _data.get(columnIndex - 1);
 
     Object propVal = ts.getProperty("TableViewHeaderFormat");
     if ( (propVal != null) && !propVal.equals("") ) {
@@ -688,14 +684,25 @@ public String getColumnName(int columnIndex) {
 			// Have a sequence identifier for a trace so include in the header.
 			sequenceString = " [" + ts.getSequenceID() + "]";
 		}
+		String columnName = null;
 		if ( ts.getAlias().isEmpty() ) {
 			// Don't have the alias so use the time series identifier location in the header.
-			return ts.getLocation() + sequenceString + datatypeString + unitsString;
+			columnName = ts.getLocation() + sequenceString + datatypeString + unitsString;
 		}
 		else {
 			// Use the alias in the header.
-			return ts.getAlias() + sequenceString + datatypeString + unitsString;
+			columnName = ts.getAlias() + sequenceString + datatypeString + unitsString;
 		}
+		if ( !this.areTimeZonesSame ) {
+			// If the time zone is used in both time series and is different, show it in the data value column heading.
+			if ( ts.getDate1().getTimeZoneAbbreviation().isEmpty() ) {
+				columnName += ", NO-TZ";
+			}
+			else {
+				columnName += ", " + ts.getDate1().getTimeZoneAbbreviation();
+			}
+		}
+		return columnName;
 	}
 }
 
@@ -708,15 +715,15 @@ public String[] getColumnToolTips() {
     TS ts;
     StringBuilder sb = new StringBuilder (
         "<html>The DATE or DATE/TIME is formatted according to the precision of date/times for the time series." );
-    if ( __irregularTZSame ) {
+    if ( this.areTimeZonesSame ) {
         sb.append("<br>The time zone for the date/time column is included " +
-        	"because all irregular time series have the same time zone.");
+        	"because all time series have the same time zone.");
     }
     else {
         // Time zones are not equal and therefore time zone is set to blank for the date/time cache.
         sb.append("<br>The time zone for the date/time column has been removed because the time zone is different for the time series." );
-        sb.append("<br>See column heading tool tips for each time zone.");
-        sb.append("<br>If desired, display a table for only time series with the same time zone.");
+        sb.append("<br>See column heading and tool tips for each time zone.");
+        sb.append("<br>If desired, display a table for only time series to see the time zone.");
     }
     sb.append("</html>");
     tt[0] = sb.toString();
@@ -725,13 +732,28 @@ public String[] getColumnToolTips() {
         --iend;
     }
     for ( int i = 1; i < iend; i++ ) {
-        ts = (TS)_data.get(i - 1);
+        ts = _data.get(i - 1);
         sb = new StringBuilder(
             "<htmL>TSID = " + ts.getIdentifierString() + "<br>" +
             "Alias = " + ts.getAlias() + "<br>" +
-            "Description = " + ts.getDescription() );
-        if ( (__intervalBase == TimeInterval.MINUTE) || (__intervalBase == TimeInterval.HOUR) ||
-            (__intervalBase == TimeInterval.IRREGULAR) ) {
+            "Description = " + ts.getDescription() + "<br>" +
+            "Units = " + ts.getDataUnits() );
+        boolean includeZone = false;
+        // Determine whether time zone is relevant.
+        if ( ts.isRegularInterval() ) {
+        	if ( this.__intervalBase <= TimeInterval.HOUR ) {
+        		includeZone = true;
+        	}
+        }
+        else {
+        	// Have to parse the interval.
+        	TimeInterval interval = TimeInterval.parseInterval(ts.getIdentifier().getInterval());
+        	int precision = interval.getIrregularIntervalPrecision();
+        	if ( (precision != TimeInterval.UNKNOWN) && (precision <= TimeInterval.HOUR) ) {
+        		includeZone = true;
+        	}
+        }
+        if ( includeZone ) {
             String tz = "";
             DateTime dt = ts.getDate1();
             if ( dt != null ) {
@@ -748,66 +770,77 @@ public String[] getColumnToolTips() {
 /**
 Does a consecutive read to get the value at the specified row and column.
 See JWorksheet for more information on consecutive reads.
+Consecutive reads optimize performance when reads are typically done in sequence.
 @param row row from which to return a value.
 @param col column from which to return a value.
 @return the value at the specified row and column.
 */
 public Object getConsecutiveValueAt(int row, int col) {
-    if ( __intervalBase == TimeInterval.IRREGULAR ) {
+    if ( this.__intervalBase == TimeInterval.IRREGULAR ) {
         // Irregular data have all the date/times cached consistent with rows so handle specifically.
         return getValueAtIrregular(row,col);
     }
 
 	if (shouldResetGetConsecutiveValueAt()) {
 		shouldResetGetConsecutiveValueAt(false);
-		__priorRow = -1;
+		this.__priorRow = -1;
 	}
+	
+	if (this.__priorRow == -1) {
+		int precision = this.__cachedDates[row / this.__cacheInterval].getPrecision();
+		// Control whether time zone is shown.
+		if ( !this.areTimeZonesSame ) {
+			// Time zone for time series are different:
+			// - the time zone is NOT included in the date/time column value
+			// - show the time zone in the in the column heading and tooltip
+			precision |= DateTime.PRECISION_NO_TIME_ZONE;
+		}
 
-	if (__priorRow == -1) {
-		DateTime temp = new DateTime( __cachedDates[row / __cacheInterval]);
-		if (__intervalBase == TimeInterval.MINUTE) {
-			temp.addMinute((row % __cacheInterval) * __intervalMult);
+		DateTime temp = new DateTime( this.__cachedDates[row / this.__cacheInterval], precision);
+
+		if (this.__intervalBase == TimeInterval.MINUTE) {
+			temp.addMinute((row % this.__cacheInterval) * this.__intervalMult);
 		}
-		else if (__intervalBase == TimeInterval.HOUR) {
-			temp.addHour((row % __cacheInterval) * __intervalMult);
+		else if (this.__intervalBase == TimeInterval.HOUR) {
+			temp.addHour((row % this.__cacheInterval) * this.__intervalMult);
 		}
-		else if (__intervalBase == TimeInterval.DAY) {
-			temp.addDay((row % __cacheInterval) * __intervalMult);
+		else if (this.__intervalBase == TimeInterval.DAY) {
+			temp.addDay((row % this.__cacheInterval) * this.__intervalMult);
 		}
-		else if (__intervalBase == TimeInterval.MONTH) {
-			temp.addMonth((row % __cacheInterval) * __intervalMult);
+		else if (this.__intervalBase == TimeInterval.MONTH) {
+			temp.addMonth((row % this.__cacheInterval) * this.__intervalMult);
 		}
-		else if (__intervalBase == TimeInterval.YEAR) {
-			temp.addYear((row % __cacheInterval) * __intervalMult);
+		else if (this.__intervalBase == TimeInterval.YEAR) {
+			temp.addYear((row % this.__cacheInterval) * this.__intervalMult);
 		}
-		__priorDateTime = temp;
-		__priorRow = row;
+		this.__priorDateTime = temp;
+		this.__priorRow = row;
 	}
-	else if (__priorRow != row) {
-		if (__intervalBase == TimeInterval.MINUTE) {
-			__priorDateTime.addMinute(1 * __intervalMult);
+	else if (this.__priorRow != row) {
+		if (this.__intervalBase == TimeInterval.MINUTE) {
+			this.__priorDateTime.addMinute(1 * this.__intervalMult);
 		}
-		else if (__intervalBase == TimeInterval.HOUR) {
-			__priorDateTime.addHour(1 * __intervalMult);
+		else if (this.__intervalBase == TimeInterval.HOUR) {
+			this.__priorDateTime.addHour(1 * this.__intervalMult);
 		}
-		else if (__intervalBase == TimeInterval.DAY) {
-			__priorDateTime.addDay(1 * __intervalMult);
+		else if (this.__intervalBase == TimeInterval.DAY) {
+			this.__priorDateTime.addDay(1 * this.__intervalMult);
 		}
-		else if (__intervalBase == TimeInterval.MONTH) {
-			__priorDateTime.addMonth(1 * __intervalMult);
+		else if (this.__intervalBase == TimeInterval.MONTH) {
+			this.__priorDateTime.addMonth(1 * this.__intervalMult);
 		}
-		else if (__intervalBase == TimeInterval.YEAR) {
-			__priorDateTime.addYear(1 * __intervalMult);
+		else if (this.__intervalBase == TimeInterval.YEAR) {
+			this.__priorDateTime.addYear(1 * this.__intervalMult);
 		}
-		__priorRow = row;
+		this.__priorRow = row;
 	}
 
 	if (col > 0) {
-		TS ts = _data.get(col-1);
-		return new Double(ts.getDataValue(__priorDateTime));
+		TS ts = this._data.get(col-1);
+		return new Double(ts.getDataValue(this.__priorDateTime));
 	}
 	else {
-		return __priorDateTime;
+		return this.__priorDateTime;
 	}
 }
 
@@ -926,12 +959,12 @@ Returns the time series.
 @return the time series at a specific index i.
 */
 public TS getTS ( int i ) {
-	return (TS)_data.get(i);
+	return _data.get(i);
 }
 
 /**
 Returns the time series.
-@return the Vector of time series.
+@return the list of time series.
 */
 public List<TS> getTSList() {
 	return _data;
@@ -944,105 +977,116 @@ Returns the data that should be placed in the JTable at the given row and column
 @return the data that should be placed in the JTable at the given row and column.
 */
 public Object getValueAt(int row, int col) {
-    if ( __intervalBase == TimeInterval.IRREGULAR ) {
+    if ( this.__intervalBase == TimeInterval.IRREGULAR ) {
         // Irregular data have all the date/times cached consistent with rows so handle specifically.
         return getValueAtIrregular(row,col);
     }
+    
+    // Below is for regular interval.
 
 	if (shouldDoGetConsecutiveValueAt()) {
 		// Do a consecutive get value at rather than this sequential one.
 		return getConsecutiveValueAt(row, col);
 	}
 
-	double y = __worksheet.getVisibleRect().getY();
+	double y = this.__worksheet.getVisibleRect().getY();
 
 	// If it's a new Y point from the last time getValueAt was called,
 	// then that means some scrolling has occurred and the top-most row is new.
 	// Need to recalculate the date of the top most row.
 
-	if (__previousTopmostVisibleY != y) {
-		__previousTopmostVisibleY = y;
-		__firstVisibleRow = __worksheet.rowAtPoint(new Point(0,(int)y));
+	if (this.__previousTopmostVisibleY != y) {
+		this.__previousTopmostVisibleY = y;
+		this.__firstVisibleRow = this.__worksheet.rowAtPoint(new Point(0,(int)y));
 
 		// Calculate its date time by looking up the nearest cached one and adding the remainder of intervals to it.
-		__firstVisibleRowDate = new DateTime( __cachedDates[__firstVisibleRow / __cacheInterval]);
+		this.__firstVisibleRowDate = new DateTime( this.__cachedDates[this.__firstVisibleRow / this.__cacheInterval]);
 		int precision = 0;
-		if (__intervalBase == TimeInterval.MINUTE) {
+		if (this.__intervalBase == TimeInterval.MINUTE) {
 			precision = DateTime.PRECISION_MINUTE;
-			__firstVisibleRowDate.addMinute( (__firstVisibleRow % __cacheInterval) * __intervalMult);
+			this.__firstVisibleRowDate.addMinute( (this.__firstVisibleRow % this.__cacheInterval) * this.__intervalMult);
 		}
-		else if (__intervalBase == TimeInterval.HOUR) {
+		else if (this.__intervalBase == TimeInterval.HOUR) {
 			precision = DateTime.PRECISION_HOUR;
-			__firstVisibleRowDate.addHour( (__firstVisibleRow % __cacheInterval) * __intervalMult);
+			this.__firstVisibleRowDate.addHour( (this.__firstVisibleRow % this.__cacheInterval) * this.__intervalMult);
 		}
-		else if (__intervalBase == TimeInterval.DAY) {
+		else if (this.__intervalBase == TimeInterval.DAY) {
 			precision = DateTime.PRECISION_DAY;
-			__firstVisibleRowDate.addDay( (__firstVisibleRow % __cacheInterval) * __intervalMult);
+			this.__firstVisibleRowDate.addDay( (this.__firstVisibleRow % this.__cacheInterval) * this.__intervalMult);
 		}
-		else if (__intervalBase == TimeInterval.MONTH) {
+		else if (this.__intervalBase == TimeInterval.MONTH) {
 			precision = DateTime.PRECISION_MONTH;
-			__firstVisibleRowDate.addMonth( (__firstVisibleRow % __cacheInterval) * __intervalMult);
+			this.__firstVisibleRowDate.addMonth( (this.__firstVisibleRow % this.__cacheInterval) * this.__intervalMult);
 		}
-		else if (__intervalBase == TimeInterval.YEAR) {
+		else if (this.__intervalBase == TimeInterval.YEAR) {
 			precision = DateTime.PRECISION_YEAR;
-			__firstVisibleRowDate.addYear( (__firstVisibleRow % __cacheInterval) * __intervalMult);
+			this.__firstVisibleRowDate.addYear( (this.__firstVisibleRow % this.__cacheInterval) * this.__intervalMult);
 		}
 
-		__workingDate = new DateTime(__firstVisibleRowDate, DateTime.DATE_FAST | precision);
+		if ( !this.areTimeZonesSame ) {
+			// Time zone for time series are different:
+			// - the time zone is NOT included in the date/time column value
+			// - show the time zone in the in the column heading and tooltip
+			precision |= DateTime.PRECISION_NO_TIME_ZONE;
+		}
 
+		this.__workingDate = new DateTime(this.__firstVisibleRowDate, DateTime.DATE_FAST | precision);
+		
 		// Reset this so that on a scroll event none of the rows are drawn incorrectly.
 		// Removing this line will result in a "scrambled"-looking JTable.
-		__lastRowRead = -1;
+		this.__lastRowRead = -1;
 	}
 
-	if (_sortOrder != null) {
-		row = _sortOrder[row];
+	if (this._sortOrder != null) {
+		row = this._sortOrder[row];
 	}
 
 	// The getValueAt function is called row-by-row when a worksheet displays its data,
 	// so the current working date (with which data for the current row is read)
 	// only needs to be recalculated when a new row is moved to.
-	if (row != __lastRowRead) {
-		__lastRowRead = row;
+	if (row != this.__lastRowRead) {
+		this.__lastRowRead = row;
 
 		// Quicker than doing a 'new DateTime'.
-		__workingDate.setHSecond ( __firstVisibleRowDate.getHSecond() );
-		__workingDate.setSecond ( __firstVisibleRowDate.getSecond() );
-		__workingDate.setMinute ( __firstVisibleRowDate.getMinute() );
-		__workingDate.setHour ( __firstVisibleRowDate.getHour() );
-		__workingDate.setDay ( __firstVisibleRowDate.getDay() );
-		__workingDate.setMonth ( __firstVisibleRowDate.getMonth() );
-		__workingDate.setYear ( __firstVisibleRowDate.getYear() );
+		this.__workingDate.setHSecond ( this.__firstVisibleRowDate.getHSecond() );
+		this.__workingDate.setSecond ( this.__firstVisibleRowDate.getSecond() );
+		this.__workingDate.setMinute ( this.__firstVisibleRowDate.getMinute() );
+		this.__workingDate.setHour ( this.__firstVisibleRowDate.getHour() );
+		this.__workingDate.setDay ( this.__firstVisibleRowDate.getDay() );
+		this.__workingDate.setMonth ( this.__firstVisibleRowDate.getMonth() );
+		this.__workingDate.setYear ( this.__firstVisibleRowDate.getYear() );
 
 		// Calculate the date for the current row read.
-		if (__intervalBase == TimeInterval.MINUTE) {
-			__workingDate.addMinute(((row - __firstVisibleRow)* __intervalMult));
+		if (this.__intervalBase == TimeInterval.MINUTE) {
+			this.__workingDate.addMinute(((row - this.__firstVisibleRow)* this.__intervalMult));
 		}
-		else if (__intervalBase == TimeInterval.HOUR) {
-			__workingDate.addHour(((row - __firstVisibleRow)* __intervalMult));
+		else if (this.__intervalBase == TimeInterval.HOUR) {
+			this.__workingDate.addHour(((row - this.__firstVisibleRow)* this.__intervalMult));
 		}
-		else if (__intervalBase == TimeInterval.DAY) {
-			__workingDate.addDay(((row - __firstVisibleRow)* __intervalMult));
+		else if (this.__intervalBase == TimeInterval.DAY) {
+			this.__workingDate.addDay(((row - this.__firstVisibleRow)* this.__intervalMult));
 		}
-		else if (__intervalBase == TimeInterval.MONTH) {
-			__workingDate.addMonth(((row - __firstVisibleRow)* __intervalMult));
+		else if (this.__intervalBase == TimeInterval.MONTH) {
+			this.__workingDate.addMonth(((row - this.__firstVisibleRow)* this.__intervalMult));
 		}
-		else if (__intervalBase == TimeInterval.YEAR) {
-			__workingDate.addYear(((row - __firstVisibleRow)* __intervalMult));
+		else if (this.__intervalBase == TimeInterval.YEAR) {
+			this.__workingDate.addYear(((row - this.__firstVisibleRow)* this.__intervalMult));
 		}
 	}
 
 	if (col == 0) {
+		// Date/time column.
 		return __workingDate.toString();
 	}
-
-	TS ts = (TS)_data.get(col - 1);
-
-	if ( __dataFlagVisualizationType == TSDataFlagVisualizationType.SUPERSCRIPT ) {
-	    return getValueAtFormatValueWithFlag(ts, __workingDate,__dataFormats[col-1]);
-	}
 	else {
-	    return new Double(ts.getDataValue(__workingDate));
+		// Data value column.
+		TS ts = this._data.get(col - 1);
+		if ( this.__dataFlagVisualizationType == TSDataFlagVisualizationType.SUPERSCRIPT ) {
+	    	return getValueAtFormatValueWithFlag(ts, this.__workingDate, this.__dataFormats[col-1]);
+		}
+		else {
+	    	return new Double(ts.getDataValue(this.__workingDate));
+		}
 	}
 }
 
@@ -1106,7 +1150,7 @@ public Object getValueAtIrregular(int row, int col) {
     }
     else {
         // Returning the time series data value.
-        TS ts = (TS)_data.get(col - 1);
+        TS ts = _data.get(col - 1);
         if ( (__irregularPrototypeDateTime != null) && (__irregularPrototypeDateTime[col - 1] != null) ) {
             // Use the prototype DateTime (which has proper time zone for the time series)
             // and overwrite the specific date/time values.
@@ -1171,7 +1215,7 @@ public boolean isCellEditable(int rowIndex, int columnIndex) {
 		/*
 		if ( __dataFlagVisualizationType != TSDataFlagVisualizationType.NOT_SHOWN) {
     		// FIXME SAM (2010-07-15) Figure this out - we added some editing.
-    		TS ts = (TS)_data.get(columnIndex - 1);
+    		TS ts = _data.get(columnIndex - 1);
     		return ts.isEditable();
 		}
 		else {
@@ -1208,7 +1252,7 @@ public void setValueAt(Object value, int row, int col) {
 		return;
 	}
 
-	TS ts = (TS)_data.get(col-1);
+	TS ts = _data.get(col-1);
 
 	if (ts == null) {
 		return;
@@ -1240,8 +1284,8 @@ Sets up the table model to prepare for a consecutive read.
 For more information see the JWorksheet Javadoc about consecutive reads.
 */
 public void startNewConsecutiveRead() {
-	__priorRow = -1;
-	__priorDateTime = null;
+	this.__priorRow = -1;
+	this.__priorDateTime = null;
 }
 
 }

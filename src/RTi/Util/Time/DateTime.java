@@ -12,12 +12,12 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -55,7 +55,7 @@ Specific features of the DateTime class are:
 <li>	An optional bitmask flag can be used at construction to indicate the
 	precision (which matches the TimeInterval values),
 	initialization (to zero or current date/time), and performance (fast or strict).
-	
+
 	TimeInterval.YEAR is equal to DateTime.PRECISION_YEAR, etc.</li>
 <li>	The precision values are mutually exclusive; therefore,
     they can be compared as binary mask values or with ==.</li>
@@ -81,6 +81,10 @@ public class DateTime implements Cloneable, Comparable<DateTime>, Serializable
 Flags for constructing DateTime instances, which modify their behavior.
 These flags have values that do not conflict with the TimeInterval base interval
 values and the flags can be combined in a DateTime constructor.
+The smallest bitmask value must be larger than the largest PRECISION_* integer value to avoid conflict.
+*/
+
+/**
 The following flag indicates that a DateTime be treated strictly,
 meaning that the following dependent data are reset each time a date field changes:
 <p>
@@ -88,32 +92,38 @@ day of year<br>
 whether a leap year<br>
 
 <p>
-This results in slower processing of dates and is the default behavior.
-For iterators, it is usually best to use the DATE_FAST behavior.
+This results in slower processing of dates and is the default behavior
+because checks are done for valid date/time parts and secondary (derived) are computed.
+For iterators, the DATE_FAST behavior can be used to increase performance.
+This is a bit in the precision bit mask flag.
 */
-public static final int DATE_STRICT	= 0x1000;
+public static final int DATE_STRICT	= 0x1000; // Decimal is 4096.
 
 /**
 Indicates that dates need not be treated strictly.
 This is useful for faster processing of dates in loop iterators,
 where the DateTime 'add' methods ensure valid values.
+This is a bit in the precision bit mask flag.
 */
-public static final int DATE_FAST = 0x2000;
+public static final int DATE_FAST = 0x2000; // Decimal is 8192.
 
 /**
 Create a DateTime with zero data and blank time zone, which is the default.
+This is a bit in the precision bit mask flag.
 */
-public static final int DATE_ZERO = 0x4000;
+public static final int DATE_ZERO = 0x4000; // Decimal is 6384.
 
 /**
 Create a DateTime with the current date and time.
+This is a bit in the precision bit mask flag.
 */
-public static final int DATE_CURRENT = 0x8000;
+public static final int DATE_CURRENT = 0x8000; // Decimal is 32768.
 
 /**
-Create a DateTime and only use the time fields.  This works in conjunction with the precision flag.
+Create a DateTime and only use the time fields.
+This is a bit in the precision bit mask flag.
 */
-public static final int TIME_ONLY = 0x10000;
+public static final int TIME_ONLY = 0x10000; // Decimal is 65536.
 
 /**
 The following are meant to be used in the constructor and will result in the
@@ -126,7 +136,7 @@ Note that these values are consistent with the TimeInterval base interval values
 /**
 Create a DateTime with precision only to the year.
 */
-public static final int PRECISION_YEAR = TimeInterval.YEAR;
+public static final int PRECISION_YEAR = TimeInterval.YEAR;  // Decimal is 70.
 
 /**
 Create a DateTime with a precision only to the month.
@@ -171,12 +181,23 @@ public static final int PRECISION_MICROSECOND = TimeInterval.MICROSECOND;
 /**
 Create a DateTime with a precision to the nanosecond (1/1,000,000,000 second).
 */
-public static final int PRECISION_NANOSECOND = TimeInterval.NANOSECOND;
+public static final int PRECISION_NANOSECOND = TimeInterval.NANOSECOND; // Decimal is 2.
 
 /**
 Create a DateTime with a precision that includes the time zone (and may include another precision flag).
+The time zone is typically automatically turned on when detected in input.
+Should only be specified when PRECISION_NO_TIME_ZONE is not used.
 */
-public static final int PRECISION_TIME_ZONE= 0x20000;
+public static final int PRECISION_TIME_ZONE= 0x20000; // Decimal is 131072.
+
+/**
+Create a DateTime with a precision that DOES NOT include the time zone (and may include another precision flag).
+This is required because the default is to use time zone if it is detected in a parsed string, etc.
+However, sometimes it is necessary to turn off, for example in the time series view table when multiple
+time zones are detected.
+Should only be specified when PRECISION_TIME_ZONE is not used.
+*/
+public static final int PRECISION_NO_TIME_ZONE= 0x40000; // Decimal is 262144.
 
 // Alphabetize the formats, but the numbers may not be in order because they
 // are added over time (do not renumber because some dependent classes may not get recompiled).
@@ -483,15 +504,19 @@ Default to PRECISION_SECOND, but is typically reset when dealing with time serie
 private int __precision = PRECISION_SECOND;
 
 /**
-Flag for special behavior of dates.  Internally this contains all the
-behavior flags but for the most part it is only used for ZERO/CURRENT and FAST/STRICT checks.
+Flag for special behavior of dates.
+Internally this contains all the behavior flags as a bit mask containing
+DATE_STRICT, DATE_FAST, DATE_CURRENT, TIME_ONLY, PRECISION_TIME_ZONE, PRECISION_NO_TIME_ZONE.
+The 'precision' can be passed as part of the bitmask when calling functions;
+however, the precision and behavior flag are disaggregated for internal use.
 */
 private int __behavior_flag;
 
 /**
 Indicates whether the time zone should be used when processing the DateTime.
 SetTimeZone() will set to true if the time zone is not empty, false if empty.
-Setting the precision can override this if time zone flag is set.
+Setting the precision in the constructor can override this if PRECISION_TIME_ZONE or PRECISION_NO_TIME_ZONE is set.
+Default is 'false'.
 */
 private boolean __use_time_zone = false;
 
@@ -610,7 +635,9 @@ public DateTime ( Date d ) {
 }
 
 /**
-Construct from a Java Date.  The time zone is not set unless the behavior flag includes PRECISION_TIME_ZONE.
+Construct from a Java Date.
+The time zone is not set unless the behavior flag includes PRECISION_TIME_ZONE
+(time zone if set is the system time zone, usually the local time zone, at the time the object is created).
 @param d Java Date.
 @param behavior_flag Flag indicating the behavior of the instance - see the defined bit mask values.
 */
@@ -661,7 +688,7 @@ public DateTime ( Date d, int behavior_flag ) {
 		// String time_date = TimeUtil.getTimeString ( d, format );
 		String format = "%Y %m %d %H %M %S";
 		String time_date = TimeUtil.formatTimeString ( d, format );
-		List<String> v = StringUtil.breakStringList ( time_date, " ",	StringUtil.DELIM_SKIP_BLANKS );
+		List<String> v = StringUtil.breakStringList ( time_date, " ", StringUtil.DELIM_SKIP_BLANKS );
 		setYear ( Integer.parseInt(v.get(0)) );
 		setMonth ( Integer.parseInt(v.get(1)) );
 		setDay ( Integer.parseInt(v.get(2)) );
@@ -675,24 +702,15 @@ public DateTime ( Date d, int behavior_flag ) {
 		__tz = "";
 	}
 
-	// Set the time zone.  Use TimeUtil directly to increase performance.
-
-	if ( (behavior_flag&PRECISION_TIME_ZONE) != 0 ) {
-		if ( TimeUtil._time_zone_lookup_method == TimeUtil.LOOKUP_TIME_ZONE_ONCE ) {
-			if ( !TimeUtil._local_time_zone_retrieved ) {
-				// Need to initialize.
-				setTimeZone ( TimeUtil.getLocalTimeZoneAbbr() );
-			}
-			else {
-                // Use the existing data.
-				setTimeZone ( TimeUtil._local_time_zone_string);
-			}
-		}
-		else if ( TimeUtil._time_zone_lookup_method == TimeUtil.LOOKUP_TIME_ZONE_ALWAYS ) {
-			setTimeZone ( TimeUtil.getLocalTimeZoneAbbr() );
-		}
+	if ( (behavior_flag & PRECISION_TIME_ZONE) != 0 ) {
+		// Set the time zone.
+		setTimeZone ( TimeUtil.getLocalTimeZoneAbbr() );
 	}
-	
+	if ( (behavior_flag & PRECISION_NO_TIME_ZONE) != 0 ) {
+		// Set the time zone to off.
+		setTimeZone ( "" );
+	}
+
 	__behavior_flag = behavior_flag;
 	setPrecision ( behavior_flag );
 	reset();
@@ -806,8 +824,10 @@ public DateTime ( DateTime t, int flag ) {
 		__precision	= t.__precision;
 		__use_time_zone	= t.__use_time_zone;
 		__time_only	= t.__time_only;
-		// The precision may be reset here.
+		// The precision may be reset here:
+		// - the precision and behavior flag are parsed out of the single integer
 		setPrecision ( flag );
+		// Just assign the time zone (setPrecision will check PRECISION_TIME_ZONE and PRECISION_NO_TIME_ZONE).
 		__tz = t.__tz;
 	}
 	else {
@@ -843,7 +863,7 @@ public DateTime ( double double_date, boolean use_month ) {
 	double temp = double_date - (double)__year + .00000000011574074;
 
 	// Get the full number of days in the year.
-	
+
 	double	ydays = (double)TimeUtil.numDaysInYear(__year);
 	temp *= ydays;
 
@@ -938,7 +958,7 @@ public DateTime ( LocalDateTime t, int behaviorFlag, String newtz ) {
 		//__weekday
 		//__yearday
 		//__abs_month
-		
+
 		// The following just saves the time zone string:
 		// - for example, "America/Denver" is passed in
 		if ( newtz != null ) {
@@ -997,7 +1017,7 @@ public DateTime ( OffsetDateTime t, int behaviorFlag, String newtz ) {
 		//__weekday
 		//__yearday
 		//__abs_month
-		
+
 		// The following just saves the time zone string.
 		setTimeZone( newtz );
 		// Reset internal data like leap year, etc.
@@ -1046,7 +1066,7 @@ public DateTime ( ZonedDateTime t, int behaviorFlag, String newtz ) {
 		//__weekday
 		//__yearday
 		//__abs_month
-		
+
 		// The following just saves the time zone string:
 		// - for example, "America/Denver" is passed in
 		if ( newtz != null ) {
@@ -1103,7 +1123,7 @@ public DateTime ( Instant instant, int behaviorFlag, String tz ) {
 		//__weekday
 		//__yearday
 		//__abs_month
-		
+
 		// The following just saves the time zone string.
 		setTimeZone( tz );
 		// Reset internal data like leap year, etc.
@@ -1608,35 +1628,16 @@ public boolean equals(Object o) {
     }
 }
 
-@Override
-public int hashCode() {
-    int hash = 3;
-    hash = 67 * hash + this.__nano;
-    hash = 67 * hash + this.__second;
-    hash = 67 * hash + this.__minute;
-    hash = 67 * hash + this.__hour;
-    hash = 67 * hash + this.__day;
-    hash = 67 * hash + this.__month;
-    hash = 67 * hash + this.__year;
-    hash = 67 * hash + (this.__tz != null ? this.__tz.hashCode() : 0);
-    hash = 67 * hash + (this.__isleap ? 1 : 0);
-    hash = 67 * hash + (this.__iszero ? 1 : 0);
-    hash = 67 * hash + this.__precision;
-    hash = 67 * hash + this.__behavior_flag;
-    hash = 67 * hash + (this.__use_time_zone ? 1 : 0);
-    return hash;
-}
-
 /**
 Determine if a DateTime is equal to this instance, considering date, and time to the hundredth of a second.
 The date precisions are considered in the comparison.
 <b>If the instance is a time only (no date), then only the time data are compared.</b>
-Time zone is not currently checked but may be checked in the future if the PRECISION_TIME_ZONE flag is set.
+Time zone is checked if PRECISION_TIME_ZONE flag behavior flag is set.
 @return true if the date is the same as the instance.
 @param t DateTime to compare.
 */
 public boolean equals ( DateTime t ) {
-	return equals ( t, __precision );
+	return equals ( t, this.__precision );
 	// TODO SAM 2005-02-24 should the code from the overloaded method be inlined here to improve performance?
 	// It does not seem that equals is used in iterations quite as much as other methods.
 	// Don't inline the code for now.
@@ -2027,14 +2028,14 @@ public boolean greaterThan ( DateTime t, int precision ) {
 				return true;
 			}
 		}
-	
+
 		if ( precision == PRECISION_YEAR ) {
 			// Equal so return false.
 			return false;
 		}
 
 		// Otherwise years are equal so check months.
-	
+
 		if(__month < t.__month) {
 			return false;
 		}
@@ -2210,6 +2211,28 @@ public boolean greaterThanOrEqualTo ( DateTime d, int precision ) {
 }
 
 /**
+ * Used by Java serializable interface.
+ */
+@Override
+public int hashCode() {
+    int hash = 3;
+    hash = 67 * hash + this.__nano;
+    hash = 67 * hash + this.__second;
+    hash = 67 * hash + this.__minute;
+    hash = 67 * hash + this.__hour;
+    hash = 67 * hash + this.__day;
+    hash = 67 * hash + this.__month;
+    hash = 67 * hash + this.__year;
+    hash = 67 * hash + (this.__tz != null ? this.__tz.hashCode() : 0);
+    hash = 67 * hash + (this.__isleap ? 1 : 0);
+    hash = 67 * hash + (this.__iszero ? 1 : 0);
+    hash = 67 * hash + this.__precision;
+    hash = 67 * hash + this.__behavior_flag;
+    hash = 67 * hash + (this.__use_time_zone ? 1 : 0);
+    return hash;
+}
+
+/**
 Indicate whether a leap year.
 @return true if a leap year.
 */
@@ -2275,14 +2298,14 @@ public boolean lessThan ( DateTime t, int precision ) {
 				return false;
 			}
 		}
-	
+
 		if ( precision == PRECISION_YEAR ) {
 			// Equal so return false.
 			return false;
 		}
 
 		// Otherwise years are equal so check months.
-	
+
 		if(__month < t.__month) {
 			return true;
 		}
@@ -2291,14 +2314,14 @@ public boolean lessThan ( DateTime t, int precision ) {
 				return false;
 			}
 		}
-	
+
 		if ( precision == PRECISION_MONTH ) {
 			// Equal so return false.
 			return false;
 		}
 
 		// Months must be equal so check day.
-	
+
 		if (__day < t.__day) {
 			return true;
 		}
@@ -2377,7 +2400,7 @@ public boolean lessThan ( DateTime t, int precision ) {
 		// Equal so return false.
 		return false;
 	}
-	
+
 	// Means that hseconds match - so check milliseconds.
 
 	if( __nano/1000000 < t.__nano/1000000 ) {
@@ -2393,7 +2416,7 @@ public boolean lessThan ( DateTime t, int precision ) {
 		// Equal so return false.
 		return false;
 	}
-	
+
 	// Means that milliseconds match - so check microseconds.
 
 	if( __nano/1000 < t.__nano/1000 ) {
@@ -2409,7 +2432,7 @@ public boolean lessThan ( DateTime t, int precision ) {
 		// Equal so return false.
 		return false;
 	}
-	
+
 	// Check nanoseconds.
 
 	if( __nano < t.__nano ) {
@@ -2512,7 +2535,7 @@ public static DateTime parse ( String dtString, PropList datetime_props ) {
 	if (str.length() == 0) {
 		Message.printWarning(3, "DateTime.parse", "Cannot get DateTime from empty string.");
 		throw new IllegalArgumentException("Empty DateTime string to parse.");
-	}		
+	}
 
 	if (Character.isDigit(dtString.charAt(0))) {
 		// If the first character is a number then assume that this is a DateTime string that should be parsed as normal.
@@ -2520,16 +2543,16 @@ public static DateTime parse ( String dtString, PropList datetime_props ) {
 		//    "2005-10-12 10:13 + 15Minute"
 		return DateTime.parse(dtString);
 	}
-	
+
 	// Else parse special values like CurrentToMinute.
-	
+
 	String[] tokens = new String[3];
 	// tokens[0] = the date represented by the first part of the string to
 	//             be parsed (e.g., CurrentToMinute, "DateProperty", etc)
 	// tokens[1] = the operator ("+" or "-").  Null if no operators.
 	// tokens[2] = the interval to adjust be (e.g., "15Minute").  Null if no operator.
 	// This assumes that no + or - are part of the date/time
-	
+
 	if (str.indexOf("-") > -1) {
 		int index = str.indexOf("-");
 		tokens[0] = str.substring(0, index).trim();
@@ -2587,7 +2610,7 @@ public static DateTime parse ( String dtString, PropList datetime_props ) {
 	else {
 		// Baseline DateTime is the current DateTime.
 		token0DateTime = new DateTime(DateTime.DATE_CURRENT);
-	
+
 		// Try to parse as one of the hard-coded values (CurrentToMinute, etc).
 		String token0 = tokens[0];
 		if (token0.toUpperCase().startsWith("CURRENTTOSECOND")) {
@@ -2682,7 +2705,7 @@ public static DateTime parse ( String dtString, PropList datetime_props ) {
 					if ( tz.equalsIgnoreCase("local") ) {
 						// Set timezone to local using computer time zone (redundant with default but code is being evaluated).
 						// Look up always in case it has changed during processing (unlikely).
-						TimeUtil.getLocalTimeZoneAbbr(TimeUtil.LOOKUP_TIME_ZONE_ALWAYS);
+						TimeUtil.getLocalTimeZoneAbbr();
 					}
 					else {
 						// Set to the specified time zone, and setting to blank is OK.
@@ -2765,7 +2788,7 @@ public static DateTime parse ( String dateTimeString ) {
 		}
 		throw new IllegalArgumentException ( "Empty DateTime string to parse." );
 	}
-	
+
 	// Determine if a timezone is included in the string.  The following forms are handled below:
 	//   2010-07-01T03:16:11-06:00   - ISO 8601 format, see: https://en.wikipedia.org/wiki/ISO_8601
 	//   2000-01-01 00 GMT-8.0       - used in TSTool build-in formats
@@ -2806,7 +2829,7 @@ public static DateTime parse ( String dateTimeString ) {
 		// and don't themselves include spaces.
 		// TODO SAM 2016-05-02 need to handle date/time format strings - maybe deal with in Java 8.
 		int lastSpacePos = dateTimeString.lastIndexOf(' ');
-		
+
 		if ( lastSpacePos > 0 ) {
 			timeZone = dateTimeString.substring(lastSpacePos).trim();
 			if ( timeZone.length() == 0 ) {
@@ -2827,7 +2850,7 @@ public static DateTime parse ( String dateTimeString ) {
 		}
 	}
 	*/
-	
+
 	if ( Message.isDebugOn ) {
 		Message.printDebug(dl, "DateTime.parse", "Parsing \"" + dateTimeString + "\" length=" + length);
 	}
@@ -3040,7 +3063,7 @@ public static DateTime parse ( String dateTimeString ) {
 		throw new IllegalArgumentException ( "Date/time string \"" + dateTimeString +
 			"\" format is not auto-recognized - may need to specify format." );
 	}
-	
+
 	if ( dateTime == null ) {
 		// Fall through... was not parsed.
 		throw new IllegalArgumentException ( "Date/time string \"" + dateTimeString +
@@ -3548,7 +3571,7 @@ private static DateTime parse ( String dtString, int format, int flag ) {
 			if ( dateLen == yearLen ) {
 				v = StringUtil.fixedRead ( d, yearFormat );
 				date.__year = ((Integer)v.get(0)).intValue();
-				date.setPrecision(DateTime.PRECISION_YEAR);				
+				date.setPrecision(DateTime.PRECISION_YEAR);
 			}
 			else if ( dateLen == monthLen ) {
 				v = StringUtil.fixedRead ( d, monthFormat );
@@ -3595,7 +3618,7 @@ private static DateTime parse ( String dtString, int format, int flag ) {
 			else if ( timeLen >= hourLen ) {
 				v = StringUtil.fixedRead ( t, hourFormat );
 				date.__hour = ((Integer)v.get(0)).intValue();
-				date.setPrecision(DateTime.PRECISION_HOUR);				
+				date.setPrecision(DateTime.PRECISION_HOUR);
 			}
 			else {
 				throw new IllegalArgumentException ( "Don't know how to parse \"" + dtString + "\" time \"" + t + "\" using ISO 8601." );
@@ -3975,7 +3998,7 @@ public void roundToDayOfWeek ( int direction, String dayOfWeek, int dayOfWeekInt
 		ZoneOffset.ofHours(0));
 	// Day of week is according to ISO 8601 so 1=Monday ... 7=Sunday
 	int dowFrom = dt.getDayOfWeek().getValue();
-	
+
 	// Determine the requested day of week.
 	int dowTo = -1;
 	if ( (dayOfWeek != null) && !dayOfWeek.isEmpty() ) {
@@ -4006,7 +4029,7 @@ public void roundToDayOfWeek ( int direction, String dayOfWeek, int dayOfWeekInt
 			throw new IllegalArgumentException ( "Invalid day of week (" + dayOfWeek + ") for round." );
 		}
 	}
-	
+
 	// Calculate the day shift.
 	int dayShift = dowTo - dowFrom;
 	if ( (dayShift > 0) && (direction > 0) ) {
@@ -4116,7 +4139,7 @@ public void setDate ( Date d ) {
 Set the day (1 to number of days in month, depending on month; year and month should be set first for valid check).
 @param d Day.
 */
-public void setDay ( int d ) {	
+public void setDay ( int d ) {
 	if( (__behavior_flag & DATE_STRICT) != 0 ){
 		if(	(d > TimeUtil.numDaysInMonth( __month, __year )) || (d < 1) ) {
             String message = "Trying to set invalid day (" + d + ") in DateTime for year=" + __year + " and month=" + __month;
@@ -4136,7 +4159,7 @@ public void setDay ( int d ) {
 Set the hour (0-23).
 @param h Hour.
 */
-public void setHour( int h ) {	
+public void setHour( int h ) {
 	if( (__behavior_flag & DATE_STRICT) != 0 ){
 		if( (h > 23) || (h < 0) ) {
 			String message = "Trying to set invalid hour (" + h + ") in DateTime.  Must be in range 0 - 23.";
@@ -4271,107 +4294,117 @@ public DateTime setPrecision ( int behavior_flag, boolean cumulative ) {
 	// Therefore, get the actual precision value by cutting off the higher values > 100 (the maximum precision value is 70).
 	//_precision = behavior_flag - ((behavior_flag/100)*100);
 	// Need to remove the effects of the higher order masks.
-	//int behavior_flag_no_precision = behavior_flag;
 	int precision = behavior_flag;
 	if ( (behavior_flag & DATE_STRICT) != 0 ) {
-		//behavior_flag_no_precision |= DATE_STRICT;
 		precision ^= DATE_STRICT;
 	}
 	if ( (behavior_flag & DATE_FAST) != 0 ) {
-		//behavior_flag_no_precision |= DATE_FAST;
 		precision ^= DATE_FAST;
 	}
 	if ( (behavior_flag & DATE_ZERO) != 0 ) {
-		//behavior_flag_no_precision |= DATE_ZERO;
 		precision ^= DATE_ZERO;
 	}
 	if ( (behavior_flag & DATE_CURRENT) != 0 ) {
-		//behavior_flag_no_precision |= DATE_CURRENT;
 		precision ^= DATE_CURRENT;
 	}
 	if ( (behavior_flag & TIME_ONLY) != 0 ) {
-		//behavior_flag_no_precision |= TIME_ONLY;
 		precision ^= TIME_ONLY;
 	}
 	if ( (behavior_flag & PRECISION_TIME_ZONE) != 0 ) {
-		//behavior_flag_no_precision |= PRECISION_TIME_ZONE;
 		precision ^= PRECISION_TIME_ZONE;
 	}
-	// Now the precision should be what is left.
+	if ( (behavior_flag & PRECISION_NO_TIME_ZONE) != 0 ) {
+		precision ^= PRECISION_NO_TIME_ZONE;
+	}
+	// Now the precision should be what is left:
+	// - set all unused date/time parts to appropriate default values in case they are accessed
 	if ( precision == PRECISION_YEAR ) {
-		__month = 1;
-		__day = 1;
-		__hour = 0;
-		__minute = 0;
-		__second = 0;
-		__nano = 0;
-		__precision = precision;
+		this.__month = 1;
+		this.__day = 1;
+		this.__hour = 0;
+		this.__minute = 0;
+		this.__second = 0;
+		this.__nano = 0;
+		this.__precision = precision;
 	}
 	else if ( precision == PRECISION_MONTH ) {
-		__day = 1;
-		__hour = 0;
-		__minute = 0;
-		__second = 0;
-		__nano = 0;
-		__precision = precision;
+		this.__day = 1;
+		this.__hour = 0;
+		this.__minute = 0;
+		this.__second = 0;
+		this.__nano = 0;
+		this.__precision = precision;
 	}
 	else if ( precision == PRECISION_DAY ) {
-		__hour = 0;
-		__minute = 0;
-		__second = 0;
-		__nano = 0;
-		__precision = precision;
+		this.__hour = 0;
+		this.__minute = 0;
+		this.__second = 0;
+		this.__nano = 0;
+		this.__precision = precision;
 	}
 	else if ( precision == PRECISION_HOUR ) {
-		__minute = 0;
-		__second = 0;
-		__nano = 0;
-		__precision = precision;
+		this.__minute = 0;
+		this.__second = 0;
+		this.__nano = 0;
+		this.__precision = precision;
 	}
 	else if ( precision == PRECISION_MINUTE ) {
-		__second = 0;
-		__nano = 0;
-		__precision = precision;
+		this.__second = 0;
+		this.__nano = 0;
+		this.__precision = precision;
 	}
 	else if ( precision == PRECISION_SECOND ) {
-		__nano = 0;
-		__precision = precision;
+		this.__nano = 0;
+		this.__precision = precision;
 	}
 	else if ( precision == PRECISION_HSECOND ) {
 		// Keep full nanoseconds, will be formatted as needed on output.
-		__precision = precision;
+		this.__precision = precision;
 	}
 	else if ( precision == PRECISION_MILLISECOND ) {
 		// Keep full nanoseconds, will be formatted as needed on output.
-		__precision = precision;
+		this.__precision = precision;
 	}
 	else if ( precision == PRECISION_MICROSECOND ) {
 		// Keep full nanoseconds, will be formatted as needed on output.
-		__precision = precision;
+		this.__precision = precision;
 	}
 	else if ( precision == PRECISION_NANOSECOND ) {
 		// Keep full nanoseconds, will be formatted as needed on output.
-		__precision = precision;
+		this.__precision = precision;
+	}
+	else {
+		// The method was called with only behavior flags.
 	}
 
 	// Else do not set _precision - assume that it was set previously (e.g., in a copy constructor).
 
-	// Time zone is separate and always gets set.
+	// Time zone is a separate bitmask value and is checked separately:
+	// - use the original 'behaviorFlag' that was passed to the method
 
 	if ( (behavior_flag & PRECISION_TIME_ZONE) != 0 ) {
-		__use_time_zone = true;
+		// Behavior flag indicates that time zone should be output.
+		this.__use_time_zone = true;
+	}
+	else if ( (behavior_flag & PRECISION_NO_TIME_ZONE) != 0 ) {
+		// Behavior flag indicates that time zone should not be output.
+		this.__use_time_zone = false;
 	}
 	else if ( !cumulative ) {
-		__use_time_zone = false;
+		// Default is to not show the time zone:
+		// - TODO smalers 2023-07-22 is this default OK if the precision includes time?
+		this.__use_time_zone = false;
 	}
 
-	// Time only is separate and always gets set.
+	// Time only is a separate bitmask value and is checked separately.
 
 	if ( (behavior_flag & TIME_ONLY) != 0 ) {
-		__time_only = true;
+		// Behavior flag indicates that time only should be output.
+		this.__time_only = true;
 	}
 	else if ( !cumulative ) {
-		__time_only = false;
+		// Default is to not show time only.
+		this.__time_only = false;
 	}
 	return this;
 }
@@ -4403,12 +4436,12 @@ Time zones that use daylight savings or otherwise change over history or during 
 problematic to maintaining continuity.
 The getDate*() methods will consider the time zone if requested.
 @param zone Time zone abbreviation.  If non-null and non-blank, the
-DateTime precision is automatically set so that PRECISION_TIME_ZONE is on.
-If null or blank, PRECISION_TIME_ZONE is off.
+DateTime precision is automatically set so that PRECISION_TIME_ZONE is on (PRECISION_NO_TIME_ZONE is off).
+If null or blank, PRECISION_TIME_ZONE is off (PRECISION_NO_TIME_ZONE is on).
 @return the same DateTime instance, which allows chained calls
 */
 public DateTime setTimeZone( String zone ) {
-	if ( (zone == null) || (zone.length() == 0) ) {
+	if ( (zone == null) || zone.isEmpty() ) {
 		// No time zone is used.
 		this.__tz = "";
 		this.__use_time_zone = false;
@@ -4435,41 +4468,28 @@ public void setToCurrent ()  {
 
 	// Now set.
 
-	__nano = now.__nano;
-	__second = now.__second;
-	__minute = now.__minute;
-	__hour = now.__hour;
-	__day = now.__day;
-	__month = now.__month;
-	__year = now.__year;
-	__isleap = now.isLeapYear();
-	__weekday = now.getWeekDay();
-	__yearday = now.getYearDay();
-	__abs_month	= now.getAbsoluteMonth();
-	__tz = now.__tz;
-	__behavior_flag	= DATE_STRICT;
+	this.__nano = now.__nano;
+	this.__second = now.__second;
+	this.__minute = now.__minute;
+	this.__hour = now.__hour;
+	this.__day = now.__day;
+	this.__month = now.__month;
+	this.__year = now.__year;
+	this.__isleap = now.isLeapYear();
+	this.__weekday = now.getWeekDay();
+	this.__yearday = now.getYearDay();
+	this.__abs_month = now.getAbsoluteMonth();
+	this.__tz = now.__tz;
+	this.__behavior_flag = DATE_STRICT;
 	// Use precision to second, which is sufficient for most work.
-	__precision = PRECISION_SECOND;
-	__use_time_zone = false;
-	__time_only = false;
+	this.__precision = PRECISION_SECOND;
+	this.__use_time_zone = false;
+	this.__time_only = false;
 
-	// Set the time zone.  Use TimeUtil directly to increase performance.
-	// TODO SAM 2016-03-12 Need to rework this - legacy timezone was needed at one point but should use java.util.time or Java 8 API.
-	if ( TimeUtil._time_zone_lookup_method == TimeUtil.LOOKUP_TIME_ZONE_ONCE ) {
-		if ( !TimeUtil._local_time_zone_retrieved ) {
-			// Need to initialize.
-			shiftTimeZone ( TimeUtil.getLocalTimeZoneAbbr() );
-		}
-		else {
-            // Use the existing data.
-			shiftTimeZone ( TimeUtil._local_time_zone_string );
-		}
-	}
-	else if ( TimeUtil._time_zone_lookup_method == TimeUtil.LOOKUP_TIME_ZONE_ALWAYS ) {
-		shiftTimeZone ( TimeUtil.getLocalTimeZoneAbbr() );
-	}
+	// Set the time zone.
+	setTimeZone ( TimeUtil.getLocalTimeZoneAbbr() );
 
-	__iszero = false;
+	this.__iszero = false;
 }
 
 /**
@@ -4600,27 +4620,10 @@ private void setYearDay() {
 
 /**
 Shift the data to the specified time zone.
-This time zone is shifted using a one or two step process, with GMT as the 
 This method shifts the hour/minutes and
 then sets the time zone for the instance to the requested time zone.
-@param zone Time zone to switch to.
-@exception Exception if the time zone cannot be shifted (unknown time zone).
-*/
-/* TODO smalers 2023-05-22 need to implement something like this, or maybe pass in ZoneId.
-public void shiftTimeZone ( ZoneOffset zoneOffset ) {
-	String routine = getClass().getSimpleName() + ".shiftTimeZone";
-	if ( Message.isDebugOn ) {
-		// Not sure why this is printed.
-		Message.printStatus(2, routine, "Shifting time zone using offse \"" + zoneOffset + "\".");
-	}
-}
-*/
-
-/**
-Shift the data to the specified time zone.
-This method shifts the hour/minutes and
-then sets the time zone for the instance to the requested time zone.
-@param zone Time zone to switch to.
+@param zone Time zone to switch to ("GMT", "America/Denver", "+06:00", etc.),
+if null or empty set the time zone to empty.
 @exception Exception if the time zone cannot be shifted (unknown time zone).
 */
 public void shiftTimeZone ( String zone ) {
@@ -4630,18 +4633,22 @@ public void shiftTimeZone ( String zone ) {
 		Message.printStatus(2, routine, "Shifting to time zone \"" + zone + "\"");
 	}
 	if ( zone.isEmpty() ) {
-		// Just set the time zone to blank to make times timezone-agnostic.
+		// Just set the time zone to blank to make times time zone agnostic.
 		setTimeZone ( "" );
 	}
 	else if ( zone.equalsIgnoreCase(this.__tz) ) {
 		// The requested time zone is the same as original.  Do nothing.
 	}
 	else if ( zone.startsWith("+") || zone.startsWith("-") ) {
-		// Special case - expect an ISO 8601 offset timezone such as -07 or -07:00
-		Message.printStatus(2, "", "Assume ISO 8601 time zone \"" + zone + "\"");
+		// Special case:
+		// - expect an ISO 8601 offset time zone such as -07 or -07:00
+		// - the time zone offset does not require getting an instant because the offset explicitly indicates
+		if ( Message.isDebugOn ) {
+			Message.printStatus(2, "", "Assume ISO 8601 time zone \"" + zone + "\"");
+		}
 		// Get the offset from the existing time zone
-		ZoneOffset offsetOrig = TimeUtil.getTimeZoneOffset(this.__tz);
-		if ( offsetOrig == null ) {
+		ZoneOffset offsetOld = TimeUtil.getTimeZoneOffset(this.__tz);
+		if ( offsetOld == null ) {
 			throw new RuntimeException ( "Trying to shift time zone from unrecognized existing time zone \"" + this.__tz + "\".");
 		}
 		// Calculate the time zone offset from the requested zone.
@@ -4652,20 +4659,66 @@ public void shiftTimeZone ( String zone ) {
 		// Shift the time:
 		// - for example if original is -07:00 and new is -06:00, time to add (using hours for example) is: -6 -(-7) = 1
 		// - for example if original is -06:00 and new is -07:00, time to add is:  -7 -(-6) = -1
-		addSecond(offsetNew.getTotalSeconds() - offsetOrig.getTotalSeconds());
+		addSecond(offsetNew.getTotalSeconds() - offsetOld.getTotalSeconds());
 		// Set the time zone to the requested.
 		setTimeZone ( zone );
 	}
 	else {
-		// All other time zones.
-		// TODO smalers 2017-07-13 need to phase in java.time.
-		// Want to change the time zone so compute an offset and apply.
+		// All other time zones:
+		// - for example "America/Denver"
+		// - must create a java.time object that has time zone to be able to shift
+		ZoneId zoneIdNew = ZoneId.of(zone);
+		ZonedDateTime zonedDateTimeOld = toZonedDateTime(null); // Use the internal time zone.
+		ZonedDateTime zonedDateTimeNew = zonedDateTimeOld.withZoneSameInstant(zoneIdNew);
+		ZoneOffset zoneOffsetOld = zonedDateTimeOld.getOffset();
+		ZoneOffset zoneOffsetNew = zonedDateTimeNew.getOffset();
+		int offsetSeconds = zoneOffsetNew.getTotalSeconds() - zoneOffsetOld.getTotalSeconds();
 		try {
-	        @SuppressWarnings("deprecation")
-			int offset = TZ.calculateOffsetMinutes ( __tz, zone, this );
-			addMinute ( offset );
+			addSecond ( offsetSeconds );
 			setTimeZone ( zone );
-			// TODO SAM 2016-03-11 See getDate(String tz) treatment of time zone - could add check here.
+		}
+		catch ( Exception e ) {
+			// For now rethrow as RuntimeException because legacy code would need to be updated to handle Exception.
+			throw new RuntimeException ( e );
+		}
+	}
+}
+
+/**
+Shift the data to the specified time zone ID.
+This method shifts the hour/minutes and
+then sets the time zone for the instance to the requested time zone.
+@param zoneId ZoneId to switch to (from "GMT", "America/Denver", "+06:00", etc.),
+if null set the time zone to empty.
+This is typically set from a string in calling code to optimize performance instead of passing a string
+that requires a lookup of ZoneId.
+@exception Exception if the time zone cannot be shifted (unknown time zone).
+*/
+public void shiftTimeZone ( ZoneId zoneIdNew ) {
+	String routine = getClass().getSimpleName() + ".shiftTimeZone";
+	if ( Message.isDebugOn ) {
+		// Not sure why this is printed.
+		Message.printStatus(2, routine, "Shifting to time zone \"" + zoneIdNew + "\"");
+	}
+	if ( zoneIdNew == null ) {
+		// Just set the time zone to blank to make times time zone agnostic.
+		setTimeZone ( "" );
+	}
+	else if ( zoneIdNew.toString().equalsIgnoreCase(this.__tz) ) {
+		// The requested time zone is the same as original.  Do nothing.
+	}
+	else {
+		// All other time zones:
+		// - for example "America/Denver"
+		// - must create a java.time object that has time zone to be able to shift
+		ZonedDateTime zonedDateTimeOld = toZonedDateTime(null); // Use the internal time zone.
+		ZonedDateTime zonedDateTimeNew = zonedDateTimeOld.withZoneSameInstant(zoneIdNew);
+		ZoneOffset zoneOffsetOld = zonedDateTimeOld.getOffset();
+		ZoneOffset zoneOffsetNew = zonedDateTimeNew.getOffset();
+		int offsetSeconds = zoneOffsetNew.getTotalSeconds() - zoneOffsetOld.getTotalSeconds();
+		try {
+			addSecond ( offsetSeconds );
+			setTimeZone ( zoneIdNew.toString() );
 		}
 		catch ( Exception e ) {
 			// For now rethrow as RuntimeException because legacy code would need to be updated to handle Exception.
@@ -4708,7 +4761,7 @@ public double toDouble ( ) {
 		if ( __precision == PRECISION_YEAR ) {
 			return dt;
 		}
-	
+
 		d = ((double)(TimeUtil.numDaysInMonths(1, __year, (__month-1))));
 		if ( __precision == PRECISION_MONTH ) {
 			return (dt + d/ydays);
@@ -4740,14 +4793,26 @@ public double toDouble ( ) {
 }
 
 /**
+Return OffsetDateTime representation of the date and time.
+The time zone must be set in the DateTime instance, for example "America/Denver" or "-06:00".
+@param defaultZoneId if the DateTime time zone is not set, use this for the ZoneId,of("GMT") for GMT.
+for example, call with ZoneId.systemDefault() to get the local zone or ZoneId
+@return OffsetDateTime representation of the date/time,
+setting parts to default values (zero, month and day to 1) if not used by the DateTime precision.
+*/
+public OffsetDateTime toOffsetDateTime ( ZoneId defaultZoneId ) {
+	return toZonedDateTime(defaultZoneId).toOffsetDateTime();
+}
+
+/**
 Return ZonedDateTime representation of the date and time.
 The time zone must be set in the DateTime instance, for example "America/Denver" or "-06:00".
 @param defaultZoneId if the DateTime time zone is not set, use this for the ZoneId,of("GMT") for GMT.
 for example, call with ZoneId.systemDefault() to get the local zone or ZoneId
-@return ZonedDateTime representation of the date,
+@return ZonedDateTime representation of the date/time,
 setting parts to default values (zero, month and day to 1) if not used by the DateTime precision.
 */
-public ZonedDateTime toZonedDateTime ( ZoneId defaultZoneId) {
+public ZonedDateTime toZonedDateTime ( ZoneId defaultZoneId ) {
 	// Initialize all to default values and set below based on the precision.
 	int year = 0;
 	int month = 1;
@@ -4756,7 +4821,7 @@ public ZonedDateTime toZonedDateTime ( ZoneId defaultZoneId) {
 	int minute = 0;
 	int second = 0;
 	int nanosecond = 0;
-	
+
 	ZoneId zoneId = null;
 	if ( (this.__tz == null) || this.__tz.isEmpty() ) {
 		// Use the default passed in (check for null below).
@@ -4768,8 +4833,9 @@ public ZonedDateTime toZonedDateTime ( ZoneId defaultZoneId) {
 	}
 	if ( zoneId == null ) {
 		// Not allowed:
+		// - input DateTime must have a time zone set, or provide the default as a parameter when calling this method
 		// - use ZoneRulesException, which extends RunTimeException so does not need to be declared for the method
-		throw new ZoneRulesException ("No time zone specified for DateTime.  Cannot covnert to ZonedDateTime.");
+		throw new ZoneRulesException ("No time zone specified for DateTime.  Cannot convert to ZonedDateTime.");
 	}
 
 	// Arrange these in probable order of use.
@@ -4800,55 +4866,6 @@ public ZonedDateTime toZonedDateTime ( ZoneId defaultZoneId) {
 }
 
 /**
-Return OffsetDateTime representation of the date and time.
-@return LocalDateTime representation of the date,
-setting parts to default values (zero, month and day to 1) if not used by the DateTime precision.
-@param zoneId the time zone ID for the local time, if null the DateTime time zone is used,
-and if that is not specified default local zone is used
-*/
-/* TODO smalers 2023-05-22 need to enable, also need toOffsetDateTime
-public OffsetDateTime toLocalDateTime ( ZoneId zoneId ) {
-	// Initialize all to default values and set below based on the precision.
-	int year = 0;
-	int month = 1;
-	int day = 1;
-	int hour = 0;
-	int minute = 0;
-	int second = 0;
-	int nanosecond = 0;
-	
-	if ( zoneId == null ) {
-		zoneId = ZoneId.systemDefault();
-	}
-
-	// Arrange these in probable order of use.
-	if ( this.__precision <= PRECISION_YEAR ) {
-		year = this.__year;
-	}
-	if ( __precision <= PRECISION_MONTH ) {
-		month = this.__month;
-	}
-	if ( __precision <= PRECISION_DAY ) {
-		day = this.__day;
-	}
-	if ( __precision <= PRECISION_HOUR ) {
-		hour = this.__hour;
-	}
-	if ( __precision <= PRECISION_MINUTE ) {
-		minute = this.__minute;
-	}
-	if ( __precision <= PRECISION_SECOND ) {
-		second = this.__second;
-	}
-	if ( __precision <= PRECISION_HSECOND ) {
-		// Handles all sub-second parts.
-		nanosecond = this.__nano;
-	}
-	ZoneOffset offset = ZoneOffset.
-}
-*/
-
-/**
 Return string representation of the date and time.
 @return String representation of the date, using a format consistent with
 the precision for the date (see PRECISION_* and TIME_ONLY).
@@ -4867,6 +4884,7 @@ public String toString () {
 	}
 	else if ( __precision == PRECISION_HOUR ) {
 		if ( __use_time_zone && (__tz.length() > 0) ) {
+			// Formatted date/time includes the time zone.
 			char prefix = __tz.charAt(0);
 			if ( (prefix == '-') || (prefix == '+') || __tz.equals("Z") ) {
 				return toString ( FORMAT_ISO_8601 );
@@ -4885,6 +4903,7 @@ public String toString () {
 		}
 		else {
             if ( __use_time_zone && (__tz.length() > 0) ) {
+            	// Formatted date/time includes the time zone.
     			char prefix = __tz.charAt(0);
     			if ( (prefix == '-') || (prefix == '+') || __tz.equals("Z") ) {
     				return toString ( FORMAT_ISO_8601 );
@@ -4900,6 +4919,7 @@ public String toString () {
 	}
 	else if ( __precision == PRECISION_SECOND ) {
 		if ( __use_time_zone && (__tz.length() > 0) ) {
+           	// Formatted date/time includes the time zone.
 			char prefix = __tz.charAt(0);
 			if ( (prefix == '-') || (prefix == '+') || __tz.equals("Z") ) {
 				return toString ( FORMAT_ISO_8601 );
@@ -4914,6 +4934,7 @@ public String toString () {
 	}
 	else if ( __precision == PRECISION_HSECOND ) {
 		if ( __use_time_zone && (__tz.length() > 0) ) {
+           	// Formatted date/time includes the time zone.
 			char prefix = __tz.charAt(0);
 			if ( (prefix == '-') || (prefix == '+') || __tz.equals("Z") ) {
 				return toString ( FORMAT_ISO_8601 );
@@ -4928,6 +4949,7 @@ public String toString () {
 	}
 	else if ( __precision == PRECISION_MILLISECOND ) {
 		if ( __use_time_zone && (__tz.length() > 0) ) {
+           	// Formatted date/time includes the time zone.
 			char prefix = __tz.charAt(0);
 			if ( (prefix == '-') || (prefix == '+') || __tz.equals("Z") ) {
 				return toString ( FORMAT_ISO_8601 );
@@ -4942,6 +4964,7 @@ public String toString () {
 	}
 	else if ( __precision == PRECISION_MICROSECOND ) {
 		if ( __use_time_zone && (__tz.length() > 0) ) {
+           	// Formatted date/time includes the time zone.
 			char prefix = __tz.charAt(0);
 			if ( (prefix == '-') || (prefix == '+') || __tz.equals("Z") ) {
 				return toString ( FORMAT_ISO_8601 );
@@ -4956,6 +4979,7 @@ public String toString () {
 	}
 	else if ( __precision == PRECISION_NANOSECOND ) {
 		if ( __use_time_zone && (__tz.length() > 0) ) {
+           	// Formatted date/time includes the time zone.
 			char prefix = __tz.charAt(0);
 			if ( (prefix == '-') || (prefix == '+') || __tz.equals("Z") ) {
 				return toString ( FORMAT_ISO_8601 );
@@ -4972,6 +4996,7 @@ public String toString () {
         // Assume that hours and minutes but NOT time zone are desired.
 		// TODO smalers 2022-03-06 probably should include seconds by default?
 		if ( __use_time_zone && (__tz.length() > 0) ) {
+           	// Formatted date/time includes the time zone.
 			char prefix = __tz.charAt(0);
 			if ( (prefix == '-') || (prefix == '+') || __tz.equals("Z") ) {
 				return toString ( FORMAT_ISO_8601 );
@@ -4990,7 +5015,6 @@ public String toString () {
 /**
 Convert to a string using the given format (see FORMAT_*).
 This is not as flexible as formatTimeString but is useful where date formats need to be consistent.
-Currently if a time zone is detected, it is set in the data but the PRECISION_TIME_ZONE flag is not set to true.
 @return A String representation of the date.
 @param format The format to use for the string.
 */
@@ -5006,7 +5030,7 @@ public String toString ( int format ) {
 		StringUtil.formatString(__day,"%02d") + "/" +
 		StringUtil.formatString(__month,"%02d") + "/" +
 		StringUtil.formatString(__year,"%04d");
-	}	
+	}
 	else if ( format == FORMAT_HH_mm ) {
 		return
 		StringUtil.formatString(__hour,"%02d") + ":" +
@@ -5340,7 +5364,7 @@ public String toString ( DateTimeFormatterType formatterType, String format ) {
 		return "";
 	}
 }
-	
+
 /**
 Indicate whether the time zone should be used when processing the date.
 The time zone will be considered if the PRECISION_TIME_ZONE flag is in effect
@@ -5349,6 +5373,33 @@ during construction or if the setPrecision() method is called.
 */
 public boolean useTimeZone() {
 	return __use_time_zone;
+}
+
+/**
+Set whether the time zone should be used when processing the date.
+The time zone will be considered if the PRECISION_TIME_ZONE flag is in effect
+during construction or if the setPrecision() method is called.
+@param useTimeZone true if time zone should be used, false if not
+*/
+public void useTimeZone(boolean useTimeZone) {
+	this.__use_time_zone = useTimeZone;
+	// Also adjust the behavior flag.
+	if ( useTimeZone ) {
+		// Set in the behavior flag.
+		this.__behavior_flag |= PRECISION_TIME_ZONE;
+		// Unset the opposite case.
+		if ( (this.__behavior_flag & PRECISION_NO_TIME_ZONE) != 0 ) {
+			this.__behavior_flag ^= PRECISION_NO_TIME_ZONE;
+		}
+	}
+	else {
+		// Set in the behavior flag.
+		this.__behavior_flag |= PRECISION_NO_TIME_ZONE;
+		// Unset the opposite case.
+		if ( (this.__behavior_flag & PRECISION_TIME_ZONE) != 0 ) {
+			this.__behavior_flag ^= PRECISION_TIME_ZONE;
+		}
+	}
 }
 
 }

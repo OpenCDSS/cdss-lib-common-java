@@ -410,8 +410,8 @@ This method is meant to be overridden in derived classes (e.g., MinuteTS, MonthT
 that are optimized for data storage for different intervals.
 @return 0 if successful allocating memory, non-zero if failure.
 */
-public int allocateDataSpace ( )
-{	Message.printWarning ( 1, "TS.allocateDataSpace", "TS.allocateDataSpace() is virtual, define in derived classes." );
+public int allocateDataSpace ( ) {
+	Message.printWarning ( 1, "TS.allocateDataSpace", "TS.allocateDataSpace() is virtual, define in derived classes." );
 	return 1;
 }
 
@@ -446,7 +446,7 @@ This method is meant to be overridden in derived classes (in which case the inte
 @param date1 Start of period.
 @param date2 End of period.
 @param multiplier Multiplier for interval base.
-@return the number of data points in a period, given the interval mulitplier.
+@return the number of data points in a period, given the interval multiplier.
 */
 public static int calculateDataSize ( DateTime date1, DateTime date2, int multiplier ) {
 	Message.printWarning ( 1, "TS.calculateDataSize", "TS.calculateDataSize() is virtual, define in derived classes." );

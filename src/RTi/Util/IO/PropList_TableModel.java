@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -27,15 +27,11 @@ import java.util.List;
 
 import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
 import RTi.Util.GUI.JWorksheet_TableModelListener;
-import RTi.Util.Message.Message;
 
 /**
 This table model displays PropList data.
 Currently it only handles PropLists that have String key/value pairs.
-The data model interactions are fully-handled in this class because PropList is not a simple
-list of data.
-<p>
-TODO (JTS - 2003-10-27) Add support for Object-storing props, or simply exclude them from being displayed.
+The data model interactions are fully-handled in this class because PropList is not a simple list of data.
 */
 @SuppressWarnings("serial")
 public class PropList_TableModel extends JWorksheet_AbstractRowTableModel<PropList> {
@@ -54,9 +50,9 @@ public final int
 	COL_VAL = 2;
 
 /**
-Whether the table data is editable or not.
+Whether the table data are editable or not.
 */
-private boolean 
+private boolean
 	__keyEditable = true,
 	__valEditable = true;
 
@@ -66,18 +62,18 @@ The PropList for which data is displayed in the worksheet.
 private PropList __props;
 
 /**
-The column names.  They can be overridden by calling setKeyColumnName() and
-setValueColumnName(), but this must be done before the worksheet displaying the prop list is shown.
+The column names.  They can be overridden by calling setKeyColumnName() and setValueColumnName(),
+but this must be done before the worksheet displaying the prop list is shown.
 */
-private String 
+private String
 	__keyColName = "KEY",
 	__typeColName = "TYPE",
 	__valColName = "VALUE";
 
 /**
-Constructor.  
+Constructor.
 @param props the proplist that will be displayed in the table.
-This proplist will be duplicated for display so that changes can be accepted or rejected 
+This proplist will be duplicated for display so that changes can be accepted or rejected
 by the user before being committed to the proplist read in from a file.
 @param keyEditable whether the prop keys can be edited
 @param valEditable whether the prop values can be edited
@@ -105,12 +101,11 @@ throws Exception {
 }
 
 /**
-Constructor.  
+Constructor.
 @param props the proplist that will be displayed in the table.
-This proplist will be duplicated for display so that changes can be accepted or rejected by 
+This proplist will be duplicated for display so that changes can be accepted or rejected by
 the user before being committed to the proplist read in from a file.
-@param ignores a list of Strings representing keys that should not be 
-displayed in the table model.  Cannot be null.
+@param ignores a list of Strings representing keys that should not be displayed in the table model.  Cannot be null.
 @param keyEditable whether the prop keys can be edited
 @param valEditable whether the prop values can be edited
 @throws Exception if invalid data were passed in.
@@ -128,7 +123,7 @@ throws Exception {
 	for (int i = 0; i < size; i++) {
 		__props.unSet(ignores.get(i));
 	}
-	
+
 	_rows = __props.size();
 
 	__keyEditable = keyEditable;
@@ -136,8 +131,8 @@ throws Exception {
 }
 
 /**
-Adds a row to the table; called by the worksheet when a call is made to 
-JWorksheet.addRow() or JWorksheet.insertRowAt().
+Adds a row to the table,
+called by the worksheet when a call is made to JWorksheet.addRow() or JWorksheet.insertRowAt().
 @param prop the object (in this case, should only be a Prop) to insert because
 the data object is a full PropList.
 @param row the row to insert the object at.
@@ -145,7 +140,7 @@ the data object is a full PropList.
 public void addRow(Prop prop) {
 	/*
 	if (!(o instanceof Prop)) {
-		Message.printWarning(2, "PropList_TableModel.addRow()",	
+		Message.printWarning(2, "PropList_TableModel.addRow()",
 			"Only RTi.Util.IO.Prop objects can be added to a PropList table model.");
 		return;
 	}
@@ -224,8 +219,7 @@ public String[] getColumnToolTips() {
 }
 
 /**
-Returns the format that the specified column should be displayed in when
-the table is being displayed in the given table format. 
+Returns the format that the specified column should be displayed in when the table is being displayed in the given table format.
 @param column column for which to return the format.
 @return the format (as used by StringUtil.formatString() in which to display the column.
 */
@@ -276,10 +270,13 @@ public Object getValueAt(int row, int col) {
 		case COL_TYPE:
 			// Return the type that is commonly used such as TSTool SetProperty command.
 			Object value = p.getContents();
-			if ( value != null ) {
-				Message.printStatus(2, "", "Property " + p.getKey() + " = " + value);
-				Message.printStatus(2, "", "Property " + p.getKey() + " = " + p.getContents().getClass());
-			}
+			// Use for troubleshooting but don't wan't run-time, possibly sensitive data in log file.
+			//if ( Message.isDebugOn ) {
+			//	if ( value != null ) {
+			//		Message.printStatus(2, "", "Property " + p.getKey() + " = " + value);
+			//		Message.printStatus(2, "", "Property " + p.getKey() + " = " + p.getContents().getClass());
+			//	}
+			//}
 			if ( value == null ) {
 				return "";
 			}
@@ -294,8 +291,7 @@ public Object getValueAt(int row, int col) {
 }
 
 /**
-Returns an array containing the widths (in number of characters) that the 
-fields in the table should be sized to.
+Returns an array containing the widths (in number of characters) that the fields in the table should be sized to.
 @return an integer array containing the widths for each field.
 */
 public int[] getColumnWidths() {
@@ -323,7 +319,7 @@ public void insertRowAt(Prop prop, int row) {
 
 	/*
 	if (!(prop instanceof Prop)) {
-		Message.printWarning(2, "PropList_TableModel.insertRowAt()",	
+		Message.printWarning(2, "PropList_TableModel.insertRowAt()",
 			"Only RTi.Util.IO.Prop objects can be inserted to a PropList table model.");
 		return;
 	}
@@ -333,7 +329,7 @@ public void insertRowAt(Prop prop, int row) {
 }
 
 /**
-Returns whether the cell at the given position is editable or not.  
+Returns whether the cell at the given position is editable or not.
 @param rowIndex unused
 @param columnIndex the index of the column to check for whether it is editable.
 @return whether the cell at the given position is editable.
@@ -358,8 +354,8 @@ public boolean isCellEditable(int rowIndex, int columnIndex) {
 }
 
 /**
-Overrides the default name of the key column ("KEY") -- THIS MUST BE DONE BEFORE
-THE WORKSHEET IS SHOWN IN THE GUI OR IT WILL NOT WORK.
+Overrides the default name of the key column ("KEY").
+THIS MUST BE DONE BEFORE THE WORKSHEET IS SHOWN IN THE GUI OR IT WILL NOT WORK.
 @param name the name to give to the column.
 */
 public void setKeyColumnName(String name) {
@@ -367,8 +363,8 @@ public void setKeyColumnName(String name) {
 }
 
 /**
-Overrides the default name of the key column ("TYPE") -- THIS MUST BE DONE BEFORE
-THE WORKSHEET IS SHOWN IN THE GUI OR IT WILL NOT WORK.
+Overrides the default name of the key column ("TYPE").
+THIS MUST BE DONE BEFORE THE WORKSHEET IS SHOWN IN THE GUI OR IT WILL NOT WORK.
 @param name the name to give to the column.
 */
 public void setTypeColumnName(String name) {
@@ -376,8 +372,8 @@ public void setTypeColumnName(String name) {
 }
 
 /**
-Overrides the default name of the value column ("VALUE") -- THIS MUST BE DONE 
-BEFORE THE WORKSHEET IS SHOWN IN THE GUI OR IT WILL NOT WORK.
+Overrides the default name of the value column ("VALUE").
+THIS MUST BE DONE BEFORE THE WORKSHEET IS SHOWN IN THE GUI OR IT WILL NOT WORK.
 @param name the name to give to the column.
 */
 public void setValueColumnName(String name) {
@@ -392,12 +388,12 @@ Sets the value at the specified position to the specified value.
 */
 public void setValueAt(Object value, int row, int col) {
 	Prop p = (Prop)__props.elementAt(row);
-	
+
 	switch (col) {
 		case COL_KEY:
 			if (!(p.getKey().equals((String)value))) {
 				p.setKey((String)value);
-				valueChanged(row, col);		
+				valueChanged(row, col);
 			}
 			break;
 		case COL_TYPE:
@@ -411,7 +407,7 @@ public void setValueAt(Object value, int row, int col) {
 			break;
 	}
 
-	super.setValueAt(value, row, col);	
+	super.setValueAt(value, row, col);
 }
 
 /**

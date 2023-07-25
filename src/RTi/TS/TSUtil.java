@@ -35,7 +35,6 @@ import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.DateTime;
 import RTi.Util.Time.InvalidTimeIntervalException;
-import RTi.Util.Time.TZ;
 import RTi.Util.Time.TimeInterval;
 import RTi.Util.Time.TimeUtil;
 import RTi.Util.Time.YearType;
@@ -44,6 +43,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.lang.String;
 import java.security.InvalidParameterException;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -1018,6 +1018,61 @@ public static boolean areIntervalsSame ( List<TS> tslist ) {
 		interval_base = ts.getDataIntervalBase();
 		interval_mult = ts.getDataIntervalMult();
 		if ( (interval_base != interval_base0) || (interval_mult != interval_mult0) ) {
+			return false;
+		}
+	}
+	return true;
+}
+
+/**
+Determine whether the time zones for the time series are the same.
+The time zone for the period start is checked.
+@param ts1 first time series to check
+@param ts2 second time series to check
+@return true if the time zones are the same, false otherwise
+*/
+public static boolean areTimeZonesSame ( TS ts1, TS ts2 ) {
+	List<TS> tslist = new ArrayList<>();
+	tslist.add(ts1);
+	tslist.add(ts2);
+	return areTimeZonesSame(tslist);
+}
+
+/**
+Determine whether the time zones for the time series are the same.
+The time zone for the period start is checked.
+@param tslist list of time series to check time zones
+@return true if the time zones are the same, false otherwise
+*/
+public static boolean areTimeZonesSame ( List<TS> tslist ) {
+	if ( tslist == null ) {
+		// No time zones.  Decide later whether to throw an exception.
+		return true;
+	}
+	int size = tslist.size();
+	if ( size < 2 ) {
+		// No need to compare.
+		return true;
+	}
+	// Loop through the time series.
+	boolean firstFound = false;
+	String zone0 = null;
+	DateTime dt = null;
+	for ( TS ts : tslist ) {
+		if ( ts == null ) {
+			continue;
+		}
+		if ( !firstFound ) {
+			// Initialize.
+			dt = ts.getDate1();
+			if ( dt != null ) {
+				zone0 = dt.getTimeZoneAbbreviation();
+				firstFound = true;
+				continue;
+			}
+		}
+		dt = ts.getDate1();
+		if ( (dt == null) || !zone0.equalsIgnoreCase(dt.getTimeZoneAbbreviation()) ) {
 			return false;
 		}
 	}
@@ -9111,7 +9166,7 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
         			" max=" + StringUtil.formatString(maxValue,"%.6f") + " flag=" + matchFlag) );
         	}
         }
-		
+
 		if ( !newDescriptionLogic ) {
 			// Old code prior to TSTool 14.8.4:
 			// - phase out because results in ugly descriptions in graphs without adding much value
@@ -9129,7 +9184,7 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 					StringUtil.formatString(newvalue, "%.3f") + ")" );
 			}
 		}
-		
+
 		// Set the genesis information.
 		if ( doRemove ) {
 			ts.addToGenesis ( "Replace " + StringUtil.formatString(minvalue,"%.3f") +
@@ -10137,100 +10192,182 @@ throws TSException {
 
 /**
 Shift the time series from its current time zone to the specified time zone.
-Currently, only shifts for HourTS are supported.
-The shift is accomplished as follows:
-<ul>
-<li>	The time zone in the original time series is examined, based on the start date/time of the time series.
-    If the time zone is blank or there is no difference with the requested time zone,
-   	the reset_tz_if_same flag is checked to determine whether the new time zone is
-	used in the dates in the time series and the time series is returned.
-	Otherwise, the following steps are performed.
-	</li>
-<li>	If the requested time zone, when compared with the time zone in the original time series,
-	results in an offset, a new copy of the time series is created, using the original header information,
-	but with dates that have the new time zone.
-	The original time series is then iterated through and data are transferred to the new time series.
-	This transfer results in a consistent shift throughout the time zeries and
-	should therefore occur using standard time zones only (not daylight savings time zones).</li>
-</ul>
-@param ts The time series to be modified.
-@param req_tz A requested time zone abbreviation, as recognized by the RTi.Util.Time.TZ class.
-If null, or "" are specified, the original time series is returned.
-@param from_date A DateTime used as a reference to determine daylight savings time.
-Currently this is not evaluated.
-In the future it may be used to allow conversion between standard and daylight time zones.
-It is not currently supported because standard/daylight shifts will vary in a long time series.
-@param reset_tz_if_same If true and the requested time zone is numerically the same as the original time series,
-then the requested time zone will be used in the start and end dates for the time series
-(e.g, use to switch from "Z" to "GMT").  If false and the time zones are numerically equal,
-use the original time zone.
-@return the original time series if no shift has occurred, or a new time series with shifted data.
-@exception if there is an error shifting the time zone
-(e.g., trying to shift hourly data by 30 minutes, or the requested time zone is not recognized).
+The existing time series is modified.
+@param ts time series to modify
+@param oldTimeZone old time zone, used if time series date/time do not have time zones
+@param newTimeZone requested time zone for output
+@param shiftTime whether to shift the time or just change the date/time time zone without shifting
 */
-public static TS shiftTimeZone ( TS ts, String req_tz, DateTime from_date, boolean reset_tz_if_same )
+public static TS shiftTimeZone ( TS ts, String oldTimeZone, String newTimeZone, boolean shiftTime )
 throws Exception {
-	if ( (req_tz == null) || (req_tz.length() == 0) ) {
-		// Not any information to do a shift so don't do anything.
-		return ts;
+	TS tsCopy = null;
+	if ( shiftTime ) {
+		// Regular interval time series must have data space reallocated. 
+		// Irregular interval time series must clear out TSData list and then re-add.
+		// Create a clone of the time series that can be used to extract data in the old time zone.
+		tsCopy = (TS)ts.clone();
 	}
-	// Get the shift between time zones.
-	String ts_tz = ts.getDate1().getTimeZoneAbbreviation();
-	@SuppressWarnings("deprecation")
-	int offset = TZ.calculateOffsetMinutes ( ts_tz, req_tz, from_date );
-	if ( offset == 0 ) {
-		// The time zones are numerically equal.
-		if ( reset_tz_if_same ) {
-			// Reset the time zone in the start and end dates in the time series (but do not do so in limits or irregular data.
-			ts.getDate1().setTimeZone(req_tz);
-			ts.getDate1Original().setTimeZone(req_tz);
-			ts.getDate2().setTimeZone(req_tz);
-			ts.getDate2Original().setTimeZone(req_tz);
-		}
-		return ts;
+
+   	// Reset all date/times to the requested time zone:
+   	// - will either set the time zone without shift (ShiftTime=False)
+   	// - or shift the time zone and shift the time (ShiftTime=True)
+   	// - if oldTimeZone is provided and time zone is not set in the time series, use oldTimeZone
+   	// - reuse the ZoneId in output to increase performance a bit
+
+   	ZoneId zoneIdNew = null;
+   	if ( (newTimeZone != null) && !newTimeZone.isEmpty() ) {
+   		// Look up the new time zone as ZoneId.
+   		zoneIdNew = ZoneId.of(newTimeZone);
+   	}
+
+	// Period start.
+	DateTime dt = ts.getDate1();
+	String zone = null;
+	if ( dt != null ) {
+		if ( shiftTime ) {
+			zone = dt.getTimeZoneAbbreviation();
+			if ( (zone == null) || zone.isEmpty() ) {
+				dt.setTimeZone(oldTimeZone);
+			}
+			dt.shiftTimeZone(zoneIdNew);
+   		}
+   		else {
+   			dt.setTimeZone(newTimeZone);
+   		}
+   		ts.setDate1(dt);
 	}
-	else {
-	    // Need to create a new time series with the new dates and transfer the data.
-		// Only support for hourly data.
-		int interval_base = ts.getDataIntervalBase();
-		int interval_mult = ts.getDataIntervalMult();
-		if ( interval_base != TimeInterval.HOUR ) {
-			throw new Exception ( "Only hourly data can have their time zone shifted.");
-		}
-		// TODO SAM 2004-11-08 The following is not very efficient and could be optimized,
-		// in particular to avoid the initial close of the data space and to avoid transfer altogether if
-		// no shift in the data space is necessary.
-		HourTS ts1 = (HourTS)ts;
-		HourTS ts2 = (HourTS)ts1.clone();
-		// Reset the dates.
-		DateTime date = new DateTime ( ts1.getDate1() );
-		date.shiftTimeZone ( req_tz );
-		ts2.setDate1 ( date );
-		if ( ts1.getDate1Original() != null ) {
-			date = new DateTime ( ts1.getDate1Original() );
-			date.shiftTimeZone ( req_tz );
-			ts2.setDate1Original ( date );
-		}
-		date = new DateTime ( ts1.getDate2() );
-		date.shiftTimeZone ( req_tz );
-		ts2.setDate2 ( date );
-		if ( ts1.getDate2Original() != null ) {
-			date = new DateTime ( ts1.getDate2Original() );
-			date.shiftTimeZone ( req_tz );
-			ts2.setDate2Original ( date );
-		}
-		// Reallocate the memory.
-		ts2.allocateDataSpace();
-		// Transfer the data.
-		date = new DateTime(ts1.getDate1());
-		DateTime date_end = new DateTime(ts1.getDate2());
-		DateTime date2 = new DateTime(ts2.getDate1());
-		for ( ; date.lessThanOrEqualTo(date_end); date.addInterval(interval_base,interval_mult),
-			date2.addInterval(interval_base,interval_mult) ) {
-			ts2.setDataValue ( date2, ts1.getDataValue(date) );
-		}
-		return ts2;
-	}
+
+   	// Period start (original).
+   	dt = ts.getDate1Original();
+   	if ( dt != null ) {
+   		if ( shiftTime ) {
+   			zone = dt.getTimeZoneAbbreviation();
+	  		if ( (zone == null) || zone.isEmpty() ) {
+		 		dt.setTimeZone(oldTimeZone);
+	  		}
+   			dt.shiftTimeZone(zoneIdNew);
+   		}
+   		else {
+   			dt.setTimeZone(newTimeZone);
+   		}
+		ts.setDate1Original(dt);
+   	}
+
+   	// Period end.
+   	dt = ts.getDate2();
+   	if ( dt != null ) {
+   		if ( shiftTime ) {
+   			zone = dt.getTimeZoneAbbreviation();
+  	  		if ( (zone == null) || zone.isEmpty() ) {
+ 			dt.setTimeZone(oldTimeZone);
+  	  		}
+   			dt.shiftTimeZone(zoneIdNew);
+   		}
+   		else {
+   			dt.setTimeZone(newTimeZone);
+   		}
+   		ts.setDate2(dt);
+   	}
+
+  	// Period end (original).
+   	dt = ts.getDate2Original();
+   	if ( dt != null ) {
+   		if ( shiftTime ) {
+   			zone = dt.getTimeZoneAbbreviation();
+  	  		if ( (zone == null) || zone.isEmpty() ) {
+ 				dt.setTimeZone(oldTimeZone);
+  	  		}
+  			dt.shiftTimeZone(zoneIdNew);
+   		}
+   		else {
+   			dt.setTimeZone(newTimeZone);
+   		}
+   		ts.setDate2Original(dt);
+   	}
+
+   	if ( ts.isIrregularInterval() ) {
+   		// Loop through all the data and set the time zone on the DateTime instances that are in TSData.
+   		// Because the memory management is just a list of TSData, the data array does not need to be recreated.
+   		IrregularTS irregts = (IrregularTS)ts;
+   		// Remove all the existing data (will be copied from 'tsCopy' below).
+   		if ( shiftTime ) {
+   			// Remove old data since new list will be created.
+   			// This ensures that no stray points are left due to the shift.
+   			irregts.removeAllData();
+   		}
+   		TSIterator tsi = null;
+   		if ( shiftTime ) {
+   			// Iterate over the copied data ensure that all of the original data are processed.
+   			tsi = tsCopy.iterator();
+   		}
+   		else {
+   			// Iterate over the original data since just modifying the date/times in the original data.
+   			tsi = irregts.iterator();
+   		}
+   		TSData tsdata = null;
+   		while ( (tsdata = tsi.next()) != null ) {
+   			if ( shiftTime ) {
+				// Make a copy of the date/time since it will be updated.
+				dt = new DateTime(tsdata.getDate());
+				zone = dt.getTimeZoneAbbreviation();
+  	  			if ( (zone == null) || zone.isEmpty() ) {
+  	  				// Time zone was not specified but have a specified old time zone:
+  	  				// - if old time zone is null or empty there will be an exception from called code
+ 					dt.setTimeZone(oldTimeZone);
+  	  			}
+  	  			// Shift to the new time zone.
+				dt.shiftTimeZone(zoneIdNew);
+				// Set in the time series using the shifted date/time:
+				// - new TSData instances will be created
+				irregts.setDataValue(dt, tsdata.getDataValue(), tsdata.getDataFlag(), tsdata.getDuration());
+   			}
+   			else {
+   				// Just set the time zone on the data:
+   				// - 'tsdata' is a referenced to the time series' data
+   				// - TSTdata.getDate() returns a copy of the date so have to reset
+   				tsdata.setDate(tsdata.getDate().setTimeZone(newTimeZone));
+   			}
+   		}
+   	}
+   	else {
+   		// Regular interval:
+   		// - reallocate the data array based on new date/times from above
+   		// - iterate over the copied time series to ensure that all of the original data are processed
+   		if ( shiftTime ) {
+   			ts.allocateDataSpace(); // This also allocates space for the flags.
+   			int intervalBase = ts.getDataIntervalBase();
+   			int intervalMult = ts.getDataIntervalMult();
+   			TSData tsdata = new TSData();
+   			DateTime dateTimeOld = new DateTime(tsCopy.getDate1());
+   			DateTime dateTimeNew = new DateTime(tsCopy.getDate1());
+   			DateTime dateTimeEnd = tsCopy.getDate2();
+   			for ( ; dateTimeOld.lessThanOrEqualTo(dateTimeEnd); dateTimeOld.addInterval(intervalBase, intervalMult) ) {
+   				// Set the new DateTime from the old and then shift:
+   				// - the shift needs to occur based on date/time because of daylight saving
+   				dateTimeNew.setDate(dateTimeOld);
+   				dateTimeNew.shiftTimeZone(zoneIdNew);
+   				// Duration is not used for regular interval time series.
+   				tsdata = tsCopy.getDataPoint(dateTimeOld, tsdata);
+   				if ( tsdata != null ) {
+   					ts.setDataValue(dateTimeNew, tsdata.getDataValue(), tsdata.getDataFlag(), -1);
+   				}
+   			}
+   		}
+   	}
+
+   	// Add a history message.
+   	if ( shiftTime ) {
+   		ts.addToGenesis("Changed time zone to \"" + newTimeZone + "\" (times were also shifted).");
+   	}
+   	else {
+   		ts.addToGenesis("Changed time zone to \"" + newTimeZone + "\" (times were not shifted).");
+   	}
+
+   	// Set the time series dirty so limits will be recomputed and new dates used.
+   	ts.setDirty(true);
+
+   	// Return the modified time series.
+   	return ts;
 }
 
 /**
@@ -10844,4 +10981,191 @@ throws InvalidTimeIntervalException {
     // Call the version that takes the month indices but pass a null indicating to process all months.
     return toArray ( ts, start_date, end_date, null, false );
 }
+
+/**
+Return an array containing the data flags of the time series for the specified period.
+If the start date or end date are outside the period of record for the time series, use an empty string.
+If the start date or end date are null, the start and end dates of the time series are used.
+This is a utility routine mainly used by other versions of this routine.
+@return The array of flags for the time series.  If an error, return null.  A zero size array may be returned.
+@param ts Time series to convert data to array format.
+@param start_date Date corresponding to the first date of the returned array.
+@param end_date Date corresponding to the last date of the returned array.
+*/
+public static String[] toFlagArray ( TS ts, DateTime startDate, DateTime endDate )
+throws InvalidTimeIntervalException {
+	int [] includeMonths = null;
+	boolean includeMissing = true;
+	boolean matchOtherNonmissing = false;
+	TS pairedTS = null;
+	return toFlagArray ( ts, startDate, endDate, includeMonths, includeMissing, matchOtherNonmissing, pairedTS );
+}
+
+// TODO SAM 2013-02-04 Might want this to include a window, rather than just included months, in order to get seasonal data.
+/**
+Return an array containing the data flags of the time series for the specified period.
+If the start date or end date are outside the period of record for the time series, use an empty string.
+If the start date or end date are null, the start and end dates of the time series are used.
+This is a utility routine mainly used by other versions of this routine.
+@return The array of flags for the time series.  If an error, return null.  A zero size array may be returned.
+@param ts Time series to convert data to array format.
+@param start_date Date corresponding to the first date of the returned array.
+@param end_date Date corresponding to the last date of the returned array.
+@param includeMonths Months of interest (1=Jan, 12=Dec) to include.  If null or an empty array, process all months.
+@param includeMissing if true, include missing values; if false, do not include missing values
+@param matchOtherNonmissing only used if "pairedTS" -s not null;
+if true, then specify "pairedTS" and only return non-missing values that also are non-missing in "pairedTS";
+if false, then specify "pairedTS" and only return non-missing values that are missing in "pairedTS"
+other time series (this functionality is used to extract data for regression analysis)
+@param pairedTS a second time series used to extract paired (or non-paired) data samples;
+if null then the time series will not be checked as a constraint regardless of the "matchOtherNonmissing" value;
+this capability is NOT available for irregular time series
+*/
+public static String[] toFlagArray ( TS ts, DateTime start_date, DateTime end_date, int [] includeMonths,
+    boolean includeMissing, boolean matchOtherNonmissing, TS pairedTS )
+throws InvalidTimeIntervalException {
+    if ( pairedTS != null ) {
+        if ( !TimeInterval.isRegularInterval(ts.getDataIntervalBase()) ) {
+            throw new IrregularTimeSeriesNotSupportedException(
+                "Irregular interval time series cannot have data array extracted using paired time series." );
+        }
+        if ( !TSUtil.intervalsMatch(ts, pairedTS) ) {
+            throw new UnequalTimeIntervalException(
+                "Time series from which to extract data has a different interval than paired time series." );
+        }
+    }
+    // Get valid dates because the ones passed in may have been null.
+
+	TSLimits valid_dates = getValidPeriod ( ts, start_date, end_date );
+	DateTime start = valid_dates.getDate1();
+	DateTime end = valid_dates.getDate2();
+
+	int interval_base = ts.getDataIntervalBase();
+	int interval_mult = ts.getDataIntervalMult();
+	int size = 0;
+	if ( ts.getDataIntervalBase() == TimeInterval.IRREGULAR ) {
+		size = calculateDataSize ( ts, start, end );
+	}
+	else {
+	    size = calculateDataSize ( start, end, interval_base, interval_mult );
+	}
+
+    boolean [] includeMonthsMask = new boolean[12];
+    if ( (includeMonths == null) || (includeMonths.length == 0) ) {
+        for ( int i = 0; i < 12; i++ ) {
+            includeMonthsMask[i] = true;
+        }
+    }
+    else {
+        for ( int i = 0; i < 12; i++ ) {
+            includeMonthsMask[i] = false;
+        }
+        for ( int i = 0; i < includeMonths.length; i++ ) {
+            includeMonthsMask[includeMonths[i] - 1] = true;
+        }
+    }
+
+	if ( size == 0 ) {
+		return new String[0];
+	}
+
+	String [] dataArray = new String[size]; // Initial size including missing.
+	int count = 0; // Number of values in array.
+	int month = 0; // Month for date.
+	double value; // Data value in time series.
+
+	if ( interval_base == TimeInterval.IRREGULAR ) {
+		// Get the data and loop through the list.
+		IrregularTS irrts = (IrregularTS)ts;
+		List<TSData> alltsdata = irrts.getData();
+		if ( alltsdata == null ) {
+			// No data for the time series.
+			return null;
+		}
+		int nalltsdata = alltsdata.size();
+		TSData tsdata = null;
+		DateTime date = null;
+		for ( int i = 0; i < nalltsdata; i++ ) {
+			tsdata = alltsdata.get(i);
+			date = tsdata.getDate();
+			if ( date.greaterThan(end) ) {
+				// Past the end of where we want to go so quit.
+				break;
+			}
+			if ( date.greaterThanOrEqualTo(start) ) {
+                month = date.getMonth();
+				if ( includeMonthsMask[month -1] ) {
+	                value = tsdata.getDataValue ();
+	                if ( includeMissing || !ts.isDataMissing(value) ) {
+	                    dataArray[count++] = tsdata.getDataFlag();
+	                }
+				}
+			}
+		}
+	}
+	else {
+	    // Regular, increment the data by interval.
+		DateTime date = new DateTime ( start );
+		count = 0;
+		boolean doTransfer = false;
+		boolean isMissing = false;
+		double value2;
+		boolean isMissing2;
+		TSData tsdata = new TSData(); // Use for data transfers.
+		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
+		    // First figure out if the data should be skipped because not in a requested month.
+            month = date.getMonth();
+            if ( !includeMonthsMask[month -1] ) {
+		        continue;
+		    }
+		    // Now transfer the value while checking the paired time series.
+		    doTransfer = false; // Do not transfer unless criteria are met below.
+            value = ts.getDataValue ( date );
+            isMissing = ts.isDataMissing(value);
+		    if ( pairedTS != null ) {
+		        // Value in "ts" time series MUST be non-missing.
+		        if ( !isMissing ) {
+    	            value2 = pairedTS.getDataValue ( date );
+    	            isMissing2 = pairedTS.isDataMissing(value2);
+    	            if ( matchOtherNonmissing ) {
+    	                // Want non-missing in both "ts" and "pairedTS".
+    	                if ( !isMissing2 ) {
+    	                    doTransfer = true;
+    	                }
+    	            }
+    	            else {
+    	                // Want non-missing in "ts" and missing in "pairedTS".
+    	                if ( isMissing2 ) {
+    	                    doTransfer = true;
+    	                }
+    	            }
+		        }
+		    }
+		    else {
+    		    if ( includeMissing || !isMissing ) {
+    		        // Value is not missing.
+    		        doTransfer = true;
+    		    }
+		    }
+		    // OK to transfer the value.
+			if ( doTransfer ) {
+	    		ts.getDataPoint(date, tsdata);
+			    dataArray[count++] = tsdata.getDataFlag();
+			}
+		}
+	}
+
+	if ( count != size ) {
+		// The original array is too big and needs to be cut down to the exact size due to limited
+	    // months or missing data being excluded).
+		String [] newDataArray = new String[count];
+		for ( int j = 0; j < count; j++ ) {
+			newDataArray[j] = dataArray[j];
+		}
+		return newDataArray;
+	}
+	// Return the full array.
+	return dataArray;
+}
+
 }

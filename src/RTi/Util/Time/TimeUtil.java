@@ -35,7 +35,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.TimeZone;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -141,10 +140,11 @@ public static final int MONTH_YEARDAYS[] = {
 
 // Static data shared in package (so DateTime can get to easily).
 
-protected static TimeZone _local_time_zone = null;
-protected static String _local_time_zone_string = "";
-protected static boolean _local_time_zone_retrieved = false;
-protected static int _time_zone_lookup_method = LOOKUP_TIME_ZONE_ONCE;
+// TODO smalers 2023-07-21 need to remove this because java.time handles better.
+//protected static TimeZone _local_time_zone = null;
+//protected static String _local_time_zone_string = "";
+//protected static boolean _local_time_zone_retrieved = false;
+//protected static int _time_zone_lookup_method = LOOKUP_TIME_ZONE_ONCE;
 
 /**
 Compute the absolute day.  This can be used for determining the difference between dates.
@@ -1684,13 +1684,13 @@ public static String[] getDateTimeFormatSpecifiers(boolean includeDescription, b
 }
 
 /**
-Return the local time zone abbreviation.
-The method of lookup is either LOOKUP_TIME_ZONE_ONCE (default) or LOOKUP_TIME_ZONE_ALWAYS.
+Return the local time zone abbreviation (e.g., "America/Denver").
 The method can be changed by calling the overloaded method.
 @return the local time zone abbreviation.
 */
 public static String getLocalTimeZoneAbbr () {
-	return getLocalTimeZoneAbbr ( _time_zone_lookup_method );
+	ZoneId zoneId = ZoneId.systemDefault();
+	return zoneId.toString();
 }
 
 /**
@@ -1701,6 +1701,7 @@ including those used in DateTime construction.
 The default is LOOKUP_TIME_ZONE_ONCE.
 @return the local time zone abbreviation.
 */
+/* TODO smalers 2023-07-21 remove this once tested out.
 public static String getLocalTimeZoneAbbr ( int time_zone_lookup_method ) {
 	if ( (time_zone_lookup_method == LOOKUP_TIME_ZONE_ONCE) ||
 		(time_zone_lookup_method == LOOKUP_TIME_ZONE_ALWAYS) ) {
@@ -1708,6 +1709,8 @@ public static String getLocalTimeZoneAbbr ( int time_zone_lookup_method ) {
 	}
 	if ( _time_zone_lookup_method == LOOKUP_TIME_ZONE_ONCE ) {
 		if ( !_local_time_zone_retrieved ) {
+			// Local time zone has not been retrieved.
+			ZoneId zoneId = ZoneId.systemDefault();
 			_local_time_zone = TimeZone.getDefault();
 			_local_time_zone_string = _local_time_zone.getID(); // Use this because zones like MDT are not actually valid for some code.
 			_local_time_zone_retrieved = true;
@@ -1724,6 +1727,7 @@ public static String getLocalTimeZoneAbbr ( int time_zone_lookup_method ) {
 	}
 	return _local_time_zone_string;
 }
+*/
 
 /**
 Get the month and day from the day of year.
