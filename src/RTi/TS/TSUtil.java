@@ -3966,20 +3966,45 @@ throws TSException {
 /**
 Fill missing data in the time series using linear interpolation between non-missing values.
 @param ts Time series to fill.
-@param start_date Date to start assignment.
-@param end_date Date to stop assignment.
-@param intervals_can_fill Number of intervals (width of gap) that can be filled.
+@param fillStart Date/time to start filling.
+@param fillEnd Date/time to end filling.
+@param maxIntervals maximum number of intervals (width of gap) that can be filled.
 If 0 then there is no limit on the number of intervals that can be filled.
-@param interpolate_method Reserved for future use.  Currently always linear.
+@param interpolateMethod Reserved for future use.  Currently always linear.
 @return number of values filled
 @exception TSException if there is an error filling the time series.
 */
-public static int fillInterpolate ( TS ts, DateTime start_date, DateTime end_date,
-	int intervals_can_fill, int interpolate_method )
+public static int fillInterpolate ( TS ts, DateTime fillStart, DateTime fillEnd,
+	int maxIntervals, int interpolateMethod )
 throws TSException, Exception {
 	PropList props = new PropList ( "fillInterpolate" );
-	props.set( "MaxIntervals=" + intervals_can_fill );
-	return fillInterpolate ( ts, start_date, end_date, props );
+	props.set( "MaxIntervals=" + maxIntervals );
+	return fillInterpolate ( ts, fillStart, fillEnd, props );
+}
+
+/**
+Fill missing data in the time series using linear interpolation between non-missing values.
+@param ts Time series to fill.
+@param fillStart Date/time to start filling.
+@param fillEnd Date/time to end filling.
+@param maxIntervals maximum number of intervals (width of gap) that can be filled.
+If 0 then there is no limit on the number of intervals that can be filled.
+@param interpolateMethod Reserved for future use.  Currently always linear.
+@param fillFlag flag to mark filled values
+@param fillFlagDescription description for the fill flag
+@return number of values filled
+@exception TSException if there is an error filling the time series.
+*/
+public static int fillInterpolate ( TS ts, DateTime fillStart, DateTime fillEnd,
+	int maxIntervals, int interpolateMethod, String fillFlag, String fillFlagDescription )
+throws TSException, Exception {
+	PropList props = new PropList ( "fillInterpolate" );
+	props.set( "MaxIntervals=" + maxIntervals );
+	if ( (fillFlag != null) && !fillFlag.isEmpty() ) { 
+		props.set( "FillFlag=" + fillFlag );
+		props.set( "FillFlagDescription=" + fillFlagDescription );
+	}
+	return fillInterpolate ( ts, fillStart, fillEnd, props );
 }
 
 /**
