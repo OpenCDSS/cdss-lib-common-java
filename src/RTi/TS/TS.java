@@ -342,10 +342,23 @@ public TS ( TS ts ) {
 
 /**
 Add a TSDataFlagMetadata instance to the list maintained with the time series, to explain flag meanings.
+If the flag already has a description, it will be replaced
+(therefore update the description before calling this method, if the description needs to be merged).
 @param dataFlagMetadata instance of TSDataFlagMetadata to add to time series.
 */
 public void addDataFlagMetadata ( TSDataFlagMetadata dataFlagMetadata ) {
-    __dataFlagMetadataList.add(dataFlagMetadata);
+	int foundIndex = -1;
+	for ( int i = 0; i < this.__dataFlagMetadataList.size(); i++ ) {
+
+	}
+	if ( foundIndex >= 0 ) {
+		// Replace the flag description.
+		__dataFlagMetadataList.set(foundIndex, dataFlagMetadata);
+	}
+	else {
+		// Append the description.
+		__dataFlagMetadataList.add(dataFlagMetadata);
+	}
 }
 
 /**
