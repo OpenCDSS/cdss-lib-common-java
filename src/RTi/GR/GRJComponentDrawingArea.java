@@ -11,12 +11,12 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -777,13 +777,17 @@ public void drawAnnotation(PropList p) {
 			off = true;
 		}
 
-		int symbol = 0;
+		GRSymbolShapeType symbol = GRSymbolShapeType.NONE;
 		propVal = p.getValue("SymbolStyle");
 		if (propVal == null) {
 			propVal = "None";
 		}
 		try {
-			symbol = GRSymbol.toInteger(propVal);
+			symbol = GRSymbolShapeType.valueOfIgnoreCase(propVal);
+			if ( symbol == null ) {
+				Message.printWarning(2, "drawAnnotation", "Invalid symbol style: " + propVal);
+				return;
+			}
 		}
 		catch (Exception e) {
 			Message.printWarning(2, "drawAnnotation", "Invalid symbol style: " + propVal);
@@ -1089,7 +1093,7 @@ the drawing area and be visible.
 */
 private void drawAnnotationSymbol(double[] xs, double[] ys,
 String[] formatXs, String[] formatYs, String xFormat, String yFormat,
-int xFormatType, int yFormatType, int symbol, int size, int units,
+int xFormatType, int yFormatType, GRSymbolShapeType symbol, int size, int units,
 GRColor outlineColor, int pos, boolean xAxisPercent, boolean yAxisPercent, boolean off) {
 	if (xFormat != null) {
 		int index = xFormat.indexOf(",");
@@ -1133,7 +1137,7 @@ If false, then no attempt to drawn the symbol will be made.
 If true, the symbol will be drawn and there is a chance that part of the drawn area of the symbol will overlap
 the drawing area and be visible.
 */
-private void drawAnnotationSymbol(double[] xs, double[] ys, int symbol,
+private void drawAnnotationSymbol(double[] xs, double[] ys, GRSymbolShapeType symbol,
 int size, int units, GRColor outlineColor, int pos, boolean xAxisPercent,
 boolean yAxisPercent, boolean off) {
 	double tempX = 0;

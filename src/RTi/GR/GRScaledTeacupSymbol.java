@@ -11,12 +11,12 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -78,8 +78,8 @@ throws Exception {
 		throw new Exception("Fields array must be size 3, not: " + fields.length);
 	}
 
-	setStyle(SYM_TEACUP);
-	setClassificationType("ScaledTeacupSymbol");
+	setShapeType(GRSymbolShapeType.TEACUP);
+	setClassificationType(GRClassificationType.SCALED_TEACUP_SYMBOL);
 
 	__maxCapacityField = fields[0];
 	__minCapacityField = fields[1];

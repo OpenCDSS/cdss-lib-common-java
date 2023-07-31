@@ -11,12 +11,12 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -33,6 +33,8 @@ import RTi.GR.GRJComponentDrawingArea;
 import RTi.GR.GRLegend;
 import RTi.GR.GRLimits;
 import RTi.GR.GRSymbol;
+import RTi.GR.GRSymbolPosition;
+import RTi.GR.GRSymbolType;
 import RTi.GR.GRText;
 import RTi.GR.GRUnits;
 import RTi.Util.Message.Message;
@@ -190,20 +192,19 @@ private void drawSymbols ( List<GeoLayerView> layerViews ) {
 		}
 
 		y -= text_height;
-		Message.printStatus ( 1, rtn,
-			"Drawing symbol ("+ x + ", " + y + ") for " + layerView.getLayer().getAppLayerType());
+		Message.printStatus ( 1, rtn, "Drawing symbol ("+ x + ", " + y + ") for " + layerView.getLayer().getAppLayerType());
 
 		GRDrawingAreaUtil.setColor (_legendDA,  symbol.getColor());
 		GRDrawingAreaUtil.drawSymbolText (
 			_legendDA,
-			symbol.getStyle(),
+			symbol.getShapeType(),
 			x, y,
 			symbol.getSize(),
 			layerView.getLayer().getAppLayerType(),
 			0.0,
 			GRText.LEFT|GRText.CENTER_Y,
 			GRUnits.DEVICE,
-			GRSymbol.SYM_CENTER_X|GRSymbol.SYM_CENTER_Y );
+			GRSymbolPosition.CENTER_X |GRSymbolPosition.CENTER_Y );
 	}
 
 	if ( _view.getBigPictureActive()) {
@@ -288,9 +289,9 @@ private boolean[] establishDrawLayerIndicator ( List<GeoLayerView> layerViews ) 
 		layer_desc[i] = description;
 
 		// Check that layer is unique.
-		int symbolType = symbol.getType();
+		GRSymbolType symbolType = symbol.getType();
 		layer_indicator[i] = true;
-		for ( int j=0; j<i; j++ ) {
+		for ( int j = 0; j < i; j++ ) {
 			if ( (layer_symbol[j].getType() == symbolType) && layer_desc[j].equals(description)) {
 				layer_indicator[i] = false;
 				continue;

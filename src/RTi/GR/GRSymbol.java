@@ -11,23 +11,21 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
 
 package RTi.GR;
 
-import RTi.Util.IO.IOUtil;
-
+import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
-// TODO SAM 2010-12-25 Need to evaluate using enumeration for symbols.
 /**
 This class stores information necessary to draw symbology.
 Symbols may be used with points, lines (in which case a line style, width, and color are used),
@@ -39,45 +37,10 @@ If classification is used, then additional data like a color table are used.
 Typically the color table is constructed using GRColorTable.createColorTable().
 If multiple symbols are used for a shape, an array of GRSymbol can be used (e.g., see GRLegend).
 Additional features may be added later to help with optimization of multi-symbol layout.
-NEED TO ADD DERIVED CLASSES TO STORE THE MORE SPECIFIC INFORMATION
-(like color table) SO THIS CLASS IS NOT SO BLOATED.
-TODO (JTS - 2003-05-05) color table has been moved out, but this still has a lot of stuff in it.
-does it need any anti-bloating?
-SAM: agree -- later
 */
 public class GRSymbol
 implements Cloneable
 {
-
-/**
-Symbol types.  The first is no symbol.
-*/
-public static final int TYPE_NONE = 0;
-
-/**
-Draw a point symbol.  Color and symbol size can be specified.
-*/
-public static final int TYPE_POINT = 1;
-
-/**
-Draw a line symbol.  Color, line width, and pattern can be specified.
-*/
-public static final int TYPE_LINE = 2;
-
-/**
-Draw a line symbol with points.  This is a combination of lines and points, suitable for a graph.
-*/
-public static final int TYPE_LINE_AND_POINTS = 3;
-
-/**
-Fill a polygon.  Color, outline color, and pattern can be specified.
-*/
-public static final int TYPE_POLYGON = 4;
-
-/**
-Fill a polygon and draw a symbol.  Symbol, color, outline color, and pattern can be specified.
-*/
-public static final int TYPE_POLYGON_AND_POINT = 5;
 
 /**
 Names for symbols, for use with persistent storage.
@@ -128,668 +91,94 @@ public static final String[] SYMBOL_NAMES = {
 };
 
 /**
-Simple line symbol: no symbol</b>
-*/
-public static final int SYM_NONE = 0;
-
-/**
-Simple line symbol: <b>circle</b>
-*/
-public static final int SYM_CIR	= 1;
-
-/**
-Simple line symbol: <b>square</b>
-*/
-public static final int SYM_SQ = 2;
-
-/**
-Simple line symbol: <b>triangle pointing up</b>
-*/
-public static final int SYM_UTRI = 3;
-
-/**
-Simple line symbol: <b>triangle pointing down</b>
-*/
-public static final int SYM_DTRI = 4;
-
-/**
-Simple line symbol: <b>triangle pointing left</b>
-*/
-public static final int SYM_LTRI = 5;
-
-/**
-Simple line symbol: <b>triangle pointing right</b>
-*/
-public static final int SYM_RTRI = 6;
-
-/**
-Simple line symbol: <b>diamond</b>
-*/
-public static final int SYM_DIA	= 7;
-
-/**
-Compound line symbol: <b>+</b>
-*/
-public static final int SYM_PLUS = 8;
-
-/**
-Compound line symbol: <b>+ with square around it</b>
-*/
-public static final int SYM_PLUSQ = 9;
-
-/**
-Compound line symbol: <b>X</b>
-*/
-public static final int SYM_EX = 10;
-
-/**
-Compound line symbol: <b>X with line over top and bottom</b>
-*/
-public static final int SYM_EXCAP = 11;
-
-/**
-Compound line symbol: <b>X with lines on edge</b>
-*/
-public static final int SYM_EXEDGE = 12;
-
-/**
-Compound line symbol: <b>X with square around it</b>
-*/
-public static final int SYM_EXSQ = 13;
-
-/**
-Compound line symbol: <b>Right arrow</b>
-*/
-public static final int SYM_RARR = 14;
-
-/**
-Compound line symbol: <b>Left arrow</b>
-*/
-public static final int SYM_LARR = 15;
-
-/**
-Compound line symbol: <b>Up arrow</b>
-*/
-public static final int SYM_UARR = 16;
-
-/**
-Compound line symbol: <b>Down arrow</b>
-*/
-public static final int SYM_DARR = 17;
-
-/**
-Compound line symbol: <b>Asterisk</b>
-*/
-public static final int SYM_AST = 18;
-
-/**
-Compound line symbol: <b>X with diamond around it</b>
-*/
-public static final int SYM_EXDIA = 19;
-
-/**
-Simple filled symbol: <b>filled circle</b>
-*/
-public static final int SYM_FCIR = 20;
-
-/**
-Simple filled symbol: <b>filled square</b>
-*/
-public static final int SYM_FSQ	= 21;
-
-/**
-Simple filled symbol: <b>filled triangle pointing up</b>
-*/
-public static final int SYM_FUTRI = 22;
-
-/**
-Simple filled symbol: <b>filled triangle pointing down</b>
-*/
-public static final int SYM_FDTRI = 23;
-
-/**
-Simple filled symbol: <b>filled triangle pointing left</b>
-*/
-public static final int SYM_FLTRI = 24;
-
-/**
-Simple filled symbol: <b>filled triangle pointing right</b>
-*/
-public static final int SYM_FRTRI = 25;
-
-/**
-Simple filled symbol: <b>filled diamond</b>
-*/
-public static final int SYM_FDIA = 26;
-
-// Start complicated filled symbols.
-
-/**
-Complicated filled symbol: Diamond made of four diamonds with "1" in top diamond,
-nothing in other three number areas.
-*/
-public static final int SYM_EXDIA1 = 27;
-
-/**
-Complicated filled symbol: Diamond made of four diamonds with "2" in right diamond,
-nothing in other three number areas.
-*/
-public static final int SYM_EXDIA2 = 28;
-
-/**
-Complicated filled symbol: Diamond made of four diamonds with "3" in bottom diamond,
-nothing in other three number areas.
-*/
-public static final int SYM_EXDIA3 = 29;
-
-/**
-Complicated filled symbol: Diamond made of four diamonds with "4" in bottom diamond,
-nothing in other three number areas.
-*/
-public static final int SYM_EXDIA4 = 30;
-
-/**
-Complicated filled symbol: Diamond made of four diamonds with "1" in top diamond,
-"2" in right diamond, nothing in other two number areas.
-*/
-public static final int SYM_EXDIA12	= 31;
-
-/**
-Complicated filled symbol: Diamond made of four diamonds with "1" in top diamond,
-"2" in right diamond, "3" in bottom diamond, nothing in fourth diamond.
-*/
-public static final int SYM_EXDIA123 = 32;
-
-/**
-Complicated filled symbol: Diamond made of four diamonds with "1" in top diamond,
-"2" in right diamond, "3" in bottom diamond, "4" in left diamond.
-*/
-public static final int SYM_EXDIA1234 = 33;
-
-/**
-Complicated filled symbol: Diamond made of four diamonds with "1" in top diamond,
-"3" in bottom diamond, nothing in other two number areas.
-*/
-public static final int SYM_EXDIA13	= 34;
-
-/**
-Complicated filled symbol: Diamond made of four diamonds with "1" in top diamond,
-"4" in left diamond, nothing in other two number areas.
-*/
-public static final int SYM_EXDIA14	= 35;
-
-/**
-Complicated filled symbol: Diamond made of four diamonds with "2" in right diamond,
-"3" in bottom diamond, nothing in other two number areas.
-*/
-public static final int SYM_EXDIA23	= 36;
-
-/**
-Complicated filled symbol: Diamond made of four diamonds with "2" in right diamond,
-"4" in left diamond, nothing in other two number areas.
-*/
-public static final int SYM_EXDIA24	= 37;
-
-/**
-Complicated filled symbol: Diamond made of four diamonds with "2" in right diamond,
-"3" in bottom diamond, "4" in left diamond, nothing in fourth number area.
-*/
-public static final int SYM_EXDIA234 = 38;
-
-/**
-Complicated filled symbol: Diamond made of four diamonds with "1" in top number area,
-"2" in right diamond, "4" in left diamond, nothing in fourth number area.
-*/
-public static final int SYM_EXDIA124 = 39;
-
-/**
-Complicated filled symbol: Diamond made of four diamonds with "1" in top number area,
-"3" in bottom diamond, "4" in left diamond, nothing in 2nd diamond area.
-*/
-public static final int SYM_EXDIA134 = 40;
-
-/**
-Complicated filled symbol: <b>square filled on top</b>
-*/
-public static final int SYM_TOPFSQ = 41;
-
-/**
-Complicated filled symbol: <b>square filled on bottom</b>
-*/
-public static final int SYM_BOTFSQ = 42;
-
-/**
-Complicated filled symbol: <b>square filled on right</b>
-*/
-public static final int SYM_RFSQ = 43;
-
-/**
-Complicated filled symbol: <b>square filled on left</b>
-*/
-public static final int SYM_LFSQ = 44;
-
-/**
-Complicated filled symbol: <b>filled arrow to upper right</b>
-*/
-public static final int SYM_FARR1 = 45;
-
-/**
-Complicated filled symbol: <b>filled arrow to lower right</b>
-*/
-public static final int SYM_FARR2 = 46;
-
-/**
-Complicated filled symbol: <b>filled arrow to lower left</b>
-*/
-public static final int SYM_FARR3 = 47;
-
-/**
-Complicated filled symbol: <b>filled arrow to upper left</b>
-*/
-public static final int SYM_FARR4 = 48;
-
-/**
-Complicated filled symbol: <b>instream flow symbol</b>
-*/
-public static final int SYM_INSTREAM = 49;
-
-/**
-Complicated filled symbol: <b>tea cup symbol</b>
-*/
-public static final int SYM_TEACUP = 50;
-
-/**
-Complicated filled symbol: <b>vertical bar where positive values are above
-center and negative values are below center</b>
-*/
-public static final int SYM_VBARSIGNED = 51;
-
-
-/**
-Building blocks (incomplete symbols): <b>minus (-)</b>
-*/
-public static final int SYM_MIN = 52;
-
-/**
-Building blocks (incomplete symbols): <b>bar (|)</b>
-*/
-public static final int SYM_BAR	= 53;
-
-/**
-Building blocks (incomplete symbols): <b>forward slash (/)</b>
-*/
-public static final int SYM_FSLASH = 54;
-
-/**
-Building blocks (incomplete symbols): <b>backslash (\)</b>
-*/
-public static final int SYM_BSLASH = 55;
-
-/**
-Building blocks (incomplete symbols): <b>line on top</b>
-*/
-public static final int SYM_TOPLINE = 56;
-
-/**
-Building blocks (incomplete symbols): <b>line on bottom</b>
-*/
-public static final int SYM_BOTLINE = 57;
-
-/**
-Building blocks (incomplete symbols): <b>line on right</b>
-*/
-public static final int SYM_RLINE = 58;
-
-/**
-Building blocks (incomplete symbols): <b>line on left</b>
-*/
-public static final int SYM_LLINE = 59;
-
-/**
-Building blocks (incomplete symbols): <b>lines on top and bottom</b>
-*/
-public static final int SYM_CAP	= 60;
-
-/**
-Building blocks (incomplete symbols): <b>lines on left and right</b>
-*/
-public static final int SYM_EDGE = 61;
-
-/**
-Building blocks (incomplete symbols): <b>caret (^)</b>
-*/
-public static final int SYM_UCAR = 62;
-
-/**
-Building blocks (incomplete symbols): <b>down caret</b>
-*/
-public static final int SYM_DCAR = 63;
-
-/**
-Building blocks (incomplete symbols): <b>left caret</b>
-*/
-public static final int SYM_LCAR = 64;
-
-/**
-Building blocks (incomplete symbols): <b>right caret</b>
-*/
-public static final int SYM_RCAR = 65;
-
-/**
-Building blocks (incomplete symbols): <b>smaller X that can be placed inside of a diamond</b>
-*/
-public static final int SYM_EXFORDIA = 66;
-
-/**
-Building blocks (incomplete symbols): <b>filled top quad of a diamond</b>
-*/
-public static final int SYM_FDIA1 = 67;
-
-/**
-Building blocks (incomplete symbols): <b>filled right quad of a diamond</b>
-*/
-public static final int SYM_FDIA2 = 68;
-
-/**
-Building blocks (incomplete symbols): <b>filled bottom quad of a diamond</b>
-*/
-public static final int SYM_FDIA3 = 69;
-
-/**
-Building blocks (incomplete symbols): <b>filled left quad of a diamond</b>
-*/
-public static final int SYM_FDIA4 = 70;
-
-/**
-Building blocks (incomplete symbols): <b>filled upper right triangle in square</b>
-*/
-public static final int SYM_FSQTRI1 = 71;
-
-/**
-Building blocks (incomplete symbols): <b>filled lower right triangle in square</b>
-*/
-public static final int SYM_FSQTRI2 = 72;
-
-/**
-Building blocks (incomplete symbols): <b>filled lower left triangle in square</b>
-*/
-public static final int SYM_FSQTRI3 = 73;
-
-/**
-Building blocks (incomplete symbols): <b>filled upper left triangle in square</b>
-*/
-public static final int SYM_FSQTRI4 = 74;
-
-/**
-Building blocks (incomplete symbols): <b>filled upper half of diamond</b>
-*/
-public static final int SYM_FTOPDIA = 75;
-
-/**
-Building blocks (incomplete symbols): <b>filled bottom half of diamond</b>
-*/
-public static final int SYM_FBOTDIA = 76;
-
-/**
-Building blocks (incomplete symbols): <b>filled right half of diamond</b>
-*/
-public static final int SYM_FRDIA = 77;
-
-/**
-Building blocks (incomplete symbols): <b>filled left half of diamond</b>
-*/
-public static final int SYM_FLDIA = 78;
-
-/**
-Building blocks (incomplete symbols): <b>filled upper 1/4 of diamond</b>
-*/
-public static final int SYM_FTOPDIA4 = 79;
-
-/**
-Building blocks (incomplete symbols): <b>filled bottom 1/4 of diamond</b>
-*/
-public static final int SYM_FBOTDIA4 = 80;
-
-/**
-Building blocks (incomplete symbols): <b>filled right 1/4 of diamond</b>
-*/
-public static final int SYM_FRDIA4 = 81;
-
-/**
-Building blocks (incomplete symbols): <b>filled left 1/4 of diamond</b>
-*/
-public static final int SYM_FLDIA4 = 82;
-
-/**
-Complicated filled symbol: <b>vertical bar where all values are positive</b>.
-The bar is centered on its X location and rises up from its Y location.
-*/
-public static final int SYM_VBARUNSIGNED = 83;
-
-/**
-Compound line symbol: <b>+ with circle around it</b>
-*/
-public static final int SYM_PLUSCIR = 84;
-
-/**
-Compound symbol: <b>Filled triangle pointing up with a line on the point.</b>
-*/
-public static final int SYM_FUTRI_TOPLINE = 85;
-
-/**
-Compound symbol: <b>Filled triangle pointing down with a line on the point.</b>
-*/
-public static final int SYM_FDTRI_BOTLINE = 86;
-
-/**
-Compound symbol: <b>Hollow triangle pointing up with a line on the point.</b>
-*/
-public static final int SYM_UTRI_TOPLINE = 87;
-
-/**
-Compound symbol: <b>Hollow triangle pointing down with a line on the point.</b>
-*/
-public static final int SYM_DTRI_BOTLINE = 88;
-
-/**
-Complex symbol: <b>Filled push-pin, vertical (no lean).</b>
-*/
-public static final int SYM_PUSHPIN_VERTICAL = 89;
-
-/**
 Summary definition (used by routines to limit symbol selection): <b>first "nice" symbol</b>
 */
-public static final int SYM_FIRST = SYM_CIR;
+public static final GRSymbolShapeType SYM_FIRST = GRSymbolShapeType.CIRCLE;
 
 /**
 Summary definition (used by routines to limit symbol selection): <b>last "nice" symbol</b>
 */
-public static final int SYM_LAST = SYM_FARR4;
+public static final GRSymbolShapeType SYM_LAST = GRSymbolShapeType.ARROW_UP_LEFT_FILLED;
 
 /**
 Summary definition (used by routines to limit symbol selection): <b>last of all symbols</b>
 */
-public static final int SYM_LASTALL = SYM_FLDIA4;
+public static final GRSymbolShapeType SYM_LASTALL = GRSymbolShapeType.FLDIA4;
 
 /**
 Summary definition (used by routines to limit symbol selection): <b>first outline symbol</b>
 */
-public static final int SYM_FIRST_OUT = SYM_CIR;
+public static final GRSymbolShapeType SYM_FIRST_OUT = GRSymbolShapeType.CIRCLE;
 
 /**
 Summary definition (used by routines to limit symbol selection): <b>last outline symbol</b>
 */
-public static final int SYM_LAST_OUT = SYM_DIA;
+public static final GRSymbolShapeType SYM_LAST_OUT = GRSymbolShapeType.DIAMOND;
 
 /**
 Summary definition (used by routines to limit symbol selection): <b>first filled symbol</b>
 */
-public static final int SYM_FIRST_FILL = SYM_FCIR;
+public static final GRSymbolShapeType SYM_FIRST_FILL = GRSymbolShapeType.CIRCLE_FILLED;
 
 /**
 Summary definition (used by routines to limit symbol selection): <b>last filled symbol</b>
 */
-public static final int SYM_LAST_FILL = SYM_FDIA;
+public static final GRSymbolShapeType SYM_LAST_FILL = GRSymbolShapeType.DIAMOND_FILLED;
 
 /**
 Summary definition (used by routines to limit symbol selection): <b>first line symbol</b>
 */
-public static final int SYM_FIRST_LINE = SYM_CIR;
+public static final GRSymbolShapeType SYM_FIRST_LINE = GRSymbolShapeType.CIRCLE;
 
 /**
 Summary definition (used by routines to limit symbol selection): <b>last line symbol</b>
 */
-public static final int SYM_LAST_LINE = SYM_EXDIA;
+public static final GRSymbolShapeType SYM_LAST_LINE = GRSymbolShapeType.X_DIAMOND;
 
 /**
-Orientation for symbols.  The following means the left side of the symbol is at the coordinate.
+Symbol point types that are suitable for end use (not building blocks).
 */
-public static final int SYM_LEFT = 0x01;
-
-/**
-Orientation for symbols.  The following means the device is centered around the X point of the coordinate
-*/
-public static final int SYM_CENTER_X = 0x02;
-
-/**
-Orientation for symbols.  The following means the right side of the symbol is at the coordinate.
-*/
-public static final int SYM_RIGHT = 0x04;
-
-/**
-Orientation for symbols.  The following means the bottom side of the symbol is at the coordinate.
-*/
-public static final int SYM_BOTTOM = 0x08;
-
-/**
-Orientation for symbols.  The following means the top side of the symbol is at the coordinate.
-*/
-public static final int SYM_TOP = 0x10;
-
-/**
-Orientation for symbols.  The following means the device is centered around the Y point of the coordinate
-*/
-public static final int SYM_CENTER_Y = 0x20;
-
-/**
-Symbol numbers.  These are consistent with SYMBOL_NAMES.
-*/
-public static final int[] SYMBOL_NUMBERS = {
-	SYM_NONE,
-	SYM_DARR,
-	SYM_FARR3,
-	SYM_FARR2,
-	SYM_LARR,
-	SYM_RARR,
-	SYM_UARR,
-	SYM_FARR4,
-	SYM_FARR1,
-	SYM_AST,
-	SYM_CIR,
-	SYM_FCIR,
-	SYM_PLUSCIR,
-	SYM_DIA,
-	SYM_FDIA,
-	SYM_INSTREAM,
-	SYM_PLUS,
-	SYM_PLUSQ,
-	SYM_SQ,
-	SYM_FSQ,
-	SYM_TEACUP,
-	SYM_DTRI,
-	SYM_FDTRI,
-	SYM_LTRI,
-	SYM_FLTRI,
-	SYM_RTRI,
-	SYM_FRTRI,
-	SYM_UTRI,
-	SYM_FUTRI,
-	SYM_VBARSIGNED,
-	SYM_EX,
-	SYM_EXCAP,
-	SYM_EXDIA,
-	SYM_EXEDGE,
-	SYM_EXSQ,
-	SYM_FUTRI_TOPLINE,
-	SYM_FDTRI_BOTLINE,
-	SYM_UTRI_TOPLINE,
-	SYM_DTRI_BOTLINE,
-	SYM_PUSHPIN_VERTICAL
-};
-
-/**
-Names for symbol classifications, for use with persistent storage and graphical user interfaces.
-These are consistent with CLASSIFICATION_NUMBERS.
-*/
-public static final String[] CLASSIFICATION_NAMES = {
-				"SingleSymbol",	// One symbol
-				"UniqueValues",	// One symbol per value, but
-						// all symbols are the same
-						// other than color or other
-						// characteristics that can be
-						// automatically assigned.
-				"ClassBreaks",	// Class breaks.  The symbol
-						// is graded based on the data
-						// value into groups of colors,
-						// sizes, patterns, etc.
-				"ScaledSymbol",	// A single symbol style is
-						// used (e.g., vertical bars)
-						// but the size of the symbol
-						// is scaled to "exact" size
-						// based on a data value (unlike
-						// unique values where different
-						// symbols are used for each
-						// value or class breaks where
-						// symbols have definite
-						// breaks).
-				"ScaledTeacupSymbol"
-						// A single symbol style is used
-						// (e.g., teacup), but the size
-						// of the teacup and the amount
-						// that the teacup is filled
-						// are based on data values
-						// read from an attribute table.
-			};
-
-/**
-Classification number for a single symbol.
-*/
-public static final int CLASSIFICATION_SINGLE = 0;
-
-/**
-Classification number for one symbol per value, but all symbols are
-the same other than color or other characteristics that can automatically be assigned.
-*/
-public static final int CLASSIFICATION_UNIQUE_VALUES = 1;
-
-/**
-Classification number for class breaks, in which the symbol is graded based on
-the data value into groups of colors, sizes, patterns, etc.
-*/
-public static final int CLASSIFICATION_CLASS_BREAKS = 2;
-
-/**
-Classification number for a single symbol style, but the size of the symbol is
-scaled to "exact" data size based on a data value (unlike unique values
-where different symbols are used for each value or class breaks where symbols have definite breaks).
-*/
-public static final int CLASSIFICATION_SCALED_SYMBOL = 3;
-
-/**
-Classification number for a single symbol style, where the size of the teacup
-is scaled and the amount that the teacup is filled is dependent on values read from an attribute table.
-*/
-public static final int CLASSIFICATION_SCALED_TEACUP_SYMBOL = 4;
-
-/**
-Symbol classification type numbers.  These are consistent with CLASSIFICATION_NAMES.
-*/
-public static final int[] CLASSIFICATION_NUMBERS = {
-	CLASSIFICATION_SINGLE,
-	CLASSIFICATION_UNIQUE_VALUES,
-	CLASSIFICATION_CLASS_BREAKS,
-	CLASSIFICATION_SCALED_SYMBOL,
-	CLASSIFICATION_SCALED_TEACUP_SYMBOL
+public static final GRSymbolShapeType[] SYMBOL_POINT_TYPES = {
+	GRSymbolShapeType.NONE,
+	GRSymbolShapeType.ARROW_DOWN,
+	GRSymbolShapeType.ARROW_DOWN_LEFT_FILLED,
+	GRSymbolShapeType.ARROW_DOWN_RIGHT_FILLED,
+	GRSymbolShapeType.ARROW_LEFT,
+	GRSymbolShapeType.ARROW_RIGHT,
+	GRSymbolShapeType.ARROW_UP,
+	GRSymbolShapeType.ARROW_UP_LEFT_FILLED,
+	GRSymbolShapeType.ARROW_UP_RIGHT_FILLED,
+	GRSymbolShapeType.ASTERISK,
+	GRSymbolShapeType.CIRCLE,
+	GRSymbolShapeType.CIRCLE_FILLED,
+	GRSymbolShapeType.CIRCLE_PLUS,
+	GRSymbolShapeType.DIAMOND,
+	GRSymbolShapeType.DIAMOND_FILLED,
+	GRSymbolShapeType.INSTREAM_FLOW,
+	GRSymbolShapeType.PLUS,
+	GRSymbolShapeType.PLUS_SQUARE,
+	GRSymbolShapeType.SQUARE,
+	GRSymbolShapeType.SQUARE_FILLED,
+	GRSymbolShapeType.TEACUP,
+	GRSymbolShapeType.TRIANGLE_DOWN,
+	GRSymbolShapeType.TRIANGLE_DOWN_FILLED,
+	GRSymbolShapeType.TRIANGLE_LEFT,
+	GRSymbolShapeType.TRIANGLE_LEFT_FILLED,
+	GRSymbolShapeType.TRIANGLE_RIGHT,
+	GRSymbolShapeType.TRIANGLE_RIGHT_FILLED,
+	GRSymbolShapeType.TRIANGLE_UP,
+	GRSymbolShapeType.TRIANGLE_UP_FILLED,
+	GRSymbolShapeType.VERTICAL_BAR_SIGNED,
+	GRSymbolShapeType.X,
+	GRSymbolShapeType.X_CAP,
+	GRSymbolShapeType.X_DIAMOND,
+	GRSymbolShapeType.X_EDGE,
+	GRSymbolShapeType.X_SQUARE,
+	GRSymbolShapeType.TRIANGLE_UP_TOP_LINE,
+	GRSymbolShapeType.TRIANGLE_DOWN_BOTTOM_LINE,
+	GRSymbolShapeType.TRIANGLE_UP_TOP_LINE,
+	GRSymbolShapeType.TRIANGLE_DOWN_BOTTOM_LINE,
+	GRSymbolShapeType.PUSHPIN_VERTICAL
 };
 
 /**
@@ -828,7 +217,7 @@ Foreground color.
 private GRColor _color = null;
 
 /**
-Secondary foreground color (e.g., for negative bars)
+Secondary foreground color (e.g., for negative bars).
 */
 private GRColor _color2 = null;
 
@@ -845,7 +234,7 @@ private GRColorTable _color_table = null;
 /**
 The type of classification for this symbol.
 */
-private int _classification_type = CLASSIFICATION_SINGLE;
+private GRClassificationType _classification_type = GRClassificationType.SINGLE;
 
 /**
 Array of integer data corresponding to colors in the color table.
@@ -858,9 +247,15 @@ Label position (left-justified against the symbol, centered in Y direction).
 private int _label_position = GRText.LEFT|GRText.CENTER_Y;
 
 /**
+ * Shape type for points.
+ */
+private GRSymbolShapeType shapeType = GRSymbolShapeType.NONE;
+
+/**
 Symbol style.
 */
-private int _style = SYM_NONE;
+// TODO smalers 2023-07-27 replaced with shapeType.
+//private int _style = SYM_NONE;
 
 /**
 Transparency level.  Default is totally opaque.
@@ -871,7 +266,7 @@ private int __transparency = 0;
 /**
 The type of the symbol.
 */
-private int _type = TYPE_NONE;
+private GRSymbolType _type = GRSymbolType.NONE;
 
 /**
 The classification field to be used (used by higher-level code).
@@ -907,39 +302,37 @@ public GRSymbol () {
 
 /**
 Construct using the given parameters.
-@param type Symbol type (see TYPE_*).
-@param style Indicates the symbol style for the symbol type.
-For example, if the type is TYPE_POINT, then the style can be set to any SYM_* values).
+@param type Symbol type.
+@param shapeType shape type for point symbols.
 @param color Foreground color.
 @param outline_color Outline color for polygons.
 @param size Symbol size.  Currently units are not handled.
 Treat is a storage area for the size that will be specified to GR.drawSymbol().
 The x and y direction sizes are set to the single value.
 */
-public GRSymbol ( int type, int style, GRColor color, GRColor outline_color, double size ) {
-	this ( type, style, color, outline_color, size, size );
+public GRSymbol ( GRSymbolType type, GRSymbolShapeType shapeType, GRColor color, GRColor outline_color, double size ) {
+	this ( type, shapeType, color, outline_color, size, size );
 }
 
 /**
 Construct using the given parameters.
-@param type Symbol type (see TYPE_*).
-@param style Indicates the symbol style for the symbol type.
-For example, if the type is TYPE_POINT, then the style can be set to any SYM_* values).
+@param type Symbol type.
+@param shapeType Indicates the symbol shapeType for POINT type.
 @param color Foreground color.
 @param outline_color Outline color for polygons.
 @param size_x Symbol size in the X direction.  Currently units are not handled.
 Treat is a storage area for the size that will be specified to GR.drawSymbol().
 @param size_y Symbol size in the Y direction.
 */
-public GRSymbol ( int type, int style, GRColor color, GRColor outline_color, double size_x, double size_y ) {
+public GRSymbol ( GRSymbolType type, GRSymbolShapeType shapeType, GRColor color, GRColor outline_color, double size_x, double size_y ) {
 	initialize();
-	_type = type;
-	_color = color;
-	_color2 = _color;
-	_outline_color = outline_color;
-	__size_x = size_x;
-	__size_y = size_y;
-	_style = style;
+	this._type = type;
+	this._color = color;
+	this._color2 = _color;
+	this._outline_color = outline_color;
+	this.__size_x = size_x;
+	this.__size_y = size_y;
+	this.shapeType = shapeType;
 }
 
 /**
@@ -947,9 +340,9 @@ Clear the data arrays used to look up a color in the color table.
 This method should be called when the lookup values are reset.
 */
 private void clearData () {
-	_double_data = null;
-	_int_data = null;
-	_string_data = null;
+	this._double_data = null;
+	this._int_data = null;
+	this._string_data = null;
 }
 
 /**
@@ -1001,30 +394,30 @@ Return the classification color.
 If the classification type is single, the main color is returned.
 Otherwise the classification value is used to look up the color in the color table.
 This is useful when displaying a legend.
-@param classification Symbol classification color.
+@param classification Symbol classification color position, when used with a color table (ignored for single symbol).
 @return the symbol classification color (zero index).
 */
 public GRColor getClassificationColor ( int classification ) {
-	if ( _classification_type == CLASSIFICATION_SINGLE ) {
-		return _color;
+	if ( this._classification_type == GRClassificationType.SINGLE ) {
+		return this._color;
 	}
 	else {
-		return _color_table.get ( classification );
+		return this._color_table.get ( classification );
 	}
 }
 
 /**
 Return the classification second color.
 This is being phased in for use with the CLASSIFICATION_SCALED_SYMBOL type.
-@param classification Symbol classification second color.
+@param classification Symbol classification color position, when used with a color table (ignored for single symbol).
 @return the second symbol classification color (zero index).
 */
 public GRColor getClassificationColor2 ( int classification ) {
-	if ( _classification_type == CLASSIFICATION_SINGLE ) {
-		return _color2;
+	if ( this._classification_type == GRClassificationType.SINGLE ) {
+		return this._color2;
 	}
 	else {
-		return _color_table.get ( classification );
+		return this._color_table.get ( classification );
 	}
 }
 
@@ -1034,7 +427,7 @@ This is just a place-holder to store the classification field name (e.g., for di
 @return the symbol classification field.
 */
 public String getClassificationField () {
-	return _classification_field;
+	return this._classification_field;
 }
 
 /**
@@ -1044,33 +437,33 @@ For single classification this is an empty string.  For class breaks, the label 
 For unique values the label is just the unique value.
 @param classification Classification to get a label for.
 */
-public String getClassificationLabel ( int classification ){
-	if ( _classification_type == CLASSIFICATION_CLASS_BREAKS ) {
-		if ( _double_data != null ) {
+public String getClassificationLabel ( int classification ) {
+	if ( this._classification_type == GRClassificationType.CLASS_BREAKS ) {
+		if ( this._double_data != null ) {
 			if ( classification == 0 ) {
-				return "< " + StringUtil.formatString(_double_data[0],"%.3f");
+				return "< " + StringUtil.formatString(this._double_data[0],"%.3f");
 			}
-			else if ( classification == (_color_table.size() - 1)) {
-				return ">= " + StringUtil.formatString(_double_data[classification],"%.3f");
+			else if ( classification == (this._color_table.size() - 1)) {
+				return ">= " + StringUtil.formatString(this._double_data[classification],"%.3f");
 			}
-			else return ">= " + StringUtil.formatString(_double_data[classification - 1],"%.3f") +
-				" AND < " + StringUtil.formatString(_double_data[classification],"%.3f");
+			else return ">= " + StringUtil.formatString(this._double_data[classification - 1],"%.3f") +
+				" AND < " + StringUtil.formatString(this._double_data[classification],"%.3f");
 		}
-		else if ( _string_data != null ) {
+		else if ( this._string_data != null ) {
 			return "" + classification;
 		}
-		else if ( _int_data != null ) {
+		else if ( this._int_data != null ) {
 			if ( classification == 0 ) {
-				return "< " + _int_data[0];
+				return "< " + this._int_data[0];
 			}
-			else if ( classification == (_color_table.size() - 1)) {
-				return ">= " + _int_data[classification];
+			else if ( classification == (this._color_table.size() - 1)) {
+				return ">= " + this._int_data[classification];
 			}
-			else return ">= " + _int_data[classification - 1] +
-				" AND < " + _int_data[classification];
+			else return ">= " + this._int_data[classification - 1] +
+				" AND < " + this._int_data[classification];
 		}
 	}
-	else if ( _classification_type == CLASSIFICATION_UNIQUE_VALUES ) {
+	else if ( this._classification_type == GRClassificationType.UNIQUE_VALUES ) {
 		// Need to work on this.
 		return "" + classification;
 	}
@@ -1079,10 +472,10 @@ public String getClassificationLabel ( int classification ){
 
 /**
 Return the classification type.
-@return the symbol classification type.  See CLASSIFICATION_*.
+@return the symbol classification type.
 */
-public int getClassificationType() {
-	return _classification_type;
+public GRClassificationType getClassificationType() {
+	return this._classification_type;
 }
 
 /**
@@ -1091,7 +484,7 @@ Note that the color will be null if no color has been selected.
 @return the color for the symbol (equivalent to the foreground color).
 */
 public GRColor getColor() {
-	return _color;
+	return this._color;
 }
 
 /**
@@ -1101,25 +494,25 @@ Note that the color will be null if no color has been selected.
 @return the second color for the symbol (equivalent to the second foreground color).
 */
 public GRColor getColor2 () {
-	return _color2;
+	return this._color2;
 }
 
 /**
 Return the color used for the symbol if a classification is used.
-Note that the color will be null if no color has been selected or no color table has been set for the symbol.
+The color will be null if no color has been selected or no color table has been set for the symbol.
 The internal data arrays for double, integer, and String will be checked.
 Only one of these arrays is allowed to have values at any time.
 @param value Data value for color.
 @return the color for the symbol (equivalent to the foreground color).
 */
 public GRColor getColor ( Object value ) {
-	if ( _double_data != null ) {
+	if ( this._double_data != null ) {
 		return getColor ( ((Double)value).doubleValue() );
 	}
-	//else if ( _string_data != null ) {
+	//else if ( this._string_data != null ) {
 		//return getColor ( (String)value );
 	//}
-	//else if ( _int_data != null ) {
+	//else if ( this._int_data != null ) {
 		//return getColor ( ((Integer)value).intValue() );
 	//}
 	return null;
@@ -1133,41 +526,42 @@ Note that the color will be null if no color has been selected or no color table
 @return the color for the symbol (equivalent to the foreground color).
 */
 public GRColor getColor ( double value ) {
-	if ( _classification_type == CLASSIFICATION_SINGLE ) {
+	if ( this._classification_type == GRClassificationType.SINGLE ) {
 		//Message.printStatus ( 1, "", "Returning single color" );
-		return _color;
+		return this._color;
 	}
-	else if ( _classification_type == CLASSIFICATION_SCALED_SYMBOL ||
-		_classification_type == CLASSIFICATION_SCALED_TEACUP_SYMBOL) {
+	else if ( this._classification_type == GRClassificationType.SCALED_SYMBOL ||
+		this._classification_type == GRClassificationType.SCALED_TEACUP_SYMBOL) {
 		//Message.printStatus ( 1, "", "Returning single color" );
-		if ( _style == SYM_VBARSIGNED ) {
+		if ( this.shapeType == GRSymbolShapeType.VERTICAL_BAR_SIGNED ) {
 			if ( value >= 0 ) {
-				return _color;
+				return this._color;
 			}
 			else {
-				return _color2;
+				return this._color2;
 			}
 		}
 		else {
-			return _color;
+			return this._color;
 		}
 	}
-	else if ( _classification_type == CLASSIFICATION_CLASS_BREAKS ) {
+	else if ( this._classification_type == GRClassificationType.CLASS_BREAKS ) {
 		// Need to check data value against ranges.
-		if ( value < _double_data[0] ) {
+		if ( value < this._double_data[0] ) {
 			//Message.printStatus(1, "", "Returning first color for " + value );
-			return _color_table.get(0);
+			return this._color_table.get(0);
 		}
-		else if ( value >= _double_data[_double_data.length - 1] ) {
+		else if ( value >= this._double_data[this._double_data.length - 1] ) {
 			//Message.printStatus(1, "", "Returning last color for "+ value  );
-			return _color_table.get(_double_data.length - 1);
+			return this._color_table.get(this._double_data.length - 1);
 		}
-		else {	int iend = _double_data.length - 1;
+		else {
+			int iend = this._double_data.length - 1;
 			for ( int i = 1; i < iend; i++ ) {
-				if (value < _double_data[i]) {
+				if (value < this._double_data[i]) {
 					//Message.printStatus(1, "", "Returning color " + i + " for " + value
 					//	+ "  (" + _double_data[i] + ")");
-					return _color_table.get(i);
+					return this._color_table.get(i);
 				}
 			}
 			return null;
@@ -1175,9 +569,9 @@ public GRColor getColor ( double value ) {
 	}
 	else {
 		// Unique value so just find the value.
-		for ( int i = 0; i < _double_data.length; i++ ) {
-			if ( _double_data[i] == value ) {
-				return _color_table.get(i);
+		for ( int i = 0; i < this._double_data.length; i++ ) {
+			if ( this._double_data[i] == value ) {
+				return this._color_table.get(i);
 			}
 		}
 		return null;
@@ -1192,24 +586,24 @@ Note that the position will be -1 if no color has been selected or no color tabl
 @return the color table position for the color for the symbol (equivalent to the foreground color).
 */
 public int getColorNumber ( double value ) {
-	if ( _classification_type == CLASSIFICATION_SINGLE ) {
+	if ( this._classification_type == GRClassificationType.SINGLE ) {
 		//Message.printStatus ( 1, "", "Returning single color" );
 		return -1;
 	}
-	else if ( _classification_type == CLASSIFICATION_CLASS_BREAKS ) {
+	else if ( this._classification_type == GRClassificationType.CLASS_BREAKS ) {
 		// Need to check data value against ranges...
-		if ( value < _double_data[0] ) {
+		if ( value < this._double_data[0] ) {
 			//Message.printStatus ( 1, "", "Returning first color for " + value );
 			return 0;
 		}
-		else if ( value >= _double_data[_double_data.length - 1] ) {
+		else if ( value >= this._double_data[_double_data.length - 1] ) {
 			//Message.printStatus ( 1, "", "Returning last color for "+ value  );
-			return _double_data.length - 1;
+			return this._double_data.length - 1;
 		}
 		else {
-			int iend = _double_data.length - 1;
+			int iend = this._double_data.length - 1;
 			for ( int i = 1; i < iend; i++ ) {
-				if ( value < _double_data[i + 1] ) {
+				if ( value < this._double_data[i + 1] ) {
 					//Message.printStatus ( 1, "", "Returning color " + i+" for "+value);
 					return i;
 				}
@@ -1218,9 +612,9 @@ public int getColorNumber ( double value ) {
 		}
 	}
 	else {
-		// Unique value so just find the value...
-		for ( int i = 0; i < _double_data.length; i++ ) {
-			if ( _double_data[i] == value ) {
+		// Unique value so just find the value.
+		for ( int i = 0; i < this._double_data.length; i++ ) {
+			if ( this._double_data[i] == value ) {
 				return i;
 			}
 		}
@@ -1233,7 +627,7 @@ Return the GRColorTable, or null if one is not used.
 @return the GRColorTable.
 */
 public GRColorTable getColorTable() {
-	return _color_table;
+	return this._color_table;
 }
 
 /**
@@ -1241,7 +635,7 @@ Return the label field.
 @return the label field.
 */
 public String getLabelField () {
-	return _label_field;
+	return this._label_field;
 }
 
 /**
@@ -1249,7 +643,7 @@ Return the label font height, points.
 @return the label font height, points.
 */
 public double getLabelFontHeight () {
-	return _label_font_height;
+	return this._label_font_height;
 }
 
 /**
@@ -1257,7 +651,7 @@ Return the label font name.
 @return the label font name.
 */
 public String getLabelFontName () {
-	return _label_font_name;
+	return this._label_font_name;
 }
 
 /**
@@ -1265,7 +659,7 @@ Return the label format.
 @return the label format.
 */
 public String getLabelFormat () {
-	return _label_format;
+	return this._label_format;
 }
 
 /**
@@ -1273,7 +667,7 @@ Return the label position.
 @return the label position.
 */
 public int getLabelPosition () {
-	return _label_position;
+	return this._label_position;
 }
 
 /**
@@ -1282,15 +676,16 @@ If a single classification (or scaled symbol) is used, then 1 is returned.
 @return the number of classifications.
 */
 public int getNumberOfClassifications () {
-	if ( (_classification_type == CLASSIFICATION_SINGLE) ||
-		(_classification_type == CLASSIFICATION_SCALED_SYMBOL) ||
-		_classification_type == CLASSIFICATION_SCALED_TEACUP_SYMBOL) {
+	Message.printStatus(2, "", "Classification type=" + this._classification_type);
+	if ( (this._classification_type == GRClassificationType.SINGLE) ||
+		(this._classification_type == GRClassificationType.SCALED_SYMBOL) ||
+		this._classification_type == GRClassificationType.SCALED_TEACUP_SYMBOL) {
 		//Message.printStatus ( 1, "", "Returning single color" );
 		return 1;
 	}
 	else {
 		// Use the color table size so the data type checks don't have to be done.
-		return _color_table.size();
+		return this._color_table.size();
 	}
 }
 
@@ -1299,19 +694,26 @@ Return the outline color.  The outline color is used for all classifications.
 @return the outline color.  Note that the color will be null if no color has been selected.
 */
 public GRColor getOutlineColor() {
-	return _outline_color;
+	return this._outline_color;
+}
+
+/**
+Return the symbol shape type.
+*/
+public GRSymbolShapeType getShapeType () {
+	return this.shapeType;
 }
 
 /**
 Return the symbol size.
-Although no distinction is made internally, the symbol size is typically implemented
-in higher level software as a pixel size (not data units).
-Symbols can have different sizes in the X and Y direction but return
-the X size here (assumed to be the same as the Y direction size).
+Although no distinction is made internally,
+the symbol size is typically implemented in higher level software as a pixel size (not data units).
+Symbols can have different sizes in the X and Y direction but return the X size here
+(assumed to be the same as the Y direction size).
 @return the symbol size.
 */
 public double getSize () {
-	return __size_x;
+	return this.__size_x;
 }
 
 /**
@@ -1321,7 +723,7 @@ the symbol size is typically implemented in higher level software as a pixel siz
 @return the symbol size in the X direction.
 */
 public double getSizeX () {
-	return __size_x;
+	return this.__size_x;
 }
 
 /**
@@ -1331,7 +733,7 @@ the symbol size is typically implemented in higher level software as a pixel siz
 @return the symbol size in the Y direction.
 */
 public double getSizeY () {
-	return __size_y;
+	return this.__size_y;
 }
 
 /**
@@ -1339,45 +741,49 @@ Return the symbol style.  If a point type, then the point symbol will be returne
 If a line type, then the line style (e.g., SOLID) will be returned.
 If a polygon, then the fill type will be returned.  Currently only point types are fully supported.
 */
+/* TODO smalers 2023-07-27 replaced with get shapeType().
 public int getStyle () {
-	return _style;
+	return this._style;
 }
+*/
 
 /**
 Return the style as a string name.
 @return the style as a string name (e.g., "Circle-Filled").
 */
+/* TODO smalers 2023-07-27 replaced with enumeration toString().
 public String getStyleName() {
 	return SYMBOL_NAMES[_style];
 }
+*/
 
 /**
 Return the transparency (255 = completely transparent, 0 = opaque).
 @return the transparency.
 */
 public int getTransparency () {
-	return __transparency;
+	return this.__transparency;
 }
 
 /**
 Return the symbol type (e.g., whether a point or polygon type).
-@return the symbol type.  See TYPE_*.
+@return the symbol type.
 */
-public int getType () {
-	return _type;
+public GRSymbolType getType () {
+	return this._type;
 }
 
 /**
 Initialize data.
 */
 private void initialize() {
-	_color = null;
-	_color2 = null;
-	_outline_color = null;
-	_style = SYM_NONE;
-	__size_x = 0.0;
-	__size_y = 0.0;
-	_type = TYPE_NONE;
+	this._color = null;
+	this._color2 = null;
+	this._outline_color = null;
+	this.shapeType = GRSymbolShapeType.NONE;
+	this.__size_x = 0.0;
+	this.__size_y = 0.0;
+	this._type = GRSymbolType.NONE;
 }
 
 /**
@@ -1388,8 +794,8 @@ where secondary symbols may be drawn at the polygon centroid.
 @return the value of the flag after setting.
 */
 public boolean isPrimary ( boolean is_primary ) {
-	__is_primary = is_primary;
-	return __is_primary;
+	this.__is_primary = is_primary;
+	return this.__is_primary;
 }
 
 /**
@@ -1399,16 +805,16 @@ where secondary symbols may be drawn at the polygon centroid.
 @return true if the symbol is the primary symbol, false if not.
 */
 public boolean isPrimary () {
-	return __is_primary;
+	return this.__is_primary;
 }
 
 /**
 Indicate whether a symbol can be used for the specified classification.
 @return true if the symbol can be used with scaled symbol classification.
 */
-public static boolean isSymbolForClassification ( int classification_type, int sym ) {
-	if ( classification_type == CLASSIFICATION_SCALED_SYMBOL ) {
-		if ( sym == SYM_VBARSIGNED || sym == SYM_VBARUNSIGNED) {
+public static boolean isSymbolForClassification ( GRClassificationType classificationType, GRSymbolShapeType sym ) {
+	if ( classificationType == GRClassificationType.SCALED_SYMBOL ) {
+		if ( sym == GRSymbolShapeType.VERTICAL_BAR_SIGNED || sym == GRSymbolShapeType.VERTICAL_BAR_UNSIGNED) {
 			return true;
 		}
 		return false;
@@ -1421,7 +827,7 @@ Indicate whether only selected shapes should be labeled.
 @return true if only selected shapes should be labeled.
 */
 public boolean labelSelectedOnly () {
-	return _label_selected_only;
+	return this._label_selected_only;
 }
 
 /**
@@ -1430,8 +836,8 @@ Set whether only selected shapes should be labeled.
 @return value of flag, after reset.
 */
 public boolean labelSelectedOnly ( boolean label_selected_only ) {
-	_label_selected_only = label_selected_only;
-	return _label_selected_only;
+	this._label_selected_only = label_selected_only;
+	return this._label_selected_only;
 }
 
 /**
@@ -1450,13 +856,13 @@ public void setClassificationData ( double[] data, boolean make_copy ) {
 		return;
 	}
 	if ( make_copy ) {
-		_double_data = new double[data.length];
+		this._double_data = new double[data.length];
 		for ( int i = 0; i < data.length; i++ ) {
-			_double_data[i] = data[i];
+			this._double_data[i] = data[i];
 		}
 	}
 	else {
-		_double_data = data;
+		this._double_data = data;
 	}
 }
 
@@ -1464,25 +870,20 @@ public void setClassificationData ( double[] data, boolean make_copy ) {
 Set the classification field.
 This is just a helper function to carry around data that may be useful to an application
 (e.g., so a property display dialog can be created) but the field name is not used internally.
-@param classification_field field (e.g., from database) used to determine color, etc., for visualization.
+@param classificationField field (e.g., from database) used to determine color, etc., for visualization.
 */
-public void setClassificationField ( String classification_field ) {
-	if ( classification_field != null ) {
-		_classification_field = classification_field;
+public void setClassificationField ( String classificationField ) {
+	if ( classificationField != null ) {
+		this._classification_field = classificationField;
 	}
 }
 
 /**
 Set the classification type.
-@param classification_type Classification field name corresponding to CLASSIFICATION_NAMES.
+@param classificationType Classification type for the layer
 */
-public void setClassificationType ( String classification_type ) {
-	for ( int i = 0; i < CLASSIFICATION_NAMES.length; i++ ) {
-		if ( classification_type.equalsIgnoreCase(CLASSIFICATION_NAMES[i]) ) {
-			_classification_type = i;
-			break;
-		}
-	}
+public void setClassificationType ( GRClassificationType classificationType ) {
+	this._classification_type = classificationType;
 }
 
 /**
@@ -1490,8 +891,8 @@ Set the color for the symbol (equivalent to the foreground color).
 This is used with single classification.
 @param color Color to use for symbol.
 */
-public void setColor ( GRColor color )
-{	_color = color;
+public void setColor ( GRColor color ) {
+	this._color = color;
 }
 
 /**
@@ -1500,7 +901,7 @@ This is used with scaled symbol classification where necessary.
 @param color2 Second color to use for symbol.
 */
 public void setColor2 ( GRColor color2 ) {
-	_color2 = color2;
+	this._color2 = color2;
 }
 
 /**
@@ -1509,7 +910,7 @@ The number of colors in the color table should agree with the number of classifi
 @param color_table GRColorTable to use.
 */
 public void setColorTable ( GRColorTable color_table ) {
-	_color_table = color_table;
+	this._color_table = color_table;
 }
 
 /**
@@ -1518,7 +919,7 @@ Set the color table for the symbol, given the color table name.  A new GRColorTa
 @param ncolors Number of colors to use.
 */
 public void setColorTable ( String table_name, int ncolors ) {
-	_color_table = GRColorTable.createColorTable ( table_name, ncolors, false );
+	this._color_table = GRColorTable.createColorTable ( table_name, ncolors, false );
 }
 
 /**
@@ -1527,7 +928,7 @@ Set the label field.  Currently this is just carried around to help other graphi
 */
 public void setLabelField ( String label_field ) {
 	if ( label_field != null ) {
-		_label_field = label_field;
+		this._label_field = label_field;
 	}
 }
 
@@ -1536,7 +937,7 @@ Set the label font height (points).
 @param label_font_height Label font height.
 */
 public void setLabelFontHeight ( double label_font_height ) {
-	_label_font_height = label_font_height;
+	this._label_font_height = label_font_height;
 }
 
 /**
@@ -1546,7 +947,7 @@ This does not create a Font for the symbol.  It just stores the font name.
 */
 public void setLabelFontName ( String label_font_name ) {
 	if ( label_font_name != null ) {
-		_label_font_name = label_font_name;
+		this._label_font_name = label_font_name;
 	}
 }
 
@@ -1557,7 +958,7 @@ contain a StringUtil format specifier appropriate for the label field data types
 */
 public void setLabelFormat ( String label_format ) {
 	if ( label_format != null ) {
-		_label_format = label_format;
+		this._label_format = label_format;
 	}
 }
 
@@ -1566,22 +967,30 @@ Set the label position (to combination of GRText position mask values).
 @param label_position Position for labels.
 */
 public void setLabelPosition ( int label_position ) {
-	_label_position = label_position;
+	this._label_position = label_position;
 }
 
 /**
 Set the outline color.
 */
 public void setOutlineColor ( GRColor outline_color ) {
-	_outline_color = outline_color;
+	this._outline_color = outline_color;
+}
+
+/**
+Set the symbol point type.
+@param shapeType For point symbols, tye symbol type.
+*/
+public void setShapeType ( GRSymbolShapeType shapeType ) {
+	this.shapeType = shapeType;
 }
 
 /**
 Set the symbol size.  Both the x and y direction sizes are set to the same value.
 */
 public void setSize ( double size ) {
-	__size_x = size;
-	__size_y = size;
+	this.__size_x = size;
+	this.__size_y = size;
 }
 
 /**
@@ -1589,7 +998,7 @@ Set the symbol size in the X direction.
 @param size_x Symbol size in the X direction.
 */
 public void setSizeX ( double size_x ) {
-	__size_x = size_x;
+	this.__size_x = size_x;
 }
 
 /**
@@ -1597,16 +1006,18 @@ Set the symbol size in the Y direction.
 @param size_y Symbol size in the Y direction.
 */
 public void setSizeY ( double size_y ) {
-	__size_y = size_y;
+	this.__size_y = size_y;
 }
 
 /**
 Set the symbol style.
 @param style For point symbols, see SYM_*.
 */
+/* TODO smalers 2023-07-27 replaced by setPointType
 public void setStyle ( int style ) {
-	_style = style;
+	this._style = style;
 }
+*/
 
 /**
 Set the transparency (255 = completely transparent, 0 = opaque).
@@ -1620,7 +1031,7 @@ public void setTransparency ( int transparency ) {
 		transparency = 255;
 	}
 	else {
-		__transparency = transparency;
+		this.__transparency = transparency;
 	}
 }
 
@@ -1630,6 +1041,7 @@ Look up a symbol number given a name.  This is useful when the symbol names are 
 @return the symbol number given the symbol name.
 @exception Exception if a symbol cannot be matched.
 */
+/* TODO smalers 2023-07-27 use the enumeration.
 public static int toInteger ( String symbolName )
 throws Exception {
 	if ( symbolName == null ) {
@@ -1643,6 +1055,7 @@ throws Exception {
 	}
 	throw new Exception ( "Cannot convert symbol \"" + symbolName + "\" to integer value." );
 }
+*/
 
 /**
 Return a string representation of the symbol.
@@ -1660,6 +1073,7 @@ This is useful when the symbol names are stored in a persistent way
 @param symbolNumber the number of the symbol to look up.
 @return the symbol name given the symbol number, or "None" if a matching symbol cannot be found.
 */
+/* TODO smalers 2023-07-27 use enumeration of shapeType
 public static String toString ( int symbolNumber ) {
 	int length = SYMBOL_NUMBERS.length;
 	for ( int i = 0; i < length; i++ ) {
@@ -1667,7 +1081,8 @@ public static String toString ( int symbolNumber ) {
 			return SYMBOL_NAMES[i];
 		}
 	}
-	return SYMBOL_NAMES[0]; // "None"
+	return SYMBOL_NAMES[0]; // "None".
 }
+*/
 
 }

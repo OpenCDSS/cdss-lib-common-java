@@ -45,6 +45,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 
+import RTi.GR.GRClassificationType;
 import RTi.GR.GRLegend;
 import RTi.GR.GRScaledClassificationSymbol;
 import RTi.GR.GRSymbol;
@@ -328,8 +329,7 @@ public void addLayerView(GeoLayerView layerView, int count) {
 
 	try {
 		if (__projectNode == null) {
-			__projectNode =  new GeoViewLegendJTree_Node("GeoView Layers",
-				"Project Node Name", this, __projectNodePopup);
+			__projectNode =  new GeoViewLegendJTree_Node("GeoView Layers", "Project Node Name", this, __projectNodePopup);
 			__projectNode.setCheckBoxSelected(true);
 			addNode(__projectNode);
 		}
@@ -350,8 +350,8 @@ public void addLayerView(GeoLayerView layerView, int count) {
 		Insets insets_none = new Insets (1, 1, 1, 1);
 		for (int isym = 0; isym < nsymbol; isym++) {
 			symbol = layerView.getLegend().getSymbol(isym);
-			if (symbol.getClassificationType() == GRSymbol.CLASSIFICATION_SINGLE
-			|| symbol.getClassificationType() == GRSymbol.CLASSIFICATION_SCALED_TEACUP_SYMBOL) {
+			if (symbol.getClassificationType() == GRClassificationType.SINGLE
+			|| symbol.getClassificationType() == GRClassificationType.SCALED_TEACUP_SYMBOL) {
 				if (isym == 0) {
 					// For now assume that symbol types will not be mixed for a layer.
 					layerCanvas = new GeoLayerViewLegendJComponent[nsymbol];
@@ -364,7 +364,7 @@ public void addLayerView(GeoLayerView layerView, int count) {
 				symNode.setData(layerCanvas[isym]);
 				addNode(symNode, node);
 			}
-			else if (symbol.getClassificationType() == GRSymbol.CLASSIFICATION_SCALED_SYMBOL) {
+			else if (symbol.getClassificationType() == GRClassificationType.SCALED_SYMBOL) {
 				// This is currently enabled only for vertical signed
 				// bars where the bar is centered vertically on the point,
 				// positive values are drawn with the main foreground color and
@@ -383,7 +383,7 @@ public void addLayerView(GeoLayerView layerView, int count) {
 					1, ++y, 1, 1, 1, 1,
 					insets_none, GridBagConstraints.NONE,
 					GridBagConstraints.SOUTH);
-				if (!symbol.getClassificationField().equals("")) {
+				if (!symbol.getClassificationField().isEmpty()) {
 					// Get the maximum value for the symbol, which is used to scale the symbol.
 					// TODO SAM 2009-07-02 - need to streamline this - store with symbol at creation?
 					DataTable attribute_table = layerView.getLayer().getAttributeTable();

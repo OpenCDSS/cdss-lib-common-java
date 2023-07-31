@@ -1,4 +1,4 @@
-// GRCoordinateType - coordinate types
+// GRClassificationType - classification types, used for symbols
 
 /* NoticeStart
 
@@ -11,12 +11,12 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -24,23 +24,38 @@ NoticeEnd */
 package RTi.GR;
 
 /**
-Coordinate types.
+Names for symbol classifications, for use with persistent storage and graphical user interfaces.
 */
-public enum GRCoordinateType {
-    /**
-     * Flag used to indicate raw device coordinates (used by getPlotLimits() and getDataXY()).
-     */
-    DEVICE ("Device"),
+public enum GRClassificationType {
+	/**
+	Single symbol.
+	*/
+	SINGLE("Single"),
 
-    /**
-     * Flag used to indicate GR plotting coordinates (same units as COORD_DEVICE but Y-axis may be flipped).
-     */
-    PLOT ("Plot"),
+	/**
+	One symbol per value, but all symbols are
+	the same other than color or other characteristics that can automatically be assigned.
+	*/
+	UNIQUE_VALUES("UnqueValues"),
 
-    /**
-     * Flag used to indicate data coordinates.
-     */
-    DATA ("Data");
+	/**
+	Class breaks, in which the symbol is graded based on
+	the data value into groups of colors, sizes, patterns, etc.
+	*/
+	CLASS_BREAKS("ClassBreaks"),
+
+	/**
+	Single symbol style, but the size of the symbol is
+	scaled to "exact" data size based on a data value (unlike unique values
+	where different symbols are used for each value or class breaks where symbols have definite breaks).
+	*/
+	SCALED_SYMBOL("ScaledSymbol"),
+
+	/**
+	Single symbol style, where the size of the teacup
+	is scaled and the amount that the teacup is filled is dependent on values read from an attribute table.
+	*/
+	SCALED_TEACUP_SYMBOL("ScaledTeacupSymbol");
 
     /**
      * The string name that should be displayed.
@@ -51,15 +66,16 @@ public enum GRCoordinateType {
      * Construct an enumeration value.
      * @param displayName name that should be displayed in choices, etc.
      */
-    private GRCoordinateType(String displayName) {
+    private GRClassificationType(String displayName) {
         this.displayName = displayName;
     }
 
     /**
      * Equals method to prevent common programming error of using the equals method instead of ==.
+     * @type the type name for the enumeration, checked against the display name.
      */
-    public boolean equals ( String lineStyleType ) {
-        if ( lineStyleType.equalsIgnoreCase(this.displayName) ) {
+    public boolean equals ( String type ) {
+        if ( type.equalsIgnoreCase(this.displayName) ) {
             return true;
         }
         else {
@@ -68,7 +84,7 @@ public enum GRCoordinateType {
     }
 
     /**
-     * Return the display name for the line style type.
+     * Return the display name for the type.
      * This is usually the same as the value but using appropriate mixed case.
      * @return the display name.
      */
@@ -81,12 +97,12 @@ public enum GRCoordinateType {
 	 * Return the enumeration value given a string name (case-independent).
 	 * @return the enumeration value given a string name (case-independent), or null if not matched.
 	 */
-	public static GRCoordinateType valueOfIgnoreCase(String name) {
+	public static GRClassificationType valueOfIgnoreCase(String name) {
 	    if ( name == null ) {
 	        return null;
 	    }
 	    // Currently supported values.
-	    for ( GRCoordinateType t : values() ) {
+	    for ( GRClassificationType t : values() ) {
 	        if ( name.equalsIgnoreCase(t.toString()) ) {
 	            return t;
 	        }

@@ -4,48 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//-----------------------------------------------------------------------------
-// GeoViewAnimationJFrame - GUI for controlling a layer animation.
-//-----------------------------------------------------------------------------
-// Copyright:  See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// History:
-// 2004-08-03	J. Thomas Sapienza, RTi	Initial version.
-// 2004-08-04	JTS, RTi		Threaded animation.
-// 2004-08-05	JTS, RTi		Revised to use GeoViewAnimationData
-//					objects.
-// 2004-08-11	JTS, RTi		Due to change in the logic of how
-//					animation layers are handled and
-//					controlled, the GUI was reorganized
-//					and changed so that it builds layers.
-// 2004-08-12	JTS, RTi		Added support for 
-//					GeoViewAnimationLayerData layer control.
-// 2004-08-24	JTS, RTi		Corrected bug in Radio button selected
-//					time series where by all the time 
-//					series' data were being set to the same
-//					value as the very last one.
-// 2005-04-27	JTS, RTi		Added finalize().
-// 2006-03-06	JTS, RTi		JToggleButtons are sized to be the same
-//					size as the JButtons.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
 
 package RTi.GIS.GeoView;
 
@@ -71,7 +45,7 @@ import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 
 import RTi.GR.GRSymbol;
-
+import RTi.GR.GRSymbolShapeType;
 import RTi.TS.TS;
 
 import RTi.Util.GUI.JGUIUtil;
@@ -88,10 +62,8 @@ import RTi.Util.Time.DateTime;
 import RTi.Util.Time.DateTimeBuilderJDialog;
 
 /**
-This class provides a gui for controlling the animation of animation layers
-in geo view.
-REVISIT (JTS - 2006-05-23)
-How to use the animation stuff to animate data on a map?
+This class provides a gui for controlling the animation of animation layers in geo view.
+REVISIT (JTS - 2006-05-23) How to use the animation stuff to animate data on a map?
 */
 @SuppressWarnings("serial")
 public class GeoViewAnimationJFrame
@@ -113,11 +85,11 @@ private final String
 	__BUTTON_STOP = 	"Stop";
 
 /**
-Dates used internally.  One is the current date -- this is the date for which
-data are currently shown on the GUI.  The start and end date are the first
-and last available dates of data in the time series.
+Dates used internally.
+One is the current date, which is the date for which data are currently shown on the GUI.
+The start and end date are the first and last available dates of data in the time series.
 */
-private DateTime 
+private DateTime
 	__currentDate = null,
 	__endDate = null,
 	__startDate = null;
@@ -138,7 +110,7 @@ The component that actually draws the map display.
 private GeoViewJComponent __viewComponent = null;
 
 /**
-The panel in which the GeoView is located in the main gui.
+The panel in which the GeoView is located in the main GUI.
 */
 private GeoViewJPanel __geoViewJPanel = null;
 
@@ -148,8 +120,7 @@ The number of data objects being managed.
 private int __numData = -1;
 
 /**
-The interval between time steps in the animation.  Determined from the first
-TS found.
+The interval between time steps in the animation.  Determined from the first TS found.
 */
 private int __interval = -1;
 
@@ -196,39 +167,38 @@ private JToggleButton
 /**
 GUI combo boxes for selecting the start and end dates of an animation.
 */
-private SimpleJComboBox 
+private SimpleJComboBox
 	__endComboBox,
 	__startComboBox;
 
 /**
-List to hold all the layer views that were added to the GeoView, so that they 
-can be removed when the GUI is closed, if desired.
+List to hold all the layer views that were added to the GeoView,
+so that they can be removed when the GUI is closed, if desired.
 */
 private List<GeoLayerView> __layers = null;
 
 /**
 Constructor.
 @param parent the parent JFrame on which this gui was opened.
-@param geoViewJPanel the panel in which the geoview is found on the main gui.
-@param dataVector the list of GeoViewAnimationData objects that defines
-how the GUI should be set up.
+@param geoViewJPanel the panel in which the geoview is found on the main GUI.
+@param dataVector the list of GeoViewAnimationData objects that defines how the GUI should be set up.
 @param start the earliest date of data to animate.
 @param end the last date of data to animate.
 @throws NullPointerException if any of the parameters are null
 @throws Exception if the data list is empty
 */
 public GeoViewAnimationJFrame(JFrame parent, GeoViewJPanel geoViewJPanel,
-List<GeoViewAnimationData> dataVector, DateTime start, DateTime end) 
+List<GeoViewAnimationData> dataVector, DateTime start, DateTime end)
 throws Exception {
 	super();
 
-	if (parent == null || dataVector == null || start == null 
+	if (parent == null || dataVector == null || start == null
 		|| end == null || geoViewJPanel == null) {
 		throw new NullPointerException();
 	}
 
 	if (dataVector.size() == 0) {
-		throw new Exception ("Empty data Vector");
+		throw new Exception ("Empty data list.");
 	}
 
 	__geoViewJPanel = geoViewJPanel;
@@ -237,9 +207,8 @@ throws Exception {
 	setTitle("Animation Control");
 	JGUIUtil.setIcon(this, JGUIUtil.getIconImage());
 
-	// move the data objects into an array for better speed -- also, 
-	// because objects won't be cast every time they are pulled from
-	// the Vector, this will run faster
+	// Move the data objects into an array for better speed.
+	// Also, because objects won't be cast every time they are pulled from the list, this will run faster.
 
 	__numData = dataVector.size();
 	__data = new GeoViewAnimationData[__numData];
@@ -263,13 +232,12 @@ Responds to action events.
 @param event the ActionEvent that happened.
 */
 public void actionPerformed(ActionEvent event) {
-	String routine = "GeoViewAnimationJFrame.actionPerformed";
-	
+	String routine = getClass().getSimpleName() + ".actionPerformed";
+
 	String action = event.getActionCommand();
 
 	int e = __endComboBox.getSelectedIndex();
-	int index = __startComboBox.indexOf(
-		__currentDate.toString(DateTime.FORMAT_YYYY_MM));
+	int index = __startComboBox.indexOf( __currentDate.toString(DateTime.FORMAT_YYYY_MM));
 	int s = __startComboBox.getSelectedIndex();
 	int size = __startComboBox.getItemCount();
 
@@ -278,15 +246,14 @@ public void actionPerformed(ActionEvent event) {
 			buildLayers();
 		}
 		catch (Exception ex) {
-			Message.printWarning(1, routine, "Error building "
-				+ "GeoView layers.");
+			Message.printWarning(1, routine, "Error building GeoView layers.");
 			Message.printWarning(2, routine, ex);
 			return;
 		}
 
-		// Disable all the setup parts of the GUI
+		// Disable all the setup parts of the GUI.
 		List<String> groupNames = getGroupNames();
-		int groupSize = groupNames.size();		
+		int groupSize = groupNames.size();
 		for (int i = 0; i < groupSize; i++) {
 			__layerNameTextField[i].setEditable(false);
 		}
@@ -298,7 +265,7 @@ public void actionPerformed(ActionEvent event) {
 				__data[i].getJRadioButton().setEnabled(false);
 			}
 		}
-	
+
 		__acceptButton.setEnabled(false);
 		__endButton.setEnabled(true);
 		__nextButton.setEnabled(true);
@@ -314,26 +281,24 @@ public void actionPerformed(ActionEvent event) {
 	}
 	else if (action.equals(__BUTTON_END)) {
 		if (index == (size - 1)) {
-			// already at the last date
+			// Already at the last date.
 			return;
 		}
 
 		__currentDate.addMonth(((size - 1) - index) * __interval);
-		__currentTextField.setText(__currentDate.toString(
-			DateTime.FORMAT_YYYY_MM));
+		__currentTextField.setText(__currentDate.toString( DateTime.FORMAT_YYYY_MM));
 		fillData(__currentDate);
 		__endComboBox.select(0);
 		__viewComponent.redraw();
 	}
 	if (action.equals(__BUTTON_NEXT)) {
 		if (index >= e) {
-			// already at or beyond the last date
+			// Already at or beyond the last date.
 			return;
 		}
 
 		__currentDate.addMonth(__interval);
-		__currentTextField.setText(__currentDate.toString(
-			DateTime.FORMAT_YYYY_MM));
+		__currentTextField.setText(__currentDate.toString( DateTime.FORMAT_YYYY_MM));
 		fillData(__currentDate);
 		__viewComponent.redraw();
 	}
@@ -347,46 +312,42 @@ public void actionPerformed(ActionEvent event) {
 	}
 	else if (action.equals(__BUTTON_PREV)) {
 		if (index <= s) {
-			// already at or before the first date
+			// Already at or before the first date.
 			return;
 		}
-		
+
 		__currentDate.addMonth(-1 * __interval);
-		__currentTextField.setText(__currentDate.toString(
-			DateTime.FORMAT_YYYY_MM));
+		__currentTextField.setText(__currentDate.toString( DateTime.FORMAT_YYYY_MM));
 		fillData(__currentDate);
 		__viewComponent.redraw();
 	}
 	else if (action.equals(__BUTTON_RUN)) {
 		startAnimation();
 		__endComboBox.setEnabled(false);
-		__startComboBox.setEnabled(false);		
+		__startComboBox.setEnabled(false);
 		__runButton.setEnabled(false);
 		__startButton.setEnabled(false);
 		__prevButton.setEnabled(false);
 		__nextButton.setEnabled(false);
-		__endButton.setEnabled(false);		
+		__endButton.setEnabled(false);
 		__pauseButton.setEnabled(true);
 		__stopButton.setEnabled(true);
 	}
 	else if (action.equals(__BUTTON_SET_DATE)) {
 		PropList props = new PropList("");
 		props.set("DatePrecision", "Month");
-		new DateTimeBuilderJDialog(this, __currentTextField,
-			__currentDate, props);
+		new DateTimeBuilderJDialog(this, __currentTextField, __currentDate, props);
 		try {
-			__currentDate = DateTime.parse(
-				__currentTextField.getText().trim());
+			__currentDate = DateTime.parse( __currentTextField.getText().trim());
 		}
 		catch (Exception ex) {}
-		__startComboBox.select(__currentDate.toString(
-			DateTime.FORMAT_YYYY_MM));
+		__startComboBox.select(__currentDate.toString( DateTime.FORMAT_YYYY_MM));
 		fillData(__currentDate);
 		__viewComponent.redraw();
 	}
 	else if (action.equals(__BUTTON_START)) {
 		if (index == 0) {
-			// already at the first date
+			// Already at the first date.
 			return;
 		}
 		__currentDate.addMonth(-1 * (index - 0) * __interval);
@@ -405,41 +366,37 @@ public void actionPerformed(ActionEvent event) {
 		__startButton.setEnabled(true);
 		__prevButton.setEnabled(true);
 		__nextButton.setEnabled(true);
-		__endButton.setEnabled(true);		
+		__endButton.setEnabled(true);
 		__stopButton.setEnabled(false);
 		__pauseButton.setEnabled(false);
 		__endComboBox.setEnabled(true);
-		__startComboBox.setEnabled(true);				
+		__startComboBox.setEnabled(true);
 	}
 
 	else if (event.getSource() == __startComboBox) {
 		if (s > e) {
-			// if the start date was changed so that it is now
-			// later than the end date, adjust the end date 
-			// selection to be equal to the start date
+			// If the start date was changed so that it is now later than the end date,
+			// adjust the end date selection to be equal to the start date.
 			__endComboBox.select(s);
 		}
 		if (index < s) {
 			__currentDate = new DateTime(__startDate);
 			__currentDate.addMonth(s * __interval);
-			__currentTextField.setText(__currentDate.toString(
-				DateTime.FORMAT_YYYY_MM));		
+			__currentTextField.setText(__currentDate.toString( DateTime.FORMAT_YYYY_MM));
 			fillData(__currentDate);
 			__viewComponent.redraw();
 		}
 	}
 	else if (event.getSource() == __endComboBox) {
 		if (e < s) {
-			// if the end date was changed so that it is now
-			// earlier than the start date, adjust the start date
-			// selection to be equal to the end date
+			// If the end date was changed so that it is now earlier than the start date,
+			// adjust the start date selection to be equal to the end date.
 			__startComboBox.select(e);
 		}
 		if (index > e) {
 			__currentDate = new DateTime(__startDate);
 			__currentDate.addMonth(e * __interval);
-			__currentTextField.setText(__currentDate.toString(
-				DateTime.FORMAT_YYYY_MM));		
+			__currentTextField.setText(__currentDate.toString( DateTime.FORMAT_YYYY_MM));
 			fillData(__currentDate);
 			__viewComponent.redraw();
 		}
@@ -458,7 +415,7 @@ protected void animationDone() {
 /**
 Builds layers in the GeoView display as desired by the choices the user made in the GUI.
 */
-private void buildLayers() 
+private void buildLayers()
 throws Exception {
 	double[] maxValues = null;
 	GeoLayerView layerView = null;
@@ -478,31 +435,27 @@ throws Exception {
 	__layers = new ArrayList<GeoLayerView>();
 
 	List<String> groupNames = getGroupNames();
-	int groupSize = groupNames.size();		
+	int groupSize = groupNames.size();
 	for (int i = 0; i < groupSize; i++) {
 		processStatus(1, "Building map layer #" + (i + 1) + " of " + groupSize);
-		// go through each group and find out how many data items
-		// are selected in each group.  For each group with at 
-		// least one item selected, a layer will be built and placed
-		// on the GeoView display.
-		
+		// Go through each group and find out how many data items are selected in each group.
+		// For each group with at least one item selected,
+		// a layer will be built and placed on the GeoView display.
+
 		groupDataV = getGroupData(groupNames.get(i));
 
-		// mark all group data items as not visible so they will not
-		// be taken into account when filling data fields.  Later,
-		// only the data that are actually going to be drawn on the
-		// map will be marked as visible.
+		// Mark all group data items as not visible so they will not be taken into account when filling data fields.
+		// Later, only the data that are actually going to be drawn on the map will be marked as visible.
 		size = groupDataV.size();
 		for (int j = 0; j < size; j++) {
 			data = groupDataV.get(j);
 			data.setVisible(false);
 		}
-		
+
 		dataV = findSelectedData(groupDataV);
 		dataSize = dataV.size();
 
-		// if none of the data items are selected, skip to the next
-		// group
+		// If none of the data items are selected, skip to the next group.
 
 		if (dataSize == 0) {
 			continue;
@@ -511,8 +464,7 @@ throws Exception {
 		animationFieldsV = new ArrayList<Integer>();
 		maxValuesV = new ArrayList<Double>();
 
-		// find out the animation fields and the max values that will
-		// need to be passed in to addSummaryView for this layer.
+		// Find out the animation fields and the max values that will need to be passed in to addSummaryView for this layer.
 
 		for (int j = 0; j < dataSize; j++) {
 			data = dataV.get(j);
@@ -521,13 +473,11 @@ throws Exception {
 			maxValuesV.add(new Double(data.getAnimationFieldMax()));
 		}
 
-		// get the GeoViewAnimationLayerData object that tells much
-		// about how this layer should be built
+		// Get the GeoViewAnimationLayerData object that tells much about how this layer should be built.
 
 		layerData = dataV.get(0).getGeoViewAnimationLayerData();
 
-		// build the animation fields array from the fields in the
-		// data that are set as being animation fields
+		// Build the animation fields array from the fields in the data that are set as being animation fields.
 
 		size = animationFieldsV.size();
 		animationFields = new int[size];
@@ -537,22 +487,20 @@ throws Exception {
 
 		temp = layerData.getDataFields();
 
-		// dataFields are handled differently for different symbols.
+		// DataFields are handled differently for different symbols.
 		// For non-complicated symbols, the data fields specified in the
-		// animation layer data are the fields that will always appear
-		// on the display, regardless of whether they are animated or
-		// not.  These fields will be combined with the fields stored
+		// animation layer data are the fields that will always appear on the display,
+		// regardless of whether they are animated or not.
+		// These fields will be combined with the fields stored
 		// in the GeoViewAnimationData objects as animation fields.
 
-		// For complicated symbols, such as teacups, the data fields
-		// are used specially within addSummaryLayerView() to define
-		// some settings.  For teacups, the first element is the field
-		// with the maximum content of the teacup, the second element
-		// is the field with the minimum content of the teacup, and
-		// the third element is the field with the current content of
-		// the teacup.
+		// For complicated symbols, such as teacups,
+		// the data fields are used specially within addSummaryLayerView() to define some settings.
+		// For teacups, the first element is the field with the maximum content of the teacup,
+		// the second element is the field with the minimum content of the teacup,
+		// and the third element is the field with the current content of the teacup.
 
-		if (layerData.getSymbolType() == GRSymbol.SYM_TEACUP) {
+		if (layerData.getSymbolType() == GRSymbolShapeType.TEACUP) {
 			dataFields = new int[temp.length];
 			for (int j = 0; j < temp.length; j++) {
 				dataFields[j] = temp[j];
@@ -569,7 +517,7 @@ throws Exception {
 			}
 		}
 
-		// get out the maximum values for the animation fields
+		// Get out the maximum values for the animation fields.
 
 		size = maxValuesV.size();
 		maxValues = new double[size];
@@ -577,16 +525,16 @@ throws Exception {
 			maxValues[j] = maxValuesV.get(j).doubleValue();
 		}
 
-		// if the user has set up an alternate layer name in the GUI
-		// use it instead of the default one defined in GeoViewAnimationLayerData
-		
+		// If the user has set up an alternate layer name in the GUI
+		// use it instead of the default one defined in GeoViewAnimationLayerData.
+
 		layerName = dataV.get(0).getLayerNameTextField().getText().trim();
 
 		if (layerName.equals("")) {
 			layerName = layerData.getLayerName();
 		}
 
-		// build the layer
+		// Build the layer.
 
 		PropList props = layerData.getProps();
 		/*
@@ -611,9 +559,9 @@ throws Exception {
 			props
 		);
 
-		// set some final settings on the layer
+		// Set some final settings on the layer.
 
-		layerView.setAnimationControlJFrame(this);	
+		layerView.setAnimationControlJFrame(this);
 		layerView.setMissingDoubleValue(layerData.getMissingDoubleValue());
 		layerView.setMissingDoubleReplacementValue(layerData.getMissingDoubleReplacementValue());
 
@@ -622,8 +570,7 @@ throws Exception {
 }
 
 /**
-Builds the time series panel from which different time series can be 
-turned on or off in the animation layer.
+Builds the time series panel from which different time series can be turned on or off in the animation layer.
 @param panel the JPanel on which to build the GUI information.
 */
 private void buildTimeSeriesPanel(JPanel panel) {
@@ -640,12 +587,12 @@ private void buildTimeSeriesPanel(JPanel panel) {
 }
 
 /**
-Determines the interval for the time series.  It does this by looking through
-all the data objects for time series.  It takes the interval from the very 
-first time series it finds.
+Determines the interval for the time series.
+It does this by looking through all the data objects for time series.
+It takes the interval from the very first time series it finds.
 @throws Exception if no valid interval could be found
 */
-private void determineInterval() 
+private void determineInterval()
 throws Exception {
 	int num = 0;
 	TS ts = null;
@@ -660,24 +607,21 @@ throws Exception {
 		}
 	}
 
-	throw new Exception ("Could not find a valid time series from which "
-		+ "to determine the interval");
+	throw new Exception ("Could not find a valid time series from which to determine the interval");
 }
 
 /**
 Populates the date combo boxes.
 */
-private void fillComboBoxes() {	
-	// REVISIT (JTS - 2004-08-04)
-	// pretty much configured solely for months right now.
-	// Will worry about hourly/etc TS later.  At least provides
-	// support for doing different intervals right now
+private void fillComboBoxes() {
+	// REVISIT (JTS - 2004-08-04) Pretty much configured solely for months right now.
+	// Will worry about hourly/etc TS later.  At least provides support for doing different intervals right now.
 
 	DateTime d = new DateTime(__startDate);
-	List<String> v = new ArrayList<String>();
+	List<String> v = new ArrayList<>();
 
 	v.add(__startDate.toString(DateTime.FORMAT_YYYY_MM));
-	
+
 	d.addMonth(__interval);
 
 	while (d.lessThan(__endDate)) {
@@ -686,7 +630,7 @@ private void fillComboBoxes() {
 	}
 
 	v.add(__endDate.toString(DateTime.FORMAT_YYYY_MM));
-		
+
 	__startComboBox.setData(v);
 	__endComboBox.setData(v);
 	__endComboBox.select(__endComboBox.getItemCount() - 1);
@@ -705,42 +649,10 @@ protected void fillData(DateTime date) {
 }
 
 /**
-Cleans up member variables.
-*/
-public void finalize() 
-throws Throwable {
-	__currentDate = null;
-	__endDate = null;
-	__startDate = null;
-	IOUtil.nullArray(__data);
-	__processor = null;
-	__viewComponent = null;
-	__geoViewJPanel = null;
-	__acceptButton = null;
-	__endButton = null;
-	__nextButton = null;
-	__prevButton = null;
-	__setDateButton = null;
-	__startButton = null;
-	__stopButton = null;
-	IOUtil.nullArray(__layerNameTextField);
-	__currentTextField = null;
-	__pauseTextField = null;
-	__statusBar = null;
-	__pauseButton = null;
-	__runButton = null;
-	__endComboBox = null;
-	__startComboBox = null;
-	__layers = null;
-	super.finalize();
-}
-
-/**
-Given a list of GeoViewAnimationData objects, this searches it and returns
-a list of all the data objects that have their radio button or check box
-selected.
+Given a list of GeoViewAnimationData objects,
+this searches it and returns a list of all the data objects that have their radio button or check box selected.
 @param dataV a list of GeoViewAnimationData objects.  Can be null.
-@return a list of all the GeoViewAnimationData objects in the passed-in 
+@return a list of all the GeoViewAnimationData objects in the passed-in
 list that have their radio button or check box selected.  Guaranteed to be non-null.
 */
 private List<GeoViewAnimationData> findSelectedData(List<GeoViewAnimationData> dataV) {
@@ -755,8 +667,8 @@ private List<GeoViewAnimationData> findSelectedData(List<GeoViewAnimationData> d
 	for (int i = 0; i < size; i++) {
 		data = dataV.get(i);
 
-		// data objects can either use a checkbox for selection
-		// or a radio button, but not both.  If one is null, the other must be non-null.
+		// Data objects can either use a checkbox for selection or a radio button, but not both.
+		// If one is null, the other must be non-null.
 
 		if (data.getJCheckBox() != null && data.getJCheckBox().isSelected()) {
 			v.add(data);
@@ -771,8 +683,8 @@ private List<GeoViewAnimationData> findSelectedData(List<GeoViewAnimationData> d
 /**
 Returns all the GeoViewAnimationData objects that have the given group name.
 @param groupName the name of the group for which to return data.
-@return a list of GeoViewAnimationData objects which have the given group
-name.  This list may be empty if the group name is not matched, but it will never be null.
+@return a list of GeoViewAnimationData objects which have the given group name.
+This list may be empty if the group name is not matched, but it will never be null.
 */
 private List<GeoViewAnimationData> getGroupData(String groupName) {
 	List<GeoViewAnimationData> found = new ArrayList<GeoViewAnimationData>();
@@ -785,11 +697,10 @@ private List<GeoViewAnimationData> getGroupData(String groupName) {
 }
 
 /**
-Returns all the data objects that have the given group name.  The group name
-is compared without case sensitivity.
+Returns all the data objects that have the given group name.
+The group name is compared without case sensitivity.
 @param groupName the name of the group for which to return data objects.
-@return a list of the data objects that match the group name.  Guaranteed
-to be non-null.
+@return a list of the data objects that match the group name.  Guaranteed to be non-null.
 */
 private List<Integer> getGroupDataNums(String groupName) {
 	List<Integer> found = new ArrayList<Integer>();
@@ -802,8 +713,7 @@ private List<Integer> getGroupDataNums(String groupName) {
 }
 
 /**
-Gets the names of all the data object groups.  Data group names are compared
-case-insensitively.
+Gets the names of all the data object groups.  Data group names are compared case-insensitively.
 @return a list of all the unique data object group names.
 */
 private List<String> getGroupNames() {
@@ -822,7 +732,7 @@ private List<String> getGroupNames() {
 		if (!found) {
 			foundV.add(__data[i].getGroupName());
 		}
-	}	
+	}
 
 	return foundV;
 }
@@ -830,14 +740,13 @@ private List<String> getGroupNames() {
 /**
 Adds a group section to the display.
 @param panel the main panel on which the group display sections will be added.
-@param panelY the y position (in a GridBagLayout) at which the current group 
-section will be placed.
+@param panelY the y position (in a GridBagLayout) at which the current group section will be placed.
 @param groupName the name of the group for which to add a section.
-@param dataNums a Vector of Integers, each of which is the index within the
+@param dataNums a list of Integers, each of which is the index within the
 __data array of one of the members of the group to add to the panel.
 */
 private void processGroup(JPanel panel, int panelY, String groupName, List<Integer> dataNums) {
-	// TODO SAM 2007-05-09 Evaluate if needed
+	// TODO SAM 2007-05-09 Evaluate if needed.
 	//boolean visible = false;
 	ButtonGroup buttonGroup = new ButtonGroup();
 	int dataNum = -1;
@@ -859,12 +768,11 @@ private void processGroup(JPanel panel, int panelY, String groupName, List<Integ
 	JGUIUtil.addComponent(subPanel, __layerNameTextField[panelY - 1],
 		1, y++, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
-	
+
 	for (int i = 0; i < size; i++) {
 		dataNum = dataNums.get(i).intValue();
 
-		// take the type of selection (CheckBox or RadioButton)
-		// from the very first data object for this group
+		// Take the type of selection (CheckBox or RadioButton) from the very first data object for this group.
 		if (i == 0) {
 			selectType = __data[dataNum].getSelectType();
 		}
@@ -874,11 +782,10 @@ private void processGroup(JPanel panel, int panelY, String groupName, List<Integ
 			__data[dataNum].setJCheckBox(checkBox);
 		}
 		else {
-			// for radio buttons, the very first radio button 
-			// is selected by default (so all the others are not)
+			// For radio buttons, the very first radio button is selected by default (so all the others are not).
 			if (i == 0) {
 				radioButton = new JRadioButton((String)null, true);
-			}		
+			}
 			else {
 				radioButton = new JRadioButton();
 			}
@@ -886,7 +793,7 @@ private void processGroup(JPanel panel, int panelY, String groupName, List<Integ
 			__data[dataNum].setJRadioButton(radioButton);
 		}
 
-		JGUIUtil.addComponent(subPanel, 
+		JGUIUtil.addComponent(subPanel,
 			new JLabel(__data[dataNum].getGUILabel()),
 			0, y, 1, 1, 0, 0,
 			GridBagConstraints.NONE, GridBagConstraints.EAST);
@@ -894,20 +801,20 @@ private void processGroup(JPanel panel, int panelY, String groupName, List<Integ
 		if (selectType == GeoViewAnimationData.CHECKBOX) {
 			JGUIUtil.addComponent(subPanel, checkBox,
 				1, y, 1, 1, 0, 0,
-				GridBagConstraints.NONE, 
+				GridBagConstraints.NONE,
 				GridBagConstraints.WEST);
 		}
 		else {
 			JGUIUtil.addComponent(subPanel, radioButton,
 				1, y, 1, 1, 0, 0,
-				GridBagConstraints.NONE, 
+				GridBagConstraints.NONE,
 				GridBagConstraints.WEST);
 		}
-		/* TODO SAM 2007-05-09 Evaluate if needed
+		/* TODO SAM 2007-05-09 Evaluate if needed.
 		if (selectType == GeoViewAnimationData.RADIOBUTTON) {
 			if (i == 0) {
 				visible = true;
-			}		
+			}
 			else {
 				visible = false;
 			}
@@ -916,7 +823,7 @@ private void processGroup(JPanel panel, int panelY, String groupName, List<Integ
 			visible = __data[dataNum].isVisible();
 		}
 		*/
-		
+
 		__layerNameTextField[panelY - 1].setText(
 			__data[dataNum].getGeoViewAnimationLayerData()
 			.getLayerName());
@@ -926,7 +833,7 @@ private void processGroup(JPanel panel, int panelY, String groupName, List<Integ
 	}
 	JGUIUtil.addComponent(panel, subPanel,
 		0, panelY, 1, 1, 0, 0,
-		GridBagConstraints.NONE, GridBagConstraints.WEST);	
+		GridBagConstraints.NONE, GridBagConstraints.WEST);
 }
 
 /**
@@ -936,16 +843,14 @@ Handles error processing from the animation processor.  From ProcessListener.
 public void processError(String error) {}
 
 /**
-Handles output processing messages from the animation processor.  From 
-ProcessListener.
+Handles output processing messages from the animation processor. From ProcessListener.
 @param output the output message that occurred.
 */
 public void processOutput(String output) {}
 
 /**
 Handles status messages from the animation processor.  From ProcessListener.
-@param code 0 for sending messages to the current date textfield, 1 for sending
-messages to the status bar.
+@param code 0 for sending messages to the current date textfield, 1 for sending messages to the status bar.
 @param message the message to send.
 */
 public void processStatus(int code, String message) {
@@ -960,8 +865,8 @@ public void processStatus(int code, String message) {
 }
 
 /**
-Sets up the GUI.  Does not make the GUI visible, as developers must add
-time series to the frame first, and then call setVisible() manually.
+Sets up the GUI.  Does not make the GUI visible, as developers must add time series to the frame first,
+and then call setVisible() manually.
 */
 private void setupGUI() {
 	addWindowListener(this);
@@ -983,13 +888,11 @@ private void setupGUI() {
 
 	JPanel bottomPanel = new JPanel();
 	bottomPanel.setLayout(new GridBagLayout());
-	bottomPanel.setBorder(BorderFactory.createTitledBorder(	
-		"Animation Control"));
+	bottomPanel.setBorder(BorderFactory.createTitledBorder( "Animation Control"));
 
 	JPanel timePanel = new JPanel();
 	timePanel.setLayout(new GridBagLayout());
-	timePanel.setBorder(BorderFactory.createTitledBorder(
-		"Animation Times"));
+	timePanel.setBorder(BorderFactory.createTitledBorder( "Animation Times"));
 
 	__pauseTextField = new JTextField("XXXXX");
 
@@ -1002,7 +905,7 @@ private void setupGUI() {
 		1, ty++, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	__startComboBox.setEnabled(false);
-	
+
 	JGUIUtil.addComponent(timePanel, new JLabel("End:"),
 		0, ty, 1, 1, 0, 0,
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
@@ -1010,7 +913,7 @@ private void setupGUI() {
 		1, ty++, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	__endComboBox.setEnabled(false);
-	
+
 	JGUIUtil.addComponent(timePanel, new JLabel("Current:"),
 		0, ty, 1, 1, 0, 0,
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
@@ -1064,8 +967,7 @@ private void setupGUI() {
 
 	__acceptButton = new JButton(__BUTTON_ACCEPT);
 	__acceptButton.addActionListener(this);
-	__acceptButton.setToolTipText("Accept layer settings and set up "
-		+ "GeoView display for animation.");
+	__acceptButton.setToolTipText("Accept layer settings and set up GeoView display for animation.");
 
 	int x = 0;
 	JGUIUtil.addComponent(buttons, __startButton,
@@ -1079,7 +981,7 @@ private void setupGUI() {
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(buttons, __pauseButton,
 		x++, 0, 1, 1, 0, 0,
-		GridBagConstraints.NONE, GridBagConstraints.WEST);		
+		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	JGUIUtil.addComponent(buttons, __stopButton,
 		x++, 0, 1, 1, 0, 0,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
@@ -1089,9 +991,8 @@ private void setupGUI() {
 	JGUIUtil.addComponent(buttons, __endButton,
 		x++, 0, 1, 1, 0, 0,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
-		
-	timeSeriesPanel.setBorder(BorderFactory.createTitledBorder(
-		"Time Series Data"));
+
+	timeSeriesPanel.setBorder(BorderFactory.createTitledBorder( "Time Series Data"));
 	JGUIUtil.addComponent(topPanel, timeSeriesPanel,
 		0, topY++, 2, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.NORTHWEST);
@@ -1136,8 +1037,8 @@ private void setupGUI() {
 
 	pack();
 
-	// By default, toggle buttons are smaller than normal JButtons.  The
-	// following resizes them to be the same size.
+	// By default, toggle buttons are smaller than normal JButtons.
+	// The following resizes them to be the same size.
 
 	__pauseButton.setPreferredSize(
 		new java.awt.Dimension(__pauseButton.getWidth(),
@@ -1158,7 +1059,7 @@ private void setupGUI() {
 		new java.awt.Dimension(__runButton.getWidth(),
 		__prevButton.getHeight()));
 
-	// put the fist date's data into the attribute table
+	// Put the fist date's data into the attribute table.
 	fillData(__startDate);
 }
 
@@ -1176,8 +1077,8 @@ public void startAnimation() {
 	}
 	catch (Exception e) {
 		__pauseTextField.setText("1.5");
-	}	
-	
+	}
+
 	int s = __startComboBox.getSelectedIndex();
 	int e = __endComboBox.getSelectedIndex();
 	int steps = (e - s) + 1;
@@ -1185,24 +1086,23 @@ public void startAnimation() {
 	curr.addMonth(s * __interval);
 	DateTime end = new DateTime(curr);
 	end.addMonth(steps * __interval);
-	
+
 	if (__processor == null) {
 		__processor = new GeoViewAnimationProcessor(
 			this, __viewComponent, curr, end, millis);
 		__processor.addProcessListener(this);
 	}
 	else {
-		__processor.setStartDate(curr);	
+		__processor.setStartDate(curr);
 		__processor.setEndDate(end);
 		__processor.setPause(millis);
 	}
 
-	// REVISIT (JTS - 2004-08-11)
-	// single thread ever?
+	// REVISIT (JTS - 2004-08-11) single thread ever?
 	Thread thread = new Thread(__processor);
 	thread.start();
 }
-	
+
 /**
 Forces the window to repaint.
 */
@@ -1210,7 +1110,7 @@ public void windowActivated(WindowEvent event) {
 	invalidate();
 	validate();
 	repaint();
-	if (__processor != null) { 
+	if (__processor != null) {
 		try {
 			__processor.sleep(200);
 		}
@@ -1238,8 +1138,7 @@ public void windowClosing(WindowEvent event) {
 
 	ResponseJDialog r = new ResponseJDialog(this,
 		"Remove Animation Layers?",
-		"Should the animation layers that were added from this "
-		+ "display be removed from the map?",
+		"Should the animation layers that were added from this display be removed from the map?",
 		ResponseJDialog.YES | ResponseJDialog.NO);
 	int x = r.response();
 
@@ -1267,21 +1166,25 @@ public void windowClosing(WindowEvent event) {
 /**
 Does nothing.
 */
-public void windowDeactivated(WindowEvent event) {}
+public void windowDeactivated(WindowEvent event) {
+}
 
 /**
 Does nothing.
 */
-public void windowDeiconified(WindowEvent event) {}
+public void windowDeiconified(WindowEvent event) {
+}
 
 /**
 Does nothing.
 */
-public void windowIconified(WindowEvent event) {}
+public void windowIconified(WindowEvent event) {
+}
 
 /**
 Does nothing.
 */
-public void windowOpened(WindowEvent event) {}
+public void windowOpened(WindowEvent event) {
+}
 
 }

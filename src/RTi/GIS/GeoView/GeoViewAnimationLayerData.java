@@ -4,48 +4,37 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//-----------------------------------------------------------------------------
-// GeoViewAnimationLayerData - Data for controlling how layers are built 
-//	for GeoViewAnimationData objects.
-//-----------------------------------------------------------------------------
-// Copyright:  See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// History:
-// 2004-08-12	J. Thomas Sapienza, RTi	Initial version.
-// 2005-04-27	JTS, RTi		Added finalize().
-//-----------------------------------------------------------------------------
 
 package RTi.GIS.GeoView;
 
 import java.util.List;
 
 import RTi.GR.GRSymbol;
-
+import RTi.GR.GRSymbolShapeType;
 import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
 
 import RTi.Util.Table.DataTable;
 
 /**
-This is a class that controls how layers are created for animation.  A single
-one of these objects is created and then shared among all the different 
+This is a class that controls how layers are created for animation.
+A single one of these objects is created and then shared among all the different
 GeoViewAnimationData objects that will be used together in the same layer.
 */
 public class GeoViewAnimationLayerData {
@@ -76,23 +65,23 @@ The numbers of fields that tie the identifier to features.
 private int[] __idFields = null;
 
 /**
-The fields for data to be displayed.  For non-complicated symbols, such as
-GRSymbol.SYM_VBARSIGNED, the data fields are the numbers of fields that will
-always be shown on the layer and which are not animated.  For complicated 
-symbols, such as teacups, the datafields are a key in a particularly order that
-provide information on how things should be animated.  See 
-GeoViewJPanel.addSummaryLayerView() for more information on these symbols.
+The fields for data to be displayed.
+For non-complicated symbols, such as GRSymbol.SYM_VBARSIGNED,
+the data fields are the numbers of fields that will always be shown on the layer and which are not animated.
+For complicated symbols, such as teacups,
+the datafields are a key in a particularly order that provide information on how things should be animated.
+See GeoViewJPanel.addSummaryLayerView() for more information on these symbols.
 */
 private int[] __dataFields = null;
 
 /**
 The kind of symbol to use.
 */
-private int __symbolType = GRSymbol.SYM_VBARSIGNED;
+private GRSymbolShapeType __symbolType = GRSymbolShapeType.VERTICAL_BAR_SIGNED;
 
 /**
-Properties providing additional information to the layer.  See
-GeoViewJPanel.addSummaryLayerView() for more information.
+Properties providing additional information to the layer.
+See GeoViewJPanel.addSummaryLayerView() for more information.
 */
 private PropList __props = null;
 
@@ -120,36 +109,33 @@ private List<String> __availAppLayerTypes = null;
 Constructor.
 @param table the data table to use for the layer
 @param layerName the name of the animation layer
-@param symbolType the kind of symbol that is being animated.  Currently
-supports GRSymbol.SYM_VBARSIGNED and GRSymbol.SYM_TEACUP.
+@param symbolType the kind of symbol that is being animated.
+Currently supports GRSymbol.SYM_VBARSIGNED and GRSymbol.SYM_TEACUP.
 @param idFields the names of the id fields to use for tying data to a feature
-@param dataFields the names of the data fields.  
-For non-complicated symbols, such as 
+@param dataFields the names of the data fields.
+For non-complicated symbols, such as
 GRSymbol.SYM_VBARSIGNED, the data fields are the fields that will
-always be shown on the layer and which are not animated.  For complicated 
-symbols, such as teacups, the datafields are a key in a particularly order that
-provide information on how things should be animated.  See 
-GeoViewJPanel.addSummaryLayerView() for more information on these symbols.<p>
-In general, for VBARSIGNED symbols, dataFields will be null.  For teacups, it 
-will be a 3-element array where the first element is the field with the maximum
-content, the second element is the field with the minimum content, and the 
-third element is the field with current content.
-@param availAppLayerTypes Vector of app layer types to search through for
-feature matches.
+always be shown on the layer and which are not animated.
+For complicated symbols, such as teacups, the datafields are a key in a particularly order that
+provide information on how things should be animated.
+See GeoViewJPanel.addSummaryLayerView() for more information on these symbols.<p>
+In general, for VBARSIGNED symbols, dataFields will be null.
+For teacups, it will be a 3-element array where the first element is the field with the maximum content,
+the second element is the field with the minimum content, and the third element is the field with current content.
+@param availAppLayerTypes Vector of app layer types to search through for feature matches.
 @param equalizeMax whether to equalize the maximum data values
 @param props a PropList that defines additional information to the layer.
-@throws Exception if table, layerName, idFields, or availAppLayerTypes are
-null.
+@throws Exception if table, layerName, idFields, or availAppLayerTypes are null.
 */
-public GeoViewAnimationLayerData(DataTable table, String layerName, 
-int symbolType, String[] idFields, String[] dataFields, 
-List<String> availAppLayerTypes, boolean equalizeMax, PropList props) 
+public GeoViewAnimationLayerData(DataTable table, String layerName,
+GRSymbolShapeType symbolType, String[] idFields, String[] dataFields,
+List<String> availAppLayerTypes, boolean equalizeMax, PropList props)
 throws Exception {
 	if (table == null || layerName == null || idFields == null
 		|| availAppLayerTypes == null) {
 		throw new NullPointerException();
 	}
-	
+
 	__table = table;
 	__layerName = layerName;
 	__symbolType = symbolType;
@@ -159,12 +145,11 @@ throws Exception {
 	__equalizeMax = equalizeMax;
 	__props = props;
 
-	// Determine the numbers of the fields named in the id fields array
+	// Determine the numbers of the fields named in the id fields array.
 	__idFields = new int[__idFieldsStrings.length];
 	for (int i = 0; i < __idFieldsStrings.length; i++) {
 		try {
-			__idFields[i] = __table.getFieldIndex(
-				__idFieldsStrings[i]);
+			__idFields[i] = __table.getFieldIndex( __idFieldsStrings[i]);
 		}
 		catch (Exception e) {
 			throw new Exception("ID Field #" + i + " ("
@@ -173,43 +158,23 @@ throws Exception {
 		}
 	}
 
-	// determine the numbers of the data fieleds named in the data fields
-	// array.
+	// Determine the numbers of the data fieleds named in the data fields array.
 	if (__dataFieldsStrings == null) {
-		// __dataFields cannot be null, so instantiate a 0-element
-		// array instead
+		// __dataFields cannot be null, so instantiate a 0-element array instead.
 		__dataFields = new int[0];
 	}
 	else {
 		__dataFields = new int[__dataFieldsStrings.length];
 		for (int i = 0; i < __dataFieldsStrings.length; i++) {
 			try {
-				__dataFields[i] = __table.getFieldIndex(
-					__dataFieldsStrings[i]);
+				__dataFields[i] = __table.getFieldIndex( __dataFieldsStrings[i]);
 			}
 			catch (Exception e) {
 				throw new Exception("Data Field #" + i + " ("
-					+ __dataFieldsStrings[i] 
-					+ ") not found in table.");
+					+ __dataFieldsStrings[i] + ") not found in table.");
 			}
-		}	
+		}
 	}
-}
-
-/**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__table = null;
-	__idFields = null;
-	__dataFields = null;
-	__props = null;
-	IOUtil.nullArray(__dataFieldsStrings);
-	IOUtil.nullArray(__idFieldsStrings);
-	__layerName = null;
-	__availAppLayerTypes = null;
-	super.finalize();
 }
 
 /**
@@ -293,10 +258,10 @@ public PropList getProps() {
 }
 
 /**
-Returns the sumbol type.
+Returns the symbol type.
 @return the symbol type.
 */
-public int getSymbolType() {
+public GRSymbolShapeType getSymbolType() {
 	return __symbolType;
 }
 
@@ -309,8 +274,8 @@ public DataTable getTable() {
 }
 
 /**
-Sets the value that will be recognized in this layer as missing data.  The
-default value is -999.0
+Sets the value that will be recognized in this layer as missing data.
+The default value is -999.0
 @param missing the value that will be recognized as missing data.
 */
 public void setMissingDoubleValue(double missing) {
@@ -318,8 +283,7 @@ public void setMissingDoubleValue(double missing) {
 }
 
 /**
-Sets the value that will replace missing data in this layer.  The default value
-is -1.0
+Sets the value that will replace missing data in this layer.  The default value is -1.0
 @param replacement the value that will replace missing data.
 */
 public void setMissingDoubleReplacementValue(double replacement) {
