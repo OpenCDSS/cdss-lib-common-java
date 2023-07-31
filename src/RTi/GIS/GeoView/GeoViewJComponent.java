@@ -11,12 +11,12 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -46,6 +46,7 @@ import javax.swing.JTextField;
 
 import RTi.GR.GRAspectType;
 import RTi.GR.GRAxis;
+import RTi.GR.GRClassificationType;
 import RTi.GR.GRColor;
 import RTi.GR.GRCoordinateType;
 import RTi.GR.GRDrawingAreaUtil;
@@ -59,6 +60,8 @@ import RTi.GR.GRScaledClassificationSymbol;
 import RTi.GR.GRScaledTeacupSymbol;
 import RTi.GR.GRShape;
 import RTi.GR.GRSymbol;
+import RTi.GR.GRSymbolShapeType;
+import RTi.GR.GRSymbolPosition;
 import RTi.GR.GRText;
 import RTi.GR.GRUnits;
 
@@ -726,7 +729,7 @@ private void drawBigPictureLayerView ( GeoLayerView layerView) {
 	// Then interpolate to get the bar height for each data value.
 	BigPictureLayer layer = (BigPictureLayer)layerView.getLayer();
 	GRLimits big_picture_limits = layer.getBigPictureLimits();
-	
+
 	double ztop = 0, zbot = 0, largest_value=0,
 		zmin = big_picture_limits.getBottomY(),
 		zmax = big_picture_limits.getTopY();
@@ -784,7 +787,7 @@ private void drawBigPictureLayerView ( GeoLayerView layerView) {
 	}
 
 	int numAssociatedLayers = layer.getNumAssociatedLayers();
-	Message.printStatus ( 1, rtn, "Drawing " + num_records + " big picture records." );	
+	Message.printStatus ( 1, rtn, "Drawing " + num_records + " big picture records." );
 	for ( int z=0; z<numAssociatedLayers; z++ ) {
 	// Coordinates for layer that is being searched.
 	List<GRShape> shapes = layer.getShapes(z);
@@ -899,7 +902,7 @@ private void drawGridLayerView ( GeoLayerView layerView ) {
 
 	GRLegend legend = layerView.getLegend();
 	GRSymbol symbol = legend.getSymbol();
-	int classification_type = symbol.getClassificationType();
+	GRClassificationType classificationType = symbol.getClassificationType();
 	GRColor outline_color = symbol.getOutlineColor();
 	// Get the color once.  It will be used for single classification if necessary.
 	GRColor color = symbol.getColor();
@@ -958,7 +961,7 @@ private void drawGridLayerView ( GeoLayerView layerView ) {
 				continue;
 			}
 			// If necessary, set the color based on the classification..
-			if ( classification_type == GRSymbol.CLASSIFICATION_SINGLE ) {
+			if ( classificationType == GRClassificationType.SINGLE ) {
 				// Set each time because currently the outline color gets reset every time.
 				if ( (color == null) || color.isTransparent()) {
 					dodraw = false;
@@ -1095,80 +1098,80 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 	for ( int isym = 0; isym < nsymbols; isym++ ) {
 		// This is the position that the symbols will be drawn at relative to their X and Y values.
 		// This will be different for teacup symbols, and set below.
-		positioning = GRSymbol.SYM_CENTER_X | GRSymbol.SYM_CENTER_Y;
-	
-		symbol = legend.getSymbol(isym);	
+		positioning = GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y;
+
+		symbol = legend.getSymbol(isym);
 		if ( symbol == null ) {
 			Message.printWarning ( 2, routine, "No symbol for layer view.  Not drawing." );
 			return;
 		}
-	
+
 		// Print the limits for printing.
-	
+
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine, __prefix + "Drawing limits: " + __grda.getDrawingLimits() );
 			Message.printDebug ( 1, routine, __prefix + "Data limits: " + __grda.getDataLimits() );
 			Message.printDebug ( 1, routine, __prefix + "Plotting limits: " + __grda.getPlotLimits(GRCoordinateType.PLOT) );
 		}
-	
+
 		// Set the symbol, color, etc., based on the layer view settings.
-	
-		int classification_type = symbol.getClassificationType();
+
+		GRClassificationType classificationType = symbol.getClassificationType();
 		color = null;
 		singleColor = symbol.getColor();
-		int symbolStyle = symbol.getStyle();
+		GRSymbolShapeType symbolStyle = symbol.getShapeType();
 		symbolSizeXPrev = symbolSizeX;
 		symbolSizeX = symbol.getSizeX();
 		symbolSizeY = symbol.getSizeY();
 		double symbolData[] = null;
-		
-		if (classification_type != GRSymbol.CLASSIFICATION_SCALED_TEACUP_SYMBOL) {
+
+		if ( classificationType != GRClassificationType.SCALED_TEACUP_SYMBOL) {
 			symbolData = new double[1]; // Used with scaled symbols.
 		}
 		else {
 			symbolData = new double[4];
 		}
-		
+
 		if ( (shapeType == GeoLayer.LINE) || (shapeType == GeoLayer.POLYLINE_ZM) ) {
 			// Set the line width, style, etc.
-			// TODO SAM 2010-12-30 This results in very wide lines
+			// TODO SAM 2010-12-30 This results in very wide lines.
 			//__grda.setLineWidth ( symbolSizeX );
 		}
 		else if ( shapeType == GeoLayer.POLYGON ) {
 			// Set the fill pattern.
 		}
 		// Else, Set the symbol below when drawing.
-	
+
 		layerProjection = layer.getProjection();
 		boolean doProject = GeoProjection.needToProject ( layerProjection, __projection );
-	
+
 		// Get the list of shapes for the layer.
-	
+
 		shapes = layer.getShapes();
 		if ( shapes == null ) {
 			return;
 		}
 		// Now loop through the shapes and draw according to the GeoLayerView's settings.
-	
+
 		int nshapes = shapes.size();
 		if ( Message.isDebugOn ) {
 			Message.printStatus ( 2, routine, "Layer has " + nshapes + " shapes." );
 		}
 		// Determine how labels for the GeoLayerView are to be generated.
 		// This information is used when calling getShapeLabel for each shape below.
-	
+
 		layerViewProps = layerView.getPropList ();
 		int labelSource = __LABEL_NODE;
 		int fieldNumbers[] = null;
 		// Only print this for non-grids since grid data are currently assumed to have one value per grid.
-		if ( (shapeType != GeoLayer.GRID) && (attributeTable == null) ) {	
+		if ( (shapeType != GeoLayer.GRID) && (attributeTable == null) ) {
 			Message.printStatus ( 2, "", "Attribute table is null" );
 		}
 		int classification_field = -1;
-	
-		if (classification_type != GRSymbol.CLASSIFICATION_SCALED_TEACUP_SYMBOL) {
+
+		if ( classificationType != GRClassificationType.SCALED_TEACUP_SYMBOL) {
 			if ( !symbol.getClassificationField().equals("") ) {
-				try {	
+				try {
 					classification_field = attributeTable.getFieldIndex( symbol.getClassificationField() );
 				}
 				catch ( Exception e ) {
@@ -1178,7 +1181,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 						classification_field = -1;
 				}
 			}
-		
+
 			if (classification_field > -1 && layerView.isAnimatedField(classification_field)) {
 				if (!layerView.isAnimationFieldVisible(classification_field)) {
 					continue;
@@ -1328,7 +1331,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 			}
 		}
 	
-		if ( classification_type == GRSymbol.CLASSIFICATION_SCALED_SYMBOL ) {
+		if ( classificationType == GRClassificationType.SCALED_SYMBOL ) {
 			// Get the maximum value for the symbol, which is used to scale the symbol.
 			symbolMax = ((GRScaledClassificationSymbol)symbol).getClassificationDataDisplayMax();
 			// For now assume that only the X is being offset to prevent the symbols from overlapping.
@@ -1336,7 +1339,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 				symbolOffsetX += symbolSizeXPrev + 2;
 			}
 		}
-		else if (classification_type == GRSymbol.CLASSIFICATION_SCALED_TEACUP_SYMBOL) {
+		else if ( classificationType == GRClassificationType.SCALED_TEACUP_SYMBOL) {
 			symbolMax = ((GRScaledTeacupSymbol)symbol).getMaxCapacity();
 		}
 	
@@ -1387,7 +1390,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 				color = selectSolor;
 				__grda.setColor ( color );
 			}
-			else if ( classification_type==GRSymbol.CLASSIFICATION_SINGLE ){
+			else if ( classificationType == GRClassificationType.SINGLE ){
 				// Only need to set the color once unless it is a layer that has selections,
 				// in which case the color needs to be checked for each item.
 				if ( color == null ) {
@@ -1402,9 +1405,9 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 					}
 				}
 			}
-			else if ( classification_type == GRSymbol.CLASSIFICATION_SCALED_SYMBOL ) {
+			else if ( classificationType == GRClassificationType.SCALED_SYMBOL ) {
 				// Special symbols.
-				if ( symbolStyle == GRSymbol.SYM_VBARSIGNED ) {
+				if ( symbolStyle == GRSymbolShapeType.VERTICAL_BAR_SIGNED ) {
 					// For now only handle numeric data and handle
 					// the conversion from Object to double using strings.
 					try {
@@ -1437,7 +1440,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 						Message.printWarning ( 3, routine, e);
 					}
 				}
-				else if (symbolStyle == GRSymbol.SYM_VBARUNSIGNED) {
+				else if (symbolStyle == GRSymbolShapeType.VERTICAL_BAR_UNSIGNED) {
 					try {	
 						if (symbolMax == 0.0) {
 							symbolData[0] = 0.0;
@@ -1464,7 +1467,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 					}
 				}			
 			}			
-			else if ( classification_type == GRSymbol.CLASSIFICATION_SCALED_TEACUP_SYMBOL ) {
+			else if ( classificationType == GRClassificationType.SCALED_TEACUP_SYMBOL ) {
 				// For now only handle numeric data and handle the conversion from Object to double using strings.
 				symbolSizeX = symbol.getSizeX();
 				symbolSizeY = symbol.getSizeY();			
@@ -1515,7 +1518,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 					// Teacups are positioned so that the center of the bottom of the teacup is on the
 					// point at which they are located.
 	
-					positioning = GRSymbol.SYM_CENTER_X | GRSymbol.SYM_BOTTOM;
+					positioning = GRSymbolPosition.CENTER_X | GRSymbolPosition.BOTTOM;
 	
 					// Set the proplist to not null.  Perhaps later this will be used to control
 					// other aspects of drawing the teacup, but for now all that goes into symbol_data[] instead.
@@ -1598,7 +1601,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 					try {	
 						setAntiAlias(__antiAliased);
 						GRDrawingAreaUtil.drawSymbolText(__grda,
-						-1, pt.x, pt.y,
+						GRSymbolShapeType.NONE, pt.x, pt.y,
 						symbolSizeX, label,
 						GRColor.black, 0.0,
 						symbol.getLabelPosition(),
@@ -4016,14 +4019,14 @@ double gx, double gy, double rowHeight) {
 		if ( sym == null ) {
 			return;
 		}
-		if ( sym.getClassificationType() == GRSymbol.CLASSIFICATION_SINGLE ) {
+		if ( sym.getClassificationType() == GRClassificationType.SINGLE ) {
 			color = sym.getColor();
 		}
 		else if (
-			sym.getClassificationType() == GRSymbol.CLASSIFICATION_SCALED_SYMBOL ) {
+			sym.getClassificationType() == GRClassificationType.SCALED_SYMBOL ) {
 			color = sym.getColor();
 		}		
-		else if (sym.getClassificationType() == GRSymbol.CLASSIFICATION_SCALED_TEACUP_SYMBOL) {
+		else if (sym.getClassificationType() == GRClassificationType.SCALED_TEACUP_SYMBOL) {
 			color = sym.getColor();
 		}
 		else {	
@@ -4038,57 +4041,57 @@ double gx, double gy, double rowHeight) {
 		}
 		if ( dodraw && ((layerType == GeoLayer.POINT) || (layerType == GeoLayer.POINT_ZM) ||
 			(layerType == GeoLayer.MULTIPOINT)) ) {
-			if ( sym.getClassificationType() == GRSymbol.CLASSIFICATION_SCALED_SYMBOL ) {
+			if ( sym.getClassificationType() == GRClassificationType.SCALED_SYMBOL ) {
 				gy = convertLegendY(ogy - 5, false);
-				if ( sym.getStyle() == GRSymbol.SYM_VBARSIGNED ) {
+				if ( sym.getShapeType() == GRSymbolShapeType.VERTICAL_BAR_SIGNED ) {
 					// Draw the symbol twice, once with a positive value in the first color
 					// and once with a negative value in the second color.
 					color = sym.getColor();
 					double [] sym_data = new double[1];
 					sym_data[0] = 1.0;
-					GRDrawingAreaUtil.drawSymbol( __grda, sym.getStyle(), gx, gy,
+					GRDrawingAreaUtil.drawSymbol( __grda, sym.getShapeType(), gx, gy,
 						convertLegendX(sym.getSizeX(), true), convertLegendY(sym.getSizeY(), true),
-						0.0, 0.0, sym_data, GRUnits.DATA, GRSymbol.SYM_LEFT | GRSymbol.SYM_TOP);
+						0.0, 0.0, sym_data, GRUnits.DATA, GRSymbolPosition.LEFT | GRSymbolPosition.TOP);
 					color = sym.getColor2();
 					if ( color != null ) {
 						GRDrawingAreaUtil.setColor(__grda, color);
 					}
 					sym_data[0] = -1.0;
-					GRDrawingAreaUtil.drawSymbol ( __grda, sym.getStyle(), gx, gy,
+					GRDrawingAreaUtil.drawSymbol ( __grda, sym.getShapeType(), gx, gy,
 						convertLegendX(sym.getSizeX(), true), convertLegendY(sym.getSizeY(), true),
-						0.0, 0.0, sym_data, GRUnits.DATA, GRSymbol.SYM_LEFT|GRSymbol.SYM_TOP );
+						0.0, 0.0, sym_data, GRUnits.DATA, GRSymbolPosition.LEFT | GRSymbolPosition.TOP );
 				}
-				else if (sym.getStyle() == GRSymbol.SYM_VBARUNSIGNED) {
+				else if (sym.getShapeType() == GRSymbolShapeType.VERTICAL_BAR_UNSIGNED) {
 					// since unsigned bars only show positive values only get the
 					// first color to use to draw the bar.
 					color = sym.getColor();
 					double [] sym_data = new double[1];
 					sym_data[0] = 1.0;
-					GRDrawingAreaUtil.drawSymbol( __grda, sym.getStyle(), gx, gy,
+					GRDrawingAreaUtil.drawSymbol( __grda, sym.getShapeType(), gx, gy,
 						convertLegendX(sym.getSizeX(), true), convertLegendY(sym.getSizeY(), true),
-						0.0, 0.0, sym_data, GRUnits.DATA, GRSymbol.SYM_LEFT	| GRSymbol.SYM_TOP);
+						0.0, 0.0, sym_data, GRUnits.DATA, GRSymbolPosition.LEFT | GRSymbolPosition.TOP);
 				}				
 			}
 			else {
 				// A simple symbol.
 				double size = sym.getSize();
-				if (sym.getClassificationType() == GRSymbol.CLASSIFICATION_SCALED_TEACUP_SYMBOL) {
+				if (sym.getClassificationType() == GRClassificationType.SCALED_TEACUP_SYMBOL) {
 					size = 15;
 					gy = convertLegendY(ogy + (rowHeight / 4), false);
 					GRDrawingAreaUtil.setColor(__grda, GRColor.blue);
 					__teacupData[0] = 20;
 					__teacupData[1] = 0;
 					__teacupData[2] = 14;
-					GRDrawingAreaUtil.drawSymbol ( __grda, sym.getStyle(), gx, gy,
+					GRDrawingAreaUtil.drawSymbol ( __grda, sym.getShapeType(), gx, gy,
 						convertLegendX(size, true), convertLegendY(size, true),
 						0.0, 0.0, __teacupData, GRUnits.DATA,
-						GRSymbol.SYM_LEFT| GRSymbol.SYM_CENTER_Y, __teacupProps);
+						GRSymbolPosition.LEFT | GRSymbolPosition.CENTER_Y, __teacupProps);
 				}
 				else {
 					gy = convertLegendY(ogy + (rowHeight / 4), false);
-					GRDrawingAreaUtil.drawSymbol ( __grda, sym.getStyle(), gx, gy,
+					GRDrawingAreaUtil.drawSymbol ( __grda, sym.getShapeType(), gx, gy,
 						convertLegendX(size, true), convertLegendY(size, true),
-						0.0, 0.0, null, GRUnits.DATA, GRSymbol.SYM_LEFT | GRSymbol.SYM_CENTER_Y);
+						0.0, 0.0, null, GRUnits.DATA, GRSymbolPosition.LEFT | GRSymbolPosition.CENTER_Y);
 				}
 			}
 		}

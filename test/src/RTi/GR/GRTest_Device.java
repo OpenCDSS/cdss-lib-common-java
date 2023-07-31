@@ -536,7 +536,7 @@ private void draw() {
 		x = (i % 3) * 30 + 20;
 		y = (i / 3) * 30 + 20;
 //	Message.printStatus(1, "", "I: " + i + "  X: " + x + "  Y: " + y);	
-		GRDrawingAreaUtil.drawSymbol(__drawingArea, GRSymbol.SYM_FCIR,
+		GRDrawingAreaUtil.drawSymbol(__drawingArea, GRSymbolShapeType.CIRCLE_FILLED,
 			x, y, 1, GRUnits.DATA, 0);
 		
 		GRDrawingAreaUtil.drawText(__drawingArea, paragraph2,

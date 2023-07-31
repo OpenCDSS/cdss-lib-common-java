@@ -11,12 +11,12 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -55,7 +55,8 @@ import RTi.GR.GRDrawingAreaUtil;
 import RTi.GR.GRJComponentDrawingArea;
 import RTi.GR.GRLimits;
 import RTi.GR.GRPoint;
-import RTi.GR.GRSymbol;
+import RTi.GR.GRSymbolPosition;
+import RTi.GR.GRSymbolShapeType;
 import RTi.GR.GRSymbolTable;
 import RTi.GR.GRSymbolTableRow;
 import RTi.GR.GRText;
@@ -2754,7 +2755,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
         	// No time series to process.
             return;
         }
-        else if ( (nts == 1) 
+        else if ( (nts == 1)
        		&& ((this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() != TimeInterval.YEAR)) ) {
         	// Single time series:
         	// - Y-axis is years
@@ -2773,12 +2774,12 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
        			}
        			else {
        				// Compute "nice" labels (ticks) based on the Y-axis extremes.
-       				if ( (intervalBase == TimeInterval.MONTH) || (intervalBase == TimeInterval.DAY) ) { 
+       				if ( (intervalBase == TimeInterval.MONTH) || (intervalBase == TimeInterval.DAY) ) {
 	            		_ylabels_lefty = GRAxis.findNLabels ( _data_lefty_limits.getMinY(), _data_lefty_limits.getMaxY(),
 	            			true, minlabels, maxlabels );
        				}
-       				else if ( (intervalBase == TimeInterval.HOUR) || (intervalBase == TimeInterval.MINUTE) ) { 
-       					// Allow maximum number of labels to 
+       				else if ( (intervalBase == TimeInterval.HOUR) || (intervalBase == TimeInterval.MINUTE) ) {
+       					// Allow maximum number of labels to.
        					maxlabels = (int)(_drawlim_lefty_graph.getHeight()/(height));
         				_ylabels_lefty = findYAxisDateLabels (
        						_data_lefty_limits.getMinY(), _data_lefty_limits.getMaxY(),
@@ -2791,7 +2792,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
         		}
         	}
         }
-        else if ( (nts > 1) 
+        else if ( (nts > 1)
        		|| ((nts == 1) && (this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() == TimeInterval.YEAR)) ) {
         	// Multiple time series or single year interval time series:
         	// - Y-axis is similar to period of record graph
@@ -3118,7 +3119,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
         	// No time series to process.
             return;
         }
-        else if ( (nts == 1) 
+        else if ( (nts == 1)
    			&& ((this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() != TimeInterval.YEAR)) ) {
         	// Single time series but not year interval:
         	// - X-axis is short time period (e.g., year for day or month interval)
@@ -4761,7 +4762,7 @@ private void drawDurationPlot ( GRDrawingArea daGraph, TSProduct tsproduct, int 
 	TS ts = null;
 	TSDurationAnalysis da = null;
 	double [] values, percents;
-	int symbol = 0;
+	GRSymbolShapeType shapeType = GRSymbolShapeType.NONE;
 	double symbol_size = 0.0;
 	String prop_value;
 	boolean niceSymbols = true;
@@ -4805,18 +4806,21 @@ private void drawDurationPlot ( GRDrawingArea daGraph, TSProduct tsproduct, int 
 		GRDrawingAreaUtil.drawPolyline ( daGraph, values.length, percents, values );
 		prop_value = tsproduct.getLayeredPropValue ( "SymbolStyle", subproduct, i, false );
 		try {
-		    symbol = GRSymbol.toInteger(prop_value);
+		    shapeType = GRSymbolShapeType.valueOfIgnoreCase(prop_value);
+		    if ( shapeType == null ) {
+		    	shapeType = GRSymbolShapeType.NONE;
+		    }
 		}
 		catch ( Exception e ) {
-			symbol = GRSymbol.SYM_NONE;
+			shapeType = GRSymbolShapeType.NONE;
 		}
 		symbol_size = StringUtil.atod( tsproduct.getLayeredPropValue ( "SymbolSize", subproduct, i, false ) );
-		if ( !isReferenceGraph && (symbol != GRSymbol.SYM_NONE) && (symbol_size > 0) ) {
+		if ( !isReferenceGraph && (shapeType != GRSymbolShapeType.NONE) && (symbol_size > 0) ) {
 			if (niceSymbols) {
 				GRDrawingAreaUtil.setDeviceAntiAlias( daGraph, true);
 			}
-			GRDrawingAreaUtil.drawSymbols (daGraph, symbol, values.length, percents, values,
-					symbol_size, GRUnits.DEVICE, GRSymbol.SYM_CENTER_X|GRSymbol.SYM_CENTER_Y );
+			GRDrawingAreaUtil.drawSymbols (daGraph, shapeType, values.length, percents, values,
+				symbol_size, GRUnits.DEVICE, GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y );
 			if (niceSymbols) {
 				GRDrawingAreaUtil.setDeviceAntiAlias( daGraph, false);
 			}
@@ -5056,7 +5060,7 @@ private void drawGraphRaster ( TSProduct tsproduct, int subproduct, List<TS> tsl
 	if ( nts == 0 ) {
 		return;
 	}
-	else if ( (nts == 1) 
+	else if ( (nts == 1)
   		&& ((this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() != TimeInterval.YEAR)) ) {
 		// Single time series (but not year interval) is being drawn:
 		// - currently only day and month interval are supported
@@ -5234,12 +5238,12 @@ private void drawLegend ( GRAxisEdgeType axis ) {
 	text_limits = null;
 
 	// Draw legend from top down in case run out of room and need to omit some time series.
-	// Can center vertically on the following (line will be one font height down and
-	// font will be 1/2 height down to top).
+	// Can center vertically on the following
+	// (line will be one font height down and font will be 1/2 height down to top).
 	double ylegend = datalim_legend.getTopY() - ydelta;
 	// Put first time series in list at the top.
 	double symbol_size = 0;
-	int symbol = 0;
+	GRSymbolShapeType shapeType = GRSymbolShapeType.NONE;
 	String prop_value = null;
 	String legend = null;
 	String line_style = null;
@@ -5540,10 +5544,13 @@ private void drawLegend ( GRAxisEdgeType axis ) {
 				prop_value = _tsproduct.getLayeredPropValue ( "SymbolStyle", _subproduct, imatch, false );
 			}
 			try {
-				symbol = GRSymbol.toInteger(prop_value);
+				shapeType = GRSymbolShapeType.valueOfIgnoreCase(prop_value);
+				if ( shapeType == null ) {
+					shapeType = GRSymbolShapeType.NONE;
+				}
 			}
 			catch (Exception e) {
-				symbol = GRSymbol.SYM_NONE;
+				shapeType = GRSymbolShapeType.NONE;
 			}
 			if ( imatch < 0 ) {
 				symbol_size = StringUtil.atod( _tsproduct.getLayeredPropValue ( "SymbolSize", _subproduct, i, false ) );
@@ -5551,13 +5558,13 @@ private void drawLegend ( GRAxisEdgeType axis ) {
 			else {
 				symbol_size = StringUtil.atod( _tsproduct.getLayeredPropValue ( "SymbolSize", _subproduct, imatch, false ) );
 			}
-			if ((symbol != GRSymbol.SYM_NONE) && (symbol_size > 0)){
+			if ((shapeType != GRSymbolShapeType.NONE) && (symbol_size > 0)){
 				if (niceSymbols) {
 					GRDrawingAreaUtil.setDeviceAntiAlias( da_legend, true);
 				}
-				GRDrawingAreaUtil.drawSymbol (da_legend, symbol,
+				GRDrawingAreaUtil.drawSymbol (da_legend, shapeType,
 					(x[0] + x[1])/2.0, y[0], symbol_size, GRUnits.DEVICE,
-					GRSymbol.SYM_CENTER_X|GRSymbol.SYM_CENTER_Y );
+					GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y );
 				if (niceSymbols) {
 					GRDrawingAreaUtil.setDeviceAntiAlias( da_legend, false);
 				}
@@ -5566,7 +5573,7 @@ private void drawLegend ( GRAxisEdgeType axis ) {
 
 		// Output the time series name, alias, period, etc.
 		da_legend.setColor ( GRColor.black );
-		// Put some space so text does not draw right up against symbol
+		// Put some space so text does not draw right up against symbol.
 		GRDrawingAreaUtil.drawText ( da_legend, " " + legend, x[1], ylegend, 0.0, GRText.LEFT|GRText.BOTTOM );
 
 		if ( ts != null ) {
@@ -5667,7 +5674,7 @@ private void drawLegendRaster ( TSProduct tsproduct, int subproduct ) {
 		Message.printStatus(2,routine,"Raster ylegend: " + ylegend);
 		Message.printStatus(2,routine,"Raster ydelta: " + ydelta);
 	}
-	
+
 	// Show the units of the first time series.
 	String yAxisUnitsProperty = "LeftYAxisUnits"; // Used to look up units for time series.
 	PropList overrideProps = null;
@@ -5906,9 +5913,9 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 
 	String prop_value;
 
-	int symbolNoFlag = drawTSHelperGetSymbolStyle ( its, overrideProps, false );
-	int symbolWithFlag = drawTSHelperGetSymbolStyle ( its, overrideProps, true );
-	int symbol = symbolNoFlag; // Default symbol to use for a specific data point, checked below.
+	GRSymbolShapeType symbolNoFlag = drawTSHelperGetSymbolStyle ( its, overrideProps, false );
+	GRSymbolShapeType symbolWithFlag = drawTSHelperGetSymbolStyle ( its, overrideProps, true );
+	GRSymbolShapeType symbol = symbolNoFlag; // Default symbol to use for a specific data point, checked below.
 	//Message.printStatus ( 2, routine, _gtype + "symbolNoFlag=" + symbolNoFlag + " symbolWithFlag=" + symbolWithFlag );
 	double symbol_size = drawTSHelperGetSymbolSize ( its, overrideProps );
 
@@ -6209,7 +6216,7 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
         			if (_is_reference_graph) {
         				// Don't draw symbols.
         			}
-        			else if (labelPointWithFlag && ((symbol == GRSymbol.SYM_NONE) || (symbol_size <= 0))) {
+        			else if (labelPointWithFlag && ((symbol == GRSymbolShapeType.NONE) || (symbol_size <= 0))) {
         				// Text only.
         				GRDrawingAreaUtil.drawText(daGraph,
         				    TSData.toString(label_format,label_value_format, date, y, 0.0,
@@ -6226,7 +6233,7 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
         					TSData.toString(label_format,label_value_format, date, y, 0.0,
         					tsdata.getDataFlag().trim(), label_units),
         					0.0, label_position, GRUnits.DEVICE,
-        					GRSymbol.SYM_CENTER_X | GRSymbol.SYM_CENTER_Y);
+        					GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y );
 
         				if (niceSymbols) {
         					// Turn off anti-aliasing so that it only applies for symbols.
@@ -6240,7 +6247,7 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
         				}
 
         				GRDrawingAreaUtil.drawSymbol(daGraph, symbol, x, y, symbol_size,
-        				    GRUnits.DEVICE, GRSymbol.SYM_CENTER_X | GRSymbol.SYM_CENTER_Y);
+        				    GRUnits.DEVICE, GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y );
 
         				if (niceSymbols) {
         					// Turn off anti-aliasing so that it only applies for symbols.
@@ -6308,7 +6315,7 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
         				if (_is_reference_graph) {
         					// No symbol or label to draw.
         				}
-        				else if (labelPointWithFlag && ((symbol == GRSymbol.SYM_NONE) || (symbol_size <= 0))) {
+        				else if (labelPointWithFlag && ((symbol == GRSymbolShapeType.NONE) || (symbol_size <= 0))) {
         					// Just text.
         					GRDrawingAreaUtil.drawText(daGraph,
         						TSData.toString(label_format, label_value_format, date, y, 0.0, tsdata.getDataFlag().trim(),
@@ -6322,7 +6329,8 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
         					// Symbol and label.
         					GRDrawingAreaUtil.drawSymbolText( daGraph, symbol, x, y, symbol_size,
         					    TSData.toString(label_format,label_value_format,date, y, 0.0, tsdata.getDataFlag().trim(),
-        						label_units), 0.0, label_position, GRUnits.DEVICE, GRSymbol.SYM_CENTER_X | GRSymbol.SYM_CENTER_Y);
+        						label_units), 0.0, label_position, GRUnits.DEVICE,
+        					    GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y );
         					if (niceSymbols) {
         						// Turn off anti-aliasing so it doesn't affect anything else.
         						GRDrawingAreaUtil.setDeviceAntiAlias( daGraph, false);
@@ -6334,7 +6342,7 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
         						GRDrawingAreaUtil.setDeviceAntiAlias( daGraph, true);
         					}
         					GRDrawingAreaUtil.drawSymbol(daGraph, symbol, x, y, symbol_size,
-        						GRUnits.DEVICE, GRSymbol.SYM_CENTER_X | GRSymbol.SYM_CENTER_Y);
+        						GRUnits.DEVICE, GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y );
         					if (niceSymbols) {
         						// Turn off anti-aliasing so it doesn't affect anything else.
         						GRDrawingAreaUtil.setDeviceAntiAlias( daGraph, false);
@@ -6516,7 +6524,7 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 					// Don't label or draw symbol.
 				}
 				else if ( labelPointWithFlag ) {
-				    if ( (symbol == GRSymbol.SYM_NONE) || (symbol_size <= 0) ) {
+				    if ( (symbol == GRSymbolShapeType.NONE) || (symbol_size <= 0) ) {
     					// Just text.
     					GRDrawingAreaUtil.drawText(daGraph,
     						TSData.toString(label_format,
@@ -6531,7 +6539,7 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
     					GRDrawingAreaUtil.drawSymbolText( daGraph, symbol, x, y, symbol_size,
     						TSData.toString ( label_format, label_value_format, date, y, 0.0, tsdata.getDataFlag().trim(),
     						label_units ), 0.0, label_position,
-    						GRUnits.DEVICE, GRSymbol.SYM_CENTER_X | GRSymbol.SYM_CENTER_Y);
+    						GRUnits.DEVICE, GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y );
     					if (niceSymbols) {
     						// Turn off anti-aliasing so nothing is anti-aliased that shouldn't be.
     						GRDrawingAreaUtil.setDeviceAntiAlias( daGraph, false);
@@ -6544,7 +6552,7 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 						GRDrawingAreaUtil.setDeviceAntiAlias(daGraph, true);
 					}
 					GRDrawingAreaUtil.drawSymbol(daGraph, symbol, x, y, symbol_size,
-						GRUnits.DEVICE, GRSymbol.SYM_CENTER_X | GRSymbol.SYM_CENTER_Y);
+						GRUnits.DEVICE, GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y );
 					if (niceSymbols) {
 						// Turn off anti-aliasing so nothing is anti-aliased that shouldn't be.
 						GRDrawingAreaUtil.setDeviceAntiAlias( daGraph, false);
@@ -6581,7 +6589,7 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 				if (_is_reference_graph) {
 					// Don't draw labels or symbols.
 				}
-				else if (labelPointWithFlag && ((symbol == GRSymbol.SYM_NONE) || (symbol_size <= 0))) {
+				else if (labelPointWithFlag && ((symbol == GRSymbolShapeType.NONE) || (symbol_size <= 0))) {
 					// Text only.
 					GRDrawingAreaUtil.drawText(daGraph,
 						TSData.toString(label_format, label_value_format, date, y, 0.0, tsdata.getDataFlag().trim(),
@@ -6596,7 +6604,7 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 					GRDrawingAreaUtil.drawSymbolText( daGraph, symbol, x, y, symbol_size,
 					        TSData.toString( label_format, label_value_format, date, y, 0.0, tsdata.getDataFlag().trim(),
 						label_units ), 0.0, label_position, GRUnits.DEVICE,
-						GRSymbol.SYM_CENTER_X | GRSymbol.SYM_CENTER_Y);
+						GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y );
 
 					if (niceSymbols) {
 						// Turn off anti-aliasing so nothing is anti-aliased that shouldn't be.
@@ -6610,7 +6618,7 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 					}
 
 					GRDrawingAreaUtil.drawSymbol( daGraph, symbol, x, y, symbol_size, GRUnits.DEVICE,
-					        GRSymbol.SYM_CENTER_X | GRSymbol.SYM_CENTER_Y);
+					        GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y );
 
 					if (niceSymbols) {
 						// Turn off anti-aliasing so nothing is anti-aliased that shouldn't be.
@@ -6817,17 +6825,17 @@ private double drawTSHelperGetSymbolSize ( int its, PropList overrideProps ) {
 }
 
 /**
-Determine the symbol style used for drawing a time series.
+Determine the symbol shape type used for drawing a time series.
 @param its the time series list position (0+, for retrieving properties and messaging)
 @param overrideProps run-time override properties to consider when getting graph properties
 @param flaggedData if true then the symbol is determined from the "FlaggedDataSymbolStyle" property
 (if not set then "SymbolStyle" is used); if false the symbol is determined from the "SymbolStyle" property
 @return the symbol style from product properties
 */
-private int drawTSHelperGetSymbolStyle ( int its, PropList overrideProps, boolean flaggedData ) {
-    int symbolStyle = GRSymbol.SYM_NONE;
-    if (_is_reference_graph) {
-        symbolStyle = GRSymbol.SYM_NONE;
+private GRSymbolShapeType drawTSHelperGetSymbolStyle ( int its, PropList overrideProps, boolean flaggedData ) {
+    GRSymbolShapeType symbolStyle = GRSymbolShapeType.NONE;
+    if ( this._is_reference_graph ) {
+        symbolStyle = GRSymbolShapeType.NONE;
     }
     else {
         String propValue = null;
@@ -6846,10 +6854,13 @@ private int drawTSHelperGetSymbolStyle ( int its, PropList overrideProps, boolea
             propValue = getLayeredPropValue("SymbolStyle", _subproduct, its, false, overrideProps);
         }
         try {
-            symbolStyle = GRSymbol.toInteger(propValue);
+            symbolStyle = GRSymbolShapeType.valueOfIgnoreCase(propValue);
+            if ( symbolStyle == null ) {
+            	symbolStyle = GRSymbolShapeType.NONE;
+            }
         }
         catch (Exception e) {
-            symbolStyle = GRSymbol.SYM_NONE;
+            symbolStyle = GRSymbolShapeType.NONE;
         }
     }
     return symbolStyle;
@@ -8506,12 +8517,15 @@ private void drawXYScatterPlot ( GRDrawingArea daGraph, TSProduct tsproduct, int
 		}
 		GRDrawingAreaUtil.setColor ( daGraph, plot_color );
 		prop_value = tsproduct.getLayeredPropValue ( "SymbolStyle", subproduct, its, false );
-		int symbol = GRSymbol.SYM_NONE;
+		GRSymbolShapeType symbol = GRSymbolShapeType.NONE;
 		try {
-		    symbol = GRSymbol.toInteger(prop_value);
+		    symbol = GRSymbolShapeType.valueOfIgnoreCase(prop_value);
+		    if ( symbol == null ) {
+		    	symbol = GRSymbolShapeType.NONE;
+		    }
 		}
 		catch ( Exception e ) {
-			symbol = GRSymbol.SYM_NONE;
+			symbol = GRSymbolShapeType.NONE;
 		}
 		double symbol_size = StringUtil.atod( tsproduct.getLayeredPropValue ( "SymbolSize", subproduct, its, false ) );
 		// First try to get the label format from the time series properties.
@@ -8584,11 +8598,11 @@ private void drawXYScatterPlot ( GRDrawingArea daGraph, TSProduct tsproduct, int
 			if ( label_symbol ) {
 				GRDrawingAreaUtil.drawSymbolText ( daGraph, symbol, x, y, symbol_size,
 					TSData.toString ( label_format,label_value_format, date, x, y, "", label_units ), 0.0,
-					label_position,	GRUnits.DEVICE,GRSymbol.SYM_CENTER_X|GRSymbol.SYM_CENTER_Y );
+					label_position,	GRUnits.DEVICE,GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y );
 			}
 			else {
 			    GRDrawingAreaUtil.drawSymbol ( daGraph, symbol, x, y, symbol_size,
-					GRUnits.DEVICE,	GRSymbol.SYM_CENTER_X|GRSymbol.SYM_CENTER_Y );
+					GRUnits.DEVICE,	GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y );
 			}
 			if (niceSymbols) {
 				GRDrawingAreaUtil.setDeviceAntiAlias(daGraph, false);
@@ -9144,7 +9158,7 @@ public String formatMouseTrackerDataPoint ( GRPoint devpt, GRPoint datapt ) {
         		}
         		else {
         			// Value was not missing.
-        			return xString + ", " + yString + ", " + valueString + ", Range: " + getRasterRangeString(value) + ", " + tsString; 
+        			return xString + ", " + yString + ", " + valueString + ", Range: " + getRasterRangeString(value) + ", " + tsString;
         		}
         	}
     	}
@@ -10329,7 +10343,7 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph ) {
 				}
 				else if (__leftYAxisGraphType == TSGraphType.RASTER) {
 				    // Reset the y-axis values to the year - use Max because don't allow zoom.
-					if ( (this.__tslist.size() == 1) 
+					if ( (this.__tslist.size() == 1)
 						&& ((this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() != TimeInterval.YEAR)) ) {
     					// Single time series.
 						_tslimits_lefty.setMinValue(_max_tslimits_lefty.getDate1().getYear());

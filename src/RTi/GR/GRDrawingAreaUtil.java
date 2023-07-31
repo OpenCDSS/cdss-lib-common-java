@@ -11,12 +11,12 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -592,15 +592,15 @@ public static void drawShape ( GRDrawingArea da, GRShape shape, boolean fill, in
 /**
 Draw a symbol at a point.  See the overloaded version for more information.
 @param da Drawing area.
-@param symbol Symbol to be drawn at point (see GRSymbol.SYM_*).
+@param symbol Symbol to be drawn at point.
 @param x X-coordinate of the point in data units.
 @param y Y-coordinate of the point in data units.
 @param size Size of the symbol (see "flag").
 @param flag Indicates whether data (GRUNIT_DATA) or device (GRUNIT_DEV) units are being used for "size".
-@param orient Orientation for symbol (see flag in GRSymbol, e.g., GRSymbol.SYM_LEFT).
+@param orient Orientation for symbol (see flag in GRSymbol, e.g., GRSymbolShapeType.SYM_LEFT).
 */
-public static void drawSymbol (	GRDrawingArea da, int symbol,
-				double x, double y, double size, int flag, int orient ) {
+public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol,
+	double x, double y, double size, int flag, int orient ) {
 	// Assume the same x and y dimension for the symbol and no secondary data.
 	drawSymbol ( da, symbol, x, y, size, size, 0.0, 0.0, null, flag, orient );
 }
@@ -620,7 +620,7 @@ Draw a symbol at a point.
 	This only impacts symbols that are non-symmetric vertically.</li>
 </ul>
 @param da Drawing area.
-@param symbol Symbol to be drawn at point (see GRSymbol.SYM_*).
+@param symbol Symbol to be drawn at point.
 @param x X-coordinate of the point in data units.
 @param y Y-coordinate of the point in data units.
 @param size_x Size of the symbol in the x-direction (see "flag").
@@ -633,9 +633,9 @@ used to plot multiple symbols at a point.
 For example, for scaled symbols like the teacup this indicates some dynamic data used to draw the symbol.
 This is only used for some symbols.
 @param flag Indicates whether data (GRUNIT_DATA) or device (GRUNIT_DEV) units are being used for "size".
-@param orient Orientation for symbol (see flags in GRSymbol, e.g. GRSymbol.SYM_LEFT).
+@param orient Orientation for symbol (see flags in GRSymbol, e.g. GRSymbolShapeType.SYM_LEFT).
 */
-public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y, double size_x, double size_y,
+public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, double x, double y, double size_x, double size_y,
 	double offset_x, double offset_y, double [] data, int flag, int orient ) {
 	drawSymbol(da, symbol, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient, null);
 }
@@ -655,7 +655,7 @@ Draw a symbol at a point.
 	This only impacts symbols that are non-symmetric vertically.</li>
 </ul>
 @param da Drawing area.
-@param symbol Symbol to be drawn at point (see GRSymbol.SYM_*).
+@param symbol Symbol to be drawn at point.
 @param x X-coordinate of the point in data units.
 @param y Y-coordinate of the point in data units.
 @param size_x Size of the symbol in the x-direction (see "flag").
@@ -668,11 +668,11 @@ This can be used to plot multiple symbols at a point.
 For example, for scaled symbols like the teacup this indicates some dynamic data used to draw the symbol.
 This is only used for some symbols.
 @param flag Indicates whether data (GRUNIT_DATA) or device (GRUNIT_DEV) units are being used for "size".
-@param orient Orientation for symbol (see flags in GRSymbol, e.g. GRSymbol.SYM_LEFT).
+@param orient Orientation for symbol (see flags in GRSymbol, e.g. GRSymbolShapeType.SYM_LEFT).
 @param props PropList that is only used (currently) when drawing TeaCups.
 If not null, the teacup will be filled to a level specified by the data parameter.
 */
-public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y, double size_x, double size_y,
+public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, double x, double y, double size_x, double size_y,
 	double offset_x, double offset_y, double [] data, int flag, int orient, PropList props)	{
 	drawSymbol(da, symbol, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient, props, null);
 }
@@ -691,7 +691,7 @@ Draw a symbol at a point.
 	This only impacts symbols that are non-symmetric vertically.</li>
 </ul>
 @param da Drawing area.
-@param symbol Symbol to be drawn at point (see GRSymbol.SYM_*).
+@param symbol Symbol to be drawn at point (see GRSymbolShapeType.SYM_*).
 @param x X-coordinate of the point in data units.
 @param y Y-coordinate of the point in data units.
 @param size_x Size of the symbol in the x-direction (see "flag").
@@ -704,17 +704,17 @@ This can be used to plot multiple symbols at a point.
 For example, for scaled symbols like the teacup this indicates some dynamic data used to draw the symbol.
 This is only used for some symbols.
 @param flag Indicates whether data (GRUNIT_DATA) or device (GRUNIT_DEV) units are being used for "size".
-@param orient Orientation for symbol (see flags in GRSymbol, e.g. GRSymbol.SYM_LEFT).
+@param orient Orientation for symbol (see flags in GRSymbol, e.g. GRSymbolShapeType.SYM_LEFT).
 @param props PropList that is only used (currently) when drawing TeaCups.
 If not null, the teacup will be filled to a level specified by the data parameter.
 @param outlineColor currently only used by filled triangles, specifies the color to draw the outline of the symbol in.
 */
-public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y, double size_x, double size_y,
+public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, double x, double y, double size_x, double size_y,
 	double offset_x, double offset_y, double [] data, int flag, int orient, PropList props, GRColor outlineColor) {
 	double msizex, // Symbol x direction size, device units.
-		msizex2, // 1/2 of msizex.
+		msizex2, // 1/2 of 'msizex'.
 		msizey, // Symbol y direction size, device units.
-		msizey2, // 1/2 of msizey.
+		msizey2, // 1/2 of 'msizey'.
 		xs, // X coordinate scaled to device units.
 		ys; // Y coordinate scaled to device units.
 
@@ -738,8 +738,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		// Now scale the Y size.
 		msizey = da.scaleYData(size_y) - da.scaleYData(0);
 		// Is this still needed?
-		msizey = msizey*(da.scaleXData(1.0) - da.scaleXData(0.0))/
-			(da.scaleYData(1.0) - da.scaleYData(0.0));
+		msizey = msizey*(da.scaleXData(1.0) - da.scaleXData(0.0))/(da.scaleYData(1.0) - da.scaleYData(0.0));
 		msizex2	= msizex/2.0;
 		msizey2	= msizey/2.0;
 		xs = da.scaleXData(x + offset_x);
@@ -748,13 +747,13 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 	// Now position the symbol if requested.
 	// Do so by offsetting the previously calculated position by 1/2 the symbol size.
 	// The default is to be centered on the point, which are the coordinates previously used.
-	if ( (orient & GRSymbol.SYM_LEFT) != 0 ) {
+	if ( (orient & GRSymbolPosition.LEFT) != 0 ) {
 		xs += msizex2;
 	}
-	else if ( (orient & GRSymbol.SYM_RIGHT) != 0 ) {
+	else if ( (orient & GRSymbolPosition.RIGHT) != 0 ) {
 		xs -= msizex2;
 	}
-	if ( (orient & GRSymbol.SYM_TOP) != 0 ) {
+	if ( (orient & GRSymbolPosition.TOP) != 0 ) {
 		if ( da._reverse_y ) {
 			ys += msizey2;
 		}
@@ -762,7 +761,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			ys -= msizey2;
 		}
 	}
-	else if ( (orient & GRSymbol.SYM_BOTTOM) != 0 ) {
+	else if ( (orient & GRSymbolPosition.BOTTOM) != 0 ) {
 		if ( da._reverse_y ) {
 			ys -= msizey2;
 		}
@@ -771,15 +770,16 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		}
 	}
 	// Now draw the symbol.  A large "if" statement is used to check the symbol style.
-	if ( symbol == GRSymbol.SYM_AST ) {
-		drawSymbol(da,GRSymbol.SYM_PLUS, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
+	if ( symbol == GRSymbolShapeType.ASTERISK ) {
+		drawSymbol(da,GRSymbolShapeType.PLUS, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
 		__sxm[0] = xs - msizex2*.707;	__sym[0] = ys-msizey2*.707;
 		__sxm[1] = xs + msizex2*.707;	__sym[1] = ys+msizey2*.707;
 		//if ( flag == GRUnits.DEVICE ) {
 			// Symbol size in device units.
 			da.drawLine ( __sxm, __sym );
 		//}
-		//else {	drawLine ( da, __sxm, __sym );
+		//else {
+		//	drawLine ( da, __sxm, __sym );
 		//}
 		__sxm[0] = xs - msizex2*.707;	__sym[0] = ys+msizey2*.707;
 		__sxm[1] = xs + msizex2*.707;	__sym[1] = ys-msizey2*.707;
@@ -789,7 +789,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawLine ( da, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_BAR ) {
+	else if ( symbol == GRSymbolShapeType.BAR ) {
 		__sxm[0] = xs;	__sym[0] = ys - msizey2;
 		__sxm[1] = xs;	__sym[1] = ys + msizey2;
 		//if ( flag == GRUnits.DEVICE ) {
@@ -798,8 +798,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawLine ( da, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_BOTFSQ ) {
-		drawSymbol( da, GRSymbol.SYM_SQ, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
+	else if ( symbol == GRSymbolShapeType.SQUARE_BOTTOM_FILLED ) {
+		drawSymbol( da, GRSymbolShapeType.SQUARE, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
 		__sxm[0] = xs + msizex2;	__sym[0] = ys;
 		__sxm[1] = __sxm[0];
 		if ( da._reverse_y ) {
@@ -816,7 +816,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 4, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_BOTLINE ) {
+	else if ( symbol == GRSymbolShapeType.LINE_BOTTOM ) {
 		__sxm[0] = xs - msizex2;
 		if ( da._reverse_y ) {
 			__sym[0] = ys + msizey2;
@@ -830,7 +830,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawLine ( da, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_BSLASH ) {
+	else if ( symbol == GRSymbolShapeType.SLASH_BACKWARD ) {
 		__sxm[0] = xs - msizex2;
 		__sxm[1] = xs + msizex2;
 		if ( da._reverse_y ) {
@@ -846,7 +846,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawLine ( da, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_CAP ) {
+	else if ( symbol == GRSymbolShapeType.LINE_TOP_BOTTOM ) {
 		__sxm[0] = xs - msizex2;	__sym[0] = ys + msizey2;
 		__sxm[1] = xs + msizex2;	__sym[1] = __sym[0];
 		//if ( flag == GRUnits.DEVICE ) {
@@ -862,7 +862,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawLine ( da, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_CIR ) {
+	else if ( symbol == GRSymbolShapeType.CIRCLE ) {
 		if (da instanceof GRJComponentDrawingArea) {
 //			da.drawArc ( xs, ys, msizex2, msizey2, 0.0, 360.0 );
 			((GRJComponentDrawingArea)da).drawOval(xs, ys, msizex2, msizey2);
@@ -877,13 +877,13 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {drawArc ( da, xs, ys, msizex2, msizey2, 0.0, 360.0 );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_DARR ) {
-		drawSymbol ( da, GRSymbol.SYM_DCAR, x, y, size_x, size_y,
+	else if ( symbol == GRSymbolShapeType.ARROW_DOWN ) {
+		drawSymbol ( da, GRSymbolShapeType.CARET_DOWN, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_BAR, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.BAR, x, y, size_x, size_y,
 		 	offset_x, offset_y, data, flag, orient );
 	}
-	else if ( symbol == GRSymbol.SYM_DCAR ) {
+	else if ( symbol == GRSymbolShapeType.CARET_DOWN ) {
 		__sxm[0] = xs - msizex2;	__sym[0] = ys;
 		__sxm[1] = xs;
 		if ( da._reverse_y ) {
@@ -899,7 +899,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawPolyline ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_DIA ) {
+	else if ( symbol == GRSymbolShapeType.DIAMOND ) {
 		__sxm[0] = xs - msizex2;	__sym[0] = ys;
 		__sxm[1] = xs;		__sym[1] = ys + msizey2;
 		__sxm[2] = xs + msizex2;	__sym[2] = ys;
@@ -910,7 +910,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawPolygon ( da, 4, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_DTRI ) {
+	else if ( symbol == GRSymbolShapeType.TRIANGLE_DOWN ) {
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
@@ -928,7 +928,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawPolygon ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_EDGE ) {
+	else if ( symbol == GRSymbolShapeType.LINE_LEFT_RIGHT ) {
 		__sxm[0] = xs - msizex2;	__sym[0] = ys + msizey2;
 		__sxm[1] = __sxm[0];		__sym[1] = ys - msizey2;
 		//if ( flag == GRUnits.DEVICE ) {
@@ -944,7 +944,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawLine ( da, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_EX ) {
+	else if ( symbol == GRSymbolShapeType.X ) {
 		__sxm[0] = xs - msizex2;	__sym[0] = ys + msizey2;
 		__sxm[1] = xs + msizex2;	__sym[1] = ys - msizey2;
 		//if ( flag == GRUnits.DEVICE ) {
@@ -960,133 +960,133 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawLine ( da, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_EXCAP ) {
-		drawSymbol ( da, GRSymbol.SYM_EX, x, y, size_x, size_y,
+	else if ( symbol == GRSymbolShapeType.X_CAP ) {
+		drawSymbol ( da, GRSymbolShapeType.X, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_CAP, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-	}
-	else if ( symbol == GRSymbol.SYM_EXDIA ) {
-		drawSymbol ( da, GRSymbol.SYM_EXFORDIA, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_DIA, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.LINE_TOP_BOTTOM, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 	}
-	else if ( symbol == GRSymbol.SYM_EXDIA1 ) {
-		drawSymbol ( da, GRSymbol.SYM_EXDIA, x, y, size_x, size_y,
+	else if ( symbol == GRSymbolShapeType.X_DIAMOND ) {
+		drawSymbol ( da, GRSymbolShapeType.X_FOR_DIAMOND, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA1, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-	}
-	else if ( symbol == GRSymbol.SYM_EXDIA12 ) {
-		drawSymbol ( da, GRSymbol.SYM_EXDIA, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA1, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA2, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.DIAMOND, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 	}
-	else if ( symbol == GRSymbol.SYM_EXDIA123 ) {
-		drawSymbol ( da, GRSymbol.SYM_EXDIA, x, y, size_x, size_y,
+	else if ( symbol == GRSymbolShapeType.EXDIA1 ) {
+		drawSymbol ( da, GRSymbolShapeType.X_DIAMOND, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA1, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA2, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA3, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.FDIA1, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 	}
-	else if ( symbol == GRSymbol.SYM_EXDIA124 ) {
-		drawSymbol ( da, GRSymbol.SYM_EXDIA, x, y, size_x, size_y,
+	else if ( symbol == GRSymbolShapeType.EXDIA12 ) {
+		drawSymbol ( da, GRSymbolShapeType.X_DIAMOND, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA1, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.FDIA1, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA2, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA4, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.FDIA2, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 	}
-	else if ( symbol == GRSymbol.SYM_EXDIA1234 ) {
-		drawSymbol ( da, GRSymbol.SYM_FDIA, x, y, size_x, size_y,
+	else if ( symbol == GRSymbolShapeType.EXDIA123 ) {
+		drawSymbol ( da, GRSymbolShapeType.X_DIAMOND, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.FDIA1, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.FDIA2, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.FDIA3, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 	}
-	else if ( symbol == GRSymbol.SYM_EXDIA13 ) {
-		drawSymbol ( da, GRSymbol.SYM_EXDIA, x, y, size_x, size_y,
+	else if ( symbol == GRSymbolShapeType.EXDIA124 ) {
+		drawSymbol ( da, GRSymbolShapeType.X_DIAMOND, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA1, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.FDIA1, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA3, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.FDIA2, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-	}
-	else if ( symbol == GRSymbol.SYM_EXDIA134 ) {
-		drawSymbol ( da, GRSymbol.SYM_EXDIA, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA1, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA3, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA4, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.FDIA4, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 	}
-	else if ( symbol == GRSymbol.SYM_EXDIA14 ) {
-		drawSymbol ( da, GRSymbol.SYM_EXDIA, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA1, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA4, x, y, size_x, size_y,
+	else if ( symbol == GRSymbolShapeType.EXDIA1234 ) {
+		drawSymbol ( da, GRSymbolShapeType.DIAMOND_FILLED, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 	}
-	else if ( symbol == GRSymbol.SYM_EXDIA2 ) {
-		drawSymbol ( da, GRSymbol.SYM_EXDIA, x, y, size_x, size_y,
+	else if ( symbol == GRSymbolShapeType.EXDIA13 ) {
+		drawSymbol ( da, GRSymbolShapeType.X_DIAMOND, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA2, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.FDIA1, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-	}
-	else if ( symbol == GRSymbol.SYM_EXDIA23 ) {
-		drawSymbol ( da, GRSymbol.SYM_EXDIA, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA2, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA3, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.FDIA3, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 	}
-	else if ( symbol == GRSymbol.SYM_EXDIA234 ) {
-		drawSymbol ( da, GRSymbol.SYM_EXDIA, x, y, size_x, size_y,
+	else if ( symbol == GRSymbolShapeType.EXDIA134 ) {
+		drawSymbol ( da, GRSymbolShapeType.X_DIAMOND, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA2, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.FDIA1, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA3, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.FDIA3, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA4, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-	}
-	else if ( symbol == GRSymbol.SYM_EXDIA24 ) {
-		drawSymbol ( da, GRSymbol.SYM_EXDIA, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA2, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA4, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.FDIA4, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 	}
-	else if ( symbol == GRSymbol.SYM_EXDIA3 ) {
-		drawSymbol ( da, GRSymbol.SYM_EXDIA, x, y, size_x, size_y,
+	else if ( symbol == GRSymbolShapeType.EXDIA14 ) {
+		drawSymbol ( da, GRSymbolShapeType.X_DIAMOND, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA3, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.FDIA1, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-	}
-	else if ( symbol == GRSymbol.SYM_EXDIA4 ) {
-		drawSymbol ( da, GRSymbol.SYM_EXDIA, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FDIA4, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.FDIA4, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 	}
-	else if ( symbol == GRSymbol.SYM_EXEDGE ) {
-		drawSymbol ( da, GRSymbol.SYM_EX, x, y, size_x, size_y,
+	else if ( symbol == GRSymbolShapeType.EXDIA2 ) {
+		drawSymbol ( da, GRSymbolShapeType.X_DIAMOND, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_EDGE, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.FDIA2, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 	}
-	else if ( symbol == GRSymbol.SYM_EXFORDIA ) {
+	else if ( symbol == GRSymbolShapeType.EXDIA23 ) {
+		drawSymbol ( da, GRSymbolShapeType.X_DIAMOND, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.FDIA2, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.FDIA3, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+	}
+	else if ( symbol == GRSymbolShapeType.EXDIA234 ) {
+		drawSymbol ( da, GRSymbolShapeType.X_DIAMOND, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.FDIA2, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.FDIA3, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.FDIA4, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+	}
+	else if ( symbol == GRSymbolShapeType.EXDIA24 ) {
+		drawSymbol ( da, GRSymbolShapeType.X_DIAMOND, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.FDIA2, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.FDIA4, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+	}
+	else if ( symbol == GRSymbolShapeType.EXDIA3 ) {
+		drawSymbol ( da, GRSymbolShapeType.X_DIAMOND, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.FDIA3, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+	}
+	else if ( symbol == GRSymbolShapeType.EXDIA4 ) {
+		drawSymbol ( da, GRSymbolShapeType.X_DIAMOND, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.FDIA4, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+	}
+	else if ( symbol == GRSymbolShapeType.X_EDGE ) {
+		drawSymbol ( da, GRSymbolShapeType.X, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.LINE_LEFT_RIGHT, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+	}
+	else if ( symbol == GRSymbolShapeType.X_FOR_DIAMOND ) {
 		__sxm[0] = xs - msizex2/2.0;	__sym[0] = ys +msizey2/2.0;
 		__sxm[1] = xs + msizex2/2.0;	__sym[1] = ys -msizey2/2.0;
 		//if ( flag == GRUnits.DEVICE ) {
@@ -1102,37 +1102,37 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawLine ( da, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_EXSQ ) {
-		drawSymbol ( da, GRSymbol.SYM_EX, x, y, size_x, size_y,
+	else if ( symbol == GRSymbolShapeType.X_SQUARE ) {
+		drawSymbol ( da, GRSymbolShapeType.X, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_SQ, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-	}
-	else if ( symbol == GRSymbol.SYM_FARR1 ) {
-		drawSymbol ( da, GRSymbol.SYM_FSLASH, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FSQTRI1, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.SQUARE, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 	}
-	else if ( symbol == GRSymbol.SYM_FARR2 ) {
-		drawSymbol ( da, GRSymbol.SYM_BSLASH, x, y, size_x, size_y,
+	else if ( symbol == GRSymbolShapeType.ARROW_UP_RIGHT_FILLED ) {
+		drawSymbol ( da, GRSymbolShapeType.SLASH_FORWARD, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FSQTRI2, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.SQUARE_TRIANGLE_UPPER_RIGHT_FILLED, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+	}
+	else if ( symbol == GRSymbolShapeType.ARROW_DOWN_RIGHT_FILLED ) {
+		drawSymbol ( da, GRSymbolShapeType.SLASH_BACKWARD, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.SQUARE_TRIANGLE_LOWER_RIGHT_FILLED, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient);
 	}
-	else if ( symbol == GRSymbol.SYM_FARR3 ) {
-		drawSymbol ( da, GRSymbol.SYM_FSLASH, x, y, size_x, size_y,
+	else if ( symbol == GRSymbolShapeType.ARROW_DOWN_LEFT_FILLED ) {
+		drawSymbol ( da, GRSymbolShapeType.SLASH_FORWARD, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FSQTRI3, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-	}
-	else if ( symbol == GRSymbol.SYM_FARR4 ) {
-		drawSymbol ( da, GRSymbol.SYM_BSLASH, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_FSQTRI4, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.SQUARE_TRIANGLE_LOWER_LEFT_FILLED, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 	}
-	else if ( symbol == GRSymbol.SYM_FBOTDIA ) {
+	else if ( symbol == GRSymbolShapeType.ARROW_UP_LEFT_FILLED ) {
+		drawSymbol ( da, GRSymbolShapeType.SLASH_BACKWARD, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.SQUARE_TRIANGLE_UPPER_LEFT_FILLED, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+	}
+	else if ( symbol == GRSymbolShapeType.DIAMOND_LOWER_HALF_FILLED ) {
 		__sxm[0] = xs + msizex2;	__sym[0] = ys;
 		__sxm[1] = xs;
 		if ( da._reverse_y ) {
@@ -1148,7 +1148,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FBOTDIA4 ) {
+	else if ( symbol == GRSymbolShapeType.FBOTDIA4 ) {
 		__sxm[0] = xs + msizex2/2.0;
 		__sxm[1] = xs;
 		if ( da._reverse_y ) {
@@ -1166,7 +1166,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FCIR ) {
+	else if ( symbol == GRSymbolShapeType.CIRCLE_FILLED ) {
 		//if ( flag == GRUnits.DEVICE ) {
 		if (da instanceof GRJComponentDrawingArea) {
 //			da.fillArc ( xs, ys, msizex2, msizey2, 0.0, 360.0, FILL_CHORD );
@@ -1180,7 +1180,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 //			fillArc ( da, xs, ys, msizex2, msizey2, 0.0, 360.0, GRArcFillType.CHORD );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FDIA ) {
+	else if ( symbol == GRSymbolShapeType.DIAMOND_FILLED ) {
 		__sxm[0] = xs - msizex2;	__sym[0] = ys;
 		__sxm[1] = xs;
 		__sxm[2] = xs + msizex2;	__sym[2] = ys;
@@ -1199,7 +1199,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 4, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FDIA1 ) {
+	else if ( symbol == GRSymbolShapeType.FDIA1 ) {
 		__sxm[0] = xs;
 		__sxm[1] = xs + msizex2/2.0;
 		if ( da._reverse_y ) {
@@ -1218,7 +1218,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 4, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FDIA2 ) {
+	else if ( symbol == GRSymbolShapeType.FDIA2 ) {
 		__sxm[0] = xs + msizex2/2.0;
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2/2.0;
@@ -1237,7 +1237,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 4, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FDIA3 ) {
+	else if ( symbol == GRSymbolShapeType.FDIA3 ) {
 		__sxm[0] = xs;			__sym[0] = ys;
 		__sxm[1] = xs + msizex2/2.0;
 		if ( da._reverse_y ) {
@@ -1256,7 +1256,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 4, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FDIA4 ) {
+	else if ( symbol == GRSymbolShapeType.FDIA4 ) {
 		__sxm[0] = xs - msizex2/2.0;
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2/2.0;
@@ -1275,7 +1275,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 4, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FDTRI ) {
+	else if ( symbol == GRSymbolShapeType.TRIANGLE_DOWN_FILLED ) {
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
@@ -1297,7 +1297,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FLDIA ) {
+	else if ( symbol == GRSymbolShapeType.DIAMOND_LEFT_HALF_FILLED ) {
 		__sxm[0] = xs;
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2;
@@ -1315,7 +1315,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FLDIA4 ) {
+	else if ( symbol == GRSymbolShapeType.FLDIA4 ) {
 		__sxm[0] = xs - msizex2/2.0;
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2/2.0;
@@ -1333,7 +1333,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FLTRI ) {
+	else if ( symbol == GRSymbolShapeType.TRIANGLE_LEFT_FILLED ) {
 		__sxm[0] = xs - msizex2;	__sym[0] = ys;
 		__sxm[1] = xs + msizex2;
 		if ( da._reverse_y ) {
@@ -1355,7 +1355,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FRDIA ) {
+	else if ( symbol == GRSymbolShapeType.DIAMOND_RIGHT_HALF_FILLED ) {
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
@@ -1373,7 +1373,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FRDIA4 ) {
+	else if ( symbol == GRSymbolShapeType.FRDIA4 ) {
 		__sxm[0] = xs + msizex2;		__sym[0] = ys;
 		__sxm[1] = xs + msizex2/2.0;
 		if ( da._reverse_y ) {
@@ -1391,7 +1391,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FRTRI ) {
+	else if ( symbol == GRSymbolShapeType.TRIANGLE_RIGHT_FILLED ) {
 		__sxm[0] = xs - msizex2;
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2;
@@ -1413,7 +1413,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FSLASH ) {
+	else if ( symbol == GRSymbolShapeType.SLASH_FORWARD ) {
 		__sxm[0] = xs + msizex2;
 		__sxm[1] = xs - msizex2;
 		if ( da._reverse_y ) {
@@ -1430,7 +1430,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawLine ( da, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FSQ ) {
+	else if ( symbol == GRSymbolShapeType.SQUARE_FILLED ) {
 		__sxm[0] = xs - msizex2;	__sym[0] = ys + msizey2;
 		__sxm[1] = xs + msizex2;	__sym[1] = __sym[0];
 		__sxm[2] = __sxm[1];		__sym[2] = ys - msizey2;
@@ -1441,7 +1441,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 4, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FSQTRI1 ) {
+	else if ( symbol == GRSymbolShapeType.SQUARE_TRIANGLE_UPPER_RIGHT_FILLED ) {
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2;
 		}
@@ -1457,7 +1457,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FSQTRI2 ) {
+	else if ( symbol == GRSymbolShapeType.SQUARE_TRIANGLE_LOWER_RIGHT_FILLED ) {
 		if ( da._reverse_y ) {
 			__sym[1] = ys + msizey2;
 		}
@@ -1473,7 +1473,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FSQTRI3 ) {
+	else if ( symbol == GRSymbolShapeType.SQUARE_TRIANGLE_LOWER_LEFT_FILLED ) {
 		if ( da._reverse_y ) {
 			__sym[0] = ys + msizey2;
 		}
@@ -1489,7 +1489,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FSQTRI4 ) {
+	else if ( symbol == GRSymbolShapeType.SQUARE_TRIANGLE_UPPER_LEFT_FILLED ) {
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2;
 		}
@@ -1505,7 +1505,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FTOPDIA ) {
+	else if ( symbol == GRSymbolShapeType.DIAMOND_TOP_HALF_FILLED ) {
 		__sxm[0] = xs + msizex2;	__sym[0] = ys;
 		__sxm[1] = xs - msizex2;	__sym[1] = ys;
 		__sxm[2] = xs;
@@ -1521,7 +1521,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FTOPDIA4 ) {
+	else if ( symbol == GRSymbolShapeType.FTOPDIA4 ) {
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2/2.0;
 			__sym[2] = ys - msizey2;
@@ -1539,7 +1539,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_FUTRI ) {
+	else if ( symbol == GRSymbolShapeType.TRIANGLE_UP_FILLED ) {
 		if ( da._reverse_y ) {
 			__sym[0] = ys + msizey2;
 			__sym[2] = ys - msizey2;
@@ -1561,19 +1561,19 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_INSTREAM ) {
-		drawSymbol ( da, GRSymbol.SYM_BOTLINE, x, y, size_x, size_y,
+	else if ( symbol == GRSymbolShapeType.INSTREAM_FLOW ) {
+		drawSymbol ( da, GRSymbolShapeType.LINE_BOTTOM, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_BAR, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-	}
-	else if ( symbol == GRSymbol.SYM_LARR ) {
-		drawSymbol ( da, GRSymbol.SYM_LCAR, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_MIN, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.BAR, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 	}
-	else if ( symbol == GRSymbol.SYM_LCAR ) {
+	else if ( symbol == GRSymbolShapeType.ARROW_LEFT ) {
+		drawSymbol ( da, GRSymbolShapeType.CARET_LEFT, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.MINUS, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+	}
+	else if ( symbol == GRSymbolShapeType.CARET_LEFT ) {
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
@@ -1591,8 +1591,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawPolyline ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_LFSQ ) {
-		drawSymbol ( da, GRSymbol.SYM_SQ, x, y, size_x, size_y,
+	else if ( symbol == GRSymbolShapeType.SQUARE_LEFT_FILLED ) {
+		drawSymbol ( da, GRSymbolShapeType.SQUARE, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2;
@@ -1612,7 +1612,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 4, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_LLINE ) {
+	else if ( symbol == GRSymbolShapeType.LINE_LEFT ) {
 		__sxm[0] = xs - msizex2;	__sym[0] = ys + msizey2;
 		__sxm[1] = __sxm[0];		__sym[1] = ys - msizey2;
 		//if ( flag == GRUnits.DEVICE ) {
@@ -1621,7 +1621,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawLine ( da, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_LTRI ) {
+	else if ( symbol == GRSymbolShapeType.TRIANGLE_LEFT ) {
 		__sxm[0] = xs - msizex2;	__sym[0] = ys;
 		__sxm[1] = xs + msizex2;
 		if ( da._reverse_y ) {
@@ -1639,7 +1639,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawPolygon ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_MIN ) {	// -
+	else if ( symbol == GRSymbolShapeType.MINUS ) {	// -
 		__sxm[0] = xs - msizex2;	__sym[0] = ys;
 		__sxm[1] = xs + msizex2;	__sym[1] = ys;
 		//if ( flag == GRUnits.DEVICE ) {
@@ -1648,34 +1648,34 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawLine ( da, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_NONE ) {
+	else if ( symbol == GRSymbolShapeType.NONE ) {
 		// Draw nothing
 	}
-	else if ( symbol == GRSymbol.SYM_PLUS ) {
-		drawSymbol ( da, GRSymbol.SYM_MIN, x, y, size_x, size_y,
+	else if ( symbol == GRSymbolShapeType.PLUS ) {
+		drawSymbol ( da, GRSymbolShapeType.MINUS, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_BAR, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-	}
-	else if ( symbol == GRSymbol.SYM_PLUSQ ) {
-		drawSymbol ( da, GRSymbol.SYM_PLUS, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_SQ, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.BAR, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 	}
-	else if ( symbol == GRSymbol.SYM_PLUSCIR ) {
-		drawSymbol ( da, GRSymbol.SYM_PLUS, x, y, size_x, size_y,
+	else if ( symbol == GRSymbolShapeType.PLUS_SQUARE ) {
+		drawSymbol ( da, GRSymbolShapeType.PLUS, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_CIR, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-	}
-	else if ( symbol == GRSymbol.SYM_RARR ) {
-		drawSymbol ( da, GRSymbol.SYM_RCAR, x, y, size_x, size_y,
-			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_MIN, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.SQUARE, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 	}
-	else if ( symbol == GRSymbol.SYM_RCAR ) {
+	else if ( symbol == GRSymbolShapeType.CIRCLE_PLUS ) {
+		drawSymbol ( da, GRSymbolShapeType.PLUS, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.CIRCLE, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+	}
+	else if ( symbol == GRSymbolShapeType.ARROW_RIGHT ) {
+		drawSymbol ( da, GRSymbolShapeType.CARET_RIGHT, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.MINUS, x, y, size_x, size_y,
+			offset_x, offset_y, data, flag, orient );
+	}
+	else if ( symbol == GRSymbolShapeType.CARET_RIGHT ) {
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
@@ -1693,8 +1693,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawPolyline ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_RFSQ ) {
-		drawSymbol ( da, GRSymbol.SYM_SQ, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
+	else if ( symbol == GRSymbolShapeType.SQUARE_RIGHT_FILLED ) {
+		drawSymbol ( da, GRSymbolShapeType.SQUARE, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
 		__sxm[0] = xs;		__sym[0] = ys - msizey2;
 		__sxm[1] = xs + msizex2;	__sym[1] = __sym[0];
 		__sxm[2] = __sxm[1];		__sym[2] = ys + msizey2;
@@ -1705,7 +1705,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 4, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_RLINE ) {
+	else if ( symbol == GRSymbolShapeType.LINE_RIGHT ) {
 		__sxm[0] = xs + msizex2;	__sym[0] = ys + msizey2;
 		__sxm[1] = __sxm[0];		__sym[1] = ys - msizey2;
 		//if ( flag == GRUnits.DEVICE ) {
@@ -1714,7 +1714,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawLine ( da, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_RTRI ) {
+	else if ( symbol == GRSymbolShapeType.TRIANGLE_RIGHT ) {
 		__sxm[0] = xs - msizex2;	__sym[0] = ys + msizey2;
 		__sxm[1] = xs + msizex2;	__sym[1] = ys;
 		__sxm[2] = __sxm[0];		__sym[2] = ys - msizey2;
@@ -1724,7 +1724,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawPolygon ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_SQ ) {
+	else if ( symbol == GRSymbolShapeType.SQUARE ) {
 		__sxm[0] = xs - msizex2;	__sym[0] = ys - msizey2;
 		__sxm[1] = xs + msizex2;	__sym[1] = __sym[0];
 		__sxm[2] = __sxm[1];		__sym[2] = ys + msizey2;
@@ -1735,7 +1735,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawPolygon ( da, 4, __sxm, __sym );
 		//}
 	}
-	else if (symbol == GRSymbol.SYM_TEACUP) {
+	else if (symbol == GRSymbolShapeType.TEACUP) {
 		double msizex4 = msizex2 / 2;
 		double msizexx = -1;
 		double pct = -1;
@@ -1780,8 +1780,8 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 			da.drawLine(__sxm, __sym);
 		}
 	}
-	else if ( symbol == GRSymbol.SYM_TOPFSQ ) {
-		drawSymbol ( da, GRSymbol.SYM_SQ, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
+	else if ( symbol == GRSymbolShapeType.SQUARE_TOP_FILLED ) {
+		drawSymbol ( da, GRSymbolShapeType.SQUARE, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2;
 		}
@@ -1798,7 +1798,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	fillPolygon ( da, 4, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_TOPLINE ) {
+	else if ( symbol == GRSymbolShapeType.LINE_TOP ) {
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2;
 		}
@@ -1813,13 +1813,13 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawLine ( da, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_UARR ) {
-		drawSymbol ( da, GRSymbol.SYM_UCAR, x, y, size_x, size_y,
+	else if ( symbol == GRSymbolShapeType.ARROW_UP ) {
+		drawSymbol ( da, GRSymbolShapeType.CARET_UP, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbol.SYM_BAR, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.BAR, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 	}
-	else if ( symbol == GRSymbol.SYM_UCAR ) {
+	else if ( symbol == GRSymbolShapeType.CARET_UP ) {
 		if ( da._reverse_y ) {
 			__sym[1] = ys - msizey2;
 		}
@@ -1835,7 +1835,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawPolyline ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_UTRI ) {
+	else if ( symbol == GRSymbolShapeType.TRIANGLE_UP ) {
 		if ( da._reverse_y ) {
 			__sym[0] = ys + msizey2;
 			__sym[2] = ys - msizey2;
@@ -1853,7 +1853,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		//else {	drawPolygon ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbol.SYM_VBARSIGNED ) {
+	else if ( symbol == GRSymbolShapeType.VERTICAL_BAR_SIGNED ) {
 		// Draw a polygon counter-clockwise starting from lower left.
 		double height = msizey;
 		if ( (data != null) && (data.length > 0) ) {
@@ -1872,7 +1872,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		__sxm[3] = __sxm[0];		__sym[3] = __sym[2];
 		da.fillPolygon ( 4, __sxm, __sym );
 	}
-	else if ( symbol == GRSymbol.SYM_VBARUNSIGNED ) {
+	else if ( symbol == GRSymbolShapeType.VERTICAL_BAR_UNSIGNED ) {
 		// Draw a polygon counter-clockwise starting from lower left.
 		double height = msizey;
 		if ( (data != null) && (data.length > 0) ) {
@@ -1891,7 +1891,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		__sxm[3] = __sxm[0];		__sym[3] = __sym[2];
 		da.fillPolygon ( 4, __sxm, __sym );
 	}
-	else if ( symbol == GRSymbol.SYM_FUTRI_TOPLINE ) {
+	else if ( symbol == GRSymbolShapeType.TRIANGLE_UP_FILLED_TOP_LINE ) {
 		if ( da._reverse_y ) {
 			__sym[0] = ys + msizey2;
 			__sym[2] = ys - msizey2;
@@ -1917,7 +1917,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		}
 		da.drawLine(__sxm, __sym);
 	}
-	else if ( symbol == GRSymbol.SYM_UTRI_TOPLINE ) {
+	else if ( symbol == GRSymbolShapeType.TRIANGLE_UP_TOP_LINE ) {
 		if ( da._reverse_y ) {
 			__sym[0] = ys + msizey2;
 			__sym[2] = ys - msizey2;
@@ -1942,7 +1942,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		}
 		da.drawLine(__sxm, __sym);
 	}
-	else if ( symbol == GRSymbol.SYM_FDTRI_BOTLINE ) {
+	else if ( symbol == GRSymbolShapeType.TRIANGLE_DOWN_FILLED_BOTTOM_LINE ) {
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
@@ -1968,7 +1968,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		}
 		da.drawLine(__sxm, __sym);
 	}
-	else if ( symbol == GRSymbol.SYM_DTRI_BOTLINE ) {
+	else if ( symbol == GRSymbolShapeType.TRIANGLE_DOWN_BOTTOM_LINE ) {
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
@@ -1993,7 +1993,7 @@ public static void drawSymbol (	GRDrawingArea da, int symbol, double x, double y
 		}
 		da.drawLine(__sxm, __sym);
 	}
-	else if ( symbol == GRSymbol.SYM_PUSHPIN_VERTICAL ) {
+	else if ( symbol == GRSymbolShapeType.PUSHPIN_VERTICAL ) {
 		double [] sxm = new double[12];
 		double [] sym = new double[12];
 		double ySign = 1.0;
@@ -2048,7 +2048,7 @@ Draw multiple symbols.
 @param flag the symbol flag
 @param orient the symbol orientation
 */
-public static void drawSymbols (GRDrawingArea da, int symbol, int nsymbols, double[] x, double[] y,
+public static void drawSymbols ( GRDrawingArea da, GRSymbolShapeType symbol, int nsymbols, double[] x, double[] y,
 	double size, int flag, int orient ) {
 	if ( (x == null) || (y == null) ) {
 		return;
@@ -2062,7 +2062,7 @@ public static void drawSymbols (GRDrawingArea da, int symbol, int nsymbols, doub
 Draw symbol and text, adjusting the text position for the symbol.
 The adjustment is done in the low-level driver code.  The text color is the same as the symbol color.
 @param da Drawing area to draw to.
-@param symbol Symbol to draw (see GRSymbol.SYM*).
+@param symbol Symbol to draw.
 @param x Data coordinate for symbol.
 @param y Data coordinate for symbol.
 @param size Size of symbol.
@@ -2070,9 +2070,9 @@ The adjustment is done in the low-level driver code.  The text color is the same
 @param a Angle of text.
 @param tflag Text orientation flags (see GRText).
 @param flag Units of symbol (GRUnits.DEVICE or GRUnits.DATA).  The symbol size will be scaled appropriately.
-@param orient Symbol orientation (see GRGRSymbol.SYM.*);
+@param orient Symbol orientation (see GRGRSymbolShapeType.SYM.*);
 */
-public static void drawSymbolText (	GRDrawingArea da, int symbol, double x, double y,
+public static void drawSymbolText ( GRDrawingArea da, GRSymbolShapeType symbol, double x, double y,
 	double size, String text, double a, int tflag, int flag, int orient ) {
 	drawSymbolText ( da, symbol, x, y, size, text, null, a, tflag, flag, orient );
 }
@@ -2081,7 +2081,7 @@ public static void drawSymbolText (	GRDrawingArea da, int symbol, double x, doub
 Draw symbol and text, adjusting the text position for the symbol.
 The adjustment is done in the low-level driver code.
 @param da Drawing area to draw to.
-@param symbol Symbol to draw (see GRSymbol.SYM*).
+@param symbol Symbol to draw (see GRSymbolShapeType.SYM*).
 If less than 0, no symbol will be drawn (though the text still will be).
 @param x Data coordinate for symbol.
 @param y Data coordinate for symbol.
@@ -2091,14 +2091,14 @@ If less than 0, no symbol will be drawn (though the text still will be).
 @param a Angle of text.
 @param tflag Text orientation flags (see GRText).
 @param flag Units of symbol (GRUnits.DEVICE or GRUnits.DATA).  The symbol size will be scaled appropriately.
-@param orient Symbol orientation (see GRGRSymbol.SYM.*);
+@param orient Symbol orientation (see GRGRSymbolShapeType.SYM.*);
 */
-public static void drawSymbolText (	GRDrawingArea da, int symbol, double x, double y,
+public static void drawSymbolText (	GRDrawingArea da, GRSymbolShapeType symbol, double x, double y,
 	double size, String text, GRColor text_color, double a, int tflag, int flag, int orient ) {
 	double xt = x, yt = y;
 	// Always draw the symbol as specified.
 
-	if (symbol >= 0) {
+	if ( (symbol != null) && (symbol != GRSymbolShapeType.NONE) ) {
 		drawSymbol ( da, symbol, x, y, size, flag, orient );
 	}
 	if (text == null) {

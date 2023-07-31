@@ -4,50 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// GeoLayerViewLegendJPanel - panel to hold layer checkbox, select button, and
-//				symbol canvas
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2001-10-09	Steven A. Malers, RTi	Overload constructor to allow legend to
-//					be drawn in passive mode for the
-//					GeoViewPropertiesGUI.
-// 2001-10-12	SAM, RTi		Update constructor to pass in
-//					GeoViewLegendPanel so that the legend
-//					panel states can be checked when an
-//					individual layer view setting changes.
-// 2001-10-15	SAM, RTi		Set unused data to null to help with
-//					garbage collection.
-// 2001-12-04	SAM, RTi		Update to Swing.
-// 2002-01-08	SAM, RTi		Change GeoLayerViewLegendCanvas to
-//					GeoLayerViewLegendJComponent.
-// ----------------------------------------------------------------------------
-// 2003-05-06	J. Thomas Sapienza, RTi	Brought code up to date with the
-//					non-Swing code.
-// 2003-05-14	JTS, RTi		Removed font-setting code.
-// 2004-11-11	JTS, RTi		In legends with class breaks, the
-//					class break text background is now
-//					set to match the color of the tree.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
 
 package RTi.GIS.GeoView;
 
@@ -68,6 +40,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import RTi.GR.GRClassificationType;
 import RTi.GR.GRScaledClassificationSymbol;
 import RTi.GR.GRSymbol;
 
@@ -81,11 +54,11 @@ import RTi.Util.String.StringUtil;
 import RTi.Util.Table.DataTable;
 
 /**
-JPanel to display a legend for a GeoLayerView.  This panel includes a checkbox
-to enable/disable the GeoLayerView, the name associated with the GeoLayerView,
-and, a canvas (GRDevice) to display the symbology, and a label next to the
-canvas to indicate the symbol classification field.  If the multiple classes are
-used, then multiple canvases and labels are used.
+JPanel to display a legend for a GeoLayerView.
+This panel includes a checkbox to enable/disable the GeoLayerView, the name associated with the GeoLayerView,
+a canvas (GRDevice) to display the symbology,
+and a label next to the canvas to indicate the symbol classification field.
+If the multiple classes are used, then multiple canvases and labels are used.
 */
 
 @SuppressWarnings("serial")
@@ -100,32 +73,30 @@ private SimpleJButton _layer_JButton = null;
 private JLabel _layer_JLabel = null;
 private GeoLayerViewLegendJComponent[] _layer_Canvas = null;
 private JLabel [] _layer_class_JLabel = null;
-private boolean _ctrl_pressed;		// Used to indicate whether a shift or
-					// control key is pressed when the
-					// button is pressed.  This is only used
-					// in mousePressed() and mouseReleased()
+// Used to indicate whether a shift or control key is pressed when the button is pressed.
+// This is only used in mousePressed() and mouseReleased()
+private boolean _ctrl_pressed;
 
 /**
-Construct a legend panel instance for a given GeoLayerView.  The checkbox and
-select button are included by default.
+Construct a legend panel instance for a given GeoLayerView.
+The checkbox and select button are included by default.
 @param parent GeoViewLegendJTree parent or null.
 @param layer_view GeoLayerView for legend panel.
 */
-public GeoLayerViewLegendJPanel ( GeoViewLegendJTree parent, GeoLayerView layer_view )
-{	this ( parent, layer_view, true );
+public GeoLayerViewLegendJPanel ( GeoViewLegendJTree parent, GeoLayerView layer_view ) {
+	this ( parent, layer_view, true );
 }
 
 /**
-Construct a legend panel instance for a given GeoLayerView, optionally
-not displaying controls (and including only the symbol and layer view label).
-This is typically used in the layer view properties interface where only
-the canvas and related labels are needed.
+Construct a legend panel instance for a given GeoLayerView,
+optionally not displaying controls (and including only the symbol and layer view label).
+This is typically used in the layer view properties interface where only the canvas and related labels are needed.
 @param layer_view GeoLayerView for legend panel.
 @param include_controls If true, then the JCheckBox and select Button are added.
 If false, a Label is used in place of the JCheckBox and Button.
 */
-public GeoLayerViewLegendJPanel ( GeoLayerView layer_view, boolean include_controls )
-{	this (null, layer_view, include_controls );
+public GeoLayerViewLegendJPanel ( GeoLayerView layer_view, boolean include_controls ) {
+	this (null, layer_view, include_controls );
 }
 
 /**
@@ -143,8 +114,8 @@ public GeoLayerViewLegendJPanel (GeoViewLegendJTree parent, GeoLayerView layer_v
 	Insets insets_none = new Insets ( 1, 1, 1, 1 );
 	int y = 0;
 	if ( include_controls ) {
-		// Do not specify a label because doing so enables toggling by
-		// selecting on the label.  The label should be inert.
+		// Do not specify a label because doing so enables toggling by selecting on the label.
+		// The label should be inert.
 		_enabled_JCheckBox = new JCheckBox ();
 		_enabled_JCheckBox.setSelected ( layer_view.isVisible() );
 		_enabled_JCheckBox.addItemListener ( this );
@@ -168,19 +139,18 @@ public GeoLayerViewLegendJPanel (GeoViewLegendJTree parent, GeoLayerView layer_v
 				GridBagConstraints.NORTH );
 	}
 
-	// Now draw the symbol(s)...
-	// Get the number of symbols for the layer view.  First need to
-	// determine the layer view number, which is stored in the "Number"
-	// property for the layerview.  Currently this is supported only for
-	// CLASSIFICATION_SINGLE and CLASSIFICATION_SCALED_SYMBOL.
+	// Now draw the symbol(s).
+	// Get the number of symbols for the layer view.
+	// First need to determine the layer view number, which is stored in the "Number" property for the layerview.
+	// Currently this is supported only for classification type SINGLE and SCALED_SYMBOL.
 
 	int nsymbol = layer_view.getLegend().size();
 	GRSymbol symbol = null;
 	for ( int isym = 0; isym < nsymbol; isym++ ) {
 		symbol = layer_view.getLegend().getSymbol(isym);
-		if ( symbol.getClassificationType() == GRSymbol.CLASSIFICATION_SINGLE ) {
+		if ( symbol.getClassificationType() == GRClassificationType.SINGLE ) {
 			if ( isym == 0 ) {
-				// For now assume that symbol types will not be mixed for a layer...
+				// For now assume that symbol types will not be mixed for a layer.
 				_layer_Canvas = new GeoLayerViewLegendJComponent[nsymbol];
 				_layer_class_JLabel = new JLabel[nsymbol];
 			}
@@ -189,7 +159,7 @@ public GeoLayerViewLegendJPanel (GeoViewLegendJTree parent, GeoLayerView layer_v
 				1, ++y, 1, 1, 0, 0,
 				insets_none, GridBagConstraints.NONE,
 				GridBagConstraints.SOUTH );
-			// Add a label to keep spacing consistent...
+			// Add a label to keep spacing consistent.
 			_layer_class_JLabel[isym] = new JLabel("");
 			JGUIUtil.addComponent ( this,
 				_layer_class_JLabel[isym],
@@ -197,15 +167,13 @@ public GeoLayerViewLegendJPanel (GeoViewLegendJTree parent, GeoLayerView layer_v
 				insets_none, GridBagConstraints.HORIZONTAL,
 				GridBagConstraints.SOUTH );
 		}
-		else if ( symbol.getClassificationType() == GRSymbol.CLASSIFICATION_SCALED_SYMBOL ) {
-			// This is currently enabled only for vertical signed
-			// bars where the bar is centered vertically on the
-			// point, positive values are drawn with the main
-			// foreground color and negative values are drawn with
-			// the secondary foreground color.
+		else if ( symbol.getClassificationType() == GRClassificationType.SCALED_SYMBOL ) {
+			// This is currently enabled only for vertical signed bars
+			// where the bar is centered vertically on the point,
+			// positive values are drawn with the main foreground color
+			// and negative values are drawn with the secondary foreground color.
 			if ( isym == 0 ) {
-				// For now assume that symbol types will not
-				// be mixed for a layer...
+				// For now assume that symbol types will not be mixed for a layer.
 				_layer_Canvas = new GeoLayerViewLegendJComponent[nsymbol];
 				_layer_class_JLabel = new JLabel[nsymbol];
 			}
@@ -215,10 +183,8 @@ public GeoLayerViewLegendJPanel (GeoViewLegendJTree parent, GeoLayerView layer_v
 				insets_none, GridBagConstraints.NONE,
 				GridBagConstraints.SOUTH );
 			if ( !symbol.getClassificationField().equals("") ) {
-				// Get the maximum value for the symbol, which
-				// is used to scale the symbol...
-				// SAMX - need to streamline this - store with
-				// symbol at creation?
+				// Get the maximum value for the symbol, which is used to scale the symbol.
+				// TODO smalers 2023-07-28 Need to streamline this - store with symbol at creation?
 				DataTable attribute_table = _layer_view.getLayer().getAttributeTable();
 				int classification_field = -1;
 				String cf = symbol.getClassificationField();
@@ -239,7 +205,7 @@ public GeoLayerViewLegendJPanel (GeoViewLegendJTree parent, GeoLayerView layer_v
 				if ( (classification_field >= 0)) {
 					double symbol_max = ((GRScaledClassificationSymbol)
 					symbol).getClassificationDataDisplayMax();
-					// Do this to keep legend a reasonable width...
+					// Do this to keep legend a reasonable width.
 					if ( cf.length() > 20 ) {
 						cf = cf.substring(0,20) + "...";
 					}
@@ -254,7 +220,7 @@ public GeoLayerViewLegendJPanel (GeoViewLegendJTree parent, GeoLayerView layer_v
 				}
 			}
 			else {
-				// Add a label with the field and maximum value...
+				// Add a label with the field and maximum value.
 				_layer_class_JLabel[isym] = new JLabel("");
 			}
 			JGUIUtil.addComponent ( this,
@@ -264,7 +230,7 @@ public GeoLayerViewLegendJPanel (GeoViewLegendJTree parent, GeoLayerView layer_v
 				GridBagConstraints.NORTH );
 		}
 		else {
-			// Multiple legend items need to be drawn...
+			// Multiple legend items need to be drawn.
 			int numclass = symbol.getNumberOfClassifications();
 			_layer_Canvas = new GeoLayerViewLegendJComponent[numclass];
 			_layer_class_JLabel = new JLabel[numclass];
@@ -274,7 +240,7 @@ public GeoLayerViewLegendJPanel (GeoViewLegendJTree parent, GeoLayerView layer_v
 					1, ++y, 1, 1, 0, 0,
 					insets_none, GridBagConstraints.NONE,
 					GridBagConstraints.SOUTH );
-				// Add a label for the classification...
+				// Add a label for the classification.
 				_layer_class_JLabel[i] = new JLabel(symbol.getClassificationLabel(i));
 				if (_parent != null) {
 					_layer_class_JLabel[i].setBackground(_parent.getBackground());
@@ -290,13 +256,13 @@ public GeoLayerViewLegendJPanel (GeoViewLegendJTree parent, GeoLayerView layer_v
 				setBackground(_parent.getBackground());
 			}
 		}
-		// Set the text on the button...
+		// Set the text on the button.
 		if ( !symbol.getClassificationField().equals("") ) {
 			if ( include_controls ) {
-				// Reset the button to display the field
+				// Reset the button to display the field.
 				if ( (layer_view.getLegend().size() == 1) &&
-					(symbol.getClassificationType() != GRSymbol.CLASSIFICATION_SCALED_SYMBOL)){
-					// Put the field on the button...
+					(symbol.getClassificationType() != GRClassificationType.SCALED_SYMBOL)){
+					// Put the field on the button.
 					_layer_JButton.setText(
 					layer_view.getLegend().getText() + " ("+
 					symbol.getClassificationField() + ")" );
@@ -306,19 +272,19 @@ public GeoLayerViewLegendJPanel (GeoViewLegendJTree parent, GeoLayerView layer_v
 				}
 			}
 			else {
-				// No controls so the label needs to display the classification field...
+				// No controls so the label needs to display the classification field.
 				if ( layer_view.getLegend().size() == 1 ) {
 					_layer_JLabel.setText (
 					layer_view.getLegend().getText() + " ("+ symbol.getClassificationField() + ")" );
 				}
 				else {
-					// The label is next to the symbol...
+					// The label is next to the symbol.
 					// This will take some more work.
 				}
 			}
 		}
 		else {
-			// Set the label to the legend text...
+			// Set the label to the legend text.
 			//_layer_JButton.setLabel (layer_view.getLegend().getText() );
 			// Does not seem to work.
 		}
@@ -326,14 +292,14 @@ public GeoLayerViewLegendJPanel (GeoViewLegendJTree parent, GeoLayerView layer_v
 }
 
 /**
-Process action events.  If the button is selected, this toggles the layer view
-from selected to deselected, highlighting when selected.
+Process action events.
+If the button is selected, this toggles the layer view from selected to deselected, highlighting when selected.
 If a parent GeoViewJPanel is specified during construction, its checkState() method is called.
 @param e ActionEvent to process.
 */
-public void actionPerformed ( ActionEvent e )
-{	if ( _layer_view.isSelected() ) {
-		// Already selected so de-select...
+public void actionPerformed ( ActionEvent e ) {
+	if ( _layer_view.isSelected() ) {
+		// Already selected so de-select.
 		setBackground ( Color.lightGray );
 		_enabled_JCheckBox.setBackground ( Color.lightGray );
 		_layer_JButton.setBackground ( Color.lightGray );
@@ -347,7 +313,7 @@ public void actionPerformed ( ActionEvent e )
 		_layer_view.isSelected ( false );
 	}
 	else {
-		// Not already selected so select...
+		// Not already selected so select.
 		setBackground ( Color.darkGray );
 		_enabled_JCheckBox.setBackground ( Color.darkGray );
 		_layer_JButton.setBackground ( Color.darkGray );
@@ -366,8 +332,8 @@ public void actionPerformed ( ActionEvent e )
 Reset the state of the check box based on the visibility of the layer view.
 The state of the checkbox is set consistent with the GeoLayerView "isSelected()" value.
 */
-public void checkState ()
-{	if ( _enabled_JCheckBox != null ) {
+public void checkState () {
+	if ( _enabled_JCheckBox != null ) {
 		_enabled_JCheckBox.setSelected ( _layer_view.isVisible() );
 	}
 }
@@ -375,8 +341,8 @@ public void checkState ()
 /**
 Deselect the legend item.
 */
-public void deselect ()
-{	setBackground ( Color.lightGray );
+public void deselect () {
+	setBackground ( Color.lightGray );
 	_enabled_JCheckBox.setBackground ( Color.lightGray );
 	_layer_JButton.setBackground ( Color.lightGray );
 	_layer_JButton.setForeground ( Color.black );
@@ -390,34 +356,19 @@ public void deselect ()
 }
 
 /**
-Clean up for garbage collection.
-*/
-protected void finalize()
-throws Throwable
-{	_enabled_JCheckBox = null;
-	_parent = null;
-	_layer_view = null;
-	_layer_JButton = null;
-	_layer_JLabel = null;
-	IOUtil.nullArray(_layer_Canvas);
-	IOUtil.nullArray(_layer_class_JLabel);
-	super.finalize();
-}
-
-/**
 Return the GeoLayerView associated with the legend panel.
 @return the GeoLayerView associated with the legend panel.
 */
-public GeoLayerView getLayerView ()
-{	return _layer_view;
+public GeoLayerView getLayerView () {
+	return _layer_view;
 }
 
 /**
-Handle item events.  The isVisible() method for the GeoLayerView is called with
-the state of the JCheckBox.
+Handle item events.
+The isVisible() method for the GeoLayerView is called with the state of the JCheckBox.
 */
-public void itemStateChanged ( ItemEvent e )
-{	if ( e.getItemSelectable().equals(_enabled_JCheckBox) ) {
+public void itemStateChanged ( ItemEvent e ) {
+	if ( e.getItemSelectable().equals(_enabled_JCheckBox) ) {
 		_layer_view.isVisible(_enabled_JCheckBox.isSelected());
 	}
 }
@@ -425,44 +376,40 @@ public void itemStateChanged ( ItemEvent e )
 /**
 Handle mouse clicked event.  Don't do anything.  Rely on mousePressed().
 */
-public void mouseClicked ( MouseEvent event )
-{	
+public void mouseClicked ( MouseEvent event ) {
 }
 
 /**
 Handle mouse drag event.  Don't do anything.
 @param event Mouse drag event.
 */
-public void mouseDragged ( MouseEvent event )
-{	//event.consume();
+public void mouseDragged ( MouseEvent event ) {
+	//event.consume();
 }
 
 /**
 Handle mouse enter event.  Currently does not do anything.
 */
-public void mouseEntered ( MouseEvent event )
-{
+public void mouseEntered ( MouseEvent event ) {
 }
 
 /**
 Handle mouse exit event.  Currently does not do anything.
 */
-public void mouseExited ( MouseEvent event )
-{
+public void mouseExited ( MouseEvent event ) {
 }
 
 /**
 Handle mouse motion event.  Currently does not do anything.
 */
-public void mouseMoved ( MouseEvent event )
-{
+public void mouseMoved ( MouseEvent event ) {
 }
 
 /**
 Handle mouse pressed event.  Just save a flag indicating what keys were active.
 */
-public void mousePressed ( MouseEvent e )
-{	if ( ((e.getModifiers()&MouseEvent.SHIFT_MASK) != 0) ||
+public void mousePressed ( MouseEvent e ) {
+	if ( ((e.getModifiers()&MouseEvent.SHIFT_MASK) != 0) ||
 		((e.getModifiers()&MouseEvent.CTRL_MASK) != 0) ) {
 		_ctrl_pressed = true;
 	}
@@ -471,20 +418,19 @@ public void mousePressed ( MouseEvent e )
 /**
 Handle mouse released event.
 */
-public void mouseReleased ( MouseEvent e )
-{	// The _ctrl_pressed data member indicates whether a CTRL or SHIFT key
-	// was pressed when the mouse was pressed.  Use that because it is
-	// possible to release/press the key between releasing/pressing the mouse.
+public void mouseReleased ( MouseEvent e ) {
+	// The _ctrl_pressed data member indicates whether a CTRL or SHIFT key was pressed when the mouse was pressed.
+	// Use that because it is possible to release/press the key between releasing/pressing the mouse.
 	if ( !_ctrl_pressed ) {
-		// Unselect all other layer views except the current layer view...
+		// Unselect all other layer views except the current layer view.
 		// _parent.deselectExcept ( this );
 	}
 	if ( _layer_view.isSelected() ) {
-		// Already selected so de-select...
+		// Already selected so de-select.
 		deselect ();
 	}
 	else {
-		// Not already selected so select...
+		// Not already selected so select.
 		select ();
 	}
 }
@@ -492,16 +438,16 @@ public void mouseReleased ( MouseEvent e )
 /**
 Check to make sure that the checkbox is accurate.
 */
-public void paint ( Graphics g )
-{	checkState();
+public void paint ( Graphics g ) {
+	checkState();
 	super.paint(g);
 }
 
 /**
 Select this legend item.
 */
-public void select ()
-{	setBackground ( Color.darkGray );
+public void select () {
+	setBackground ( Color.darkGray );
 	_enabled_JCheckBox.setBackground ( Color.darkGray );
 	_layer_JButton.setBackground ( Color.darkGray );
 	_layer_JButton.setForeground ( Color.white );
@@ -519,8 +465,8 @@ Set the panel's canvas components visibility.
 This method is called from the properties interface to hide heavyweight canvas components.
 @param visible true if the components should be visible.
 */
-public void setVisible ( boolean visible )
-{	if ( (_layer_Canvas != null) && (_layer_Canvas.length > 0) ) {
+public void setVisible ( boolean visible ) {
+	if ( (_layer_Canvas != null) && (_layer_Canvas.length > 0) ) {
 		for ( int i = 0; i < _layer_Canvas.length; i++ ) {
 			_layer_Canvas[i].setVisible( visible );
 		}

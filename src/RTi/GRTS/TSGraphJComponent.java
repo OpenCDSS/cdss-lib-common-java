@@ -11,12 +11,12 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -55,7 +55,8 @@ import RTi.GR.GRJComponentDrawingArea;
 import RTi.GR.GRLimits;
 import RTi.GR.GRPoint;
 import RTi.GR.GRShape;
-import RTi.GR.GRSymbol;
+import RTi.GR.GRSymbolPosition;
+import RTi.GR.GRSymbolShapeType;
 import RTi.GR.GRText;
 import RTi.GR.GRUnits;
 import RTi.TS.IrregularTS;
@@ -580,7 +581,7 @@ Graph events, including mouse events and zoom events, will result in registered 
 @param listener TSViewListener to add.
 */
 public void addTSViewListener ( TSViewListener listener ) {
-	// Use arrays to make a little simpler than Vectors to use later.
+	// Use arrays to make a little simpler than lists to use later.
 	if ( listener != null ) {
 		// Resize the listener array.
 		if ( _listeners == null ) {
@@ -1143,7 +1144,7 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 		// Loop through the data properties for the subproduct looking for "TSID" and "TSAlias" properties.
 		// If a TSProduct was passed in the constructor, it is possible that a "TS" property was set to a time series,
 		// but this functionality is not being used yet (NEED TO SUPPORT LATER).
-		tslist = new Vector<TS>(); // Need new list for every graph.
+		tslist = new Vector<>(); // Need new list for every graph.
 		// If cannot match a TSID for the current graph, then the graph is NOT used for a reference graph.
 		reference_ts_index = -1;
 		for ( int jtsid = 0; ; jtsid++ ) { // Loop for TSIDs in graph.
@@ -1232,7 +1233,7 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 			// Could put the following in the if statement in the loop but for now put here.
 			//
 			// If the "TSIndex" property is found, just use it to match up the time series.
-			// This works well when a PropList and Vector of TS is used to create the TSProduct, as long as only one graph is used.
+			// This works well when a PropList and list of TS is used to create the TSProduct, as long as only one graph is used.
 			// Do this after the above loop so that the reference graph can be set up
 			// (note that there is a possibility of the reference graph using the wrong TS because of
 			// duplicate IDs but that usually won't be that much of a problem).
@@ -1445,7 +1446,7 @@ private TSProduct createTSProductFromPropList ( PropList proplist, List<TS> tsli
 			}
 			tsproduct.getPropList().setHowSet (	Prop.SET_AS_RUNTIME_DEFAULT );
 			// Set the index.
-			// This is a more robust way to connect the time series with graphs when the time series come in from a Vector and PropList.
+			// This is a more robust way to connect the time series with graphs when the time series come in from a list and PropList.
 			tsproduct.setPropValue ( "TSIndex", "" + i, 0, i );
 			tsproduct.getPropList().setHowSet ( how_set_prev2 );
 			//Message.printStatus ( 2, "", "Graph has TSID \"" + ts.getIdentifier().toString(true) + "\"" );
@@ -1555,7 +1556,7 @@ private List<TSGraphDataLimits> determineDataLimits() {
 	for (int i = 0; i < _tsgraphs.size(); i++) {
 		tslist = _tsgraphs.get(i).getTSList();
 
-		ids = new Vector<String>();
+		ids = new Vector<>();
 		for ( TS ts : tslist ) {
 			if (ts == null) {
 				ids.add("null");
@@ -2110,15 +2111,15 @@ private void drawMouseTrackerPoints (
 				if ( (tsdataNearest.getDataValue() + textExtents.getHeight()/2) > da.getDataLimits().getTopY() ) {
 					// The text will extend above the graph, which might overlap with legend or titles.
 					// Therefore, draw the tracker text below the top edge.
-					GRDrawingAreaUtil.drawSymbolText(da, GRSymbol.SYM_FCIR, dtNearest.toDouble(), tsdataNearest.getDataValue(),
+					GRDrawingAreaUtil.drawSymbolText(da, GRSymbolShapeType.CIRCLE_FILLED, dtNearest.toDouble(), tsdataNearest.getDataValue(),
 						symbolSize, trackerLabel, GRColor.black, 0.0, textAlign | GRText.TOP,
-						GRUnits.DEVICE, GRSymbol.SYM_CENTER_X|GRSymbol.SYM_CENTER_Y);
+						GRUnits.DEVICE, GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y );
 				}
 				else {
 					// Normally, draw the text center-left of the point.
-					GRDrawingAreaUtil.drawSymbolText(da, GRSymbol.SYM_FCIR, dtNearest.toDouble(), tsdataNearest.getDataValue(),
+					GRDrawingAreaUtil.drawSymbolText(da, GRSymbolShapeType.CIRCLE_FILLED, dtNearest.toDouble(), tsdataNearest.getDataValue(),
 						symbolSize, trackerLabel, GRColor.black, 0.0, textAlign | GRText.CENTER_Y,
-						GRUnits.DEVICE, GRSymbol.SYM_CENTER_X|GRSymbol.SYM_CENTER_Y);
+						GRUnits.DEVICE, GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y );
 				}
 			}
 		}
@@ -2203,7 +2204,7 @@ throws Throwable {
 	_bounds = null;
 	_printBounds = null;
 	_parent = null;
-	_tsgraphs = new Vector<TSGraph>();
+	_tsgraphs = new Vector<>();
 	_gtype = null;
 	IOUtil.nullArray(_listeners);
 	_mouse_tsgraph1 = null;
@@ -2371,7 +2372,7 @@ public void keyTyped ( KeyEvent event ) {
 
 /**
 Look up the color to use for a time series.
-@param index Zero-referenced index in time series vector.
+@param index Zero-referenced index in time series list.
 @return the color for a time series, as a string color name.
 */
 public static String lookupTSColor(int index) {
@@ -2422,7 +2423,7 @@ public static String lookupTSColor(int index) {
 
 /**
 Look up the symbol to use for a time series.  This is only used for point graphs.
-@param index Zero-referenced index in time series vector.
+@param index Zero-referenced index in time series list.
 @return the symbol for a time series, as a string symbol name.
 */
 public static String lookupTSSymbol(int index) {
@@ -4487,7 +4488,7 @@ Tests to see whether two sorted lists, each of which contain Strings, contain th
 @param v1 the first list to check.
 @param v2 the second list to check.
 @return true if the lists contain the same strings (compared by equalsIgnoreCase()) in the same order, or are both null.
-Returns false if only one is null or the sizes of the Vectors are different or they don't contain the same strings, element-by-element.
+Returns false if only one is null or the sizes of the lists are different or they don't contain the same strings, element-by-element.
 */
 private boolean stringListsAreEqual(List<String> v1, List<String> v2) {
 	if (v1 == null && v2 == null) {
