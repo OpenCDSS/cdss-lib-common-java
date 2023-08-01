@@ -803,7 +803,7 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 		//}
 	}
 	else if ( symbol == GRSymbolShapeType.SQUARE_BOTTOM_FILLED ) {
-		drawSymbol( da, GRSymbolShapeType.SQUARE, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
+		drawSymbol( da, GRSymbolShapeType.SQUARE_HOLLOW, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
 		__sxm[0] = xs + msizex2;	__sym[0] = ys;
 		__sxm[1] = __sxm[0];
 		if ( da._reverse_y ) {
@@ -866,7 +866,7 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 		//else {	drawLine ( da, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbolShapeType.CIRCLE ) {
+	else if ( symbol == GRSymbolShapeType.CIRCLE_HOLLOW ) {
 		if (da instanceof GRJComponentDrawingArea) {
 //			da.drawArc ( xs, ys, msizex2, msizey2, 0.0, 360.0 );
 			((GRJComponentDrawingArea)da).drawOval(xs, ys, msizex2, msizey2);
@@ -881,7 +881,7 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 		//else {drawArc ( da, xs, ys, msizex2, msizey2, 0.0, 360.0 );
 		//}
 	}
-	else if ( symbol == GRSymbolShapeType.ELLIPSE_HORIZONTAL ) {
+	else if ( symbol == GRSymbolShapeType.ELLIPSE_HORIZONTAL_HOLLOW ) {
 		// Horizontal dimension of the ellipse is twice the vertical dimension.
 		if (da instanceof GRJComponentDrawingArea) {
 //			da.drawArc ( xs, ys, msizex2, msizey2, 0.0, 360.0 );
@@ -897,7 +897,7 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 		//else {drawArc ( da, xs, ys, msizex2, msizey2, 0.0, 360.0 );
 		//}
 	}
-	else if ( symbol == GRSymbolShapeType.ELLIPSE_VERTICAL ) {
+	else if ( symbol == GRSymbolShapeType.ELLIPSE_VERTICAL_HOLLOW ) {
 		// Vertical dimension of the ellipse is twice the horizontal dimension.
 		if (da instanceof GRJComponentDrawingArea) {
 //			da.drawArc ( xs, ys, msizex2, msizey2, 0.0, 360.0 );
@@ -935,7 +935,7 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 		//else {	drawPolyline ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbolShapeType.DIAMOND ) {
+	else if ( symbol == GRSymbolShapeType.DIAMOND_HOLLOW ) {
 		__sxm[0] = xs - msizex2;	__sym[0] = ys;
 		__sxm[1] = xs;		__sym[1] = ys + msizey2;
 		__sxm[2] = xs + msizex2;	__sym[2] = ys;
@@ -946,7 +946,7 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 		//else {	drawPolygon ( da, 4, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbolShapeType.TRIANGLE_DOWN ) {
+	else if ( symbol == GRSymbolShapeType.TRIANGLE_DOWN_HOLLOW ) {
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2;
 			__sym[2] = ys + msizey2;
@@ -1005,7 +1005,7 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 	else if ( symbol == GRSymbolShapeType.X_DIAMOND ) {
 		drawSymbol ( da, GRSymbolShapeType.X_FOR_DIAMOND, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbolShapeType.DIAMOND, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.DIAMOND_HOLLOW, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 	}
 	else if ( symbol == GRSymbolShapeType.EXDIA1 ) {
@@ -1141,7 +1141,7 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 	else if ( symbol == GRSymbolShapeType.X_SQUARE ) {
 		drawSymbol ( da, GRSymbolShapeType.X, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbolShapeType.SQUARE, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.SQUARE_HOLLOW, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 	}
 	else if ( symbol == GRSymbolShapeType.ARROW_UP_RIGHT_FILLED ) {
@@ -1682,7 +1682,7 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 		//}
 	}
 	else if ( symbol == GRSymbolShapeType.SQUARE_LEFT_FILLED ) {
-		drawSymbol ( da, GRSymbolShapeType.SQUARE, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.SQUARE_HOLLOW, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2;
@@ -1711,7 +1711,7 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 		//else {	drawLine ( da, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbolShapeType.TRIANGLE_LEFT ) {
+	else if ( symbol == GRSymbolShapeType.TRIANGLE_LEFT_HOLLOW ) {
 		__sxm[0] = xs - msizex2;	__sym[0] = ys;
 		__sxm[1] = xs + msizex2;
 		if ( da._reverse_y ) {
@@ -1750,13 +1750,13 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 	else if ( symbol == GRSymbolShapeType.PLUS_SQUARE ) {
 		drawSymbol ( da, GRSymbolShapeType.PLUS, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbolShapeType.SQUARE, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.SQUARE_HOLLOW, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 	}
 	else if ( symbol == GRSymbolShapeType.CIRCLE_PLUS ) {
 		drawSymbol ( da, GRSymbolShapeType.PLUS, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
-		drawSymbol ( da, GRSymbolShapeType.CIRCLE, x, y, size_x, size_y,
+		drawSymbol ( da, GRSymbolShapeType.CIRCLE_HOLLOW, x, y, size_x, size_y,
 			offset_x, offset_y, data, flag, orient );
 	}
 	else if ( symbol == GRSymbolShapeType.ARROW_RIGHT ) {
@@ -1784,7 +1784,7 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 		//}
 	}
 	else if ( symbol == GRSymbolShapeType.SQUARE_RIGHT_FILLED ) {
-		drawSymbol ( da, GRSymbolShapeType.SQUARE, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.SQUARE_HOLLOW, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
 		__sxm[0] = xs;		__sym[0] = ys - msizey2;
 		__sxm[1] = xs + msizex2;	__sym[1] = __sym[0];
 		__sxm[2] = __sxm[1];		__sym[2] = ys + msizey2;
@@ -1804,7 +1804,7 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 		//else {	drawLine ( da, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbolShapeType.TRIANGLE_RIGHT ) {
+	else if ( symbol == GRSymbolShapeType.TRIANGLE_RIGHT_HOLLOW ) {
 		__sxm[0] = xs - msizex2;	__sym[0] = ys + msizey2;
 		__sxm[1] = xs + msizex2;	__sym[1] = ys;
 		__sxm[2] = __sxm[0];		__sym[2] = ys - msizey2;
@@ -1814,7 +1814,7 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 		//else {	drawPolygon ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbolShapeType.SQUARE ) {
+	else if ( symbol == GRSymbolShapeType.SQUARE_HOLLOW ) {
 		__sxm[0] = xs - msizex2;	__sym[0] = ys - msizey2;
 		__sxm[1] = xs + msizex2;	__sym[1] = __sym[0];
 		__sxm[2] = __sxm[1];		__sym[2] = ys + msizey2;
@@ -1825,7 +1825,7 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 		//else {	drawPolygon ( da, 4, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbolShapeType.RECTANGLE_HORIZONTAL ) {
+	else if ( symbol == GRSymbolShapeType.RECTANGLE_HORIZONTAL_HOLLOW ) {
 		// Horizontal dimension is twice the vertical dimension.
 		__sxm[0] = xs - msizex2;	__sym[0] = ys - msizey2/2.0;
 		__sxm[1] = xs + msizex2;	__sym[1] = __sym[0];
@@ -1837,7 +1837,7 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 		//else {	drawPolygon ( da, 4, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbolShapeType.RECTANGLE_VERTICAL ) {
+	else if ( symbol == GRSymbolShapeType.RECTANGLE_VERTICAL_HOLLOW ) {
 		// Horizontal dimension is half the vertical dimension.
 		__sxm[0] = xs - msizex2/2.0;	__sym[0] = ys - msizey2;
 		__sxm[1] = xs + msizex2/2.0;	__sym[1] = __sym[0];
@@ -1895,7 +1895,7 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 		}
 	}
 	else if ( symbol == GRSymbolShapeType.SQUARE_TOP_FILLED ) {
-		drawSymbol ( da, GRSymbolShapeType.SQUARE, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.SQUARE_HOLLOW, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
 		if ( da._reverse_y ) {
 			__sym[0] = ys - msizey2;
 		}
@@ -1949,7 +1949,7 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 		//else {	drawPolyline ( da, 3, __sxm, __sym );
 		//}
 	}
-	else if ( symbol == GRSymbolShapeType.TRIANGLE_UP ) {
+	else if ( symbol == GRSymbolShapeType.TRIANGLE_UP_HOLLOW ) {
 		if ( da._reverse_y ) {
 			__sym[0] = ys + msizey2;
 			__sym[2] = ys - msizey2;
@@ -2006,106 +2006,20 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 		da.fillPolygon ( 4, __sxm, __sym );
 	}
 	else if ( symbol == GRSymbolShapeType.TRIANGLE_UP_FILLED_TOP_LINE ) {
-		if ( da._reverse_y ) {
-			__sym[0] = ys + msizey2;
-			__sym[2] = ys - msizey2;
-		}
-		else {
-			__sym[0] = ys - msizey2;
-			__sym[2] = ys + msizey2;
-		}
-		__sxm[0] = xs - msizex2;
-		__sxm[1] = xs + msizex2;	__sym[1] = __sym[0];
-		__sxm[2] = xs;
-		da.fillPolygon ( 3, __sxm, __sym );
-		if (outlineColor != null) {
-			da.setColor(outlineColor);
-			da.drawPolygon ( 3, __sxm, __sym );
-		}
-		__sxm[0] = xs - msizex2;	__sxm[1] = xs + msizex2;
-		if (da._reverse_y) {
-			__sym[0] = __sym[1] = ys + msizey2;
-		}
-		else {
-			__sym[0] = __sym[1] = ys - msizey2;
-		}
-		da.drawLine(__sxm, __sym);
+		drawSymbol ( da, GRSymbolShapeType.TRIANGLE_UP_FILLED, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.LINE_TOP, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
 	}
-	else if ( symbol == GRSymbolShapeType.TRIANGLE_UP_TOP_LINE ) {
-		if ( da._reverse_y ) {
-			__sym[0] = ys + msizey2;
-			__sym[2] = ys - msizey2;
-		}
-		else {
-			__sym[0] = ys - msizey2;
-			__sym[2] = ys + msizey2;
-		}
-		__sxm[0] = xs - msizex2;
-		__sxm[1] = xs + msizex2;	__sym[1] = __sym[0];
-		__sxm[2] = xs;
-		da.drawPolygon ( 3, __sxm, __sym );
-		__sxm[0] = xs - msizex2;	__sxm[1] = xs + msizex2;
-		if (outlineColor != null) {
-			da.setColor(outlineColor);
-		}
-		if (da._reverse_y) {
-			__sym[0] = __sym[1] = ys + msizey2;
-		}
-		else {
-			__sym[0] = __sym[1] = ys - msizey2;
-		}
-		da.drawLine(__sxm, __sym);
+	else if ( symbol == GRSymbolShapeType.TRIANGLE_UP_HOLLOW_TOP_LINE ) {
+		drawSymbol ( da, GRSymbolShapeType.TRIANGLE_UP_HOLLOW, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.LINE_TOP, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
 	}
 	else if ( symbol == GRSymbolShapeType.TRIANGLE_DOWN_FILLED_BOTTOM_LINE ) {
-		if ( da._reverse_y ) {
-			__sym[0] = ys - msizey2;
-			__sym[2] = ys + msizey2;
-		}
-		else {
-			__sym[0] = ys + msizey2;
-			__sym[2] = ys - msizey2;
-		}
-		__sxm[0] = xs - msizex2;
-		__sxm[1] = xs + msizex2;	__sym[1] = __sym[0];
-		__sxm[2] = xs;
-		da.fillPolygon ( 3, __sxm, __sym );
-		if (outlineColor != null) {
-			da.setColor(outlineColor);
-			da.drawPolygon ( 3, __sxm, __sym );
-		}
-		__sxm[0] = xs - msizex2;	__sxm[1] = xs + msizex2;
-		if (da._reverse_y) {
-			__sym[0] = __sym[1] = ys + msizey2;
-		}
-		else {
-			__sym[0] = __sym[1] = ys - msizey2;
-		}
-		da.drawLine(__sxm, __sym);
+		drawSymbol ( da, GRSymbolShapeType.TRIANGLE_DOWN_FILLED, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.LINE_BOTTOM, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
 	}
-	else if ( symbol == GRSymbolShapeType.TRIANGLE_DOWN_BOTTOM_LINE ) {
-		if ( da._reverse_y ) {
-			__sym[0] = ys - msizey2;
-			__sym[2] = ys + msizey2;
-		}
-		else {
-			__sym[0] = ys - msizey2;
-			__sym[2] = ys + msizey2;
-		}
-		__sxm[0] = xs - msizex2;
-		__sxm[1] = xs + msizex2;	__sym[1] = __sym[0];
-		__sxm[2] = xs;
-		da.drawPolygon ( 3, __sxm, __sym );
-		__sxm[0] = xs - msizex2;	__sxm[1] = xs + msizex2;
-		if (outlineColor != null) {
-			da.setColor(outlineColor);
-		}
-		if (da._reverse_y) {
-			__sym[0] = __sym[1] = ys + msizey2;
-		}
-		else {
-			__sym[0] = __sym[1] = ys - msizey2;
-		}
-		da.drawLine(__sxm, __sym);
+	else if ( symbol == GRSymbolShapeType.TRIANGLE_DOWN_HOLLOW_BOTTOM_LINE ) {
+		drawSymbol ( da, GRSymbolShapeType.TRIANGLE_DOWN_HOLLOW, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
+		drawSymbol ( da, GRSymbolShapeType.LINE_BOTTOM, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
 	}
 	else if ( symbol == GRSymbolShapeType.PUSHPIN_VERTICAL ) {
 		double [] sxm = new double[12];

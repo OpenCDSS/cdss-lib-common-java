@@ -47,64 +47,64 @@ public enum GRSymbolShapeType {
 	This is the first "nice" symbol that can be an outline (legacy SYM_FIRST_OUT, meaning "outline").
 	This is the first "nice" symbol that consists of line work (legacy SYM_FIRST_LINE, meaning "line work").
 	*/
-	CIRCLE ( 1, "Circle-Hollow" ),
+	CIRCLE_HOLLOW ( 1, "Circle-Hollow" ),
 
 	/**
 	Simple line symbol: <b>square</b>
 	Previously SQ.
 	*/
-	SQUARE ( 2, "Square-Hollow" ),
+	SQUARE_HOLLOW ( 2, "Square-Hollow" ),
 
 	/**
 	Simple line symbol: <b>triangle pointing up</b>
 	Previously UTRI.
 	*/
-	TRIANGLE_UP ( 3, "Triangle-Up-Hollow" ),
+	TRIANGLE_UP_HOLLOW ( 3, "Triangle-Up-Hollow" ),
 
 	/**
 	Simple line symbol: <b>triangle pointing down</b>
 	Previously DTRI.
 	*/
-	TRIANGLE_DOWN ( 4, "Triangle-Down-Hollow" ),
+	TRIANGLE_DOWN_HOLLOW ( 4, "Triangle-Down-Hollow" ),
 
 	/**
 	Simple line symbol: <b>triangle pointing left</b>
 	Previously LTRI.
 	*/
-	TRIANGLE_LEFT ( 5, "Triangle-Left-Hollow" ),
+	TRIANGLE_LEFT_HOLLOW ( 5, "Triangle-Left-Hollow" ),
 
 	/**
 	Simple line symbol: <b>triangle pointing right</b>
 	Previously RTRI.
 	*/
-	TRIANGLE_RIGHT ( 6, "Triangle-Right-Hollow" ),
+	TRIANGLE_RIGHT_HOLLOW ( 6, "Triangle-Right-Hollow" ),
 
 	/**
 	Simple line symbol: <b>diamond</b>
 	Previously DIA.
 	*/
-	DIAMOND ( 7, "Diamond-Hollow" ),
+	DIAMOND_HOLLOW ( 7, "Diamond-Hollow" ),
 	
 	/**
 	Simple line symbol: <b>horizontal ellipse</b>
 	*/
-	ELLIPSE_HORIZONTAL ( 8, "Ellipse-Horizontal-Hollow" ),
+	ELLIPSE_HORIZONTAL_HOLLOW ( 8, "Ellipse-Horizontal-Hollow" ),
 
 	/**
 	Simple line symbol: <b>vertical ellipse</b>
 	*/
-	ELLIPSE_VERTICAL ( 9, "Ellipse-Vertical-Hollow" ),
+	ELLIPSE_VERTICAL_HOLLOW ( 9, "Ellipse-Vertical-Hollow" ),
 
 	/**
 	Simple line symbol: <b>horizontal rectangle</b>
 	*/
-	RECTANGLE_HORIZONTAL ( 10, "Rectangle-Horizontal-Hollow" ),
+	RECTANGLE_HORIZONTAL_HOLLOW ( 10, "Rectangle-Horizontal-Hollow" ),
 
 	/**
 	Simple line symbol: <b>vertical rectangle</b>
 	This is the last "nice" symbol that can be an outline (legacy SYM_LAST_OUT, meaning "outline").
 	*/
-	RECTANGLE_VERTICAL ( 11, "Rectangle-Vertical-Hollow" ),
+	RECTANGLE_VERTICAL_HOLLOW ( 11, "Rectangle-Vertical-Hollow" ),
 
 	/**
 	Compound line symbol: <b>+</b>
@@ -620,13 +620,13 @@ public enum GRSymbolShapeType {
 	Compound symbol: <b>Hollow triangle pointing up with a line on the point.</b>
 	Previously UTRI_TOPLINE.
 	*/
-	TRIANGLE_UP_TOP_LINE ( 95, "Triangle-Up-Hollow-Topline" ),
+	TRIANGLE_UP_HOLLOW_TOP_LINE ( 95, "Triangle-Up-Hollow-Topline" ),
 
 	/**
 	Compound symbol: <b>Hollow triangle pointing down with a line on the point.</b>
 	Previously DTRI_BOTLINE.
 	*/
-	TRIANGLE_DOWN_BOTTOM_LINE ( 96, "Triangle-Down-Hollow-Botline" ),
+	TRIANGLE_DOWN_HOLLOW_BOTTOM_LINE ( 96, "Triangle-Down-Hollow-Botline" ),
 
 	/**
 	Complex symbol: <b>Filled push-pin, vertical (no lean).</b>
