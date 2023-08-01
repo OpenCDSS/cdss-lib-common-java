@@ -35,6 +35,7 @@ import RTi.GR.GRLegend;
 import RTi.GR.GRShape;
 import RTi.GR.GRSymbol;
 import RTi.GR.GRSymbolShapeType;
+import RTi.GR.GRSymbolShapeTypeListContents;
 import RTi.GR.GRSymbolType;
 import RTi.Util.IO.PropList;
 
@@ -956,10 +957,15 @@ public void setDefaultLegend ( int count ) {
 		// Try for now.
 		//outline_color = GRColor.black;
 	}
-	// Create a symbol.  The subtype currently only affects the point symbols.
+
+	// Create a symbol:
+	// - the subtype currently only affects the point symbols
+	// - the list of symbols is retrieved each time this method is called,
+	//   which is a resource hit but there are not that many layers
+	GRSymbolShapeType [] shapeTypes = GRSymbol.getShapeTypes(GRSymbolShapeTypeListContents.GEOLAYER_DEFAULT);
+
 	// Initial value.
-	symbol = new GRSymbol ( symType,
-		GRSymbolShapeType.valueOf(GRSymbolShapeType.CIRCLE_FILLED.getNumber() + count - 1), color, outline_color, symsize );
+	symbol = new GRSymbol ( symType, shapeTypes[count - 1], color, outline_color, symsize );
 	if ( layerType == GeoLayer.GRID ) {
 		// Set a default color table assuming 10 colors.
 		symbol.setColorTable ( "YellowToRed", 10 );

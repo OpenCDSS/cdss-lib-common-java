@@ -11,33 +11,17 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
 
-// ----------------------------------------------------------------------------
-// GRPolygonList - GR polygon list
-// ----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 23 Jun 1999	Steven A. Malers	Initial version.  Copy GRPolylineList
-//					and update.
-// 2001-12-07	SAM, RTI		Add to copy is_selected and
-//					associated_object.
-// 2005-04-26	J. Thomas Sapienza, RTi	finalize() uses IOUtil.nullArray().
-// ----------------------------------------------------------------------------
-
 package RTi.GR;
-
-import RTi.Util.IO.IOUtil;
 
 import RTi.Util.Message.Message;
 
@@ -164,7 +148,8 @@ Reinitialize the polygons array to the specified size.  The polygon data must th
 @param npolygons_set Number of polygons to size the polygons array.
 */
 public void setNumPolygons ( int npolygons_set ) {
-	try {	polygons = new GRPolygon[npolygons_set];
+	try {
+		polygons = new GRPolygon[npolygons_set];
 		npolygons = npolygons_set;
 		xmin = xmax = ymin = ymax = 0.0;
 		limits_found = false;
