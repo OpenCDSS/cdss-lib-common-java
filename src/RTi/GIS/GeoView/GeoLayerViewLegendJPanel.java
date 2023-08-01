@@ -47,8 +47,6 @@ import RTi.GR.GRSymbol;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJButton;
 
-import RTi.Util.IO.IOUtil;
-
 import RTi.Util.String.StringUtil;
 
 import RTi.Util.Table.DataTable;

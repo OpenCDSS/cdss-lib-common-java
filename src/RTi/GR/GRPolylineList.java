@@ -11,19 +11,17 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
 
 package RTi.GR;
-
-import RTi.Util.IO.IOUtil;
 
 import RTi.Util.Message.Message;
 
@@ -128,7 +126,7 @@ public boolean equals ( GRPolylineList polylinelist ) {
 Returns the number of polylines.
 @return the number of polylines.
 */
-public int getNumPolylines ( ) {	
+public int getNumPolylines ( ) {
 	return npolylines;
 }
 
@@ -138,7 +136,7 @@ A reference to the polyline is returned.  Reference the public data directly to 
 @param i index position in polyline array (starting at zero).
 @return a polyline from the array or null if outside the bounds of the array.
 */
-public GRPolyline getPolyline ( int i ) {	
+public GRPolyline getPolyline ( int i ) {
 	if ( (i < 0) || (i > (npolylines - 1)) ) {
 		return null;
 	}
@@ -150,8 +148,9 @@ public GRPolyline getPolyline ( int i ) {
 Reinitialize the polylines array to the specified size.  The polyline data must be re-set.
 @param npolylines_set Number of polylines to size the polylines array.
 */
-public void setNumPolylines ( int npolylines_set ) {	
-	try {	polylines = new GRPolyline[npolylines_set];
+public void setNumPolylines ( int npolylines_set ) {
+	try {
+		polylines = new GRPolyline[npolylines_set];
 		npolylines = npolylines_set;
 		xmin = xmax = ymin = ymax = 0.0;
 		limits_found = false;
@@ -169,7 +168,7 @@ A reference to the given polyline is saved, not a copy of the data.
 @param i Array position for polyline (starting at zero).
 @param polyline Polyline to set (null polylines are allowed).
 */
-public void setPolyline ( int i, GRPolyline polyline ) {	
+public void setPolyline ( int i, GRPolyline polyline ) {
 	if ( (i < 0) || (i > (npolylines - 1)) ) {
 		return;
 	}

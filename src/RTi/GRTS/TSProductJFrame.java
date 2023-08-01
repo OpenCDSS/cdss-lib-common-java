@@ -56,6 +56,7 @@ import javax.swing.WindowConstants;
 import RTi.GR.GRAxisDirectionType;
 import RTi.GR.GRColor;
 import RTi.GR.GRSymbol;
+import RTi.GR.GRSymbolShapeTypeListContents;
 import RTi.GR.GRText;
 import RTi.GRTS.TSProductAnnotationProvider;
 import RTi.TS.TSUtil;
@@ -1570,9 +1571,9 @@ private JPanel createAnnotationJPanel() {
 	__annotation_line_JPanel.setLayout(gbl);
 	__annotation_line_PointX1_JTextField = new JTextField(10);
 	__annotation_line_PointX1_JTextField.setToolTipText("X-coordinate for line end-point 1, in x-axis system (YYYY-MM-DD, etc. if date/time)");
-	y = 0;
+	y = -1;
 	JGUIUtil.addComponent(__annotation_line_JPanel, new JLabel("X1: "),
-		0, y, 1, 1, 1, 1,
+		0, ++y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(__annotation_line_JPanel,
 		__annotation_line_PointX1_JTextField,
@@ -1667,9 +1668,9 @@ private JPanel createAnnotationJPanel() {
 	__annotation_rectangle_JPanel.setLayout(gbl);
 	__annotation_rectangle_PointX1_JTextField = new JTextField(10);
 	__annotation_rectangle_PointX1_JTextField.setToolTipText("X-coordinate for rectangle corner 1, in x-axis system (YYYY-MM-DD, etc. if date/time)");
-	y = 0;
+	y = -1;
 	JGUIUtil.addComponent(__annotation_rectangle_JPanel, new JLabel("X1: "),
-		0, y, 1, 1, 1, 1,
+		0, ++y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(__annotation_rectangle_JPanel,
 		__annotation_rectangle_PointX1_JTextField,
@@ -1740,25 +1741,24 @@ private JPanel createAnnotationJPanel() {
 	__annotation_symbol_JPanel.setLayout(gbl);
 
 	__annotation_symbol_SymbolStyle_JComboBox = new SimpleJComboBox(false);
-	size = GRSymbol.SYMBOL_NAMES.length;
-	List<String> annotationSymbolStyleChoices = new ArrayList<>();
-	for (int i = 0; i < size; i++) {
-		annotationSymbolStyleChoices.add(GRSymbol.SYMBOL_NAMES[i]);
+	String [] symbolTypeNames = GRSymbol.getShapeTypeNames(GRSymbolShapeTypeListContents.APP_CHOICES);
+	List<String>annotationSymbolStyleChoices = new ArrayList<>();
+	for ( String symbolTypeName : symbolTypeNames ) {
+		annotationSymbolStyleChoices.add(symbolTypeName);
 	}
 	__annotation_symbol_SymbolStyle_JComboBox.setData(annotationSymbolStyleChoices);
 
-	y = 0;
+	y = -1;
 	JGUIUtil.addComponent(__annotation_symbol_JPanel, new JLabel("Symbol style: " ),
-		0, y, 1, 1, 1, 1,
+		0, ++y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(__annotation_symbol_JPanel, __annotation_symbol_SymbolStyle_JComboBox,
 		1, y, 7, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
-	y++;
 	__annotation_symbol_PointX_JTextField = new JTextField(10);
 	__annotation_symbol_PointX_JTextField.setToolTipText("X-coordinate for symbol, in x-axis system (YYYY-MM-DD, etc. if date/time)");
 	JGUIUtil.addComponent(__annotation_symbol_JPanel, new JLabel("X: "),
-		0, y, 1, 1, 1, 1,
+		0, ++y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(__annotation_symbol_JPanel, __annotation_symbol_PointX_JTextField,
 		1, y, 1, 1, 1, 1,
@@ -1785,17 +1785,15 @@ private JPanel createAnnotationJPanel() {
 	__annotation_symbol_SymbolPosition_JComboBox.add("Center");
 	__annotation_symbol_SymbolPosition_JComboBox.select("Right");
 	__annotation_symbol_SymbolPosition_JComboBox.setMaximumRowCount(10);
-	y++;
 	JGUIUtil.addComponent(__annotation_symbol_JPanel, new JLabel("Symbol position: "),
-		0, y, 1, 1, 1, 1,
+		0, ++y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(__annotation_symbol_JPanel, __annotation_symbol_SymbolPosition_JComboBox,
 		1, y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 
-	y++;
 	JGUIUtil.addComponent(__annotation_symbol_JPanel, new JLabel("Symbol size: "),
-		0, y, 1, 1, 1, 1,
+		0, ++y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__annotation_symbol_SymbolSize_JComboBox = new SimpleJComboBox(true);
 	__annotation_symbol_SymbolSize_JComboBox.setToolTipText("Symbol size in pixels (printed size will scale to graph size)");
@@ -1823,9 +1821,8 @@ private JPanel createAnnotationJPanel() {
 	__annotation_symbol_color_JTextField.setEditable(false);
 	__annotation_symbol_color_JTextField.setBackground(GRColor.parseColor(GRColor.COLOR_NAMES[1]));
 
-	y++;
 	JGUIUtil.addComponent(__annotation_symbol_JPanel, new JLabel("Color: "),
-		0, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
+		0, ++y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
 		GridBagConstraints.EAST);
 	JGUIUtil.addComponent(__annotation_symbol_JPanel, __annotation_symbol_color_JTextField,
 		1, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
@@ -1842,17 +1839,16 @@ private JPanel createAnnotationJPanel() {
 	__annotation_text_JPanel.setLayout(gbl);
 
 	__annotation_text_Text_JTextField = new JTextField(20);
-	y = 0;
+	y = -1;
 	JGUIUtil.addComponent(__annotation_text_JPanel, new JLabel("Text: " ),
-		0, y, 1, 1, 1, 1,
+		0, ++y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(__annotation_text_JPanel,
 		__annotation_text_Text_JTextField,
 		1, y, 7, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
-	y++;
 	JGUIUtil.addComponent(__annotation_text_JPanel, new JLabel("X: "),
-		0, y, 1, 1, 1, 1,
+		0, ++y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	__annotation_text_PointX_JTextField = new JTextField(10);
 	__annotation_text_PointX_JTextField.setToolTipText("X-coordinate for text, in x-axis system (YYYY-MM-DD, etc. if date/time)");
@@ -1882,9 +1878,8 @@ private JPanel createAnnotationJPanel() {
 	__annotation_text_Position_JComboBox.add("Center");
 	__annotation_text_Position_JComboBox.select("Right");
 	__annotation_text_Position_JComboBox.setMaximumRowCount(10);
-	y++;
 	JGUIUtil.addComponent(__annotation_text_JPanel, new JLabel("Text position: "),
-		0, y, 1, 1, 1, 1,
+		0, ++y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(__annotation_text_JPanel, __annotation_text_Position_JComboBox,
 		1, y, 1, 1, 1, 1,
@@ -1892,9 +1887,8 @@ private JPanel createAnnotationJPanel() {
 
 	__annotation_text_FontName_JComboBox = JGUIUtil.newFontNameJComboBox(true,true);
 	__annotation_text_FontStyle_JComboBox =JGUIUtil.newFontStyleJComboBox();
-	y++;
 	JGUIUtil.addComponent(__annotation_text_JPanel, new JLabel("Font name: "),
-		0, y, 1, 1, 1, 1,
+		0, ++y, 1, 1, 1, 1,
 		GridBagConstraints.NONE, GridBagConstraints.EAST);
 	JGUIUtil.addComponent(__annotation_text_JPanel, __annotation_text_FontName_JComboBox,
 		1, y, 7, 1, 1, 1, // Make width 2 so it does not cause the first column to be wide for other components.
@@ -1931,9 +1925,8 @@ private JPanel createAnnotationJPanel() {
 	__annotation_text_color_JTextField.setEditable(false);
 	__annotation_text_color_JTextField.setBackground(GRColor.parseColor(GRColor.COLOR_NAMES[1]));
 
-	y++;
 	JGUIUtil.addComponent(__annotation_text_JPanel, new JLabel("Color: "),
-		0, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
+		0, ++y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
 		GridBagConstraints.EAST);
 	JGUIUtil.addComponent(__annotation_text_JPanel, __annotation_text_color_JTextField,
 		1, y, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
@@ -2101,11 +2094,11 @@ private JPanel createDataJPanel () {
 	symbol_JPanel.setLayout ( gbl );
 	_ts_JTabbedPane.addTab ( "Symbol", null, symbol_JPanel, "Symbol properties" );
 
-	y = 0;
+	y = -1;
 	// Some will be disabled if not a line graph.
 	JGUIUtil.addComponent ( symbol_JPanel, new JLabel ("Line style:"),
-			0, y, 1, 1, 0, 0, _insetsTLBR,
-			GridBagConstraints.NONE, GridBagConstraints.EAST );
+		0, ++y, 1, 1, 0, 0, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_ts_linestyle_JComboBox = new SimpleJComboBox ( false );
 	_ts_linestyle_JComboBox.setToolTipText("Line style for line graphs.");
 	List<String> tsLineStyleChoices = new ArrayList<>();
@@ -2167,10 +2160,10 @@ private JPanel createDataJPanel () {
 			GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_ts_symbolstyle_JComboBox = new SimpleJComboBox ( false );
 	_ts_symbolstyle_JComboBox.setToolTipText ( "Symbol for line and point graphs - see also symbol size.");
-	size = GRSymbol.SYMBOL_NAMES.length;
+	String [] symbolTypeNames = GRSymbol.getShapeTypeNames(GRSymbolShapeTypeListContents.APP_CHOICES);
 	List<String> tsSymbolStyleChoices = new ArrayList<>();
-	for ( int i = 0; i < size; i++ ) {
-		tsSymbolStyleChoices.add ( GRSymbol.SYMBOL_NAMES[i] );
+	for ( String symbolTypeName : symbolTypeNames) {
+		tsSymbolStyleChoices.add ( symbolTypeName );
 	}
 	_ts_symbolstyle_JComboBox.setData(tsSymbolStyleChoices);
 	JGUIUtil.addComponent ( symbol_JPanel, _ts_symbolstyle_JComboBox,
@@ -2197,11 +2190,10 @@ private JPanel createDataJPanel () {
         GridBagConstraints.NONE, GridBagConstraints.EAST );
     _ts_flaggedDataSymbolStyle_JComboBox = new SimpleJComboBox ( false );
     _ts_flaggedDataSymbolStyle_JComboBox.setToolTipText ( "Flagged data symbol for line and point graphs - see also symbol size.");
-    size = GRSymbol.SYMBOL_NAMES.length;
     List<String> tsFlaggedSymbolStyleChoices = new ArrayList<>();
     tsFlaggedSymbolStyleChoices.add ( "" );
-    for ( int i = 0; i < size; i++ ) {
-    	tsFlaggedSymbolStyleChoices.add ( GRSymbol.SYMBOL_NAMES[i] );
+	for ( String symbolTypeName : symbolTypeNames) {
+    	tsFlaggedSymbolStyleChoices.add ( symbolTypeName );
     }
     _ts_flaggedDataSymbolStyle_JComboBox.setData(tsFlaggedSymbolStyleChoices);
     JGUIUtil.addComponent ( symbol_JPanel, _ts_flaggedDataSymbolStyle_JComboBox,
@@ -2271,11 +2263,11 @@ private JPanel createDataJPanel () {
 	legend_JPanel.setLayout ( gbl );
 	_ts_JTabbedPane.addTab ( "Legend", null, legend_JPanel, "Legend properties" );
 
-	y = 0;
+	y = -1;
 	// Need to add "LegendEnabled" checkbox.
 	JGUIUtil.addComponent ( legend_JPanel, new JLabel ( "If the " +
 			"Format is Auto, defaults or the Graph Properties / Legend / Format will be used."),
-			0, y, 3, 1, 0, 0, _insetsTLBR,
+			0, ++y, 3, 1, 0, 0, _insetsTLBR,
 			GridBagConstraints.NONE, GridBagConstraints.WEST );
 	JGUIUtil.addComponent ( legend_JPanel, new JLabel ("Format (see choices):"),
 			0, ++y, 1, 1, 0, 0, _insetsTLBR,
@@ -2431,9 +2423,9 @@ private JPanel createProductJPanel () {
 	title_JPanel.setLayout ( gbl );
 	_product_JTabbedPane.addTab ( "Titles", null, title_JPanel, "Title properties" );
 
-	int y = 0;
+	int y = -1;
 	JGUIUtil.addComponent ( title_JPanel, new JLabel ("Main title:"),
-			0, y, 1, 1, 0, 0,
+			0, ++y, 1, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_product_maintitle_JTextField = new JTextField ( 30 );
 	_product_maintitle_JTextField.setToolTipText("Main title shown at top of product");
@@ -2821,9 +2813,9 @@ private JPanel createSubproductJPanel () {
 	title_JPanel.setLayout ( gbl );
 	_graph_JTabbedPane.addTab ( "Titles", null, title_JPanel, "Title properties" );
 
-	int y = 0;
+	int y = -1;
 	JGUIUtil.addComponent ( title_JPanel, new JLabel ("Main title:"),
-			0, y, 1, 1, 0, 0,
+			0, ++y, 1, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 	_graph_maintitle_JTextField = new JTextField ( 30 );
 	_graph_maintitle_JTextField.setToolTipText("Graph main title text, shown above the graph");
@@ -2881,9 +2873,9 @@ private JPanel createSubproductJPanel () {
 	xaxes_JPanel.setLayout ( gbl );
 	_graph_JTabbedPane.addTab ( "X Axis (Bottom)", null, xaxes_JPanel, "X Axis properties" );
 
-	y = 0;
+	y = -1;
 	JGUIUtil.addComponent ( xaxes_JPanel, new JLabel ("Title:"),
-			0, y, 1, 1, 0, 0,
+			0, ++y, 1, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	_graph_bottomx_title_JTextField = new JTextField ( 30 );
 	_graph_bottomx_title_JTextField.setToolTipText("Graph bottom title text, shown below the graph");
@@ -2956,14 +2948,14 @@ private JPanel createSubproductJPanel () {
 	yAxisLeft_JPanel.setLayout ( gbl );
 	_graph_JTabbedPane.addTab ( "Y Axis (Left)", null, yAxisLeft_JPanel, "Left Y axis properties" );
 
-	y = 0;
+	y = -1;
 	// Create a sub-panel with a border to hold title properties.
 	JPanel yAxisLeftTitle_JPanel = new JPanel();
 	yAxisLeftTitle_JPanel.setLayout(gbl);
 	yAxisLeftTitle_JPanel.setBorder(BorderFactory.createTitledBorder(
 		BorderFactory.createLineBorder(Color.BLACK,1),"Y Axis (Left) Title"));
 	JGUIUtil.addComponent ( yAxisLeft_JPanel, yAxisLeftTitle_JPanel,
-		0, y, 5, 1, 0, 0,
+		0, ++y, 5, 1, 0, 0,
 		_insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
 	int yAxisLeftTitle = -1;
@@ -3196,14 +3188,14 @@ private JPanel createSubproductJPanel () {
 	yAxisRight_JPanel.setLayout ( gbl );
 	_graph_JTabbedPane.addTab ( "Y Axis (Right)", null, yAxisRight_JPanel, "Right Y axis properties" );
 
-	y = 0;
+	y = -1;
 	// Create a sub-panel with a border to hold title properties.
 	JPanel yAxisRightTitle_JPanel = new JPanel();
 	yAxisRightTitle_JPanel.setLayout(gbl);
 	yAxisRightTitle_JPanel.setBorder(BorderFactory.createTitledBorder(
 		BorderFactory.createLineBorder(Color.BLACK,1),"Y Axis (Right) Title"));
 	JGUIUtil.addComponent ( yAxisRight_JPanel, yAxisRightTitle_JPanel,
-		0, y, 5, 1, 0, 0,
+		0, ++y, 5, 1, 0, 0,
 		_insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
 	int yAxisRightTitle = 0;
@@ -3503,11 +3495,11 @@ private JPanel createSubproductJPanel () {
 	legend_JPanel.setLayout ( gbl );
 	_graph_JTabbedPane.addTab ( "Legend", null, legend_JPanel, "Legend properties" );
 
-	y = 0;
+	y = -1;
 	// Need to add "LegendEnabled" checkbox.
 
 	JGUIUtil.addComponent ( legend_JPanel, new JLabel ( "If the Format is Auto, the Time Series Legend Format or defaults will be used."),
-			0, y, 6, 1, 0, 0,
+			0, ++y, 6, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	JGUIUtil.addComponent ( legend_JPanel,
 			new JSeparator(SwingConstants.HORIZONTAL),
@@ -3607,9 +3599,9 @@ private JPanel createSubproductJPanel () {
 	_graph_zoomenabled_JCheckBox.setEnabled ( false );
 	_graph_zoomenabled_JCheckBox.setSelected ( true );
 	_graph_zoomenabled_JCheckBox.setEnabled ( false );
-	y = 0;
+	y = -1;
 	JGUIUtil.addComponent (zoom_JPanel,_graph_zoomenabled_JCheckBox,
-			0, y, 1, 1, 0, 0,
+			0, ++y, 1, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	JGUIUtil.addComponent (zoom_JPanel,new JLabel("Zoom group:"),
 			0, ++y, 1, 1, 0, 0,
@@ -3653,10 +3645,10 @@ private JPanel createSubproductJPanel () {
 			_xyscatter_analysis_JPanel, 0, 0, 1, 1, 1, 1,
 			_insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.WEST );
 	_xyscatter_analysis_JPanel.setVisible ( false );
-	y = 0;
+	y = -1;
 	JGUIUtil.addComponent ( _xyscatter_analysis_JPanel,
 			new JLabel ( "Select the parameters for the XY-Scatter Graph curve fit analysis (applies to all time series)." ),
-			0, y, 7, 1, 1, 1,
+			0, ++y, 7, 1, 1, 1,
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
 	JGUIUtil.addComponent ( _xyscatter_analysis_JPanel, new JLabel ( "Curve fit method:" ),
@@ -6514,12 +6506,12 @@ private void openGUI ( boolean visible ) {
 		display_JPanel.setLayout ( gbl );
 		getContentPane().add ( display_JPanel );
 
-		int y = 0;
+		int y = -1;
 
 		// Panel for graph layout (shows sub-product row/column), etc.
 
 		JGUIUtil.addComponent ( display_JPanel, createLayoutJPanel(),
-				0, y, 2, 1, 0, 0,
+				0, ++y, 2, 1, 0, 0,
 				insetsLR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 
 		// Panel for product properties.

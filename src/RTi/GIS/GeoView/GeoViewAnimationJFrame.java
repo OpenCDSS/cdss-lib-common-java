@@ -44,7 +44,6 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 
-import RTi.GR.GRSymbol;
 import RTi.GR.GRSymbolShapeType;
 import RTi.TS.TS;
 
@@ -52,7 +51,6 @@ import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.ResponseJDialog;
 import RTi.Util.GUI.SimpleJComboBox;
 
-import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.ProcessListener;
 import RTi.Util.IO.PropList;
 
@@ -74,15 +72,15 @@ implements ActionListener, ProcessListener, WindowListener {
 Button labels.
 */
 private final String
-	__BUTTON_ACCEPT = 	"Accept",
-	__BUTTON_END = 		">>",
-	__BUTTON_NEXT =		">",
-	__BUTTON_PAUSE = 	"Pause",
-	__BUTTON_PREV = 	"<",
-	__BUTTON_RUN = 		"Start",
-	__BUTTON_SET_DATE = 	"Set Current Date",
-	__BUTTON_START = 	"<<",
-	__BUTTON_STOP = 	"Stop";
+	__BUTTON_ACCEPT = "Accept",
+	__BUTTON_END = ">>",
+	__BUTTON_NEXT = ">",
+	__BUTTON_PAUSE = "Pause",
+	__BUTTON_PREV = "<",
+	__BUTTON_RUN = "Start",
+	__BUTTON_SET_DATE = "Set Current Date",
+	__BUTTON_START = "<<",
+	__BUTTON_STOP = "Stop";
 
 /**
 Dates used internally.
@@ -432,7 +430,7 @@ throws Exception {
 	List<GeoViewAnimationData> groupDataV = null;
 	List<Double> maxValuesV = null;
 
-	__layers = new ArrayList<GeoLayerView>();
+	__layers = new ArrayList<>();
 
 	List<String> groupNames = getGroupNames();
 	int groupSize = groupNames.size();
@@ -461,8 +459,8 @@ throws Exception {
 			continue;
 		}
 
-		animationFieldsV = new ArrayList<Integer>();
-		maxValuesV = new ArrayList<Double>();
+		animationFieldsV = new ArrayList<>();
+		maxValuesV = new ArrayList<>();
 
 		// Find out the animation fields and the max values that will need to be passed in to addSummaryView for this layer.
 
@@ -657,12 +655,12 @@ list that have their radio button or check box selected.  Guaranteed to be non-n
 */
 private List<GeoViewAnimationData> findSelectedData(List<GeoViewAnimationData> dataV) {
 	if (dataV == null || dataV.size() == 0) {
-		return new ArrayList<GeoViewAnimationData>();
+		return new ArrayList<>();
 	}
 
 	GeoViewAnimationData data = null;
 	int size = dataV.size();
-	List<GeoViewAnimationData> v = new ArrayList<GeoViewAnimationData>();
+	List<GeoViewAnimationData> v = new ArrayList<>();
 
 	for (int i = 0; i < size; i++) {
 		data = dataV.get(i);
@@ -687,7 +685,7 @@ Returns all the GeoViewAnimationData objects that have the given group name.
 This list may be empty if the group name is not matched, but it will never be null.
 */
 private List<GeoViewAnimationData> getGroupData(String groupName) {
-	List<GeoViewAnimationData> found = new ArrayList<GeoViewAnimationData>();
+	List<GeoViewAnimationData> found = new ArrayList<>();
 	for (int i = 0; i < __numData; i++) {
 		if (groupName.equalsIgnoreCase(__data[i].getGroupName())) {
 			found.add(__data[i]);
@@ -703,7 +701,7 @@ The group name is compared without case sensitivity.
 @return a list of the data objects that match the group name.  Guaranteed to be non-null.
 */
 private List<Integer> getGroupDataNums(String groupName) {
-	List<Integer> found = new ArrayList<Integer>();
+	List<Integer> found = new ArrayList<>();
 	for (int i = 0; i < __numData; i++) {
 		if (groupName.equalsIgnoreCase(__data[i].getGroupName())) {
 			found.add(new Integer(i));
@@ -719,7 +717,7 @@ Gets the names of all the data object groups.  Data group names are compared cas
 private List<String> getGroupNames() {
 	boolean found = false;
 	String s;
-	List<String> foundV = new ArrayList<String>();
+	List<String> foundV = new ArrayList<>();
 	for (int i = 0; i < __numData; i++) {
 		found = false;
 		for (int j = 0; j < foundV.size(); j++) {

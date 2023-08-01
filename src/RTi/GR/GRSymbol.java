@@ -27,10 +27,10 @@ import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
 /**
-This class stores information necessary to draw symbology.
+This class stores information necessary to draw symbols.
 Symbols may be used with points, lines (in which case a line style, width, and color are used),
 and polygons (in which case color, outline color, and fill pattern are used).
-Consequently, symbols can be used for graphs, maps, and other visualization.
+Consequently, symbols can be used for graphs, maps, and other visualizations.
 Symbols can currently be varied in color based on a classification; however,
 varying the size (e.g., for point symbols) is NOT enabled.
 If classification is used, then additional data like a color table are used.
@@ -41,145 +41,6 @@ Additional features may be added later to help with optimization of multi-symbol
 public class GRSymbol
 implements Cloneable
 {
-
-/**
-Names for symbols, for use with persistent storage.
-These are consistent with SYMBOL_NUMBERS.
-Only symbols that are useful in a final application are included (not building-block symbols).
-*/
-public static final String[] SYMBOL_NAMES = {
-	"None",	// Transparent.
-	"Arrow-Down",
-	"Arrow-Down-Left",
-	"Arrow-Down-Right",
-	"Arrow-Left",
-	"Arrow-Right",
-	"Arrow-Up",
-	"Arrow-Up-Left",
-	"Arrow-Up-Right",
-	"Asterisk",
-	"Circle-Hollow",
-	"Circle-Filled",
-	"Circle-Plus",
-	"Diamond-Hollow",
-	"Diamond-Filled",
-	"InstreamFlow",
-	"Plus",
-	"Plus-Square",
-	"Square-Hollow",
-	"Square-Filled",
-	"TeaCup",
-	"Triangle-Down-Hollow",
-	"Triangle-Down-Filled",
-	"Triangle-Left-Hollow",
-	"Triangle-Left-Filled",
-	"Triangle-Right-Hollow",
-	"Triangle-Right-Filled",
-	"Triangle-Up-Hollow",
-	"Triangle-Up-Filled",
-	"VerticalBar-Signed",
-	"X",
-	"X-Cap",
-	"X-Diamond",
-	"X-Edge",
-	"X-Square",
-	"Triangle-Up-Filled-Topline",
-	"Triangle-Down-Filled-Botline",
-	"Triangle-Up-Hollow-Topline",
-	"Triangle-Down-Hollow-Botline",
-	"Pushpin-Vertical"
-};
-
-/**
-Summary definition (used by routines to limit symbol selection): <b>first "nice" symbol</b>
-*/
-public static final GRSymbolShapeType SYM_FIRST = GRSymbolShapeType.CIRCLE;
-
-/**
-Summary definition (used by routines to limit symbol selection): <b>last "nice" symbol</b>
-*/
-public static final GRSymbolShapeType SYM_LAST = GRSymbolShapeType.ARROW_UP_LEFT_FILLED;
-
-/**
-Summary definition (used by routines to limit symbol selection): <b>last of all symbols</b>
-*/
-public static final GRSymbolShapeType SYM_LASTALL = GRSymbolShapeType.FLDIA4;
-
-/**
-Summary definition (used by routines to limit symbol selection): <b>first outline symbol</b>
-*/
-public static final GRSymbolShapeType SYM_FIRST_OUT = GRSymbolShapeType.CIRCLE;
-
-/**
-Summary definition (used by routines to limit symbol selection): <b>last outline symbol</b>
-*/
-public static final GRSymbolShapeType SYM_LAST_OUT = GRSymbolShapeType.DIAMOND;
-
-/**
-Summary definition (used by routines to limit symbol selection): <b>first filled symbol</b>
-*/
-public static final GRSymbolShapeType SYM_FIRST_FILL = GRSymbolShapeType.CIRCLE_FILLED;
-
-/**
-Summary definition (used by routines to limit symbol selection): <b>last filled symbol</b>
-*/
-public static final GRSymbolShapeType SYM_LAST_FILL = GRSymbolShapeType.DIAMOND_FILLED;
-
-/**
-Summary definition (used by routines to limit symbol selection): <b>first line symbol</b>
-*/
-public static final GRSymbolShapeType SYM_FIRST_LINE = GRSymbolShapeType.CIRCLE;
-
-/**
-Summary definition (used by routines to limit symbol selection): <b>last line symbol</b>
-*/
-public static final GRSymbolShapeType SYM_LAST_LINE = GRSymbolShapeType.X_DIAMOND;
-
-/**
-Symbol point types that are suitable for end use (not building blocks).
-*/
-public static final GRSymbolShapeType[] SYMBOL_POINT_TYPES = {
-	GRSymbolShapeType.NONE,
-	GRSymbolShapeType.ARROW_DOWN,
-	GRSymbolShapeType.ARROW_DOWN_LEFT_FILLED,
-	GRSymbolShapeType.ARROW_DOWN_RIGHT_FILLED,
-	GRSymbolShapeType.ARROW_LEFT,
-	GRSymbolShapeType.ARROW_RIGHT,
-	GRSymbolShapeType.ARROW_UP,
-	GRSymbolShapeType.ARROW_UP_LEFT_FILLED,
-	GRSymbolShapeType.ARROW_UP_RIGHT_FILLED,
-	GRSymbolShapeType.ASTERISK,
-	GRSymbolShapeType.CIRCLE,
-	GRSymbolShapeType.CIRCLE_FILLED,
-	GRSymbolShapeType.CIRCLE_PLUS,
-	GRSymbolShapeType.DIAMOND,
-	GRSymbolShapeType.DIAMOND_FILLED,
-	GRSymbolShapeType.INSTREAM_FLOW,
-	GRSymbolShapeType.PLUS,
-	GRSymbolShapeType.PLUS_SQUARE,
-	GRSymbolShapeType.SQUARE,
-	GRSymbolShapeType.SQUARE_FILLED,
-	GRSymbolShapeType.TEACUP,
-	GRSymbolShapeType.TRIANGLE_DOWN,
-	GRSymbolShapeType.TRIANGLE_DOWN_FILLED,
-	GRSymbolShapeType.TRIANGLE_LEFT,
-	GRSymbolShapeType.TRIANGLE_LEFT_FILLED,
-	GRSymbolShapeType.TRIANGLE_RIGHT,
-	GRSymbolShapeType.TRIANGLE_RIGHT_FILLED,
-	GRSymbolShapeType.TRIANGLE_UP,
-	GRSymbolShapeType.TRIANGLE_UP_FILLED,
-	GRSymbolShapeType.VERTICAL_BAR_SIGNED,
-	GRSymbolShapeType.X,
-	GRSymbolShapeType.X_CAP,
-	GRSymbolShapeType.X_DIAMOND,
-	GRSymbolShapeType.X_EDGE,
-	GRSymbolShapeType.X_SQUARE,
-	GRSymbolShapeType.TRIANGLE_UP_TOP_LINE,
-	GRSymbolShapeType.TRIANGLE_DOWN_BOTTOM_LINE,
-	GRSymbolShapeType.TRIANGLE_UP_TOP_LINE,
-	GRSymbolShapeType.TRIANGLE_DOWN_BOTTOM_LINE,
-	GRSymbolShapeType.PUSHPIN_VERTICAL
-};
 
 /**
 Indicates whether only selected shapes should be labeled.  This is useful to clarify displays.
@@ -698,6 +559,160 @@ public GRColor getOutlineColor() {
 }
 
 /**
+ * Return the list of point shape type names, suitable for listing in a user interface.
+ * @param listContents enumeration value indicating the list to return
+ * @return a list of shape types corresponding to the requested list contents
+ * (if null, APP_CHOICES is used)
+ */
+public static String[] getShapeTypeNames ( GRSymbolShapeTypeListContents listContents ) {
+	GRSymbolShapeType [] shapeTypes = getShapeTypes ( listContents );
+	String [] shapeTypeNames = new String[shapeTypes.length];
+	int i = -1;
+	for ( GRSymbolShapeType shapeType : shapeTypes ) {
+		++i;
+		shapeTypeNames[i] = shapeType.toString();
+	}
+	return shapeTypeNames;
+}
+
+/**
+ * Return the list of point shape type, suitable for listing in a user interface.
+ * @param listContents enumeration value indicating the list to return:
+ * <ul>
+ * <li> <code>APP_CHOICES</code> - choices suitable for an application</li>
+ * <li> <code>GEOLAYER_DEFAULT</code> - used for default GeoLayer symbols (map)</li>
+ * <ul>
+ * @return a list of shape types corresponding to the requested list contents
+ * (if null, APP_CHOICES is used)
+ */
+public static GRSymbolShapeType [] getShapeTypes ( GRSymbolShapeTypeListContents listContents ) {
+	if ( listContents == null ) {
+		listContents = GRSymbolShapeTypeListContents.APP_CHOICES;
+	}
+	if ( listContents == GRSymbolShapeTypeListContents.APP_CHOICES ) {
+		// Symbols used in UIs such as TSTool.
+		GRSymbolShapeType [] shapeTypes = {
+			GRSymbolShapeType.NONE,
+			GRSymbolShapeType.ARROW_DOWN,
+			GRSymbolShapeType.ARROW_DOWN_LEFT_FILLED,
+			GRSymbolShapeType.ARROW_DOWN_RIGHT_FILLED,
+			GRSymbolShapeType.ARROW_LEFT,
+			GRSymbolShapeType.ARROW_RIGHT,
+			GRSymbolShapeType.ARROW_UP,
+			GRSymbolShapeType.ARROW_UP_LEFT_FILLED,
+			GRSymbolShapeType.ARROW_UP_RIGHT_FILLED,
+			GRSymbolShapeType.ASTERISK,
+			GRSymbolShapeType.CIRCLE,
+			GRSymbolShapeType.CIRCLE_FILLED,
+			GRSymbolShapeType.CIRCLE_PLUS,
+			GRSymbolShapeType.DIAMOND,
+			GRSymbolShapeType.DIAMOND_FILLED,
+			GRSymbolShapeType.ELLIPSE_HORIZONTAL,
+			GRSymbolShapeType.ELLIPSE_HORIZONTAL_FILLED,
+			GRSymbolShapeType.ELLIPSE_VERTICAL,
+			GRSymbolShapeType.ELLIPSE_VERTICAL_FILLED,
+			GRSymbolShapeType.INSTREAM_FLOW,
+			GRSymbolShapeType.PLUS,
+			GRSymbolShapeType.PLUS_SQUARE,
+			GRSymbolShapeType.RECTANGLE_HORIZONTAL,
+			GRSymbolShapeType.RECTANGLE_HORIZONTAL_FILLED,
+			GRSymbolShapeType.RECTANGLE_VERTICAL,
+			GRSymbolShapeType.RECTANGLE_VERTICAL_FILLED,
+			GRSymbolShapeType.SQUARE,
+			GRSymbolShapeType.SQUARE_FILLED,
+			GRSymbolShapeType.TEACUP,
+			GRSymbolShapeType.TRIANGLE_DOWN,
+			GRSymbolShapeType.TRIANGLE_DOWN_FILLED,
+			GRSymbolShapeType.TRIANGLE_LEFT,
+			GRSymbolShapeType.TRIANGLE_LEFT_FILLED,
+			GRSymbolShapeType.TRIANGLE_RIGHT,
+			GRSymbolShapeType.TRIANGLE_RIGHT_FILLED,
+			GRSymbolShapeType.TRIANGLE_UP,
+			GRSymbolShapeType.TRIANGLE_UP_FILLED,
+			//GRSymbolShapeType.VERTICAL_BAR_SIGNED,
+			GRSymbolShapeType.X,
+			GRSymbolShapeType.X_CAP,
+			GRSymbolShapeType.X_DIAMOND,
+			GRSymbolShapeType.X_EDGE,
+			GRSymbolShapeType.X_SQUARE,
+			GRSymbolShapeType.TRIANGLE_UP_TOP_LINE,
+			GRSymbolShapeType.TRIANGLE_DOWN_BOTTOM_LINE,
+			GRSymbolShapeType.TRIANGLE_UP_TOP_LINE,
+			GRSymbolShapeType.TRIANGLE_DOWN_BOTTOM_LINE,
+			GRSymbolShapeType.PUSHPIN_VERTICAL
+		};
+		return shapeTypes;
+	}
+	else if ( listContents == GRSymbolShapeTypeListContents.GEOLAYER_DEFAULT ) {
+		// Symbols used in time series products:
+		// - the order is consistent with historical GeoLayer default symbol
+		// - may change in the future to be more like TSTool graphs since GeoLayer is not often used
+		GRSymbolShapeType [] shapeTypes = {
+			// Hollow.
+			GRSymbolShapeType.CIRCLE,
+			GRSymbolShapeType.SQUARE,
+			GRSymbolShapeType.TRIANGLE_UP,
+			GRSymbolShapeType.TRIANGLE_DOWN,
+			GRSymbolShapeType.TRIANGLE_LEFT,
+			GRSymbolShapeType.TRIANGLE_RIGHT,
+			GRSymbolShapeType.DIAMOND,
+			GRSymbolShapeType.ELLIPSE_HORIZONTAL,
+			GRSymbolShapeType.ELLIPSE_VERTICAL,
+			GRSymbolShapeType.RECTANGLE_HORIZONTAL,
+			GRSymbolShapeType.RECTANGLE_VERTICAL,
+			GRSymbolShapeType.PLUS,
+			GRSymbolShapeType.PLUS_SQUARE,
+			GRSymbolShapeType.X,
+			GRSymbolShapeType.X_CAP,
+			GRSymbolShapeType.X_EDGE,
+			GRSymbolShapeType.X_SQUARE,
+
+			GRSymbolShapeType.ARROW_RIGHT,
+			GRSymbolShapeType.ARROW_LEFT,
+			GRSymbolShapeType.ARROW_UP,
+			GRSymbolShapeType.ARROW_DOWN,
+
+			GRSymbolShapeType.ASTERISK,
+			GRSymbolShapeType.X_DIAMOND,
+
+			// Filled.
+
+			GRSymbolShapeType.CIRCLE_FILLED,
+			GRSymbolShapeType.SQUARE_FILLED,
+			GRSymbolShapeType.TRIANGLE_UP_FILLED,
+			GRSymbolShapeType.TRIANGLE_DOWN_FILLED,
+			GRSymbolShapeType.TRIANGLE_LEFT_FILLED,
+			GRSymbolShapeType.TRIANGLE_RIGHT_FILLED,
+			GRSymbolShapeType.DIAMOND_FILLED,
+			GRSymbolShapeType.ELLIPSE_HORIZONTAL_FILLED,
+			GRSymbolShapeType.ELLIPSE_VERTICAL_FILLED,
+			GRSymbolShapeType.RECTANGLE_HORIZONTAL_FILLED,
+			GRSymbolShapeType.RECTANGLE_VERTICAL_FILLED,
+
+			// TODO smalers 2023-07-31 Not sure about these.
+			GRSymbolShapeType.ARROW_DOWN_LEFT_FILLED,
+			GRSymbolShapeType.ARROW_DOWN_RIGHT_FILLED,
+			GRSymbolShapeType.ARROW_UP_LEFT_FILLED,
+			GRSymbolShapeType.ARROW_UP_RIGHT_FILLED,
+			GRSymbolShapeType.CIRCLE_PLUS,
+			GRSymbolShapeType.INSTREAM_FLOW,
+			GRSymbolShapeType.TEACUP,
+			GRSymbolShapeType.VERTICAL_BAR_SIGNED,
+			GRSymbolShapeType.TRIANGLE_UP_TOP_LINE,
+			GRSymbolShapeType.TRIANGLE_DOWN_BOTTOM_LINE,
+			GRSymbolShapeType.TRIANGLE_UP_TOP_LINE,
+			GRSymbolShapeType.TRIANGLE_DOWN_BOTTOM_LINE,
+			GRSymbolShapeType.PUSHPIN_VERTICAL
+		};
+		return shapeTypes;
+	}
+	else {
+		// Should never happen.
+		return null;
+	}
+}
+
+/**
 Return the symbol shape type.
 */
 public GRSymbolShapeType getShapeType () {
@@ -1036,28 +1051,6 @@ public void setTransparency ( int transparency ) {
 }
 
 /**
-Look up a symbol number given a name.  This is useful when the symbol names are stored in a persistent way
-(avoid using numbers in config files because symbol numbers may change).
-@return the symbol number given the symbol name.
-@exception Exception if a symbol cannot be matched.
-*/
-/* TODO smalers 2023-07-27 use the enumeration.
-public static int toInteger ( String symbolName )
-throws Exception {
-	if ( symbolName == null ) {
-		return SYM_NONE;
-	}
-	int length = SYMBOL_NAMES.length;
-	for ( int i = 0; i < length; i++ ) {
-		if ( symbolName.equalsIgnoreCase(SYMBOL_NAMES[i]) ) {
-			return SYMBOL_NUMBERS[i];
-		}
-	}
-	throw new Exception ( "Cannot convert symbol \"" + symbolName + "\" to integer value." );
-}
-*/
-
-/**
 Return a string representation of the symbol.
 @return a string representation of the symbol.
 */
@@ -1065,24 +1058,5 @@ public String toString () {
 	return new String ( "Type: " + _type + " Color: " + _color +
 			" Color2: " + _color2 + " Size: " + __size_x + "," + __size_y );
 }
-
-/**
-Look up a symbol name given a number.
-This is useful when the symbol names are stored in a persistent way
-(avoid using numbers in configuration files because symbol numbers may change).
-@param symbolNumber the number of the symbol to look up.
-@return the symbol name given the symbol number, or "None" if a matching symbol cannot be found.
-*/
-/* TODO smalers 2023-07-27 use enumeration of shapeType
-public static String toString ( int symbolNumber ) {
-	int length = SYMBOL_NUMBERS.length;
-	for ( int i = 0; i < length; i++ ) {
-		if ( symbolNumber == SYMBOL_NUMBERS[i] ) {
-			return SYMBOL_NAMES[i];
-		}
-	}
-	return SYMBOL_NAMES[0]; // "None".
-}
-*/
 
 }

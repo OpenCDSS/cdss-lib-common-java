@@ -694,8 +694,8 @@ Draw a symbol at a point.
 @param symbol Symbol to be drawn at point (see GRSymbolShapeType.SYM_*).
 @param x X-coordinate of the point in data units.
 @param y Y-coordinate of the point in data units.
-@param size_x Size of the symbol in the x-direction (see "flag").
-@param size_y Size of the symbol in the y-direction (see "flag").
+@param size_x Size of the total symbol area in the x-direction (see "flag"), the specified symbol will cover a portion.
+@param size_y Size of the total symbol area in the y-direction (see "flag"), the specified symbol will cover a portion.
 @param offset_x X offset of the symbol from the given location.
 This can be used to plot multiple symbols at a point.
 @param offset_y Y offset of the symbol from the given location.
@@ -769,7 +769,11 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 			ys += msizey2;
 		}
 	}
-	// Now draw the symbol.  A large "if" statement is used to check the symbol style.
+
+	// Now draw the symbol:
+	// - a large "if" statement is used to check the symbol style
+	// - TODO smalers 2023-07-31 need to sort this by likely use, for example filled symbols first
+
 	if ( symbol == GRSymbolShapeType.ASTERISK ) {
 		drawSymbol(da,GRSymbolShapeType.PLUS, x, y, size_x, size_y, offset_x, offset_y, data, flag, orient );
 		__sxm[0] = xs - msizex2*.707;	__sym[0] = ys-msizey2*.707;
@@ -869,6 +873,38 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 		}
 		else {
 			da.drawArc ( xs, ys, msizex2, msizey2, 0.0, 360.0 );
+		}
+
+		//if ( flag == GRUnits.DEVICE ) {
+		//	da.drawArc ( xs, ys, msizex2, msizey2, 0.0, 360.0 );
+		//}
+		//else {drawArc ( da, xs, ys, msizex2, msizey2, 0.0, 360.0 );
+		//}
+	}
+	else if ( symbol == GRSymbolShapeType.ELLIPSE_HORIZONTAL ) {
+		// Horizontal dimension of the ellipse is twice the vertical dimension.
+		if (da instanceof GRJComponentDrawingArea) {
+//			da.drawArc ( xs, ys, msizex2, msizey2, 0.0, 360.0 );
+			((GRJComponentDrawingArea)da).drawOval(xs, ys, msizex2, msizey2/2.0);
+		}
+		else {
+			da.drawArc ( xs, ys, msizex2, msizey2/2.0, 0.0, 360.0 );
+		}
+
+		//if ( flag == GRUnits.DEVICE ) {
+		//	da.drawArc ( xs, ys, msizex2, msizey2, 0.0, 360.0 );
+		//}
+		//else {drawArc ( da, xs, ys, msizex2, msizey2, 0.0, 360.0 );
+		//}
+	}
+	else if ( symbol == GRSymbolShapeType.ELLIPSE_VERTICAL ) {
+		// Vertical dimension of the ellipse is twice the horizontal dimension.
+		if (da instanceof GRJComponentDrawingArea) {
+//			da.drawArc ( xs, ys, msizex2, msizey2, 0.0, 360.0 );
+			((GRJComponentDrawingArea)da).drawOval(xs, ys, msizex2/2.0, msizey2);
+		}
+		else {
+			da.drawArc ( xs, ys, msizex2/2.0, msizey2, 0.0, 360.0 );
 		}
 
 		//if ( flag == GRUnits.DEVICE ) {
@@ -1180,6 +1216,36 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 //			fillArc ( da, xs, ys, msizex2, msizey2, 0.0, 360.0, GRArcFillType.CHORD );
 		//}
 	}
+	else if ( symbol == GRSymbolShapeType.ELLIPSE_HORIZONTAL_FILLED ) {
+		// Horizontal dimension of the ellipse is twice the vertical dimension.
+		//if ( flag == GRUnits.DEVICE ) {
+		if (da instanceof GRJComponentDrawingArea) {
+//			da.fillArc ( xs, ys, msizex2, msizey2, 0.0, 360.0, FILL_CHORD );
+			((GRJComponentDrawingArea)da).fillOval(xs, ys, msizex2, msizey2/2.0);
+		}
+		else {
+			da.fillArc ( xs, ys, msizex2, msizey2/2.0, 0.0, 360.0, GRArcFillType.CHORD );
+		}
+		//}
+		//else {
+//			fillArc ( da, xs, ys, msizex2, msizey2, 0.0, 360.0, GRArcFillType.CHORD );
+		//}
+	}
+	else if ( symbol == GRSymbolShapeType.ELLIPSE_VERTICAL_FILLED ) {
+		// Vertical dimension of the ellipse is twice the horizontal dimension.
+		//if ( flag == GRUnits.DEVICE ) {
+		if (da instanceof GRJComponentDrawingArea) {
+//			da.fillArc ( xs, ys, msizex2, msizey2, 0.0, 360.0, FILL_CHORD );
+			((GRJComponentDrawingArea)da).fillOval(xs, ys, msizex2/2.0, msizey2);
+		}
+		else {
+			da.fillArc ( xs, ys, msizex2/2.0, msizey2, 0.0, 360.0, GRArcFillType.CHORD );
+		}
+		//}
+		//else {
+//			fillArc ( da, xs, ys, msizex2, msizey2, 0.0, 360.0, GRArcFillType.CHORD );
+		//}
+	}
 	else if ( symbol == GRSymbolShapeType.DIAMOND_FILLED ) {
 		__sxm[0] = xs - msizex2;	__sym[0] = ys;
 		__sxm[1] = xs;
@@ -1433,6 +1499,30 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 	else if ( symbol == GRSymbolShapeType.SQUARE_FILLED ) {
 		__sxm[0] = xs - msizex2;	__sym[0] = ys + msizey2;
 		__sxm[1] = xs + msizex2;	__sym[1] = __sym[0];
+		__sxm[2] = __sxm[1];		__sym[2] = ys - msizey2;
+		__sxm[3] = __sxm[0];		__sym[3] = __sym[2];
+		//if ( flag == GRUnits.DEVICE ) {
+			da.fillPolygon ( 4, __sxm, __sym );
+		//}
+		//else {	fillPolygon ( da, 4, __sxm, __sym );
+		//}
+	}
+	else if ( symbol == GRSymbolShapeType.RECTANGLE_HORIZONTAL_FILLED ) {
+		// Horizontal dimension is twice the vertical dimension.
+		__sxm[0] = xs - msizex2;	__sym[0] = ys + msizey2/2.0;
+		__sxm[1] = xs + msizex2;	__sym[1] = __sym[0];
+		__sxm[2] = __sxm[1];		__sym[2] = ys - msizey2/2.0;
+		__sxm[3] = __sxm[0];		__sym[3] = __sym[2];
+		//if ( flag == GRUnits.DEVICE ) {
+			da.fillPolygon ( 4, __sxm, __sym );
+		//}
+		//else {	fillPolygon ( da, 4, __sxm, __sym );
+		//}
+	}
+	else if ( symbol == GRSymbolShapeType.RECTANGLE_VERTICAL_FILLED ) {
+		// Horizontal dimension is half the vertical dimension.
+		__sxm[0] = xs - msizex2/2.0;	__sym[0] = ys + msizey2;
+		__sxm[1] = xs + msizex2/2.0;	__sym[1] = __sym[0];
 		__sxm[2] = __sxm[1];		__sym[2] = ys - msizey2;
 		__sxm[3] = __sxm[0];		__sym[3] = __sym[2];
 		//if ( flag == GRUnits.DEVICE ) {
@@ -1727,6 +1817,30 @@ public static void drawSymbol ( GRDrawingArea da, GRSymbolShapeType symbol, doub
 	else if ( symbol == GRSymbolShapeType.SQUARE ) {
 		__sxm[0] = xs - msizex2;	__sym[0] = ys - msizey2;
 		__sxm[1] = xs + msizex2;	__sym[1] = __sym[0];
+		__sxm[2] = __sxm[1];		__sym[2] = ys + msizey2;
+		__sxm[3] = __sxm[0];		__sym[3] = __sym[2];
+		//if ( flag == GRUnits.DEVICE ) {
+			da.drawPolygon ( 4, __sxm, __sym );
+		//}
+		//else {	drawPolygon ( da, 4, __sxm, __sym );
+		//}
+	}
+	else if ( symbol == GRSymbolShapeType.RECTANGLE_HORIZONTAL ) {
+		// Horizontal dimension is twice the vertical dimension.
+		__sxm[0] = xs - msizex2;	__sym[0] = ys - msizey2/2.0;
+		__sxm[1] = xs + msizex2;	__sym[1] = __sym[0];
+		__sxm[2] = __sxm[1];		__sym[2] = ys + msizey2/2.0;
+		__sxm[3] = __sxm[0];		__sym[3] = __sym[2];
+		//if ( flag == GRUnits.DEVICE ) {
+			da.drawPolygon ( 4, __sxm, __sym );
+		//}
+		//else {	drawPolygon ( da, 4, __sxm, __sym );
+		//}
+	}
+	else if ( symbol == GRSymbolShapeType.RECTANGLE_VERTICAL ) {
+		// Horizontal dimension is half the vertical dimension.
+		__sxm[0] = xs - msizex2/2.0;	__sym[0] = ys - msizey2;
+		__sxm[1] = xs + msizex2/2.0;	__sym[1] = __sym[0];
 		__sxm[2] = __sxm[1];		__sym[2] = ys + msizey2;
 		__sxm[3] = __sxm[0];		__sym[3] = __sym[2];
 		//if ( flag == GRUnits.DEVICE ) {

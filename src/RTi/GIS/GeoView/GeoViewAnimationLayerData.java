@@ -25,9 +25,7 @@ package RTi.GIS.GeoView;
 
 import java.util.List;
 
-import RTi.GR.GRSymbol;
 import RTi.GR.GRSymbolShapeType;
-import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PropList;
 
 import RTi.Util.Table.DataTable;
@@ -170,8 +168,7 @@ throws Exception {
 				__dataFields[i] = __table.getFieldIndex( __dataFieldsStrings[i]);
 			}
 			catch (Exception e) {
-				throw new Exception("Data Field #" + i + " ("
-					+ __dataFieldsStrings[i] + ") not found in table.");
+				throw new Exception("Data Field #" + i + " (" + __dataFieldsStrings[i] + ") not found in table.");
 			}
 		}
 	}
@@ -274,8 +271,7 @@ public DataTable getTable() {
 }
 
 /**
-Sets the value that will be recognized in this layer as missing data.
-The default value is -999.0
+Sets the value that will be recognized in this layer as missing data. The default value is -999.0
 @param missing the value that will be recognized as missing data.
 */
 public void setMissingDoubleValue(double missing) {
@@ -283,7 +279,7 @@ public void setMissingDoubleValue(double missing) {
 }
 
 /**
-Sets the value that will replace missing data in this layer.  The default value is -1.0
+Sets the value that will replace missing data in this layer.  The default value is -1.0.
 @param replacement the value that will replace missing data.
 */
 public void setMissingDoubleReplacementValue(double replacement) {

@@ -59,6 +59,7 @@ import RTi.GR.GRLegend;
 import RTi.GR.GRScaledClassificationSymbol;
 import RTi.GR.GRSymbol;
 import RTi.GR.GRSymbolShapeType;
+import RTi.GR.GRSymbolShapeTypeListContents;
 import RTi.GR.GRText;
 
 import RTi.Util.GUI.BorderJPanel;
@@ -528,7 +529,7 @@ private void setupGUI() {
     GridBagLayout gbl = new GridBagLayout();
 
 	String propValue = null;
-	int y = 0;
+	int y = -1;
 	int x = 0;
 	JLabel label = null;
 
@@ -547,7 +548,7 @@ private void setupGUI() {
         geoviewJPanel.setLayout ( gbl );
         label = new JLabel( "Properties for the GeoView window (currently view only):" );
         JGUIUtil.addComponent( geoviewJPanel, label,
-		0, y, 10, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
+		0, ++y, 10, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         label = new JLabel ( "Data Home:" );
         JGUIUtil.addComponent( geoviewJPanel, label,
@@ -655,10 +656,10 @@ private void setupGUI() {
 		layer = __layerView.getLayer();
 		symbol = __layerView.getSymbol();
 		legend = __layerView.getLegend();
-		y = 0;
+		y = -1;
         JGUIUtil.addComponent( layerJPanel, new JLabel (
 			"Properties for the data layer (currently view only):" ),
-			0, y, 10, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
+			0, ++y, 10, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
         JGUIUtil.addComponent( layerJPanel, new JLabel ( "Name:" ),
 		0, ++y, 4, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
@@ -772,7 +773,6 @@ private void setupGUI() {
         //---------------------------------------------------------------------
         symbolJPanel = new BorderJPanel();
         symbolJPanel.setLayout( gbl );
-        y = 0;
 
 		// Panel for class checkboxes.
 
@@ -780,11 +780,11 @@ private void setupGUI() {
 		symbol_classJPanel.setLayout ( gbl );
 		ButtonGroup class_Group = new ButtonGroup();
 
-		y = 0;
+		y = -1;
 		GRClassificationType classificationType = __layerView.getSymbol().getClassificationType();
 		JGUIUtil.addComponent( symbol_classJPanel,
 			new JLabel ( "Classification type:"),
-			0, y, 1, 1, 0, 0, NNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
+			0, ++y, 1, 1, 0, 0, NNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 		__singleSymbolJRadioButton = new JRadioButton( "Single symbol", false);
 		class_Group.add(__singleSymbolJRadioButton);
 		__singleSymbolJRadioButton.addItemListener ( this );
@@ -814,7 +814,7 @@ private void setupGUI() {
 		__classBreaksJRadioButton.setEnabled ( false );
 		JGUIUtil.addComponent( symbol_classJPanel, __classBreaksJRadioButton,
 			0, ++y, 1, 1, 0, 0, NNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
-	        JGUIUtil.addComponent( symbolJPanel, symbol_classJPanel,
+        JGUIUtil.addComponent( symbolJPanel, symbol_classJPanel,
 			0, 0, 3, 1, 0, 0, TLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
 		__scaledSymbolJRadioButton = new JRadioButton( "Scaled symbol", false);
@@ -837,7 +837,7 @@ private void setupGUI() {
 			0, ++y, 1, 1, 0, 0, NNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	*/
 
-	        JGUIUtil.addComponent( symbolJPanel, symbol_classJPanel,
+        JGUIUtil.addComponent( symbolJPanel, symbol_classJPanel,
 			0, 0, 3, 1, 0, 0, TLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
 		// Panel for notes about symbols.
@@ -847,13 +847,13 @@ private void setupGUI() {
 	        JGUIUtil.addComponent( symbol_textJPanel, new JLabel (
 			"Symbols used to draw map features depend on the layer shape" ),
 			0, y, 10, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
-	        JGUIUtil.addComponent( symbol_textJPanel, new JLabel (
+        JGUIUtil.addComponent( symbol_textJPanel, new JLabel (
 			"type and classification.  A single symbol is the default." ),
 			0, ++y, 10, 1, 0, 0, NLNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
-	        JGUIUtil.addComponent( symbol_textJPanel, new JLabel (
+        JGUIUtil.addComponent( symbol_textJPanel, new JLabel (
 			"Classification requires that a data attribute be selected." ),
 			0, ++y, 10, 1, 0, 0, NLNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
-	        JGUIUtil.addComponent( symbolJPanel, symbol_textJPanel,
+        JGUIUtil.addComponent( symbolJPanel, symbol_textJPanel,
 			3, 0, 7, 1, 0, 0, TLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 
 		// Now add a panel for each classification type (only set visible the panel that applies).
@@ -864,18 +864,18 @@ private void setupGUI() {
 
 		__singleSymbolJPanel = new JPanel();
 		__singleSymbolJPanel.setLayout ( gbl );
-		y = 0;
-	        JGUIUtil.addComponent(__singleSymbolJPanel,new JLabel ("Symbol style:"),
-			0, y, 1, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		JComboBox<String> _symbol_styleJComboBox = new JComboBox<String>();
+		y = -1;
+        JGUIUtil.addComponent(__singleSymbolJPanel,new JLabel ("Symbol style:"),
+			0, ++y, 1, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
+		JComboBox<String> _symbol_styleJComboBox = new JComboBox<>();
 		_symbol_styleJComboBox.setEnabled ( false );
 
 		if ( (shapeType == GeoLayer.POINT) || (shapeType == GeoLayer.POINT_ZM) ||
 			(shapeType == GeoLayer.MULTIPOINT) ) {
 			// Add list of recognized GRSymbol types.
-			JGUIUtil.addToJComboBox ( _symbol_styleJComboBox, GRSymbol.SYMBOL_NAMES );
+			JGUIUtil.addToJComboBox ( _symbol_styleJComboBox, GRSymbol.getShapeTypeNames(GRSymbolShapeTypeListContents.APP_CHOICES) );
 			// Select the one that is in use.
-			Message.printStatus(2,"","Symbol is " + symbol.getShapeType() );
+			Message.printStatus(2,"", "Symbol is " + symbol.getShapeType() );
 			_symbol_styleJComboBox.setSelectedItem (symbol.getShapeType().toString() );
 		}
 		else if ( (shapeType == GeoLayer.LINE) || (shapeType == GeoLayer.POLYLINE_ZM) ) {
@@ -918,7 +918,7 @@ private void setupGUI() {
 				_single_outline_colorJTextField.setBackground (
 				symbol.getOutlineColor() );
 			}
-	        	JGUIUtil.addComponent( __singleSymbolJPanel,
+	       	JGUIUtil.addComponent( __singleSymbolJPanel,
 				_single_outline_colorJTextField,
 				1, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 			_single_outline_colorJTextField = null;
@@ -931,19 +931,19 @@ private void setupGUI() {
 			_symbol_sizeJTextField.setEditable ( false );
 			_symbol_sizeJTextField.setBackground ( Color.lightGray );
 			_symbol_sizeJTextField.setText (
-				StringUtil.formatString(symbol.getSize(),"%.0f") );
-	        	JGUIUtil.addComponent( __singleSymbolJPanel,
+			StringUtil.formatString(symbol.getSize(),"%.0f") );
+	       	JGUIUtil.addComponent( __singleSymbolJPanel,
 				_symbol_sizeJTextField,
 				1, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 			_symbol_sizeJTextField = null;
 		}
-		y = 0;
-	        JGUIUtil.addComponent( __singleSymbolJPanel, new JLabel ( "Single symbol:" ),
-			2, y, 1, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
+		y = -1;
+	    JGUIUtil.addComponent( __singleSymbolJPanel, new JLabel ( "Single symbol:" ),
+			2, ++y, 1, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 		JPanel single_legend_panel = new GeoLayerViewLegendJPanel(
 			__layerView, false);
 		single_legend_panel.setBackground ( Color.white );
-	        JGUIUtil.addComponent( __singleSymbolJPanel,
+	    JGUIUtil.addComponent( __singleSymbolJPanel,
 			new JScrollPane(single_legend_panel),
 			2, ++y, 1, 9, 1, 1, TLNN, GridBagConstraints.BOTH, GridBagConstraints.WEST );
 		single_legend_panel = null;
@@ -972,15 +972,15 @@ private void setupGUI() {
 		else {
 			__uniqueValuesJPanel.setVisible(false);
 		}
-		y = 0;
+		y = -1;
 	    JGUIUtil.addComponent( __uniqueValuesJPanel, new JLabel ("Symbol:"),
-			0, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
+			0, ++y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	    JGUIUtil.addComponent( __uniqueValuesJPanel, new JLabel ("Field:"),
 			1, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	    JGUIUtil.addComponent( __uniqueValuesJPanel,
 			new GeoLayerViewLegendJPanel(__layerView, false),
 			0, ++y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
-		__uniqueValuesFieldJComboBox = new JComboBox<String>();
+		__uniqueValuesFieldJComboBox = new JComboBox<>();
 		__uniqueValuesFieldJComboBox.addItem( "Junk" );
 	    JGUIUtil.addComponent(__uniqueValuesJPanel,
 			__uniqueValuesFieldJComboBox,
@@ -1000,11 +1000,10 @@ private void setupGUI() {
 
 		__classBreaksJPanel = new JPanel();
 		__classBreaksJPanel.setLayout ( gbl );
-		y = 0;
-	        JGUIUtil.addComponent( __classBreaksJPanel, new JLabel (
-			"Classification Field:"),
-			0, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
-		__classBreakFieldJComboBox = new JComboBox<String>();
+		y = -1;
+	    JGUIUtil.addComponent( __classBreaksJPanel, new JLabel ("Classification Field:"),
+			0, ++y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
+		__classBreakFieldJComboBox = new JComboBox<>();
 		__classBreakFieldJComboBox.setEnabled(false);
 		DataTable attributeTable = layer.getAttributeTable();
 		String [] attributeTableFieldNames = null;
@@ -1017,11 +1016,11 @@ private void setupGUI() {
 		}
 		JGUIUtil.addToJComboBox ( __classBreakFieldJComboBox, attributeTableFieldNames );
 		__classBreakFieldJComboBox.setSelectedItem ( symbol.getClassificationField() );
-	        JGUIUtil.addComponent(__classBreaksJPanel, __classBreakFieldJComboBox,
+        JGUIUtil.addComponent(__classBreaksJPanel, __classBreakFieldJComboBox,
 			1, y, 3, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
-	        JGUIUtil.addComponent( __classBreaksJPanel, new JLabel ("Number of classes:"),
-				0, ++y, 3, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
+        JGUIUtil.addComponent( __classBreaksJPanel, new JLabel ("Number of classes:"),
+			0, ++y, 3, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 		JTextField _numclassesJTextField = new JTextField(3);
 		_numclassesJTextField.setText ( "" + symbol.getNumberOfClassifications() );
 		_numclassesJTextField.setEditable(false);
@@ -1042,7 +1041,7 @@ private void setupGUI() {
 		colors_group.add(_color_tableJRadioButton);
 		JGUIUtil.addComponent( colorJPanel, _color_tableJRadioButton,
 			0, ++yc, 2, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
-		JComboBox<String>_color_tableJComboBox = new JComboBox<String>();
+		JComboBox<String>_color_tableJComboBox = new JComboBox<>();
 		_color_tableJComboBox.setEnabled ( false );
 		GRColorTable color_table = symbol.getColorTable();
 		JGUIUtil.addToJComboBox ( _color_tableJComboBox, GRColorRampType.getDisplayNames() );
@@ -1107,9 +1106,9 @@ private void setupGUI() {
 
 		// Class breaks legend (show effects of symbol, color table, and size).
 
-		y = 0;
+		y = -1;
 	    JGUIUtil.addComponent( __classBreaksJPanel, new JLabel ("Class breaks:" ),
-			4, y, 6, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
+			4, ++y, 6, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 		GeoLayerViewLegendJPanel legendJPanel = new GeoLayerViewLegendJPanel(__layerView, false);
 		legendJPanel.setBackground ( Color.white );
 	    JGUIUtil.addComponent( __classBreaksJPanel,
@@ -1139,10 +1138,10 @@ private void setupGUI() {
 
 		__scaledSymbolJPanel = new JPanel();
 		__scaledSymbolJPanel.setLayout ( gbl );
-		y = 0;
-	        JGUIUtil.addComponent(__scaledSymbolJPanel, new JLabel("Symbol style:"),
-			0, y, 1, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		JComboBox<String> __scaledSymbol_styleJComboBox = new JComboBox<String>();
+		y = -1;
+        JGUIUtil.addComponent(__scaledSymbolJPanel, new JLabel("Symbol style:"),
+			0, ++y, 1, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
+		JComboBox<String> __scaledSymbol_styleJComboBox = new JComboBox<>();
 		__scaledSymbol_styleJComboBox.setEnabled ( false );
 		if ( (shapeType == GeoLayer.POINT) || (shapeType == GeoLayer.POINT_ZM) ||
 			(shapeType == GeoLayer.MULTIPOINT) ) {
@@ -1151,7 +1150,7 @@ private void setupGUI() {
 			// Select the one that is in use.
 			__scaledSymbol_styleJComboBox.setSelectedItem( symbol.getShapeType().toString() );
 		}
-	/* Later
+		/* Later
 		else if ( shape_type == GeoLayer.LINE ) {
 			// Currently only offer "Solid".
 			_symbol_styleJComboBox.add ( "Solid" );
@@ -1160,13 +1159,13 @@ private void setupGUI() {
 			// Currently only offer "FillSolid".  If transparent, use the color to indicate.
 			_symbol_styleJComboBox.add ( "FillSolid" );
 		}
-	*/
+		*/
 
 		else {
 			__scaledSymbol_styleJComboBox = null;
 		}
 		if ( __scaledSymbol_styleJComboBox != null ) {
-	        	JGUIUtil.addComponent( __scaledSymbolJPanel,
+	       	JGUIUtil.addComponent( __scaledSymbolJPanel,
 			__scaledSymbol_styleJComboBox,
 			1, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 		}
@@ -1179,10 +1178,10 @@ private void setupGUI() {
 
 		// Add the headers.
 
-		y = 0;
-		x = 0;
+		y = -1;
+		x = -1;
 	   	JGUIUtil.addComponent(scaled_symbol_detailJPanel,new JLabel ( "+Color"),
-			x, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
+			++x, ++y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	   	JGUIUtil.addComponent(scaled_symbol_detailJPanel,new JLabel ( "-Color"),
 			++x, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 		JGUIUtil.addComponent( scaled_symbol_detailJPanel, new JLabel("Width"),
@@ -1292,9 +1291,9 @@ private void setupGUI() {
 	    JGUIUtil.addComponent(__scaledSymbolJPanel, scaled_symbol_detailJPanel,
 			0, 1, 2, 8, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
-		y = 0;
+		y = -1;
 	    JGUIUtil.addComponent( __scaledSymbolJPanel, new JLabel ("Scaled Symbol:" ),
-			2, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
+			2, ++y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 		JPanel scaled_legend_panel = new GeoLayerViewLegendJPanel(__layerView, false);
 		scaled_legend_panel.setBackground ( Color.white );
 	    JGUIUtil.addComponent( __scaledSymbolJPanel,
@@ -1317,10 +1316,10 @@ private void setupGUI() {
 
 		labelJPanel = new BorderJPanel();
 		labelJPanel.setLayout( gbl );
-		y = 0;
+		y = -1;
         JGUIUtil.addComponent( labelJPanel, new JLabel ( "Text labels can " +
 		" be formatted from data fields.  Select one or more fields." ),
-		0, y, 7, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
+		0, ++y, 7, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
         JGUIUtil.addComponent(labelJPanel, new JLabel( "Optionally, also use " +
 		" the label format to specify how label fields should be formatted." ),
 		0, ++y, 7, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
@@ -1339,7 +1338,7 @@ private void setupGUI() {
 
         JGUIUtil.addComponent( labelJPanel, new JLabel("Label field(s):"),
 		0, ++y, 2, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		__labelFieldJComboBox = new JComboBox<String>();
+		__labelFieldJComboBox = new JComboBox<>();
 		JGUIUtil.addToJComboBox ( __labelFieldJComboBox, attributeTableFieldNames );
 		//__labelFieldJComboBox.addItemListener ( this );
 		__labelFieldJComboBox.addActionListener(this);
@@ -1382,7 +1381,7 @@ private void setupGUI() {
 
 	    JGUIUtil.addComponent( labelJPanel, new JLabel ("Label font:" ),
 			0, ++y, 2, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		JComboBox<String> __labelFontJComboBox = new JComboBox<String>();
+		JComboBox<String> __labelFontJComboBox = new JComboBox<>();
 		__labelFontJComboBox.setEnabled ( false );
 		__labelFontJComboBox.addItem ( "Helvetica" );
 	    JGUIUtil.addComponent( labelJPanel, __labelFontJComboBox,
@@ -1405,7 +1404,7 @@ private void setupGUI() {
 
 	    JGUIUtil.addComponent( labelJPanel, new JLabel ("Position:" ),
 			0, ++y, 2, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		JComboBox<String> _label_positionJComboBox = new JComboBox<String>();
+		JComboBox<String> _label_positionJComboBox = new JComboBox<>();
 		_label_positionJComboBox.setEnabled(false);
 		JGUIUtil.addToJComboBox ( _label_positionJComboBox, GRText.getTextPositions() );
 		_label_positionJComboBox.setSelectedItem(GRText.toString(symbol.getLabelPosition()));
@@ -1421,10 +1420,10 @@ private void setupGUI() {
 	    //---------------------------------------------------------------------
 		appJPanel = new BorderJPanel();
 		appJPanel.setLayout( gbl );
-		y = 0;
+		y = -1;
 	    label = new JLabel ( "Properties to link data to the application (currently view only):");
 	        JGUIUtil.addComponent( appJPanel, label,
-			0, y, 10, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
+			0, ++y, 10, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 
 	    label = new JLabel("Application layer type:");
 	        JGUIUtil.addComponent( appJPanel, label,
@@ -1461,11 +1460,11 @@ private void setupGUI() {
 		//---------------------------------------------------------------------
 		animateJPanel = new BorderJPanel();
 		animateJPanel.setLayout( gbl );
-		y = 0;
+		y = -1;
 
 		label = new JLabel("Properties for animation are under development." );
 	 	JGUIUtil.addComponent( animateJPanel, label,
-			0, y, 10, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
+			0, ++y, 10, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	}
 	else {
 		//---------------------------------------------------------------------
@@ -1477,14 +1476,14 @@ private void setupGUI() {
 		layoutJPanel = new JPanel();
 		layoutJPanel.setLayout(new GridBagLayout());
 
-		y = 0;
+		y = -1;
 
 		__legendVisibleJCheckBox = new JCheckBox((String)null);
 		__legendVisibleJCheckBox.setSelected(__geoview.getDrawLegend());
 		__legendVisibleJCheckBox.addActionListener(this);
 
 		JGUIUtil.addComponent(layoutJPanel, new JLabel("Legends are visible on-screen: "),
-			0, y, 1, 1, 0, 0, TLBN,
+			0, ++y, 1, 1, 0, 0, TLBN,
 			GridBagConstraints.NONE, GridBagConstraints.NORTHEAST);
 		JGUIUtil.addComponent(layoutJPanel, __legendVisibleJCheckBox,
 			1, y++, 1, 1, 0, 0, TLBN,

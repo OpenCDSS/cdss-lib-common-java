@@ -29,8 +29,8 @@ public class GRTSTestSuite extends TestCase {
 	    testList = tests.getTestList();
 	    
 	    for(int i = 0; i < testList.size(); i++) {
-	    	String testName = (testList.get(i).toString());
-	    	String test = tests.formatFileName(testName);
+	    	//String testName = (testList.get(i).toString());
+	    	//String test = tests.formatFileName(testName);
 	    	/* TODO smalers 2023-05-19 need to fix
 	    	suite.addTestSuite(Class.forName(test));
 	    	*/
