@@ -45,10 +45,12 @@ The GeoViewProject class reads a GeoViewProject file and handles instantiation o
 Methods are also available to add the data to a GeoViewPanel display.
 This class will evolve as resources allow to support all the proposed GeoView properties for reading and writing.
 */
-public class GeoViewProject
-{
+public class GeoViewProject {
 
-private PropList _proplist = null;
+	/**
+	 * List of properties describing the GeoView project.
+	 */
+	private PropList _proplist = null;
 
 /**
 Construct from a GeoView project file (.gvp).
@@ -75,8 +77,8 @@ for now assume most layer views will not share data.
 @param ref_geoview Reference GeoViewJComponent to add layers to.
 @param legend GeoViewLegendJPanel to add to.
 */
-public void addToGeoView ( GeoViewJComponent geoview, GeoViewJComponent ref_geoview, GeoViewLegendJTree legend ) {
-	String routine = getClass().getSimpleName() + ".addToGeoView";
+public void addLayersToGeoView ( GeoViewJComponent geoview, GeoViewJComponent ref_geoview, GeoViewLegendJTree legend ) {
+	String routine = getClass().getSimpleName() + ".addLayersToGeoView";
 
 	legend.emptyTree();
 
@@ -100,7 +102,7 @@ public void addToGeoView ( GeoViewJComponent geoview, GeoViewJComponent ref_geov
 			}
 		}
 		catch ( Exception e ) {
-			// Ignore for now until we figure out how often it occurs.
+			// Ignore for now until figure out how often it occurs.
 		}
 	}
 	else {
@@ -172,7 +174,7 @@ public void addToGeoView ( GeoViewJComponent geoview, GeoViewJComponent ref_geov
 		//_status_TextField.setText ( "Adding layer..." );
 		// Set properties for the layer view.
 		layerViewProps = new PropList ( "forGeoLayerView" );
-		// Save the position so we can get to other properties later.
+		// Save the position so can get to other properties later.
 		layerViewProps.set ( "Number", "" + i );
 		layerViewProps.set ( "Label", "UsingGeoViewListener" );
 		propValue = _proplist.getValue ( "GeoLayerView " + i + ".ReadAttributes" );
@@ -246,7 +248,7 @@ public void addToGeoView ( GeoViewJComponent geoview, GeoViewJComponent ref_geov
 		(runtime.totalMemory() - runtime.freeMemory()) + " free memory = " + runtime.freeMemory() );
 		runtime = null;
 		//_status_TextField.setText ( "Finished adding layer.  Ready.");
-		// If we got to here the layer could be added so add to the legend.
+		// If got to here the layer could be added so add to the legend.
 		legend.addLayerView ( layerView, ivisible );
 	}
 
@@ -368,7 +370,7 @@ private void setLayerViewProperties ( GeoLayerView layerView, int index ) {
 		// Get the label information.
 		// New style.
 		propValue = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".LabelField" );
-		// Old style...
+		// Old style.
 		if ( propValue == null ) {
 			propValue = _proplist.getValue ( "GeoLayerView " + index + ".LabelField" );
 		}
@@ -403,18 +405,23 @@ private void setLayerViewProperties ( GeoLayerView layerView, int index ) {
 		// Depending on the classification, more than one color may be specified.
 		// Determine the classification type for symbols.
 		// New style.
-		propValue = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".SymbolClassification" );
+		String symbolClassification = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".SymbolClassification" );
 		// Old style.
-		if ( propValue == null ) {
-			propValue = _proplist.getValue ( "GeoLayerView " + index + ".SymbolClassification" );
+		if ( symbolClassification == null ) {
+			symbolClassification = _proplist.getValue ( "GeoLayerView " + index + ".SymbolClassification" );
 		}
-		if ( propValue != null ) {
-			symbol.setClassificationType ( GRClassificationType.valueOfIgnoreCase(propValue) );
-			//Message.printStatus ( 1, "",
-			//"SAMX symbol classification " + index + " is " + symbol.getClassificationType() );
+		if ( symbolClassification != null ) {
+			symbol.setClassificationType ( GRClassificationType.valueOfIgnoreCase(symbolClassification) );
+			Message.printStatus ( 2, routine,
+			"Symbol classification " + index + " for \"" + symbolClassification +
+			"\" after evaluation is " + symbol.getClassificationType() + ".");
+		}
+		else {
+			Message.printStatus ( 2, routine, "Layer " + index + " SymbolClassification is not specified." );
 		}
 		if ( symbol.getClassificationType() == GRClassificationType.SINGLE ) {
 			// Simple color for symbol (this is also the default).
+			Message.printStatus ( 2, routine, "Checking for single symbol classification propertiers.");
 			// New style.
 			propValue = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".Color" );
 			// Old style.
@@ -437,6 +444,7 @@ private void setLayerViewProperties ( GeoLayerView layerView, int index ) {
 		}
 		else if ( symbol.getClassificationType() == GRClassificationType.SCALED_SYMBOL ) {
 			// Color for symbol may have more than one value.
+			Message.printStatus ( 2, routine, "Checking for scaled symbol classification propertiers.");
 			// New style.
 			propValue = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".Color" );
 			// Old style.
@@ -491,6 +499,7 @@ private void setLayerViewProperties ( GeoLayerView layerView, int index ) {
 		}
 		else if ( symbol.getClassificationType() == GRClassificationType.CLASS_BREAKS ) {
 			// Need to get the class breaks and colors.
+			Message.printStatus ( 2, routine, "Checking for class break classification propertiers.");
 			// The number of colors in the color table should match the number of values in the class break.
 			// New style.
 			propValue = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) +".SymbolClassField" );
@@ -499,7 +508,7 @@ private void setLayerViewProperties ( GeoLayerView layerView, int index ) {
 				propValue = _proplist.getValue ( "GeoLayerView " + index + ".SymbolClassField" );
 			}
 			if ( propValue != null ) {
-				// Can only specify class breaks if we know which field will be examined from the data.
+				// Can only specify class breaks if know which field will be examined from the data.
 				symbol.setClassificationField ( propValue );
 				// Get the color table.
 				// The number of colors for this governs the maximum number of breaks (so they are consistent).
@@ -532,23 +541,64 @@ private void setLayerViewProperties ( GeoLayerView layerView, int index ) {
 					for ( int i = 0; i < num_classes; i++ ) {
 						d[i] = StringUtil.atod((c.get(i)).trim());
 					}
-					symbol.setClassificationData ( d, true);
+					symbol.setClassificationData ( d, true );
+				}
+			}
+		}
+		else if ( symbol.getClassificationType() == GRClassificationType.UNIQUE_VALUES ) {
+			// New style.
+			String symbolClassField = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) +".SymbolClassField" );
+			// Old style.
+			if ( symbolClassField == null ) {
+				symbolClassField = _proplist.getValue ( "GeoLayerView " + index + ".SymbolClassField" );
+			}
+			if ( symbolClassField != null ) {
+				// Can only specify class breaks if know which field will be examined from the data.
+				symbol.setClassificationField ( symbolClassField );
+				// Get the color table.
+				// The number of colors for this governs the maximum number of breaks (so they are consistent).
+				// The number of colors and breaks should normally be the same.
+				// New style.
+				String colorTable = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".ColorTable" );
+				// Old style.
+				if ( colorTable == null ) {
+					colorTable = _proplist.getValue ( "GeoLayerView " + index + ".ColorTable" );
+				}
+				// Determine how many unique values.
+				List<String> values = null;
+				try {
+					values = layerView.getLayer().getAttributeUniqueStringValues ( symbolClassField );
+					// Color table name may be followed by ;10, to specify the number of colors.
+					int pos = colorTable.indexOf(";");
+					if ( pos > 0 ) {
+						colorTable = colorTable.substring(0,pos);
+					}
+					if ( colorTable == null ) {
+						Message.printWarning(3,routine, "Unable to create color table for \"" + colorTable + "\".");
+					}
+					symbol.setColorTable ( colorTable, values.size() );
+					symbol.setClassificationData ( StringUtil.toArray(values), true );
+				}
+				catch ( Exception e ) {
+					Message.printWarning(3, routine, "Error setting symbol for layer " + index + "." );
+					Message.printWarning(3, routine, e );
 				}
 			}
 		}
 		else {
-			// GRSymbol.CLASSIFICATION_UNIQUE
+			// GRClassificationType.CLASSIFICATION_UNIQUE
 			// Need to do some work to search the data for unique values.
+			Message.printStatus ( 2, routine, "Layer " + index + " has unknown SymbolClassification (" + symbolClassification + ")." );
 		}
 		if ( (layerType == GeoLayer.POINT) || (layerType == GeoLayer.POINT_ZM) ||
 			(layerType == GeoLayer.MULTIPOINT) ) {
 			// Symbol type.
 			// Old convention.
-			propValue = _proplist.getValue ( "GeoLayerView " + index + ".SymbolType" );
-			if ( propValue != null ) {
+			String symbolShapeType = _proplist.getValue ( "GeoLayerView " + index + ".SymbolType" );
+			if ( symbolShapeType != null ) {
 				Message.printWarning ( 2, routine, "The SymbolType GeoView project property is obsolete.  Use SymbolStyle." );
 				try {
-					symbol.setShapeType ( GRSymbolShapeType.valueOfIgnoreCase(propValue) );
+					symbol.setShapeType ( GRSymbolShapeType.valueOfIgnoreCase(symbolShapeType) );
 				}
 				catch ( Exception e ) {
 					symbol.setShapeType ( GRSymbolShapeType.PLUS );
@@ -556,17 +606,18 @@ private void setLayerViewProperties ( GeoLayerView layerView, int index ) {
 			}
 			// Newer convention (need to also support for other shape types).
 			// New style.
-			propValue = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".SymbolStyle" );
+			symbolShapeType = _proplist.getValue ( "Symbol " + index + "." + (isym + 1) + ".SymbolStyle" );
 			// Old style.
-			if ( propValue == null ) {
-				propValue = _proplist.getValue ( "GeoLayerView " + index + ".SymbolStyle" );
+			if ( symbolShapeType == null ) {
+				symbolShapeType = _proplist.getValue ( "GeoLayerView " + index + ".SymbolStyle" );
 			}
-			if ( propValue != null ) {
+			if ( symbolShapeType != null ) {
 				try {
-					symbol.setShapeType ( GRSymbolShapeType.valueOfIgnoreCase(propValue) );
+					symbol.setShapeType ( GRSymbolShapeType.valueOfIgnoreCase(symbolShapeType) );
 				}
 				catch ( Exception e ) {
-					symbol.setShapeType ( GRSymbolShapeType.PLUS );
+					// Default is filled circle (used to be PLUS).
+					symbol.setShapeType ( GRSymbolShapeType.CIRCLE_FILLED );
 				}
 			}
 		}

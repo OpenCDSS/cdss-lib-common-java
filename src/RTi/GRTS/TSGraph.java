@@ -25,7 +25,9 @@ package RTi.GRTS;
 
 import java.awt.Component;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -194,7 +196,7 @@ private List<TSDurationAnalysis> _duration_data = null;
 The following reference is used internally so that the _graphics does not need to be passed between methods in this class.
 The Graphics is volatile and should be reset in each call to paint().
 */
-private Graphics _graphics = null;
+private Graphics2D _graphics = null;
 
 /**
 Indicates whether units should be ignored for normal graphs, for left y-axis.
@@ -10097,13 +10099,19 @@ For a reference graph component, this method should only be called for the TSGra
 */
 public void paint ( Graphics g ) {
 	String routine = getClass().getSimpleName() + ".paint";
-
+	
 	if (g == null) {
 		if ( Message.isDebugOn ) {
 			Message.printStatus(1, routine, _gtype + "Null Graphics in paint()");
 		}
 		return;
 	}
+
+	// Use Graphics2D for advanced 2D rendering.
+	Graphics2D g2d = (Graphics2D)g;
+	g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+	// Reset to Graphics2D for futher processing.
+	g = g2d;
 
 	// Print some messages so we know what the paint is doing.
 
@@ -10124,7 +10132,7 @@ public void paint ( Graphics g ) {
 		// The following will be executed at initialization.
 		// The code is here because a valid Graphics is needed to check font sizes, etc.
 
-		_graphics = g;
+		this._graphics = g2d;
 
 		// Now set the drawing limits based on the current size of the device.
 

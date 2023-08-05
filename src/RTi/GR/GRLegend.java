@@ -25,8 +25,6 @@ package RTi.GR;
 
 import java.lang.StringBuffer;
 
-import RTi.Util.IO.IOUtil;
-
 /**
 The GRLegend class stores information for a legend for a single data layer.
 Examples of data layers are spatial data and time series.

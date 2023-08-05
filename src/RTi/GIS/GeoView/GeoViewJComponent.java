@@ -68,7 +68,6 @@ import RTi.GR.GRUnits;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJTree_Node;
 
-import RTi.Util.IO.IOUtil;
 import RTi.Util.IO.PrintUtil;
 import RTi.Util.IO.PropList;
 
@@ -101,16 +100,19 @@ Interaction modes.
 No special interaction.
 */
 public static final int INTERACTION_NONE = 0;
+
 /**
 Select a feature.  When enabled, a mouse click or rubber-band box draw causes
 the geoViewSelect() method of registered GeoViewListeners to be called.
 */
 public static final int INTERACTION_SELECT = 1;
+
 /**
 Zoom mode.  This enables a rubber-band line (if the extents are bigger than 5 pixels in both direction).
 The geoViewZoom() method of registered GeoViewListeners are called.
 */
 public static final int INTERACTION_ZOOM = 2;
+
 /**
 Select and get information for a feature.  When enabled, a mouse click or
 rubber-band box causes the geoViewInfo() method of registered GeoViewListeners to be called.
@@ -129,7 +131,7 @@ private static final double __BORDER = 0.0;	// Border for view.
 /**
 GeoLayerViews that have been added to this GeoView for display, guaranteed to be non-null.
 */
-private List<GeoLayerView> __layerViews = new ArrayList<GeoLayerView>();
+private List<GeoLayerView> __layerViews = new ArrayList<>();
 
 /**
 GeoViewAnnotationRenderers to display extra information as annotations on the map.
@@ -172,7 +174,7 @@ Bounds of the JComponent (not the same as __drawLimits, which are in right-hand 
 private Rectangle __bounds = null; // Set with update.
 
 /**
-Frame that is including the GeoView as a component.  This is set to null if used in an applet.
+Frame that is including the GeoView as a component.
 */
 private JFrame __parent = null;
 
@@ -383,8 +385,7 @@ public GeoViewAnnotationData addAnnotationRenderer ( GeoViewAnnotationRenderer r
 			return null;
 		}
 	}
-	GeoViewAnnotationData annotationData =
-		new GeoViewAnnotationData(renderer,objectToRender,objectLabel,limits,projection);
+	GeoViewAnnotationData annotationData = new GeoViewAnnotationData(renderer,objectToRender,objectLabel,limits,projection);
 	annotationDataList.add ( annotationData );
 	// Redraw the map with annotations.
 	repaint ();
@@ -396,8 +397,8 @@ Add a GeoViewListener to receive GeoView events.  Multiple listeners can be regi
 If an attempt is made to register the same listener more than once, the later attempt is ignored.
 @param listener GeoViewListener to add.
 */
-public void addGeoViewListener ( GeoViewListener listener )
-{	// Use arrays to make a little simpler than lists to use later.
+public void addGeoViewListener ( GeoViewListener listener ) {
+	// Use arrays to make a little simpler than lists to use later.
 	if ( listener == null ) {
 		return;
 	}
@@ -415,7 +416,7 @@ public void addGeoViewListener ( GeoViewListener listener )
 	if ( __listeners == null ) {
 		__listeners = new GeoViewListener[1];
 		__listeners[0] = listener;
-		Message.printStatus ( 1, "GeoView.addGeoViewListener", __prefix + "Added GeoViewListener" );
+		Message.printStatus ( 2, "GeoView.addGeoViewListener", __prefix + "Added GeoViewListener" );
 	}
 	else {
 		// Need to resize and transfer the list.
@@ -448,7 +449,7 @@ Add a GeoLayerView to the GeoView.  This includes a GeoLayer and specific view f
 Use true to zoom to see all layers.
 */
 public void addLayerView ( GeoLayerView layerView, boolean reset_limits ) {
-	String routine = "GeoView.addLayerView";
+	String routine = getClass().getSimpleName() + ".addLayerView";
 
 	if ( layerView == null ) {
 		return;
@@ -539,7 +540,8 @@ public void addLayerView ( GeoLayerView layerView, boolean reset_limits ) {
 		if ( __dataLimits == null ) {
 			__dataLimits = new GRLimits(getProjectedLayerLimits( layer ));
 		}
-		else {	if ( reset_limits ) {
+		else {
+			if ( reset_limits ) {
 				__dataLimits = __dataLimits.max ( getProjectedLayerLimits(layer) );
 			}
 		}
@@ -605,7 +607,7 @@ The limits are also reset to null data.
 */
 public void deleteLayerViews () {
 	__layerViews.clear();
-	__layerViews = new ArrayList<GeoLayerView>();
+	__layerViews = new ArrayList<>();
 	__dataLimits = null;
 	__maxDataLimits = null;
 	// __drawLimits are whatever is set for the current window.
@@ -718,7 +720,7 @@ More than one bar can be drawn at a point.
 @param layerView GeoLayerView to draw in current GeoView.
 */
 private void drawBigPictureLayerView ( GeoLayerView layerView) {
-	String rtn = "drawBigPictureLayerView";
+	String rtn = getClass().getSimpleName() + ".drawBigPictureLayerView";
 
 	// Break up try/catch later.
 	try {
@@ -791,9 +793,9 @@ private void drawBigPictureLayerView ( GeoLayerView layerView) {
 	for ( int z=0; z<numAssociatedLayers; z++ ) {
 	// Coordinates for layer that is being searched.
 	List<GRShape> shapes = layer.getShapes(z);
-	// Table which allows us to tie together coordinates with bigpicture.
+	// Table that allows relating coordinates with bigpicture.
 	DataTable attributeTable = layer.getAttributeTable(z);
-	// Vector tableRecords = attributeTable.getTableRecords();
+	// List tableRecords = attributeTable.getTableRecords();
 	int num_att_records = attributeTable.getNumberOfRecords();
 	// Loop through each record in the attribute table.
 	for ( int k=0; k<num_att_records; k++ ) {
@@ -824,15 +826,15 @@ private void drawBigPictureLayerView ( GeoLayerView layerView) {
 			Message.printDebug ( 10, rtn, "Found attribute match for bigpicture id " + id );
 		}
 
-		// All the drawing is done with reference to the center of the bar but offset this point
-		// from the x, y so that the bars are to the left of the point.
+		// All the drawing is done with reference to the center of the bar but offset this point from the x,
+		// y so that the bars are to the left of the point.
 		// This allows labels to be put to the right.
 
 		shape = shapes.get(att_index);
 		if ( (shape.type == GRShape.POINT) || (shape.type == GRShape.POINT_ZM) ) {
 			// Draw a black line across the bottom of all the rectangles.
-			// Start from the number of rectangles * width of recs
-			// plus the number of spaces between recs * 1/2 width of recs.
+			// Start from the number of rectangles * width of rectangles
+			// plus the number of spaces between recs * 1/2 width of rectangles.
 			pt = (GRPoint)shape;
 			xp[0] = pt.x - (((num_fields-2)*barwidth) + ((num_fields-2)*half_barwidth));
 			xp[1] = pt.x - half_barwidth;
@@ -914,10 +916,10 @@ private void drawGridLayerView ( GeoLayerView layerView ) {
 		ymin = __dataLimits.getMinY(),
 		ymax = __dataLimits.getMaxY();
 	GeoGrid grid = (GeoGrid)(layer.getShapes().get(0));
-	int rmin = grid.getMinRow();
-	int rmax = grid.getMaxRow();
-	int cmin = grid.getMinColumn();
-	int cmax = grid.getMaxColumn();
+	int rowMin = grid.getMinRow();
+	int rowMax = grid.getMaxRow();
+	int colMin = grid.getMinColumn();
+	int colMax = grid.getMaxColumn();
 	// Determine if checks should be made on limits to draw.
 	boolean have__dataLimits = false;
 	double min_to_draw = 0.0, max_to_draw = 0.0;
@@ -932,23 +934,23 @@ private void drawGridLayerView ( GeoLayerView layerView ) {
 		}
 	}
 	prop_value = null;
-	int r = 0, c = 0;
+	int row = 0, col = 0;
 	GRPolygon shape = null;
 	boolean dodraw = true;
 	GeoProjection layerProjection = layer.getProjection();
 	boolean do_project = GeoProjection.needToProject ( layerProjection, __projection );
 	double data_value;	// Data value in grid.
-	for ( r = rmin; r <= rmax; r++ ) {
-		for ( c = cmin; c <= cmax; c++ ) {
+	for ( row = rowMin; row <= rowMax; row++ ) {
+		for ( col = colMin; col <= colMax; col++ ) {
 			dodraw = true;
 			//Message.printStatus ( 2, "", "cell " + c + " " + r );
 			if ( do_project ) {
 				shape = (GRPolygon)GeoProjection.projectShape(
-					layerProjection, __projection, grid.getCellPolygon ( c, r ), true );
+					layerProjection, __projection, grid.getCellPolygon ( col, row ), true );
 			}
 			else {
 				// Faster to use raw data.
-				shape = grid.getCellPolygon ( c, r );
+				shape = grid.getCellPolygon ( col, row );
 			}
 			// Only draw the shape if part of it is in the drawing area.
 			// This should work if all shape data are pre-projected (which is usually the case).
@@ -960,7 +962,7 @@ private void drawGridLayerView ( GeoLayerView layerView ) {
 				//Message.printWarning ( 3, "", "not in region" );
 				continue;
 			}
-			// If necessary, set the color based on the classification..
+			// If necessary, set the color based on the classification.
 			if ( classificationType == GRClassificationType.SINGLE ) {
 				// Set each time because currently the outline color gets reset every time.
 				if ( (color == null) || color.isTransparent()) {
@@ -972,7 +974,7 @@ private void drawGridLayerView ( GeoLayerView layerView ) {
 				// Currently this always works on doubles.
 				// Need to make more generic so it works on integers and strings.
 				try {
-					data_value = grid.getDataValue(c,r);
+					data_value = grid.getDataValue(col,row);
 				}
 				catch ( Exception e ) {
 					continue;
@@ -1021,7 +1023,7 @@ Draw the shapes in the GeoLayer associated with the GeoLayerView.
 Normally this method should be called only by itself, when a layer with selected shapes is detected.
 */
 private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
-	String routine = "GeoView.drawLayerView";
+	String routine = getClass().getSimpleName() + ".drawLayerView";
 	if ( !__isReferenceGeoview && !layerView.isVisible() ) {
 		// Don't bother drawing if not visible in the main window.
 		return;
@@ -1092,12 +1094,13 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 
 	int positioning = -1;
 
-	// PropList for specifying additional drawing instructions for symbols, currently only used by teacups.
+	// PropList for specifying additional drawing instructions for symbols, currently only used by tea cups.
 	PropList props = null;
 
+	// Typically only one symbol is drawn?
 	for ( int isym = 0; isym < nsymbols; isym++ ) {
 		// This is the position that the symbols will be drawn at relative to their X and Y values.
-		// This will be different for teacup symbols, and set below.
+		// This will be different for tea cup symbols, and set below.
 		positioning = GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y;
 
 		symbol = legend.getSymbol(isym);
@@ -1165,30 +1168,42 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 		int fieldNumbers[] = null;
 		// Only print this for non-grids since grid data are currently assumed to have one value per grid.
 		if ( (shapeType != GeoLayer.GRID) && (attributeTable == null) ) {
-			Message.printStatus ( 2, "", "Attribute table is null" );
+			Message.printStatus ( 2, "", "Attribute table is null." );
 		}
-		int classification_field = -1;
+		int classificationField = -1;
 
-		if ( classificationType != GRClassificationType.SCALED_TEACUP_SYMBOL) {
+		if ( classificationType != GRClassificationType.SCALED_TEACUP_SYMBOL ) {
 			if ( !symbol.getClassificationField().equals("") ) {
 				try {
-					classification_field = attributeTable.getFieldIndex( symbol.getClassificationField() );
+					classificationField = attributeTable.getFieldIndex( symbol.getClassificationField() );
 				}
 				catch ( Exception e ) {
 					// Just won't label below.
 					Message.printWarning ( 2, routine, "Classification field \"" +
 						symbol.getClassificationField() + " not found in attribute table." );
-						classification_field = -1;
+						classificationField = -1;
 				}
 			}
 
-			if (classification_field > -1 && layerView.isAnimatedField(classification_field)) {
-				if (!layerView.isAnimationFieldVisible(classification_field)) {
+			if (classificationField > -1 && layerView.isAnimatedField(classificationField)) {
+				if (!layerView.isAnimationFieldVisible(classificationField)) {
 					continue;
 				}
 			}
 		}
-	
+		else if ( classificationType != GRClassificationType.UNIQUE_VALUES ) {
+			try {
+				// Get the classification field.
+				classificationField = attributeTable.getFieldIndex( symbol.getClassificationField() );
+			}
+			catch ( Exception e ) {
+				// Just won't label below.
+				Message.printWarning ( 2, routine, "Classification field \"" +
+					symbol.getClassificationField() + " not found in attribute table." );
+					classificationField = -1;
+			}
+		}
+
 		if ( layerViewProps != null ) {
 			// Determine which attribute fields are used for labels and symbol classification.
 			propValue = layerViewProps.getValue ("Label");
@@ -1215,10 +1230,10 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 				// Else no labels.
 			}
 		}
-	
+
 		// Newer is to get properties directly out of the GRSymbol.
 		// Use these to override the old values.
-	
+
 		labelField = symbol.getLabelField();
 		labelFormat = null;
 		propValue = null;
@@ -1254,11 +1269,9 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 					}
 					if ( fieldNumbers[iv] < 0 ) {
 						// This should not happen.
-						Message.printWarning ( 3, routine,
-							"Can't get table field index for \"" + v.get(iv).trim() + "\"");
+						Message.printWarning ( 3, routine, "Can't get table field index for \"" + v.get(iv).trim() + "\"");
 					}
-					//Message.printStatus(2, routine, "Label field for \"" + v.get(iv) + "\" is " +
-					//		fieldNumbers[iv] );
+					//Message.printStatus(2, routine, "Label field for \"" + v.get(iv) + "\" is " + fieldNumbers[iv] );
 					if ( (propValue == null) || propValue.equals("") ) {
 						// Need to append to the default format.
 						if ( iv != 0 ) {
@@ -1270,7 +1283,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 			}
 			//Message.printStatus ( 2, routine, "for labeling, label format is \"" + label_format + "\"" );
 		}
-	
+
 		boolean fill = false;	// Is the (polygon) shape filled?
 		int transparency = 0;	// Transparency factor (255=transparent, 0 = opaque).
 		boolean isTransparent = false;	// Faster to draw when not.
@@ -1287,12 +1300,12 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 				isTransparent = true;
 			}
 		}
-	
+
 		// Use local copy of data limits to increase performance.
-		double	xmin = __dataLimits.getMinX(),
-			xmax = __dataLimits.getMaxX(),
-			ymin = __dataLimits.getMinY(),
-			ymax = __dataLimits.getMaxY();
+		double xmin = __dataLimits.getMinX();
+		double xmax = __dataLimits.getMaxX();
+		double ymin = __dataLimits.getMinY();
+		double ymax = __dataLimits.getMaxY();
 		label = null;
 		Message.printStatus ( 2, routine, __prefix + "Drawing layer \"" + layer.getFileName() + "\" type \""+
 			appType + "\" with layer limits " + layer.getLimits() + " labelField=\"" + labelField +
@@ -1302,7 +1315,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 		boolean drawLayer = true;
 		// Indicates whether only selected features should be labeled.
 		boolean labelSelectedOnly = symbol.labelSelectedOnly();
-	
+
 		// Default the select color to the global color.
 		GRColor selectSolor = __selectColor;
 		// If the layer view also has a select color specified,
@@ -1330,7 +1343,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 				selectSolor = __selectColor;
 			}
 		}
-	
+
 		if ( classificationType == GRClassificationType.SCALED_SYMBOL ) {
 			// Get the maximum value for the symbol, which is used to scale the symbol.
 			symbolMax = ((GRScaledClassificationSymbol)symbol).getClassificationDataDisplayMax();
@@ -1342,16 +1355,16 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 		else if ( classificationType == GRClassificationType.SCALED_TEACUP_SYMBOL) {
 			symbolMax = ((GRScaledTeacupSymbol)symbol).getMaxCapacity();
 		}
-	
+
 		// Draw the shapes (and possibly labels).
-	
+
 		for ( int ishape = 0; ishape < nshapes; ishape++ ) {
 			props = null;
-			
+
 			shape = shapes.get(ishape);
 			//Message.printStatus(2, routine, "Drawing shape " + ishape + " " + shape );
 			if ( shape == null ) {
-				// Null shape...
+				// Null shape.
 				//Message.printStatus ( 1, "", "SAM: null shape" );
 				continue;
 			}
@@ -1408,25 +1421,24 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 			else if ( classificationType == GRClassificationType.SCALED_SYMBOL ) {
 				// Special symbols.
 				if ( symbolStyle == GRSymbolShapeType.VERTICAL_BAR_SIGNED ) {
-					// For now only handle numeric data and handle
-					// the conversion from Object to double using strings.
+					// For now only handle numeric data and handle the conversion from Object to double using strings.
 					try {
 						if ( symbolMax == 0.0 ) {
 							symbolData[0] = 0.0;
 						}
-						else {	
-							int fieldN=classification_field;
+						else {
+							int fieldN = classificationField;
 							symbolData[0] = StringUtil.atod (
 							   layer.getShapeAttributeValue(shape.index,fieldN).toString());
-						
+
 							if (symbolData[0] == missing) {
-								symbolData[0]= replace;
+								symbolData[0] = replace;
 							}
-						
+
 							symbolData[0] /= symbolMax;
 						}
-						// All symbols have two colors set in them.  For bars, getColor() returns
-						// the color for positive values.
+						// All symbols have two colors set in them.
+						// For bars, getColor() returns the color for positive values and
 						// getColor2() returns the color for negative values.
 						if ( symbolData[0] >= 0 ) {
 							color = symbol.getColor();
@@ -1441,21 +1453,21 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 					}
 				}
 				else if (symbolStyle == GRSymbolShapeType.VERTICAL_BAR_UNSIGNED) {
-					try {	
+					try {
 						if (symbolMax == 0.0) {
 							symbolData[0] = 0.0;
 						}
-						else {	
-							int fieldN = classification_field;
+						else {
+							int fieldN = classificationField;
 							symbolData[0] = StringUtil.atod (
 								layer.getShapeAttributeValue(shape.index, fieldN).toString());
 							if (symbolData[0] == missing) {
 								symbolData[0]= replace;
 							}
-						
+
 							symbolData[0] /= symbolMax;
 						}
-	
+
 						// All symbols have two colors set in them.
 						// For bars, getColor() returns the color for positive values.
 						// getColor2() returns the color for negative values.
@@ -1465,77 +1477,77 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 					catch ( Exception e ) {
 						Message.printWarning ( 3, routine, e);
 					}
-				}			
-			}			
+				}
+			}
 			else if ( classificationType == GRClassificationType.SCALED_TEACUP_SYMBOL ) {
 				// For now only handle numeric data and handle the conversion from Object to double using strings.
 				symbolSizeX = symbol.getSizeX();
-				symbolSizeY = symbol.getSizeY();			
-				try {	
+				symbolSizeY = symbol.getSizeY();
+				try {
 					GRScaledTeacupSymbol teacup = (GRScaledTeacupSymbol)symbol;
-	
+
 					// fill the symbol_data array with the following values,
 					// which MUST be in the specified order:
-					// 0 - the maximum capacity of the teacup
-					// 1 - the minimum capacity of the teacup
-					// 2 - the current capacity of the teacup
+					// 0 - the maximum capacity of the tea cup
+					// 1 - the minimum capacity of the tea cup
+					// 2 - the current capacity of the tea cup
 					symbolData[0] = StringUtil.atod( layer.getShapeAttributeValue(
 						shape.index, teacup.getMaxCapacityField()).toString());
 					symbolData[1] = StringUtil.atod( layer.getShapeAttributeValue(
 						shape.index, teacup.getMinCapacityField()).toString());
 					symbolData[2] = StringUtil.atod( layer.getShapeAttributeValue(
 						shape.index, teacup.getCurrentCapacityField()).toString());
-	
+
 					// Missing data for the current capacity should be replaced with the replacement values.
 					// Other missing data is an error in the database and should be caught and fixed there.
 					if (symbolData[2] == missing) {
 						symbolData[2] = replace;
 					}
-				
-					// Scale the size of the teacup appropriately as compared to the largest teacup.
+
+					// Scale the size of the tea cup appropriately as compared to the largest tea cup.
 					pct = symbolData[0] / symbolMax;
 					symbolSizeX *= pct;
 					symbolSizeY *= pct;
-	
+
 					/*
 					Message.printStatus(1, "", "Max: " + symbol_data[0] + "  Symbol_max: " + symbol_max);
 					Message.printStatus(1, "", "Size: " + symbol_size_x);
 					Message.printStatus(1, "", "Size: " + symbol_size_x);
 					*/
-	
-					// There shouldn't be negative data (teacups measure capacity, after all),
+
+					// There shouldn't be negative data (tea cups measure capacity, after all),
 					// so mark in the alternate color if it happens.
-	
+
 					if (symbolData[2] >= 0) {
 						color = symbol.getColor();
 					}
-					else {	
+					else {
 						color = symbol.getColor2();
 					}
-	
+
 					__grda.setColor(color);
-	
-					// Teacups are positioned so that the center of the bottom of the teacup is on the
+
+					// Tea cups are positioned so that the center of the bottom of the tea cup is on the
 					// point at which they are located.
-	
+
 					positioning = GRSymbolPosition.CENTER_X | GRSymbolPosition.BOTTOM;
-	
-					// Set the proplist to not null.  Perhaps later this will be used to control
-					// other aspects of drawing the teacup, but for now all that goes into symbol_data[] instead.
-	
+
+					// Set the proplist to not null.
+					// Perhaps later this will be used to control other aspects of drawing the tea cup,
+					// but for now all that goes into symbol_data[] instead.
+
 					props = new PropList("");
 				}
 				catch (Exception e) {
 					Message.printWarning(3, routine, e);
 				}
-			}			
+			}
 			else {
 				// Get the data value from the attribute table.
 				// Currently this always works on doubles.
 				// Need to make more generic so it works on integers and strings.
 				try {
-					color = symbol.getColor (
-						layer.getShapeAttributeValue(shape.index, classification_field ) );
+					color = symbol.getColor ( layer.getShapeAttributeValue(shape.index, classificationField ) );
 					//Message.printStatus(2, "", "Color: " + color + "  Att: "
 					//	+ layer.getShapeAttributeValue(shape.index, classification_field)
 					//	+ "  I: " + shape.index + "  C: " + classification_field);
@@ -1571,7 +1583,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 					//+ " y: " + pt.y + "  sizex: " + symbol_size_x + "  sizey: " + symbol_size_y
 					//+ " offx: " + symbol_offset_x + " offy: " + symbol_offset_y + " data: "
 					//+ symbol_data + "  Pos: " + positioning);
-					// Just the symbol...
+					// Just the symbol.
 					setAntiAlias(__antiAliased);
 					GRDrawingAreaUtil.drawSymbol (__grda,
 						symbolStyle, pt.x, pt.y,
@@ -1583,9 +1595,9 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 				}
 				else {
 					// Draw the symbol and the text from the indicated field.
-	
-					// Note that drawSymbolText is passing in a symbol type of -1 -- this means no symbol
-					// will be drawn in that call.
+
+					// Note that drawSymbolText is passing in a symbol type of -1.
+					// This means no symbol will be drawn in that call.
 					// This is because this code was NOT drawing scaled classification symbols properly.
 					// The symbol is drawn first with a regular drawSymbol() call, and then the text is drawn,
 					// using drawSymbolText() to space the text over horizontally, but not to actually drawn any symbols
@@ -1597,8 +1609,8 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 						symbolData, GRUnits.DEVICE,
 						positioning, props);
 					setAntiAlias(false);
-	
-					try {	
+
+					try {
 						setAntiAlias(__antiAliased);
 						GRDrawingAreaUtil.drawSymbolText(__grda,
 						GRSymbolShapeType.NONE, pt.x, pt.y,
@@ -1634,7 +1646,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 					if ( isTransparent ) {
 						GRDrawingAreaUtil.drawShape( __grda, shape, fill, transparency);
 					}
-					else {	
+					else {
 						GRDrawingAreaUtil.drawShape ( __grda, shape, fill);
 					}
 					if ( !__isReferenceGeoview && (label != null) && (label.length() > 0) ) {
@@ -1660,7 +1672,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 						continue;
 					}
 					// Only draw the shape if part of it is in the drawing area.
-					// This should work if all shape data are pre-projected int he data (which is usually the case).
+					// This should work if all shape data are pre-projected in the data (which is usually the case).
 					// If printing, since we are not tracking the print extents, just do all.
 					if ( !_printing && !__isReferenceGeoview &&
 						((shape.xmax < xmin) || (shape.xmin > xmax) ||
@@ -1676,7 +1688,7 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 			}
 		}
 		__forceRedraw = false;	// Already did it.
-	
+
 		if ( !selectedOnly && (layer.getNumSelected() > 0) ) {
 			// Then the method was called the first time and we need to
 			// draw the layer again but only with the selected shapes.
@@ -1711,43 +1723,6 @@ private void drawLayerView ( GeoLayerView layerView, boolean selectedOnly ) {
 			propVal = __project.getPropList().getValue ( "GeoView.SelectColor" );
 		}
 	}
-}
-
-/**
-Finalize before garbage collection.
-@exception Throwable if an error occurs.
-*/
-protected void finalize ()
-throws Throwable {
-	__dataLimits = null;
-	__drawLimits = null;
-	__grda = null;
-	_image = null;
-	__labelFieldList = null;
-	__layerViews = null;
-	IOUtil.nullArray(__listeners);
-	__prefix = null;
-	__props = null;
-	__maxDataLimits = null;
-	__projection = null;
-	__selectColor = null;
-	__rubberBandColor = null;
-	_tmp_record = null;
-	__bounds = null;
-	__parent = null;
-	__geoViewLegend = null;
-	__project = null;
-	__statusJTextField = null;
-	__popup = null;
-	__remindedRepainters = null;
-	_bounds = null;
-	__legendJTree = null;
-	__layout = null;
-	__legendDataLimits = null;
-	__legendDrawLimits = null;
-
-	
-	super.finalize();
 }
 
 /**
@@ -1836,7 +1811,7 @@ private String getShapeLabel ( GRShape shape, int labelSource, int labelFieldNum
 		// If field_format is not null, format the label fields using the format.
 		// Else, format the field using the default field format.
 		// Get the label from the attribute table.
-		try {	
+		try {
 			if ( fieldFormat != null ) {
 				__labelFieldList.clear();
 				for ( int i = 0; i < labelFieldNumbers.length; i++ ) {
@@ -2093,7 +2068,7 @@ private void initialize ( PropList props ) {
 	__dataLimits = null;
 	__drawLimits = new GRLimits ();		// Will get set in paint().
 	__grda = null;
-	__layerViews = new ArrayList<GeoLayerView>(10);	// Non-null to minimize checks.
+	__layerViews = new ArrayList<>(10);	// Non-null to minimize checks.
 	__listeners = null;
 	__mousetrackerEnabled = true;
 	__selectGeoRecords = true;
@@ -2101,7 +2076,7 @@ private void initialize ( PropList props ) {
 	__layout.setTitle("LEGEND");
 	_waiting = false;
 
-	__remindedRepainters = new ArrayList<GeoViewJComponent>();
+	__remindedRepainters = new ArrayList<>();
 
 	// Make sure we have a non-null PropList.
 
@@ -2178,7 +2153,7 @@ Handle mouse drag event.  If in zoom mode, redraw the rubber-band line.
 This method also calls the geoViewMouseMoved() methods for registered GeoViewListeners.
 @param event Mouse drag event.
 */
-public void mouseDragged ( MouseEvent event ) {	
+public void mouseDragged ( MouseEvent event ) {
 	if (!__leftMouseButton) {
 		return;
 	}
@@ -2272,7 +2247,7 @@ public void mouseMoved ( MouseEvent event ) {
 		}
 	}
 
-	// Device units...
+	// Device units.
 
 	GRPoint devpt = new GRPoint ( x, y );
 
@@ -2286,13 +2261,13 @@ public void mouseMoved ( MouseEvent event ) {
 Handle mouse pressed event.  Start a select or zoom.
 The event is completed when the mouse is released.
 */
-public void mousePressed ( MouseEvent event ) {	
+public void mousePressed ( MouseEvent event ) {
 	if (event.getButton() != MouseEvent.BUTTON1) {
 		__leftMouseButton = false;
 		maybeShowPopup(event);
 		return;
 	}
-	
+
 	__leftMouseButton = true;
 	__mouseX1 = __mouseY1 = __mouseX2 = __mouseY2 = -1;
 	if ( (__interactionMode == INTERACTION_SELECT) ||
@@ -2325,7 +2300,7 @@ public void mouseReleased ( MouseEvent event ) {
 	if ( __grda == null ) {
 		if (!__wasWaiting) {
 			JGUIUtil.setWaitCursor(__parent, false);
-		}	
+		}
 		return;
 	}
 	if ( __interactionMode == INTERACTION_SELECT ) {
@@ -2394,9 +2369,9 @@ public void mouseReleased ( MouseEvent event ) {
 					// Force a redraw so that selected shapes are highlighted.
 					redraw();
 				}
-				if (!__wasWaiting) {				
+				if (!__wasWaiting) {
 					JGUIUtil.setWaitCursor(__parent, false);
-				}	
+				}
 				return;
 			}
 			else if ( __interactionMode == INTERACTION_ZOOM ) {
@@ -2411,9 +2386,9 @@ public void mouseReleased ( MouseEvent event ) {
 					redraw();
 				}
 				// Don't need to do anything else.
-				if (!__wasWaiting) {				
+				if (!__wasWaiting) {
 					JGUIUtil.setWaitCursor(__parent, false);
-				}					
+				}
 				return;
 			}
 		}
@@ -2522,7 +2497,7 @@ public void mouseReleased ( MouseEvent event ) {
 	}
 	if (!__wasWaiting && !__checkWaitStatus) {
 		JGUIUtil.setWaitCursor(__parent, false);
-	}		
+	}
 }
 
 private void maybeShowPopup(MouseEvent e) {
@@ -2552,7 +2527,7 @@ public void paint(Graphics g) {
 	if (!__inPrinting) {
 		_doubleBuffered = true;
 	}
-	
+
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 1, routine, __prefix + "Painting GeoView..." );
 	}
@@ -2565,11 +2540,11 @@ public void paint(Graphics g) {
 	if ( __rubberBanding ) {
 		// Just need to redraw the rubber-band line to the on-screen image.
 		// Figure out the coordinates.
-	
+
 		if (_doubleBuffered && _buffer != null) {
 			g.drawImage(_buffer, 0, 0, this);
 		}
-		
+
 		int xmin, xmax, ymin, ymax;
 		g.setColor ( __rubberBandColor );
 		g.setXORMode ( getBackground() );
@@ -2646,23 +2621,23 @@ public void paint(Graphics g) {
 		new_drawLimits.setTopY ( __bounds.height - __BORDER - (2*print_border));
 		********************* */
 
-		// Base class...		
+		// Base class.
 		_graphics = (Graphics2D)g;
-		_printing = true;		
+		_printing = true;
 	}
 	else {
 		// Screen graphics.
 		// This handles the GR size.
 		new_drawLimits = getLimits(true);
-		// Need the following for other code (image new)...
+		// Need the following for other code (image new).
 		__bounds = getBounds();
 		// Now set the drawing limits to the bounds minus a border.
 		new_drawLimits.setLeftX ( __BORDER );
 		new_drawLimits.setBottomY ( __BORDER );
 		new_drawLimits.setRightX ( new_drawLimits.getRightX() - __BORDER );
 		new_drawLimits.setTopY ( new_drawLimits.getTopY() - __BORDER);
-		_graphics = (Graphics2D)g;	
-		// Base class...
+		_graphics = (Graphics2D)g;
+		// Base class.
 		_printing = false;
 	}
 
@@ -2742,7 +2717,7 @@ public void paint(Graphics g) {
 		}
 		int i = -1;
 		// Process all the layers.
-		try {	
+		try {
 			for ( GeoLayerView layerView: __layerViews ) {
 				++i;
 				if ( layerView != null ) {
@@ -2769,7 +2744,7 @@ public void paint(Graphics g) {
 				Message.printWarning ( 3, routine, e );
 			}
 		}
-		
+
 		// If a reference GeoView, draw the current zoom.
 		// Might have null if a blank map.
 
@@ -2778,7 +2753,7 @@ public void paint(Graphics g) {
 			GRDrawingAreaUtil.drawRectangle ( __grda, __dataLimits.getLeftX(), __dataLimits.getBottomY(),
 				__dataLimits.getWidth(), __dataLimits.getHeight() );
 		}
-	
+
 		if ( __geoViewLegend != null ) {
 			__geoViewLegend.paint(g);
 		}
@@ -2801,7 +2776,7 @@ public void paint(Graphics g) {
 		}
 	}
 
-	drawLegend();	
+	drawLegend();
 
 	// If double buffering, copy the image from the buffer to the JComponent.
 
@@ -2832,10 +2807,10 @@ public void paint(Graphics g) {
 		new_drawLimits.setBottomY ( __BORDER );
 		new_drawLimits.setRightX ( new_drawLimits.getRightX() - __BORDER );
 		new_drawLimits.setTopY ( new_drawLimits.getTopY() - __BORDER);
-		_graphics = (Graphics2D)g;	
+		_graphics = (Graphics2D)g;
 		// Base class.
 		_printing = false;
-		__drawLimits = new GRLimits ( new_drawLimits );		
+		__drawLimits = new GRLimits ( new_drawLimits );
 	}
 
 	if (clearCursor) {
@@ -2896,13 +2871,13 @@ public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
 
 		Graphics2D g2d = (Graphics2D)g;
 		g2d.translate(0, pageFormat.getImageableY());
-		
+
 		// Set for the GRDevice because we will temporarily use that to do the drawing.
 		__inPrinting = true;
-		
+
 		StopWatch sw = new StopWatch();
 		sw.start();
-		boolean buffering = disableDoubleBuffering(this);	
+		boolean buffering = disableDoubleBuffering(this);
 		boolean hold = _doubleBuffered;
 		_doubleBuffered = false;
 		paint(g);
@@ -3090,7 +3065,7 @@ If it is already selected, it will be de-selected (e.g., user has previously sel
 */
 public List<GeoRecord> selectGeoRecords ( GRShape selectShape, List<String> appLayerTypes,
 	int interaction_mode, boolean append ) {
-	List<GeoRecord> records = new ArrayList<GeoRecord>(10);
+	List<GeoRecord> records = new ArrayList<>(10);
 	GeoLayer layer = null;
 	List<GRShape> shapes = null;
 	int nshapes = 0;
@@ -3209,7 +3184,7 @@ public List<GeoRecord> selectGeoRecords ( GRShape selectShape, List<String> appL
 				//Message.printStatus ( 1, "", "SAM: append is " + append );
 				if ( !append ) {
 					// Always select.
-					// Only increment count if not already selected	
+					// Only increment count if not already selected.
 					if ( !shape.is_selected ) {
 						//Message.printStatus ( 1, "", "SAM: Shape not already selected.");
 						layer.setNumSelected ( layer.getNumSelected() + 1 );
@@ -3245,7 +3220,7 @@ public List<GeoRecord> selectGeoRecords ( GRShape selectShape, List<String> appL
 			return records;
 		}
 		// Loop through layer views.
-		for ( GeoLayerView layerView: __layerViews ) {		
+		for ( GeoLayerView layerView: __layerViews ) {
 			//Message.printStatus ( 1, "", "Searching layer view " + i + " for shapes" );
 			if ( layerView == null ) {
 				continue;
@@ -3433,7 +3408,7 @@ public void setDataLimits ( GRLimits datalim ) {
 		if ( datalim.getBottomY() == datalim.getTopY() ) {
 			height = __dataLimits.getHeight()*.05;
 		}
-		datalim.increase ( width, height );	
+		datalim.increase ( width, height );
 		__dataLimits = new GRLimits ( datalim );
 		if ( !__isReferenceGeoview ) {
 			__grda.setDataLimits ( datalim );
@@ -3441,7 +3416,7 @@ public void setDataLimits ( GRLimits datalim ) {
 			// Otherwise, some of the optimization checks that are used to increase performance won't work.
 			__dataLimits = GRDrawingAreaUtil.getDataExtents(__grda, __drawLimits,0);
 		}
-			
+
 		__forceRedraw = true;
 		repaint();
 	}
@@ -3579,16 +3554,16 @@ public void zoomOut () {
 //-----------------------------------------------------------------------------
 //
 // TESTING AREA FOR LEGEND DRAWING CODE (2004-10-13 - ?)
-// JTS will merge with main code once development has finished
+// JTS will merge with main code once development has finished.
 
 /**
-Static array used for when teacup symbols are drawn in the legend,
+Static array used for when tea cup symbols are drawn in the legend,
 used to avoid creating lots of arrays.
 */
 private static double[] __teacupData = new double[3];
 
 /**
-Static proplist used when drawing teacups in the legend,
+Static proplist used when drawing tea cups in the legend,
 used because it must be provided to the draw method, but does not need created each time.
 */
 private static PropList __teacupProps = new PropList("");
@@ -3693,7 +3668,7 @@ public void drawLegend() {
 	if (__grda == null) {
 		return;
 	}
-	
+
 	// The legend should only be drawn if desired.
 	if (!__drawLegend) {
 		return;
@@ -3708,11 +3683,11 @@ public void drawLegend() {
 	//	return;
 	//}
 
-	if (!__inPrinting) {		
+	if (!__inPrinting) {
 		// If not printing then set the data units to be the drawable screen area.
 		GRPoint plot1 = __grda.getDataXY(0, 0,GRCoordinateType.PLOT);
 		__bounds = getBounds();
-		GRPoint plot2 = __grda.getDataXY(__bounds.width, __bounds.height, GRCoordinateType.PLOT);	
+		GRPoint plot2 = __grda.getDataXY(__bounds.width, __bounds.height, GRCoordinateType.PLOT);
 		__legendDataLimits = new GRLimits(plot1, plot2);
 	}
 	else {
@@ -3721,7 +3696,7 @@ public void drawLegend() {
 	}
 
 	__legendDrawLimits = __grda.getDrawingLimits();
-	
+
 	// Draw a black box around the entire map area.
 	GRDrawingAreaUtil.setColor(__grda, GRColor.black);
 	// Width is set to 2 so that the line will be visible inside the visible area.
@@ -3795,7 +3770,7 @@ public void drawLegend() {
 	// A String array into which will be placed all the lines of text to appear in the legend.
 	String[] legendLines = new String[textLines + 1];
 	// A list that holds all the heights of the rows, used to know how to finally draw the legend.
-	List<Double> rowHeightsV = new ArrayList<Double>();
+	List<Double> rowHeightsV = new ArrayList<>();
 
 	for (int i = 0; i < size; i++) {
 		node = nodes.get(i);
@@ -3807,7 +3782,7 @@ public void drawLegend() {
 				keepSkipping = true;
 				continue;
 			}
-			
+
 			// A text line has been found, increment the counter.
 			// The counter starts at 0 and is incremented to 1 by the first node,
 			// which means that it takes into account the legend title line.
@@ -3825,12 +3800,12 @@ public void drawLegend() {
 			legendNode = (GeoViewLegendJTree_Node)node;
 			limits = GRDrawingAreaUtil.getTextExtents(__grda, legendNode.getFieldText(), GRUnits.DEVICE);
 			maxRowHeight = limits.getHeight();
-			if (limits.getWidth() > width) {	
+			if (limits.getWidth() > width) {
 				width = limits.getWidth();
 			}
 
 			// Store the line of text for easy retrieval when actually drawing it.
-			legendLines[textLine] = legendNode.getFieldText();	
+			legendLines[textLine] = legendNode.getFieldText();
 		}
 		else {
 			if (keepSkipping) {
@@ -3855,9 +3830,9 @@ public void drawLegend() {
 				if (limits.getHeight() > maxRowHeight) {
 					maxRowHeight = limits.getHeight();
 				}
-				if (limits.getWidth() > width) {	
+				if (limits.getWidth() > width) {
 					width = limits.getWidth();
-				}						
+				}
 			}
 		}
 	}
@@ -3918,7 +3893,7 @@ public void drawLegend() {
 	// Based on the actual position defined in the layout,
 	// change the lower-left point of the legend so that it will be drawn in the correct corner.
 	switch (__layout.getPosition()) {
-		case GeoViewLegendLayout.NORTHWEST:	
+		case GeoViewLegendLayout.NORTHWEST:
 			break;
 		case GeoViewLegendLayout.NORTHEAST:
 			LEGEND_LX = __legendDrawLimits.getWidth() - width - 10;
@@ -3926,12 +3901,12 @@ public void drawLegend() {
 		case GeoViewLegendLayout.SOUTHEAST:
 			LEGEND_LX = __legendDrawLimits.getWidth() - width - 10;
 			LEGEND_BY = 10;
-			break;		
+			break;
 		case GeoViewLegendLayout.SOUTHWEST:
 			LEGEND_BY = 10;
 			break;
 	}
-	
+
 	// Blank out the area behind the legend with white at first.
 	GRDrawingAreaUtil.setColor(__grda, GRColor.white);
 	GRDrawingAreaUtil.fillRectangle(__grda, convertLegendX(LEGEND_LX, P),
@@ -3941,7 +3916,7 @@ public void drawLegend() {
 	// Draw the border of the legend.
 	GRDrawingAreaUtil.setColor(__grda, GRColor.black);
 	GRDrawingAreaUtil.drawRectangle(__grda, convertLegendX(LEGEND_LX, P),
-		convertLegendY(LEGEND_BY, P), convertLegendX(width, D), convertLegendY(height, D));		
+		convertLegendY(LEGEND_BY, P), convertLegendX(width, D), convertLegendY(height, D));
 
 	// Calculate the top-most point from which drawing the legend should begin.
 	double topY = LEGEND_BY + height - BORDER_T;
@@ -4012,7 +3987,7 @@ double gx, double gy, double rowHeight) {
 	GRColor color = null;
 	boolean dodraw = true;
 	GeoLayerView layerView = com.getLayerView();
-	try {	
+	try {
 		// Draw the symbol, depending on the layer data shape type.
 		int layerType = layerView.getLayer().getShapeType();
 		sym = layerView.getLegend().getSymbol(com.getIsym());
@@ -4025,18 +4000,18 @@ double gx, double gy, double rowHeight) {
 		else if (
 			sym.getClassificationType() == GRClassificationType.SCALED_SYMBOL ) {
 			color = sym.getColor();
-		}		
+		}
 		else if (sym.getClassificationType() == GRClassificationType.SCALED_TEACUP_SYMBOL) {
 			color = sym.getColor();
 		}
-		else {	
+		else {
 			color = sym.getClassificationColor ( com.getClassification() );
 		}
 		if ( (color == null) || color.isTransparent() ) {
 			// No need to draw the symbol but may have an outline.
 			dodraw = false;
 		}
-		else {	
+		else {
 			GRDrawingAreaUtil.setColor ( __grda, color );
 		}
 		if ( dodraw && ((layerType == GeoLayer.POINT) || (layerType == GeoLayer.POINT_ZM) ||
@@ -4070,7 +4045,7 @@ double gx, double gy, double rowHeight) {
 					GRDrawingAreaUtil.drawSymbol( __grda, sym.getShapeType(), gx, gy,
 						convertLegendX(sym.getSizeX(), true), convertLegendY(sym.getSizeY(), true),
 						0.0, 0.0, sym_data, GRUnits.DATA, GRSymbolPosition.LEFT | GRSymbolPosition.TOP);
-				}				
+				}
 			}
 			else {
 				// A simple symbol.
@@ -4109,11 +4084,11 @@ double gx, double gy, double rowHeight) {
 			y[2] = limits.getHeight()*.4;
 			y[3] = limits.getTopY();
 
-			for (int i = 0; i < 4; i++) {	
+			for (int i = 0; i < 4; i++) {
 				x[i] = convertLegendX(x[i], true) + gx;
 				y[i] = convertLegendY(y[i], true) + gy;
 			}
-			
+
 			GRDrawingAreaUtil.drawPolyline ( __grda, 4, x, y );
 			x = null;
 			y = null;
@@ -4176,15 +4151,15 @@ If the legend is currently drawn and is set to be not drawn, the GeoView will be
 Otherwise, the GeoView will not be refreshed.
 @param drawLegend true if the legend should be drawn, false otherwise.
 */
-public void setDrawLegend(boolean drawLegend) {	
+public void setDrawLegend(boolean drawLegend) {
 	if (drawLegend != __drawLegend) {
 		__drawLegend = drawLegend;
-		__forceRedraw = true;		
+		__forceRedraw = true;
 		repaint();
 	}
 	else {
 		__drawLegend = drawLegend;
-	}	
+	}
 }
 
 /**

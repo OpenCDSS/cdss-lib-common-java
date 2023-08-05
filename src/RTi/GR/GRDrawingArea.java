@@ -24,6 +24,7 @@ NoticeEnd */
 package RTi.GR;
 
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Shape;
 
 import java.util.List;
@@ -195,7 +196,7 @@ protected double _ploty2;
 Graphics instance to use for drawing.
 This is set every time a drawing area is created or when the device's graphics are set.
 */
-protected Graphics _graphics;
+protected Graphics2D _graphics;
 
 /**
 Drawing color.

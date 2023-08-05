@@ -11,12 +11,12 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -414,7 +414,7 @@ public GRLimits getLimits () {
 Returns the Graphics instance that is being shared for drawing.
 @return the Graphics instance that is being shared for drawing.
 */
-public Graphics getPaintGraphics() {
+public Graphics2D getPaintGraphics() {
 	return _graphics;
 }
 
@@ -690,8 +690,8 @@ This Graphics should be reset at each paint in code that extends a GRJComponentD
 resources are typically created and destroyed dynamically by the application.
 @param graphics instance to use for drawing to the device.
 */
-public void setPaintGraphics ( Graphics graphics ) {
-	_graphics = (Graphics2D)graphics;
+public void setPaintGraphics ( Graphics2D graphics ) {
+	this._graphics = graphics;
 }
 
 /**
@@ -724,7 +724,7 @@ throws IOException {
 	String routine = getClass().getSimpleName() + ".saveAsFile";
 
 	if (_buffer == null) {
-		throw new IOException ( "No internal image to save" );
+		throw new IOException ( "No internal image to save." );
 	}
 	// Else, create an image from the JComponent???
 
@@ -812,8 +812,8 @@ public void setAntiAlias(boolean antiAlias) {
 	// TODO sam 2017-02-05 need to decide if this is the right place to put the text default.
 	// Text is always optimized.
 	_graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
-	// TODO sam 2017-02-05 LCD could use the following if could guarantee LCD on all of multiple screens.
-	//_graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
+	// The following causes some thing fonts not to be very readable and may not be portable.
+	//_graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
 }
 
 /**
@@ -866,6 +866,8 @@ public void setGraphics(Graphics2D g) {
 	// Make fonts look better.
 	// See:  https://docs.oracle.com/javase/tutorial/2d/text/renderinghints.html
 	_graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);
+	// The following causes some thing fonts not to be very readable.
+	//_graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HBGR);
 }
 
 /**

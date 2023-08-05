@@ -11,21 +11,19 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
 
 package RTi.GR;
 
-import java.awt.Graphics;
-
-// REVISIT (JTS - 2003-05-05) since this class is abstract, should the methods below be made abstract?
+import java.awt.Graphics2D;
 
 /**
 GR interface for a drawable device.
@@ -48,11 +46,11 @@ This should be defined in the derived class.
 public GRLimits getLimits ();
 
 /**
-Return the Graphics instance to use for drawing.
+Return the Graphics2D instance to use for drawing.
 This is typically a shared resource set when a GRCanvasDevice or GRJComponentDevice paint() method is called.
-@return the Graphics instance to use for drawing.
+@return the Graphics2D instance to use for drawing.
 */
-public Graphics getPaintGraphics();
+public Graphics2D getPaintGraphics();
 
 /**
 Indicate whether the device has a "reversed" Y axis (one that starts at the top and increments down).
@@ -91,12 +89,12 @@ Sets whether the graphics should be drawn anti aliased.
 public void setAntiAlias(boolean antiAlias);
 
 /**
-Set the Graphics used by the device for drawing.
-This Graphics should be reset at each paint() call in code that implements a GRDevice because Graphics
+Set the Graphics2D instance used by the device for drawing.
+This Graphics2D should be reset at each paint() call in code that implements a GRDevice because Graphics2D
 resources are typically created and destroyed dynamically by the application.
-The Graphics will be used by all GRDrawingArea associated with the device.
+The Graphics2D will be used by all GRDrawingArea associated with the device.
 @param graphics instance to use for drawing to the device.
 */
-public void setPaintGraphics ( Graphics graphics );
+public void setPaintGraphics ( Graphics2D graphics );
 
 }

@@ -106,8 +106,8 @@ throws Exception {
             setTitle( JGUIUtil.getAppNameForWindows() +	" - " + title );
 		}
 	}
-	__parent = parent;
-	__table = table;
+	this.__parent = parent;
+	this.__table = table;
 
 	setupGUI();
 }
@@ -118,7 +118,7 @@ Constructor.
 @param filename the name of the file to be read and displayed in the worksheet.
 @throws Exception if filename is null.
 */
-public DataTable_JFrame(String title, String filename)
+public DataTable_JFrame(JFrame parent, String title, String filename)
 throws Exception {
 	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
 	if ( title == null ) {
@@ -137,7 +137,8 @@ throws Exception {
             setTitle( JGUIUtil.getAppNameForWindows() +	" - " + title );
 		}
 	}
-	__filename = filename;
+	this.__parent = parent;
+	this.__filename = filename;
 
 	setupGUI();
 }

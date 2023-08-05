@@ -217,7 +217,7 @@ Draws an annotation as defined in the given PropList.
 TODO (JTS - 2006-05-23) Where are these properties defined?
 */
 public void drawAnnotation(PropList p) {
-	String routine = "GRJComponentDrawingArea.drawAnnotation";
+	String routine = getClass().getSimpleName() + ".drawAnnotation";
 
 	// Color property is common to all annotations.
 	String propVal = p.getValue("Color");
@@ -1377,7 +1377,7 @@ public void drawPolygon (int npts, double x[], double y[]) {
 }
 
 /**
-Draws a polyline
+Draws a polyline.
 @param npts the number of points in the polyline
 @param x an array of x coordinates
 @param y an array of y coordinates.
@@ -2129,7 +2129,7 @@ public void setFont(String font, String style, double height) {
 }
 
 /**
-Set the font using a Java style call.
+Set the font using a Java font style call.
 @param name the name of the font.
 @param style the style of the font.
 @param size the size of the font.

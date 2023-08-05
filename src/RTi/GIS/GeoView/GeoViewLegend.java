@@ -112,14 +112,14 @@ public GeoViewLegend ( GeoViewJComponent view ) {
 /**
 Draw the symbols on the legend for the appropriate GeoLayerViews.
 Symbols for Some layers are not drawn (e.g., basins).
-@param layerViews Vector of GeoLayerView that are drawn.
+@param layerViews list of GeoLayerView that are drawn.
 */
 private void drawSymbols ( List<GeoLayerView> layerViews ) {
 	if ( layerViews == null ) {
 		return;
 	}
 
-	String rtn = "GeoViewLegend.drawSymbols";
+	String rtn = getClass().getSimpleName() + ".drawSymbols";
 
 	// Always create new legendDA because if resize event has occurred all initializing functionality should be exercised.
 	_legendDA = new GRJComponentDrawingArea ( _view, "GeoViewLegend",
@@ -140,7 +140,7 @@ private void drawSymbols ( List<GeoLayerView> layerViews ) {
 	_halfbarwidth = _barwidth / 2.0;
 
 	_legendDA.setDrawingLimits ( _draw_limits, GRUnits.DEVICE, GRLimits.DEVICE );
-	Message.printStatus ( 1, rtn, "Legend limits: " + _draw_limits );
+	Message.printStatus ( 2, rtn, "Legend limits: " + _draw_limits );
 
 	GeoLayerView layerView;
 	GRSymbol symbol;
@@ -192,7 +192,7 @@ private void drawSymbols ( List<GeoLayerView> layerViews ) {
 		}
 
 		y -= text_height;
-		Message.printStatus ( 1, rtn, "Drawing symbol ("+ x + ", " + y + ") for " + layerView.getLayer().getAppLayerType());
+		Message.printStatus ( 2, rtn, "Drawing symbol ("+ x + ", " + y + ") for " + layerView.getLayer().getAppLayerType());
 
 		GRDrawingAreaUtil.setColor (_legendDA,  symbol.getColor());
 		GRDrawingAreaUtil.drawSymbolText (

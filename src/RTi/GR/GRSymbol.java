@@ -55,7 +55,7 @@ private boolean __is_primary = false;
 /**
 Array of double precision data corresponding to colors in the color table.
 */
-private double _double_data[] = null;
+private double [] doubleData = null;
 
 /**
 Font height in points for symbol labels.
@@ -100,7 +100,7 @@ private GRClassificationType _classification_type = GRClassificationType.SINGLE;
 /**
 Array of integer data corresponding to colors in the color table.
 */
-private int _int_data[] = null;
+private int [] intData = null;
 
 /**
 Label position (left-justified against the symbol, centered in Y direction).
@@ -111,6 +111,11 @@ private int _label_position = GRText.LEFT|GRText.CENTER_Y;
  * Shape type for points.
  */
 private GRSymbolShapeType shapeType = GRSymbolShapeType.NONE;
+
+/**
+Array of String precision data corresponding to colors in the color table.
+*/
+private String [] stringData = null;
 
 /**
 Symbol style.
@@ -133,11 +138,6 @@ private GRSymbolType _type = GRSymbolType.NONE;
 The classification field to be used (used by higher-level code).
 */
 private String _classification_field = "";
-
-/**
-Array of string data corresponding to the color table.
-*/
-private String _string_data[] = null;
 
 /**
 Name of field(s) to use for labeling.
@@ -201,9 +201,9 @@ Clear the data arrays used to look up a color in the color table.
 This method should be called when the lookup values are reset.
 */
 private void clearData () {
-	this._double_data = null;
-	this._int_data = null;
-	this._string_data = null;
+	this.doubleData = null;
+	this.intData = null;
+	this.stringData = null;
 }
 
 /**
@@ -219,8 +219,8 @@ public Object clone() {
 		return null;
 	}
 
-	if (_double_data != null) {
-		s._double_data = (double[])_double_data.clone();
+	if ( this.doubleData != null) {
+		s.doubleData = (double[])this.doubleData.clone();
 	}
 
 	if (_color != null) {
@@ -239,12 +239,12 @@ public Object clone() {
 		s._color_table = (GRColorTable)_color_table.clone();
 	}
 
-	if (_int_data != null) {
-		s._int_data = (int[])_int_data.clone();
+	if ( this.intData != null) {
+		s.intData = (int[])this.intData.clone();
 	}
 
-	if (_string_data != null) {
-		s._string_data = (String[])_string_data.clone();
+	if (stringData != null) {
+		s.stringData = (String[])stringData.clone();
 	}
 
 	return s;
@@ -292,43 +292,71 @@ public String getClassificationField () {
 }
 
 /**
-Return the classification label string.
+Return the classification label string for use in a legend.
 For single classification this is an empty string.  For class breaks, the label has "&lt; x" for the first class,
 "&gt; x AND &lt;= y" for the middle classes and "&gt; x" for the last class.
 For unique values the label is just the unique value.
-@param classification Classification to get a label for.
+@param classification Classification to get a label for (0+), corresponding to the legend.
 */
 public String getClassificationLabel ( int classification ) {
 	if ( this._classification_type == GRClassificationType.CLASS_BREAKS ) {
-		if ( this._double_data != null ) {
+		if ( this.doubleData != null ) {
 			if ( classification == 0 ) {
-				return "< " + StringUtil.formatString(this._double_data[0],"%.3f");
+				return "< " + StringUtil.formatString(this.doubleData[0],"%.3f");
 			}
 			else if ( classification == (this._color_table.size() - 1)) {
-				return ">= " + StringUtil.formatString(this._double_data[classification],"%.3f");
+				return ">= " + StringUtil.formatString(this.doubleData[classification],"%.3f");
 			}
-			else return ">= " + StringUtil.formatString(this._double_data[classification - 1],"%.3f") +
-				" AND < " + StringUtil.formatString(this._double_data[classification],"%.3f");
+			else {
+				return ">= " + StringUtil.formatString(this.doubleData[classification - 1],"%.3f") +
+				" AND < " + StringUtil.formatString(this.doubleData[classification],"%.3f");
+			}
 		}
-		else if ( this._string_data != null ) {
+		else if ( this.intData != null ) {
+			if ( classification == 0 ) {
+				return "< " + this.intData[0];
+			}
+			else if ( classification == (this._color_table.size() - 1)) {
+				return ">= " + this.intData[classification];
+			}
+			else {
+				return ">= " + this.intData[classification - 1] +
+				" AND < " + this.intData[classification];
+			}
+		}
+		else if ( this.stringData != null ) {
 			return "" + classification;
 		}
-		else if ( this._int_data != null ) {
-			if ( classification == 0 ) {
-				return "< " + this._int_data[0];
-			}
-			else if ( classification == (this._color_table.size() - 1)) {
-				return ">= " + this._int_data[classification];
-			}
-			else return ">= " + this._int_data[classification - 1] +
-				" AND < " + this._int_data[classification];
+		else {
+			return "";
 		}
 	}
 	else if ( this._classification_type == GRClassificationType.UNIQUE_VALUES ) {
-		// Need to work on this.
-		return "" + classification;
+		if ( this.doubleData != null ) {
+			return StringUtil.formatString(this.doubleData[classification],"%.3f");
+		}
+		else if ( this.intData != null ) {
+			return "" + this.intData[classification];
+		}
+		else if ( this.stringData != null ) {
+			return this.stringData[classification];
+		}
+		else {
+			return "" + classification;
+		}
 	}
-	return "";
+	else {
+		return "";
+	}
+}
+
+/**
+Return the classification values as Strings,
+used for unique value classification for a String attribute.
+@return the string values used for classification.
+*/
+public String [] getClassificationStringValues() {
+	return this.stringData;
 }
 
 /**
@@ -367,20 +395,26 @@ Only one of these arrays is allowed to have values at any time.
 @return the color for the symbol (equivalent to the foreground color).
 */
 public GRColor getColor ( Object value ) {
-	if ( this._double_data != null ) {
-		return getColor ( ((Double)value).doubleValue() );
+	if ( value instanceof Double ) {
+		if ( this.doubleData != null ) {
+			return getColor ( ((Double)value).doubleValue() );
+		}
 	}
-	//else if ( this._string_data != null ) {
-		//return getColor ( (String)value );
-	//}
-	//else if ( this._int_data != null ) {
-		//return getColor ( ((Integer)value).intValue() );
-	//}
+	else if ( value instanceof String ) {
+		if ( this.stringData != null ) {
+			return getColor ( (String)value );
+		}
+	}
+	else if ( value instanceof Integer ) {
+		if ( this.intData != null ) {
+			return getColor ( (Integer)value );
+		}
+	}
 	return null;
 }
 
 /**
-Return the color used for the symbol.
+Return the color used for the symbol, for double attribute value type.
 If a classification or scaled symbol is used the value is used to determine the symbol color.
 Note that the color will be null if no color has been selected or no color table has been set for the symbol.
 @param value Data value to find color.
@@ -408,18 +442,18 @@ public GRColor getColor ( double value ) {
 	}
 	else if ( this._classification_type == GRClassificationType.CLASS_BREAKS ) {
 		// Need to check data value against ranges.
-		if ( value < this._double_data[0] ) {
+		if ( value < this.doubleData[0] ) {
 			//Message.printStatus(1, "", "Returning first color for " + value );
 			return this._color_table.get(0);
 		}
-		else if ( value >= this._double_data[this._double_data.length - 1] ) {
+		else if ( value >= this.doubleData[this.doubleData.length - 1] ) {
 			//Message.printStatus(1, "", "Returning last color for "+ value  );
-			return this._color_table.get(this._double_data.length - 1);
+			return this._color_table.get(this.doubleData.length - 1);
 		}
 		else {
-			int iend = this._double_data.length - 1;
+			int iend = this.doubleData.length - 1;
 			for ( int i = 1; i < iend; i++ ) {
-				if (value < this._double_data[i]) {
+				if (value < this.doubleData[i]) {
 					//Message.printStatus(1, "", "Returning color " + i + " for " + value
 					//	+ "  (" + _double_data[i] + ")");
 					return this._color_table.get(i);
@@ -430,11 +464,102 @@ public GRColor getColor ( double value ) {
 	}
 	else {
 		// Unique value so just find the value.
-		for ( int i = 0; i < this._double_data.length; i++ ) {
-			if ( this._double_data[i] == value ) {
+		for ( int i = 0; i < this.doubleData.length; i++ ) {
+			if ( this.doubleData[i] == value ) {
 				return this._color_table.get(i);
 			}
 		}
+		return null;
+	}
+}
+
+/**
+Return the color used for the symbol, for integer attribute value type.
+If a classification or scaled symbol is used the value is used to determine the symbol color.
+Note that the color will be null if no color has been selected or no color table has been set for the symbol.
+@param value Data value to find color.
+@return the color for the symbol (equivalent to the foreground color).
+*/
+public GRColor getColor ( int value ) {
+	if ( this._classification_type == GRClassificationType.SINGLE ) {
+		//Message.printStatus ( 1, "", "Returning single color" );
+		return this._color;
+	}
+	else if ( this._classification_type == GRClassificationType.SCALED_SYMBOL ||
+		this._classification_type == GRClassificationType.SCALED_TEACUP_SYMBOL) {
+		//Message.printStatus ( 1, "", "Returning single color" );
+		if ( this.shapeType == GRSymbolShapeType.VERTICAL_BAR_SIGNED ) {
+			if ( value >= 0 ) {
+				return this._color;
+			}
+			else {
+				return this._color2;
+			}
+		}
+		else {
+			return this._color;
+		}
+	}
+	else if ( this._classification_type == GRClassificationType.CLASS_BREAKS ) {
+		// Need to check data value against ranges.
+		if ( value < this.intData[0] ) {
+			//Message.printStatus(1, "", "Returning first color for " + value );
+			return this._color_table.get(0);
+		}
+		else if ( value >= this.intData[this.intData.length - 1] ) {
+			//Message.printStatus(1, "", "Returning last color for "+ value  );
+			return this._color_table.get(this.intData.length - 1);
+		}
+		else {
+			int iend = this.intData.length - 1;
+			for ( int i = 1; i < iend; i++ ) {
+				if (value < this.intData[i]) {
+					//Message.printStatus(1, "", "Returning color " + i + " for " + value
+					//	+ "  (" + this.intData[i] + ")");
+					return this._color_table.get(i);
+				}
+			}
+			return null;
+		}
+	}
+	else {
+		// Unique value so just find the value.
+		for ( int i = 0; i < this.intData.length; i++ ) {
+			if ( this.intData[i] == value ) {
+				return this._color_table.get(i);
+			}
+		}
+		return null;
+	}
+}
+
+/**
+Return the color used for the symbol, for String attribute value type.
+If a classification or scaled symbol is used the value is used to determine the symbol color.
+Note that the color will be null if no color has been selected or no color table has been set for the symbol.
+@param value Data value to find color.
+@return the color for the symbol (equivalent to the foreground color).
+*/
+public GRColor getColor ( String value ) {
+	if ( this._classification_type == GRClassificationType.SINGLE ) {
+		//Message.printStatus ( 1, "", "Returning single color" );
+		return this._color;
+	}
+	else if ( this._classification_type == GRClassificationType.UNIQUE_VALUES ) {
+		// Unique value so just find the value.
+		for ( int i = 0; i < this.stringData.length; i++ ) {
+			if ( (this.stringData[i] == null) && (value == null) ) {
+				// Both are null.
+				return this._color_table.get(i);
+			}
+			else if ( this.stringData[i].equals(value) ) {
+				return this._color_table.get(i);
+			}
+		}
+		return null;
+	}
+	else {
+		// Unknown classification.
 		return null;
 	}
 }
@@ -453,18 +578,18 @@ public int getColorNumber ( double value ) {
 	}
 	else if ( this._classification_type == GRClassificationType.CLASS_BREAKS ) {
 		// Need to check data value against ranges...
-		if ( value < this._double_data[0] ) {
+		if ( value < this.doubleData[0] ) {
 			//Message.printStatus ( 1, "", "Returning first color for " + value );
 			return 0;
 		}
-		else if ( value >= this._double_data[_double_data.length - 1] ) {
+		else if ( value >= this.doubleData[doubleData.length - 1] ) {
 			//Message.printStatus ( 1, "", "Returning last color for "+ value  );
-			return this._double_data.length - 1;
+			return this.doubleData.length - 1;
 		}
 		else {
-			int iend = this._double_data.length - 1;
+			int iend = this.doubleData.length - 1;
 			for ( int i = 1; i < iend; i++ ) {
-				if ( value < this._double_data[i + 1] ) {
+				if ( value < this.doubleData[i + 1] ) {
 					//Message.printStatus ( 1, "", "Returning color " + i+" for "+value);
 					return i;
 				}
@@ -474,8 +599,8 @@ public int getColorNumber ( double value ) {
 	}
 	else {
 		// Unique value so just find the value.
-		for ( int i = 0; i < this._double_data.length; i++ ) {
-			if ( this._double_data[i] == value ) {
+		for ( int i = 0; i < this.doubleData.length; i++ ) {
+			if ( this.doubleData[i] == value ) {
 				return i;
 			}
 		}
@@ -537,7 +662,7 @@ If a single classification (or scaled symbol) is used, then 1 is returned.
 @return the number of classifications.
 */
 public int getNumberOfClassifications () {
-	Message.printStatus(2, "", "Classification type=" + this._classification_type);
+	//Message.printStatus(2, "", "Classification type=" + this._classification_type);
 	if ( (this._classification_type == GRClassificationType.SINGLE) ||
 		(this._classification_type == GRClassificationType.SCALED_SYMBOL) ||
 		this._classification_type == GRClassificationType.SCALED_TEACUP_SYMBOL) {
@@ -856,8 +981,7 @@ public boolean labelSelectedOnly ( boolean label_selected_only ) {
 }
 
 /**
-Set the data that are used with a classification to look up a color for drawing.
-Currently, only one data type (double, int, etc.) can be used for the classification.
+Set the double data that are used with a classification to look up a color for drawing.
 It is assumed that external code is used to define the data values and that the number
 of values corresponds to the number of colors in the color table.
 @param data Data to use for classification.
@@ -865,19 +989,44 @@ The number of data values should be less than or equal to the number of colors i
 @param make_copy Indicates whether a copy of the data array should be made
 (true) or not (false), in which case the calling code should maintain the list.
 */
-public void setClassificationData ( double[] data, boolean make_copy ) {
+public void setClassificationData ( double [] data, boolean makeCopy ) {
 	clearData();
 	if ( data == null ) {
 		return;
 	}
-	if ( make_copy ) {
-		this._double_data = new double[data.length];
+	if ( makeCopy ) {
+		this.doubleData = new double[data.length];
 		for ( int i = 0; i < data.length; i++ ) {
-			this._double_data[i] = data[i];
+			this.doubleData[i] = data[i];
 		}
 	}
 	else {
-		this._double_data = data;
+		this.doubleData = data;
+	}
+}
+
+/**
+Set the String data that are used with a classification to look up a color for drawing.
+It is assumed that external code is used to define the data values and that the number
+of values corresponds to the number of colors in the color table.
+@param data Data to use for classification.
+The number of data values should be less than or equal to the number of colors in the color map.
+@param make_copy Indicates whether a copy of the data array should be made
+(true) or not (false), in which case the calling code should maintain the list.
+*/
+public void setClassificationData ( String [] data, boolean makeCopy ) {
+	clearData();
+	if ( data == null ) {
+		return;
+	}
+	if ( makeCopy ) {
+		this.stringData = new String[data.length];
+		for ( int i = 0; i < data.length; i++ ) {
+			this.stringData[i] = data[i];
+		}
+	}
+	else {
+		this.stringData = data;
 	}
 }
 

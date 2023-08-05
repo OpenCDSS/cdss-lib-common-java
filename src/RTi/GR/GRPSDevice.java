@@ -11,18 +11,19 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
+
 package RTi.GR;
 
-import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -51,62 +52,62 @@ protected static int _MAXLineTo_count = 1000;
 Indicates if the device is being used for printing.
 For example, the GRCanvasDevice is used for screen and printed output but for printed output the Y-Axis does not need to be shifted.
 */
-protected boolean	_printing;
+protected boolean _printing;
 
 /**
 Indicates that the Y axis must be reversed for the GR zero at the bottom.
 */
-protected boolean	_reverse_y;
+protected boolean _reverse_y;
 
 /**
 Minimum X coordinate, absolute (relative to screen).
 */
-protected double	_dev0x1;
+protected double _dev0x1;
 
 /**
 Maximum X coordinate, absolute (relative to screen).
 */
-protected double	_dev0x2;
+protected double _dev0x2;
 
 /**
 Minimum Y coordinate, absolute (relative to screen).
 */
-protected double	_dev0y1;
+protected double _dev0y1;
 
 /**
 Maximum Y coordinate, absolute (relative to screen).
 */
-protected double	_dev0y2;
+protected double _dev0y2;
 
 /**
 Minimum X coordinate, relative.
 */
-protected double	_devx1;
+protected double _devx1;
 
 /**
 Maximum X coordinate, relative.
 */
-protected double	_devx2;
+protected double _devx2;
 
 /**
 Minimum Y coordinate, relative.
 */
-protected double	_devy1;
+protected double _devy1;
 
 /**
 Maximum Y coordinate, relative.
 */
-protected double	_devy2;
+protected double _devy2;
 
 /**
 GRLimits containing the relative points of the display device.
 */
-protected GRLimits	_limits;
+protected GRLimits _limits;
 
 /**
 The graphics used for drawing.
 */
-protected Graphics _graphics = null;
+protected Graphics2D _graphics = null;
 
 /**
 counter for lineTo calls.
@@ -116,46 +117,46 @@ protected int _LineTo_count = 0;
 /**
 Display mode (allows recording).
 */
-protected int		_mode;
+protected int _mode;
 
 /**
 Page orientation.
 */
-protected int		_orientation;
+protected int _orientation;
 
 /**
 Page count.
 */
-protected int		_page;
+protected int _page;
 
 /**
 Size that is used by calling drawing routines.
 Used in Postscript/page systems where drawing can be to one page size with a single "scale" command.
 */
-protected int		_sizedrawn;
+protected int _sizedrawn;
 
 /**
 Size of output after scaling.
 Used in Postscript/page systems where drawing can be to one page size with a single "scale" command.
 */
-protected int		_sizeout;
+protected int _sizeout;
 
 /**
 Indicates the status of the drawing area.  See GRUtil.STATUS_*.
 Might be an equivalent of a C++ option.
 */
-protected int		_status;
+protected int _status;
 
 /**
 Graphics driver type.  Offered because different graphics code might make different decisions
 (e.g., Postscript draws thick lines, Canvas does not).
 */
-protected int		_type;
+protected int _type;
 
 /**
 Device units.
 */
-protected int		_units;
+protected int _units;
 
 /**
 Writer associated with PostScript files.
@@ -166,12 +167,12 @@ protected PrintWriter _fp = null;
 Name of this device (assigned by creating code).
 It will be used as a window name if necessary.
 */
-protected String	_name;
+protected String _name;
 
 /**
 Note for this device.  Used for simple on-line help for the GUI.
 */
-protected String	_note;
+protected String _note;
 
 /**
 New line for platform.
@@ -278,7 +279,7 @@ public GRLimits getLimits () {
 Returns the graphics used for drawing.
 @return the graphics used for drawing.
 */
-public Graphics getPaintGraphics() {
+public Graphics2D getPaintGraphics() {
 	return _graphics;
 }
 
@@ -906,7 +907,7 @@ This Graphics should be reset at each paint in code that implements a GRDevice b
 resources are typically created and destroyed dynamically by the application.
 @param graphics instance to use for drawing to the device.
 */
-public void setPaintGraphics ( Graphics graphics ) {
+public void setPaintGraphics ( Graphics2D graphics ) {
 	_graphics = graphics;
 }
 

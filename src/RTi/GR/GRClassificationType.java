@@ -36,7 +36,7 @@ public enum GRClassificationType {
 	One symbol per value, but all symbols are
 	the same other than color or other characteristics that can automatically be assigned.
 	*/
-	UNIQUE_VALUES("UnqueValues"),
+	UNIQUE_VALUES("UniqueValues"),
 
 	/**
 	Class breaks, in which the symbol is graded based on

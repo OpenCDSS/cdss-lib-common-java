@@ -25,6 +25,7 @@ package RTi.GIS.GeoView;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 
 import RTi.GR.GRAspectType;
 import RTi.GR.GRClassificationType;
@@ -90,7 +91,7 @@ public GeoLayerViewLegendJComponent(GeoLayerView layer_view, int isym, int class
 	_isym = isym;
 
 	// For now always set to the width to 20 until we figure out a more complex way to get the width from the panel.
-	double sym_size = 20.0;	// Default
+	double sym_size = 20.0;	// Default.
 	double sym_size_x = 0.0, sym_size_y = 0.0;
 	GRSymbol sym = _layer_view.getLegend().getSymbol(_isym);
 	if ( sym != null ) {
@@ -395,8 +396,9 @@ Paint the panel.
 Most of the work is done automatically but intercept the paint() call so we can redraw the symbols.
 */
 public void paint ( Graphics g ) {
-	// The graphics is only passed in on a redraw but the graphics is needed by the canvas.
-	setPaintGraphics ( g );
+	// The graphics is only passed in on a redraw but the graphics is needed by the canvas:
+	// - cast to Grahics2D for enhanced graphics features
+	setPaintGraphics ( (Graphics2D)g );
 	// Make sure to redraw the symbol.
 	drawSymbol ();
 }
