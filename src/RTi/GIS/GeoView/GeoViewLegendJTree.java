@@ -76,7 +76,7 @@ implements ActionListener, ItemListener, MouseListener
 Menu item labels.
 */
 private final String
-	__MENU_VIEW_ATTRIBUTES = "View Attribute Table",
+	__MENU_VIEW_ATTRIBUTE_TABLE = "View Attribute Table",
 	__MENU_SHOW_ANIMATION_CONTROL_GUI = "Show Animation Control";
 
 /**
@@ -138,7 +138,7 @@ public GeoViewLegendJTree(GeoViewJPanel gvp) {
 	mi = new JMenuItem(__theGeoViewJPanel.PROPERTIES);
 	mi.addActionListener(this);
 	__layerPopup.add(mi);
-	mi = new JMenuItem(__MENU_VIEW_ATTRIBUTES);
+	mi = new JMenuItem(__MENU_VIEW_ATTRIBUTE_TABLE);
 	mi.addActionListener(this);
 	__layerPopup.add(mi);	
 
@@ -151,7 +151,7 @@ public GeoViewLegendJTree(GeoViewJPanel gvp) {
 	mi = new JMenuItem(__theGeoViewJPanel.PROPERTIES);
 	mi.addActionListener(this);
 	__animatedPopup.add(mi);
-	mi = new JMenuItem(__MENU_VIEW_ATTRIBUTES);
+	mi = new JMenuItem(__MENU_VIEW_ATTRIBUTE_TABLE);
 	mi.addActionListener(this);
 	__animatedPopup.add(mi);	
 	mi = new JMenuItem(__MENU_SHOW_ANIMATION_CONTROL_GUI);
@@ -228,14 +228,14 @@ public void actionPerformed(ActionEvent evt) {
 		__theGeoViewJPanel.addLayerView();
 	}
 	else if (command.equals(__theGeoViewJPanel.REMOVE)) {
-		List<GeoLayerView> v = getSelectedLayerViews(false);
-		if (v.size() == 0) {
+		List<GeoLayerView> selectedLayerViews = getSelectedLayerViews(false);
+		if (selectedLayerViews.size() == 0) {
 			// This should not happen.
 			return;
 		}
 
 		String plural = "";
-		if (v.size() > 1) {
+		if (selectedLayerViews.size() > 1) {
 			plural = "s";
 		}
 
@@ -246,8 +246,8 @@ public void actionPerformed(ActionEvent evt) {
 			return;
 		}	
 		
-		for (int i = 0; i < v.size(); i++) {
-			__theGeoViewJPanel.removeLayerView( (GeoLayerView)v.get(i), true);
+		for (int i = 0; i < selectedLayerViews.size(); i++) {
+			__theGeoViewJPanel.removeLayerView( selectedLayerViews.get(i), true);
 		}
 	}
 	else if (command.equals(__theGeoViewJPanel.PROPERTIES)) {
@@ -260,7 +260,7 @@ public void actionPerformed(ActionEvent evt) {
 		GeoLayerView layerView = (GeoLayerView)node.getData();
 		layerView.getAnimationControlJFrame().setVisible(true);
 	}
-	else if (command.equals(__MENU_VIEW_ATTRIBUTES)) {
+	else if (command.equals(__MENU_VIEW_ATTRIBUTE_TABLE)) {
 		GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)getSelectedNode();	
 		GeoLayerView layerView = (GeoLayerView)node.getData(); 	
 		GRLegend legend = layerView.getLegend();
@@ -277,7 +277,7 @@ public void actionPerformed(ActionEvent evt) {
 			String dbfFilename = base + "dbf";
 	
 			try {
-				new DataTable_JFrame("Attributes of " + layerName, dbfFilename);
+				new DataTable_JFrame(this.__theGeoViewJPanel.getParentJFrame(), "Attributes of " + layerName, dbfFilename);
 			}
 			catch (Exception e) {
 				Message.printWarning(1, "GeoViewLegendJTree.actionPerformed", "Error opening DataTable_JFrame (" + e +").");
@@ -704,7 +704,7 @@ public void itemStateChanged(ItemEvent event) {
 	@SuppressWarnings("rawtypes")
 	Enumeration e = getChildren(node);
 	for (; e.hasMoreElements();) {
-		SimpleJTree_Node n = (GeoViewLegendJTree_Node)e.nextElement();
+		SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 
 		if (n instanceof GeoViewLegendJTree_Node) {
 			((GeoViewLegendJTree_Node)n).setCheckBoxSelected(select);

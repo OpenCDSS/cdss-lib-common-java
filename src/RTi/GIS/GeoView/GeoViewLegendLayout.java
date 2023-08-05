@@ -4,34 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2023 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//-----------------------------------------------------------------------------
-// GeoViewLegendLayout - a layout manager that controls how the legend is
-//	drawn on the map, also doing linking so the legend can be managed
-// 	from the properties JFrame
-//-----------------------------------------------------------------------------
-// Copyright:  See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// History:
-// 2004-10-18	J. Thomas Sapienza, RTi	Initial version.
-// 2005-04-27	JTS, RTi		Added finalize().
-//-----------------------------------------------------------------------------
 
 package RTi.GIS.GeoView;
 
@@ -43,9 +31,8 @@ import javax.swing.JCheckBox;
 import RTi.Util.GUI.SimpleJTree_Node;
 
 /**
-A layout manager for the GeoViewLegend that controls how the legend is drawn
-on the map.  This class also links the legend to the properties JFrame for
-the GeoView so it can be changed there.
+A layout manager for the GeoViewLegend that controls how the legend is drawn on the map.
+This class also links the legend to the properties JFrame for the GeoView so it can be changed there.
 TODO (JTS - 2006-05-23) How is this class used?
 */
 public class GeoViewLegendLayout {
@@ -53,7 +40,7 @@ public class GeoViewLegendLayout {
 /**
 Location constants that specify where the legend is placed on the GeoView.
 */
-public static final int 
+public static final int
 	NORTHWEST = 0,
 	NORTHEAST = 2,
 	SOUTHEAST = 4,
@@ -65,8 +52,7 @@ The number of node layers added to the legend.
 private int count = 0;
 
 /**
-The position of the legend on the GeoView (one of NORTHWEST, NORTHEAST,
-SOUTHWEST, SOUTHEAST).
+The position of the legend on the GeoView (one of NORTHWEST, NORTHEAST, SOUTHWEST, SOUTHEAST).
 */
 private int __position = 0;
 
@@ -76,38 +62,34 @@ The title of the legend.
 private String __title = null;
 
 /**
-The checkboxes that were added to the legend.  The items in this Vector 
-correspond to the items in the other Vectors at the same position.
+The checkboxes that were added to the legend.
+The items in this list correspond to the items in the other Vectors at the same position.
 */
-public List<JCheckBox> __checkboxes = new Vector<JCheckBox>();
+public List<JCheckBox> __checkboxes = new Vector<>();
 
 /**
-The nodes that were added to the legend.  The items in this Vector 
-correspond to the items in the other Vectors at the same position.
+The nodes that were added to the legend.
+The items in this list correspond to the items in the other Vectors at the same position.
 */
-public List<SimpleJTree_Node> __nodes = new Vector<SimpleJTree_Node>();
+public List<SimpleJTree_Node> __nodes = new Vector<>();
 
 /**
-The layers that were added to the legend.  The items in this Vector 
-correspond to the items in the other Vectors at the same position.
+The layers that were added to the legend.
+The items in this list correspond to the items in the other Vectors at the same position.
 */
-public List<GeoLayerView> __layers = new Vector<GeoLayerView>();
+public List<GeoLayerView> __layers = new Vector<>();
 
 /**
-A Vector of Booleans that specify whether the layer in the layers Vector
-at the same position is visible or not.  The items in this Vector 
-correspond to the items in the other Vectors at the same position.
+A list of Booleans that specify whether the layer in the layers list at the same position is visible.
+The items in this list correspond to the items in the other Vectors at the same position.
 */
-public List<Boolean> __visibles = new Vector<Boolean>();
+public List<Boolean> __visibles = new Vector<>();
 
 /**
 Adds an item to the legend.
-@param node the node in the legend JTree that corresponds to the item being
-added to the legend.
-@param layer the layer on the GeoView corresponding to the item being added
-to the legend.
-@param checkbox the checkbox in the legend JTree that corresponds to the item
-being added.
+@param node the node in the legend JTree that corresponds to the item being added to the legend.
+@param layer the layer on the GeoView corresponding to the item being added to the legend.
+@param checkbox the checkbox in the legend JTree that corresponds to the item being added.
 @param visible whether the item is visible.
 */
 public void addNodeLayerCheckBox(SimpleJTree_Node node, GeoLayerView layer,
@@ -123,32 +105,16 @@ JCheckBox checkbox, boolean visible) {
 Clears everything from the legend.
 */
 public void empty() {
-	__nodes = new Vector<SimpleJTree_Node>();
-	__layers = new Vector<GeoLayerView>();
-	__visibles = new Vector<Boolean>();
-	__checkboxes = new Vector<JCheckBox>();
+	__nodes = new Vector<>();
+	__layers = new Vector<>();
+	__visibles = new Vector<>();
+	__checkboxes = new Vector<>();
 	count = 0;
 }
 
 /**
-Cleans up member variables.
-@throws Throwable if an error occurs.
-*/
-public void finalize() 
-throws Throwable {
-	__checkboxes = null;
-	__nodes = null;
-	__layers = null;
-	__visibles = null;
-	__title = null;
-	super.finalize();
-}
-
-/**
-Returns the position of the given checkbox in the legend, or -1 if the 
-checkbox cannot be found.
-@return the position of the given checkbox in the legen, or -1 if the 
-checkbox cannot be found.
+Returns the position of the given checkbox in the legend, or -1 if the checkbox cannot be found.
+@return the position of the given checkbox in the legen, or -1 if the checkbox cannot be found.
 */
 public int findCheckBox(JCheckBox checkbox) {
 	JCheckBox tempCheckbox = null;
@@ -162,10 +128,8 @@ public int findCheckBox(JCheckBox checkbox) {
 }
 
 /**
-Returns the position of the given layer in the legend, or -1 if the 
-layer cannot be found.
-@return the position of the given layer in the legend, or -1 if the 
-layer cannot be found.
+Returns the position of the given layer in the legend, or -1 if the layer cannot be found.
+@return the position of the given layer in the legend, or -1 if the layer cannot be found.
 */
 public int findLayer(GeoLayerView layer) {
 	GeoLayerView tempLayer = null;
@@ -179,10 +143,8 @@ public int findLayer(GeoLayerView layer) {
 }
 
 /**
-Returns the position of the given node in the legend, or -1 if the 
-node cannot be found.
-@return the position of the given node in the legend, or -1 if the 
-node cannot be found.
+Returns the position of the given node in the legend, or -1 if the node cannot be found.
+@return the position of the given node in the legend, or -1 if the node cannot be found.
 */
 public int findNode(SimpleJTree_Node node) {
 	SimpleJTree_Node tempNode = null;
@@ -328,8 +290,7 @@ public void setLayerLegendVisible(int num, boolean visible) {
 
 /**
 Sets the position of the legend.
-@param pos the position of the legend (NORTHWEST, NORTHEAST, SOUTHWEST,
-SOUTHEAST).
+@param pos the position of the legend (NORTHWEST, NORTHEAST, SOUTHWEST, SOUTHEAST).
 */
 public void setPosition(int pos) {
 	__position = pos;

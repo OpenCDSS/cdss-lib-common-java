@@ -42,6 +42,7 @@ import RTi.Util.IO.PropList;
 import RTi.Util.Math.MathUtil;
 
 import RTi.Util.Message.Message;
+import sun.font.FontManagerFactory;
 
 /**
 Drawing area for GRCanvasDevice.
@@ -915,11 +916,15 @@ public void setFont ( String font, String style, double height ) {
 
 /**
 Set the font using a Java style call.
-@param name the name of the Font
+@param name the name of the Font (e.g., "Arial"), which is a logical name
 @param style the style of the Font
 @param size the size of the Font
 */
 public void setFont ( String name, int style, int size ) {
+	// Java Font constructor should automatically uses a true type font (TTF).
+	// Alternatively, can try to load a TTF, but the following does not work on current Java versions.
+	// See: https://stackoverflow.com/questions/2019249/get-font-file-as-a-file-object-or-get-its-path
+	//String fontFilePath = FontManager.getFontPath( true ) + "/" + FontManager.getFileNameForFontName( fontName );
 	_font_obj = new Font ( name, style, size );
 	if ( _jdev == null ) {
 		return;

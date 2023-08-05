@@ -1816,7 +1816,7 @@ Returns the parent JFrame in which this GeoViewJPanel can be found.
 @return the parent JFrame in which this GeoViewJPanel can be found.
 */
 public JFrame getParentJFrame() {
-	return __parentJFrame;
+	return this.__parentJFrame;
 }
 
 /**
@@ -1940,12 +1940,13 @@ throws Exception {
 	try {
 		setStatus("Opening GeoView Project");
 		Message.printStatus(1, "", "Opening GeoViewProject file: '" + gvp_file + "'");
+		// The following just reads the project into a PropList.
 		__gvp = new GeoViewProject ( gvp_file );
 
 		// Read whether point symbol anti-aliasing should be done.
 		PropList AA = __gvp.getPropList();
 		String aa = AA.getValue("GeoView.AntiAliased");
-		if (aa != null && aa.equalsIgnoreCase("true") && __mainGeoView instanceof GRJComponentDevice) {
+		if ( (aa != null) && aa.equalsIgnoreCase("true") && (__mainGeoView instanceof GRJComponentDevice) ) {
 			__mainGeoView.setAntiAliased(true);
 			__refGeoView.setAntiAliased(true);
 		}
@@ -2013,7 +2014,7 @@ throws Exception {
 		__mainGeoView.setProject ( __gvp );
 		__refGeoView.setProject ( __gvp );
 		// Add the layer views in the GVP to the GeoView.
-		__gvp.addToGeoView ( __mainGeoView, __refGeoView, __legendJTree );
+		__gvp.addLayersToGeoView ( __mainGeoView, __refGeoView, __legendJTree );
 		__gvpFile = gvp_file;
 		// Check the list of enabled data types.
 		// Typically at startup only want to display background layers.

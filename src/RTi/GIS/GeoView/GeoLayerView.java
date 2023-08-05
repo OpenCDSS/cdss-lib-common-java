@@ -100,7 +100,7 @@ private GeoLayer _layer = null;
 /**
 GeoViewJComponent that uses the GeoLayer.
 */
-private GeoViewJComponent	_view = null;
+private GeoViewJComponent _view = null;
 
 /**
 Color to use for layer, including symbols.
@@ -158,7 +158,7 @@ public GeoLayerView ( GeoLayer layer ) {
 Construct from a layer file and properties.
 The layer is first read and then default symbol properties are assigned based on the count of the layers.
 Currently attributes are NOT read.
-@param filename Name of ESRI shapefile.
+@param filename Name of Esri shapefile.
 @param props Properties for the layer view, for example as read from a GeoView project file
 (see overloaded version for description).
 @param count Count of layers being added.  This affects the default symbols that are assigned.

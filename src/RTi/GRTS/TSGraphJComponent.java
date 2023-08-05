@@ -25,8 +25,8 @@ package RTi.GRTS;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
+import java.awt.Graphics; // Needed for some standard methods.
+import java.awt.Graphics2D; // Will be used for most drawing.
 import java.awt.Rectangle;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -3070,8 +3070,9 @@ public void paint ( Graphics g ) {
 		// This will be executed the first paint.
 		//
 		// The graphics will be for the screen
-		// (it may actually be set for an image below but setting it here should be ok for initialization).
+		// (it may actually be set for an image below but setting it here should be OK for initialization).
 		// Once the graphics is set, font sizes can be determined.
+		// Cast to Graphiucs2D, which provides more functionality.
 		_graphics = (Graphics2D)g;
 		// Now set the drawing limits these are necessary to compute the labels and are for the most part independent of data limits.
 		if ( Message.isDebugOn ) {
@@ -3840,7 +3841,8 @@ public void saveAsSVG ( String path )
 throws FileNotFoundException, IOException {
     Graphics g = TSGraphJComponent_SaveAsSVG.createGraphics();
 
-    // Render into the SVG Graphics2D implementation.
+    // Render into the SVG Graphics2D implementation:
+    // - the Graphics instance will be cast to Graphics2D in the 'paint' method
     __paintForSVG = true;
     paint(g);
     __paintForSVG = false;
@@ -4570,7 +4572,8 @@ Overrule the default update to not clear the screen.
 @param g Graphics instance to use for drawing.
 */
 public void update(Graphics g) {
-	// Just call paint.
+	// Just call paint:
+	// - the Graphics instance will be cast to Graphics2D inside the 'paint' method
 	paint ( g );
 }
 

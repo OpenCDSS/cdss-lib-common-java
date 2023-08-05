@@ -213,7 +213,7 @@ GeoViewProject gvp, GeoViewJPanel parent__geoviewJPanel) {
 
 	__geoViewOnly = true;
 
-	setupGUI();
+	setupGUI ( parent );
 }
 
 /**
@@ -237,7 +237,7 @@ public GeoViewPropertiesJFrame ( JFrame parent, GeoLayerView layer_view, GeoView
 
 	__geoViewOnly = false;
 
-	setupGUI();
+	setupGUI( parent );
 }
 
 /**
@@ -515,8 +515,10 @@ private void legendCheckBoxChecked(JCheckBox cb) {
 
 /**
 Sets up the GUI.
+@param parent parent JFrame, used to center the properties editor
 */
-private void setupGUI() {
+private void setupGUI ( JFrame parent ) {
+	String routine = getClass().getSimpleName() + ".setupGUI";
     // Objects to be used in the GUI layout.
 	int b = 2;
 	Insets TNNN = new Insets(b,0,0,0);
@@ -842,18 +844,18 @@ private void setupGUI() {
 
 		// Panel for notes about symbols.
 
-		JPanel symbol_textJPanel = new JPanel();
-		symbol_textJPanel.setLayout ( gbl );
-	        JGUIUtil.addComponent( symbol_textJPanel, new JLabel (
-			"Symbols used to draw map features depend on the layer shape" ),
+		JPanel symbolNotes_JPanel = new JPanel();
+		symbolNotes_JPanel.setLayout ( gbl );
+	        JGUIUtil.addComponent( symbolNotes_JPanel, new JLabel (
+			"Symbols used to draw map features depend on the layer shape type and classification type." ),
 			0, y, 10, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
-        JGUIUtil.addComponent( symbol_textJPanel, new JLabel (
-			"type and classification.  A single symbol is the default." ),
+        JGUIUtil.addComponent( symbolNotes_JPanel, new JLabel (
+			"A single symbol is the default." ),
 			0, ++y, 10, 1, 0, 0, NLNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
-        JGUIUtil.addComponent( symbol_textJPanel, new JLabel (
+        JGUIUtil.addComponent( symbolNotes_JPanel, new JLabel (
 			"Classification requires that a data attribute be selected." ),
 			0, ++y, 10, 1, 0, 0, NLNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
-        JGUIUtil.addComponent( symbolJPanel, symbol_textJPanel,
+        JGUIUtil.addComponent( symbolJPanel, symbolNotes_JPanel,
 			3, 0, 7, 1, 0, 0, TLBR, GridBagConstraints.NONE, GridBagConstraints.NORTH );
 
 		// Now add a panel for each classification type (only set visible the panel that applies).
@@ -915,8 +917,7 @@ private void setupGUI() {
 				_single_outline_colorJTextField.setText( "None");
 			}
 			else {
-				_single_outline_colorJTextField.setBackground (
-				symbol.getOutlineColor() );
+				_single_outline_colorJTextField.setBackground ( symbol.getOutlineColor() );
 			}
 	       	JGUIUtil.addComponent( __singleSymbolJPanel,
 				_single_outline_colorJTextField,
@@ -926,7 +927,7 @@ private void setupGUI() {
 		if ( (shapeType == GeoLayer.POINT) || (shapeType == GeoLayer.POINT_ZM) ||
 			(shapeType == GeoLayer.LINE) || (shapeType == GeoLayer.POLYLINE_ZM) ) {
 	        JGUIUtil.addComponent( __singleSymbolJPanel, new JLabel ( "Size:"),
-			0, ++y, 1, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
+	        	0, ++y, 1, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
 			JTextField _symbol_sizeJTextField = new JTextField ( 5 );
 			_symbol_sizeJTextField.setEditable ( false );
 			_symbol_sizeJTextField.setBackground ( Color.lightGray );
@@ -940,14 +941,12 @@ private void setupGUI() {
 		y = -1;
 	    JGUIUtil.addComponent( __singleSymbolJPanel, new JLabel ( "Single symbol:" ),
 			2, ++y, 1, 1, 0, 0, TLNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
-		JPanel single_legend_panel = new GeoLayerViewLegendJPanel(
-			__layerView, false);
+		JPanel single_legend_panel = new GeoLayerViewLegendJPanel( __layerView, false);
 		single_legend_panel.setBackground ( Color.white );
-	    JGUIUtil.addComponent( __singleSymbolJPanel,
-			new JScrollPane(single_legend_panel),
+	    JGUIUtil.addComponent( __singleSymbolJPanel, new JScrollPane(single_legend_panel),
 			2, ++y, 1, 9, 1, 1, TLNN, GridBagConstraints.BOTH, GridBagConstraints.WEST );
 		single_legend_panel = null;
-	        JGUIUtil.addComponent( symbolJPanel, __singleSymbolJPanel,
+        JGUIUtil.addComponent( symbolJPanel, __singleSymbolJPanel,
 			0, 1, 10, 1, 0, 0, TNNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.SOUTH );
 		if ( classificationType == GRClassificationType.SINGLE ) {
 			__singleSymbolJPanel.setVisible(true);
@@ -965,25 +964,30 @@ private void setupGUI() {
 
 	    JGUIUtil.addComponent( symbolJPanel, __uniqueValuesJPanel,
 			3, 1, 7, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-		__uniqueValuesJPanel.setBackground(Color.red);
+	    // Use this for troubleshooting the layout.
+		//__uniqueValuesJPanel.setBackground(Color.red);
 		if ( classificationType == GRClassificationType.UNIQUE_VALUES ) {
 			__uniqueValuesJPanel.setVisible(true);
 		}
 		else {
 			__uniqueValuesJPanel.setVisible(false);
 		}
+
 		y = -1;
 	    JGUIUtil.addComponent( __uniqueValuesJPanel, new JLabel ("Symbol:"),
-			0, ++y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
+			0, ++y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.CENTER );
 	    JGUIUtil.addComponent( __uniqueValuesJPanel, new JLabel ("Field:"),
-			1, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	    JGUIUtil.addComponent( __uniqueValuesJPanel,
-			new GeoLayerViewLegendJPanel(__layerView, false),
+			1, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.CENTER );
+
+	    JGUIUtil.addComponent( __uniqueValuesJPanel, new GeoLayerViewLegendJPanel(__layerView, false),
 			0, ++y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
-		__uniqueValuesFieldJComboBox = new JComboBox<>();
-		__uniqueValuesFieldJComboBox.addItem( "Junk" );
-	    JGUIUtil.addComponent(__uniqueValuesJPanel,
-			__uniqueValuesFieldJComboBox,
+	    String [] values = this.__layerView.getLayer().getAttributeTable().getFieldNames();
+		__uniqueValuesFieldJComboBox = new JComboBox<String>();
+		__uniqueValuesFieldJComboBox.setEnabled(false);
+		JGUIUtil.addToJComboBox ( __uniqueValuesFieldJComboBox, values );
+		Message.printStatus(2, routine, "Classification field = \"" + this.__layerView.getSymbol().getClassificationField() + "\"");
+		__uniqueValuesFieldJComboBox.setSelectedItem(this.__layerView.getSymbol().getClassificationField());
+	    JGUIUtil.addComponent(__uniqueValuesJPanel, __uniqueValuesFieldJComboBox,
 			1, y, 1, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	    JGUIUtil.addComponent( symbolJPanel, __uniqueValuesJPanel,
 			0, 1, 10, 1, 0, 0, TNNN, GridBagConstraints.NONE, GridBagConstraints.WEST );
@@ -1720,7 +1724,7 @@ private void setupGUI() {
 		}
 	}
 	pack();
-	JGUIUtil.center( this );
+	JGUIUtil.center( this, parent );
 	setVisible( true );
 
 	__doneInitializing = true;
