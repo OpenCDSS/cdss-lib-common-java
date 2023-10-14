@@ -43,7 +43,9 @@ import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
 /**
-TODO (JTS - 2006-05-23) Document example of use (e.g., from ERDiagram_Device).
+GR library device corresponding to a JComponent, which can be treated like a canvas for drawing.
+This class contains features to map the pixel coordinate system to that used by GRDrawingArea.
+This class is used as the base class for any devices that are drawn on.
 */
 @SuppressWarnings("serial")
 public class GRJComponentDevice
@@ -217,6 +219,8 @@ public GRJComponentDevice ( String name ) {
 
 /**
 Construct using name and size.  Currently, the size is ignored (controlled by layout managers).
+@param name the name of the device.
+@param size the size of the device, in pixels
 */
 public GRJComponentDevice ( String name, GRLimits size ) {
 	PropList props = new PropList ( "GRJComponentDevice.default" );
@@ -232,7 +236,7 @@ Construct using a property list.
 public GRJComponentDevice ( PropList props ) {
 	if ( Message.isDebugOn ) {
 		String routine = "GRDevice(PropList)";
-		Message.printDebug ( 1, routine, "Contructing using PropList");
+		Message.printDebug ( 1, routine, "Contructing using PropList.");
 	}
 	initialize ( props );
 }
@@ -256,7 +260,7 @@ public void addDrawingArea ( GRDrawingArea grda, boolean replaceMatching ) {
 	String routine = getClass().getSimpleName() + ".addDrawingArea";
 
 	if ( grda == null ) {
-		Message.printWarning ( 2, routine, "NULL drawing area" );
+		Message.printWarning ( 2, routine, "NULL drawing area." );
 		return;
 	}
 
@@ -277,7 +281,7 @@ public void addDrawingArea ( GRDrawingArea grda, boolean replaceMatching ) {
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 10, routine,
-		"Adding drawing area \"" + grda.getName() + "\" to device \"" + _name + "\"" );
+		"Adding drawing area \"" + grda.getName() + "\" to device \"" + _name + "\"." );
 	}
 	this.drawingAreaList.add ( grda );
 }
