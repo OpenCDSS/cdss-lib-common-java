@@ -254,7 +254,7 @@ public void actionPerformed ( ActionEvent event ) {
 	Object o = event.getSource();
     if (o == _edit_JToogleButton) {
       _ts_graph.setDisplayCursor(true);
-      _ts_graph.setInteractionMode(TSGraphJComponent.INTERACTION_EDIT);
+      _ts_graph.setInteractionMode(TSGraphInteractionType.EDIT);
       _fillInterpolation_JButton.setEnabled(true);
       _autoConnect_JCheckBox.setEnabled(true);
       _autoConnect_JCheckBox.setSelected(true);
@@ -262,7 +262,7 @@ public void actionPerformed ( ActionEvent event ) {
     }
     else if (o == _zoom_JToogleButton) {
       _ts_graph.setDisplayCursor(false);
-      _ts_graph.setInteractionMode(TSGraphJComponent.INTERACTION_ZOOM);
+      _ts_graph.setInteractionMode(TSGraphInteractionType.ZOOM);
       _fillInterpolation_JButton.setEnabled(false);
       _autoConnect_JCheckBox.setEnabled(false);
     }
@@ -306,12 +306,12 @@ public void actionPerformed ( ActionEvent event ) {
 		if ( __mode_JButton.getText().equals("Change to Select Mode")) {
 			// In zoom mode so toggle to select.
 			__mode_JButton.setText( "Change to Zoom Mode" );
-			setInteractionMode ( TSGraphJComponent.INTERACTION_SELECT );
+			setInteractionMode ( TSGraphInteractionType.SELECT );
 			__message_JTextField.setText ( "Select Mode");
 		}
 		else {	// In select mode so toggle to zoom.
 			__mode_JButton.setText( "Change to Select Mode" );
-			setInteractionMode (TSGraphJComponent.INTERACTION_ZOOM);
+			setInteractionMode (TSGraphInteractionType.ZOOM);
 /* FIXME SAM 2008-02-21
 			if ( (_ts_graph.getGraphType() == TSGraphJComponent.GRAPH_TYPE_DOUBLE_MASS) ||
 				(_ts_graph.getGraphType() == TSGraphJComponent.GRAPH_TYPE_DURATION) ||
@@ -1034,7 +1034,7 @@ private void openGUI ( boolean mode ) {
 	__mode_JButton.setEnabled ( false );
 
 */
-	setInteractionMode ( TSGraphJComponent.INTERACTION_ZOOM );
+	setInteractionMode ( TSGraphInteractionType.ZOOM );
 /*
 	if ( (_ts_graph.getGraphType() == TSGraphJComponent.GRAPH_TYPE_DOUBLE_MASS) ||
 		(_ts_graph.getGraphType() == TSGraphJComponent.GRAPH_TYPE_DURATION) ||
@@ -1448,16 +1448,16 @@ private void saveGraph() {
 
 /**
 Set the interaction mode for the main and reference graphs.
-Currently this just calls the TSGraphJComponent version.
+This just calls the TSGraphJComponent version.
 @param mode Interaction mode (see TSGraphJComponent).
 */
-public void setInteractionMode ( int mode ) {
+public void setInteractionMode ( TSGraphInteractionType mode ) {
 	if ( _ts_graph != null ) {
 		_ts_graph.setInteractionMode( mode );
 	}
 	// Reference graph is always in zoom mode.
 	if ( _ref_graph != null ) {
-		_ref_graph.setInteractionMode( TSGraphJComponent.INTERACTION_ZOOM );
+		_ref_graph.setInteractionMode( TSGraphInteractionType.ZOOM );
 	}
 }
 

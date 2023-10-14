@@ -905,9 +905,9 @@ public void saveAsDateValue () {
 /**
 Set the interaction mode.  Currently this just calls the TSViewGraphFrame version.
 Need to figure out how listeners will communicate within this package.
-@param mode TSViewGraphFrame interaction mode.
+@param mode TSGraph interaction mode.
 */
-public void setInteractionMode ( int mode ) {
+public void setInteractionMode ( TSGraphInteractionType mode ) {
 	if ( _graph_gui != null ) {
 		_graph_gui.setInteractionMode( mode );
 	}

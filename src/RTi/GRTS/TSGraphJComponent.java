@@ -124,28 +124,6 @@ implements KeyListener, MouseListener, MouseMotionListener, Printable, TSViewLis
 {
 
 /**
-Edit mode. Enables editing of points by clicking above or below a point
-to change the point's y value. (X value editing is not supported)
-*/
-public static final int INTERACTION_EDIT = 3;
-/**
-Interaction modes.
-No special interaction.
-*/
-public static final int INTERACTION_NONE = 0;
-
-/**
-Select a feature.  When enabled, a mouse click causes the select() method of registered TSViewListeners to be called.
-*/
-public static final int INTERACTION_SELECT = 1;
-
-/**
-Zoom mode.  This enables a rubber-band line (if the extents are bigger than 5 pixels in both direction.
-The zoom() method of registered TSViewListeners are called.
-*/
-public static final int INTERACTION_ZOOM = 2;
-
-/**
 Use this to force the drawing limits to be reset.
 Otherwise, the graphics is not available for setting font-dependent area sizes.
 */
@@ -317,7 +295,7 @@ private JFrame _parent = null;
 /**
 List of TSGraph being drawn, guaranteed to be non-null.
 */
-private List<TSGraph> _tsgraphs = new ArrayList<TSGraph>();
+private List<TSGraph> _tsgraphs = new ArrayList<>();
 
 /**
 Starting date/time for visible graph, used for first draw only.
@@ -357,7 +335,7 @@ private TSViewListener [] _listeners = null;
 /**
 Interaction mode.
 */
-private int _interaction_mode = INTERACTION_NONE;
+private TSGraphInteractionType _interaction_mode = TSGraphInteractionType.NONE;
 
 /**
 Coordinates for events.
@@ -650,7 +628,7 @@ private void checkDisplayProperties ( TSProduct tsproduct, PropList displayProps
 	if ( (propVal != null) && propVal.equalsIgnoreCase("true") ) {
 		this._is_reference_graph = true;
 		this._gtype = "Ref:";
-		this._interaction_mode = INTERACTION_ZOOM;
+		this._interaction_mode = TSGraphInteractionType.ZOOM;
 	}
     propVal = tsproduct.getLayeredPropValue("VisibleStart", -1, -1);
     if ( propVal != null ) {
@@ -1072,7 +1050,7 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 			Message.printDebug ( 1, routine,
 			    _gtype + "Created 0 graphs from TSProduct (no enabled subproducts defined)." );
 		}
-		return new ArrayList<TSGraph> ( 1 );
+		return new ArrayList<> ( 1 );
 	}
 
 	// For now, assume that graphs will be listed vertically with the first one on top.
@@ -1099,7 +1077,7 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 	}
 	TS ts, tsfound;
 	String prop_val;
-	List<TSGraph> tsgraphs = new ArrayList<TSGraph> ( nsubs );
+	List<TSGraph> tsgraphs = new ArrayList<> ( nsubs );
 	// This is the value for the tslist that is used by the graph, NOT the value in the entire list.
 	int reference_ts_index = -1;
 
@@ -2260,9 +2238,9 @@ private TSGraph getEventTSGraph ( GRPoint pt, boolean includeGraphArea, boolean 
 
 /**
 Return the graph interaction mode.
-@return the interaction mode (see INTERACTION_*).
+@return the interaction type (see INTERACTION_*).
 */
-public int getInteractionMode () {
+public TSGraphInteractionType getInteractionMode () {
 	return _interaction_mode;
 }
 
@@ -2473,7 +2451,7 @@ Handle mouse clicked event.
 @param event MouseEvent.
 */
 public void mouseClicked ( MouseEvent event ) {
-  if (getInteractionMode()!= INTERACTION_EDIT) {
+  if (getInteractionMode() != TSGraphInteractionType.EDIT) {
       // Not editing, return.
       return;
     }
@@ -2522,7 +2500,7 @@ If a mouse tracker is enabled, call the TSViewListener.mouseMotion() method.
 */
 public void mouseDragged ( MouseEvent event ) {
 	//event.consume();
-	if ( (_interaction_mode != INTERACTION_SELECT) && (_interaction_mode != INTERACTION_ZOOM) ) {
+	if ( (_interaction_mode != TSGraphInteractionType.SELECT) && (_interaction_mode != TSGraphInteractionType.ZOOM) ) {
 		return;
 	}
 
@@ -2632,7 +2610,7 @@ public void mouseMoved ( MouseEvent event ) {
 	}
 
 	// Update cross-hair cursor.
-	if (getInteractionMode()== INTERACTION_EDIT) {
+	if (getInteractionMode()== TSGraphInteractionType.EDIT) {
 	    _cursorDecorator.mouseMoved(event,tsgraph.getLeftYAxisGraphDrawingArea().getPlotLimits( GRCoordinateType.DEVICE));
 	    //  refresh(false);
 	}
@@ -2748,8 +2726,8 @@ public void mousePressed ( MouseEvent event ) {
 				//remove ( popup_menu );
 			}
 		}
-		else if ( (_interaction_mode == INTERACTION_SELECT) ||
-			(_interaction_mode == INTERACTION_ZOOM) ) {
+		else if ( (_interaction_mode == TSGraphInteractionType.SELECT) ||
+			(_interaction_mode == TSGraphInteractionType.ZOOM) ) {
 			// Save the point that was selected so that the drag and released events will work.
 			// Also save the initial graph so that we can make sure not to drag outside a valid graph.
 			_mouse_x1 = event.getX();
@@ -2806,7 +2784,7 @@ public void mouseReleased ( MouseEvent event ) {
 		// Right click so don't do anything.
 		return;
 	}
-	if ( (_interaction_mode == INTERACTION_SELECT) || (_interaction_mode == INTERACTION_ZOOM) ) {
+	if ( (_interaction_mode == TSGraphInteractionType.SELECT) || (_interaction_mode == TSGraphInteractionType.ZOOM) ) {
 		// Only process if box is "delta" pixels or bigger.
 		int deltax = x - _mouse_x1;
 		int delta_min = 2;
@@ -2818,7 +2796,7 @@ public void mouseReleased ( MouseEvent event ) {
 			deltay *= -1;
 		}
 		if ( (deltax <= delta_min) || (deltay <= delta_min) ) {
-			if ( _interaction_mode == INTERACTION_SELECT ) {
+			if ( _interaction_mode == TSGraphInteractionType.SELECT ) {
 				// Assume they want the original point.
 				GRPoint devpt = new GRPoint ( (double)_mouse_x1, (double)_mouse_y1 );
 				GRPoint datapt = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY(_mouse_x1, _mouse_y1, GRCoordinateType.DEVICE );
@@ -2838,7 +2816,7 @@ public void mouseReleased ( MouseEvent event ) {
 				// Don't need to do anything else.
 				return;
 			}
-			else if ( _interaction_mode == INTERACTION_ZOOM ) {
+			else if ( _interaction_mode == TSGraphInteractionType.ZOOM ) {
 				// Too small, don't allow.
 				// Reset zoom coordinates and force a redraw to clear the box.
 				_mouse_x2 = _mouse_xprev = -1;
@@ -2878,7 +2856,7 @@ public void mouseReleased ( MouseEvent event ) {
 
 		GRLimits newDataLimits = new GRLimits ( pt1, pt2 );
 
-		if ( _interaction_mode == INTERACTION_ZOOM ) {
+		if ( _interaction_mode == TSGraphInteractionType.ZOOM ) {
 			// Reset the limits to more appropriate values.
 			if ( _zoom_keep_y_limits ) {
 				// Set the Y limits to the maximum values.
@@ -2900,7 +2878,7 @@ public void mouseReleased ( MouseEvent event ) {
 		}
 */
 		// Call the listener (or should this happen after the paint?).
-		if ( _interaction_mode == INTERACTION_SELECT ) {
+		if ( _interaction_mode == TSGraphInteractionType.SELECT ) {
 			// Just return the select information
 			if ( _listeners != null ) {
 				int size = _listeners.length;
@@ -2909,7 +2887,7 @@ public void mouseReleased ( MouseEvent event ) {
 				}
 			}
 		}
-		else if ( _interaction_mode == INTERACTION_ZOOM ) {
+		else if ( _interaction_mode == TSGraphInteractionType.ZOOM ) {
 			// Actually reset the data limits.
 			// Only set new drawing area data limits for the main graph.
 			if ( !_is_reference_graph ) {
@@ -3750,7 +3728,7 @@ public void reinitializeGraphs(TSProduct product) {
 	// action and is not stored as product properties and must be transferred to the new list of TSGraph.
 	// TODO sam 2017-02-2017 need to confirm that the new list of TSGraph always align with the old?
 	// - It should? as long as the interactive add of TSGraph was handled gracefully prior to this point.
-	List<List<TS>> selectedTimeSeriesListOld = new ArrayList<List<TS>>();
+	List<List<TS>> selectedTimeSeriesListOld = new ArrayList<>();
 	List<TSGraph> tsgraphListOld = _tsgraphs;
 	for ( TSGraph tsgraph : tsgraphListOld ) {
 		selectedTimeSeriesListOld.add(tsgraph.getSelectedTimeSeriesList());
@@ -4407,12 +4385,12 @@ public void setGraphDrawingLimits () {
 }
 
 /**
-Set the interaction mode, currently either INTERACTION_SELECT, INTERACTION_ZOOM, or INTERACTION_NONE.
+Set the interaction mode.
 @param mode Interaction mode.
 */
-public void setInteractionMode ( int mode ) {
-	if ( (mode == INTERACTION_NONE) || (mode == INTERACTION_SELECT) ||
-		(mode == INTERACTION_ZOOM) || (mode == INTERACTION_EDIT)) {
+public void setInteractionMode ( TSGraphInteractionType mode ) {
+	if ( (mode == TSGraphInteractionType.NONE) || (mode == TSGraphInteractionType.SELECT) ||
+		(mode == TSGraphInteractionType.ZOOM) || (mode == TSGraphInteractionType.EDIT)) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, _gtype + "TSGraphJComponent.setInteractionMode",
 			"Set interaction mode to " + mode );

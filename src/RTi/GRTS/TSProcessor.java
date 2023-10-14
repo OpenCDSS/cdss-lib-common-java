@@ -23,6 +23,7 @@ NoticeEnd */
 
 package RTi.GRTS;
 
+import java.awt.HeadlessException;
 import java.awt.event.WindowListener;
 import java.util.List;
 import java.util.Vector;
@@ -319,18 +320,26 @@ throws Exception {
 			image = null;
 		}
 		// Put the on-screen graph second so that above image can be created first for troubleshooting.
-        if ( (preview_output != null) && preview_output.equalsIgnoreCase("true") ) {
-            // Create a TSViewJFrame (an output file can still be created below).
-            TSViewJFrame tsview = new TSViewJFrame ( tsproduct );
-            if ( tsview.needToCloseGraph() ) {
-                throw new Exception ( "Graph was automatically closed due to data problem." );
-            }
-            __lastTSViewJFrame = tsview;
-            // Put this in to test letting TSTool shut down when a single TSView closes (and no main GUI is visible).
-            if ( _tsview_window_listener != null ) {
-                tsview.addWindowListener ( _tsview_window_listener );
-            }
-        }
+		try {
+			if ( (preview_output != null) && preview_output.equalsIgnoreCase("true") ) {
+				// Create a TSViewJFrame (an output file can still be created below).
+				TSViewJFrame tsview = new TSViewJFrame ( tsproduct );
+				if ( tsview.needToCloseGraph() ) {
+					throw new Exception ( "Graph was automatically closed due to data problem." );
+				}
+				__lastTSViewJFrame = tsview;
+				// Put this in to test letting TSTool shut down when a single TSView closes (and no main GUI is visible).
+				if ( _tsview_window_listener != null ) {
+					tsview.addWindowListener ( _tsview_window_listener );
+				}
+			}
+		}
+		catch ( HeadlessException e ) {
+			// Trying to create a JFrame when UI is not running will throw an exception.
+			Message.printWarning(3, routine, "Trying to create JFrame resulted in HeadlessException.");
+			Message.printWarning(3, routine, "Try running without displaying graph or use -Djava.awt.headless=true.");
+			Message.printWarning(3, routine, e);
+		}
 		// Create the output product file if requested:
 		// - this is the same as "Save" in the TSView_Graph window
         // - do this after the product is processed because many properties will be set internally
