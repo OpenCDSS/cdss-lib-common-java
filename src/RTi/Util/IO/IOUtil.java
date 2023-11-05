@@ -11,12 +11,12 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -86,7 +86,7 @@ import RTi.Util.Time.TimeUtil;
 This class provides static functions for file input/output and also provides
 global functionality that may be useful in any program.
 The class provides useful functionality in addition to the Java System, IO, and security classes.
-A PropListManager is used to manage a global, un-named PropList in conjunction with other PropLists.
+A PropListManager is used to manage a global, unnamed PropList in conjunction with other PropLists.
 To make the best use of this class, initialize from the main() or init() functions, as follows:
 <p>
 
@@ -1575,7 +1575,7 @@ Otherwise, a file is opened and the associated stream is returned.
 */
 public static InputStream getInputStream ( String url_string )
 throws IOException {
-	String routine="IOUtil.getInputStream";
+	String routine = IOUtil.class.getSimpleName() + ".getInputStream";
     URL url;
     FileInputStream fileStream;
     String noIndex = "Cannot open file at " + url_string + ".";
@@ -1583,16 +1583,18 @@ throws IOException {
 	// Make sure that the string is not empty.
 
 	if ( url_string == null ) {
-		throw new IOException ( "URL is null" );
+		throw new IOException ( "URL is null." );
 	}
 	if ( url_string.length() < 1 ) {
-		throw new IOException ( "URL is empty" );
+		throw new IOException ( "URL is empty." );
 	}
 
 	if ( url_string.regionMatches( true, 0, "http:", 0, 5) ||
+		url_string.regionMatches( true, 0, "https:", 0, 6) ||
 		url_string.regionMatches( true, 0, "file:", 0, 5) ||
 		url_string.regionMatches( true, 0, "ftp:", 0, 4) ) {
-		try {	url = new URL ( url_string );
+		try {
+			url = new URL ( url_string );
 			return ( url.openStream() );
 		}
 		catch ( Exception Error ) {
