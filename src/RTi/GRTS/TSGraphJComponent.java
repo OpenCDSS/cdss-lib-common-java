@@ -139,7 +139,17 @@ Background color.
 */
 private GRColor _background_color = GRColor.white;
 
-private TSCursorDecorator _cursorDecorator;
+/**
+ * Used with legacy data editing:
+ * - currently disabled (use the newer mouse tracker features)
+ */
+private TSCursorDecorator _cursorDecorator = null;
+
+/**
+ * Whether to use the TSCursorDecorator:
+ * - current default is to not use it because the tracker is used
+ */
+private boolean useCursorDecorator = false;
 
 /**
 External image used when processing in batch mode.
@@ -368,6 +378,10 @@ Indicate whether the paint is to an SVG file.  See the saveAsSVG() method.
 */
 private boolean __paintForSVG = false;
 
+/**
+ * Graph editor, which allows time series to be edited,
+ * will be non-null if one or more time series in the graph have editable=true.
+ */
 private TSGraphEditor _tsGraphEditor;
 
 /**
@@ -376,7 +390,8 @@ Indicate whether SVG functionality is present.
 public static final boolean svgEnabled;
 
 static {
-        // by default, its not enabled - if the classes are present, then its enabled.
+        // By default, SVG features are not enabled:
+		// - if the classes are present, then SVG is enabled
         boolean enabled = false;
         try {
             Class.forName("org.apache.batik.svggen.SVGGeneratorContext");
@@ -548,7 +563,9 @@ public TSGraphJComponent ( TSViewGraphJFrame parent, TSProduct tsproduct, PropLi
 	addKeyListener ( this );
 
 	// Install decorator for cross hair cursor.
-	this._cursorDecorator = new TSCursorDecorator(this, this._rubber_band_color, this._background_color);
+	if ( this.useCursorDecorator ) {
+		this._cursorDecorator = new TSCursorDecorator ( this, this._rubber_band_color, this._background_color );
+	}
 	// Force a paint on construction.
 	repaint();
 }
@@ -1520,7 +1537,36 @@ private void clearView () {
 }
 
 /**
-Creates a list TSGraphDataLimis for each graph, where each object stores information for corresponding graphs.
+ * Notifies TSGraphEditor of point edit.
+ *
+ * @param event
+ * @param tsgraph
+ */
+private void editPoint ( MouseEvent event, TSGraph tsgraph ) {
+  GRLimits daLimits = tsgraph.getLeftYAxisGraphDrawingArea().getPlotLimits( GRCoordinateType.DEVICE);
+  if ( editPointIsInside(event, daLimits) ) {
+      GRPoint datapt = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY( event.getX(), event.getY(), GRCoordinateType.DEVICE );
+      _tsGraphEditor.editPoint(datapt);
+    }
+}
+
+/**
+ * Indicate whether mouse is inside drawing area.
+ * @param event Mouse event such as click
+ * @param grLimits drawing area limits to check
+ * @return true if the mouse is inside the drawing area
+ */
+private final boolean editPointIsInside ( MouseEvent event, GRLimits grLimits ) {
+  return (
+	(event.getX() > (int)grLimits.getLeftX())
+      && (event.getX() < (int)grLimits.getRightX())
+      && (event.getY() > (int)grLimits.getTopY())
+      && (event.getY() < (int)grLimits.getBottomY()))
+    ?true:false;
+}
+
+/**
+Creates a list TSGraphDataLimits for each graph, where each object stores information for corresponding graphs.
 The number of time series associated with the graph, the ids of the time series associated with the graph,
 and the data limits of the graph.
 This is done so that the graphs can be rebuilt properly during a call to reinitializeGraphs().
@@ -1656,7 +1702,8 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 				drawTrackerLine = true;
 			}
 		}
-		if ( leftYAxisGraphType == TSGraphType.RASTER ) {
+		//if ( leftYAxisGraphType == TSGraphType.RASTER ) {
+		if ( trackerType == TSGraphMouseTrackerType.XYAXES ) {
 			// Raster tracker.  No reason for all the logic below.
 			GRLimits daDrawLimits = daLeftYAxisGraph.getDrawingLimits();
 			if ( daDrawLimits.contains(devx, (devHeight - devy)) ) {
@@ -2451,46 +2498,20 @@ Handle mouse clicked event.
 @param event MouseEvent.
 */
 public void mouseClicked ( MouseEvent event ) {
-  if (getInteractionMode() != TSGraphInteractionType.EDIT) {
-      // Not editing, return.
-      return;
-    }
-  else {
-      TSGraph tsgraph = getEventTSGraph ( new GRPoint(event.getX(), event.getY()));
-      if ( tsgraph == null ) {
-          // Not in a graph.
-          return;
-      }
-      editPoint(event, tsgraph);
-      refresh(false);
-    }
-}
-
-/**
- * Notifies TSGraphEditor of point edit.
- *
- * @param event
- * @param tsgraph
- */
-private void editPoint(MouseEvent event,TSGraph tsgraph) {
-  GRLimits daLimits = tsgraph.getLeftYAxisGraphDrawingArea().getPlotLimits( GRCoordinateType.DEVICE);
-  if (isInside(event, daLimits)) {
-      GRPoint datapt = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY( event.getX(), event.getY(), GRCoordinateType.DEVICE );
-      _tsGraphEditor.editPoint(datapt);
-    }
-}
-
-/**
- * Returns whether mouse is inside drawing area.
- * @return
- */
-// TODO:dre refactor
-private final boolean isInside(MouseEvent event, GRLimits grLimits) {
-  return (event.getX() > (int)grLimits.getLeftX()
-      && event.getX() < (int)grLimits.getRightX()
-      && event.getY() > (int)grLimits.getTopY()
-      && event.getY() < (int)grLimits.getBottomY())
-    ?true:false;
+	if ( getInteractionMode() != TSGraphInteractionType.EDIT ) {
+		// Not editing, return.
+		return;
+	}
+	else {
+		// Editing the time series.
+		TSGraph tsgraph = getEventTSGraph ( new GRPoint(event.getX(), event.getY()));
+		if ( tsgraph == null ) {
+			// Not in a graph.
+			return;
+		}
+		editPoint(event, tsgraph);
+		refresh(false);
+	}
 }
 
 /**
@@ -2610,9 +2631,11 @@ public void mouseMoved ( MouseEvent event ) {
 	}
 
 	// Update cross-hair cursor.
-	if (getInteractionMode()== TSGraphInteractionType.EDIT) {
-	    _cursorDecorator.mouseMoved(event,tsgraph.getLeftYAxisGraphDrawingArea().getPlotLimits( GRCoordinateType.DEVICE));
-	    //  refresh(false);
+	if ( this.useCursorDecorator ) {
+		if ( getInteractionMode() == TSGraphInteractionType.EDIT ) {
+	    	_cursorDecorator.mouseMoved(event,tsgraph.getLeftYAxisGraphDrawingArea().getPlotLimits( GRCoordinateType.DEVICE));
+	    	//  refresh(false);
+		}
 	}
 
 	// Get coordinates in data units.
@@ -4703,7 +4726,11 @@ public void setDisplayCursor(boolean display) {
     //_displayCrossHairCursor = display;
 }
 
-public void setEditor(TSGraphEditor tsGraphEditor) {
+/**
+ * Set the editor used to edit a time series that have editable=true.
+ * @param tsGraphEditor editor instance
+ */
+public void setEditor ( TSGraphEditor tsGraphEditor ) {
     _tsGraphEditor = tsGraphEditor;
 }
 

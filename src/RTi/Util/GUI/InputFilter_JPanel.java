@@ -759,6 +759,7 @@ This can be used, for example, to select the input filter given a TSTool "Where"
 text such as "WhereValue;Operator;InputValue".
 The visible label is checked first and then the persistent label is checked.
 The InputFilter whereInternal and whereInternal2 are NOT checked.
+If the filter component is a SimpleJComboBox with choices, the selection MUST match a choice.
 @param ifg The Filter group to be set (0+).
 @param inputFilterString The where clause as a string, using visible information in the input filters:
 <pre>
@@ -771,7 +772,35 @@ The input string is trimmed before attempting to set.
 */
 public void setInputFilter ( int ifg, String inputFilterString, String delim )
 throws Exception {
-	if ( delim == null ) {
+	// Do not allow the text to be set if a choice does not match.
+	boolean setTextIfNoChoiceMatches = false;
+	setInputFilter ( ifg, inputFilterString, delim, setTextIfNoChoiceMatches );
+}
+
+/**
+TODO smalers 2023-11-21 need to implement the setTextIfNoChoicesMatches functionality.
+Set the contents of an input filter.
+This can be used, for example, to select the input filter given a TSTool "Where" parameter containing
+text such as "WhereValue;Operator;InputValue".
+The visible label is checked first and then the persistent label is checked.
+The InputFilter whereInternal and whereInternal2 are NOT checked.
+If the filter component is a SimpleJComboBox with choices, the selection MUST match a choice
+unless setTextIfNoChoiceMatches=true, which will set the text part of the SimpleJComboBox.
+@param ifg The Filter group to be set (0+).
+@param inputFilterString The where clause as a string, using visible information in the input filters:
+<pre>
+   WhereValue;Operator;InputValue
+</pre>
+the operator is a string like "=".  Legacy "Equals" is updated to new conventions at construction.
+The input string is trimmed before attempting to set.
+@param delim The delimiter used for the above information, or a semicolon if null.
+@param setTextIfNoChoiceMatches if true, will set the text in a the SimpleJComboBox if a choice is not matched
+This may not be sufficient to support populating TSTool command parameters with dynamic content.
+@exception Exception if there is an error setting the filter data.
+*/
+public void setInputFilter ( int ifg, String inputFilterString, String delim, boolean setTextIfNoChoiceMatches )
+throws Exception {
+	if ( (delim == null) || delim.isEmpty() ) {
         delim = ";";
     }
     List<String> v = StringUtil.breakStringList ( inputFilterString, delim, 0 );
@@ -832,8 +861,14 @@ throws Exception {
 			}
 		}
 		if ( !selectOk ) {
-			// Throw an exception.
-			throw new RuntimeException("Invalid choice \"" + where + "\" - did not match available choices or persistent label value.");
+			if ( setTextIfNoChoiceMatches ) {
+				// Allow setting the text in the SimpleJComboBox.
+				cb.setText(where);
+			}
+			else {
+				// Must match a choice but did not match one so throw an exception.
+				throw new RuntimeException("Invalid choice \"" + where + "\" - did not match available choices or persistent label value.");
+			}
 		}
 	}
 	else if ( component instanceof JLabel ) {

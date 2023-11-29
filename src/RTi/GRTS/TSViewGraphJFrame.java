@@ -75,6 +75,24 @@ import RTi.Util.Help.URLHelp;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
+/*
+ * The layout is as follows:
+ * 
+ * <pre>
+ * --------------------------------------------------------------------------------------------
+ * --------------------------------------------------------------------------------------------
+ * |                                                                                          |
+ * |                              Graphs as TSGraphJComponent                                 |
+ * |                                                                                          |
+ * |                                                                                          |
+ * --------------------------------------------------------------------------------------------
+ * |                                         Buttons                                          |
+ * --------------------------------------------------------------------------------------------
+ * |                          Status Area (mode, mouse tracker, etc.)                         |
+ * --------------------------------------------------------------------------------------------
+ * </pre>
+ */
+
 /**
 The TSViewGraphJFrame displays a graph of one or more time series, and is managed by the parent TSViewJFrame.
 See the constructor documentation for more information.
@@ -147,17 +165,20 @@ Display mouse position.
 */
 private JTextField __tracker_JTextField = null;
 
+/**
+ * Toolbar used with interactive editing.
+ */
 private JToolBar _toolbar;
 
 /**
  * Controls whether in Edit mode.
  */
-private SimpleJToggleButton _edit_JToogleButton;
+private SimpleJToggleButton _edit_JToggleButton;
 
 /**
  * Controls whether in Zoom mode (default).
  */
-private SimpleJToggleButton _zoom_JToogleButton;
+private SimpleJToggleButton _zoom_JToggleButton;
 
 /**
  * Use interpolation to adjust data points.
@@ -252,7 +273,8 @@ Handle action events.
 */
 public void actionPerformed ( ActionEvent event ) {
 	Object o = event.getSource();
-    if (o == _edit_JToogleButton) {
+    if ( o == _edit_JToggleButton ) {
+    	// Edit mode - edit time series data.
       _ts_graph.setDisplayCursor(true);
       _ts_graph.setInteractionMode(TSGraphInteractionType.EDIT);
       _fillInterpolation_JButton.setEnabled(true);
@@ -260,16 +282,18 @@ public void actionPerformed ( ActionEvent event ) {
       _autoConnect_JCheckBox.setSelected(true);
       _tsGraphEditor.setAutoConnect(true);
     }
-    else if (o == _zoom_JToogleButton) {
+    else if ( o == _zoom_JToggleButton ) {
+    	// Zoom mode - allow rubber band box to zoom.
       _ts_graph.setDisplayCursor(false);
       _ts_graph.setInteractionMode(TSGraphInteractionType.ZOOM);
       _fillInterpolation_JButton.setEnabled(false);
       _autoConnect_JCheckBox.setEnabled(false);
     }
-    else if (o == _autoConnect_JCheckBox) {
-      _tsGraphEditor.setAutoConnect(((JCheckBox)o).isSelected());
+    else if ( o == _autoConnect_JCheckBox ) {
+    	// Used with editing.
+    	_tsGraphEditor.setAutoConnect(((JCheckBox)o).isSelected());
     }
-    else if (o == _fillInterpolation_JButton) {
+    else if ( o == _fillInterpolation_JButton ) {
       _tsGraphEditor.doFillWithInterpolation();
       _ts_graph.refresh(false);
     }
@@ -309,7 +333,8 @@ public void actionPerformed ( ActionEvent event ) {
 			setInteractionMode ( TSGraphInteractionType.SELECT );
 			__message_JTextField.setText ( "Select Mode");
 		}
-		else {	// In select mode so toggle to zoom.
+		else {
+			// In select mode so toggle to zoom.
 			__mode_JButton.setText( "Change to Select Mode" );
 			setInteractionMode (TSGraphInteractionType.ZOOM);
 /* FIXME SAM 2008-02-21
@@ -620,19 +645,19 @@ private void openGUI ( boolean mode ) {
 	contentPane.setLayout(new BorderLayout() );
 
 	//if ( includeFullCode ) {
-	_toolbar = new JToolBar();
-	//main_JPanel.add ( "North", _toolbar);
+	_toolbar = new JToolBar("Time series view tools");
+	getContentPane().add("North", _toolbar);
 
-	_edit_JToogleButton = new SimpleJToggleButton("Edit Mode", this, false);
-	_edit_JToogleButton.setToolTipText("Edit graph mode");
-	_toolbar.add(_edit_JToogleButton);
-	_zoom_JToogleButton = new SimpleJToggleButton("Zoom Mode", this, true);
-	_zoom_JToogleButton.setToolTipText("Zoom graph mode");
-	_toolbar.add(_zoom_JToogleButton);
+	_edit_JToggleButton = new SimpleJToggleButton("Edit Mode", this, false);
+	_edit_JToggleButton.setToolTipText("Edit graph mode");
+	_toolbar.add(_edit_JToggleButton);
+	_zoom_JToggleButton = new SimpleJToggleButton("Zoom Mode", this, true);
+	_zoom_JToggleButton.setToolTipText("Zoom graph mode");
+	_toolbar.add(_zoom_JToggleButton);
 
 	ButtonGroup buttonGroup= new ButtonGroup();
-	buttonGroup.add(_edit_JToogleButton);
-	buttonGroup.add(_zoom_JToogleButton);
+	buttonGroup.add(_edit_JToggleButton);
+	buttonGroup.add(_zoom_JToggleButton);
 
 	_fillInterpolation_JButton = new SimpleJButton("FillInterpolate","FillInterpolate",this);
 	//_toolbar.add(__fillInterpolation);
@@ -708,9 +733,10 @@ private void openGUI ( boolean mode ) {
 	//} // includeFullCode
     //int layoutType = 0; // This works, but is a pain to forward mouse events to underlying components.
     //int layoutType = 2;
-    int layoutType = 3; // Now this works.
-    // TODO sam 2017-02-22 Figure out why only layoutType=0 is only one that works.
-    boolean doFrameGlassPane = true; // Default is to use glass pane on JFrame, but layout 2 uses JLayeredPane instead.
+    // The following layout type works with mouse tracker drawn on a glass pane above the graphs.
+    int layoutType = 3;
+    // Default is to use glass pane on JFrame, but layout 2 uses JLayeredPane instead.
+    boolean doFrameGlassPane = true;
     JLayeredPane layeredPane = null;
     JPanel panelForTSGraphJComponent = null;
     JPanel panelForJLayeredPane = null;
@@ -1004,6 +1030,7 @@ private void openGUI ( boolean mode ) {
 		__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NEAREST_TIME);
 		__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NEAREST_TIME_SELECTED);
 		__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.NONE);
+		__trackerModeJComboBox.add("" + TSGraphMouseTrackerType.XYAXES);
 		__trackerModeJComboBox.select("" + TSGraphMouseTrackerType.NONE);
 	}
 	__trackerModeJComboBox.addItemListener(this);

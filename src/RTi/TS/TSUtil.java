@@ -682,7 +682,7 @@ public static void addConstant(	TS ts, DateTime start_date,
 				continue;
 			}
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so quit.
+				// Past the end so quit.
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
@@ -3196,7 +3196,7 @@ throws TSException, Exception {
 			tsdata = alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so quit.
+				// Past the end so quit.
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
@@ -3515,7 +3515,7 @@ throws Exception {
 			tsdata = alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so quit.
+				// Past the end so quit.
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
@@ -3642,7 +3642,7 @@ throws Exception {
 			tsdata = (TSData)alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so quit.
+				// Past the end so quit.
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
@@ -4297,7 +4297,7 @@ public static void fillMonthly(	TS ts, DateTime start_date, DateTime end_date, d
 			tsdata = alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so quit.
+				// Past the end so quit.
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
@@ -4548,7 +4548,7 @@ throws Exception {
 			tsdata = alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so quit.
+				// Past the end so quit.
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
@@ -8666,7 +8666,7 @@ public static void normalize ( TS ts, boolean minfromdata, double newmin, double
 			tsdata = (TSData)alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so quit.
+				// Past the end so quit.
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
@@ -8973,7 +8973,7 @@ public static void replaceValue ( TS ts, DateTime start_date, DateTime end_date,
 			    continue;
 			}
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so quit.
+				// Past the end so quit.
 				break;
 			}
 			value = tsdata.getDataValue();
@@ -9359,7 +9359,7 @@ throws Exception {
 				continue;
 			}
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so quit.
+				// Past the end so quit.
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
@@ -9520,22 +9520,49 @@ public static void setConstant ( TS ts, double value ) {
 }
 
 /**
-Set the time series data to a constant value.
+Set the time series data to a constant value, without setting the data flag.
 @param ts Time series to update.
-@param start_date Date to start assignment.
-@param end_date Date to stop assignment.
+@param startDate Date to start assignment.
+@param endDate Date to stop assignment.
 @param value Data value to set as time series data.
 */
-public static void setConstant ( TS ts, DateTime start_date, DateTime end_date, double value ) {
+public static void setConstant ( TS ts, DateTime startDate, DateTime endDate, double value ) {
+	String setFlag = null;
+	String setFlagDesc = null;
+	Double valueDouble = new Double(value);
+	setConstant ( ts, startDate, endDate, valueDouble, setFlag, setFlagDesc );
+}
+
+/**
+Set the time series data to a constant value.
+@param ts Time series to update.
+@param startDate Date to start assignment.
+@param endDate Date to stop assignment.
+@param value Data value to set as time series data, can be null if only setting the flag.
+@param setFlag a string to set for all data values
+@param setFlagDescription the description for the data flag, used in the time series legend
+*/
+public static void setConstant ( TS ts, DateTime startDate, DateTime endDate, Double value,
+	String setFlag, String setFlagDescription ) {
 	// Get valid dates because the ones passed in may have been null.
 
-	TSLimits valid_dates = getValidPeriod ( ts, start_date, end_date );
-	DateTime start = valid_dates.getDate1();
-	DateTime end = valid_dates.getDate2();
+	TSLimits validDates = getValidPeriod ( ts, startDate, endDate );
+	DateTime start = validDates.getDate1();
+	DateTime end = validDates.getDate2();
+	
+	// Whether to set the data flag.
+	boolean doSetFlag = false;
+	if ( (setFlag != null) && !setFlag .isEmpty() ) {
+		doSetFlag = true;
+	}
+	if ( doSetFlag && (setFlagDescription != null) && !setFlagDescription.isEmpty() ) {
+		// Set the flag description.
+		ts.addDataFlagMetadata(new TSDataFlagMetadata(setFlag, setFlagDescription));
+	}
 
-	int interval_base = ts.getDataIntervalBase();
-	int interval_mult = ts.getDataIntervalMult();
-	if ( interval_base == TimeInterval.IRREGULAR ) {
+	int intervalBase = ts.getDataIntervalBase();
+	int intervalMult = ts.getDataIntervalMult();
+	if ( intervalBase == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the list.
 		IrregularTS irrts = (IrregularTS)ts;
 		List<TSData> alltsdata = irrts.getData();
@@ -9550,11 +9577,18 @@ public static void setConstant ( TS ts, DateTime start_date, DateTime end_date, 
 			tsdata = alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so quit.
+				// Past the end so quit.
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
-				tsdata.setDataValue(value);
+				// Set the data value if not null.
+				if ( value != null ) {
+					tsdata.setDataValue ( value );
+				}
+				if ( doSetFlag ) {
+					// Set the flag.
+					tsdata.setDataFlag ( setFlag );
+				}
 				// Have to do this manually since TSData are being modified directly to improve performance.
 				irrts.setDirty ( true );
 			}
@@ -9563,8 +9597,25 @@ public static void setConstant ( TS ts, DateTime start_date, DateTime end_date, 
 	else {
 	    // Loop using addInterval.
 		DateTime date = new DateTime ( start );
-		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
-			ts.setDataValue ( date, value );
+		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(intervalBase, intervalMult) ) {
+			if ( value == null ) {
+				// Only set the flag.
+				if ( doSetFlag ) {
+					// Get the current value and reset with the flag.
+					ts.setDataValue ( date, ts.getDataValue(date), setFlag, -1 );
+				}
+			}
+			else {
+				// Have a value to set and may also have the flag.
+				if ( doSetFlag ) {
+					// Set the value and the flag.
+					ts.setDataValue ( date, value, setFlag, -1 );
+				}
+				else {
+					// Set the value but not the flag.
+					ts.setDataValue ( date, value );
+				}
+			}
 		}
 	}
 
@@ -9597,23 +9648,52 @@ public static void setConstantByMonth ( TS ts, Double values[] ) {
 Set the entire time series to monthly values.  For example, values[0] is used for any date in January.
 This can be used, for example, to set an entire period with a repetitive monthly pattern.
 @param ts Time series to update.
-@param start_date Date to start assignment.
-@param end_date Date to stop assignment.
+@param startDate Date to start assignment.
+@param endDate Date to stop assignment.
 @param values Data values to set in the time series (the first value is for January, the last is for December)
 or if null don't set the monthly value.
 If setting to missing it is expected that the value has been set to the missing value for the time series.
 */
-public static void setConstantByMonth (	TS ts, DateTime start_date, DateTime end_date, Double values[] ) {
+public static void setConstantByMonth ( TS ts, DateTime startDate, DateTime endDate, Double values[] ) {
+	String setFlag = null;
+	String setFlagDescription = null;
+	setConstantByMonth ( ts, startDate, endDate, values, setFlag, setFlagDescription );
+}
+
+/**
+Set the entire time series to monthly values.  For example, values[0] is used for any date in January.
+This can be used, for example, to set an entire period with a repetitive monthly pattern.
+@param ts Time series to update.
+@param startDate Date to start assignment.
+@param endDate Date to stop assignment.
+@param values Data values to set in the time series (the first value is for January, the last is for December)
+or if null don't set the monthly value.
+If setting to missing it is expected that the value has been set to the missing value for the time series.
+@param setFlag a string to set for all data values
+@param setFlagDescription the description for the data flag, used in the time series legend
+*/
+public static void setConstantByMonth ( TS ts, DateTime startDate, DateTime endDate, Double values[],
+	String setFlag, String setFlagDescription ) {
 	// Get valid dates because the ones passed in may have been null.
 
-	TSLimits valid_dates = getValidPeriod ( ts, start_date, end_date );
-	DateTime start = valid_dates.getDate1();
-	DateTime end = valid_dates.getDate2();
+	TSLimits validDates = getValidPeriod ( ts, startDate, endDate );
+	DateTime start = validDates.getDate1();
+	DateTime end = validDates.getDate2();
 
-	int interval_base = ts.getDataIntervalBase();
-	int interval_mult = ts.getDataIntervalMult();
+	// Whether to set the data flag.
+	boolean doSetFlag = false;
+	if ( (setFlag != null) && !setFlag .isEmpty() ) {
+		doSetFlag = true;
+	}
+	if ( doSetFlag && (setFlagDescription != null) && !setFlagDescription.isEmpty() ) {
+		// Set the flag description.
+		ts.addDataFlagMetadata(new TSDataFlagMetadata(setFlag, setFlagDescription));
+	}
+
+	int intervalBase = ts.getDataIntervalBase();
+	int intervalMult = ts.getDataIntervalMult();
 	Double value;
-	if ( interval_base == TimeInterval.IRREGULAR ) {
+	if ( intervalBase == TimeInterval.IRREGULAR ) {
 		// Get the data and loop through the list.
 		IrregularTS irrts = (IrregularTS)ts;
 		List<TSData> alltsdata = irrts.getData();
@@ -9628,13 +9708,18 @@ public static void setConstantByMonth (	TS ts, DateTime start_date, DateTime end
 			tsdata = alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so quit.
+				// Past the end so quit.
 				break;
 			}
 			value = values[date.getMonth() - 1];
-			if ( value != null ) { // If null leave the old value.
+			if ( value != null ) {
+				// Monthly value is not null so set the constant.
     			if ( date.greaterThanOrEqualTo(start) ) {
     				tsdata.setDataValue(value);
+    				if ( doSetFlag ) {
+    					// Also set the flag.
+    					tsdata.setDataFlag(setFlag);
+    				}
     				// Have to do this manually since TSData are being modified directly to improve performance.
     				irrts.setDirty ( true );
     			}
@@ -9644,10 +9729,18 @@ public static void setConstantByMonth (	TS ts, DateTime start_date, DateTime end
 	else {
 	    // Loop using addInterval.
 		DateTime date = new DateTime ( start );
-		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(interval_base, interval_mult) ) {
+		for ( ; date.lessThanOrEqualTo( end ); date.addInterval(intervalBase, intervalMult) ) {
 		    value = values[date.getMonth() - 1];
 		    if ( value != null ) {
-		        ts.setDataValue ( date, value );
+				// Monthly value is not null so set the constant.
+		    	if ( doSetFlag ) {
+		    		// Set the data value and flag.
+		    		ts.setDataValue ( date, value, setFlag, -1 );
+		    	}
+		    	else {
+		    		// Just set the data value.
+		    		ts.setDataValue ( date, value );
+		    	}
 		    }
 		}
 	}
@@ -10675,7 +10768,7 @@ throws InvalidTimeIntervalException {
 			tsdata = alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so quit.
+				// Past the end so quit.
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
@@ -10902,7 +10995,7 @@ public static TSData[] toArrayForDateTime ( TS ts, DateTime startDate, DateTime 
             tsdata = (TSData)alltsdata.get(i);
             date = tsdata.getDate();
             if ( date.greaterThan(end) ) {
-                // Past the end of where we want to go so quit.
+                // Past the end so quit.
                 break;
             }
             if ( date.greaterThanOrEqualTo(start) ) {
@@ -11114,7 +11207,7 @@ throws InvalidTimeIntervalException {
 			tsdata = alltsdata.get(i);
 			date = tsdata.getDate();
 			if ( date.greaterThan(end) ) {
-				// Past the end of where we want to go so quit.
+				// Past the end so quit.
 				break;
 			}
 			if ( date.greaterThanOrEqualTo(start) ) {
