@@ -15,7 +15,7 @@ import RTi.Util.String.MultiKeyStringDictionary;
 /**
  * General purpose URL reader to read a response from a URL using HTTP GET.
  * For example, read JSON from a web service and then handle in parsing code.
- * This class does not handle other HTTP versions (PUT, POST, etc.).
+ * This class only handles GET requests, not PUT, POST, etc.
  */
 public class UrlReader {
 
@@ -23,17 +23,17 @@ public class UrlReader {
 	 * URL to read.
 	 */
 	private String url;
-	
+
 	/**
 	 * Optional list of header properties.
 	 */
 	private MultiKeyStringDictionary requestProperties = null;
-	
+
 	/**
 	 * Optional request data (e.g., JSON).
 	 */
 	private String requestData = null;
-	
+
 	/**
 	 * Optional timeout (ms), used for both connect and read.
 	 */
@@ -73,9 +73,9 @@ public class UrlReader {
 		this.requestData = requestData;
 		this.timeout = timeout;
 	}
-	
+
 	/**
-	 * Read the URL.
+	 * Read the response for the URL.
 	 * @return a UrlResponse object with the response from the read.
 	 */
 	public UrlResponse read () throws MalformedURLException, IOException {
@@ -89,7 +89,7 @@ public class UrlReader {
             // Some sites need a cookie manager.
             // (see http://stackoverflow.com/questions/11022934/getting-java-net-protocolexception-server-redirected-too-many-times-error)
             CookieHandler.setDefault(new CookieManager(null,CookiePolicy.ACCEPT_ALL));
-            // Open the input stream...
+            // Open the input stream.
             URL url = new URL(this.url);
             urlConnection = (HttpURLConnection)url.openConnection();
             if ( this.timeout > 0 ) {
