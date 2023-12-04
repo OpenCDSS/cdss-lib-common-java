@@ -7071,10 +7071,18 @@ private void drawTSRenderRasterGraphMultiple ( List<TS> tslist, PropList overrid
 
     GRColor tscolor = null;
     int its = -1;
+    // Look through the list of time series:
+    // - each time series will be drawn on a row
     for ( TS ts : tslist ) {
     	++its;
-    	double x0 = 0.0; // X coordinate converted from date/time (interval start), left edge of rectangle.
-    	double y0 = 0.0; // Y coordinate corresponding to time series index 0+, upper edge of rectangle since reversed y-axis.
+    	double x0 = 0.0; // X-coordinate converted from date/time (interval start), left edge of rectangle.
+    	double x1 = 0.0; // X-coordinate converted from date/time (interval end), used to compute width of the rectangle.
+    	double y0 = 0.0; // Y-coordinate corresponding to time series index 0+, upper edge of rectangle since reversed y-axis.
+    	double intervalWidth = 0.0; // Width of interval to draw the pixel rectangle.
+    	
+    	if ( Message.isDebugOn ) {
+    		Message.printStatus(2, routine, "Drawing time series " + ts.getIdentifierString() );
+    	}
 
     	//DateTime start = drawTSHelperGetStartDateTime(ts);
     	//DateTime end = drawTSHelperGetEndDateTime(ts);
@@ -7089,28 +7097,34 @@ private void drawTSRenderRasterGraphMultiple ( List<TS> tslist, PropList overrid
     	DateTime start = ts.getDate1();
     	DateTime end = ts.getDate2();
     	if ( (start == null) || (end == null) ) {
-    		// Time series with no data.
-        	// Unable to draw individual pixels (lack of data).
+    		// Time series with no data:
+        	// - can continue since the no color raw was drawn above
     		continue;
     	}
 
     	// Loop using addInterval.
     	DateTime date = new DateTime(start);
-    	// Make sure the time zone is not set
+    	// Make sure the time zone is not set.
     	date.setTimeZone("");
 
-    	// Iterate through data with the iterator.
+    	// Iterate through the time series data with the iterator:
+    	// - this will draw the full time series, which relies on clipping for data outside the visible extent
+    	// - TODO smalers 2023-11-29 could optimize by using the visible extent as long as the edges overlap 
+    	// - users typically don't zoom in horizontally much on heat maps so drawing extra is not much of a hit
     	TSData tsdata = null;
     	TSIterator tsi = null;
     	try {
         	tsi = ts.iterator ( start, end );
     	}
     	catch ( Exception e ) {
-    		// Time series with no data or other issue.
-        	// Unable to draw individual pixels (lack of data).
+    		// Time series with no data or other issue:
+        	// - unable to draw individual pixels (lack of data)
+        	// - can continue since the no color raw was drawn above
         	continue;
     	}
     	double value;
+    	boolean isNaN;
+    	boolean isNaNPrev = false;
     	double valuePrev = Double.MAX_VALUE;
     	int intervalBase = ts.getDataIntervalBase();
     	int intervalMult = ts.getDataIntervalMult();
@@ -7138,7 +7152,7 @@ private void drawTSRenderRasterGraphMultiple ( List<TS> tslist, PropList overrid
         	}
         	// Set the left and right edge of the date.
         	// For times:
-        	// - x0 is the end of interval.
+        	// - x0 is the start of interval
         	// - x1 is the end of interval (time series Date/time)
         	// For dates:
         	// - x0 is the time series date (time is zero and does not contribute to the plotting position)
@@ -7148,29 +7162,36 @@ private void drawTSRenderRasterGraphMultiple ( List<TS> tslist, PropList overrid
         		dateRight.setDate(date);
         		dateLeft.setDate(date);
         		// Start of interval is the previous interval boundary.
-        		dateLeft.addInterval ( intervalBase, -intervalMult);
+        		dateLeft.addInterval ( intervalBase, -intervalMult );
         	}
         	else {
         		// DateTime precision is only the date.
         		dateLeft.setDate(date);
         		dateRight.setDate(date);
         		// End of interval is the next date boundary.
-        		dateRight.addInterval ( intervalBase, intervalMult);
+        		dateRight.addInterval ( intervalBase, intervalMult );
         	}
         	// Left coordinate reflects the above check of date and time.
         	x0 = dateLeft.toDouble();
         	y0 = its;
+        	// The pixel width depends on the interval and might not be consistent (e.g., width of month with different number of days).
+        	x1 = dateRight.toDouble();
+        	intervalWidth = x1 - x0;
         	value = tsdata.getDataValue();
-       		if ( value != valuePrev ) {
+        	isNaN = Double.isNaN(value);
+       		if ( isNaN || isNaNPrev || (value != valuePrev) ) {
+       			// Save current value in the previous for the next iteration:
+      			// - useful for sequences of zeros, missing, etc.
+       			// - can't compare NaN with itself because returns false and other weirdness
        			valuePrev = value;
-       			if (ts.isDataMissing(value)) {
-            		// Set color to missing (white).
-            		//tscolor = GRColor.white;
+       			isNaNPrev = Double.isNaN(valuePrev);
+       			if ( ts.isDataMissing(value) ) {
+            		// Set color to missing (typically white).
         			tscolor = nodataColor;
         		}
         		else {
-        			// Look up the color because the value is different than the previous value.
-        			// Color is determined from the value.
+        			// Look up the color because the current value is different than the previous value.
+        			// Color is determined from the value and the color table.
         			tscolor = symtable.getFillColorForValue ( value );
         			if ( tscolor == null ) {
         				// Indicates a problem in the symbol table format:
@@ -7185,22 +7206,27 @@ private void drawTSRenderRasterGraphMultiple ( List<TS> tslist, PropList overrid
         					Message.printDebug(2,routine,"Found color for " + value + " - using: " + tscolor.toHex());
         				}
         			}
-        			// Save the color so can optimize lookups, useful for sequences of zeros, missing, etc.
-        			valuePrev = value;
         		}
             	// Do this to optimize so color does not have be changed frequently.
         		// TODO smalers 2021-08-27 this will need to be changed if fill and outline are used for some reason.
-            	_da_lefty_graph.setColor(tscolor);
+            	_da_lefty_graph.setColor ( tscolor );
         	}
-        	// Rectangle will be one "cell", either a day or month.
-        	//if ( tscolor == GRColor.white ) {
-        	//    Message.printStatus(2,"","Drawing raster value " + date + " " + value + " color=white");
-        	//}
-        	//else {
-        	//    Message.printStatus(2,"","Drawing raster value " + date + " " + value + " color="+
-        	//            tscolor.getRed() + "," + tscolor.getGreen() + "," + tscolor.getBlue() + ",");
-        	//}
-        	GRDrawingAreaUtil.fillRectangle(_da_lefty_graph, x0, y0, 1.0, 1.0);
+       		else {
+       			// Current value is the same as the previous value so the previous color is OK.
+       		}
+        	// Rectangle will be one "cell" wide matching the time series interval.
+       		/*
+        	if ( tscolor == nodataColor ) {
+        	    Message.printStatus(2,"","Drawing raster value " + date + " " + value + " y0=" + y0 + " x0=" + x0 +
+        	    	" width=" + intervalWidth + " using nodata color.");
+        	}
+        	else {
+        	    Message.printStatus(2,"","Drawing raster value " + date + " " + value + " y0=" + y0 + " x0=" + x0 +
+        	    	" width=" + intervalWidth + " color="+
+       	            tscolor.getRed() + "," + tscolor.getGreen() + "," + tscolor.getBlue() + ",");
+        	}
+        	*/
+        	GRDrawingAreaUtil.fillRectangle ( _da_lefty_graph, x0, y0, intervalWidth, 1.0 );
     	}
     }
 
@@ -8970,8 +8996,7 @@ public String formatMouseTrackerDataPoint ( GRPoint devpt, GRPoint datapt ) {
                         		isMissing = true;
                     		}
                     		else {
-                        		valueString = "Value: " + StringUtil.formatString(value,"%.2f") + " " +
-                        			ts.getDataUnits() + flagString;
+                        		valueString = "Value: " + StringUtil.formatString(value,"%.2f") + " " + ts.getDataUnits() + flagString;
                     		}
                 		}
                 	}
@@ -9069,8 +9094,7 @@ public String formatMouseTrackerDataPoint ( GRPoint devpt, GRPoint datapt ) {
                        		isMissing = true;
                    		}
                    		else {
-                       		valueString = "Value: " + StringUtil.formatString(value,"%.2f") + " " +
-                       			ts.getDataUnits() + flagString;
+                       		valueString = "Value: " + StringUtil.formatString(value,"%.2f") + " " + ts.getDataUnits() + flagString;
                    		}
                		}
             	}
