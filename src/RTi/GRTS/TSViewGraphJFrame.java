@@ -884,10 +884,28 @@ private void openGUI ( boolean mode ) {
 		ref_props.set ( "ReferenceTSIndex=" + max_period_index );
 		if ( __tsproduct == null ) {
 			// Old style.
+			if ( Message.isDebugOn ) {
+				if ( __tslist == null ) {
+					Message.printStatus(2, routine, "Calling TSGraphJComponent using old-style constructor, tslist=null");
+				}
+				else {
+					Message.printStatus(2, routine, "Calling TSGraphJComponent using old-style constructor, tslist size=" +
+						__tslist.size());
+				}
+			}
 			_ref_graph = new TSGraphJComponent ( this, __tslist, ref_props );
 		}
 		else {
 		    // New style.
+			if ( Message.isDebugOn ) {
+				if ( __tslist == null ) {
+					Message.printStatus(2, routine, "Calling TSGraphJComponent, tslist=null");
+				}
+				else {
+					Message.printStatus(2, routine, "Calling TSGraphJComponent, tslist size=" +
+						__tslist.size());
+				}
+			}
 			__tsproduct.setTSList ( __tslist );
 			_ref_graph = new TSGraphJComponent ( this, __tsproduct, ref_props );
 		}

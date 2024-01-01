@@ -55,6 +55,7 @@ import javax.swing.WindowConstants;
 
 import RTi.GR.GRAxisDirectionType;
 import RTi.GR.GRColor;
+import RTi.GR.GRLineConnectType;
 import RTi.GR.GRSymbol;
 import RTi.GR.GRSymbolShapeTypeListContents;
 import RTi.GR.GRText;
@@ -405,6 +406,7 @@ private SimpleJComboBox _ts_xaxis_JComboBox = null;
 private SimpleJComboBox _ts_yaxis_JComboBox = null;
 
 private SimpleJComboBox _ts_linestyle_JComboBox = null;
+private SimpleJComboBox _ts_lineconnecttype_JComboBox = null;
 private SimpleJComboBox _ts_linewidth_JComboBox = null;
 private SimpleJComboBox _ts_symbolstyle_JComboBox = null;
 private SimpleJComboBox _ts_symbolsize_JComboBox = null;
@@ -1010,12 +1012,20 @@ private void clearDataProperties() {
 	_ts_legendformat_JTextField.setText(_tsproduct.getDefaultPropValue("LegendFormat", 1, 1));
 
 	_ts_linestyle_JComboBox.select(_tsproduct.getDefaultPropValue("LineStyle", 1, 1));
-
 	if (graphType.equals("Bar")) {
 		_ts_linestyle_JComboBox.setEnabled(false);
 	}
 	else {
 		_ts_linestyle_JComboBox.setEnabled(true);
+	}
+
+	_ts_lineconnecttype_JComboBox.select(_tsproduct.getDefaultPropValue("LineConnectType", 1, 1));
+	if (graphType.equals("Bar")) {
+		// TODO smalers 2023-12-29 need to confirm this for graph types that use the property.
+		_ts_lineconnecttype_JComboBox.setEnabled(false);
+	}
+	else {
+		_ts_lineconnecttype_JComboBox.setEnabled(true);
 	}
 
 	_ts_linewidth_JComboBox.select(_tsproduct.getDefaultPropValue("LineWidth", 1, 1));
@@ -2095,7 +2105,7 @@ private JPanel createDataJPanel () {
 	_ts_JTabbedPane.addTab ( "Symbol", null, symbol_JPanel, "Symbol properties" );
 
 	y = -1;
-	// Some will be disabled if not a line graph.
+	// Some properties will be disabled if not used for the graph type.
 	JGUIUtil.addComponent ( symbol_JPanel, new JLabel ("Line style:"),
 		0, ++y, 1, 1, 0, 0, _insetsTLBR,
 		GridBagConstraints.NONE, GridBagConstraints.EAST );
@@ -2107,8 +2117,8 @@ private JPanel createDataJPanel () {
 	tsLineStyleChoices.add("Solid");
 	_ts_linestyle_JComboBox.setData(tsLineStyleChoices);
 	JGUIUtil.addComponent ( symbol_JPanel, _ts_linestyle_JComboBox,
-			1, y, 1, 1, 0, 0, _insetsTLBR,
-			GridBagConstraints.NONE, GridBagConstraints.WEST );
+		1, y, 1, 1, 0, 0, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.WEST );
 
 	JGUIUtil.addComponent ( symbol_JPanel, new JLabel ("Line width:"),
 			2, y, 1, 1, 0, 0, _insetsTLBR,
@@ -2125,6 +2135,22 @@ private JPanel createDataJPanel () {
 	JGUIUtil.addComponent ( symbol_JPanel, _ts_linewidth_JComboBox,
 			3, y, 1, 1, 0, 0, _insetsTLBR,
 			GridBagConstraints.NONE, GridBagConstraints.WEST );
+
+	JGUIUtil.addComponent ( symbol_JPanel, new JLabel ("Line connect type:"),
+		0, ++y, 1, 1, 0, 0, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.EAST );
+	_ts_lineconnecttype_JComboBox = new SimpleJComboBox ( false );
+	_ts_lineconnecttype_JComboBox.setToolTipText("Line connect type for area and line graphs, to allow step.");
+	List<String> tsLineConnectTypeChoices = new ArrayList<>();
+	tsLineConnectTypeChoices.add("" + GRLineConnectType.CONNECT);
+	tsLineConnectTypeChoices.add("None");
+	tsLineConnectTypeChoices.add("" + GRLineConnectType.STEP_AUTO);
+	tsLineConnectTypeChoices.add("" + GRLineConnectType.STEP_USING_VALUE);
+	tsLineConnectTypeChoices.add("" + GRLineConnectType.STEP_USING_NEXT_VALUE);
+	_ts_lineconnecttype_JComboBox.setData(tsLineConnectTypeChoices);
+	JGUIUtil.addComponent ( symbol_JPanel, _ts_lineconnecttype_JComboBox,
+		1, y, 1, 1, 0, 0, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.WEST );
 
 	JGUIUtil.addComponent ( symbol_JPanel, new JLabel ("Color:"),
 			0, ++y, 1, 1, 0, 0, _insetsTLBR,
@@ -4228,6 +4254,7 @@ private void displayDataProperties ( int isub, int its ) {
 		_ts_linestyle_JComboBox.setEnabled(false);
 	}
 	else {
+		// Line and other graph types.
 		try {
 			JGUIUtil.selectIgnoreCase(_ts_linestyle_JComboBox,prop_val);
 		}
@@ -4235,6 +4262,27 @@ private void displayDataProperties ( int isub, int its ) {
 			_ts_linestyle_JComboBox.select(_tsproduct.getDefaultPropValue("LineStyle",isub,its));
 		}
 		_ts_linestyle_JComboBox.setEnabled(true);
+	}
+
+	// "LineConnectType"
+
+	prop_val = _tsproduct.getLayeredPropValue("LineConnectType", isub, its, false);
+	if ( (graphType == TSGraphType.AREA) || (graphType == TSGraphType.AREA_STACKED) ||
+	     (graphType == TSGraphType.LINE) ) {
+		try {
+			// Graph type uses the property.
+			JGUIUtil.selectIgnoreCase(_ts_lineconnecttype_JComboBox,prop_val);
+		}
+		catch (Exception e) {
+			// Use the default value.
+			_ts_lineconnecttype_JComboBox.select(_tsproduct.getDefaultPropValue("LineConnectType",isub,its));
+		}
+		_ts_lineconnecttype_JComboBox.setEnabled(true);
+	}
+	else {
+		// Property is not used.
+		_ts_lineconnecttype_JComboBox.select("None");
+		_ts_lineconnecttype_JComboBox.setEnabled(false);
 	}
 
 	// "LineWidth"
@@ -5690,6 +5738,22 @@ void enableComponentsBasedOnGraphType(int isub, int its, boolean setValue) {
 		_ts_linestyle_JComboBox.setEnabled(true);
 	}
 
+	// "LineConnectType"
+
+	if ( (graphType == TSGraphType.AREA) || (graphType == TSGraphType.AREA_STACKED) || (graphType == TSGraphType.LINE) ) {
+		if (setValue) {
+			_ts_lineconnecttype_JComboBox.select("Connect");
+		}
+	}
+	else {
+		// All other graph types.
+		_ts_lineconnecttype_JComboBox.setEnabled(true);
+		if (setValue) {
+			_ts_lineconnecttype_JComboBox.select("None");
+		}
+		_ts_lineconnecttype_JComboBox.setEnabled(false);
+	}
+
 	// "LineWidth"
 
 	if (graphType == TSGraphType.BAR || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
@@ -7105,6 +7169,7 @@ private void setTimeSeriesFieldsEnabled(boolean enabled) {
 	JGUIUtil.setEnabled(_ts_graphtype_JComboBox, enabled);
 	JGUIUtil.setEnabled(_ts_regressionline_JCheckBox, enabled);
 	JGUIUtil.setEnabled(_ts_linestyle_JComboBox, enabled);
+	JGUIUtil.setEnabled(_ts_lineconnecttype_JComboBox, enabled);
 	JGUIUtil.setEnabled(_ts_linewidth_JComboBox, enabled);
 	JGUIUtil.setEnabled(_ts_symbolstyle_JComboBox, enabled);
 	JGUIUtil.setEnabled(_ts_symbolsize_JComboBox, enabled);
@@ -8223,6 +8288,15 @@ protected int updateTSProduct (int howSet) {
 	gui_val = _ts_linestyle_JComboBox.getSelected().trim();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
 		_tsproduct.setPropValue ( "LineStyle", gui_val, _selected_subproduct, _selected_data );
+		++ndirty;
+	}
+
+	// "LineConnectType"
+
+	prop_val = _tsproduct.getLayeredPropValue ( "LineConnectType", _selected_subproduct, _selected_data, false );
+	gui_val = _ts_lineconnecttype_JComboBox.getSelected().trim();
+	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
+		_tsproduct.setPropValue ( "LineConnectType", gui_val, _selected_subproduct, _selected_data );
 		++ndirty;
 	}
 

@@ -56,6 +56,7 @@ import RTi.GR.GRDrawingArea;
 import RTi.GR.GRDrawingAreaUtil;
 import RTi.GR.GRJComponentDrawingArea;
 import RTi.GR.GRLimits;
+import RTi.GR.GRLineConnectType;
 import RTi.GR.GRPoint;
 import RTi.GR.GRSymbolPosition;
 import RTi.GR.GRSymbolShapeType;
@@ -885,12 +886,12 @@ Y-axis labels for numerical data for right y-axis.
 private double [] _ylabels_righty = null;
 
 /**
-Array for drawing shapes, in particular to avoid moveto/lineto.
+Array for drawing shapes, in particular to avoid moveTo/lineTo.
 */
 private double [] xCacheArray = null;
 
 /**
-Array for drawing shapes, in particular to avoid moveto/lineto.
+Array for drawing shapes, in particular to avoid moveTo/lineTo.
 */
 private double [] yCacheArray = null;
 
@@ -1012,7 +1013,7 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 		_gtype = "Ref:";
 	}
 
-	// Might need to use this when we try to process all null time series.
+	// Might need to use this when try to process all null time series.
 	int ssize = __tslist.size();
 	if ( !_is_reference_graph ) {
 		if ( Message.isDebugOn ) {
@@ -1124,7 +1125,7 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 			if ( (ts == null) || !ts.getEnabled() ) {
 				continue;
 			}
-			// Check the interval so that we can make decisions during plotting.
+			// Check the interval so that can make decisions during plotting.
 			try {
                 _interval_max = MathUtil.max ( _interval_max, ts.getDataIntervalBase() );
 				_interval_min = MathUtil.min ( _interval_min, ts.getDataIntervalBase() );
@@ -1575,7 +1576,7 @@ private void adjustConfidenceCurve ( double [] x, double [] y, int npts ) {
 	}
 	else {
         // Slope is down to the right.
-		// FIXME ... do later... inverse correlation not likely with what we are doing.
+		// FIXME ... do later... inverse correlation not likely with what are doing.
         Message.printWarning(3, routine, "Negative slope is not supported for confidence curve.");
 	}
 }
@@ -1830,7 +1831,7 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod ) {
 				_ignoreLeftAxisUnits = true;
 				_ignoreRightAxisUnits = true;
 			}
-			// Now check the property (keep a separate copy so we can avoid the prompt below if appropriate).
+			// Now check the property (keep a separate copy so can avoid the prompt below if appropriate).
 			String ignoreLeftAxisUnitsProp = _tsproduct.getLayeredPropValue ( "LeftYAxisIgnoreUnits", _subproduct, -1, false);
 			boolean ignoreLeftAxisUnits = false;
 			if ( (ignoreLeftAxisUnitsProp != null) && ignoreLeftAxisUnitsProp.equalsIgnoreCase("true") ) {
@@ -2001,7 +2002,7 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod ) {
 			}
 			if ( _max_tslimits_lefty == null ) {
 				// Typically due to a cancel of the graph due to incompatible units.
-				// In this case we get to here but just need to gracefully handle nulls until the graph can be closed in parent container code.
+				// In this case get to here but just need to gracefully handle nulls until the graph can be closed in parent container code.
 				return;
 			}
 			if (_is_reference_graph && (_reference_ts_index >= 0)) {
@@ -2407,7 +2408,7 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod ) {
 					Message.printStatus(2, routine, "Setting _max_tslimits_righty...units are ignored");
 				}
 				else {
-	                // Need to have consistent units.  For now require them to be the same because we don't
+	                // Need to have consistent units.  For now require them to be the same because don't
 					// want to do units conversions on the fly or alter the original data.
 					//
 					// TODO - need to add on the fly conversion of units (slower but changing original data is.
@@ -2944,7 +2945,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 
 	// Now get recompute the limits to be nice.  First do the Y axis.
 	// The maximum number of labels is based on the font height and the drawing area height.
-	// However, in most cases, we want at least a spacing of 3 times the font height, unless this results in less than 3 labels.
+	// However, in most cases, want at least a spacing of 3 times the font height, unless this results in less than 3 labels.
 	// Format a label based on the font for the Y axis.
 
 	fontname = _tsproduct.getLayeredPropValue ( "RightYAxisLabelFontName", _subproduct, -1, false );
@@ -3275,7 +3276,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 
 	DateTime date = new DateTime ( 2000.5, true );
 	date.setPrecision ( _xaxis_date_precision );
-	// Font for _grda was set above.  Get limits - we are interested in horizontal positioning based on dates.
+	// Font for _grda was set above.  Get limits - are interested in horizontal positioning based on dates.
 	label_extents = GRDrawingAreaUtil.getTextExtents( _da_bottomx_label, date.toString(), GRUnits.DEVICE );
 	width = label_extents.getWidth();
 	// Maintain spacing of at least one label width.
@@ -4669,7 +4670,7 @@ public void drawDrawingAreas () {
 			_datalim_subtitle.getCenterY(), 0.0, GRText.CENTER_X|GRText.CENTER_Y );
 	}
 
-/*  Not enabled until we can get Yaxis labels out of the way.
+/*  Not enabled until can get Yaxis labels out of the way.
 	GRDrawingAreaUtil.drawRectangle ( _da_topx_title, _datalim_topx_title.getLeftX(), _datalim_topx_title.getBottomY(),
 		_datalim_topx_title.getWidth(), _datalim_topx_title.getHeight() );
 	if ( do_names ) {
@@ -4986,7 +4987,7 @@ private void drawGraph ( TSGraphType graphType, GRDrawingArea daGraph, TSProduct
 			else if (_is_reference_graph ) {
 				// Is a reference graph.
 				if ( its != _reference_ts_index ) {
-					// Is a reference graph but we have not found the reference time series yet.
+					// Is a reference graph but have not found the reference time series yet.
 					// Want the reference time series drawn in the same color as it occurs in the main graph.
 					if (Message.isDebugOn) {
 						Message.printDebug(1, routine, _gtype + "Skipping time series " + its);
@@ -5792,6 +5793,7 @@ Draw (render) a single time series on the graph with no override properties.
 @param graphType the graph type to use for the time series
 */
 private void drawTS ( TSProduct tsproduct, int subproduct, int its, TS ts, TSGraphType graphType ) {
+	// No override properties.
 	drawTS(tsproduct, subproduct, its, ts, graphType, null);
 }
 
@@ -5808,7 +5810,7 @@ graph type, but can be different if overlaying lines on area graph, for example.
 private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraphType tsGraphType, PropList overrideProps ) {
     String routine = getClass().getSimpleName() + ".drawTS";
 	if ( Message.isDebugOn ) {
-		Message.printStatus(2, routine, _gtype + "Enter drawTS");
+		Message.printStatus(2, routine, _gtype + "Enter drawTS.");
 	}
 	if ((ts == null) || !ts.hasData() || (!_is_reference_graph && !ts.getEnabled())) {
 	    // No need or unable to draw.
@@ -5819,7 +5821,7 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 	// This will duplicate some code, but the code below is getting too complex with multiple graph types handled in the same code.
 	// The separate renderers also can be refactored into separate classes if appropriate.
 	if ( (tsGraphType == TSGraphType.AREA) || (tsGraphType == TSGraphType.AREA_STACKED) ) {
-	    drawTSRenderAreaGraph ( its, ts, tsGraphType, overrideProps );
+	    drawTSRenderAreaGraph ( tsproduct, subproduct, its, ts, tsGraphType, overrideProps );
 	    return;
 	}
 
@@ -5905,7 +5907,11 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 		}
 	}
 
-	double lasty = ts.getMissing();
+	// Previous point is used to connect the point.
+	double yPrev = ts.getMissing();
+	double xPrev = ts.getMissing();
+	// Next point is used if step is used with the next value.
+	double yNext = ts.getMissing();
 	double x;
 	double y;
 	int drawcount = 0; // Overall count of points in time series.
@@ -6055,6 +6061,7 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 		niceSymbols = false;
 	}
 
+	GRLineConnectType lineConnectType = GRLineConnectType.CONNECT;
 	if (_is_reference_graph) {
 		lineWidth = 1;
 		draw_line = true;
@@ -6074,9 +6081,34 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 				}
 			}
 		}
+
+		prop_value = getLayeredPropValue("LineConnectType", subproduct, its, false, overrideProps);
+		lineConnectType = GRLineConnectType.valueOfIgnoreCase(prop_value);
+		if ( lineConnectType == null ) {
+			lineConnectType = GRLineConnectType.CONNECT; // Default.
+		}
+
+		if ( lineConnectType == GRLineConnectType.STEP_AUTO ) {
+			// Determine the line connect type based on the time series interval.
+			if ( interval_base == TimeInterval.IRREGULAR ) {
+				lineConnectType = GRLineConnectType.STEP_USING_VALUE;
+			}
+			else {
+				if ( ts.getDataIntervalBase() >= TimeInterval.DAY ) {
+					// Date only:
+					// - carry forward the value
+					lineConnectType = GRLineConnectType.STEP_USING_VALUE;
+				}
+				else {
+					// Date and time:
+					// - use the interval ending value
+					lineConnectType = GRLineConnectType.STEP_USING_NEXT_VALUE;
+				}
+			}
+		}
 	}
 
-	// Line dashes are currently only supported.
+	// Only line dashes are currently supported (not dots).
 	boolean dashedLine = false;
 	double[] lineDash = null;
 	prop_value = getLayeredPropValue("LineStyle", subproduct, its, false, overrideProps);
@@ -6146,8 +6178,8 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 	double centerx = 0.0;	// Center of a bar.
     String dataFlag = null;
 
-	if (interval_base == TimeInterval.IRREGULAR) {
-		// Get the data and loop through the vector.
+	if ( interval_base == TimeInterval.IRREGULAR ) {
+		// Get the data and loop through the list of data points.
 		// Currently do not use TSIterator because head-to-head performance tests have not been performed.
 		// Need to do so before deciding which approach is faster.
 		IrregularTS irrts = (IrregularTS)ts;
@@ -6187,7 +6219,10 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 	        		}
 	        		else {
 	        			// No need to draw anything.
-	        			lasty = y;
+	        			// Need the x-value for the continue below, used for step line connections.
+	        			x = date.toDouble();
+        				xPrev = x;
+	        			yPrev = y;
 	        		}
         			continue;
         		}
@@ -6199,8 +6234,19 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
                     symbol = symbolWithFlag;
                 }
 
-        		// Else, see if need to moveto or lineto the point.
-        		x = date.toDouble();
+                if ( lineConnectType == GRLineConnectType.STEP_USING_NEXT_VALUE ) {
+                	// Also need the next value.
+                	TSData tsdataNext = tsdata.getNext();
+                	if ( tsdataNext == null ) {
+                		yNext = ts.getMissing();
+                	}
+                	else {
+                		yNext = tsdataNext.getDataValue();
+                	}
+                }
+
+        		// Else, see if need to moveTo or lineTo the point.
+                x = date.toDouble();
         		if ( this.useXYCache ) {
         			if ( this.xCacheArray == null ) {
         				// Allocate initial cache arrays
@@ -6208,7 +6254,7 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
         				this.yCacheArray = new double[100];
         			}
         		}
-        		if (((drawcount == 0) || ts.isDataMissing(lasty)) && (yAxisGraphType != TSGraphType.BAR &&
+        		if (((drawcount == 0) || ts.isDataMissing(yPrev)) && (yAxisGraphType != TSGraphType.BAR &&
         		    yAxisGraphType != TSGraphType.PREDICTED_VALUE_RESIDUAL)) {
         			// First point in the entire time series or first non-missing point after a missing point.
         			// Always draw the symbol.
@@ -6266,7 +6312,39 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
         			}
         			else {
         				// Move/draw each point individually.
-        				GRDrawingAreaUtil.moveTo(daGraph, x, y );
+        				if ( lineConnectType == GRLineConnectType.CONNECT ) {
+        					GRDrawingAreaUtil.moveTo(daGraph, x, y );
+        					// Connect from the previous point to the current point:
+        					//
+        					//       + y
+        					//       
+        					//      
+        					//    + yPrev (missing)
+        					//
+        					GRDrawingAreaUtil.moveTo(daGraph, x, y);
+        				}
+        				else if ( lineConnectType == GRLineConnectType.STEP_USING_VALUE ) {
+        					// Position the point to carry forward the interval starting value.
+        					//
+        					//       + yNext
+        					//	      |
+        					//       |
+        					//    +--+
+        					//   y     
+        					//
+        					GRDrawingAreaUtil.moveTo(daGraph, x, y);
+        				}
+        				else if ( lineConnectType == GRLineConnectType.STEP_USING_NEXT_VALUE ) {
+        					// Position the point to carry forward the interval ending value.
+        					//
+        					//    +--+ yNext
+        					//    |
+        					//    |
+        					//    +
+        					//    y
+        					//
+        					GRDrawingAreaUtil.moveTo(daGraph, x, yNext);
+        				}
         			}
         		}
         		else {
@@ -6299,7 +6377,42 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
         					}
         					else {
         						// Drawing each point with LineTo.
-        						GRDrawingAreaUtil.lineTo(daGraph, x, y);
+        						if ( lineConnectType == GRLineConnectType.CONNECT ) {
+        							// Connect from the previous point to the current point:
+        							//
+        							//       + y
+        							//      /
+        							//     /
+        							//    + yPrev
+        							//
+        							GRDrawingAreaUtil.lineTo ( daGraph, x, y );
+        						}
+        						else if ( lineConnectType == GRLineConnectType.STEP_USING_VALUE ) {
+        							// Connect from the previous point to the current point:
+        							// - current point will be carried forward in the next draw
+        							//
+        							//       + y
+        							//       |
+        							//       |
+        							//    +--+
+        							//  yPrev
+        							//
+        							GRDrawingAreaUtil.lineTo ( daGraph, x, yPrev );
+        							GRDrawingAreaUtil.lineTo ( daGraph, x, y );
+        						}
+        						else if ( lineConnectType == GRLineConnectType.STEP_USING_NEXT_VALUE ) {
+        							// Connect from the previous point to the current point:
+        							// - current point will be carried forward in the next draw
+        							//
+        							//    +--+ y
+        							//    |
+        							//    |
+        							//    +
+        							//  yPrev
+        							//
+        							GRDrawingAreaUtil.lineTo ( daGraph, xPrev, y );
+        							GRDrawingAreaUtil.lineTo ( daGraph, x, y );
+        						}
         					}
 
         					// Reset the line width to the normal setting for all other drawing.
@@ -6359,7 +6472,8 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
         					}
         					GRDrawingAreaUtil.moveTo(daGraph, x, y);
         				}
-        				lasty = y;
+        				xPrev = x;
+        				yPrev = y;
         				++drawcount;
         				continue;
         			}
@@ -6455,7 +6569,8 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
         				}
         			}
         		}
-        		lasty = y;
+        		xPrev = x;
+        		yPrev = y;
         		++drawcount;
         	}
 		}
@@ -6469,19 +6584,29 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 		}
 	}
 	else {
-		// Loop using addInterval.
+		// Regular interval time series:
+		// - loop using addInterval
 		DateTime date = new DateTime(start);
+		// Used if drawing steps and connect type is STEP_USING_NEXT_VALUE:
+		// - always one interval after the current date/time
+		DateTime dateNext = new DateTime(start);
+
 		// Make sure the time zone is not set.
 		date.setTimeZone("");
 
 		TSData tsdata = new TSData();
-		// Define a boolean to increase performance below.
-		boolean doDataPoint = false; // Symbol will be determined from "symbolNoFlag" value.
+		// Define a boolean to increase performance below:
+		// - default is not to draw the point symbol
+		// - symbol will be determined from "symbolNoFlag" value
+		boolean doDataPoint = false;
 		if ( labelPointWithFlag || (symbolNoFlag != symbolWithFlag) ) {
 		    // Symbol will be determined by checking the flag, which is in the data point.
 		    doDataPoint = true;
 		}
 		for (; date.lessThanOrEqualTo(end); date.addInterval(interval_base, interval_mult)) {
+			// The starting date/time is the same as 'date' so increment to set to the end of interval.
+			dateNext.addInterval(interval_base, interval_mult);
+
 			// Use the actual data value.
 			if ( doDataPoint ) {
 				tsdata = ts.getDataPoint(date, tsdata);
@@ -6500,8 +6625,14 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 				dataFlag = null;
 			}
 
-			if (ts.isDataMissing(y)) {
-				lasty = y;
+			if ( lineConnectType == GRLineConnectType.STEP_USING_NEXT_VALUE ) {
+				// Also need the next value.
+				yNext = ts.getDataValue(dateNext);
+			}
+
+			if ( ts.isDataMissing(y) ) {
+				xPrev = date.toDouble();
+				yPrev = ts.getMissing();
 				continue;
 			}
 
@@ -6513,15 +6644,16 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 				y = its + 1;
 			}
 
-			// Else, see if we need to moveto or lineto the point.
+			// Else, see if need to moveTo or lineTo the point.
 			x = date.toDouble();
 
 			// Uncomment this for debugging.
 			//Message.printStatus(1, routine, "its=" + its + " date = " + date + " x = " + x + " y=" + y);
 
-			if (((drawcount == 0) || ts.isDataMissing(lasty)) && (yAxisGraphType != TSGraphType.BAR
+			if (((drawcount == 0) || ts.isDataMissing(yPrev)) && (yAxisGraphType != TSGraphType.BAR
 			    && yAxisGraphType != TSGraphType.PREDICTED_VALUE_RESIDUAL)) {
-				// Previous point was missing so all need to do is draw the symbol (if not a reference graph).
+				// Previous point was missing (or first point drawn)
+				// so all need to do is draw the symbol (if not a reference graph).
 				if (_is_reference_graph) {
 					// Don't label or draw symbol.
 				}
@@ -6561,22 +6693,93 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 					}
 				}
 
-				// Draw the line segment after the symbol.
-				GRDrawingAreaUtil.moveTo(daGraph, x, y);
-				lasty = y;
+				// Moved to the next point.
+				if ( lineConnectType == GRLineConnectType.CONNECT ) {
+					// Connect from the previous point to the current point:
+					//
+					//       + y
+					//       
+					//      
+					//    + yPrev (missing)
+					//
+					GRDrawingAreaUtil.moveTo(daGraph, x, y);
+				}
+				else if ( lineConnectType == GRLineConnectType.STEP_USING_VALUE ) {
+					// Position the point to carry forward the interval starting value.
+					//
+					//       + yNext
+					//       |
+					//       |
+					//    +--+
+					//   y     
+					//
+					GRDrawingAreaUtil.moveTo(daGraph, x, y);
+				}
+				else if ( lineConnectType == GRLineConnectType.STEP_USING_NEXT_VALUE ) {
+					// Position the point to carry forward the interval ending value.
+					//
+					//    +--+ yNext
+					//    |
+					//    |
+					//    +
+					//    y
+					//
+					GRDrawingAreaUtil.moveTo(daGraph, x, yNext);
+				}
+				xPrev = x;
+				yPrev = y;
 				++drawcount;
 				continue;
 			}
 
-			// If here, need to draw the line segment or bar.
-			if (yAxisGraphType != TSGraphType.BAR && yAxisGraphType != TSGraphType.PREDICTED_VALUE_RESIDUAL) {
+			// If here, need to draw the line segment from the previous point or draw a bar.
+
+			if ( (yAxisGraphType != TSGraphType.BAR) && (yAxisGraphType != TSGraphType.PREDICTED_VALUE_RESIDUAL) ) {
+				// Drawing line segment to connect points.
 				if (draw_line) {
 					if (dashedLine) {
+						// Turn on the dash dashes.
 						GRDrawingAreaUtil.setLineDash( daGraph, lineDash, 0);
 					}
 
+					// Draw the line.
 					GRDrawingAreaUtil.setLineWidth(	daGraph, lineWidth);
-					GRDrawingAreaUtil.lineTo ( daGraph, x, y );
+					if ( lineConnectType == GRLineConnectType.CONNECT ) {
+						// Connect from the previous point to the current point:
+						//
+						//       + y
+						//      /
+						//     /
+						//    + yPrev
+						//
+						GRDrawingAreaUtil.lineTo ( daGraph, x, y );
+					}
+					else if ( lineConnectType == GRLineConnectType.STEP_USING_VALUE ) {
+						// Connect from the previous point to the current point:
+						// - current point will be carried forward in the next draw
+						//
+						//       + y
+						//       |
+						//       |
+						//    +--+
+						//  yPrev
+						//
+						GRDrawingAreaUtil.lineTo ( daGraph, x, yPrev );
+						GRDrawingAreaUtil.lineTo ( daGraph, x, y );
+					}
+					else if ( lineConnectType == GRLineConnectType.STEP_USING_NEXT_VALUE ) {
+						// Connect from the previous point to the current point:
+						// - current point will be carried forward in the next draw
+						//
+						//    +--+ y
+						//    |
+						//    |
+						//    +
+						//  yPrev
+						//
+						GRDrawingAreaUtil.lineTo ( daGraph, xPrev, y );
+						GRDrawingAreaUtil.lineTo ( daGraph, x, y );
+					}
 					GRDrawingAreaUtil.setLineWidth( daGraph, 1);
 
 					if (dashedLine) {
@@ -6585,6 +6788,7 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 					}
 				}
 				else {
+					// No connecting line.
 					GRDrawingAreaUtil.moveTo(daGraph, x, y);
 				}
 
@@ -6721,7 +6925,8 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
         			}
 				}
 			}
-			lasty = y;
+			xPrev = x;
+			yPrev = y;
 			++drawcount;
 		}
 	}
@@ -6898,7 +7103,8 @@ the previous and current values have different sign, or the array buffer is fill
 @param graphType the graph type to use for the time series (may be needed for other calls).
 @param overrideProps override run-time properties to consider when getting graph properties
 */
-private void drawTSRenderAreaGraph ( int its, TS ts, TSGraphType graphType, PropList overrideProps ) {
+private void drawTSRenderAreaGraph ( TSProduct tsproduct, int subproduct, int its,
+	TS ts, TSGraphType graphType, PropList overrideProps ) {
     //String routine = "TSGraph.drawTSRenderAreaGraph";
     if ( ts == null ) {
         // No data for time series.
@@ -6917,6 +7123,34 @@ private void drawTSRenderAreaGraph ( int its, TS ts, TSGraphType graphType, Prop
     DateTime date = new DateTime(start);
     // Make sure the time zone is not set.
     date.setTimeZone("");
+
+	int intervalBase = ts.getDataIntervalBase();
+
+    // Get the line connect type.
+	GRLineConnectType lineConnectType = GRLineConnectType.CONNECT;
+	String prop_value = getLayeredPropValue("LineConnectType", subproduct, its, false, overrideProps);
+	lineConnectType = GRLineConnectType.valueOfIgnoreCase(prop_value);
+	if ( lineConnectType == null ) {
+		lineConnectType = GRLineConnectType.CONNECT; // Default.
+	}
+	if ( lineConnectType == GRLineConnectType.STEP_AUTO ) {
+		// Determine the line connect type based on the time series interval.
+		if ( intervalBase == TimeInterval.IRREGULAR ) {
+			lineConnectType = GRLineConnectType.STEP_USING_VALUE;
+		}
+		else {
+			if ( ts.getDataIntervalBase() >= TimeInterval.DAY ) {
+				// Date only:
+				// - carry forward the value
+				lineConnectType = GRLineConnectType.STEP_USING_VALUE;
+			}
+			else {
+				// Date and time:
+				// - use the interval ending value
+				lineConnectType = GRLineConnectType.STEP_USING_NEXT_VALUE;
+			}
+		}
+	}
 
     double x = 0.0; // X coordinate converted from date/time.
     double y = 0.0; // Y coordinate corresponding to data value.
@@ -6947,7 +7181,7 @@ private void drawTSRenderAreaGraph ( int its, TS ts, TSGraphType graphType, Prop
     }
     boolean haveMoreData = true;
     boolean yIsMissing = false;
-    // TODO SAM 2010-11-19 Need a property to control this.
+    // TODO smalers 2010-11-19 Need a property to control this.
     boolean anchorToZero = true; // If true, always anchor around zero.  If false, draw from bottom of graph.
     while ( true ) {
         tsdata = tsi.next();
@@ -6972,7 +7206,7 @@ private void drawTSRenderAreaGraph ( int its, TS ts, TSGraphType graphType, Prop
         // 1) Missing value
         // 2) No more data
         // 3) Y is opposite sign of previous value
-        // 4) Array buffer is full
+        // 4) Array buffer is full - will create another polygon if necessary
 
         if ( yIsMissing || !haveMoreData || (arrayCount == arraySize2) || (y*yPrev < 0.0) ) {
             // Need to draw what is already buffered (but do not draw the current point).
@@ -7022,10 +7256,58 @@ private void drawTSRenderAreaGraph ( int its, TS ts, TSGraphType graphType, Prop
         // Now add the current point to the arrays, but only if not missing.
 
         if ( !yIsMissing ) {
-            xArray[arrayCount] = x;
-            yArray[arrayCount] = y;
+        	if ( lineConnectType == GRLineConnectType.CONNECT ) {
+				// Connect from the previous point to the current point:
+				//
+				//       + y
+				//      /
+				//     /
+				//    + yPrev
+				//
+        		xArray[arrayCount] = x;
+        		yArray[arrayCount] = y;
+        		++arrayCount;
+        	}
+			else if ( lineConnectType == GRLineConnectType.STEP_USING_VALUE ) {
+				// Connect from the previous point to the current point:
+				// - current point will be carried forward in the next draw
+				//
+				//       + y
+				//       |
+				//       |
+				//    +--+
+				//  yPrev
+				//
+        		xArray[arrayCount] = x;
+        		yArray[arrayCount] = yPrev;
+        		++arrayCount;
+        		if ( arrayCount < arraySize2 ) {
+        			// Have array space to add the point.
+        			xArray[arrayCount] = x;
+        			yArray[arrayCount] = y;
+        			++arrayCount;
+        		}
+			}
+			else if ( lineConnectType == GRLineConnectType.STEP_USING_NEXT_VALUE ) {
+				// Connect from the previous point to the current point:
+				// - current point will be carried forward in the next draw
+				//
+				//    +--+ y
+				//    |
+				//    |
+				//    +
+				//  yPrev
+				//
+        		xArray[arrayCount] = xPrev;
+        		yArray[arrayCount] = y;
+        		++arrayCount;
+        		if ( arrayCount < arraySize2 ) {
+        			xArray[arrayCount] = x;
+        			yArray[arrayCount] = y;
+        			++arrayCount;
+        		}
+			}
             //Message.printStatus ( 2, routine, "Adding data point[" + arrayCount + "]: " + x + "," + y );
-            arrayCount++;
         }
     }
 
@@ -10137,7 +10419,7 @@ public void paint ( Graphics g ) {
 	// Reset to Graphics2D for futher processing.
 	g = g2d;
 
-	// Print some messages so we know what the paint is doing.
+	// Print some messages so know what the paint is doing.
 
 	if ( Message.isDebugOn ) {
 		if ( _dev.isPrinting() ) {
@@ -10225,7 +10507,7 @@ public void paint ( Graphics g ) {
 			// Get the Y-dimension from the maximum values.
 			GRDrawingAreaUtil.fillRectangle ( _da_lefty_graph, _data_lefty_limits.getLeftX(),
 				_data_lefty_limits.getBottomY(), _data_lefty_limits.getWidth(), _max_lefty_data_limits.getHeight() );
-			// Also draw a line in case we are zoomed in so far that the rectangle does not draw.
+			// Also draw a line in case are zoomed in so far that the rectangle does not draw.
 			GRDrawingAreaUtil.drawLine ( _da_lefty_graph, _data_lefty_limits.getLeftX(),
 				_data_lefty_limits.getBottomY(), _data_lefty_limits.getLeftX(), _data_lefty_limits.getTopY() );
 			// The time series will graph over the background in the following code.
@@ -10634,7 +10916,7 @@ public void setDrawingLimits ( GRLimits drawlim_page ) {
 	}
 
 	// TODO smalers 2016-10-17 Need to more intelligently set label width by checking labels for the maximum values.
-	// TODO smalers Get max *10 and compute label width so we don't have to rely on full label determination?).
+	// TODO smalers Get max *10 and compute label width so don't have to rely on full label determination?).
 	// For now, hard-code the y-axis label widths.
 	// This has been done for some time so it should be OK.
 
@@ -11169,7 +11451,7 @@ public void setDrawingLimits ( GRLimits drawlim_page ) {
 	}
 
 	// Top x labels are impacted by left and right legends and the position of the top x title.
-	// Top x labels are not currently processed (until we can move the Y axis titles out of the way).
+	// Top x labels are not currently processed (until can move the Y axis titles out of the way).
 
 	// Left y labels are always present.  Even if zero width, use buffer because other code does below.
 
@@ -11508,7 +11790,7 @@ public void setDrawingLimits ( GRLimits drawlim_page ) {
 	// Now set in the drawing areas.
 
 	if ( (_da_page != null) && (_drawlim_page != null) ) {
-		// _drawlim_page is set in the constructor - we just need to use it as is.
+		// _drawlim_page is set in the constructor - just need to use it as is.
 		_da_page.setDrawingLimits ( _drawlim_page, GRUnits.DEVICE, GRLimits.DEVICE );
 	}
 	if ( (_da_error != null) && (_drawlim_error != null) ) {

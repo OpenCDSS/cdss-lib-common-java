@@ -125,8 +125,8 @@ Process a graph product.
 Time series that are indicated in the time series product are collected by matching in memory or reading time series.
 This is done here so that low-level graph code can get a list of time series and not need to do any collecting itself.
 @param tsproduct Time series product definition.
-@exception Exception if the product cannot be processed (e.g., the graph cannot
-be created due to a lack of data).
+@exception Exception if the product cannot be processed
+(e.g., the graph cannot be created due to a lack of data).
 */
 private void processGraphProduct ( TSProduct tsproduct )
 throws Exception {
@@ -139,7 +139,7 @@ throws Exception {
 	String prop_value = null;
 	DateTime date1 = null;
 	DateTime date2 = null;
-	Message.printStatus ( 2, routine, "Processing product" );
+	Message.printStatus ( 2, routine, "Processing product." );
 	int nsubs = tsproduct.getNumSubProducts();
 	prop_value = tsproduct.getLayeredPropValue("IsTemplate", -1, -1 );
 	boolean is_template = false;
@@ -147,8 +147,9 @@ throws Exception {
 		is_template = true;
 		Message.printStatus ( 2, routine, "Processing template." );
 	}
-	for ( int isub = 0; isub < nsubs ;isub++ ) {
-		Message.printStatus ( 2, routine, "Reading time series for subproduct [" + isub + "]" );
+	Message.printStatus ( 2, routine, "Processing " + nsubs + " subproducts." );
+	for ( int isub = 0; isub < nsubs; isub++ ) {
+		Message.printStatus ( 2, routine, "Reading time series for graph subproduct [" + isub + "]" );
 		// New.
 		prop_value = tsproduct.getLayeredPropValue("IsEnabled", isub, -1 );
 		// Old.
@@ -211,13 +212,13 @@ throws Exception {
 	        }
 			if ( !is_template && (tsalias != null) && !tsalias.trim().equals("") ) {
 				// Have the "TSAlias" property so use it instead of the TSID.
-				Message.printStatus ( 3, routine, "Requesting TS read from TS suppliers using alias \"" + tsalias + "\"." );
+				Message.printStatus ( 2, routine, "Requesting TS read from TS suppliers using alias \"" + tsalias + "\"." );
 				try {
                     ts = readTimeSeries ( tsalias.trim(), date1, date2,	null, true );
 				}
 				catch ( Exception e ) {
 					// Always add a time series because visual properties are going to be tied to the position of the time series.
-					Message.printWarning ( 3, routine, "Error getting time series \"" +	tsalias.trim() + "\" - setting to null." );
+					Message.printWarning ( 2, routine, "Error getting time series \"" +	tsalias.trim() + "\" - setting to null." );
 					ts = null;
 				}
 			}
@@ -395,6 +396,8 @@ throws Exception {
 			processReportProduct ( tsproduct );
 		}
 		else if ( (prop_value == null) || prop_value.equalsIgnoreCase("Graph") ) { // Default if no product type.
+			String routine = getClass().getSimpleName() + ".processProduct";
+			Message.printStatus(2, routine, "Processing graph product.");
 			processGraphProduct ( tsproduct );
 		}
 	}
@@ -438,7 +441,7 @@ public void processReportProduct( TSProduct tsproduct ) throws Exception {
 		// Set the report type for subproduct.
 		report_type = tsproduct.getLayeredPropValue( "ReportType", isub, -1);
 
-		Message.printStatus ( 2, routine, "Reading time series for subproduct [" + isub + "]" );
+		Message.printStatus ( 2, routine, "Reading time series for report subproduct [" + isub + "]" );
 		// New.
 		prop_value = tsproduct.getLayeredPropValue("IsEnabled", isub, -1 );
 		// Old.
