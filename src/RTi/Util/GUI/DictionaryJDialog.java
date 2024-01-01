@@ -736,7 +736,15 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 		// Set the window size.
 		// Otherwise large numbers of items in the dictionary will cause the scrolled panel to
 		// be bigger than the screen at startup in some cases.
-		setSize(650,400);
+		if ( this.notes.length <= 7 ) {
+			// Default size.
+			setSize(650,400);
+		}
+		else {
+			// Add more height to show all the notes and a reasonable number of data rows.
+			setSize(650,400);
+			setSize(650,400 + ((notes.length - 7) * 15) );
+		}
 		setResizable ( true );
 		JGUIUtil.center(this);
 		setVisible(true);

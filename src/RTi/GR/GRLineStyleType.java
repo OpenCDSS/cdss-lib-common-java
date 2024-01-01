@@ -32,6 +32,8 @@ public enum GRLineStyleType {
      */
     DASHED("Dashed"),
 
+    // Do not include NONE/"None", but the string may be used in applications.
+
     /**
      * Solid line.
      */

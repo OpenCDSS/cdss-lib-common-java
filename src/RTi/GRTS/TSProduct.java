@@ -989,6 +989,12 @@ If a blank legend format is specified, no legend will be displayed.
 </tr>
 
 <tr>
+<td><b>LineConnectType</b></td>
+<td>Line connection type: "Connect", "StepUsingValue", "StepUsingNextValue", "StepAuto".
+<td>"Connect"</td>
+</tr>
+
+<tr>
 <td><b>LineStyle</b></td>
 <td>Line style.  Currently only "None" (e.g., for symbols only) and "Solid" are allowed.</td>
 <td>"Solid"</td>
@@ -1183,6 +1189,12 @@ throws Exception {
 	__proplist = new PropList ( "TSProduct" );
 	__proplist.setPersistentName ( filename );
 	__proplist.readPersistent ();
+	// Make sure that the file is a time series product file:
+	// - otherwise, the product will be empty and it is difficult to know where the problem occurred
+	String propValue = __proplist.getValue("Product.ProductType");
+	if ( propValue == null ) {
+		throw new Exception ( "Product file \"" + filename + "\" does not look like a time series product file.");
+	}
 	__override_proplist = overridePropList;
 	transferPropList();
 }
@@ -1522,6 +1534,10 @@ public void checkDataProperties(int isub, int its) {
 
 	if ( getLayeredPropValue ( "LegendFormat", isub, its, false ) == null ) {
 		setPropValue ( "LegendFormat",getDefaultPropValue("LegendFormat",isub,its),	isub, its);
+	}
+
+	if (getLayeredPropValue("LineConnectType", isub, its, false) == null) {
+		setPropValue ( "LineConnectType", getDefaultPropValue("LineConnectType",isub, its, false, graphType), isub, its);
 	}
 
 	if (getLayeredPropValue("LineStyle", isub, its, false) == null) {
@@ -2114,7 +2130,7 @@ public void checkGraphProperties ( int nsubs ) {
 				// Get the default property for time series.
 				setPropValue ( "SymbolTablePath", getDefaultPropValue("SymbolTablePath",isub,-1), isub, -1 );
 			}
-	
+
 			if ( getLayeredPropValue("RasterGraphLegendPosition", isub, -1, false ) == null ) {
 				// Get the default property for time series.
 				setPropValue ( "RasterGraphLegendPosition", getDefaultPropValue("RasterGraphLegendPosition",isub,-1), isub, -1 );
@@ -2287,7 +2303,7 @@ public String expandPropertyValue( String propertyValue ) {
         foundPos = propertyValue.indexOf(delimStart, searchPos);
         foundPosEnd = propertyValue.indexOf(delimEnd, (searchPos + delimStart.length()));
         if ( (foundPos < 0) && (foundPosEnd < 0)  ) {
-            // No more $ property names, so return what we have.
+            // No more $ property names, so return what have.
             return propertyValue;
         }
         // Else found the delimiter so continue with the replacement.
@@ -2449,6 +2465,9 @@ public String getDefaultPropValue ( String param, int subproduct, int its, boole
 		}
 		else if (param.equalsIgnoreCase("FontStyle")) {
 			return "Plain";
+		}
+		else if (param.equalsIgnoreCase("LineConnectType")) {
+			return "Connect";
 		}
 		else if (param.equalsIgnoreCase("LineStyle")) {
 			return "Solid";
@@ -2930,6 +2949,9 @@ public String getDefaultPropValue ( String param, int subproduct, int its, boole
 		        return "" + o;
 		    }
 		}
+		else if ( param.equalsIgnoreCase("LineConnectType") ){
+			return "Connect";
+		}
 		else if ( param.equalsIgnoreCase("LineStyle") ){
 			if (graphType == TSGraphType.XY_SCATTER) {
 				return "None";
@@ -3179,7 +3201,7 @@ public int getNumAnnotations(int subproduct) {
 	int ndata = -1;
 	String prop_value = null;
 	for (int i = 0; ; i++) {
-		// Use false to make sure we are getting the specific property.
+		// Use false to make sure to get the specific property.
 		prop_value = getLayeredPropValue("ShapeType", subproduct, i, false, true);
 		if (prop_value != null) {
 			ndata = i;
@@ -3206,7 +3228,7 @@ public int getNumData ( int subproduct ) {
 	int ndata = -1;
 	String prop_value = null;
 	for ( int i = 0; ; i++ ) {
-		// Use false to make sure we are getting the specific property.
+		// Use false to make sure to get the specific property.
 		prop_value = getLayeredPropValue ("TSID", subproduct, i, false);
 		if ( prop_value != null ) {
 			ndata = i;
@@ -3228,7 +3250,7 @@ public int getNumData ( int subproduct ) {
 			continue;
 		}
 		if ( ndata != i ) {
-			// Previous loop had the number we need.
+			// Previous loop had the number needed.
 			break;
 		}
 	}
@@ -3267,7 +3289,7 @@ public int getNumSubProducts ( boolean enabled_only ) {
 		if (numData == 0) {
 			data = -1;
 		}
-		// Use false to make sure we are getting the specific property.
+		// Use false to make sure to get the specific property.
 		prop_value = getLayeredPropValue ( "TSID", i, data, false );
 		if ( prop_value != null ) {
 			nsubs = i;
@@ -4995,7 +5017,7 @@ public String toStringJson ( boolean outputAll, boolean outputHowSet, boolean so
 
 /**
 Transfer the properties into objects that can be used by other code more efficiently.
-For now don't do anything until we explore the concept of just getting everything out of the PropList.
+For now don't do anything until the concept of just getting everything out of the PropList is explored.
 */
 private void transferPropList () {
 }
