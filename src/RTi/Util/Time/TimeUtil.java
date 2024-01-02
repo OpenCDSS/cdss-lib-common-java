@@ -188,6 +188,32 @@ public static long absoluteMinute (	int year, int month, int day, int hour, int 
 }
 
 /**
+Compute the absolute second.  This can be used for determining the difference between date/times.
+@param dt DateTime to evaluate
+@return The absolute second, with respect to December 31, 1799.
+The datum may change in the future and should be used only in a dynamic fashion.
+*/
+public static long absoluteSecond (	DateTime dt ) {
+	return absoluteSecond ( dt.getYear(), dt.getMonth(), dt.getDay(), dt.getHour(), dt.getMinute(), dt.getSecond() );
+}
+
+/**
+Compute the absolute second.  This can be used for determining the difference between date/times.
+@param year Year (4-digit).
+@param month Month number (1-12).
+@param day Day number (1-31).
+@param hour Hour (0-23).
+@param minute Minute (0-59).
+@param second Second (0-59).
+@return The absolute second, with respect to December 31, 1799.
+The datum may change in the future and should be used only in a dynamic fashion.
+*/
+public static long absoluteSecond (	int year, int month, int day, int hour, int minute, int second ) {
+	long aminute = absoluteMinute ( year, month, day, hour, minute );
+	return (aminute*60 + second);
+}
+
+/**
 Return the absolute month, which is the year*12 + month.
 @param month Month number.
 @param year Year.
