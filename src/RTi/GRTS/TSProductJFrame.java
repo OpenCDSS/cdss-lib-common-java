@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2024 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -407,6 +407,7 @@ private SimpleJComboBox _ts_yaxis_JComboBox = null;
 
 private SimpleJComboBox _ts_linestyle_JComboBox = null;
 private SimpleJComboBox _ts_lineconnecttype_JComboBox = null;
+private JTextField _ts_lineconnectallowedgap_JTextField = null;
 private SimpleJComboBox _ts_linewidth_JComboBox = null;
 private SimpleJComboBox _ts_symbolstyle_JComboBox = null;
 private SimpleJComboBox _ts_symbolsize_JComboBox = null;
@@ -1026,6 +1027,15 @@ private void clearDataProperties() {
 	}
 	else {
 		_ts_lineconnecttype_JComboBox.setEnabled(true);
+	}
+
+	_ts_lineconnectallowedgap_JTextField.setText(_tsproduct.getDefaultPropValue("LineConnectAllowedGap", 1, 1));
+	if (graphType.equals("Bar")) {
+		// TODO smalers 2023-12-29 need to confirm this for graph types that use the property.
+		_ts_lineconnectallowedgap_JTextField.setEnabled(false);
+	}
+	else {
+		_ts_lineconnectallowedgap_JTextField.setEnabled(true);
 	}
 
 	_ts_linewidth_JComboBox.select(_tsproduct.getDefaultPropValue("LineWidth", 1, 1));
@@ -2151,6 +2161,15 @@ private JPanel createDataJPanel () {
 	JGUIUtil.addComponent ( symbol_JPanel, _ts_lineconnecttype_JComboBox,
 		1, y, 1, 1, 0, 0, _insetsTLBR,
 		GridBagConstraints.NONE, GridBagConstraints.WEST );
+
+	JGUIUtil.addComponent ( symbol_JPanel, new JLabel ("Line connect allowed gap:"),
+			2, y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.EAST );
+	_ts_lineconnectallowedgap_JTextField = new JTextField (10);
+	_ts_lineconnectallowedgap_JTextField.setToolTipText ( "For irregular interval time series, the maximum allowed gap to a draw line, as a time interval 1Month, 3Day, etc." );
+	JGUIUtil.addComponent ( symbol_JPanel, _ts_lineconnectallowedgap_JTextField,
+			3, y, 1, 1, 0, 0, _insetsTLBR,
+			GridBagConstraints.NONE, GridBagConstraints.WEST );
 
 	JGUIUtil.addComponent ( symbol_JPanel, new JLabel ("Color:"),
 			0, ++y, 1, 1, 0, 0, _insetsTLBR,
@@ -4285,6 +4304,21 @@ private void displayDataProperties ( int isub, int its ) {
 		_ts_lineconnecttype_JComboBox.setEnabled(false);
 	}
 
+	// "LineConnectAllowedGap"
+
+	prop_val = _tsproduct.getLayeredPropValue("LineConnectAllowedGap", isub, its, false);
+	if ( (graphType == TSGraphType.AREA) || (graphType == TSGraphType.AREA_STACKED) ||
+	     (graphType == TSGraphType.LINE) ) {
+		// Graph type uses the property.
+		_ts_lineconnectallowedgap_JTextField.setText(prop_val);
+		_ts_lineconnectallowedgap_JTextField.setEnabled(true);
+	}
+	else {
+		// Property is not used.
+		_ts_lineconnectallowedgap_JTextField.setText("");
+		_ts_lineconnectallowedgap_JTextField.setEnabled(false);
+	}
+
 	// "LineWidth"
 
 	prop_val = _tsproduct.getLayeredPropValue("LineWidth", isub, its,false);
@@ -5754,6 +5788,21 @@ void enableComponentsBasedOnGraphType(int isub, int its, boolean setValue) {
 		_ts_lineconnecttype_JComboBox.setEnabled(false);
 	}
 
+	// "LineConnectAllowedGap"
+
+	if ( (graphType == TSGraphType.AREA) || (graphType == TSGraphType.AREA_STACKED) || (graphType == TSGraphType.LINE) ) {
+		if (setValue) {
+			_ts_lineconnectallowedgap_JTextField.setText("");
+		}
+	}
+	else {
+		// All other graph types.
+		if (setValue) {
+			_ts_lineconnectallowedgap_JTextField.setText("");
+		}
+		_ts_lineconnectallowedgap_JTextField.setEnabled(false);
+	}
+
 	// "LineWidth"
 
 	if (graphType == TSGraphType.BAR || graphType == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
@@ -7170,6 +7219,7 @@ private void setTimeSeriesFieldsEnabled(boolean enabled) {
 	JGUIUtil.setEnabled(_ts_regressionline_JCheckBox, enabled);
 	JGUIUtil.setEnabled(_ts_linestyle_JComboBox, enabled);
 	JGUIUtil.setEnabled(_ts_lineconnecttype_JComboBox, enabled);
+	JGUIUtil.setEnabled(_ts_lineconnectallowedgap_JTextField, enabled);
 	JGUIUtil.setEnabled(_ts_linewidth_JComboBox, enabled);
 	JGUIUtil.setEnabled(_ts_symbolstyle_JComboBox, enabled);
 	JGUIUtil.setEnabled(_ts_symbolsize_JComboBox, enabled);
@@ -8297,6 +8347,15 @@ protected int updateTSProduct (int howSet) {
 	gui_val = _ts_lineconnecttype_JComboBox.getSelected().trim();
 	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
 		_tsproduct.setPropValue ( "LineConnectType", gui_val, _selected_subproduct, _selected_data );
+		++ndirty;
+	}
+
+	// "LineConnectAllowedGap"
+
+	prop_val = _tsproduct.getLayeredPropValue ( "LineConnectAllowedGap", _selected_subproduct, _selected_data, false );
+	gui_val = _ts_lineconnectallowedgap_JTextField.getText().trim();
+	if ( !gui_val.equalsIgnoreCase(prop_val) ) {
+		_tsproduct.setPropValue ( "LineConnectAllowedGap", gui_val, _selected_subproduct, _selected_data );
 		++ndirty;
 	}
 

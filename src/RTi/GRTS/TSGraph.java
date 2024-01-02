@@ -5810,7 +5810,7 @@ graph type, but can be different if overlaying lines on area graph, for example.
 private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraphType tsGraphType, PropList overrideProps ) {
     String routine = getClass().getSimpleName() + ".drawTS";
 	if ( Message.isDebugOn ) {
-		Message.printStatus(2, routine, _gtype + "Enter drawTS.");
+		Message.printStatus(2, routine, _gtype + "Enter drawTS for TSID=" + ts.getIdentifierString() + " TSAlias=" + ts.getAlias());
 	}
 	if ((ts == null) || !ts.hasData() || (!_is_reference_graph && !ts.getEnabled())) {
 	    // No need or unable to draw.
@@ -5909,11 +5909,16 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 
 	// Previous point is used to connect the point.
 	double yPrev = ts.getMissing();
+	boolean yPrevIsMissing = true;
 	double xPrev = ts.getMissing();
+	// Previous date is used to check irregular time series for allowed gap between points.
+	DateTime datePrev = null;
 	// Next point is used if step is used with the next value.
 	double yNext = ts.getMissing();
+	boolean yNextIsMissing = true;
 	double x;
 	double y;
+	boolean yIsMissing = false;
 	int drawcount = 0; // Overall count of points in time series.
 	int pointsInSegment = 0; // Points in current line segment being drawn.
 	int interval_base = ts.getDataIntervalBase();
@@ -6191,7 +6196,23 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 		int nalltsdata = alltsdata.size();
 		TSData tsdata = null;
 		DateTime date = null;
-		boolean yIsMissing = false;
+		// Whether need to skip drawing a line over a gap for irregular interval time series.
+		boolean doGap = false;
+		
+		// Get whether checking the LineConnectAllowedGap.
+		prop_value = getLayeredPropValue("LineConnectAllowedGap", subproduct, its, false, overrideProps);
+		int lineConnectAllowedGapSeconds = -1;
+		if ( (prop_value != null) && !prop_value.isEmpty() ) {
+			try {
+				TimeInterval lineConnectAllowedInterval = TimeInterval.parseInterval(prop_value);
+				lineConnectAllowedGapSeconds = lineConnectAllowedInterval.toSeconds();
+				Message.printStatus(2, routine, "lineConnectAllowedGapSeconds=" + lineConnectAllowedGapSeconds);
+			}
+			catch ( Exception e ) {
+				Message.printWarning(3, routine, "Value of LineConnnectAllowedGap (" + prop_value +
+					") is not a valid time interval - ignoring.");
+			}
+		}
 
 		//Message.printStatus(2,routine,"Starting to draw time series.");
 		for ( int i = 0; i < nalltsdata; i++ ) {
@@ -6200,6 +6221,22 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
         	if (date.greaterThan(end)) {
         		// Past the end of where want to go so quit.
         		break;
+        	}
+        	
+        	doGap = false;
+        	if ( lineConnectAllowedGapSeconds > 0 ) {
+        		if ( (date != null) && (datePrev != null) ) {
+        			// If the current date/time is > than the previous by more than the allowed gap, treat as a moveTo.
+        			long dateSeconds = TimeUtil.absoluteSecond ( date );
+        			long datePrevSeconds = TimeUtil.absoluteSecond ( datePrev );
+        			//Message.printStatus(2, routine, "Date=" + date + " dateSeconds=" + dateSeconds + " datePrevSeconds=" + datePrevSeconds);
+        			if ( (dateSeconds - datePrevSeconds) > lineConnectAllowedGapSeconds ) {
+        				// Gap is longer than the allowed:
+        				// - set the boolean to treat as a gap below
+        				doGap = true;
+        			}
+        			//Message.printStatus(2, routine, "doGap=" + doGap);
+        		}
         	}
 
             // TODO (JTS - 2006-04-26) All data flags (returned from getDataFlag()) are being trimmed below.
@@ -6223,6 +6260,8 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 	        			x = date.toDouble();
         				xPrev = x;
 	        			yPrev = y;
+	        			yPrevIsMissing = yIsMissing;
+	        			datePrev = date;
 	        		}
         			continue;
         		}
@@ -6239,9 +6278,11 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
                 	TSData tsdataNext = tsdata.getNext();
                 	if ( tsdataNext == null ) {
                 		yNext = ts.getMissing();
+                		yNextIsMissing = true;
                 	}
                 	else {
                 		yNext = tsdataNext.getDataValue();
+                		yNextIsMissing = ts.isDataMissing(yNext);
                 	}
                 }
 
@@ -6254,7 +6295,7 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
         				this.yCacheArray = new double[100];
         			}
         		}
-        		if (((drawcount == 0) || ts.isDataMissing(yPrev)) && (yAxisGraphType != TSGraphType.BAR &&
+        		if (((drawcount == 0) || doGap || ts.isDataMissing(yPrev)) && (yAxisGraphType != TSGraphType.BAR &&
         		    yAxisGraphType != TSGraphType.PREDICTED_VALUE_RESIDUAL)) {
         			// First point in the entire time series or first non-missing point after a missing point.
         			// Always draw the symbol.
@@ -6327,7 +6368,7 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
         					// Position the point to carry forward the interval starting value.
         					//
         					//       + yNext
-        					//	      |
+        					//	     |
         					//       |
         					//    +--+
         					//   y     
@@ -6343,7 +6384,9 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
         					//    +
         					//    y
         					//
-        					GRDrawingAreaUtil.moveTo(daGraph, x, yNext);
+        					if ( !yNextIsMissing ) {
+        						GRDrawingAreaUtil.moveTo(daGraph, x, yNext);
+        					}
         				}
         			}
         		}
@@ -6397,21 +6440,33 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
         							//    +--+
         							//  yPrev
         							//
-        							GRDrawingAreaUtil.lineTo ( daGraph, x, yPrev );
-        							GRDrawingAreaUtil.lineTo ( daGraph, x, y );
+        							if ( yPrevIsMissing ) {
+        								GRDrawingAreaUtil.moveTo ( daGraph, x, y );
+        							}
+        							else {
+        								GRDrawingAreaUtil.lineTo ( daGraph, x, yPrev );
+        								GRDrawingAreaUtil.lineTo ( daGraph, x, y );
+        							}
         						}
         						else if ( lineConnectType == GRLineConnectType.STEP_USING_NEXT_VALUE ) {
         							// Connect from the previous point to the current point:
+        							// - previous line will have drawn to current X at the iteration
         							// - current point will be carried forward in the next draw
         							//
-        							//    +--+ y
-        							//    |
-        							//    |
-        							//    +
-        							//  yPrev
+        							//      C--D yNext
+        							//      |
+        							//      |
+        							//  A---B
+        							//      y
         							//
-        							GRDrawingAreaUtil.lineTo ( daGraph, xPrev, y );
-        							GRDrawingAreaUtil.lineTo ( daGraph, x, y );
+        							// Horizontal line A-B.
+        							if ( !yPrevIsMissing ) {
+        								GRDrawingAreaUtil.lineTo ( daGraph, x, yPrev );
+        							}
+        							// Vertical line B-C.
+        							if ( !yNextIsMissing ) {
+        								GRDrawingAreaUtil.lineTo ( daGraph, x, yNext );
+        							}
         						}
         					}
 
@@ -6474,6 +6529,8 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
         				}
         				xPrev = x;
         				yPrev = y;
+	        			yPrevIsMissing = yIsMissing;
+	        			datePrev = date;
         				++drawcount;
         				continue;
         			}
@@ -6569,8 +6626,11 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
         				}
         			}
         		}
+        		// Set the previous values from the current to use in the next iteration.
         		xPrev = x;
         		yPrev = y;
+       			yPrevIsMissing = yIsMissing;
+       			datePrev = date;
         		++drawcount;
         	}
 		}
@@ -6611,6 +6671,7 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 			if ( doDataPoint ) {
 				tsdata = ts.getDataPoint(date, tsdata);
 				y = tsdata.getDataValue();
+				yIsMissing = ts.isDataMissing(y);
 				dataFlag = tsdata.getDataFlag();
 				if ( (dataFlag == null) || (dataFlag.length() == 0) ) {
 				    symbol = symbolNoFlag;
@@ -6622,17 +6683,20 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 			else {
 			    // No text and no need to check flags for symbol.
 				y = ts.getDataValue(date);
+				yIsMissing = ts.isDataMissing(y);
 				dataFlag = null;
 			}
 
 			if ( lineConnectType == GRLineConnectType.STEP_USING_NEXT_VALUE ) {
 				// Also need the next value.
 				yNext = ts.getDataValue(dateNext);
+				yNextIsMissing = ts.isDataMissing(yNext);
 			}
 
 			if ( ts.isDataMissing(y) ) {
 				xPrev = date.toDouble();
 				yPrev = ts.getMissing();
+       			yPrevIsMissing = true;
 				continue;
 			}
 
@@ -6650,7 +6714,7 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 			// Uncomment this for debugging.
 			//Message.printStatus(1, routine, "its=" + its + " date = " + date + " x = " + x + " y=" + y);
 
-			if (((drawcount == 0) || ts.isDataMissing(yPrev)) && (yAxisGraphType != TSGraphType.BAR
+			if (((drawcount == 0) || yPrevIsMissing) && (yAxisGraphType != TSGraphType.BAR
 			    && yAxisGraphType != TSGraphType.PREDICTED_VALUE_RESIDUAL)) {
 				// Previous point was missing (or first point drawn)
 				// so all need to do is draw the symbol (if not a reference graph).
@@ -6728,6 +6792,7 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 				}
 				xPrev = x;
 				yPrev = y;
+				yPrevIsMissing = yIsMissing;
 				++drawcount;
 				continue;
 			}
@@ -6927,6 +6992,7 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 			}
 			xPrev = x;
 			yPrev = y;
+			yPrevIsMissing = yIsMissing;
 			++drawcount;
 		}
 	}
@@ -7093,7 +7159,7 @@ private GRColor drawTSHelperGetTimeSeriesColor ( int its, PropList overrideProps
 }
 
 /**
-Draw a single time series as an area graph.
+Draw a single time series as an area graph, used with "Area" and "AreaStacked" graph types.
 The time series values are used to create polygons that have as a base the zero line.
 An array is used to hold the points of the polygon for low-level rendering.
 A new polygon is drawn if a missing value is encountered,
@@ -7105,7 +7171,7 @@ the previous and current values have different sign, or the array buffer is fill
 */
 private void drawTSRenderAreaGraph ( TSProduct tsproduct, int subproduct, int its,
 	TS ts, TSGraphType graphType, PropList overrideProps ) {
-    //String routine = "TSGraph.drawTSRenderAreaGraph";
+    String routine = getClass().getSimpleName() + ".drawTSRenderAreaGraph";
     if ( ts == null ) {
         // No data for time series.
         return;
@@ -7130,8 +7196,10 @@ private void drawTSRenderAreaGraph ( TSProduct tsproduct, int subproduct, int it
 	GRLineConnectType lineConnectType = GRLineConnectType.CONNECT;
 	String prop_value = getLayeredPropValue("LineConnectType", subproduct, its, false, overrideProps);
 	lineConnectType = GRLineConnectType.valueOfIgnoreCase(prop_value);
+	int lineConnectAllowedGapSeconds = -1;
 	if ( lineConnectType == null ) {
-		lineConnectType = GRLineConnectType.CONNECT; // Default.
+		// Did not have a LineConnectType property so use the default.
+		lineConnectType = GRLineConnectType.CONNECT;
 	}
 	if ( lineConnectType == GRLineConnectType.STEP_AUTO ) {
 		// Determine the line connect type based on the time series interval.
@@ -7152,10 +7220,25 @@ private void drawTSRenderAreaGraph ( TSProduct tsproduct, int subproduct, int it
 		}
 	}
 
+	// Get whether checking the LineConnectAllowedGap.
+	prop_value = getLayeredPropValue("LineConnectAllowedGap", subproduct, its, false, overrideProps);
+	if ( (prop_value != null) && !prop_value.isEmpty() ) {
+		try {
+			TimeInterval lineConnectAllowedInterval = TimeInterval.parseInterval(prop_value);
+			lineConnectAllowedGapSeconds = lineConnectAllowedInterval.toSeconds();
+		}
+		catch ( Exception e ) {
+			Message.printWarning(3, routine, "Value of LineConnnectAllowedGap (" + prop_value +
+				") is not a valid time interval - ignoring.");
+		}
+	}
+
     double x = 0.0; // X coordinate converted from date/time.
     double y = 0.0; // Y coordinate corresponding to data value.
     double xPrev = 0.0; // The previous X value.
-    double yPrev = 0.0; // The previous Y value.
+    double yPrev = ts.getMissing(); // The previous Y value.
+    double yNext = ts.getMissing(); // The next Y value.
+    DateTime datePrev = null; // The previous date.
     boolean label_symbol = false;
     String label_format = null;
     String label_value_format = null;
@@ -7181,34 +7264,85 @@ private void drawTSRenderAreaGraph ( TSProduct tsproduct, int subproduct, int it
     }
     boolean haveMoreData = true;
     boolean yIsMissing = false;
+    boolean yPrevIsMissing = false;
+    boolean yNextIsMissing = false;
     // TODO smalers 2010-11-19 Need a property to control this.
     boolean anchorToZero = true; // If true, always anchor around zero.  If false, draw from bottom of graph.
+	// Whether need to skip drawing a line over a gap for irregular interval time series.
+	boolean doGap = false;
+	boolean isIrregularInterval = ts.isIrregularInterval();
     while ( true ) {
         tsdata = tsi.next();
         yIsMissing = false;
+        yPrevIsMissing = false;
+        yNextIsMissing = false;
         if ( tsdata == null ) {
             // Done with data, but may need to draw buffered points.
             haveMoreData = false;
         }
         else {
             ++countTotal;
+            // Save the previous values.
             xPrev = x;
             yPrev = y;
+            yPrevIsMissing = yIsMissing;
+            datePrev = date;
+            // Get the current value.
             date = tsdata.getDate();
             x = date.toDouble();
             y = tsdata.getDataValue();
-            if (ts.isDataMissing(y)) {
-                yIsMissing = true;
+            yIsMissing = ts.isDataMissing(y);
+            // Get the next value:
+            // - only needed when step uses the next value
+            if ( lineConnectType == GRLineConnectType.STEP_USING_NEXT_VALUE ) {
+            	// The following only works with irregular time series that are in a linked list.
+            	TSData tsdataNext = null;
+            	if ( isIrregularInterval ) {
+            		tsdataNext = tsdata.getNext();
+            	}
+            	else {
+            		tsdataNext = tsi.next(); 
+            		// Back up for next iteration.
+            		tsi.previous();
+            	}
+            	if ( tsdataNext == null ) {
+            		yNext = ts.getMissing();
+            		yNextIsMissing = true;
+            	}
+            	else {
+            		yNext = tsdataNext.getDataValue();
+            		yNextIsMissing = ts.isDataMissing(yNext);
+            	}
             }
         }
 
-        // Determine if need to fill a polygon because of any of the following conditions:
-        // 1) Missing value
-        // 2) No more data
-        // 3) Y is opposite sign of previous value
-        // 4) Array buffer is full - will create another polygon if necessary
+       	doGap = false;
+       	if ( lineConnectAllowedGapSeconds > 0 ) {
+   			Message.printStatus(2, routine, "Checking for time gap > " + lineConnectAllowedGapSeconds + " seconds.");
+       		if ( (date != null) && (datePrev != null) ) {
+       			// If the current date/time is > than the previous by more than the allowed gap, treat as a moveTo.
+       			long dateSeconds = TimeUtil.absoluteSecond ( date );
+       			long datePrevSeconds = TimeUtil.absoluteSecond ( datePrev );
+       			Message.printStatus(2, routine, "Date=" + date + " dateSeconds=" + dateSeconds + " datePrevSeconds=" + datePrevSeconds);
+       			if ( (dateSeconds - datePrevSeconds) > lineConnectAllowedGapSeconds ) {
+       				// Gap is longer than the allowed:
+       				// - set the boolean to treat as a gap below
+       				doGap = true;
+       			}
+       		}
+   			Message.printStatus(2, routine, "doGap=" + doGap);
+       	}
 
-        if ( yIsMissing || !haveMoreData || (arrayCount == arraySize2) || (y*yPrev < 0.0) ) {
+        // Determine if need to fill a polygon because of any of the following conditions:
+        // 1) Missing value.
+       	// 2) Gap larger than LineConnectAllowedGap.
+        // 3) No more data.
+        // 4) Y is opposite sign of previous value.
+        // 5) Array buffer is full - will create another polygon if necessary.
+
+        if ( yIsMissing || doGap || !haveMoreData || (arrayCount == arraySize2) ||
+        	// Make sure the values are not missing because a special value like -999 can be used for missing
+        	(!yPrevIsMissing && (y*yPrev < 0.0)) ) {
             // Need to draw what is already buffered (but do not draw the current point).
             // Only draw if there was at least one value in the arrays.
             if ( arrayCount > 0 ) {
@@ -7243,9 +7377,9 @@ private void drawTSRenderAreaGraph ( TSProduct tsproduct, int subproduct, int it
             else {
                 // Initialize the arrays for the next polygon.  If the value is missing, then there will be a gap.
             	// If the previous value was not missing,
-            	// then use it to initialize the array so that there will be continuity in the rending.
+            	// then use it to initialize the array so that there will be continuity in the rendering.
                 arrayCount = 0;
-                if ( (countTotal > 0) && !ts.isDataMissing(yPrev) ) {
+                if ( (countTotal > 0) && !ts.isDataMissing(yPrev) && !doGap) {
                     xArray[0] = xPrev;
                     yArray[0] = yPrev;
                     ++arrayCount;
@@ -7254,10 +7388,11 @@ private void drawTSRenderAreaGraph ( TSProduct tsproduct, int subproduct, int it
         }
 
         // Now add the current point to the arrays, but only if not missing.
-
+        
         if ( !yIsMissing ) {
-        	if ( lineConnectType == GRLineConnectType.CONNECT ) {
+        	if ( (lineConnectType == GRLineConnectType.CONNECT) ) {
 				// Connect from the previous point to the current point:
+        		// - also use this case if a gap is being processed, to start the area after the gap
 				//
 				//       + y
 				//      /
@@ -7272,17 +7407,24 @@ private void drawTSRenderAreaGraph ( TSProduct tsproduct, int subproduct, int it
 				// Connect from the previous point to the current point:
 				// - current point will be carried forward in the next draw
 				//
-				//       + y
+				//       C y
 				//       |
 				//       |
-				//    +--+
+				//    A--B
 				//  yPrev
 				//
-        		xArray[arrayCount] = x;
-        		yArray[arrayCount] = yPrev;
-        		++arrayCount;
+				// Horizontal line A-B.
+				if ( !doGap ) {
+					// No gap so OK to draw the horizontal line.
+					if ( !yPrevIsMissing ) {
+						xArray[arrayCount] = x;
+						yArray[arrayCount] = yPrev;
+						++arrayCount;
+					}
+				}
         		if ( arrayCount < arraySize2 ) {
-        			// Have array space to add the point.
+        			// Have array space to add the point:
+        			// - vertical line B-C
         			xArray[arrayCount] = x;
         			yArray[arrayCount] = y;
         			++arrayCount;
@@ -7290,22 +7432,35 @@ private void drawTSRenderAreaGraph ( TSProduct tsproduct, int subproduct, int it
 			}
 			else if ( lineConnectType == GRLineConnectType.STEP_USING_NEXT_VALUE ) {
 				// Connect from the previous point to the current point:
+				// - previous rendering would have drawn to "yNext" (current x,y)
 				// - current point will be carried forward in the next draw
 				//
-				//    +--+ y
-				//    |
-				//    |
-				//    +
-				//  yPrev
+				//       C--D yNext
+				//       |
+				//       |
+				//   A---B
+				//       y
 				//
-        		xArray[arrayCount] = xPrev;
-        		yArray[arrayCount] = y;
-        		++arrayCount;
+				// Horizontal line A-B.
+				if ( !doGap ) {
+					// No gap so OK to draw the horizontal line.
+					if ( !yPrevIsMissing ) {
+						//Message.printStatus(2, routine, "yPrev is not missing.  Adding horizontal line.");
+						xArray[arrayCount] = xPrev;
+						yArray[arrayCount] = y;
+						++arrayCount;
+					}
+				}
         		if ( arrayCount < arraySize2 ) {
-        			xArray[arrayCount] = x;
-        			yArray[arrayCount] = y;
-        			++arrayCount;
+        			// Vertical line B-C.
+        			if ( !yNextIsMissing ) {
+						//Message.printStatus(2, routine, "yNext is not missing.  Adding vertical line.");
+        				xArray[arrayCount] = x;
+        				yArray[arrayCount] = yNext;
+        				++arrayCount;
+        			}
         		}
+        		// The horizontal line to the next point is drawn in the next iteration.
 			}
             //Message.printStatus ( 2, routine, "Adding data point[" + arrayCount + "]: " + x + "," + y );
         }
