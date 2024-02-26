@@ -28,10 +28,12 @@ import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.LinkedHashMap;
 import java.util.List;
 
 import RTi.Util.Message.Message;
+import RTi.Util.String.StringDictionary;
 import RTi.Util.String.StringUtil;
 
 /**
@@ -139,19 +141,29 @@ The table positions for the columns being compared from the second table.
 //private int [] __columnNumbers2;
 
 /**
-The name of the first new table to be created.
+The name of the first new comparison table to be created.
 */
 private String __newTableID = "";
 
 /**
-The name of the second new table to be created.
+The name of the second new comparison table to be created.
 */
 private String __newTable2ID = "";
+
+/**
+The name of the final merged comparison (difference) table to be created.
+*/
+private String diffTableID = "";
 
 /**
  * New column to add containing the original table row number.
  */
 private String rowNumberColumn = null;
+
+/**
+ * Which rows to output ("All", "Different", or "Same").
+ */
+private String outputRows = "All";
 
 /**
 Whether to match columns by name (true) or order (false).
@@ -174,14 +186,22 @@ The tolerance to use when comparing floating point numbers.
 private Double __tolerance = null;
 
 /**
-The first comparison table that is created.  Can be null if not yet compared.
+The first difference table that is created.  Will be null if the analysis has not been run.
 */
-private DataTable __comparisonTable1;
+private DataTable diffTable1 = null;
 
 /**
-The second comparison table that is created.  Can be null if not yet compared.
+The second comparison table that is created.  Will be null if the analysis has been run.
 */
-private DataTable __comparisonTable2;
+private DataTable diffTable2 = null;
+
+/**
+ * The final difference table, created from 'diffTable1' and 'diffTable2'.
+ * For simple analysis, the only result is a merged table (diffTable1).
+ * For advanced analysis two comparison tables are initially always created.
+ * If a merged comparison table is requested, then those two tables are merged into one.
+ */
+private DataTable diffTable = null;
 
 /**
 2D array with values for each table cell that indicates differences in the cells,
@@ -198,10 +218,10 @@ For each cell a value can be:
   2 indicates no row in the original table 1
   3 indicates no row in the original table 2
 */
-private int [][] __differenceArray = null;
+//private int [][] __differenceArray = null;
 
 /**
-Used with the first comparison table.
+Used with the first difference table.
 2D list of lists with values for each cell that indicates differences in the cells, used for advanced analysis.
 An array of list for each column is used because lists can be resized dynamically if rows are inserted.
 This is used for formatting output.
@@ -218,9 +238,14 @@ For each cell a value can be:
 private List<Integer>[] __differenceList1 = null;
 
 /**
- * Used with the second comparison table, similar to __differenceList1.
+ * Used with the second difference table, similar to __differenceList1.
  */
 private List<Integer>[] __differenceList2 = null;
+
+/**
+ * Used with the final difference table, similar to __differenceList1.
+ */
+private List<Integer>[] __differenceList = null;
 
 /**
 Create the data table comparer instance and check for initialization problems.
@@ -240,14 +265,23 @@ using the columns from the first table as the main list; if false, then columns 
 @param tolerance the absolute value to check differences between floating point numbers (if not specified then
 values must be exact when checked to the precision)
 @param newTableID name of new table to create with comparison results
+@param newTable2ID name of new table to create with comparison results, for advanced analysis
+@param mergedTableID the name of an output table to merge the comparison tables, used with advanced analysis
 @param rowNumberColumn name of table column to add to contain the original row number, useful for comparison
+@param outputRows indicate which rows to output ("All" (default), "Different", or "Same")
 */
-public DataTableComparer ( DataTable table1,
+public DataTableComparer (
+	DataTable table1,
 	List<String>compareColumns1, List<String> excludeColumns1, List<String> matchColumns1,
-    DataTable table2, List<String> compareColumns2, List<String> matchColumns2,
+    DataTable table2,
+    List<String> compareColumns2, List<String> matchColumns2,
     boolean matchColumnsByName,
     DataTableComparerAnalysisType analysisType,
-    Integer precision, Double tolerance, String newTableID, String newTable2ID, String rowNumberColumn ) {
+    Integer precision, Double tolerance,
+    String newTableID, String newTable2ID,
+    String diffTableID,
+    String rowNumberColumn,
+    String outputRows ) {
     // The tables being compared must not be null.
     if ( table1 == null ) {
         throw new InvalidParameterException( "The first table to compare is null." );
@@ -308,7 +342,7 @@ public DataTableComparer ( DataTable table1,
     }
     setCompareColumns2 ( compareColumns2 );
     setMatchColumnsByName ( matchColumnsByName );
-    
+
     // Check the match columns.
     int matchColumns1Size = 0;
     int matchColumns2Size = 0;
@@ -355,7 +389,7 @@ public DataTableComparer ( DataTable table1,
         throw new InvalidParameterException( "The number of table1 match columns (" + matchColumns1Size +
         	") is different than the number of table2 match columns (" + matchColumns2Size + ")." );
     }
-    
+
     // The precision must be 0+.
     if ( (precision != null) && (precision < 0) ) {
         throw new InvalidParameterException( "The precision (" + precision + ") if specified must be >= 0).");
@@ -378,27 +412,99 @@ public DataTableComparer ( DataTable table1,
     else {
         setNewTableID ( newTableID );
     }
-    // The second new table ID must be specified because the table use is controlled by the calling code and
-    // an identifier conflict because of an assumed name should not be introduced here.
-    if ( (newTable2ID == null) || newTable2ID.equals("") ) {
-        throw new InvalidParameterException( "The second new table ID is null or blank." );
-    }
-    else {
-        setNewTable2ID ( newTable2ID );
-    }
-    // The row number column is optional.
-    this.rowNumberColumn = rowNumberColumn;
-    // The second new table ID must be specified because the table use is controlled by the calling code and
-    // an identifier conflict because of an assumed name should not be introduced here.
+    // For advanced analysis,
+    // the second new table ID must be specified because the table use is controlled by the calling code and
+    // an assumed identifier should not be introduced here.
     if ( analysisType == DataTableComparerAnalysisType.ADVANCED ) {
-    	if ( (newTable2ID == null) || newTable2ID.equals("") ) {
+    	if ( (newTable2ID == null) || newTable2ID.isEmpty() ) {
         	throw new InvalidParameterException( "The second new table ID is null or blank." );
     	}
     	else {
-        	setNewTableID ( newTableID );
+        	setNewTable2ID ( newTable2ID );
     	}
     }
+    // Set the final difference table ID.
+    this.diffTableID = diffTableID;
+    // The row number column is optional.
+    this.rowNumberColumn = rowNumberColumn;
+    
+    // Which rows should be output.
+    this.outputRows = outputRows;
 }
+
+	/**
+ 	* Adjust the difference table and indicator list rows for requested output rows (all, same, or different).
+ 	* @param analysisType the analysis type
+ 	* @param doOutputDifferent whether to output different rows
+ 	* @param doOutputSame whether to output same rows
+ 	* @param rowNumberColumnOffset column offset if output includes a row number column
+ 	*/
+    private void adjustDiffTableRows ( DataTableComparerAnalysisType analysisType,
+    	boolean doOutputDifferent, boolean doOutputSame, int rowNumberColumnOffset ) {
+    	String routine = getClass().getSimpleName() + ".adjustDiffTableRows";
+
+    	if ( doOutputDifferent && doOutputSame ) {
+    		// Requested output is different and same so don't need to adjust.
+    		return;
+    	}
+    	
+    	// If here then either same or different rows have been requested.
+
+    	boolean ifSame = false;
+    	boolean ifDifferent = false;
+    	boolean needToRemove = false;
+    	
+    	DataTable diffTable = null;
+    	List<Integer>[] differenceList = null;
+
+    	// Loop through and adjust all the output tables.
+    	for ( int iTable = 0; iTable < 3; iTable++ ) {
+    		diffTable = null;
+    		differenceList = null;
+    		if ( iTable == 0 ) {
+    			diffTable = this.diffTable1;
+    			differenceList = this.__differenceList1;
+    		}
+    		else if ( iTable == 1 ) {
+    			diffTable = this.diffTable2;
+    			differenceList = this.__differenceList2;
+    		}
+    		else if ( iTable == 2 ) {
+    			diffTable = this.diffTable;
+    			differenceList = this.__differenceList;
+    		}
+    		if ( diffTable != null ) {
+    			for ( int iRow = (diffTable.getNumberOfRecords() - 1); iRow >= 0; --iRow ) {
+    				// Loop backwards so that rows can be removed without impacting the indices.
+   					ifSame = ifRowSame ( diffTable, differenceList, iRow, rowNumberColumnOffset );
+   					ifDifferent = ifRowDifferent ( diffTable, differenceList, iRow, rowNumberColumnOffset );
+   					needToRemove = false;
+    				if ( doOutputSame && !ifSame) {
+    					// Only want same rows output.
+    					needToRemove = true;
+    				}
+    				else if ( doOutputDifferent && !ifDifferent) {
+    					// Only want different rows output.
+    					needToRemove = true;
+    				}
+    				if ( needToRemove ) {
+    					// Remove the data table row.
+    					try {
+    						diffTable.deleteRecord(iRow);
+    					}
+    					catch ( Exception e ) {
+    						// Should not happen.
+    						Message.printWarning(3, routine, "Error removing data table row.");
+    					}
+    					// Remove the indicator list rows for all columns.
+    					for ( int iCol = 0; iCol < diffTable.getNumberOfFields(); iCol++ ) {
+    						differenceList[iCol].remove(iRow);
+    					}
+    				}
+    			}
+    		}
+    	}
+    }
 
 /**
 Perform the comparison, creating the output table(s).
@@ -410,14 +516,19 @@ throws Exception {
     // include both of the original column names but are of type string.
     DataTable table1 = getTable1();
     DataTable table2 = getTable2();
-    DataTable comparisonTable1 = new DataTable ();
-    comparisonTable1.setTableID ( getNewTableID() );
-    DataTable comparisonTable2 = null;
+    DataTable diffTable1 = new DataTable ();
+    diffTable1.setTableID ( getNewTableID() );
+    DataTable diffTable2 = null;
     if ( this.analysisType == DataTableComparerAnalysisType.ADVANCED ) {
     	// Advanced comparison uses a second table.
-    	comparisonTable2 = new DataTable ();
-    	comparisonTable2.setTableID ( getNewTable2ID() );
+    	diffTable2 = new DataTable ();
+    	diffTable2.setTableID ( getNewTable2ID() );
     }
+
+    // Set the comparison tables in the class so that they can be retrieved, even with partial results.
+    setDiffTable1 ( diffTable1 );
+    setDiffTable2 ( diffTable2 );
+
     boolean doRowNumberColumn = false; // Default.
 	int rowNumberColumnOffset = 0;
     if ( (this.rowNumberColumn != null) && !this.rowNumberColumn.isEmpty() ) {
@@ -425,7 +536,21 @@ throws Exception {
     	doRowNumberColumn = true;
     	rowNumberColumnOffset = 1;
     }
-    // Local copy of compare columns.
+    
+    // What rows to output:
+    // - default is to output all
+    boolean doOutputSame = true;
+    boolean doOutputDifferent = true;
+    if ( this.outputRows.equalsIgnoreCase("Different") ) {
+    	doOutputDifferent = true;
+    	doOutputSame = false;
+    }
+    else if ( this.outputRows.equalsIgnoreCase("Same") ) {
+    	doOutputDifferent = false;
+    	doOutputSame = true;
+    }
+
+    // Local variables for compare columns.
     List<String> compareColumns1 = getCompareColumns1();
     List<String> compareColumns2 = getCompareColumns2();
 
@@ -468,9 +593,7 @@ throws Exception {
             compareColumnNumbers2 = columnNumbersTemp;
         }
     }
-    //setColumnNumbers1 ( columnNumbers1 );
-    //setColumnNumbers2 ( columnNumbers2 );
-    
+
     // Get the column numbers for the match columns (for advanced analysis).
     int[] matchColumnNumbers1 = null;
     int[] matchColumnNumbers2 = null;
@@ -515,7 +638,7 @@ throws Exception {
             }
         }
     }
-    
+
     // C-style formats to convert compare column values to strings for comparison:
     // - these are in the position of the match columns in the original table
     String[] compareColumnFieldFormats1 = new String[this.__compareColumns1.size()];
@@ -588,6 +711,7 @@ throws Exception {
     // - initial value is CELL_SAME
     // - this is used as a style mask when formatting the HTML
     // - create as the maximum number of rows in case the tables have different number of rows
+    /*
     if ( this.analysisType == DataTableComparerAnalysisType.SIMPLE ) {
     	// Simple analysis:
     	// - can use fixed size array
@@ -606,11 +730,12 @@ throws Exception {
     	}
     }
     else {
+    */
     	// Advanced analysis:
     	// - analysis may insert blank rows to align data
     	// - initialize to the first table's size, one list per comparison column
     	int numCols = compareColumns1.size() + rowNumberColumnOffset;
-    	
+
     	// Allocate the first difference list.
    		this.__differenceList1 = new ArrayList[numCols];
    		for ( int icol = 0; icol < numCols; icol++ ) {
@@ -636,18 +761,18 @@ throws Exception {
    				setCellDifferenceIndicator2(irow, icol, this.CELL_UNKNOWN);
    			}
    		}
-    }
+    //}
 
     // If requested, add a new column containing the original row number:
     // - all column positions will need to be offset by 'rowNumberColumnOffset'
     if ( doRowNumberColumn ) {
-    	if ( comparisonTable1 != null ) {
-      		int newField = comparisonTable1.addField(new TableField(TableField.DATA_TYPE_INT, rowNumberColumn, -1), "");
-       		comparisonTable1.getTableField(newField).setDescription("Original table 1 row number.");
+    	if ( diffTable1 != null ) {
+      		int newField = diffTable1.addField(new TableField(TableField.DATA_TYPE_INT, rowNumberColumn, -1), "");
+       		diffTable1.getTableField(newField).setDescription("Original table 1 row number.");
     	}
-    	if ( comparisonTable2 != null ) {
-      		int newField = comparisonTable2.addField(new TableField(TableField.DATA_TYPE_INT, rowNumberColumn, -1), "");
-       		comparisonTable2.getTableField(newField).setDescription("Original table 2 row number.");
+    	if ( diffTable2 != null ) {
+      		int newField = diffTable2.addField(new TableField(TableField.DATA_TYPE_INT, rowNumberColumn, -1), "");
+       		diffTable2.getTableField(newField).setDescription("Original table 2 row number.");
     	}
     }
 
@@ -666,7 +791,7 @@ throws Exception {
             // Show the column names from both tables.
             colName1 += " / " + colName2;
         }
-        int newField = comparisonTable1.addField(new TableField(TableField.DATA_TYPE_STRING, colName1,-1), "");
+        int newField = diffTable1.addField(new TableField(TableField.DATA_TYPE_STRING, colName1,-1), "");
         // Also set the column descriptions so the final results are easier to interpret.
         String desc1 = table1.getTableField(compareColumnNumbers1[icol]).getDescription();
         String desc2 = "";
@@ -676,12 +801,12 @@ throws Exception {
         if ( !desc1.equalsIgnoreCase(desc2) ) {
             desc1 += " / " + desc2;
         }
-        comparisonTable1.getTableField(newField).setDescription(desc1);
-        
-        if ( comparisonTable2 != null ) {
+        diffTable1.getTableField(newField).setDescription(desc1);
+
+        if ( diffTable2 != null ) {
         	// Set the second comparison table to have the same column names.
-        	newField = comparisonTable2.addField(new TableField(TableField.DATA_TYPE_STRING, colName1,-1), "");
-        	comparisonTable2.getTableField(newField).setDescription(desc1);
+        	newField = diffTable2.addField(new TableField(TableField.DATA_TYPE_STRING, colName1,-1), "");
+        	diffTable2.getTableField(newField).setDescription(desc1);
         }
     }
 
@@ -707,7 +832,7 @@ throws Exception {
     boolean doAddEmptyRowForComparisonTable1 = false;
     // Used to control how comparison table output is handled.
     boolean doAddEmptyRowForComparisonTable2 = false;
-    
+
     // Loop through the records in table 1 and compare
     for ( inRow1 = 0; inRow1 < table1.getNumberOfRecords(); ) {
     	// Reset the number of differences in the row to 0.
@@ -721,7 +846,7 @@ throws Exception {
   		// Used below if no match is found in table2:
        	// - add table1 row and add empty row for table2
 		doAddEmptyRowForComparisonTable2 = false;
-    	
+
     	// Loop through the columns in the row:
     	// - the actual column numbers in the table must be looked up using 'icol' as the index
         for ( int icol = 0; icol < compareColumnNumbers1.length; icol++ ) {
@@ -752,7 +877,7 @@ throws Exception {
             		// - don't set anything in the difference output until all columns in the row are checked
             		// - this allows the advanced comparison to search for a matching row if necessary
             		++rowDiffCount;
-            		
+
                    	if ( this.analysisType == DataTableComparerAnalysisType.ADVANCED ) {
                    		// Check whether the difference is in a match column for advanced analysis:
             		    // - if so, then a row will need to be inserted below
@@ -777,14 +902,14 @@ throws Exception {
             	// Use -1 as to indicate error.
                	if ( this.analysisType == DataTableComparerAnalysisType.SIMPLE ) {
                		// Simple analysis.
-               		comparisonTable1.setFieldValue(inRow1, (icol + rowNumberColumnOffset), formattedValue, true);
+               		diffTable1.setFieldValue(inRow1, (icol + rowNumberColumnOffset), formattedValue, true);
                		setCellDifferenceIndicator1 ( outRow1, (icol + rowNumberColumnOffset), this.CELL_ERROR );
                	}
                	else {
                		// Advanced analysis.
-               		comparisonTable1.setFieldValue(outRow1, (icol + rowNumberColumnOffset), formattedValue, true);
+               		diffTable1.setFieldValue(outRow1, (icol + rowNumberColumnOffset), formattedValue, true);
                		setCellDifferenceIndicator1 ( outRow1, (icol + rowNumberColumnOffset), this.CELL_ERROR );
-               		comparisonTable2.setFieldValue(outRow2, (icol + rowNumberColumnOffset), formattedValue, true);
+               		diffTable2.setFieldValue(outRow2, (icol + rowNumberColumnOffset), formattedValue, true);
                		setCellDifferenceIndicator2 ( outRow2, (icol + rowNumberColumnOffset), this.CELL_ERROR );
                	}
         	}
@@ -847,7 +972,7 @@ throws Exception {
                 		for ( int iAddRow = inRow2; iAddRow < iSearchRow2; iAddRow++ ) {
                 			// Table 1:
                 			// - add a blank row to comparison table 1
-                			comparisonTable1.insertRecord(outRow1, comparisonTable1.emptyRecord(), false );
+                			diffTable1.insertRecord(outRow1, diffTable1.emptyRecord(), false );
                 			if ( doRowNumberColumn ) {
                 				setCellDifferenceIndicator1(outRow1, 0, CELL_INSERT_EMPTY_ROW_TABLE1);
                 			}
@@ -857,9 +982,9 @@ throws Exception {
                 			++outRow1;
                 			// Table 2:
                 			// - add the data from table 2
-                			comparisonTable2.insertRecord(outRow1, comparisonTable2.emptyRecord(), false );
+                			diffTable2.insertRecord(outRow1, diffTable2.emptyRecord(), false );
                 			if ( doRowNumberColumn ) {
-           	        			comparisonTable2.setFieldValue(outRow2, 0, "" + (inRow2 + 1), true);
+           	        			diffTable2.setFieldValue(outRow2, 0, "" + (inRow2 + 1), true);
                 				setCellDifferenceIndicator2(outRow2, 0, CELL_ROW_ONLY_IN_TABLE2);
                 			}
                 			for ( int icol = 0; icol < compareColumnNumbers1.length; icol++ ) {
@@ -875,9 +1000,9 @@ throws Exception {
                		        			table2.getFieldDataType(compareColumnNumbers2[icol]),
                		        			tolerance,
                		        			2);
-        			
+
                	        			// Set the field value in comparison table 2, creating the row if necessary.
-               	        			comparisonTable2.setFieldValue(outRow2, (icol + rowNumberColumnOffset), formattedValue, true);
+               	        			diffTable2.setFieldValue(outRow2, (icol + rowNumberColumnOffset), formattedValue, true);
                	        			setCellDifferenceIndicator2(outRow2, (icol + rowNumberColumnOffset), CELL_ROW_ONLY_IN_TABLE2);
         	        			}
         	        			catch ( Exception e ) {
@@ -892,7 +1017,7 @@ throws Exception {
                	   				formattedValue1[icol] =
                		   				formatInputTableValueString ( table1, inRow1, icol,
                			   				compareColumnFieldFormats1[compareColumnNumbers1[icol]] );
-   				
+
             	   				// Get the value from the second table and format as a string for comparisons:
             	   				// - the rows in the second table must be in the same order
             	   				// - the table rows should have been sorted before calling this code
@@ -925,7 +1050,7 @@ throws Exception {
        			for ( int icol = 0; icol < compareColumnNumbers1.length; icol++ ) {
        				formattedValue2[icol] = formattedValue1[icol];
        			}
-      			comparisonTable2.insertRecord(outRow2, comparisonTable2.emptyRecord(), false );
+      			diffTable2.insertRecord(outRow2, diffTable2.emptyRecord(), false );
        			// Indicate to add an empty row below.
        			doAddEmptyRowForComparisonTable2 = true;
        		}
@@ -935,9 +1060,10 @@ throws Exception {
        		Message.printStatus ( 2, routine, "Before adding to comparison tables, inRow1=" + inRow1 + " inRow2=" + inRow2
        			+ " outRow1=" + outRow1 + " outRow2=" + outRow2 );
        	}
-        
+
         // Set the values in the comparison tables for the current matched rows (may or may not contain difference).
        	if ( doRowNumberColumn ) {
+       		// Table 1.
        		// Add the row number:
        		// - the position is the output row
        		// - the value is the input row, to allow comparison with the original input
@@ -948,10 +1074,16 @@ throws Exception {
 			else {
  				// Adding a normal comparison table1 row:
  				// - use CELL_SAME for the row number since independent of difference count.
-				setCellDifferenceIndicator1(outRow1, 0, CELL_SAME);
-				comparisonTable1.setFieldValue(outRow1, 0, "" + (inRow1 + 1), true);
+   				if ( doAddEmptyRowForComparisonTable2 ) {
+   					setCellDifferenceIndicator1(outRow1, 0, CELL_ROW_ONLY_IN_TABLE1);
+   				}
+   				else {
+   					setCellDifferenceIndicator1(outRow1, 0, CELL_SAME);
+   				}
+				diffTable1.setFieldValue(outRow1, 0, "" + (inRow1 + 1), true);
 			}
-   			if ( comparisonTable2 != null ) {
+			// Table 2.
+   			if ( diffTable2 != null ) {
    				if ( doAddEmptyRowForComparisonTable2 ) {
    					// Adding an empty row so don't add the row number.
    					setCellDifferenceIndicator2(outRow1, 0, CELL_ROW_ONLY_IN_TABLE1);
@@ -961,7 +1093,7 @@ throws Exception {
    					// Adding a normal comparison table2 row:
    					// - use CELL_SAME for the row number since independent of difference count.
        				setCellDifferenceIndicator2(outRow2, 0, CELL_SAME);
-       				comparisonTable2.setFieldValue(outRow2, 0, "" + (inRow2 + 1), true);
+       				diffTable2.setFieldValue(outRow2, 0, "" + (inRow2 + 1), true);
        			}
            	}
        	}
@@ -985,7 +1117,7 @@ throws Exception {
             			this.__tolerance, 1 );
 
             		// Set the field value in the first (and only) comparison table, creating the row if necessary.
-            		comparisonTable1.setFieldValue(outRow1, (icol + rowNumberColumnOffset), formattedValue, true);
+            		diffTable1.setFieldValue(outRow1, (icol + rowNumberColumnOffset), formattedValue, true);
             		//Message.printStatus(2, "", "formattedValue1=\"" + formattedValue1 + "\" (format=" + format1 +
             		//    ") formattedValue2=\"" + formattedValue2 + "\" (format=" + format2 +
             		//    ") mask=" + differenceArray[inRow1][icol] );
@@ -1009,7 +1141,7 @@ throws Exception {
            					}
            				}
             			formattedValue = "";
-            			comparisonTable1.setFieldValue(outRow1, (icol + rowNumberColumnOffset), formattedValue, true);
+            			diffTable1.setFieldValue(outRow1, (icol + rowNumberColumnOffset), formattedValue, true);
             			setCellDifferenceIndicator1(outRow1, (icol + rowNumberColumnOffset), CELL_INSERT_EMPTY_ROW_TABLE1);
             			if ( icol == iColEnd ) {
             				// Increment the row if processed the last column in the row.
@@ -1029,7 +1161,7 @@ throws Exception {
             				formattedValue1[icol], formattedValue2[icol],
             				table1.getFieldDataType(compareColumnNumbers1[icol]),
             				this.__tolerance, 1 );
-            			comparisonTable1.setFieldValue(outRow1, (icol + rowNumberColumnOffset), formattedValue, true);
+            			diffTable1.setFieldValue(outRow1, (icol + rowNumberColumnOffset), formattedValue, true);
             			if ( doAddEmptyRowForComparisonTable2 ) {
             				// Since table 2 is empty row, set the flag on table 1 accordingly.
             				setCellDifferenceIndicator1(outRow1, (icol + rowNumberColumnOffset), CELL_ROW_ONLY_IN_TABLE1);
@@ -1049,7 +1181,7 @@ throws Exception {
            					}
            				}
             			formattedValue = "";
-            			comparisonTable2.setFieldValue(outRow2, (icol + rowNumberColumnOffset), formattedValue, true);
+            			diffTable2.setFieldValue(outRow2, (icol + rowNumberColumnOffset), formattedValue, true);
             			setCellDifferenceIndicator2(outRow2, (icol + rowNumberColumnOffset), CELL_INSERT_EMPTY_ROW_TABLE2);
             			if ( icol == iColEnd ) {
             				// Increment the row if processed the last column in the row.
@@ -1069,7 +1201,7 @@ throws Exception {
             				formattedValue1[icol], formattedValue2[icol],
             				table1.getFieldDataType(compareColumnNumbers1[icol]),
             				this.__tolerance, 2 );
-            			comparisonTable2.setFieldValue(outRow2, (icol + rowNumberColumnOffset), formattedValue, true);
+            			diffTable2.setFieldValue(outRow2, (icol + rowNumberColumnOffset), formattedValue, true);
             			if ( doAddEmptyRowForComparisonTable1 ) {
             				// Since table1 is empty, set table 2 to indicate only it has data.
             				setCellDifferenceIndicator2(outRow2, (icol + rowNumberColumnOffset), CELL_ROW_ONLY_IN_TABLE2);
@@ -1098,9 +1230,9 @@ throws Exception {
 
     if ( Message.isDebugOn ) {
     	Message.printStatus ( 2, routine, "After processing table1 rows, inRow1=" + inRow1 + " inRow2=" + inRow2
-    		+ " outRow1=" + outRow1 + " outRow2=" + outRow2 + " comparisonTable1.size=" + comparisonTable1.getNumberOfRecords());
-		if ( comparisonTable2 != null ) {
-  			Message.printStatus ( 2, routine, "  comaparisonTable2.size=" + comparisonTable2.getNumberOfRecords());
+    		+ " outRow1=" + outRow1 + " outRow2=" + outRow2 + " diffTable1.size=" + diffTable1.getNumberOfRecords());
+		if ( diffTable2 != null ) {
+  			Message.printStatus ( 2, routine, "  comaparisonTable2.size=" + diffTable2.getNumberOfRecords());
 		}
     }
 
@@ -1113,28 +1245,28 @@ throws Exception {
    		// - do not set the row number in table 1 since no original data in table 1
     	if ( Message.isDebugOn ) {
     		Message.printStatus ( 2, routine, "Adding comparison table 1 empty row [" + outRow1 +
-    			"] at inRow1=" + inRow1 + " outRow1=" + outRow1 + " comparisonTable1.size=" +
-    			comparisonTable1.getNumberOfRecords());
+    			"] at inRow1=" + inRow1 + " outRow1=" + outRow1 + " diffTable1.size=" +
+    			diffTable1.getNumberOfRecords());
     	}
-   		comparisonTable1.insertRecord(outRow1, comparisonTable1.emptyRecord(), false );
+   		diffTable1.insertRecord(outRow1, diffTable1.emptyRecord(), false );
    		for ( int icol = 0; icol < (compareColumnNumbers1.length + rowNumberColumnOffset); icol++ ) {
    			// This will cause the row to be automatically added.
-   			comparisonTable1.setFieldValue(outRow1, icol, " ", true);
+   			diffTable1.setFieldValue(outRow1, icol, " ", true);
    			setCellDifferenceIndicator1(outRow1, icol, this.CELL_NO_ROW_TABLE1);
    		}
 		++outRow1;
-   		if ( comparisonTable2 != null ) {
+   		if ( diffTable2 != null ) {
    			if ( Message.isDebugOn ) {
    				Message.printStatus ( 2, routine, "Before adding ending comparison table 2 row [" + outRow2 +
     				"] at inRow2=" + inRow2 + " outRow2=" + outRow2 + " comaparisonTable2.size=" +
-    				comparisonTable2.getNumberOfRecords());
+    				diffTable2.getNumberOfRecords());
    			}
    			// Add contents of table 2:
    			// - set the row number in table 2
-   			comparisonTable2.insertRecord(outRow2, comparisonTable2.emptyRecord(), false );
+   			diffTable2.insertRecord(outRow2, diffTable2.emptyRecord(), false );
    			if ( doRowNumberColumn ) {
    				// Row number is 1+ whereas internal is 0+
-      			comparisonTable2.setFieldValue(outRow2, 0, "" + (inRow2 + 1), true);
+      			diffTable2.setFieldValue(outRow2, 0, "" + (inRow2 + 1), true);
    				setCellDifferenceIndicator2(outRow2, 0, this.CELL_ROW_ONLY_IN_TABLE2);
    			}
    			for ( int icol = 0; icol < compareColumnNumbers2.length; icol++ ) {
@@ -1147,7 +1279,7 @@ throws Exception {
       				formattedValue2[icol], formattedValue2[icol],
       				table2.getFieldDataType(compareColumnNumbers2[icol]),
       				this.__tolerance, 2 );
-      			comparisonTable2.setFieldValue(outRow2, (icol + rowNumberColumnOffset), formattedValue, true);
+      			diffTable2.setFieldValue(outRow2, (icol + rowNumberColumnOffset), formattedValue, true);
    				// TODO smalers 2024-02-19 may need a way to say only data on right.
    				setCellDifferenceIndicator2(outRow2, (icol + rowNumberColumnOffset), this.CELL_ROW_ONLY_IN_TABLE2);
    			}
@@ -1155,31 +1287,209 @@ throws Exception {
    			if ( Message.isDebugOn ) {
    				Message.printStatus ( 2, routine, "After adding ending comparison table 2 row [" + outRow2 +
     				"] at inRow2=" + inRow2 + " outRow2=" + outRow2 + " comaparisonTable2.size=" +
-    				comparisonTable2.getNumberOfRecords());
+    				diffTable2.getNumberOfRecords());
    			}
    		}
     }
 
-    // Set the comparison tables.
-    setComparisonTable1 ( comparisonTable1 );
-    setComparisonTable2 ( comparisonTable2 );
+    // If a final difference table is requested, create it.
+
+    if ( (analysisType == DataTableComparerAnalysisType.ADVANCED) &&
+    	(this.diffTableID != null) && !this.diffTableID.isEmpty() ) {
+
+    	// If here the data tables and difference tracking lists have consistent sizes.
+
+    	createDiffTable ( doRowNumberColumn );
+    }
+    
+    // Adjust the tables to include only rows of interest.
+    
+    adjustDiffTableRows ( analysisType, doOutputDifferent, doOutputSame, rowNumberColumnOffset );
 }
 
-/**
-Get the column numbers to compare from the first table.
-*/
-//private int [] getColumnNumbers1 ()
-//{
-    //return __columnNumbers1;
-//}
+    /**
+     * Create the final difference table and set as class data.
+     * @param doRowNumberColumn whether the difference tables should include a row number column
+     */
+    private void createDiffTable ( boolean doRowNumberColumn ) throws Exception {
+    	String routine = getClass().getSimpleName() + ".createFinalDiffTable";
+    	String message = null;
 
-/**
-Get the column numbers to compare from the second table.
-*/
-//private int [] getColumnNumbers2 ()
-//{
-    //return __columnNumbers2;
-//}
+    	int rowNumberColumnOffset = 0;
+    	// Offset considering two row number columns for the final difference table.
+    	if ( doRowNumberColumn ) {
+    		rowNumberColumnOffset = 1;
+    	}
+
+    	// If the analysis was successful,
+    	// the first and second difference tables should have the same number of columns and rows.
+
+    	if ( this.diffTable1.getNumberOfFields() != this.diffTable2.getNumberOfFields() ) {
+    		message = "The first difference table number of columns (" + diffTable1.getNumberOfFields() +
+    		") is different than the second difference table number of columns (" + diffTable2.getNumberOfFields() + ").";
+    		Message.printWarning(3, routine, message);
+    		throw new Exception ( message );
+    	}
+    	if ( diffTable1.getNumberOfRecords() != diffTable2.getNumberOfRecords() ) {
+    		message = "The first difference table number of rows (" + diffTable1.getNumberOfRecords() +
+    		") is different from the second difference table number of rows (" + diffTable2.getNumberOfRecords() + ").";
+    		Message.printWarning(3, routine, message);
+    		throw new Exception ( message );
+    	}
+
+    	// Make sure that the difference tracking data are also the same size.
+
+    	if ( this.__differenceList1.length != this.__differenceList2.length ) {
+    		message = "The first difference tracker table number of columns (" + this.__differenceList1.length +
+    		") is different than the second difference tracker table number of columns (" + this.__differenceList2.length + ").";
+    		Message.printWarning(3, routine, message);
+    		throw new Exception ( message );
+    	}
+   		else {
+    		for ( int icol = 0; icol < this.__differenceList1.length; icol++ ) {
+    			// Make sure the rows are the same length.
+    			if ( this.__differenceList1[icol].size() != this.__differenceList2[icol].size() ) {
+    				message = "The first difference tracker table column [" + icol +
+    					"] number of rows (" + this.__differenceList1[icol].size() +
+    					") is different than the second difference tracker table number of rows (" +
+    					this.__differenceList2[icol].size() + ").";
+    				Message.printWarning(3, routine, message);
+    				throw new Exception ( message );
+    			}
+    		}
+   		}
+    	// Copy the difference table1 to a new final difference table.
+
+   		String [] reqIncludeColumns = null;
+   		String [] distinctColumns = null;
+   		Hashtable<String,String> columnMap = null;
+   		Hashtable<String,String> columnFilters = null;
+   		StringDictionary columnExcludeFilters = null;
+   		DataTable diffTable = diffTable1.createCopy ( this.diffTable1,
+   			this.diffTableID, reqIncludeColumns, distinctColumns, columnMap, columnFilters, columnExcludeFilters);
+   		setDiffTable ( diffTable );
+
+   		// Copy the first table difference indicator list:
+   		// - increment the size by the 'rowNumberColumnOffset' for the second table (first table is already in the size)
+   		this.__differenceList = new ArrayList[this.__differenceList1.length + rowNumberColumnOffset];
+   		if ( doRowNumberColumn ) {
+   			// Copy the first column:
+   			// - do here so that a column for the second table can be inserted below
+   			int iCol = 0; // Index of the final indicator list array.
+   			int iCol1 = 0; // Row number column index.
+   			this.__differenceList[iCol] = new ArrayList<Integer>();
+   			List<Integer> list1 = this.__differenceList1[iCol1];
+   			List<Integer> list = this.__differenceList[iCol];
+   			for ( int irow = 0; irow < list1.size(); irow++ ) {
+   				// OK to add the same Integer since they are immutable.
+   				list.add(list1.get(irow));
+   			}
+   			// Add a second list for the table2 row number column.
+   			iCol = 1; // Index of the final indicator list array.
+   			int iCol2 = 0; // Row number column index.
+   			this.__differenceList[iCol] = new ArrayList<Integer>();
+   			List<Integer> list2 = this.__differenceList2[iCol2];
+   			list = this.__differenceList[1];
+   			for ( int irow = 0; irow < list1.size(); irow++ ) {
+   				// OK to add the same Integer since they are immutable.
+   				list.add(list2.get(irow));
+   			}
+   		}
+   		// Copy the rest of the table1 list columns.
+   		for ( int iCol1 = rowNumberColumnOffset; iCol1 < this.__differenceList1.length; iCol1++ ) {
+   			// Position in the final difference indicator lists.
+   			int iCol = iCol1 + rowNumberColumnOffset;
+   			this.__differenceList[iCol] = new ArrayList<Integer>();
+   			List<Integer> list1 = this.__differenceList1[iCol1];
+   			List<Integer> list = this.__differenceList[iCol];
+   			for ( int irow = 0; irow < list1.size(); irow++ ) {
+   				// OK to add the same Integer since they are immutable.
+   				list.add(list1.get(irow));
+   			}
+   		}
+
+   		// Insert the second table indicator row number.
+
+   		// Change the names of the table columns if they are not the same in both tables.
+
+   		for ( int icol = 0; icol < diffTable.getNumberOfFields(); icol++ ) {
+			TableField tableField1 = diffTable.getTableField(icol);
+			TableField tableField2 = diffTable2.getTableField(icol);
+   			if ( doRowNumberColumn && (icol == 0) ) {
+   				// Change the name of the row number column.
+   				// The position is assured because 'diffTable' is a copy of 'diffTable1'.
+   				tableField1.setName(tableField1.getName() + "-Table1");
+   			}
+   			else {
+   				// All other columns.
+   				if ( !tableField1.getName().equals(tableField2.getName()) ) {
+   					// Column names are different:
+  					// - set the field name to both separated by a slash
+   					tableField1.setName(tableField1.getName() + "/" + tableField2.getName());
+   				}
+   			}
+   		}
+
+   		if ( doRowNumberColumn ) {
+   			// Add a second row number column for the second table:
+   			// - the input row numbers for the second table can be different from the second table
+   			// - the table1 row number column was added above so add in position 1
+   			diffTable.addField(1, new TableField(TableField.DATA_TYPE_INT, rowNumberColumn + "-Table2", -1), null);
+   		}
+
+   		// Loop through the difference tables and update the contents of the final difference table:
+   		// - set the cell flag (CELL_*)
+   		// - if necessary, copy data from the second difference table
+   		// - precedence is given to setting rows that are only present in the second table
+   		// - the column numbers will include the table1 row number column and table2 row number column inserted above
+   		DataTable diffTable2 = this.diffTable2;
+   		// Column position in diffTable1, considering row number columns.
+   		int iCol1 = 0;
+   		// Column position in diffTable2, considering row number columns.
+   		int iCol2 = 0;
+   		for ( int iRow = 0; iRow < diffTable.getNumberOfRecords(); iRow++ ) {
+   			for ( int iCol = 0; iCol < diffTable.getNumberOfFields(); iCol++ ) {
+				iCol1 = iCol - rowNumberColumnOffset;
+				iCol2 = iCol - rowNumberColumnOffset;
+   				if ( doRowNumberColumn && (iCol == 0)) {
+   					// The row number column for table1:
+   					// - check the table2 indicator and set the table1 indicator so the column will match for the row
+   					Integer indicator2 = this.__differenceList2[iCol2 + 1].get(iRow);
+   					if ( indicator2 == CELL_ROW_ONLY_IN_TABLE2 ) {
+   						setCellDifferenceIndicator(iRow, iCol, indicator2);
+   					}
+   				}
+   				else if ( doRowNumberColumn && (iCol == 1)) {
+   					// The row number column for table2;
+   					// - always copy the table2 row number from the second table, OK to copy nulls
+   					diffTable.setFieldValue(iRow, iCol, diffTable2.getFieldValue(iRow, 0));
+   					Integer indicator1 = this.__differenceList1[iCol1].get(iRow);
+   					Integer indicator2 = this.__differenceList2[iCol2].get(iRow);
+   					if ( indicator1 == CELL_ROW_ONLY_IN_TABLE1 ) {
+   						setCellDifferenceIndicator(iRow, iCol, indicator1);
+   					}
+   					else if ( indicator2 == CELL_ROW_ONLY_IN_TABLE2 ) {
+   						setCellDifferenceIndicator(iRow, iCol, indicator2);
+   					}
+   				}
+   				else {
+   					// All other columns:
+   					// - no need to offset the index position for row number columns
+   					// - the second difference list does need to be offset because it may contain one row number column
+   					Integer indicator2 = this.__differenceList2[iCol2].get(iRow);
+   					if ( indicator2 == CELL_ROW_ONLY_IN_TABLE2 ) {
+   						// Row is only present in table2:
+   						// - copy to the final difference table and set the indicator
+   						diffTable.setFieldValue(iRow, iCol, diffTable2.getFieldValue(iRow, iCol2));
+   						setCellDifferenceIndicator(iRow, iCol, indicator2);
+   					}
+   				}
+   			}
+   		}
+
+   		// Set the final difference table in the class data to allow retrieval by calling code.
+   		setDiffTable(diffTable);
+    }
 
 /**
  * Format a single input table value as a string to allow comparison.
@@ -1203,7 +1513,7 @@ private String formatInputTableValueString ( DataTable table, int irow, int icol
 		catch ( Exception e ) {
 			value = null;
 		}
-		
+
 		// Format the value.
 		if ( value == null ) {
 			formattedValue = "";
@@ -1223,7 +1533,7 @@ private String formatInputTableValueString ( DataTable table, int irow, int icol
            	}
 		}
     }
-	
+
    	return formattedValue;
 }
 
@@ -1307,14 +1617,6 @@ private String formatComparisonTableValuesString (
 }
 
 /**
- * Get the number of cell differences, same as getDifferenceCount().
- * @return the number of cell differences
- */
-public int getCellDifferenceCount () {
-	return getDifferenceCount();
-}
-
-/**
 Get the list of columns to be compared from the first table.
 */
 private List<String> getCompareColumns1 () {
@@ -1329,37 +1631,48 @@ private List<String> getCompareColumns2 () {
 }
 
 /**
-Return the first comparison table.
-This calls getComparisonTable1().
+Return the first comparison (difference) table.
+This calls getDiffTable1().
 @return the first comparison table.
+@deprecated use getDiffTable1.
 */
 public DataTable getComparisonTable () {
-    return getComparisonTable1();
+    return getDiffTable1();
 }
 
 /**
-Return the first comparison table.
-@return the first comparison table.
+Return the final difference table.
+@return the final difference table.
 */
-public DataTable getComparisonTable1 () {
-    return this.__comparisonTable1;
+public DataTable getDiffTable () {
+    return this.diffTable;
 }
 
 /**
-Return the second comparison table.
-@return the second comparison table.
+Return the first difference table.
+@return the first difference table.
 */
-public DataTable getComparisonTable2 () {
-    return this.__comparisonTable2;
+public DataTable getDiffTable1 () {
+    return this.diffTable1;
+}
+
+/**
+Return the second difference table.
+@return the second difference table.
+*/
+public DataTable getDiffTable2 () {
+    return this.diffTable2;
 }
 
 /**
 Return the difference array.
 @return the difference array.
 */
+/*
 private int [][] getDifferenceArray () {
     return this.__differenceArray;
 }
+*/
 
 /**
 Return the first difference list.
@@ -1389,8 +1702,10 @@ public int getDifferenceCount () {
     	// Add a row number column to the comparison table(s).
     	rowNumberColumnOffset = 1;
     }
+    /*
    	if ( this.analysisType == DataTableComparerAnalysisType.SIMPLE ) {
-   		// Differences are in a 2D array.
+   		// Simple analysis:
+   		// - differences are in the 2D array
 		int [][] differenceArray = getDifferenceArray();
 		if ( differenceArray == null ) {
 			return 0;
@@ -1408,7 +1723,9 @@ public int getDifferenceCount () {
 		}
 	}
 	else {
-		// Differences are in an array of lists.
+	*/
+		// Advanced analysis:
+		// - differences are in an array of lists
 		List<Integer> [] differenceList = getDifferenceList1();
 		if ( differenceList == null ) {
 			return 0;
@@ -1424,7 +1741,74 @@ public int getDifferenceCount () {
 			}
 			return differenceCount;
 		}
+	//}
+}
+
+/**
+ * Get the number of cell differences, same as getDifferenceCount().
+ * @return the number of cell differences
+ */
+public int getDifferentCellCount () {
+	return getDifferenceCount();
+}
+
+/**
+Return the count of the row differences, based on the first table's comparison table.
+@return the count of the row differences.
+*/
+public int getDifferentRowCount () {
+	// Determine if a row number column is used.
+	int rowNumberColumnOffset = 0;
+    if ( (this.rowNumberColumn != null) && !this.rowNumberColumn.isEmpty() ) {
+    	// Add a row number column to the comparison table(s).
+    	rowNumberColumnOffset = 1;
+    }
+    /*
+   	if ( this.analysisType == DataTableComparerAnalysisType.SIMPLE ) {
+   		// Simple analysis:
+   		// - differences are in the 2D array
+		int [][] differenceArray = getDifferenceArray();
+		if ( differenceArray == null ) {
+			return 0;
+		}
+		else {
+			int differenceCount = 0;
+			for ( int irow = 0; irow < differenceArray.length; irow++ ) {
+				for ( int icol = rowNumberColumnOffset; icol < differenceArray[irow].length; icol++ ) {
+					if ( differenceArray[irow][icol] > this.CELL_SAME ) {
+						// A column in the row is different.
+						++differenceCount;
+						// Go to the next row since counting rows.
+						break;
+					}
+				}
+			}
+			return differenceCount;
+		}
 	}
+	else {
+	*/
+		// Advanced analysis:
+		// - differences are in an array of lists
+		List<Integer> [] differenceList = getDifferenceList1();
+		if ( differenceList == null ) {
+			return 0;
+		}
+		else {
+			int differenceCount = 0;
+			for ( int irow = 0; irow < differenceList[0].size(); irow++ ) {
+				for ( int icol = rowNumberColumnOffset; icol < differenceList.length; icol++ ) {
+					if ( differenceList[icol].get(irow) > this.CELL_SAME ) {
+						// A column in the row is different.
+						++differenceCount;
+						// Go to the next row since counting rows.
+						break;
+					}
+				}
+			}
+			return differenceCount;
+		}
+	//}
 }
 
 /**
@@ -1432,6 +1816,7 @@ Return the count of the errors.
 @return the count of the errors.
 */
 public int getErrorCount () {
+	/*
    	if ( this.analysisType == DataTableComparerAnalysisType.SIMPLE ) {
 		int [][] differenceArray = getDifferenceArray();
 		if ( differenceArray == null ) {
@@ -1450,6 +1835,7 @@ public int getErrorCount () {
 		}
 	}
 	else {
+	*/
 		List<Integer> [] differenceList = getDifferenceList1();
 		if ( differenceList == null ) {
 			return 0;
@@ -1465,7 +1851,7 @@ public int getErrorCount () {
 			}
 			return errorCount;
 		}
-	}
+	//}
 }
 
 /**
@@ -1501,56 +1887,70 @@ private Integer getPrecision () {
 }
 
 /**
-Return the count of the row differences, based on the first table's comparison table.
-@return the count of the row differences.
+Return the count of the same cells, based on the first comparison table cell indicators.
+Do not count the row number column.
+@return the count of the same cells.
 */
-public int getRowDifferenceCount () {
+public int getSameCellCount () {
 	// Determine if a row number column is used.
 	int rowNumberColumnOffset = 0;
     if ( (this.rowNumberColumn != null) && !this.rowNumberColumn.isEmpty() ) {
     	// Add a row number column to the comparison table(s).
     	rowNumberColumnOffset = 1;
     }
-   	if ( this.analysisType == DataTableComparerAnalysisType.SIMPLE ) {
-		int [][] differenceArray = getDifferenceArray();
-		if ( differenceArray == null ) {
-			return 0;
-		}
-		else {
-			int differenceCount = 0;
-			for ( int irow = 0; irow < differenceArray.length; irow++ ) {
-				for ( int icol = rowNumberColumnOffset; icol < differenceArray[irow].length; icol++ ) {
-					if ( differenceArray[irow][icol] > this.CELL_SAME ) {
-						++differenceCount;
-						// Continue to the next row since counting rows.
-						continue;
-					}
-				}
-			}
-			return differenceCount;
-		}
+
+	List<Integer> [] differenceList = getDifferenceList1();
+	if ( differenceList == null ) {
+		return 0;
 	}
 	else {
-		List<Integer> [] differenceList = getDifferenceList1();
-		if ( differenceList == null ) {
-			return 0;
-		}
-		else {
-			int differenceCount = 0;
-			for ( int irow = 0; irow < differenceList[0].size(); irow++ ) {
-				for ( int icol = rowNumberColumnOffset; icol < differenceList.length; icol++ ) {
-					if ( differenceList[icol].get(irow) > this.CELL_SAME ) {
-						++differenceCount;
-						// Continue to the next row since counting rows.
-						continue;
-					}
+		int sameCount = 0;
+		for ( int icol = rowNumberColumnOffset; icol < differenceList.length; icol++ ) {
+			for ( int irow = 0; irow < differenceList[icol].size(); irow++ ) {
+				if ( differenceList[icol].get(irow) == this.CELL_SAME ) {
+					++sameCount;
 				}
 			}
-			return differenceCount;
 		}
+		return sameCount;
 	}
 }
 
+/**
+Return the count of the same rows, based on the first table's comparison table.
+@return the count of the same rows.
+*/
+public int getSameRowCount () {
+	// Determine if a row number column is used.
+	int rowNumberColumnOffset = 0;
+    if ( (this.rowNumberColumn != null) && !this.rowNumberColumn.isEmpty() ) {
+    	// Add a row number column to the comparison table(s).
+    	rowNumberColumnOffset = 1;
+    }
+
+	List<Integer> [] differenceList = getDifferenceList1();
+	if ( differenceList == null ) {
+		return 0;
+	}
+	else {
+		int rowSameCount = 0;
+		int colSameCount = 0;
+		int nCols = differenceList.length - rowNumberColumnOffset;
+		for ( int irow = 0; irow < differenceList[0].size(); irow++ ) {
+			colSameCount = 0;
+			for ( int icol = rowNumberColumnOffset; icol < differenceList.length; icol++ ) {
+				if ( differenceList[icol].get(irow) == this.CELL_SAME ) {
+					// A column in the row is same.
+					++colSameCount;
+				}
+			}
+			if ( colSameCount == nCols ) {
+				++rowSameCount;
+			}
+		}
+		return rowSameCount;
+	}
+}
 /**
 Return the first table being compared.
 @return the first table being compared
@@ -1576,35 +1976,88 @@ private Double getTolerance () {
 }
 
 /**
-Set the column numbers being compared from the first table.
-@param columnNumbers1 column numbers being compared from the first table
-*/
-//private void setColumnNumbers1 ( int [] columnNumbers1 )
-//{
-//    __columnNumbers1 = columnNumbers1;
-//}
+ * Determine if any cells in the row have indicator > CELL_SAME (so different).
+ * @param diffTable a difference table to check
+ * @param differenceList difference list to track cell state
+ * @param iRow table row number (0+)
+ * @param rowNumberColumnOffset offset in the table columns for the row number column
+ */
+private boolean ifRowDifferent ( DataTable diffTable, List<Integer>[] differenceList, int iRow, int rowNumberColumnOffset ) {
+	// All cells are assumed to be the same until a difference is detected.
+	boolean ifRowDifferent = false;
+	
+	int nCols = diffTable.getNumberOfFields();
+	Integer indicator = null;
+	for ( int iCol = rowNumberColumnOffset; iCol < nCols; iCol++ ) {
+		indicator = differenceList[iCol].get(iRow);
+		if ( indicator > this.CELL_SAME ) {
+			// Cell is different.
+			ifRowDifferent = true;
+			break;
+		}
+	}
+
+	return ifRowDifferent;
+}
+/**
+ * Determine if all the cells in the row have indicator CELL_SAME.
+ * @param diffTable a difference table to check
+ * @param differenceList difference list to track cell state
+ * @param iRow table row number (0+)
+ * @param rowNumberColumnOffset offset in the table columns for the row number column
+ */
+private boolean ifRowSame ( DataTable diffTable, List<Integer>[] differenceList, int iRow, int rowNumberColumnOffset ) {
+	// All cells are assumed to be the same until a difference is detected.
+	boolean ifRowSame = true;
+	
+	int nCols = diffTable.getNumberOfFields();
+	Integer indicator = null;
+	for ( int iCol = rowNumberColumnOffset; iCol < nCols; iCol++ ) {
+		indicator = differenceList[iCol].get(iRow);
+		if ( indicator > this.CELL_SAME ) {
+			// Cell is different.
+			ifRowSame = false;
+			break;
+		}
+	}
+
+	return ifRowSame;
+}
 
 /**
-Set the column numbers being compared from the second table.
-@param columnNumbers2 column numbers being compared from the second table
-*/
-//private void setColumnNumbers2 ( int [] columnNumbers2 )
-//{
-//    __columnNumbers2 = columnNumbers2;
-//}
+ * Set the indicator of whether the cell is different, etc., used with the final difference table.
+ * @param irow the row index position (0+)
+ * @param icol the column index position (0+), must include the row number column if added
+ * @param indicator indicator value, one of CELL_*.
+ */
+private void setCellDifferenceIndicator ( int irow, int icol, Integer indicator ) {
+	// Advanced analysis.
+	List<Integer> list = (List<Integer>)this.__differenceList[icol];
+	// Unlike the other methods, there should be no reason to insert intervening rows
+	// because the final difference lists are allocated up front.
+	// Set the indicator for the specific existing row.
+	if ( indicator == null ) {
+		list.set(irow, indicator);
+	}
+	else {
+		list.set(irow, Integer.valueOf(indicator));
+	}
+}
 
 /**
- * Set the indicator of whether the cell is different, etc., used with the first comparison table.
+ * Set the indicator of whether the cell is different, etc., used with the first difference table.
  * @param irow the row index position (0+)
  * @param icol the column index position (0+), must include the row number column if added
  * @param indicator indicator value, one of CELL_*.
  */
 private void setCellDifferenceIndicator1 ( int irow, int icol, int indicator ) {
 	// If necessary, initialize rows that have not been assigned a value
+	/*
 	if ( this.analysisType == DataTableComparerAnalysisType.SIMPLE ) {
 		this.__differenceArray[irow][icol] = indicator;
 	}
 	else {
+	*/
 		// Advanced analysis.
 		List<Integer> list = (List<Integer>)this.__differenceList1[icol];
 		if ( irow >= list.size() ) {
@@ -1620,11 +2073,11 @@ private void setCellDifferenceIndicator1 ( int irow, int icol, int indicator ) {
 			// Set the indicator for the specific existing row.
 			list.set(irow, Integer.valueOf(indicator));
 		}
-	}
+	//}
 }
 
 /**
- * Set the indicator of whether the cell is different, etc., used with the second comparison table.
+ * Set the indicator of whether the cell is different, etc., used with the second difference table.
  * @param irow the row index position (0+)
  * @param icol the column index position (0+), must include the row number column if added
  * @param indicator indicator value, one of CELL_*.
@@ -1664,19 +2117,27 @@ private void setCompareColumns2 ( List<String> compareColumns2 ) {
 }
 
 /**
-Set the first comparison table created by this class.
-@param comparisonTable first new comparison table.
+Set the final difference table created by this class, corresponding to overlapping 'table1' and 'table2' analysis.
+@param diffTable second new comparison table.
 */
-private void setComparisonTable1 ( DataTable comparisonTable1 ) {
-    this.__comparisonTable1 = comparisonTable1;
+private void setDiffTable ( DataTable diffTable ) {
+    this.diffTable = diffTable;
 }
 
 /**
-Set the second comparison table created by this class.
-@param comparisonTable second new comparison table.
+Set the first difference table created by this class, corresponding to 'table1' analysis.
+@param diffTable1 first new difference table.
 */
-private void setComparisonTable2 ( DataTable comparisonTable2 ) {
-    this.__comparisonTable2 = comparisonTable2;
+private void setDiffTable1 ( DataTable diffTable1 ) {
+    this.diffTable1 = diffTable1;
+}
+
+/**
+Set the second difference table created by this class, corresponding to the 'table2' analysis.
+@param diffTable2 second new comparison table.
+*/
+private void setDiffTable2 ( DataTable diffTable2 ) {
+    this.diffTable2 = diffTable2;
 }
 
 /**
@@ -1736,18 +2197,41 @@ private void setTolerance ( Double tolerance ) {
 }
 
 /**
-Write an HTML representation of the first comparison table in which different cells are highlighted.
+Write an HTML representation of the final difference table in which different cells are highlighted.
 This uses the generic DataTableHtmlWriter with a style mask for the different cells.
 @param htmlFile the path to the output file to write
 */
-public void writeHtmlFile ( String htmlFile )
+public void writeHtmlDiffFile ( String htmlFile )
 throws Exception, IOException {
+	// For advanced, must convert the difference lists into a 2D array.
+	int nRows = this.__differenceList[0].size();
+	int nCols = this.__differenceList.length;
+	int [][] differenceArray = new int[nRows][nCols];
+	for ( int iCol = 0; iCol < nCols; iCol++ ) {
+		List<Integer> list = this.__differenceList[iCol];
+		for ( int iRow = 0; iRow < nRows; iRow++ ) {
+			differenceArray[iRow][iCol] = list.get(iRow);
+		}
+	}
+	writeHtmlFileInternal ( getDiffTable(), "Data Table - " + getDiffTable().getTableID(),
+		differenceArray, htmlFile );
+}
+
+/**
+Write an HTML representation of the first difference table in which different cells are highlighted.
+This uses the generic DataTableHtmlWriter with a style mask for the different cells.
+@param htmlFile the path to the output file to write
+*/
+public void writeHtmlDiffFile1 ( String htmlFile )
+throws Exception, IOException {
+	/*
 	if ( this.analysisType == DataTableComparerAnalysisType.SIMPLE ) {
 		// Can use the array as is.
 		writeHtmlFileInternal ( getComparisonTable(), "Data Table - " + getComparisonTable().getTableID(),
 			getDifferenceArray(), htmlFile );
 	}
 	else {
+	*/
 		// Advanced, must convert the difference lists into a 2D array.
 		int nRows = this.__differenceList1[0].size();
 		int nCols = this.__differenceList1.length;
@@ -1758,17 +2242,17 @@ throws Exception, IOException {
 				differenceArray[iRow][iCol] = list.get(iRow);
 			}
 		}
-		writeHtmlFileInternal ( getComparisonTable(), "Data Table - " + getComparisonTable().getTableID(),
+		writeHtmlFileInternal ( getDiffTable1(), "Data Table - " + getDiffTable1().getTableID(),
 			differenceArray, htmlFile );
-	}
+	//}
 }
 
 /**
-Write an HTML representation of the second comparison table in which different cells are highlighted.
+Write an HTML representation of the second difference table in which different cells are highlighted.
 This uses the generic DataTableHtmlWriter with a style mask for the different cells.
 @param htmlFile the path to the output file to write
 */
-public void writeHtmlFile2 ( String htmlFile )
+public void writeHtmlDiffFile2 ( String htmlFile )
 throws Exception, IOException {
 	// For advanced, must convert the difference lists into a 2D array.
 	int nRows = this.__differenceList2[0].size();
@@ -1780,7 +2264,7 @@ throws Exception, IOException {
 			differenceArray[iRow][iCol] = list.get(iRow);
 		}
 	}
-	writeHtmlFileInternal ( getComparisonTable2(), "Data Table - " + getComparisonTable2().getTableID(),
+	writeHtmlFileInternal ( getDiffTable2(), "Data Table - " + getDiffTable2().getTableID(),
 		differenceArray, htmlFile );
 }
 
@@ -1796,7 +2280,7 @@ throws Exception, IOException {
     DataTableHtmlWriter tableWriter = new DataTableHtmlWriter(table);
     HashMap<Integer,String> stylesMap = new LinkedHashMap<>();
     // Create styles to format the output cells:
-    // - the numbers must match the CELL_* 
+    // - the numbers must match the CELL_*
     // - the 'customStyleText' below must include classes for the map values shown below
     // - OK to use name since style will be applied in each comparison table
     stylesMap.put(Integer.valueOf(CELL_ERROR), "error");
@@ -1807,8 +2291,8 @@ throws Exception, IOException {
     stylesMap.put(Integer.valueOf(CELL_INSERT_EMPTY_ROW_TABLE2), "emptyrow");
     stylesMap.put(Integer.valueOf(CELL_NO_ROW_TABLE1), "norow");
     stylesMap.put(Integer.valueOf(CELL_NO_ROW_TABLE2), "norow");
-    stylesMap.put(Integer.valueOf(CELL_ROW_ONLY_IN_TABLE1), "rowinone");
-    stylesMap.put(Integer.valueOf(CELL_ROW_ONLY_IN_TABLE2), "rowinone");
+    stylesMap.put(Integer.valueOf(CELL_ROW_ONLY_IN_TABLE1), "rowin1");
+    stylesMap.put(Integer.valueOf(CELL_ROW_ONLY_IN_TABLE2), "rowin2");
 
     String customStyleText =
     	".diff { /* Cell value is different in the tables. */\n" +
@@ -1825,7 +2309,10 @@ throws Exception, IOException {
     	"  background-color: black;\n" +
     	"  padding: 8px; /* Use to ensure that empty rows have some height. */\n" +
     	"}\n" +
-    	".rowinone { /* Row is in one table but not the other (light green). */\n" +
+    	".rowin1 { /* Row is in only in table1 (light blue). */\n" +
+    	"  background-color: #b3d9ff;\n" +
+    	"}\n" +
+    	".rowin2 { /* Row is in only in table2 (light green). */\n" +
     	"  background-color: #80ff80;\n" +
     	"}\n" +
     	".unknown { /* Unknown cell status (not analyzed, dark grey). */\n" +
