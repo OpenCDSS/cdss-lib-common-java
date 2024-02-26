@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2024 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -111,7 +111,7 @@ private JTextArea __TSID_JTextArea = null;
 /**
 Dialog buttons.
 */
-private SimpleJButton	
+private SimpleJButton
 	__cancelButton = null,
 	__okButton = null;
 
@@ -293,8 +293,8 @@ public TSIdent_JDialog(JFrame parent, boolean modal, TSIdent tsident, PropList p
 Responds to ActionEvents.
 @param event ActionEvent object
 */
-public void actionPerformed(ActionEvent event)
-{	String s = event.getActionCommand();
+public void actionPerformed(ActionEvent event) {
+	String s = event.getActionCommand();
 
 	if (s.equals(__BUTTON_CANCEL)) {
 		response ( false );
@@ -316,8 +316,8 @@ public void actionPerformed(ActionEvent event)
 Check the input.  If errors exist, warn the user and set the __error_wait flag to true.
 This should be called before response() is allowed to complete.
 */
-private void checkInputAndCommit ()
-{	String routine = "TSIdent_JDialog.checkInput";
+private void checkInputAndCommit () {
+	String routine = getClass().getSimpleName() + ".checkInput";
     // Previously show all input to user, even if in error, but check before saving.
 	__error_wait = false;
 	__warning = "";
@@ -348,8 +348,7 @@ private void checkInputAndCommit ()
 
     __response = new TSIdent();
 
-    // These would normally be in checkInput() but since the TSID is needed
-    // to output the string, also do the checks here.
+    // These would normally be in checkInput() but since the TSID is needed to output the string, also do the checks here.
 
     if ( (locationType.length() > 0) && StringUtil.containsAny(locationType, ".:", false) ) {
         __warning += "\nThe location type cannot contain a period (.) or colon (:).";
@@ -435,27 +434,28 @@ private void checkInputAndCommit ()
 /**
 Does nothing.
 */
-public void keyPressed(KeyEvent e)
-{	refresh();
+public void keyPressed(KeyEvent e) {
+	refresh();
 }
 
 /**
 Does nothing.
 */
-public void keyReleased(KeyEvent e)
-{	refresh();
+public void keyReleased(KeyEvent e) {
+	refresh();
 }
 
 /**
 Does nothing.
 */
-public void keyTyped(KeyEvent e) {}
+public void keyTyped(KeyEvent e) {
+}
 
 /**
 Refresh the full TSIdent displayed value, based on the individual values displayed in dialog.
 */
-private void refresh ()
-{	String locationType = "";
+private void refresh () {
+	String locationType = "";
 	String location = "";
 	String datasource = "";
 	String datatype = "";
@@ -568,24 +568,25 @@ private void setupGUI() {
 	JPanel panel = new JPanel();
 	panel.setLayout(new GridBagLayout());
 	getContentPane().add("Center", panel);
-	
+
 	Insets insetsTLBR = new Insets(2,2,2,2);
 
-    __locationTypeTextField = new JTextField(10);
+	int fieldWidth = 30;
+    __locationTypeTextField = new JTextField(fieldWidth);
     __locationTypeTextField.addKeyListener ( this );
-	__locationTextField = new JTextField(10);
+	__locationTextField = new JTextField(fieldWidth);
 	__locationTextField.addKeyListener ( this );
-	__dataSourceTextField = new JTextField(10);
+	__dataSourceTextField = new JTextField(fieldWidth);
 	__dataSourceTextField.addKeyListener ( this );
-	__dataTypeTextField = new JTextField(10);
+	__dataTypeTextField = new JTextField(fieldWidth);
 	__dataTypeTextField.addKeyListener ( this );
-	__scenarioTextField = new JTextField(10);
+	__scenarioTextField = new JTextField(fieldWidth);
 	__scenarioTextField.addKeyListener ( this );
-    __sequenceIDTextField = new JTextField(10);
+    __sequenceIDTextField = new JTextField(fieldWidth);
     __sequenceIDTextField.addKeyListener ( this );
-	__inputTypeTextField = new JTextField(10);
+	__inputTypeTextField = new JTextField(fieldWidth);
 	__inputTypeTextField.addKeyListener ( this );
-	__inputNameTextField = new JTextField(10);
+	__inputNameTextField = new JTextField(fieldWidth);
 	__inputNameTextField.addKeyListener ( this );
 
 	int y = -1;
@@ -660,7 +661,7 @@ private void setupGUI() {
         locationType_JLabel.setEnabled(false);
         __locationTypeTextField.setEnabled(false);
     }
-	
+
     JLabel location_JLabel = new JLabel("Location: ");
 	JGUIUtil.addComponent(panel, location_JLabel,
 		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);

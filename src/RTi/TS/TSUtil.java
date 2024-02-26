@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2024 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -98,7 +98,7 @@ When used as a property, indicates that a time series transfer or analysis shoul
 In other words, if using TRANSFER_BYDATETIME, Mar 1 will always line up with Mar 1,
 regardless of whether leap years are encountered.
 However, if TRANSFER_SEQUENTIALLY is used,
-then data from Feb 29 of a leap year may be transferred to Mar 1 on the non-leapyear time series.
+then data from February 29 of a leap year may be transferred to Mar 1 on the non-leap year time series.
 */
 
 // The following has been replaced with TransferDataHowType enumeration.
@@ -239,7 +239,7 @@ The receiving time series description and genesis information are updated to ref
 @param tsToAddList List of time series to add to "ts".
 @param missingFlag See overloaded version for description.
 @param addStart starting date/time to add, or null to process full period
-@param addEnd startin date/time to add, or null to process full period
+@param addEnd starting date/time to add, or null to process full period
 @exception TSException if an error occurs adding the time series.
 */
 public static <T extends TS> T add ( T ts, List<T> tsToAddList, int missingFlag, DateTime addStart, DateTime addEnd )
@@ -258,7 +258,8 @@ throws Exception {
 		factor[i] = 1.0;
 	}
 	try {
-		return add ( ts, tsToAddList, factor, missingFlag, addStart, addEnd );
+		String handleDataFlagsHow = null;
+		return add ( ts, tsToAddList, factor, missingFlag, handleDataFlagsHow, addStart, addEnd );
 	}
 	catch ( TSException e ) {
 		// Just rethrow.
@@ -275,6 +276,7 @@ The receiving time series description and genesis information are updated to ref
 @param factor Used by subtract() or directly.
 Specifies the factors to multiply each time series by before adding.
 The factors are applied after units conversion.
+If null, an array of unit values will be used.
 @param missingFlag Handle missing data as follows:
 <pre>
 IGNORE_MISSING               Missing data are ignored and have no effect on
@@ -289,7 +291,10 @@ SET_MISSING_IF_ANY_MISSING   If any time series in "ts_to_add" or "ts" has
 */
 public static <T extends TS> T add ( T ts, List<T> tsToAddList, double factor[], int missingFlag )
 throws Exception {
-	return add ( ts, tsToAddList, factor, missingFlag, null, null );
+	String handleDataFlagsHow = null;
+	DateTime addStart = null;
+	DateTime addEnd = null;
+	return add ( ts, tsToAddList, factor, missingFlag, handleDataFlagsHow, addStart, addEnd );
 }
 
 /**
@@ -301,21 +306,50 @@ The receiving time series description and genesis information are updated to ref
 @param factor Used by subtract() or directly.
 Specifies the factors to multiply each time series by before adding.
 The factors are applied after units conversion.
+If null, an array of unit values will be used.
 @param missingFlag Handle missing data as follows:
 <pre>
-IGNORE_MISSING               Missing data are ignored and have no effect on
-                             results.   This may introduce inconsistencies if
-                             sums involve different numbers of time series.
-SET_MISSING_IF_OTHER_MISSING If any time series in "ts_to_add" has a missing
-                             data set the value in "ts" to missing.
-SET_MISSING_IF_ANY_MISSING   If any time series in "ts_to_add" or "ts" has
-                             missing data set the value in "ts" to missing.
+IGNORE_MISSING               Missing data are ignored and have no effect on results.
+                             This may introduce inconsistencies if sums involve different numbers of time series.
+SET_MISSING_IF_OTHER_MISSING If any time series in "ts_to_add" has a missing data set the value in "ts" to missing.
+SET_MISSING_IF_ANY_MISSING   If any time series in "ts_to_add" or "ts" has missing data set the value in "ts" to missing.
 </pre>
 @param addStart starting date/time to add, or null to process full period
-@param addEnd startin date/time to add, or null to process full period
+@param addEnd starting date/time to add, or null to process full period
 @exception RTi.TS.TSException if there is an error adding the time series.
 */
 public static <T extends TS> T add ( T ts, List<T> tsToAddList, double factor[], int missingFlag, DateTime addStart, DateTime addEnd )
+throws TSException, Exception {
+	String handleDataFlagsHow = null;
+	return add ( ts, tsToAddList, factor, missingFlag, handleDataFlagsHow, addStart, addEnd );
+}
+
+/**
+Add a list of time series to another.
+The receiving time series description and genesis information are updated to reflect the addition.
+@return The sum of the time series.
+@param ts Time series to be added to.
+@param tsToAddList List of time series to add to "ts".
+@param factor Used by subtract() or directly.
+Specifies the factors to multiply each time series by before adding.
+The factors are applied after units conversion.
+If null, an array of unit values will be used.
+@param missingFlag Handle missing data as follows:
+<pre>
+IGNORE_MISSING               Missing data are ignored and have no effect on results.
+                             This may introduce inconsistencies if sums involve different numbers of time series.
+SET_MISSING_IF_OTHER_MISSING If any time series in "ts_to_add" has a missing data set the value in "ts" to missing.
+SET_MISSING_IF_ANY_MISSING   If any time series in "ts_to_add" or "ts" has missing data set the value in "ts" to missing.
+</pre>
+@param handleDataFlagsHow how to handle data flags: "Ignore" to keep original, "Set" to set the added time series on the original,
+"Append" to append the added time series on the original (not yet implemented)
+@param addStart starting date/time to add, or null to process full period
+@param addEnd starting date/time to add, or null to process full period
+@exception RTi.TS.TSException if there is an error adding the time series.
+*/
+public static <T extends TS> T add ( T ts, List<T> tsToAddList, double factor[],
+int missingFlag, String handleDataFlagsHow,
+DateTime addStart, DateTime addEnd )
 throws TSException, Exception {
 	String message, routine = TSUtil.class.getSimpleName() + ".add";
 	// Use for troubleshooting:
@@ -324,9 +358,15 @@ throws TSException, Exception {
 	boolean debug = false;
 	int	dl = 20, nmissing = 0;
 	double add = 0.0, mult = 1.0;
+	// Time series to add.
 	T tspt = null;
 
 	boolean missingIndicators[] = null;
+
+	boolean doSetDataFlags = false;
+	if ( (handleDataFlagsHow != null) && handleDataFlagsHow.equalsIgnoreCase("Set") ) {
+		doSetDataFlags = true;
+	}
 
 	// Make sure that the pointers are OK.
 
@@ -341,6 +381,14 @@ throws TSException, Exception {
 		throw new TSException ( message );
 	}
 
+	// If the factor array is null, create with values of 1.0.
+	if ( factor == null ) {
+		factor = new double[tsToAddList.size()];
+		for ( int i = 0; i < factor.length; i++ ) {
+			factor[i] = 1.0;
+		}
+	}
+
 	// Make sure that the intervals match.
 	// Currently this is a requirement to make sure that the results are not misrepresented.
 	// At some point may want to overload to allow a period to be added.
@@ -353,7 +401,7 @@ throws TSException, Exception {
 		throw new TSException ( message );
 	}
 
-	// If we want the period of record to be all-inclusive, resize the period of record.
+	// If want the period of record to be all-inclusive, resize the period of record.
 
 /* Not enabled in Java - just add to the period from the original time series.
 	if ( flag == TSPOR_AVAILABLE ) {
@@ -390,6 +438,13 @@ throws TSException, Exception {
 	int intervalMult = ts.getDataIntervalMult();
 	int tsptIntervalBase;
 	double dataValue, dataValueToAdd, tsMissing = ts.getMissing();
+	// Used with data flags.
+	TSData tsdata = new TSData();
+	// Data flags from the time series to add.
+	String dataFlagsToAdd = null;
+	// Data point used when handling flags:
+	// - declare an instance and reuse below
+	TSData tsdataToAdd = new TSData();
 	boolean setToMissing = false;
 
 	// If missing_flag indicates missing data should result in missing data in the result,
@@ -423,7 +478,7 @@ throws TSException, Exception {
 		}
 		catch ( Exception e ) {
 			// Can't get conversion.
-			// This may not be a fatal error, but we don't want to allow different units to be summed so return.
+			// This may not be a fatal error, but don't want to allow different units to be summed so return.
 			message = "Cannot get conversion from \"" + tspt.getIdentifier().toString() + "\" data units \"" +
 				tspt.getDataUnits() + "\" to \"" + ts.getIdentifier().toString() + "\" data units \"" +
 				req_units + "\"";
@@ -435,7 +490,7 @@ throws TSException, Exception {
 		tsptIntervalBase = tspt.getDataIntervalBase();
 
 		if ( tsptIntervalBase == TimeInterval.IRREGULAR ) {
-			// For this data type, if we can find a matching date, add to that date.
+			// For this data type, if can find a matching date, add to that date.
 			// Otherwise, add a new data point for the date.  For now, don't support.
 			Message.printWarning ( 3, routine, "IrregularTS not supported.  Not adding." + tspt.getIdentifier().toString() );
 			continue;
@@ -493,11 +548,17 @@ throws TSException, Exception {
 				// If here, the previous time series in the loop did NOT have missing data at this timestep (but the time series being added to might).
 				// Add the data, converting units if necessary.
 				dataValueToAdd = tspt.getDataValue ( date );
+				if ( doSetDataFlags ) {
+					// Get the data as TSData since need the flag.
+					tsdataToAdd = tspt.getDataPoint(date, tsdataToAdd);
+					dataFlagsToAdd = tsdataToAdd.getDataFlag();
+				}
 				if ( tspt.isDataMissing ( dataValueToAdd ) ){
 					// The value to add is missing so don't do it.
-					// If we are tracking missing, also set in the array.  This will prevent other time series from processing.
+					// If are tracking missing, also set in the array.  This will prevent other time series from processing.
 					++nmissing;
 					if ( setToMissing ) {
+						// Set the sum to missing.
 						missingIndicators[timestepIndex] = true;
 						ts.setDataValue ( date, tsMissing );
 						if ( debug ) {
@@ -507,6 +568,7 @@ throws TSException, Exception {
 						}
 					}
 					else {
+						// Ignore the missing value (don't change anything).
 						if ( debug ) {
 							// Use status.
 							Message.printStatus ( 2, routine, "At " + date + ", part time series " +
@@ -517,6 +579,10 @@ throws TSException, Exception {
 				}
 				// If here, there is a non-missing data value to add so do it.
 				dataValue = ts.getDataValue ( date );
+				if ( doSetDataFlags ) {
+					// Get the data flags for the time series being added, used below.
+					tsdata = ts.getDataPoint(date, tsdata );
+				}
 				if ( ts.isDataMissing( dataValue ) ) {
 					// Original data is missing so set the value and multiply by the factor.
 					if ( missingFlag == SET_MISSING_IF_ANY_MISSING ) {
@@ -534,7 +600,14 @@ throws TSException, Exception {
 							Message.printDebug ( dl, routine, "At " + date + ", setting " + tspt.getIdentifierString() + " " +
 							(dataValueToAdd*mult + add)*factor[i] + " over " + dataValue );
 						}
-						ts.setDataValue ( date, (dataValueToAdd*mult + add)*factor[i] );
+					    if ( doSetDataFlags && (dataFlagsToAdd != null) && !dataFlagsToAdd.isEmpty() ) {
+					    	// Set the value and the data flag, keep the original duration.
+					    	ts.setDataValue ( date, (dataValueToAdd*mult + add)*factor[i], dataFlagsToAdd, tsdata.getDuration() );
+					    }
+					    else {
+					    	// Just set the value and keep the original flag.
+					    	ts.setDataValue ( date, (dataValueToAdd*mult + add)*factor[i] );
+					    }
 					    if ( debug ) {
 					    	// Use status.
 							Message.printStatus ( 1, routine, "At " + date + ", set " +
@@ -548,7 +621,14 @@ throws TSException, Exception {
 						Message.printDebug ( dl, routine, "At " + date + ", adding " +
 						(dataValueToAdd*mult + add)*factor[i] + " to " + dataValue );
 					}
-					ts.setDataValue ( date, dataValue + (dataValueToAdd*mult + add)*factor[i] );
+					if ( doSetDataFlags && (dataFlagsToAdd != null) && !dataFlagsToAdd.isEmpty() ) {
+						// Set the value and the data flag, keep the original duration.
+						ts.setDataValue ( date, dataValue + (dataValueToAdd*mult + add)*factor[i], dataFlagsToAdd, tsdata.getDuration() );
+					}
+					else {
+						// Just set the value and keep the original flag.
+						ts.setDataValue ( date, dataValue + (dataValueToAdd*mult + add)*factor[i] );
+					}
 					if ( debug ) {
 						Message.printStatus ( 1, routine, "At " + date + ", added " + tspt.getIdentifierString() + " " +
 						(dataValueToAdd*mult + add)*factor[i] + " to " + dataValue + " result is " + ts.getDataValue(date) );
@@ -816,7 +896,7 @@ throws Exception {
 			total_values = oldvalue;
 			count = 1;
 			nintervals = 0;
-			do_adjust = true;	// Assume we can adjust until find out otherwise.
+			do_adjust = true;	// Assume can adjust until find out otherwise.
 			while ( true ) {
 				left_date.addInterval ( interval_base, -interval_mult );
 				++nintervals;
@@ -2112,10 +2192,10 @@ throws Exception {
 	DateTime date = new DateTime(start_date,DateTime.DATE_FAST);
 	StringBuffer buffer = null;
 	int non_missing_in_row = 0;
-	// We have adjusted the dates above, so we always start in column 0 (first month in year).
+	// We have adjusted the dates above, so always start in column 0 (first month in year).
 	column = 0;
 	row = 0;
-	// Set the previous to the current so that we don't force processing
+	// Set the previous to the current so that don't force processing
 	// the first time through the loop (it will occur for daily data because of a check below.
 	int day = date.getDay(), day_prev = day, month = date.getMonth(), month_prev = month;
 	boolean need_to_process_day = false;
@@ -2270,7 +2350,7 @@ throws Exception {
 			buffer.append ( StringUtil.formatString( (date.getYear() + year_offset), "%04d") + " " );
 			non_missing_in_row = 0;
 		}
-		// Do not use an else here because if we are on column 0 we still want to print the data value.
+		// Do not use an else here because if are on column 0 still want to print the data value.
 		// Print the monthly value.
 		if ( ts.isDataMissing(month_value) ) {
 			buffer.append ( "    NC    " );
@@ -3837,7 +3917,7 @@ throws TSException {
 		if ( !dayts1.isDataMissing ( data_value ) ) {
 			continue;
 		}
-		// See if we need to compute monthly ratio.
+		// See if need to compute monthly ratio.
 		if (	(m1_m2 < 0.0) || (date.getDay() == 1) ) {
 			m1 = monthts1.getDataValue ( date );
 			if ( monthts1.isDataMissing(m1) ) {
@@ -4000,7 +4080,7 @@ public static int fillInterpolate ( TS ts, DateTime fillStart, DateTime fillEnd,
 throws TSException, Exception {
 	PropList props = new PropList ( "fillInterpolate" );
 	props.set( "MaxIntervals=" + maxIntervals );
-	if ( (fillFlag != null) && !fillFlag.isEmpty() ) { 
+	if ( (fillFlag != null) && !fillFlag.isEmpty() ) {
 		props.set( "FillFlag=" + fillFlag );
 		props.set( "FillFlagDescription=" + fillFlagDescription );
 	}
@@ -5953,7 +6033,7 @@ public static double findNearestDataValue (	TS ts, DateTime date, int direction,
 		}
 	}
 
-	// By here we either have a value or it is set to missing.
+	// By here either have a value or it is set to missing.
 	return value;
 }
 
@@ -6196,7 +6276,7 @@ throws TSException {
 
 	PropList props = null;
 	if ( proplist == null ) {
-		// Create an empty list so we do not have to check for null all over the place.
+		// Create an empty list so do not have to check for null all over the place.
 		props = new PropList ( "TSUtil.formatOutput" );
 	}
 	else {
@@ -6222,7 +6302,7 @@ throws TSException {
 		}
 	}
 
-	// Now check to see if we are supposed to write to a writer.
+	// Now check to see if are supposed to write to a writer.
 
 	boolean opened_here = false; // Indicates whether Writer was opened in this routine.
 	if ( fp == null ) {
@@ -6254,7 +6334,7 @@ throws TSException {
 				fp.print ( formatted_output.get(i) + newline );
 			}
 		}
-		// If we opened the Writer here, close it.
+		// If opened the Writer here, close it.
 		if ( opened_here ) {
 			fp.close ();
 		}
@@ -6287,7 +6367,7 @@ throws TSException {
 // Variables:	I/O	Description
 //
 // refresh_flag	I	If false, do not call refresh (because this routine is
-//			being called by refresh and we don't want to get into
+//			being called by refresh and don't want to get into
 //			a circular reference).
 //------------------------------------------------------------------------------
 
@@ -6427,7 +6507,7 @@ protected static TSLimits getDataLimits ( TS ts, DateTime start0, DateTime end0,
 			++non_missing_count;
 
 			if ( found ) {
-				// Already found the first non-missing point so all we need to do is check the limits.
+				// Already found the first non-missing point so all need to do is check the limits.
 				// These should only result in new DateTime a few times.
 				if( value > max ) {
                 	max = value;
@@ -6466,7 +6546,7 @@ protected static TSLimits getDataLimits ( TS ts, DateTime start0, DateTime end0,
 					break;
 				}
 				if( !ts.isDataMissing( value ) ) {
-					// Found the one date we are after.
+					// Found the one date are after.
 					non_missing_data_date2 = new DateTime ( date );
 					break;
 				}
@@ -6500,7 +6580,7 @@ protected static TSLimits getDataLimits ( TS ts, DateTime start0, DateTime end0,
 			++non_missing_count;
 
 			if ( found ) {
-				// Already found the first non-missing point so all we need to do is check the limits.
+				// Already found the first non-missing point so all need to do is check the limits.
 				// These should only result in new DateTime a few times.
 				if ( value > max ) {
                 	max = value;
@@ -7052,7 +7132,7 @@ throws TSException {
 				continue;
 			}
 		}
-		// Else we have data that can be processed.
+		// Else have data that can be processed.
 		// If the sum is missing, set the value.  Otherwise, add to the sum.
 		if ( tspt.isDataMissing(summedvals[month - 1]) ) {
 			// Set.
@@ -7471,7 +7551,7 @@ throws TSException {
 		Message.printDebug( dl, routine, "Minimum POR limits are " + start + " to " + end );
 	}
 
-	// Now return the dates as a new instance so we don't mess up what was in the time series.
+	// Now return the dates as a new instance so don't mess up what was in the time series.
 
 	TSLimits newlimits = new TSLimits();
 	newlimits.setDate1 ( new DateTime(start) );
@@ -7694,7 +7774,7 @@ throws TSException {
 		}
 	}
 
-	// Now return the dates as a new instance so we don't mess up what was in the time series.
+	// Now return the dates as a new instance so don't mess up what was in the time series.
 
 	TSLimits limits = new TSLimits();
 	limits.setDate1 ( new DateTime(start) );
@@ -9549,7 +9629,7 @@ public static void setConstant ( TS ts, DateTime startDate, DateTime endDate, Do
 	TSLimits validDates = getValidPeriod ( ts, startDate, endDate );
 	DateTime start = validDates.getDate1();
 	DateTime end = validDates.getDate2();
-	
+
 	// Whether to set the data flag.
 	boolean doSetFlag = false;
 	if ( (setFlag != null) && !setFlag .isEmpty() ) {
@@ -10077,7 +10157,7 @@ throws Exception {
 	DateTime olddate1 = new DateTime ( oldts.getDate1() );
 	DateTime olddate2 = new DateTime ( oldts.getDate2() );
 
-	// Determine if we have a date which is specified within the bounds of the time series.
+	// Determine if have a date which is specified within the bounds of the time series.
 	// May want to flag this with a boolean parameter.
 	/*
 	if ( olddate.lessThan( olddate1 ) || olddate.greaterThan( olddate2 ) ) {
@@ -10103,8 +10183,8 @@ throws Exception {
 	date1.add ( offset );
 	date2.add ( offset );
 
-	// This code is a little ugly.  Do we need a createTS routine that will create one of the correct type?
-	// If so, we still need to cast so it is probably the same amount of work either way.
+	// This code is a little ugly.  Do need a createTS routine that will create one of the correct type?
+	// If so,we still need to cast so it is probably the same amount of work either way.
 
 	int interval_base = oldts.getDataIntervalBase();
 	int interval_mult = oldts.getDataIntervalMult();
@@ -10157,7 +10237,7 @@ throws Exception {
 	newts.allocateDataSpace ();
 
 	// Now loop through the dates and transfer the data.
-	// In the loops, we increment the old and new dates separately and break out when either has exceeded the end
+	// In the loops, increment the old and new dates separately and break out when either has exceeded the end
 	// (should line up, but don't know for sure with leap years, etc.).
 
 	DateTime olddate_i = new DateTime ( olddate1, DateTime.DATE_FAST );
@@ -10320,7 +10400,7 @@ public static TS shiftTimeZone ( TS ts, String oldTimeZone, String newTimeZone, 
 throws Exception {
 	TS tsCopy = null;
 	if ( shiftTime ) {
-		// Regular interval time series must have data space reallocated. 
+		// Regular interval time series must have data space reallocated.
 		// Irregular interval time series must clear out TSData list and then re-add.
 		// Create a clone of the time series that can be used to extract data in the old time zone.
 		tsCopy = (TS)ts.clone();
