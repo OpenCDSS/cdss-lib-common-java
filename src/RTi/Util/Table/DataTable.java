@@ -407,11 +407,14 @@ Append one table to another.
 @param columnData map to set additional data for appended records,
 the strings are converted to a type for the data column
 @param columnFilters map for columns that will apply a filter in the append table, to limit rows being appended
+@param appendRowNumbers an array of row numbers (1+) to append,
+which is considered in addition to the other filters, negative row positions are ignored
 @return the number of rows appended
 */
 public int appendTable ( DataTable table, DataTable appendTable, String [] reqIncludeColumns,
     Hashtable<String,String> columnMap, Hashtable<String,String> columnData,
-    Hashtable<String,String> columnFilters ) {
+    Hashtable<String,String> columnFilters,
+    int [] appendRowNumbers ) {
     String routine = getClass().getSimpleName() + ".appendTable";
     // List of columns that will be appended.
     String [] columnNamesToAppend = null;
@@ -550,9 +553,31 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
     boolean filterMatches;
     String s;
     TableRecord rec;
+    // Row count 1+, used when checking row numbers.
+    int irow1 = 0;
+   	for ( int appendRowNumber : appendRowNumbers ) {
+   		Message.printStatus(2, routine, "Will append row number: " + appendRowNumber);
+   	}
     for ( int irow = 0; irow < appendTable.getNumberOfRecords(); irow++ ) {
         somethingAppended = false; // Nothing appended so don't process record below.
         filterMatches = true; // Meaning, include the record, true by default if no filters.
+        // Check the row numbers to include first since an easy check.
+        if ( (appendRowNumbers != null) && (appendRowNumbers.length > 0) ) {
+        	// Append only matching rows.
+        	irow1 = irow + 1;
+        	boolean doAppendRow = false;
+        	for ( int appendRowNumber : appendRowNumbers ) {
+        		if ( appendRowNumber == irow1 ) {
+        			doAppendRow = true;
+        			break;
+        		}
+        	}
+        	if ( ! doAppendRow ) {
+        		// The current row does not match a specific row number to append.
+        		continue;
+        	}
+        }
+        // Check filters.
         if ( columnNumbersToFilter.length > 0 ) {
             // Filters can be done on any columns so loop through to see if row matches before doing append.
             for ( icol = 0; icol < columnNumbersToFilter.length; icol++ ) {

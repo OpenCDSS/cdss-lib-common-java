@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2024 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -35,7 +35,7 @@ Perform simple column-based math operations on a table.
 */
 public class DataTableMath
 {
-    
+
 /**
 Data table on which to perform math.
 */
@@ -76,8 +76,8 @@ Get the list of operators that can be performed.
 public static List<String> getOperatorChoicesAsStrings() {
     List<DataTableMathOperatorType> choices = getOperatorChoices();
     List<String> stringChoices = new ArrayList<>();
-    for ( int i = 0; i < choices.size(); i++ ) {
-        stringChoices.add ( "" + choices.get(i) );
+    for ( DataTableMathOperatorType choice : choices ) {
+        stringChoices.add ( "" + choice );
     }
     return stringChoices;
 }
@@ -94,8 +94,8 @@ Perform a math calculation.
 public void math ( String input1, DataTableMathOperatorType operator, String input2, String output,
     Double nonValue,
 	TableRowConditionEvaluator evaluator,
-    List<String> problems )
-{   String routine = getClass().getSimpleName() + ".math" ;
+    List<String> problems ) {
+    String routine = getClass().getSimpleName() + ".math" ;
     // Look up the columns for input and output.
     int input1Field = -1;
     int input1FieldType = -1;
@@ -103,6 +103,7 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
     // Only use constant for Input1 for assignment.
     Double input1ConstantDouble = null;
     Integer input1ConstantInteger = null;
+    Long input1ConstantLong = null;
     // First try to get the input field assuming that the first input is a column name.
     try {
         input1Field = this.table.getFieldIndex(input1);
@@ -115,8 +116,10 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
     		// Check integer first since more restrictive (no decimal point).
     		// Then check double (allows decimal point).
     		if ( StringUtil.isInteger(input1) ) {
-    			// First input supplied as an integer.
-    			input1ConstantInteger = Integer.parseInt(input1);
+    			// First input supplied as an integer:
+    			// - set as Integer and Long to allow output to output column type
+    			input1ConstantInteger = Integer.valueOf(input1);
+    			input1ConstantLong = Long.valueOf(input1);
     			input1FieldType = TableField.DATA_TYPE_INT;
     			if ( Message.isDebugOn ) {
     				Message.printStatus(2, routine, "First input provided as constant integer: " + input1);
@@ -141,6 +144,7 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
     int input2Field = -1;
     Double input2ConstantDouble = null;
     Integer input2ConstantInteger = null;
+    Long input2ConstantLong = null;
     boolean requireInput2 = requiresInput2(operator);
     if ( requireInput2 ) {
         // Need to get the second input to do the math.
@@ -153,8 +157,11 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
             }
         }
         if ( StringUtil.isInteger(input2) ) {
-            // Second input supplied as an integer - use instead of double (handle below if 1st and 2nd arguments are different).
-            input2ConstantInteger = Integer.parseInt(input2);
+            // Second input supplied as an integer:
+        	// - use Integer instead of double (handle below if 1st and 2nd arguments are different)
+        	// - also set Long in case output is Long
+            input2ConstantInteger = Integer.valueOf(input2);
+            input2ConstantLong = Long.valueOf(input2);
             input2FieldType = TableField.DATA_TYPE_INT;
             if ( Message.isDebugOn ) {
             	Message.printStatus(2, routine, "Second input provided as constant integer: " + input2);
@@ -210,6 +217,11 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
         	// Both input fields are integer.
             outputFieldType = TableField.DATA_TYPE_INT;
         }
+        else if ( (input1FieldType == TableField.DATA_TYPE_LONG) &&
+        	(input2FieldType == TableField.DATA_TYPE_LONG) ) {
+        	// Both input fields are long.
+            outputFieldType = TableField.DATA_TYPE_LONG;
+        }
         else {
         	// One or both output fields are floating point so default output to double.
         	// This is consistent with most common programming languages and handles mixed case
@@ -219,6 +231,11 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
         if ( outputFieldType == TableField.DATA_TYPE_INT ) {
         	Message.printWarning(3, routine, "Output field \"" + output + "\" not found in table \"" +
             	this.table.getTableID() + "\" - automatically adding integer column." );
+            outputField = this.table.addField(new TableField(outputFieldType,output,-1,-1), null );
+        }
+        else if ( outputFieldType == TableField.DATA_TYPE_LONG ) {
+        	Message.printWarning(3, routine, "Output field \"" + output + "\" not found in table \"" +
+            	this.table.getTableID() + "\" - automatically adding long column." );
             outputField = this.table.addField(new TableField(outputFieldType,output,-1,-1), null );
         }
         else if ( outputFieldType == TableField.DATA_TYPE_DOUBLE ) {
@@ -248,33 +265,42 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
             outputField = this.table.addField(new TableField(outputFieldType,output,width,precision),null);
         }
     }
-    if ( (input1FieldType != TableField.DATA_TYPE_INT) && (input1FieldType != TableField.DATA_TYPE_DOUBLE) ) {
+    if ( (input1FieldType != TableField.DATA_TYPE_INT) &&
+    	(input1FieldType != TableField.DATA_TYPE_LONG) &&
+    	(input1FieldType != TableField.DATA_TYPE_DOUBLE) ) {
        	// Incompatible column types.
     	problems.add("Input1 column (" + input1 + ") type (" + TableField.getDataTypeAsString(input1FieldType)
-    		+ ") is not integer or double - cannot do math.");
+    		+ ") is not integer, long, or double - cannot do math.");
     }
-    if ( (input2Field >= 0) && (input2FieldType != TableField.DATA_TYPE_INT) && (input2FieldType != TableField.DATA_TYPE_DOUBLE) ) {
+    if ( (input2Field >= 0) &&
+    	(input2FieldType != TableField.DATA_TYPE_INT) &&
+    	(input2FieldType != TableField.DATA_TYPE_LONG) &&
+    	(input2FieldType != TableField.DATA_TYPE_DOUBLE) ) {
        	// Incompatible column types.
     	problems.add("Input2 column (" + input2 + ") type (" + TableField.getDataTypeAsString(input2FieldType)
-    		+ ") is not integer or double - cannot do math.");
+    		+ ") is not integer, long, or double - cannot do math.");
     }
-    
+
     if ( problems.size() > 0 ) {
         // Return if any problems were detected.
         return;
     }
 
-    // Loop through the table records.
+    // Loop through the table records and do the math operation.
     int nrec = this.table.getNumberOfRecords();
     Object val = null;
     Double input1ValDouble = null;
-    Double input2ValDouble = null;
     Integer input1ValInteger = null;
+    Long input1ValLong = null;
+    Double input2ValDouble = null;
     Integer input2ValInteger = null;
+    Long input2ValLong = null;
     Double outputValDouble = Double.NaN;
     Integer outputValInteger = null;
-    Double cumulativeValDouble = new Double(0.0);
-    Integer cumulativeValInteger = new Integer(0);
+    Long outputValLong = null;
+    Double cumulativeValDouble = Double.valueOf(0.0);
+    Integer cumulativeValInteger = Integer.valueOf(0);
+    Long cumulativeValLong = Long.valueOf(0);
     for ( int irec = 0; irec < nrec; irec++ ) {
     	// Check whether the row should be evaluated.
     	if ( evaluator != null ) {
@@ -295,13 +321,16 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
     	// - if mixed-case math is done below, cast to use non-missing values in the computation section
         input1ValDouble = Double.NaN;
         input1ValInteger = null;
+        input1ValLong = null;
         input2ValDouble = Double.NaN;
         input2ValInteger = null;
+        input2ValLong = null;
         outputValDouble = nonValue;
         outputValInteger = null;
+        outputValLong = null;
         // Get the first input value.
         try {
-        	if ( input1Field >= 0 ) { 
+        	if ( input1Field >= 0 ) {
         		// Using an input field, will be the case for most operations.
         		val = this.table.getFieldValue(irec, input1Field);
         		if ( input1FieldType == TableField.DATA_TYPE_DOUBLE ) {
@@ -310,9 +339,12 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
         		else if ( input1FieldType == TableField.DATA_TYPE_INT ) {
         			input1ValInteger = (Integer)val;
         		}
+        		else if ( input1FieldType == TableField.DATA_TYPE_LONG ) {
+        			input1ValLong = (Long)val;
+        		}
         		else {
         			// Leave as null.  Warnings will result.
-        			problems.add("Don't understand how to get input value 1 from column.");
+        			problems.add("Don't understand how to get input value 1 from column (not double, integer, or long).");
         		}
         	}
         	else {
@@ -323,9 +355,12 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
         		else if ( input1FieldType == TableField.DATA_TYPE_INT ) {
         			input1ValInteger = input1ConstantInteger;
         		}
+        		else if ( input1FieldType == TableField.DATA_TYPE_LONG ) {
+        			input1ValLong = input1ConstantLong;
+        		}
         		else {
         			// Leave as null.  Warnings will result.
-        			problems.add("Don't understand how to get input value 1 from constant.");
+        			problems.add("Don't understand how to get input value 1 from constant (not double, integer, or long).");
         		}
         	}
         }
@@ -335,20 +370,26 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
             Message.printWarning(3, routine, e);
             continue;
         }
-        // Get the second input value.
+
+        // Get the second input value, which depends on the operator.
+
         if ( operator == DataTableMathOperatorType.CUMULATE ) {
         	// Second value is the previous row value for the input column.
         	if ( irec == 0 ) {
-      			// First record - assume initial value was zero.
+      			// First record - assume that the initial value was zero.
         		if ( input1FieldType == TableField.DATA_TYPE_DOUBLE ) {
-        			input2ValDouble = new Double(0.0);
+        			input2ValDouble = Double.valueOf(0.0);
         		}
         		else if ( input1FieldType == TableField.DATA_TYPE_INT ) {
-        			input2ValInteger = new Integer(0);
+        			input2ValInteger = Integer.valueOf(0);
+        		}
+        		else if ( input1FieldType == TableField.DATA_TYPE_LONG ) {
+        			input2ValLong = Long.valueOf(0);
         		}
         		else {
         			// Leave as null.  Warnings will result.
-        			problems.add("Don't understand how to get row " + (irec + 1) + " initial input value 2 for " + operator + ".");
+        			problems.add("Don't understand how to get row " + (irec + 1) + " initial input value 2 for "
+        				+ operator + " (not a double, integer, or long).");
         		}
         	}
         	else {
@@ -361,9 +402,13 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
             		else if ( input1FieldType == TableField.DATA_TYPE_INT ) {
         		   		input2ValInteger = (Integer)val;
         	   		}
+            		else if ( input1FieldType == TableField.DATA_TYPE_LONG ) {
+        		   		input2ValLong = (Long)val;
+        	   		}
         	   		else {
         	   			// Leave as null.  Warnings will result.
-        	   			problems.add("Don't understand how to get row " + (irec + 1) + " input value 2 from previous row value for " + operator + ".");
+        	   			problems.add("Don't understand how to get row " + (irec + 1) + " input value 2 from previous row value for "
+        	   				+ operator + " (not a double, integer, or long).");
         	   		}
            		}
            		catch ( Exception e ) {
@@ -377,14 +422,18 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
         	if ( irec == 0 ) {
       			// First record - assume initial value was zero.
         		if ( input1FieldType == TableField.DATA_TYPE_DOUBLE ) {
-        			input2ValDouble = new Double(0.0);
+        			input2ValDouble = Double.valueOf(0.0);
         		}
         		else if ( input1FieldType == TableField.DATA_TYPE_INT ) {
-        			input2ValInteger = new Integer(0);
+        			input2ValInteger = Integer.valueOf(0);
+        		}
+        		else if ( input1FieldType == TableField.DATA_TYPE_LONG ) {
+        			input2ValLong = Long.valueOf(0);
         		}
         		else {
         			// Leave as null.  Warnings will result.
-        			problems.add("Don't understand how to get row " + (irec + 1) + " initial input value 2 for " + operator + ".");
+        			problems.add("Don't understand how to get row " + (irec + 1) + " initial input value 2 for "
+        				+ operator + " (not a double, integer, or long).");
         		}
         	}
         	else {
@@ -397,9 +446,13 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
             		else if ( input1FieldType == TableField.DATA_TYPE_DOUBLE ) {
         		   		input2ValDouble = (Double)val;
         	   		}
+            		else if ( input1FieldType == TableField.DATA_TYPE_LONG ) {
+        		   		input2ValLong = (Long)val;
+        	   		}
         	   		else {
         	   			// Leave as null.  Warnings will result.
-        	   			problems.add("Don't understand how to get row " + (irec + 1) + " input value 2 from previous row value for " + operator + ".");
+        	   			problems.add("Don't understand how to get row " + (irec + 1) + " input value 2 from previous row value for "
+        	   				+ operator + " (not a double, integer, or long).");
         	   		}
            		}
            		catch ( Exception e ) {
@@ -419,9 +472,12 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
                 else if ( input2FieldType == TableField.DATA_TYPE_DOUBLE ) {
                 	input2ValDouble = (Double)val;
                 }
+                else if ( input2FieldType == TableField.DATA_TYPE_LONG ) {
+                	input2ValLong = (Long)val;
+                }
                 else {
         	   		// Leave as null.  Warnings will result.
-        			problems.add("Don't understand how to get initial row + " + (irec + 1) + " input value 2 if column is not integer or double.");
+        			problems.add("Don't understand how to get initial row + " + (irec + 1) + " input value 2 if column is not integer, long, or double.");
                 }
             }
             catch ( Exception e ) {
@@ -437,29 +493,10 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
 	        if ( input2ConstantInteger != null ) {
 	            input2ValInteger = input2ConstantInteger;
 	        }
+	        if ( input2ConstantLong != null ) {
+	            input2ValLong = input2ConstantLong;
+	        }
         }
-        /* TODO smalers 2021-08-20 this is now handled below.
-        // TODO SAM 2015-08-14 If at least one of the inputs is a double then the output is a double.
-        if ( input1FieldType != input2FieldType ) {
-        	// Make sure the input is cast properly.
-        	if ( input1FieldType == TableField.DATA_TYPE_INT ) {
-        		if ( input1ValInteger == null ) {
-        			input1ValDouble = null;
-        		}
-        		else {
-        			input1ValDouble = 0.0 + input1ValInteger;
-        		}
-        	}
-        	if ( input2FieldType == TableField.DATA_TYPE_INT ) {
-        		if ( input2ValInteger == null ) {
-        			input2ValDouble = null;
-        		}
-        		else {
-        			input2ValDouble = 0.0 + input2ValInteger;
-        		}
-        	}
-        } 
-        */
         // Check for missing values and determine the output type.
         if ( operator == DataTableMathOperatorType.CUMULATE ) {
         	// Handle calculation explicitly since different than other operators:
@@ -484,6 +521,16 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
                 else {
                		outputValInteger = cumulativeValInteger + input1ValInteger;
                 	cumulativeValInteger = outputValInteger;
+                }
+	    	}
+	    	else if ( outputFieldType == TableField.DATA_TYPE_LONG ) {
+                if ( input1ValLong == null ) {
+                	// Unable to compute so set to the non-value.
+                    outputValLong = null;
+                }
+                else {
+               		outputValLong = cumulativeValLong + input1ValLong;
+                	cumulativeValLong = outputValLong;
                 }
 	    	}
 	    	else {
@@ -513,6 +560,15 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
                		outputValInteger = input1ValInteger - input2ValInteger;
                 }
 	    	}
+	    	else if ( outputFieldType == TableField.DATA_TYPE_LONG ) {
+                if ( (input1ValLong == null) || (input2ValLong == null) ) {
+                	// Unable to compute so set to the non-value.
+                    outputValLong = null;
+                }
+                else {
+               		outputValLong = input1ValLong - input2ValLong;
+                }
+	    	}
 	    	else {
         		problems.add("Don't understand how to calculate delta output for row " + (irec + 1) + ".");
 	    	}
@@ -539,6 +595,14 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
                 	outputValInteger = input1ValInteger;
                 }
             }
+        	else if ( input1FieldType == TableField.DATA_TYPE_LONG ) {
+                if ( input1ValLong == null ) {
+                    outputValLong = null;
+                }
+                else {
+                	outputValLong = input1ValLong;
+                }
+            }
         	else {
         		problems.add("Don't understand how to calculate output for row " + (irec + 1) + " input 1 column type.");
         	}
@@ -548,9 +612,15 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
 	    	if ( outputFieldType == TableField.DATA_TYPE_DOUBLE) {
 	    		// Do math as doubles.
 	    		// If mixed input types, use integer values if double is missing.
-                if ( ((input1ValDouble == null) || input1ValDouble.isNaN()) && input1ValInteger != null ) {
-                	// Mixed case so get input from integer.
-                	input1ValDouble = new Double(input1ValInteger);
+                if ( (input1ValDouble == null) || input1ValDouble.isNaN() ) {
+                	if ( input1ValInteger != null ) {
+                		// Mixed case so get input from integer.
+                		input1ValDouble = Double.valueOf(input1ValInteger);
+                	}
+                	else if ( input1ValLong != null ) {
+                		// Mixed case so get input from long.
+                		input1ValDouble = Double.valueOf(input1ValLong);
+                	}
                 }
 	    		// If input is still missing, set the output to missing.
                 if ( (input1ValDouble == null) || input1ValDouble.isNaN() ) {
@@ -566,9 +636,15 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
 	    	}
 	    	else if ( outputFieldType == TableField.DATA_TYPE_INT ) {
 	    		// Do math as integer.
-                if ( (input1ValInteger == null) && ((input1ValDouble != null) && !input1ValDouble.isNaN()) ) {
-                	// Mixed case so get input from double.
-                	input1ValInteger = new Integer(input1ValDouble.intValue());
+                if ( input1ValInteger == null ) {
+                	if ( input1ValLong != null ) {
+                		// Mixed case so get input from long.
+                		input1ValInteger = Integer.valueOf(input1ValLong.intValue());
+                	}
+                	else if ( (input1ValDouble != null) && !input1ValDouble.isNaN() ) {
+                		// Mixed case so get input from double.
+                		input1ValInteger = Integer.valueOf(input1ValDouble.intValue());
+                	}
                 }
                 // If input is still missing, set to missing.
                 if ( input1ValInteger == null ) {
@@ -584,25 +660,63 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
         		    problems.add("Don't understand how to calculate row " + (irec + 1) + " integer output for operator: " + operator);
         	    }
 	    	}
+	    	else if ( outputFieldType == TableField.DATA_TYPE_LONG ) {
+	    		// Do math as long.
+                if ( input1ValLong == null ) {
+                	if ( input1ValInteger != null ) {
+                		// Mixed case so get input from integer.
+                		input1ValLong = Long.valueOf(input1ValInteger);
+                	}
+                	else if ( (input1ValDouble != null) && !input1ValDouble.isNaN() ) {
+                		// Mixed case so get input from double.
+                		input1ValLong = Long.valueOf(input1ValDouble.intValue());
+                	}
+                }
+                // If input is still missing, set to missing.
+                if ( input1ValLong == null ) {
+                	if ( Message.isDebugOn ) {
+                		Message.printStatus(2, routine, "Setting long row " + (irec + 1) + " output to null since have null input.");
+                	}
+                    outputValLong = null;
+                }
+                if ( operator == DataTableMathOperatorType.ASSIGN ) {
+                	outputValLong = input1ValLong;
+                }
+                else {
+        		    problems.add("Don't understand how to calculate row " + (irec + 1) + " long output for operator: " + operator);
+        	    }
+	    	}
         }
         else {
         	// All other operators.  Handle the operations depending on data type.
         	// The following operators need two input values to compute.
 	    	//if ( (input1FieldType == TableField.DATA_TYPE_DOUBLE) || (input2FieldType == TableField.DATA_TYPE_DOUBLE) ||
-	    	//	(input1FieldType != input2FieldType) ) {
+	    	//	(input1FieldType != input2FieldType) ) { // }
 	    	if ( outputFieldType == TableField.DATA_TYPE_DOUBLE) {
 	    		// Do math as doubles.
 	    		// Double input and double output (or mixed in which case double values were set above).
 	    		// TODO smalers 2021-09-20 output field was determined above.
 	    		//outputFieldType = TableField.DATA_TYPE_DOUBLE;
-	    		// If mixed input types, use integer values if double is missing.
-                if ( ((input1ValDouble == null) || input1ValDouble.isNaN()) && input1ValInteger != null ) {
-                	// Mixed case so get input from integer.
-                	input1ValDouble = new Double(input1ValInteger);
+	    		// If mixed input types, use integer or long values if double is missing.
+                if ( (input1ValDouble == null) || input1ValDouble.isNaN() ) {
+                	if ( input1ValInteger != null ) {
+                		// Mixed case so get input from integer.
+                		input1ValDouble = Double.valueOf(input1ValInteger);
+                	}
+                	else if ( input1ValLong != null ) {
+                		// Mixed case so get input from long.
+                		input1ValDouble = Double.valueOf(input1ValLong);
+                	}
                 }
-                if ( ((input2ValDouble == null) || input2ValDouble.isNaN()) && input2ValInteger != null ) {
-                	// Mixed case so get input from integer.
-               		input2ValDouble = new Double(input2ValInteger);
+                if ( (input2ValDouble == null) || input2ValDouble.isNaN() ) {
+                	if ( input2ValInteger != null ) {
+                		// Mixed case so get input from integer.
+                		input2ValDouble = Double.valueOf(input2ValInteger);
+                	}
+                	else if ( input2ValLong != null ) {
+                		// Mixed case so get input from long.
+                		input2ValDouble = Double.valueOf(input2ValLong);
+                	}
                 }
 	    		// If input is still missing, set the output to missing.
                 if ( (input1ValDouble == null) || input1ValDouble.isNaN() || (input2ValDouble == null) || input2ValDouble.isNaN() ) {
@@ -636,20 +750,32 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
         		    problems.add("Don't understand how to calculate row " + (irec + 1) + " double output.");
         	    }
             }
-	    	//else if ( (input1FieldType == TableField.DATA_TYPE_INT) && (input2FieldType == TableField.DATA_TYPE_INT) ) {
+	    	//else if ( (input1FieldType == TableField.DATA_TYPE_INT) && (input2FieldType == TableField.DATA_TYPE_INT) ) { // }
 	    	else if ( outputFieldType == TableField.DATA_TYPE_INT ) {
 	    		// Do math as integer.
 	    		// Integer input and integer output:
 	    		// - both inputs must be consistent
 	    		// TODO smalers 2021-09-20 output field was determined above.
 	    		//outputFieldType = TableField.DATA_TYPE_INT;
-                if ( (input1ValInteger == null) && ((input1ValDouble != null) && !input1ValDouble.isNaN()) ) {
-                	// Mixed case so get input from double.
-                	input1ValInteger = new Integer(input1ValDouble.intValue());
+                if ( input1ValInteger == null ) {
+					if ( input1ValLong != null ) {
+						// Mixed case so get input from long.
+						input1ValInteger = Integer.valueOf(input1ValLong.intValue());
+					}
+					else if ( (input1ValDouble != null) && !input1ValDouble.isNaN() ) {
+						// Mixed case so get input from double.
+						input1ValInteger = Integer.valueOf(input1ValDouble.intValue());
+					}
                 }
-                if ( (input2ValInteger == null) && ((input2ValDouble != null) && !input2ValDouble.isNaN()) ) {
-                	// Mixed case so get input from double.
-               		input2ValInteger = new Integer(input2ValDouble.intValue());
+                if ( input2ValInteger == null ) {
+                	if ( input2ValLong != null ) {
+                		// Mixed case so get input from long.
+                		input2ValInteger = Integer.valueOf(input2ValLong.intValue());
+                	}
+                	else if ( (input2ValDouble != null) && !input2ValDouble.isNaN() ) {
+                		// Mixed case so get input from double.
+                		input2ValInteger = Integer.valueOf(input2ValDouble.intValue());
+                	}
                 }
                 // If input is still missing, set to missing.
                 if ( (input1ValInteger == null) || (input2ValInteger == null) ) {
@@ -665,7 +791,7 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
                 	outputValInteger = input1ValInteger;
                 }
                 else if ( operator == DataTableMathOperatorType.DIVIDE ) {
-                    if ( input2ValInteger == 0.0 ) {
+                    if ( input2ValInteger == 0 ) {
                         outputValInteger = null;
                     }
                     else {
@@ -688,6 +814,69 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
         		    problems.add("Don't understand how to calculate row " + (irec + 1) + " integer output for operator: " + operator);
         	    }
             }
+	    	else if ( outputFieldType == TableField.DATA_TYPE_LONG ) {
+	    		// Do math as long.
+	    		// Long input and long output:
+	    		// - both inputs must be consistent
+	    		// TODO smalers 2021-09-20 output field was determined above.
+	    		//outputFieldType = TableField.DATA_TYPE_LONG;
+                if ( input1ValLong == null ) {
+					if ( input1ValInteger != null ) {
+						// Mixed case so get input from integer.
+						input1ValLong = Long.valueOf(input1ValInteger);
+					}
+					else if ( (input1ValDouble != null) && !input1ValDouble.isNaN() ) {
+						// Mixed case so get input from double.
+						input1ValLong = Long.valueOf(input1ValDouble.intValue());
+					}
+                }
+                if ( input2ValLong == null ) {
+                	if ( input2ValInteger != null ) {
+                		// Mixed case so get input from integer.
+                		input2ValLong = Long.valueOf(input2ValInteger);
+                	}
+                	else if ( (input2ValDouble != null) && !input2ValDouble.isNaN() ) {
+                		// Mixed case so get input from double.
+                		input2ValLong = Long.valueOf(input2ValDouble.intValue());
+                	}
+                }
+                // If input is still missing, set to missing.
+                if ( (input1ValLong == null) || (input2ValLong == null) ) {
+                	if ( Message.isDebugOn ) {
+                		Message.printStatus(2, routine, "Setting long row " + (irec + 1) + " output to null since have null input.");
+                	}
+                    outputValLong = null;
+                }
+                else if ( operator == DataTableMathOperatorType.ADD ) {
+                	outputValLong = input1ValLong + input2ValLong;
+                }
+                else if ( operator == DataTableMathOperatorType.ASSIGN ) {
+                	outputValLong = input1ValLong;
+                }
+                else if ( operator == DataTableMathOperatorType.DIVIDE ) {
+                    if ( input2ValLong == 0 ) {
+                        outputValLong = null;
+                    }
+                    else {
+                        outputValLong = input1ValLong / input2ValLong;
+                    }
+                }
+                else if ( operator == DataTableMathOperatorType.MAX ) {
+                	outputValLong = Math.max(input1ValLong, input2ValLong);
+                }
+                else if ( operator == DataTableMathOperatorType.MIN ) {
+                	outputValLong = Math.min(input1ValLong, input2ValLong);
+                }
+                else if ( operator == DataTableMathOperatorType.MULTIPLY ) {
+                	outputValLong = input1ValLong * input2ValLong;
+                }
+                else if ( operator == DataTableMathOperatorType.SUBTRACT ) {
+                	outputValLong = input1ValLong - input2ValLong;
+                }
+                else {
+        		    problems.add("Don't understand how to calculate row " + (irec + 1) + " long output for operator: " + operator);
+        	    }
+            }
 	    	else {
 	    		// Unhandled combination:
 	    		// - TODO smalers 2021-08-19 Need to fix the code?
@@ -704,7 +893,7 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
                 this.table.setFieldValue(irec, outputField, outputValInteger );
             }
             else if ( outputFieldType == TableField.DATA_TYPE_LONG ) {
-                this.table.setFieldValue(irec, outputField, new Long(outputValInteger) );
+                this.table.setFieldValue(irec, outputField, outputValLong );
             }
             else if ( outputFieldType == TableField.DATA_TYPE_DOUBLE ) {
                 this.table.setFieldValue(irec, outputField, outputValDouble );
@@ -716,8 +905,11 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
             }
         }
         catch ( Exception e ) {
-            if ( (outputFieldType == TableField.DATA_TYPE_INT) || (outputFieldType == TableField.DATA_TYPE_LONG) ) {
+            if ( outputFieldType == TableField.DATA_TYPE_INT ) {
                 problems.add ( "Error setting value in row " + (irec + 1) + " to " + outputValInteger + " (" + e + ")." );
+            }
+            else if ( outputFieldType == TableField.DATA_TYPE_LONG ) {
+                problems.add ( "Error setting value in row " + (irec + 1) + " to " + outputValLong + " (" + e + ")." );
             }
             else if ( outputFieldType == TableField.DATA_TYPE_DOUBLE ) {
                 problems.add ( "Error setting value in row " + (irec + 1) + " to " + outputValDouble + " (" + e + ")." );
@@ -726,7 +918,7 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
             	problems.add ( "Error setting value in row " + (irec + 1) + " (" + e + ")." );
             }
         }
-    }   
+    }
 }
 
 /**
