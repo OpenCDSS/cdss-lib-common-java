@@ -373,13 +373,15 @@ public DataTableComparer (
     this.__matchColumns2 = matchColumns2;
     warning = new StringBuilder();
     matchColumns2Size = matchColumns2.size();
-    for ( String column: matchColumns2 ) {
-        try {
-            table2.getFieldIndex(column);
-        }
-        catch ( Exception e ) {
-            warning.append ( "; column to match \"" + column + "\" does not exist in the second table" );
-        }
+    if ( matchColumnsByName ) {
+    	for ( String column: matchColumns2 ) {
+        	try {
+            	table2.getFieldIndex(column);
+        	}
+        	catch ( Exception e ) {
+            	warning.append ( "; column to match \"" + column + "\" does not exist in the second table" );
+        	}
+    	}
     }
     if ( warning.length() > 0 ) {
         throw new InvalidParameterException( "Some columns to match in the second table do not exist:  " +
@@ -585,10 +587,11 @@ throws Exception {
         // the first table array and use -1 for the array positions.
         if ( compareColumnNumbers2.length < compareColumnNumbers1.length ) {
             int [] columnNumbersTemp = new int[compareColumnNumbers1.length];
+            // Initialize a longer array.
             for ( int i = 0; i < compareColumnNumbers1.length; i++ ) {
-                columnNumbersTemp[i] = -1; // default
+                columnNumbersTemp[i] = -1; // Default.
             }
-            // Copy original shorter array into first part of new array.
+            // Copy original shorter array into first part of the temporary array.
             System.arraycopy(compareColumnNumbers2, 0, columnNumbersTemp, 0, compareColumnNumbers2.length);
             compareColumnNumbers2 = columnNumbersTemp;
         }
@@ -608,10 +611,10 @@ throws Exception {
     Message.printStatus(2, routine, "Have " + n1 + " table 1 match columns and " + n2 + " table 2 match columns." );
     if ( (this.__matchColumns1 != null) && !this.__matchColumns1.isEmpty() ) {
         matchColumnNumbers1 = new int[this.__matchColumns1.size()];
-        // Loop through the first tables columns and find the matching column in the second table.
+        // Loop through the first table's match columns and find the matching column in the second table.
         for ( int i = 0; i < this.__matchColumns1.size(); i++ ) {
             try {
-                matchColumnNumbers1[i] = table2.getFieldIndex(this.__matchColumns1.get(i));
+                matchColumnNumbers1[i] = table1.getFieldIndex(this.__matchColumns1.get(i));
                 Message.printStatus(2,routine,"Match column [" + i + "] \"" + this.__matchColumns1.get(i) +
                     "\" in table 1 matches column [" + matchColumnNumbers1[i] + "].");
             }
@@ -622,32 +625,44 @@ throws Exception {
             }
         }
     }
-    if ( (this.__matchColumns2 != null) && !this.__matchColumns2.isEmpty() ) {
-        matchColumnNumbers2 = new int[this.__matchColumns2.size()];
-        // Loop through the first tables columns and find the matching column in the second table.
-        for ( int i = 0; i < this.__matchColumns2.size(); i++ ) {
-            try {
-                matchColumnNumbers2[i] = table2.getFieldIndex(this.__matchColumns2.get(i));
-                Message.printStatus(2,routine,"Match column [" + i + "] \"" + this.__matchColumns2.get(i) +
-                    "\" in table 2 matches column [" + matchColumnNumbers2[i] + "].");
-            }
-            catch ( Exception e ) {
-                matchColumnNumbers2[i] = -1; // Column not matched.
-                Message.printStatus(2,routine,"Match column [" + i + "] \"" + this.__matchColumns2.get(i) +
-                    "\" in table 2 does not match any column.");
-            }
-        }
+    if ( getMatchColumnsByName() ) {
+    	// Only do the check if matching columns by name.
+    	if ( (this.__matchColumns2 != null) && !this.__matchColumns2.isEmpty() ) {
+        	matchColumnNumbers2 = new int[this.__matchColumns2.size()];
+        	// Loop through the second table's match columns and find the matching column in the second table.
+        	for ( int i = 0; i < this.__matchColumns2.size(); i++ ) {
+            	try {
+                	matchColumnNumbers2[i] = table2.getFieldIndex(this.__matchColumns2.get(i));
+                	Message.printStatus(2,routine,"Match column [" + i + "] \"" + this.__matchColumns2.get(i) +
+                    	"\" in table 2 matches column [" + matchColumnNumbers2[i] + "].");
+            	}
+            	catch ( Exception e ) {
+                	matchColumnNumbers2[i] = -1; // Column not matched.
+                	Message.printStatus(2,routine,"Match column [" + i + "] \"" + this.__matchColumns2.get(i) +
+                    	"\" in table 2 does not match any column.");
+            	}
+        	}
+    	}
     }
+    
+    Message.printStatus(2, routine,
+    	"CompareColumns1.size=" + this.__compareColumns1.size() +
+    	" CompareColumnNumbers1.length=" + compareColumnNumbers1.length +
+    	" CompareColumns2.size=" + this.__compareColumns2.size() +
+    	" CompareColumnNumbers2.length=" + compareColumnNumbers2.length
+    );
 
     // C-style formats to convert compare column values to strings for comparison:
     // - these are in the position of the match columns in the original table
     String[] compareColumnFieldFormats1 = new String[this.__compareColumns1.size()];
-    String[] compareColumnFieldFormats2 = new String[this.__compareColumns1.size()];
+    // Use the column numbers because the array is sized correctly above.
+    String[] compareColumnFieldFormats2 = new String[compareColumnNumbers2.length];
     Integer precision = getPrecision();
     Double tolerance = getTolerance();
     for ( int icol = 0; icol < compareColumnNumbers1.length; icol++ ) {
 		// Get the format from the table properties (works for everything except for floating point).
     	compareColumnFieldFormats1[icol] = table1.getFieldFormat(compareColumnNumbers1[icol]);
+  		// Set the precision for floating point columns.
     	if ( (precision != null) && (precision >= 0) ) {
         	// Update the field formats to use the requested precision, if a floating point field.
         	String fieldFormat = "%." + precision + "f";
@@ -659,16 +674,38 @@ throws Exception {
            	}
         }
     }
-    for ( int icol = 0; icol < compareColumnNumbers2.length; icol++ ) {
+    // Second column may default to names of the first column, which may not be correct when using column order,
+    // so handle both cases.
+    // TODO smalers 2024-02-26 need to figure out why the following have different sizes.
+    //for ( int icol = 0; icol < compareColumnNumbers2.length; icol++ ) {
+    for ( int icol = 0; icol < this.__compareColumns2.size(); icol++ ) {
 		// Get the format from the table properties (works for everything except for floating point).
-    	compareColumnFieldFormats2[icol] = table2.getFieldFormat(compareColumnNumbers2[icol]);
+    	if ( getMatchColumnsByName() ) {
+    		// Get the precision based on the column name.
+    		compareColumnFieldFormats2[icol] = table2.getFieldFormat(compareColumnNumbers2[icol]);
+    	}
+    	else {
+    		// Get the precision based on the column order.
+    		compareColumnFieldFormats2[icol] = table2.getFieldFormat(icol);
+    	}
     	if ( (precision != null) && (precision >= 0) ) {
+    		// Set the precision for floating point columns.
         	String fieldFormat = "%." + precision + "f";
-            if ( compareColumnNumbers2[icol] >= 0 ) {
-                if ( (table2.getFieldDataType(compareColumnNumbers2[icol]) == TableField.DATA_TYPE_DOUBLE) ||
-                    (table2.getFieldDataType(compareColumnNumbers2[icol]) == TableField.DATA_TYPE_FLOAT) ) {
-                    compareColumnFieldFormats2[compareColumnNumbers2[icol]] = fieldFormat;
-                }
+        	if ( getMatchColumnsByName() ) {
+        		if ( compareColumnNumbers2[icol] >= 0 ) {
+        			// Get the precision based on the column name.
+        			if ( (table2.getFieldDataType(compareColumnNumbers2[icol]) == TableField.DATA_TYPE_DOUBLE) ||
+        				(table2.getFieldDataType(compareColumnNumbers2[icol]) == TableField.DATA_TYPE_FLOAT) ) {
+        				compareColumnFieldFormats2[compareColumnNumbers2[icol]] = fieldFormat;
+        			}
+        		}
+        	}
+        	else {
+        		// Get the precision based on the column order.
+        		if ( (table2.getFieldDataType(icol) == TableField.DATA_TYPE_DOUBLE) ||
+        			(table2.getFieldDataType(icol) == TableField.DATA_TYPE_FLOAT) ) {
+        			compareColumnFieldFormats2[icol] = fieldFormat;
+        		}
             }
         }
     }
@@ -691,18 +728,20 @@ throws Exception {
            	}
        	}
     }
-    for ( int icol = 0; icol < matchColumnNumbers2.length; icol++ ) {
-		// Get the format from the table properties (works for everything except for floating point).
-    	matchColumnFieldFormats2[icol] = table2.getFieldFormat(matchColumnNumbers2[icol]);
-    	if ( (precision != null) && (precision >= 0) ) {
-        	// Update the field formats to use the requested precision, if a floating point field.
-        	String fieldFormat = "%." + precision + "f";
-           	if ( matchColumnNumbers2[icol] >= 0 ) {
-               	if ( (table2.getFieldDataType(matchColumnNumbers2[icol]) == TableField.DATA_TYPE_DOUBLE) ||
-                   	(table2.getFieldDataType(matchColumnNumbers2[icol]) == TableField.DATA_TYPE_FLOAT) ) {
-                   	matchColumnFieldFormats2[matchColumnNumbers2[icol]] = fieldFormat;
-               	}
-        	}
+    if ( matchColumnNumbers2 != null ) {
+    	for ( int icol = 0; icol < matchColumnNumbers2.length; icol++ ) {
+			// Get the format from the table properties (works for everything except for floating point).
+    		matchColumnFieldFormats2[icol] = table2.getFieldFormat(matchColumnNumbers2[icol]);
+    		if ( (precision != null) && (precision >= 0) ) {
+        		// Update the field formats to use the requested precision, if a floating point field.
+        		String fieldFormat = "%." + precision + "f";
+           		if ( matchColumnNumbers2[icol] >= 0 ) {
+               		if ( (table2.getFieldDataType(matchColumnNumbers2[icol]) == TableField.DATA_TYPE_DOUBLE) ||
+                   		(table2.getFieldDataType(matchColumnNumbers2[icol]) == TableField.DATA_TYPE_FLOAT) ) {
+                   		matchColumnFieldFormats2[matchColumnNumbers2[icol]] = fieldFormat;
+               		}
+        		}
+    		}
     	}
     }
 
