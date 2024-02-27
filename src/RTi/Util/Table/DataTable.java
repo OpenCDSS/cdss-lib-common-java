@@ -555,8 +555,10 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
     TableRecord rec;
     // Row count 1+, used when checking row numbers.
     int irow1 = 0;
-   	for ( int appendRowNumber : appendRowNumbers ) {
-   		Message.printStatus(2, routine, "Will append row number: " + appendRowNumber);
+    if ( (appendRowNumbers != null) && (appendRowNumbers.length > 0) ) {
+    	for ( int appendRowNumber : appendRowNumbers ) {
+   			Message.printStatus(2, routine, "Will append row number: " + appendRowNumber);
+    	}
    	}
     for ( int irow = 0; irow < appendTable.getNumberOfRecords(); irow++ ) {
         somethingAppended = false; // Nothing appended so don't process record below.
