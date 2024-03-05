@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2024 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -255,6 +255,11 @@ public String checkInputFilters ( boolean displayWarning ) {
 		if ( inputType == StringUtil.TYPE_STRING ) {
 			// Any limitations?  For now assume not.
 		}
+		else if ( inputType == StringUtil.TYPE_BOOLEAN ) {
+			if ( !StringUtil.isBoolean(input) ) {
+				warning += "\nInput filter \"" + filter.getWhereLabel() + "\", input is not a boolean:  \"" + input + "\"" + "\n";
+			}
+		}
 		else if ( (inputType == StringUtil.TYPE_DOUBLE) || (inputType == StringUtil.TYPE_FLOAT) ) {
 			if ( !StringUtil.isDouble(input) ) {
 				warning += "\nInput filter \"" + filter.getWhereLabel() + "\", input is not a number:  \"" + input + "\"" + "\n";
@@ -307,6 +312,12 @@ public boolean checkInput ( boolean displayWarning ) {
 		if ( inputType == StringUtil.TYPE_STRING ) {
 			// Any limitations?  For now assume not.
 		}
+		else if	( inputType == StringUtil.TYPE_BOOLEAN ) {
+			if ( !StringUtil.isBoolean(input) ) {
+				warning += "Input filter \"" + filter.getWhereLabel() +
+				"\", input is not a boolean:  \"" + input + "\"" + "\n";
+			}
+		}
 		else if ( (inputType == StringUtil.TYPE_DOUBLE) || (inputType == StringUtil.TYPE_FLOAT) ) {
 			if ( !StringUtil.isDouble(input) ) {
 				warning += "Input filter \"" + filter.getWhereLabel() +
@@ -316,7 +327,7 @@ public boolean checkInput ( boolean displayWarning ) {
 		else if	( inputType == StringUtil.TYPE_INTEGER ) {
 			if ( !StringUtil.isInteger(input) ) {
 				warning += "Input filter \"" + filter.getWhereLabel() +
-				"\", input is not an integer:  \""+input + "\"" + "\n";
+				"\", input is not an integer:  \"" + input + "\"" + "\n";
 			}
 		}
 	}
@@ -368,6 +379,9 @@ private void fillOperatorJComboBox ( SimpleJComboBox cb, int type, List<String> 
 		cb.add ( InputFilterCriterionType.INPUT_CONTAINS.toString() );
 		// TODO SAM 2010-05-23 Evaluate automatically adding.
 		//cb.add ( InputFilter.INPUT_IS_EMPTY );
+	}
+	else if ( type == StringUtil.TYPE_BOOLEAN ) {
+		cb.add ( InputFilterCriterionType.INPUT_EQUALS.toString() );
 	}
 	else if ( (type == StringUtil.TYPE_DOUBLE) || (type == StringUtil.TYPE_FLOAT) ||
 		(type == StringUtil.TYPE_INTEGER) ) {
@@ -464,6 +478,14 @@ public List<String> getInput ( String whereLabel, String internalWhere, boolean 
 			    // Return the input with operator.
 				inputList.add (getOperator(ifg) + delim + input );
 			}
+		}
+		else if	( inputType == StringUtil.TYPE_BOOLEAN ) {
+            if ( useWildcards ) {
+                inputList.add ( input );
+            }
+            else {
+                inputList.add (getOperator(ifg) + delim + input );
+            }
 		}
 		else if ( (inputType == StringUtil.TYPE_DOUBLE) || (inputType == StringUtil.TYPE_FLOAT) ) {
 		    if ( useWildcards ) {

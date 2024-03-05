@@ -556,7 +556,7 @@ throws Exception {
     List<String> compareColumns1 = getCompareColumns1();
     List<String> compareColumns2 = getCompareColumns2();
 
-    Message.printStatus(2, routine, "Table comparsion analysis type = " + analysisType );
+    Message.printStatus(2, routine, "Table comparison analysis type = " + analysisType );
 
     // Table 1 is the primary and consequently its indices will control the comparisons.
     int[] compareColumnNumbers1 = table1.getFieldIndices(StringUtil.toArray(compareColumns1));
@@ -666,7 +666,7 @@ throws Exception {
     	if ( (precision != null) && (precision >= 0) ) {
         	// Update the field formats to use the requested precision, if a floating point field.
         	String fieldFormat = "%." + precision + "f";
-           	if ( matchColumnNumbers1[icol] >= 0 ) {
+           	if ( compareColumnNumbers1[icol] >= 0 ) {
            		if ( (table1.getFieldDataType(compareColumnNumbers1[icol]) == TableField.DATA_TYPE_DOUBLE) ||
                 	(table1.getFieldDataType(compareColumnNumbers1[icol]) == TableField.DATA_TYPE_FLOAT) ) {
                 	compareColumnFieldFormats1[compareColumnNumbers1[icol]] = fieldFormat;
@@ -979,10 +979,19 @@ throws Exception {
        			// The 'matchCount' is reset for each compared row.
       			int matchCount = 0;
                 for ( int iMatchCol = 0; iMatchCol < matchColumnNumbers1.length; iMatchCol++ ) {
+                	// Warnings to help with troubleshooting the code.
+                	if ( iMatchCol >= matchColumnNumbers1.length  ) {
+                		Message.printWarning(3, routine, "iMatchCol=" + iMatchCol + " is out of bounds for matchColumNumbers1 length = " + matchColumnNumbers1.length );
+                	}
+                	if ( iMatchCol >= matchColumnFieldFormats1.length  ) {
+                		Message.printWarning(3, routine, "iMatchCol=" + iMatchCol + " is out of bounds for matchColumFieldFormats1 length = " + matchColumnFieldFormats1.length );
+                	}
                 	table1Value = formatInputTableValueString (
-               			table1, inRow1, matchColumnNumbers1[iMatchCol], matchColumnFieldFormats1[matchColumnNumbers1[iMatchCol]] );
+               			//table1, inRow1, matchColumnNumbers1[iMatchCol], matchColumnFieldFormats1[matchColumnNumbers1[iMatchCol]] );
+               			table1, inRow1, matchColumnNumbers1[iMatchCol], matchColumnFieldFormats1[iMatchCol] );
                 	table2Value = formatInputTableValueString (
-                		table2, iSearchRow2, matchColumnNumbers2[iMatchCol], matchColumnFieldFormats2[matchColumnNumbers2[iMatchCol]] );
+                		//table2, iSearchRow2, matchColumnNumbers2[iMatchCol], matchColumnFieldFormats2[matchColumnNumbers2[iMatchCol]] );
+                		table2, iSearchRow2, matchColumnNumbers2[iMatchCol], matchColumnFieldFormats2[iMatchCol] );
                 	if ( Message.isDebugOn ) {
            		    	Message.printStatus(2, routine, "  Comparing \"" + table1Value + "\" and \"" + table2Value + "\"." );
                 	}
@@ -1561,13 +1570,25 @@ private String formatInputTableValueString ( DataTable table, int irow, int icol
            	// Check for integer to format without trailing 0's.
            	// First check for number, then for integer.
        		// FIXME smalers 2022-04-29 the following does not handle Integer because of casting.
-           	if (((table.getFieldDataType(icol) == TableField.DATA_TYPE_DOUBLE) ||
+           	if ( ((table.isColumnArray(table.getFieldDataType(icol)) ) )) {
+           		// Column is an array so need to format it accordingly:
+           		// - should work well for everything but float but float will use default precision
+           		try {
+           			formattedValue = table.formatArrayColumn(irow,icol);
+           		}
+           		catch ( Exception e ) {
+           			// Treat as if typical data but may format as Java internal notation.
+           			formattedValue = StringUtil.formatString(value,format).trim();
+           		}
+           	}
+           	else if (((table.getFieldDataType(icol) == TableField.DATA_TYPE_DOUBLE) ||
                	(table.getFieldDataType(icol) == TableField.DATA_TYPE_FLOAT)) &&
                	(value.getClass().getName() == "Integer" || ((Double) value == Double.POSITIVE_INFINITY) ||
                	((Double) value - Math.round((Double) value)) == 0)) {
                	formattedValue = StringUtil.formatString(value,"%.0f").trim();
            	}
            	else {
+           		// All other types.
                	formattedValue = StringUtil.formatString(value,format).trim();
            	}
 		}

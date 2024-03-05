@@ -167,7 +167,7 @@ private String toHtml( boolean writeHeader, String htmlTitle, List<String> comme
         int nTableRows = table.getNumberOfRecords();
         int nMaskRows = 0;
         int nMaskCols = 0;
-        if ( styleMaskArray != null ) {
+        if ( (styleMaskArray != null) && (styleMaskArray.length > 0) ) {
         	nMaskRows = styleMaskArray.length;
         	nMaskCols = styleMaskArray[0].length;
         	//Message.printStatus(2, routine, "Table has " + nTableRows + " rows and " + nTableCols + " columns.");
