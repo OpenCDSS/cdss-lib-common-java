@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2024 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -24,7 +24,6 @@ NoticeEnd */
 package RTi.Util.GUI;
 
 import java.awt.event.MouseListener;
-
 import java.util.List;
 import java.util.Vector;
 
@@ -769,6 +768,11 @@ public boolean matches ( String s, String operator, boolean ignore_case ) {
 		// Operator not recognized.
 		return false;
 	}
+	else if ( (__inputType == StringUtil.TYPE_BOOLEAN) && StringUtil.isBoolean(s) ) {
+		// Use the overloaded method.
+		boolean b = Boolean.valueOf(s);
+		return matches ( b, operator );
+	}
 	else if ( (__inputType == StringUtil.TYPE_INTEGER) && StringUtil.isInteger(s) ) {
 		// Use the overloaded method.
 		return matches ( StringUtil.atoi(s), operator );
@@ -780,6 +784,31 @@ public boolean matches ( String s, String operator, boolean ignore_case ) {
 	// Data type not recognized.
 	return false;
 }
+
+/**
+Indicate whether a boolean matches the filter.
+The filter type is checked and appropriate comparisons are made.
+@param b boolean to compare to.  The filter type must be for a boolean.
+@param operator Operator to apply to the filter (usually managed in InputFilter_JFrame).
+@return true if the integer matches the current input for the input filter, or false otherwise.
+*/
+public boolean matches ( boolean b, String operator ) {
+	String input = getInput ( false );
+	if ( __inputType != StringUtil.TYPE_BOOLEAN ) {
+		return false;
+	}
+	if ( !StringUtil.isBoolean ( input ) ) {
+		return false;
+	}
+	boolean input_boolean = Boolean.valueOf(input);
+	if ( operator.equals(InputFilterCriterionType.INPUT_EQUALS.toString()) ||
+		operator.equalsIgnoreCase(InputFilterCriterionType.INPUT_EQUALS_LEGACY.toString()) ) {
+		return (b == input_boolean);
+	}
+	// Operator not recognized.
+	return false;
+}
+
 
 /**
 Indicate whether an integer matches the filter.  This can be used, for example,

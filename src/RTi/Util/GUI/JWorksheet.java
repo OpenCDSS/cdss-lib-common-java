@@ -4972,7 +4972,17 @@ public Component prepareRenderer(TableCellRenderer tcr, int row, int column) {
 		ca = getCellAttributes(row, getAbsoluteColumn(column));
 	}
 
-	Component cell = super.prepareRenderer(tcr, row, column);
+	Component cell = null;
+	try {
+		cell = super.prepareRenderer(tcr, row, column);
+	}
+	catch ( Exception e ) {
+		// TODO smalers 2024-02-29 why is this happening?  Need to figure out.
+		// This happens very seldom but handle the exception.
+		String routine = getClass().getSimpleName() + ".prepareRenderer";
+		Message.printWarning(3, routine, "Error preparing cell for output.");
+		Message.printWarning(3, routine,e); 
+	}
 	if (__altTextCount > 0) {
 		if (cell instanceof JLabel) {
 			String text = getCellAlternateText(row, getAbsoluteColumn(column));
@@ -4983,12 +4993,17 @@ public Component prepareRenderer(TableCellRenderer tcr, int row, int column) {
 	}
 
 	boolean selected = isCellSelected(row, column);
-	if (ca == null) {
-		cell = applyCellAttributes(cell, null, selected);
+	// 'cell' is usually not null but handle because of the TODO above.
+	if ( ca == null ) {
+		if ( cell != null ) {
+			cell = applyCellAttributes(cell, null, selected);
+		}
 		return cell;
 	}
 	else {
-		cell = applyCellAttributes(cell, ca, selected);
+		if ( cell != null ) {
+			cell = applyCellAttributes(cell, ca, selected);
+		}
 		return cell;
 	}
 }
