@@ -6199,9 +6199,14 @@ private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraph
 		// Whether need to skip drawing a line over a gap for irregular interval time series.
 		boolean doGap = false;
 		
-		// Get whether checking the LineConnectAllowedGap.
+		// Get whether checking the LineConnectAllowedGap:
+		// - this is only used with irregular data
 		prop_value = getLayeredPropValue("LineConnectAllowedGap", subproduct, its, false, overrideProps);
 		int lineConnectAllowedGapSeconds = -1;
+		if ( (prop_value == null) || prop_value.isEmpty() && ts.isIrregularInterval() ) {
+			// The allowed gap was not specified so default based on the time series precision.
+			prop_value = getDefaultLineConnectAllowedGap ( ts );
+		}
 		if ( (prop_value != null) && !prop_value.isEmpty() ) {
 			try {
 				TimeInterval lineConnectAllowedInterval = TimeInterval.parseInterval(prop_value);
@@ -7222,6 +7227,10 @@ private void drawTSRenderAreaGraph ( TSProduct tsproduct, int subproduct, int it
 
 	// Get whether checking the LineConnectAllowedGap.
 	prop_value = getLayeredPropValue("LineConnectAllowedGap", subproduct, its, false, overrideProps);
+	if ( (prop_value == null) || prop_value.isEmpty() && ts.isIrregularInterval() ) {
+		// The allowed gap was not specified so default based on the time series precision.
+		prop_value = getDefaultLineConnectAllowedGap ( ts );
+	}
 	if ( (prop_value != null) && !prop_value.isEmpty() ) {
 		try {
 			TimeInterval lineConnectAllowedInterval = TimeInterval.parseInterval(prop_value);
@@ -9680,6 +9689,31 @@ For a normal graph, the limits from this method are the same as for the drawing 
 */
 public GRLimits getDataLimits() {
 	return _data_lefty_limits;
+}
+
+/**
+ * Get the default value for LineConnectAllowedGap, determined at runtime for a time series.
+ * @param ts time series of interest
+ * @return the property value based on the time series time interval, or null if no default is available
+ */
+private String getDefaultLineConnectAllowedGap ( TS ts ) {
+	// - smaller interval have smaller precision
+	int precision = ts.getDate1().getPrecision();
+	String propValue = null;
+	if ( precision <= TimeInterval.HOUR ) {
+		propValue = "7Day";
+	}
+	else if ( precision <= TimeInterval.DAY ) {
+		propValue = "1Year";
+	}
+	else if ( precision <= TimeInterval.MONTH ) {
+		propValue = "1Year";
+	}
+	else if ( precision <= TimeInterval.YEAR ) {
+		propValue = "2Year";
+	}
+	
+	return propValue;
 }
 
 /**
