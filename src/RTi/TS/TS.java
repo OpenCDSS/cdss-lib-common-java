@@ -1583,7 +1583,11 @@ The following built-in properties are checked in addition to dynamic properties
 (case of name is ignored):
 <ul>
 <li>alias</li>
+<li>datatype</li>
 <li>description</li>
+<li>interval</li>
+<li>tsid</li>
+<li>units</li>
 </ul>
 @param propertyName name of property being retrieved.
 @return property object corresponding to the property name.
@@ -1601,9 +1605,26 @@ public Object getProperty ( String propertyName ) {
     		// Null is allowed.
     		propertyValue = this.getAlias();
     	}
+    	else if ( propertyName.equalsIgnoreCase("datatype") ) {
+    		// Null is allowed.
+    		propertyValue = this.getDataType();
+    	}
     	else if ( propertyName.equalsIgnoreCase("description") ) {
     		// Null is allowed.
     		propertyValue = this.getDescription();
+    	}
+    	else if ( propertyName.equalsIgnoreCase("interval") ) {
+    		// Null is allowed.
+    		propertyValue = this.getIdentifier().getInterval();
+    	}
+    	else if ( propertyName.equalsIgnoreCase("tsid") ) {
+    		// Identifier without input type.
+    		// Null is allowed.
+    		propertyValue = this.getIdentifierString();
+    	}
+    	else if ( propertyName.equalsIgnoreCase("units") ) {
+    		// Null is allowed.
+    		propertyValue = this.getDataUnits();
     	}
     }
     return propertyValue;
