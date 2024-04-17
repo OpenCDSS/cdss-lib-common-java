@@ -4178,7 +4178,7 @@ private static List<TableField> parseFile_SetColumnNames ( String [] columnNames
 }
 
 /**
-Rename column(s) in a table.
+Rename field(s) (column(s)) in a table.
 @param table table to modify
 @param columnMap map to rename original columns to new name
 @param problems list of problems that will be filled during processing
@@ -4203,6 +4203,55 @@ public void renameFields ( DataTable table, Hashtable<String,String> columnMap, 
 		// Rename the column.
 		field.setName(newName);
 	}
+}
+
+/**
+Reorder field(s) (column(s)) in a table.
+Columns that are not found will be ignored.
+Columns that are not specified will remain on the right side of the table.
+@param table table to modify
+@param columnNames array of column names in desired order
+@param problems list of problems that will be filled during processing
+@exception Exception if a serious error occurs, in which case the table might be left in a state of corruption
+*/
+public void reorderFields ( String [] columnNames, List<String> problems ) throws Exception {
+    // Loop through the column names.
+    int columnNumberOld;
+    int columnNumberNew = -1;
+    for ( String columnName : columnNames ) {
+    	columnNumberOld = -1;
+    	try {
+    		columnNumberOld = getFieldIndex(columnName);
+    	}
+    	catch ( Exception e ) {
+    		columnNumberOld = -1;
+    		problems.add ( "Column \"" + columnName + "\" is not found in table \"" + getTableID() + "\" - ignoring column for reorder." );
+    		continue;
+    	}
+
+    	// The new column number is sequential from the start of the column name list.
+    	++columnNumberNew;
+
+    	// Swap the table fields (only changes the fields, not the data rows).
+
+    	TableField tableFieldOld = this._table_fields.get(columnNumberOld);
+    	this._table_fields.add(columnNumberNew, tableFieldOld);
+    	this._table_fields.remove(columnNumberOld + 1);
+
+    	// Swap the data row fields:
+    	// - have to process each record because the table is row-based
+
+    	Object dataOld = null;
+    	for ( TableRecord rec : this._table_records ) {
+    		// These methods will throw an Exception if something bad happens:
+    		// - the table might be left in a state of corruption due to records being misaligned
+    		dataOld = rec.getFieldValue(columnNumberOld);
+    		rec.addFieldValue(columnNumberNew, dataOld);
+    		rec.deleteField(columnNumberOld + 1);
+    	}
+    }
+
+    // All original columns that were not requested will remain at the end of the table.
 }
 
 /**

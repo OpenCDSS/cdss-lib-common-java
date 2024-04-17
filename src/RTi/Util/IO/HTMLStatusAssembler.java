@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2024 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -27,8 +27,7 @@ package RTi.Util.IO;
  * Provides support for creating the HTML string for Command Status.
  * HTML is used because it allows styling that makes the content more readable. 
  */
-public class HTMLStatusAssembler
-{
+public class HTMLStatusAssembler {
 	/**
 	 * Text to add at the end of the HTML.
 	 */
@@ -46,7 +45,7 @@ public class HTMLStatusAssembler
 	private final String TABLE_START =
           "<table border=1 width=650><tr bgcolor=\"CCCCFF\"><th align=left>"
           + "&nbsp;&nbsp;&nbsp#&nbsp;&nbsp;&nbsp;</th>"
-          + "<th align=left>Phase</th><th align=left>Severity</th>"
+          + "<th align=left>Phase</th><th align=left>Status/Severity</th>"
           + "<th align=left width=300>Problem</th><th>Recommendation</th></tr>";
   
 	/**
@@ -68,13 +67,54 @@ public class HTMLStatusAssembler
   }
 
   /**
-   * Returns a HTML string ready for display in a browser.
-   * 
-   * @return HTML string 
+   * Adds an entry for a command in HTML.
+   * <p>
+   * Note for each addCommand(), a endCommand() is required.
+   * @param commandString command string to show at the top of the summary
    */
-  public String getHTML() {
-    buf.append(TRAILER);
-    return buf.toString();
+  public void addCommand(String commandString) {
+    buf.append("<p><font bgcolor=white").append("<strong>Command: "+commandString).append("</strong></font>");
+  }
+  
+  /**
+   * Add the command status summary table with status for each command phase.
+   * @param commandStatusInitialization
+   * @param commandStatusDiscovery
+   * @param commandStatusRun
+   */
+  public void addCommandStatusSummary (
+	CommandStatusType commandStatusInitialization,
+    CommandStatusType commandStatusDiscovery,
+    CommandStatusType commandStatusRun) {
+    String bgColor1 = "<td bgcolor=" + CommandStatusUtil.getStatusColor(commandStatusInitialization) + ">";
+    String bgColor2 = "<td bgcolor=" + CommandStatusUtil.getStatusColor(commandStatusDiscovery) + ">";
+    String bgColor3 = "<td bgcolor=" + CommandStatusUtil.getStatusColor(commandStatusRun) + ">";
+    buf.append("<p><b>Command Status Summary</b> (see below for details if problems exist):");
+
+    buf.append(SUMMARY_TABLE_START)
+    .append("<tr><td>INITIALIZATION</td>").append(bgColor1).append(commandStatusInitialization.toString()).append("</td></tr>")
+    .append("<tr><td>DISCOVERY</td>").append(bgColor2).append(commandStatusDiscovery.toString()).append("</td></tr>")
+    .append("<tr><td>RUN</td>").append(bgColor3).append(commandStatusRun.toString()).append("</td></tr>")
+    .append(TABLE_END);
+  }
+
+/**
+ * Adds a summary table indicating no problems found.
+ */
+  public void addNoProblems() {
+    String bgColor1 = "<td bgcolor=" +CommandStatusUtil.getStatusColor(CommandStatusType.SUCCESS) + ">";
+    buf.append(SUMMARY_TABLE_START)
+    .append("<tr><td>INITIALIZATION").append(bgColor1).append(CommandStatusType.SUCCESS.toString()).append("</tr>")
+    .append("<tr><td>DISCOVERY").append(bgColor1).append(CommandStatusType.SUCCESS.toString()).append("</tr>")
+    .append("<tr><td>RUN").append(bgColor1).append(CommandStatusType.SUCCESS.toString()).append("</tr>")
+    .append(TABLE_END);
+  }
+
+  /**
+   * Add a message if the command is not a CommandStatusProvider (should not happen).
+   */
+  public void addNotACommandStatusProvider() {
+    buf.append("<tr><td>Not a CommandStatusProvider</td></tr>");
   }
 
   /**
@@ -102,73 +142,39 @@ public class HTMLStatusAssembler
   }
   
   /**
-   * Adds an entry for a command in HTML.
-   * <p>
-   * Note for each addCommand(), a endCommand() is required.
-   * @param commandString
-   */
-  public void addCommand(String commandString) {
-    buf.append("<p><font bgcolor=white").append("<strong>Command: "+commandString).append("</strong></font>");
-  }
-  
-  /**
-   * Add HTML to start status table
-   * @param nlog the number of log messages that will be shown (WARNING and more severe).
-   */
-  public void startCommandStatusTable( int nwarn, int nfail ) {
-    buf.append("<p><b>Command Status Details (" + nwarn + " warnings, " + nfail + " failures):");
-    buf.append(TABLE_START); 
-  }
-  
-  /**
    * Add HTML to terminate a command initiated with addCommand()
    */
   public void endCommand() {
     buf.append(TABLE_END);
   }
 
-  public void addNotACommandStatusProvider() {
-    buf.append("<tr><td>Not a CommandStatusProvider</td></tr>");
-  }
-
   /**
-   * Add the command status summary table
-   * @param commandStatus1
-   * @param commandStatus2
-   * @param commandStatus3
+   * Returns a HTML string ready for display in a browser.
+   * 
+   * @return HTML string 
    */
-  public void addCommandStatusSummary(CommandStatusType commandStatus1,
-          CommandStatusType commandStatus2,
-          CommandStatusType commandStatus3) {
-    String bgColor1 = "<td bgcolor=" +CommandStatusUtil.getStatusColor(commandStatus1) + ">";
-    String bgColor2 = "<td bgcolor=" +CommandStatusUtil.getStatusColor(commandStatus2) + ">";
-    String bgColor3 = "<td bgcolor=" +CommandStatusUtil.getStatusColor(commandStatus3) + ">";
-    buf.append("<p><b>Command Status Summary</b> (see below for details if problems exist):");
-
-    buf.append(SUMMARY_TABLE_START)
-    .append("<tr><td>INITIALIZATION</td>").append(bgColor1).append(commandStatus1.toString()).append("</td></tr>")
-    .append("<tr><td>DISCOVERY</td>").append(bgColor2).append(commandStatus2.toString()).append("</td></tr>")
-    .append("<tr><td>RUN</td>").append(bgColor3).append(commandStatus3.toString()).append("</td></tr>")
-    .append(TABLE_END);
+  public String getHTML() {
+    buf.append(TRAILER);
+    return buf.toString();
   }
 
   /**
-   * Return the HTML string.
+   * Add HTML to start status table
+   * @param nWarn the number of warning messages that will be shown.
+   * @param nFail the number of failure messages that will be shown.
+   * @param nNotification the number of notification messages that will be shown.
+   */
+  public void startCommandStatusTable( int nWarn, int nFail, int nNotification ) {
+    buf.append("<p><b>Command Status Details (" + nWarn + " warnings, " + nFail + " failures, " + nNotification + " notifications):");
+    buf.append(TABLE_START); 
+  }
+  
+  /**
+   * Return the formatted HTML string for the summary.
+   * @return the formatted HTML string
    */
   public String toString() {
     return buf.toString();
   }
 
-/**
- * Adds a summary table indicating no issues found.
- *
- */
-  public void addNoProblems() {
-    String bgColor1 = "<td bgcolor=" +CommandStatusUtil.getStatusColor(CommandStatusType.SUCCESS) + ">";
-    buf.append(SUMMARY_TABLE_START)
-    .append("<tr><td>INITIALIZATION").append(bgColor1).append(CommandStatusType.SUCCESS.toString()).append("</tr>")
-    .append("<tr><td>DISCOVERY").append(bgColor1).append(CommandStatusType.SUCCESS.toString()).append("</tr>")
-    .append("<tr><td>RUN").append(bgColor1).append(CommandStatusType.SUCCESS.toString()).append("</tr>")
-    .append(TABLE_END);
-  }
 }

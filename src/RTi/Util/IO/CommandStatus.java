@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2024 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -25,62 +25,48 @@ package RTi.Util.IO;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 /**
-This class provides a collecting point for status information for initializing and
-processing a command.  It is returned when a command implements CommandStatusProvider.
+This class provides a collecting point for status information for initializing and processing a command.
+It is returned when a command implements CommandStatusProvider.
 */
 public class CommandStatus implements Cloneable
 {
-	
+
 /**
  * Command status for initialization phase.
- * @uml.property  name="__initialization_status"
- * @uml.associationEnd  multiplicity="(1 1)"
  */
 private CommandStatusType __initialization_status = CommandStatusType.UNKNOWN;
 
 /**
  * Command status for discovery phase.
- * @uml.property  name="__discovery_status"
- * @uml.associationEnd  multiplicity="(1 1)"
  */
 private CommandStatusType __discovery_status = CommandStatusType.UNKNOWN;
 
 /**
  * Command status for run phase.
- * @uml.property  name="__run_status"
- * @uml.associationEnd  multiplicity="(1 1)"
  */
 private CommandStatusType __run_status = CommandStatusType.UNKNOWN;
 
 /**
  * A list of CommandLogRecord instances, indicating problems with initializing a command, guaranteed to be non-null.
- * @uml.property  name="__initialization_log_Vector"
- * @uml.associationEnd  multiplicity="(0 -1)" elementType="RTi.Util.IO.CommandLogRecord"
  */
-private List<CommandLogRecord> __initializationLogList = new Vector<CommandLogRecord>();
+private List<CommandLogRecord> __initializationLogList = new ArrayList<>();
 
 /**
  * A list of CommandLogRecord instances, indicating problems with running the discovery phase of a command, guaranteed to be non-null.
- * @uml.property  name="__discovery_log_Vector"
- * @uml.associationEnd  multiplicity="(0 -1)" elementType="RTi.Util.IO.CommandLogRecord"
  */
-private List<CommandLogRecord> __discoveryLogList = new Vector<CommandLogRecord>();
+private List<CommandLogRecord> __discoveryLogList = new ArrayList<>();
 
 /**
  * A list of CommandLogRecord instances, indicating problems with running the command, guaranteed to be non-null.
- * @uml.property  name="__run_log_Vector"
- * @uml.associationEnd  multiplicity="(0 -1)" elementType="RTi.Util.IO.CommandLogRecord"
  */
-private List<CommandLogRecord> __runLogList = new Vector<CommandLogRecord>();
+private List<CommandLogRecord> __runLogList = new ArrayList<>();
 
 /**
 Constructor that initializes the status for each phase to UNKNOWN.
 */
-public CommandStatus ()
-{
+public CommandStatus () {
 	// Default status is initialized above.
 }
 
@@ -90,8 +76,8 @@ to the most serious based on the log messages for the phase.
 @param phase Phase of running a command (see CommandPhaseType).
 @param record CommandLogRecord indicating a problem running a command.
 */
-public void addToLog ( CommandPhaseType phase, CommandLogRecord record )
-{	if ( phase == CommandPhaseType.INITIALIZATION ) {
+public void addToLog ( CommandPhaseType phase, CommandLogRecord record ) {
+	if ( phase == CommandPhaseType.INITIALIZATION ) {
 		__initialization_status = CommandStatusType.maxSeverity ( __initialization_status, record.getSeverity() );
 		__initializationLogList.add ( record );
 	}
@@ -109,8 +95,7 @@ public void addToLog ( CommandPhaseType phase, CommandLogRecord record )
  * Clear the CommandLogRecord for the command.
  * @param phase Phase of running a command (see CommandPhaseType) or null to clear logs for all phases.
  */
-public void clearLog ( CommandPhaseType phase )
-{
+public void clearLog ( CommandPhaseType phase ) {
 	if ( (phase == CommandPhaseType.INITIALIZATION) || (phase == null)) {
 		__initializationLogList.clear ();
 		__initialization_status = CommandStatusType.UNKNOWN;
@@ -128,25 +113,25 @@ public void clearLog ( CommandPhaseType phase )
 /**
 Clone the instance.  All command data are cloned, including the log records.
 */
-public Object clone ()
-{	try {
+public Object clone () {
+	try {
         CommandStatus status = (CommandStatus)super.clone();
-		// Copy the status information...
+		// Copy the status information.
 		status.__initialization_status = __initialization_status;
 		status.__discovery_status = __discovery_status;
 		status.__run_status = __run_status;
-		// Clone the logs...
-		status.__initializationLogList = new Vector<CommandLogRecord>();
+		// Clone the logs.
+		status.__initializationLogList = new ArrayList<>();
 		int size = __initializationLogList.size();
 		for ( int i = 0; i < size; i++ ) {
 			status.__initializationLogList.add ( (CommandLogRecord)((CommandLogRecord)__initializationLogList.get(i)).clone() );
 		}
-		status.__discoveryLogList = new Vector<CommandLogRecord>();
+		status.__discoveryLogList = new ArrayList<>();
 		size = __discoveryLogList.size();
 		for ( int i = 0; i < size; i++ ) {
 			status.__discoveryLogList.add ( (CommandLogRecord)((CommandLogRecord)__discoveryLogList.get(i)).clone() );
 		}
-		status.__runLogList = new Vector<CommandLogRecord>();
+		status.__runLogList = new ArrayList<>();
 		size = __runLogList.size();
 		for ( int i = 0; i < size; i++ ) {
 			status.__runLogList.add ( (CommandLogRecord)((CommandLogRecord)__runLogList.get(i)).clone() );
@@ -158,12 +143,12 @@ public Object clone ()
 		throw new InternalError();
 	}
 }
-	
+
 /**
- * Return the status for a phase of command processing.
+ * Return the status for a phase of command processing (INITIALIZATION, DISCOVERY, RUN).
+ * @return the status for a phase of command processing
  */
-public CommandStatusType getCommandStatus ( CommandPhaseType phase )
-{
+public CommandStatusType getCommandStatus ( CommandPhaseType phase ) {
 	if ( phase == CommandPhaseType.INITIALIZATION ) {
 		return __initialization_status;
 	}
@@ -173,7 +158,8 @@ public CommandStatusType getCommandStatus ( CommandPhaseType phase )
 	else if ( phase == CommandPhaseType.RUN ) {
 		return __run_status;
 	}
-	else { // This should never happen.
+	else {
+		// This should never happen.
 		return CommandStatusType.UNKNOWN;
 	}
 }
@@ -183,8 +169,7 @@ public CommandStatusType getCommandStatus ( CommandPhaseType phase )
  * @param phase - see CommandPhaseType.
  * @return command log as a list of CommandLogRecord
  */
-public List<CommandLogRecord> getCommandLog(CommandPhaseType phase)
-{
+public List<CommandLogRecord> getCommandLog(CommandPhaseType phase) {
     if ( phase == CommandPhaseType.INITIALIZATION ) {
         return __initializationLogList;
     }
@@ -196,7 +181,7 @@ public List<CommandLogRecord> getCommandLog(CommandPhaseType phase)
     }
     else {
         // Return all records
-        List<CommandLogRecord> v = new Vector<CommandLogRecord>();
+        List<CommandLogRecord> v = new ArrayList<>();
         v.addAll(__initializationLogList);
         v.addAll(__discoveryLogList);
         v.addAll(__runLogList);
@@ -210,8 +195,7 @@ Returns the command log for the specified phases and status types, guaranteed to
 @param statuses array of CommandStatusType to filter log records, or null to return all.
 @return command log as a list of CommandLogRecord
 */
-public List<CommandLogRecord> getCommandLog(CommandPhaseType [] phases, CommandStatusType [] statuses)
-{
+public List<CommandLogRecord> getCommandLog(CommandPhaseType [] phases, CommandStatusType [] statuses) {
 	if ( phases == null ) {
 		phases = new CommandPhaseType[3];
 		phases[0] = CommandPhaseType.INITIALIZATION;
@@ -219,18 +203,19 @@ public List<CommandLogRecord> getCommandLog(CommandPhaseType [] phases, CommandS
 		phases[2] = CommandPhaseType.RUN;
 	}
 	if ( statuses == null ) {
-		statuses = new CommandStatusType[4];
+		statuses = new CommandStatusType[5];
 		statuses[0] = CommandStatusType.INFO;
-		statuses[1] = CommandStatusType.SUCCESS;
-		statuses[2] = CommandStatusType.FAILURE;
-		statuses[3] = CommandStatusType.WARNING;
+		statuses[1] = CommandStatusType.NOTIFICATION;
+		statuses[2] = CommandStatusType.SUCCESS;
+		statuses[3] = CommandStatusType.FAILURE;
+		statuses[4] = CommandStatusType.WARNING;
 	}
-	List<CommandLogRecord> logList = new ArrayList<CommandLogRecord>();
+	List<CommandLogRecord> logList = new ArrayList<>();
 	int j;
 	List<CommandLogRecord> logList2 = null;
 	for ( int i = 0; i < phases.length; i++ ) {
 	    if ( phases[i] == CommandPhaseType.INITIALIZATION ) {
-	    	logList2 =__initializationLogList;
+	    	logList2 = __initializationLogList;
 	    }
 	    else if ( phases[i] == CommandPhaseType.DISCOVERY ) {
 	    	logList2 = __discoveryLogList;
@@ -253,29 +238,60 @@ public List<CommandLogRecord> getCommandLog(CommandPhaseType [] phases, CommandS
 }
 
 /**
-Refresh the command status for a phase.  This should normally only be called when
-initializing a status or setting to success.  Otherwise, addToLog() should be
-used and the status determined from the CommandLogRecord status values.
+ * Return whether the command status includes any notifications for a phase.
+ * @return whether the command status includes any notifications for a phase
+ */
+public boolean getHasNotification ( CommandPhaseType phase ) {
+	boolean hasNotification = false;
+	if ( (phase == CommandPhaseType.ANY) || (phase == CommandPhaseType.INITIALIZATION) ) {
+		for ( CommandLogRecord record : this.__initializationLogList ) {
+			if ( record.getSeverity() == CommandStatusType.NOTIFICATION ) {
+				hasNotification = true;
+				break;
+			}
+		}
+	}
+	else if ( (phase == CommandPhaseType.ANY) || (phase == CommandPhaseType.DISCOVERY) ) {
+		for ( CommandLogRecord record : this.__discoveryLogList ) {
+			if ( record.getSeverity() == CommandStatusType.NOTIFICATION ) {
+				hasNotification = true;
+				break;
+			}
+		}
+	}
+	else if ( (phase == CommandPhaseType.ANY) || (phase == CommandPhaseType.RUN) ) {
+		for ( CommandLogRecord record : this.__runLogList ) {
+			if ( record.getSeverity() == CommandStatusType.NOTIFICATION ) {
+				hasNotification = true;
+				break;
+			}
+		}
+	}
+	return hasNotification;
+}
+
+/**
+Refresh the command status for a phase.
+This should normally only be called when initializing a status or setting to success.
+Otherwise, addToLog() should be used and the status determined from the CommandLogRecord status values.
 @param phase Command phase
-@param severity_if_unknown The severity to set for the phase if it is currently
-unknown.  For example, specify as CommandStatusType.SUCCESS to override the
-initial CommandStatusType.UNKNOWN value.
+@param severityIfUnknown The severity to set for the phase if it is currently unknown.
+For example, specify as CommandStatusType.SUCCESS to override the initial CommandStatusType.UNKNOWN value.
 */
-public void refreshPhaseSeverity ( CommandPhaseType phase, CommandStatusType severity_if_unknown )
-{
+public void refreshPhaseSeverity ( CommandPhaseType phase, CommandStatusType severityIfUnknown ) {
 	if ( phase == CommandPhaseType.INITIALIZATION ) {
 		if ( __initialization_status.equals(CommandStatusType.UNKNOWN)) {
-			__initialization_status = severity_if_unknown;
+			__initialization_status = severityIfUnknown;
 		}
 	}
 	else if ( phase == CommandPhaseType.DISCOVERY ) {
 		if ( __discovery_status.equals(CommandStatusType.UNKNOWN)) {
-			__discovery_status = severity_if_unknown;
+			__discovery_status = severityIfUnknown;
 		}
 	}
 	else if ( phase == CommandPhaseType.RUN ) {
 		if ( __run_status.equals(CommandStatusType.UNKNOWN)) {
-			__run_status = severity_if_unknown;
+			__run_status = severityIfUnknown;
 		}
 	}
 }
@@ -286,8 +302,7 @@ public void refreshPhaseSeverity ( CommandPhaseType phase, CommandStatusType sev
  * @param severity A severity (e.g., CommandStatusType.WARNING) to check.
  * @return true if the maximum command status severity is >= the provided severity.
  */
-public boolean severityGreaterThanOrEqualTo ( CommandPhaseType phase, CommandStatusType severity )
-{
+public boolean severityGreaterThanOrEqualTo ( CommandPhaseType phase, CommandStatusType severity ) {
 	if ( phase == null ) {
 		// Check maximum of all phases.
 		return CommandStatusUtil.getHighestSeverity(this).greaterThanOrEqualTo(severity);
@@ -301,16 +316,18 @@ public boolean severityGreaterThanOrEqualTo ( CommandPhaseType phase, CommandSta
 	else if ( phase == CommandPhaseType.RUN ) {
 		return __run_status.greaterThanOrEqualTo ( severity );
 	}
-	else { // This should never happen.
+	else {
+		// This should never happen.
 		return false;
 	}
 }
 
 /**
 Convert the command status to a String, for simple viewing.
+@return string representation of the status
 */
-public String toString()
-{	return CommandStatusUtil.getCommandLogText( this );
+public String toString() {
+	return CommandStatusUtil.getCommandLogText( this );
 }
 
 }
