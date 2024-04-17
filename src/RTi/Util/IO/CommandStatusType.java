@@ -1,22 +1,22 @@
-// CommandStatusType - this class provides an enumeration of possible command status values.  
+// CommandStatusType - this class provides an enumeration of possible command status values.
 
 /* NoticeStart
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2024 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -25,66 +25,74 @@ package RTi.Util.IO;
 
 import java.security.InvalidParameterException;
 
-// TODO SAM 2016-02-24 Need to convert to enumeration
 /**
-This class provides an enumeration of possible command status values.  
+This class provides an enumeration of possible command status values.
+This is used for the status for command status log messages and the overall command status.
 */
-public class CommandStatusType {
-	
+public enum CommandStatusType {
+
     /**
-     * UNKNOWN indicates that the command could not be executed (no results). 
+     * UNKNOWN indicates that the command could not be executed (no results).
      */
-    public static CommandStatusType UNKNOWN = new CommandStatusType(-1, "UNKNOWN");
-    
+    UNKNOWN (-1, "UNKNOWN"),
+
     /**
-     * When used with Command processing, INFO indicates information relevant to a command, perhaps
-     * to explain a warning that might come up later.
+     * When used with Command processing, INFO indicates information relevant to a command,
+     * perhaps to explain a warning that might come up later.
      */
-    public static CommandStatusType INFO = new CommandStatusType(-2, "INFO");
-	
+    INFO (-2, "INFO"),
+
+    /**
+     * When used with Command processing, NOTIFICATION indicates a notification for a command,
+     * which includes newer @version available, @todo, or @fixme annotations.
+     * This type is typically only used with comments.
+     * This is additive to SUCCESS, WARNING, and FAILURE and is used to decorate commands
+     */
+    NOTIFICATION (-3, "NOTIFICATION"),
+
 	/**
 	 * When used with Command processing, SUCCESS indicates that results could be generated, with no warnings.
 	 */
-	public static CommandStatusType SUCCESS = new CommandStatusType(0, "SUCCESS");
-	
+	SUCCESS (0, "SUCCESS"),
+
 	/**
-	 * WARNING indicates that partial results were generated, but which may be in
-	 * error due to initialization or runtime errors.
+	 * WARNING indicates that partial results were generated,
+	 * but which may be in error due to initialization or runtime errors.
 	 */
-	public static CommandStatusType WARNING = new CommandStatusType(1, "WARNING");
-	
+	WARNING (1, "WARNING"),
+
 	/**
-	 * FAILURE indicates that the command could not be executed (no results). 
+	 * FAILURE indicates that the command could not be executed (no results).
 	 */
-	public static CommandStatusType FAILURE = new CommandStatusType(2, "FAILURE");
-    
+	FAILURE (2, "FAILURE");
+
     /**
-	 * Used to set severity.
-	 * @uml.property  name="__type"
+	 * Status as an integer, used to set severity, with 0 being success similar to Linux error code and larger number indicating more severe issue.
 	 */
 	private int __type;
+
 	/**
-	 * Type name, e.g., "SUCCESS", "FAILURE".
-	 * @uml.property  name="__typename"
+	 * Status type name, e.g., "SUCCESS", "FAILURE".
 	 */
 	private String __typename;
-	
+
 	/**
-	 * Construct the status type using the type/severity and name.  It is
-	 * private because other code should use the predefined instances.
-	 * @param type
-	 * @param typename
+	 * Construct the status type using the type/severity and name.
+	 * It is private because other code should use the predefined instances.
+	 * @param type command status type as an integer
+	 * @param typename command status type name
 	 */
-	private CommandStatusType ( int type, String typename ){
+	private CommandStatusType ( int type, String typename ) {
 		__type = type;
 		__typename = typename;
 	}
-	
+
 	/**
-	 * Determine if two types are equal.
+	 * Determine if two types are equal based on the type integer.
+	 * @param type another CommandStatusType to compare to
+	 * @return true if equal and false if not
 	 */
-	public boolean equals ( CommandStatusType type )
-	{
+	public boolean equals ( CommandStatusType type ) {
 		if ( __type == type.getSeverity() ) {
 			return true;
 		}
@@ -98,30 +106,17 @@ public class CommandStatusType {
 	 * This is useful for ranking the severity of problems for output.
 	 * @return the severity of the problem.
 	 */
-    public int getSeverity()
-      {
+    public int getSeverity() {
         return __type;
-      }
-    
-	/**
-	 * Return the severity of the status (larger number means more severe problem).
-	 * @return the severity of the problem.
-	 * @deprecated Use getSeverity().
-	 */
-    public int getPriority()
-      {
-        return getSeverity();
-      }
-    
+    }
+
 	/**
 	 * Determine if a status severity is greater than the current status.
-	 * For example, use this to check whether a command status type is greater than
-	 * CommandStatusType.SUCCESS.
+	 * For example, use this to check whether a command status type is greater than CommandStatusType.SUCCESS.
 	 * @param type Command status severity.
 	 * @return true if the provided severity is greater than that of the instance.
 	 */
-	public boolean greaterThan ( CommandStatusType type )
-	{
+	public boolean greaterThan ( CommandStatusType type ) {
 		if ( __type > type.getSeverity() ) {
 			return true;
 		}
@@ -129,16 +124,14 @@ public class CommandStatusType {
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Determine if a status severity is greater than or equal to the current status.
-	 * For example, use this to check whether a command status type is greater than
-	 * or equal to CommandStatusType.WARNING.
+	 * For example, use this to check whether a command status type is greater than or equal to CommandStatusType.WARNING.
 	 * @param type Command status severity.
 	 * @return true if the provided severity is greater than that of the instance.
 	 */
-	public boolean greaterThanOrEqualTo ( CommandStatusType type )
-	{
+	public boolean greaterThanOrEqualTo ( CommandStatusType type ) {
 		if ( __type >= type.getSeverity() ) {
 			return true;
 		}
@@ -146,13 +139,14 @@ public class CommandStatusType {
 			return false;
 		}
 	}
-	
+
 	/**
 	Determine the maximum severity.
+	@param status1 the first status to compare
+	@param status2 the second status to compare
 	@return the status that is the most severe from the two status.
 	*/
-	public static CommandStatusType maxSeverity ( CommandStatusType status1, CommandStatusType status2 )
-	{
+	public static CommandStatusType maxSeverity ( CommandStatusType status1, CommandStatusType status2 ) {
 		int severity1 = status1.getSeverity();
 		int severity2 = status2.getSeverity();
 		if ( severity1 > severity2 ) {
@@ -162,20 +156,22 @@ public class CommandStatusType {
 			return status2;
 		}
 	}
-	
+
 	/**
 	 * Parse the command status type and return an instance of the enumeration.
 	 * @param cst CommandStatusType string to parse.
 	 * @return an instance of the enumeration that matches the string.
 	 * @exception InvalidParameterException if the requested string does not match a command status type.
 	 */
-	public static CommandStatusType parse ( String cst )
-	{
+	public static CommandStatusType parse ( String cst ) {
 		if ( cst.equalsIgnoreCase(UNKNOWN.toString())) {
 			return UNKNOWN;
 		}
 		else if ( cst.equalsIgnoreCase(INFO.toString())) {
 			return INFO;
+		}
+		else if ( cst.equalsIgnoreCase(NOTIFICATION.toString())) {
+			return NOTIFICATION;
 		}
 		else if ( cst.equalsIgnoreCase(SUCCESS.toString())) {
 			return SUCCESS;
@@ -191,12 +187,13 @@ public class CommandStatusType {
 				"\" is not a recognized type.");
 		}
 	}
-    
+
 	/**
 	 * Return a String representation of the command status, as follows:
 	 * <pre>
-	 * INFO - informational message
 	 * UNKNOWN - status is unknown (not implemented or not initialized)
+	 * INFO - informational message
+	 * NOTIFICATION - status is notification
 	 * SUCCESS - command was successful (no WARNING or FAILURE)
 	 * WARNING - command completed but user should review possible problem
 	 * FAILURE - command failed and results are very likely not complete or accurate

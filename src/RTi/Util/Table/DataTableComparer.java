@@ -71,32 +71,32 @@ private final int CELL_SAME = 0;
 private final int CELL_DIFFERENT = 1;
 
 /**
- * Comparison result = no row in table 1, for advanced and simple analysis.
+ * Comparison result = no row in table1, for advanced and simple analysis.
  */
 private final int CELL_NO_ROW_TABLE1 = 2;
 
 /**
- * Comparison result = no row in table 2, for advanced and simple analysis.
+ * Comparison result = no row in table2, for advanced and simple analysis.
  */
 private final int CELL_NO_ROW_TABLE2 = 3;
 
 /**
- * Comparison result = empty row inserted in table 1, for advanced analysis.
+ * Comparison result = empty row inserted in table1, for advanced analysis.
  */
 private final int CELL_INSERT_EMPTY_ROW_TABLE1 = 4;
 
 /**
- * Comparison result = empty row inserted in table 2, for advanced analysis.
+ * Comparison result = empty row inserted in table2, for advanced analysis.
  */
 private final int CELL_INSERT_EMPTY_ROW_TABLE2 = 5;
 
 /**
- * Comparison result = only have data in table 1, for advanced and simple analysis.
+ * Comparison result = only have data in table1, for advanced and simple analysis.
  */
 private final int CELL_ROW_ONLY_IN_TABLE1 = 6;
 
 /**
- * Comparison result = only have data in table 2, for advanced and simple analysis.
+ * Comparison result = only have data in table2, for advanced and simple analysis.
  */
 private final int CELL_ROW_ONLY_IN_TABLE2 = 7;
 
@@ -215,8 +215,8 @@ For each cell a value can be:
   -1 indicates an error
   0 indicates no difference and no error
   1 indicates different
-  2 indicates no row in the original table 1
-  3 indicates no row in the original table 2
+  2 indicates no row in the original table1
+  3 indicates no row in the original table2
 */
 //private int [][] __differenceArray = null;
 
@@ -232,8 +232,8 @@ For each cell a value can be:
   -1 indicates an error
   0 indicates no difference and no error
   1 indicates different
-  4 indicates an inserted row in table 1 to align
-  5 indicates an inserted row in table 2 to align
+  4 indicates an inserted row in table1 to align
+  5 indicates an inserted row in table2 to align
 */
 private List<Integer>[] __differenceList1 = null;
 
@@ -248,7 +248,16 @@ private List<Integer>[] __differenceList2 = null;
 private List<Integer>[] __differenceList = null;
 
 /**
+ * Strings containing problems messages suitable to show a user,
+ * populated in the "compare" method.
+ */
+private List<String> problems = new ArrayList<>();
+
+/**
 Create the data table comparer instance and check for initialization problems.
+Problems detected at initialization will result in an exception, which should be handled in calling code.
+Problems detected when running the comparison by calling "compare" should be handled by calling getProblems()
+and showing to the user.
 @param table1 first table for comparison
 @param compareColumns1 list of column names from the first table to compare
 @param excludeColumns1 list of column names from the first table to exclude
@@ -256,6 +265,7 @@ Create the data table comparer instance and check for initialization problems.
 (removed from compareColumns1 if necessary)
 @param table2 second table for comparison
 @param compareColumns2 list of column names from the second table to compare
+@param excludeColumns2 list of column names from the second table to exclude
 @param matchColumns2 list of column names from the second table to match rows, for advanced analysis
 @param matchColumnsByName if true, then the column names are used to match columns for comparison,
 using the columns from the first table as the main list; if false, then columns are matched by column position
@@ -272,9 +282,9 @@ values must be exact when checked to the precision)
 */
 public DataTableComparer (
 	DataTable table1,
-	List<String>compareColumns1, List<String> excludeColumns1, List<String> matchColumns1,
+	List<String> compareColumns1, List<String> excludeColumns1, List<String> matchColumns1,
     DataTable table2,
-    List<String> compareColumns2, List<String> matchColumns2,
+    List<String> compareColumns2, List<String> excludeColumns2, List<String> matchColumns2,
     boolean matchColumnsByName,
     DataTableComparerAnalysisType analysisType,
     Integer precision, Double tolerance,
@@ -323,6 +333,8 @@ public DataTableComparer (
     if ( (compareColumns2 == null) || (compareColumns2.size() == 0) ) {
         // Get all the columns from the second table.
         compareColumns2 = new ArrayList<>(Arrays.<String>asList(table2.getFieldNames()));
+        // Remove the columns to be ignored.
+        StringUtil.removeMatching(compareColumns1, excludeColumns1, true);
     }
     else {
         // Confirm that the requested columns exist.
@@ -429,7 +441,7 @@ public DataTableComparer (
     this.diffTableID = diffTableID;
     // The row number column is optional.
     this.rowNumberColumn = rowNumberColumn;
-    
+
     // Which rows should be output.
     this.outputRows = outputRows;
 }
@@ -449,13 +461,13 @@ public DataTableComparer (
     		// Requested output is different and same so don't need to adjust.
     		return;
     	}
-    	
+
     	// If here then either same or different rows have been requested.
 
     	boolean ifSame = false;
     	boolean ifDifferent = false;
     	boolean needToRemove = false;
-    	
+
     	DataTable diffTable = null;
     	List<Integer>[] differenceList = null;
 
@@ -510,10 +522,15 @@ public DataTableComparer (
 
 /**
 Perform the comparison, creating the output table(s).
+Call getProblems() to get problems from the analysis.
 */
 public void compare ()
 throws Exception {
     String routine = getClass().getSimpleName() + ".compare";
+
+    // Clear the problems.
+    this.problems.clear();
+
     // At this point the inputs should be OK so create a new table that has columns that
     // include both of the original column names but are of type string.
     DataTable table1 = getTable1();
@@ -538,7 +555,7 @@ throws Exception {
     	doRowNumberColumn = true;
     	rowNumberColumnOffset = 1;
     }
-    
+
     // What rows to output:
     // - default is to output all
     boolean doOutputSame = true;
@@ -558,42 +575,54 @@ throws Exception {
 
     Message.printStatus(2, routine, "Table comparison analysis type = " + analysisType );
 
+    // Get the column numbers based on the column names.
+
     // Table 1 is the primary and consequently its indices will control the comparisons.
     int[] compareColumnNumbers1 = table1.getFieldIndices(StringUtil.toArray(compareColumns1));
     // Table 2 column numbers are first determined from the table.
     int[] compareColumnNumbers2 = table2.getFieldIndices(StringUtil.toArray(compareColumns2));
-    Message.printStatus(2, routine, "Have " + compareColumns1.size() + " table 1 compare columns and "
-    	+ compareColumns2.size() + " table 2 compare columns." );
-    if ( getMatchColumnsByName() ) {
-        // Order in column2 may not be the same as was originally specified.
-        compareColumnNumbers2 = new int[compareColumnNumbers1.length];
-        // Loop through the first tables columns and find the matching column in the second table.
-        for ( int i = 0; i < compareColumns1.size(); i++ ) {
-            try {
-                compareColumnNumbers2[i] = table2.getFieldIndex(compareColumns1.get(i));
-                Message.printStatus(2,routine,"Compare column [" + i + "] \"" + compareColumns1.get(i) +
-                    "\" in table 1 matches column [" + compareColumnNumbers2[i] + "] \"" + compareColumns2.get(i) +
-                    "\" in table 2.");
-            }
-            catch ( Exception e ) {
-                compareColumnNumbers2[i] = -1; // Column not matched.
-                Message.printStatus(2,routine,"Compare column [" + i + "] \"" + compareColumns1.get(i) +
-                    "\" in table 1 does not match column \"" + compareColumns2.get(i) + "\" in table 2.");
-            }
-        }
+    Message.printStatus(2, routine, "Have " + compareColumns1.size() + " table1 compare columns and "
+    	+ compareColumns2.size() + " table2 compare columns." );
+    if ( compareColumns1.size() != compareColumns2.size() ) {
+    	String message = "Table1 has " + compareColumns1.size() +
+    		" columns to compare and table2 has " + compareColumns2.size() +
+    		" columns to compare - will try to compare based on table1 compare columns.";
+    	Message.printWarning ( 2, routine, message );
+    	this.problems.add(message);
     }
-    else {
-        // Make sure that the second table column number array has at least as many elements as
-        // the first table array and use -1 for the array positions.
-        if ( compareColumnNumbers2.length < compareColumnNumbers1.length ) {
-            int [] columnNumbersTemp = new int[compareColumnNumbers1.length];
-            // Initialize a longer array.
-            for ( int i = 0; i < compareColumnNumbers1.length; i++ ) {
-                columnNumbersTemp[i] = -1; // Default.
-            }
-            // Copy original shorter array into first part of the temporary array.
-            System.arraycopy(compareColumnNumbers2, 0, columnNumbersTemp, 0, compareColumnNumbers2.length);
-            compareColumnNumbers2 = columnNumbersTemp;
+
+    // Make sure that the second table column number array has at least as many elements as
+    // the first table array and use -1 for the array positions if any columns are added.
+    if ( compareColumnNumbers2.length < compareColumnNumbers1.length ) {
+        String message = "Table 2 has fewer columns to compare (" + compareColumnNumbers2.length +
+            	") than table1 (" + compareColumnNumbers1.length + ") - NODATA strings will be used for table2.";
+        Message.printStatus(2,routine,message);
+        this.problems.add(message);
+        int [] columnNumbersTemp = new int[compareColumnNumbers1.length];
+        // Initialize a longer array.
+        for ( int i = 0; i < compareColumnNumbers1.length; i++ ) {
+            columnNumbersTemp[i] = -1; // Default.
+        }
+        // Copy original shorter array into first part of the temporary array.
+        System.arraycopy(compareColumnNumbers2, 0, columnNumbersTemp, 0, compareColumnNumbers2.length);
+        compareColumnNumbers2 = columnNumbersTemp;
+    }
+    else if ( compareColumnNumbers2.length > compareColumnNumbers1.length ) {
+        String message = "Table 2 has more columns to compare (" + compareColumnNumbers2.length +
+        	") than table1 (" + compareColumnNumbers1.length + ") - extra table2 columns will be ignored.";
+        Message.printWarning(3,routine,message);
+        this.problems.add(message);
+    }
+
+    // Print the columns that will be compared.
+    for ( int i = 0; i < compareColumns1.size(); i++ ) {
+    	if ( compareColumnNumbers2[i] < 0 ) {
+            Message.printStatus(2,routine,"Table1 column [" + i + "] \"" + compareColumns1.get(i) +
+                "\" will be compared with empty string from table2 because table2 column is not available." );
+    	}
+    	else {
+            Message.printStatus(2,routine,"Table1 column [" + i + "] \"" + compareColumns1.get(i) +
+                "\" will be compared with table2 column [" + compareColumnNumbers2[i] + "] \"" + compareColumns2.get(i) );
         }
     }
 
@@ -608,7 +637,7 @@ throws Exception {
     if ( this.__matchColumns2 != null ) {
     	n2 = this.__matchColumns2.size();
     }
-    Message.printStatus(2, routine, "Have " + n1 + " table 1 match columns and " + n2 + " table 2 match columns." );
+    Message.printStatus(2, routine, "Have " + n1 + " table1 match columns and " + n2 + " table2 match columns." );
     if ( (this.__matchColumns1 != null) && !this.__matchColumns1.isEmpty() ) {
         matchColumnNumbers1 = new int[this.__matchColumns1.size()];
         // Loop through the first table's match columns and find the matching column in the second table.
@@ -616,12 +645,12 @@ throws Exception {
             try {
                 matchColumnNumbers1[i] = table1.getFieldIndex(this.__matchColumns1.get(i));
                 Message.printStatus(2,routine,"Match column [" + i + "] \"" + this.__matchColumns1.get(i) +
-                    "\" in table 1 matches column [" + matchColumnNumbers1[i] + "].");
+                    "\" in matches table1 column [" + matchColumnNumbers1[i] + "].");
             }
             catch ( Exception e ) {
                 matchColumnNumbers1[i] = -1; // Column not matched.
                 Message.printStatus(2,routine,"Match column [" + i + "] \"" + this.__matchColumns1.get(i) +
-                    "\" in table 1 does not match any column.");
+                    "\" does not match any table1 column.");
             }
         }
     }
@@ -634,17 +663,17 @@ throws Exception {
             	try {
                 	matchColumnNumbers2[i] = table2.getFieldIndex(this.__matchColumns2.get(i));
                 	Message.printStatus(2,routine,"Match column [" + i + "] \"" + this.__matchColumns2.get(i) +
-                    	"\" in table 2 matches column [" + matchColumnNumbers2[i] + "].");
+                    	"\" in matches table2 column [" + matchColumnNumbers2[i] + "].");
             	}
             	catch ( Exception e ) {
                 	matchColumnNumbers2[i] = -1; // Column not matched.
                 	Message.printStatus(2,routine,"Match column [" + i + "] \"" + this.__matchColumns2.get(i) +
-                    	"\" in table 2 does not match any column.");
+                    	"\" does not match any table2 column.");
             	}
         	}
     	}
     }
-    
+
     Message.printStatus(2, routine,
     	"CompareColumns1.size=" + this.__compareColumns1.size() +
     	" CompareColumnNumbers1.length=" + compareColumnNumbers1.length +
@@ -652,8 +681,8 @@ throws Exception {
     	" CompareColumnNumbers2.length=" + compareColumnNumbers2.length
     );
 
-    // C-style formats to convert compare column values to strings for comparison:
-    // - these are in the position of the match columns in the original table
+    // Determine C-style formats to convert table1 compare column values to strings for comparison:
+    // - these are in the position of the compare columns in the original table
     String[] compareColumnFieldFormats1 = new String[this.__compareColumns1.size()];
     // Use the column numbers because the array is sized correctly above.
     String[] compareColumnFieldFormats2 = new String[compareColumnNumbers2.length];
@@ -661,23 +690,39 @@ throws Exception {
     Double tolerance = getTolerance();
     for ( int icol = 0; icol < compareColumnNumbers1.length; icol++ ) {
 		// Get the format from the table properties (works for everything except for floating point).
-    	compareColumnFieldFormats1[icol] = table1.getFieldFormat(compareColumnNumbers1[icol]);
+    	if ( getMatchColumnsByName() ) {
+    		// Get the precision based on the column name.
+    		compareColumnFieldFormats1[icol] = table1.getFieldFormat(compareColumnNumbers1[icol]);
+    	}
+    	else {
+    		// Get the precision based on the column order.
+    		compareColumnFieldFormats1[icol] = table1.getFieldFormat(icol);
+    	}
   		// Set the precision for floating point columns.
     	if ( (precision != null) && (precision >= 0) ) {
         	// Update the field formats to use the requested precision, if a floating point field.
         	String fieldFormat = "%." + precision + "f";
-           	if ( compareColumnNumbers1[icol] >= 0 ) {
-           		if ( (table1.getFieldDataType(compareColumnNumbers1[icol]) == TableField.DATA_TYPE_DOUBLE) ||
-                	(table1.getFieldDataType(compareColumnNumbers1[icol]) == TableField.DATA_TYPE_FLOAT) ) {
-                	compareColumnFieldFormats1[compareColumnNumbers1[icol]] = fieldFormat;
+        	if ( getMatchColumnsByName() ) {
+        		if ( compareColumnNumbers1[icol] >= 0 ) {
+        			// Get the precision based on the column name.
+        			if ( (table1.getFieldDataType(compareColumnNumbers1[icol]) == TableField.DATA_TYPE_DOUBLE) ||
+        				(table1.getFieldDataType(compareColumnNumbers1[icol]) == TableField.DATA_TYPE_FLOAT) ) {
+        				compareColumnFieldFormats1[compareColumnNumbers1[icol]] = fieldFormat;
+        			}
             	}
            	}
+        	else {
+        		// Get the precision based on the column order.
+        		if ( (table1.getFieldDataType(icol) == TableField.DATA_TYPE_DOUBLE) ||
+        			(table1.getFieldDataType(icol) == TableField.DATA_TYPE_FLOAT) ) {
+        			compareColumnFieldFormats1[icol] = fieldFormat;
+        		}
+            }
         }
     }
-    // Second column may default to names of the first column, which may not be correct when using column order,
-    // so handle both cases.
-    // TODO smalers 2024-02-26 need to figure out why the following have different sizes.
-    //for ( int icol = 0; icol < compareColumnNumbers2.length; icol++ ) {
+
+    // Determine C-style formats to convert table1 compare column values to strings for comparison:
+    // - these are in the position of the compare columns in the original table
     for ( int icol = 0; icol < this.__compareColumns2.size(); icol++ ) {
 		// Get the format from the table properties (works for everything except for floating point).
     	if ( getMatchColumnsByName() ) {
@@ -710,10 +755,10 @@ throws Exception {
         }
     }
 
-    // C-style formats to convert match column values to strings for comparison:
+    // C-style formats to convert table1 match column values to strings for comparison:
+    // - match columns are always specified with names (not column number)
     // - these are in the position of the match columns in the original table
     String[] matchColumnFieldFormats1 = new String[this.__matchColumns1.size()];
-    String[] matchColumnFieldFormats2 = new String[this.__matchColumns2.size()];
     for ( int icol = 0; icol < matchColumnFieldFormats1.length; icol++ ) {
 		// Get the format from the table properties (works for everything except for floating point).
     	matchColumnFieldFormats1[icol] = table1.getFieldFormat(matchColumnNumbers1[icol]);
@@ -728,6 +773,11 @@ throws Exception {
            	}
        	}
     }
+
+    // C-style formats to convert table2 match column values to strings for comparison:
+    // - match columns are always specified with names (not column number)
+    // - these are in the position of the match columns in the original table
+    String[] matchColumnFieldFormats2 = new String[this.__matchColumns2.size()];
     if ( matchColumnNumbers2 != null ) {
     	for ( int icol = 0; icol < matchColumnNumbers2.length; icol++ ) {
 			// Get the format from the table properties (works for everything except for floating point).
@@ -807,16 +857,16 @@ throws Exception {
     if ( doRowNumberColumn ) {
     	if ( diffTable1 != null ) {
       		int newField = diffTable1.addField(new TableField(TableField.DATA_TYPE_INT, rowNumberColumn, -1), "");
-       		diffTable1.getTableField(newField).setDescription("Original table 1 row number.");
+       		diffTable1.getTableField(newField).setDescription("Original table1 row number.");
     	}
     	if ( diffTable2 != null ) {
       		int newField = diffTable2.addField(new TableField(TableField.DATA_TYPE_INT, rowNumberColumn, -1), "");
-       		diffTable2.getTableField(newField).setDescription("Original table 2 row number.");
+       		diffTable2.getTableField(newField).setDescription("Original table2 row number.");
     	}
     }
 
-    // For the comparison tables, loop through the compare column lists,
-    // which should be the same size for tables 1 and 2, and define columns.
+    // For the comparison tables, loop through the compare column lists:
+    // - define column names using table1 names if they match, or "table1 / table2" column names if different
     for ( int icol = 0; icol < compareColumns1.size(); icol++ ) {
         // Define columns of type string (no width specified),
     	// where the column name will be a simple concatenation of both column names,
@@ -825,6 +875,10 @@ throws Exception {
         String colName2 = ""; // Default for unmatched column - / will indicate difference in table names.
         if ( compareColumnNumbers2[icol] >= 0 ) {
             colName2 = table2.getFieldName(compareColumnNumbers2[icol]);
+        }
+        else {
+        	// Table2 has not column so set the column name so it is obvious.
+        	colName2 = "NOCOLUMN";
         }
         if ( !colName1.equalsIgnoreCase(colName2)) {
             // Show the column names from both tables.
@@ -872,7 +926,7 @@ throws Exception {
     // Used to control how comparison table output is handled.
     boolean doAddEmptyRowForComparisonTable2 = false;
 
-    // Loop through the records in table 1 and compare
+    // Loop through the records in table1 and compare
     for ( inRow1 = 0; inRow1 < table1.getNumberOfRecords(); ) {
     	// Reset the number of differences in the row to 0.
     	rowDiffCount = 0;
@@ -887,6 +941,7 @@ throws Exception {
 		doAddEmptyRowForComparisonTable2 = false;
 
     	// Loop through the columns in the row:
+		// - loop through the table1 columns
     	// - the actual column numbers in the table must be looked up using 'icol' as the index
         for ( int icol = 0; icol < compareColumnNumbers1.length; icol++ ) {
         	try {
@@ -898,9 +953,17 @@ throws Exception {
             	// Get the value from the second table and format as a string for comparisons:
             	// - the rows in the second table must be in the same order
             	// - the table rows should have been sorted before calling this code
-               	formattedValue2[icol] =
-               		formatInputTableValueString ( table2, inRow2, icol,
-               			compareColumnFieldFormats2[compareColumnNumbers2[icol]] );
+      			if ( compareColumnNumbers2[icol] >= 0 ) {
+      				// Have a value to format.
+      				formattedValue2[icol] =
+      					formatInputTableValueString ( table2, inRow2, icol,
+      						compareColumnFieldFormats2[compareColumnNumbers2[icol]] );
+      			}
+      			else {
+      				// Do not have a value to format:
+  					// - don't use a space because it may be matched
+      				formattedValue2[icol] = "NODATA";
+      			}
 
         		if ( Message.isDebugOn ) {
         			Message.printStatus ( 2, routine, "Comparing table1/table2 input row [" +
@@ -934,7 +997,7 @@ throws Exception {
         	catch ( Exception e ) {
         		// Typically occurs if there is a casting problem:
         		// - offset 0-index to 1-index for messages since user-facing
-        		Message.printWarning(3, routine, "Error comparing cell values at table 1 row " + (inRow1 + 1) + " column "
+        		Message.printWarning(3, routine, "Error comparing cell values at table1 row " + (inRow1 + 1) + " column "
         			+ (compareColumnNumbers1[icol] + 1) + ".");
         		Message.printWarning(3,routine,e);
                	formattedValue = "ERROR";
@@ -969,9 +1032,9 @@ throws Exception {
            		Message.printStatus(2, routine, "Searching forward in table2 for row matching table1 match columns inRow1=" + inRow1);
            	}
 
-       		// Search forward in table 2 for a row that matches:
+       		// Search forward in table2 for a row that matches:
        		// - only the match column values are compared (typically these columns are for unique identifiers)
-       		// - start with the current table 2 row because may match the "match" columns even if other differences
+       		// - start with the current table2 row because may match the "match" columns even if other differences
        		String table1Value = null;
        		String table2Value = null;
        		boolean foundMatch = false;
@@ -1004,7 +1067,7 @@ throws Exception {
            		    	+ " and table2 inRow2=" + inRow2 + " matchCount=" + matchCount);
                 }
                 if ( matchCount == matchColumnNumbers1.length ) {
-                	// Found a matching row in table 2.
+                	// Found a matching row in table2.
                 	if ( Message.isDebugOn ) {
                 		Message.printStatus(2, routine, "Found a matching table2 row [" + iSearchRow2 + "].");
                 	}
@@ -1016,10 +1079,10 @@ throws Exception {
                 	else {
                 		// Match was found in table2 later in the table:
                 		// - insert table2 rows prior to the matching row
-                		// - insert empty table 1 rows prior to the matching row
+                		// - insert empty table1 rows prior to the matching row
                 		for ( int iAddRow = inRow2; iAddRow < iSearchRow2; iAddRow++ ) {
                 			// Table 1:
-                			// - add a blank row to comparison table 1
+                			// - add a blank row to comparison table1
                 			diffTable1.insertRecord(outRow1, diffTable1.emptyRecord(), false );
                 			if ( doRowNumberColumn ) {
                 				setCellDifferenceIndicator1(outRow1, 0, CELL_INSERT_EMPTY_ROW_TABLE1);
@@ -1029,7 +1092,7 @@ throws Exception {
                 			}
                 			++outRow1;
                 			// Table 2:
-                			// - add the data from table 2
+                			// - add the data from table2
                 			diffTable2.insertRecord(outRow1, diffTable2.emptyRecord(), false );
                 			if ( doRowNumberColumn ) {
            	        			diffTable2.setFieldValue(outRow2, 0, "" + (inRow2 + 1), true);
@@ -1049,7 +1112,7 @@ throws Exception {
                		        			tolerance,
                		        			2);
 
-               	        			// Set the field value in comparison table 2, creating the row if necessary.
+               	        			// Set the field value in comparison table2, creating the row if necessary.
                	        			diffTable2.setFieldValue(outRow2, (icol + rowNumberColumnOffset), formattedValue, true);
                	        			setCellDifferenceIndicator2(outRow2, (icol + rowNumberColumnOffset), CELL_ROW_ONLY_IN_TABLE2);
         	        			}
@@ -1069,9 +1132,17 @@ throws Exception {
             	   				// Get the value from the second table and format as a string for comparisons:
             	   				// - the rows in the second table must be in the same order
             	   				// - the table rows should have been sorted before calling this code
-               	   				formattedValue2[icol] =
-               		   				formatInputTableValueString ( table2, inRow2, icol,
-               			   				compareColumnFieldFormats2[compareColumnNumbers2[icol]] );
+               	   				if ( compareColumnNumbers2[icol] >= 0 ) {
+               	   					// Have a value to format.
+               	   					formattedValue2[icol] =
+               	   						formatInputTableValueString ( table2, inRow2, icol,
+               	   							compareColumnFieldFormats2[compareColumnNumbers2[icol]] );
+               	   				}
+               	   				else {
+               	   					// Don't have a value to format so use a special string:
+               	   					// - don't use a space because it may be matched
+               	   					formattedValue2[icol] = "NODATA";
+               	   				}
                 			}
                 		}
                 	}
@@ -1086,15 +1157,15 @@ throws Exception {
        		}
 
        		if ( !foundMatch ) {
-       			// Did not find a matching row in table 2:
-       			// - output table 1 showing difference (nothing in table 2)
-       			// - add a blank row in table 2
+       			// Did not find a matching row in table2:
+       			// - output table1 showing difference (nothing in table2)
+       			// - add a blank row in table2
        			//++outRow1;
        			if ( Message.isDebugOn ) {
        				Message.printStatus ( 2, routine, "Did not find a match in table2.  "
        					+ "Will add table1 row to comparison table1 and add an empty row to comparison table2." );
        			}
-       			// Trick the code below by using the same values for both tables so just table 1 values (no diff) are in output.
+       			// Trick the code below by using the same values for both tables so just table1 values (no diff) are in output.
        			for ( int icol = 0; icol < compareColumnNumbers1.length; icol++ ) {
        				formattedValue2[icol] = formattedValue1[icol];
        			}
@@ -1152,7 +1223,7 @@ throws Exception {
         for ( int icol = 0; icol <= iColEnd; icol++ ) {
         	try {
             	if ( analysisType == DataTableComparerAnalysisType.SIMPLE ) {
-            		// Comparison table 1.
+            		// Comparison table1.
            			if ( icol == 0 ) {
            				if ( Message.isDebugOn ) {
            					Message.printStatus(2, routine, "  Simple analysis: adding table1 comparison row at outRow1=" + outRow1);
@@ -1182,7 +1253,7 @@ throws Exception {
             		// Set the field value in both comparison tables, creating the row if necessary.
             		// Table 1.
             		if ( doAddEmptyRowForComparisonTable1 ) {
-            			// Add an empty table 1 row.
+            			// Add an empty table1 row.
             			if ( icol == 0 ) {
            					if ( Message.isDebugOn ) {
            						Message.printStatus(2, routine, "  Advanced analysis: adding empty table1 comparison row at outRow1=" + outRow1);
@@ -1198,7 +1269,7 @@ throws Exception {
             			}
             		}
             		else {
-            			// Add a normal table 1 row (may have differences).
+            			// Add a normal table1 row (may have differences).
             			if ( icol == 0 ) {
            					if ( Message.isDebugOn ) {
            						Message.printStatus(2, routine, "  Advanced analysis: adding table1 comparison row with data at outRow1=" + outRow1);
@@ -1211,7 +1282,7 @@ throws Exception {
             				this.__tolerance, 1 );
             			diffTable1.setFieldValue(outRow1, (icol + rowNumberColumnOffset), formattedValue, true);
             			if ( doAddEmptyRowForComparisonTable2 ) {
-            				// Since table 2 is empty row, set the flag on table 1 accordingly.
+            				// Since table2 is empty row, set the flag on table1 accordingly.
             				setCellDifferenceIndicator1(outRow1, (icol + rowNumberColumnOffset), CELL_ROW_ONLY_IN_TABLE1);
             			}
             			if ( icol == iColEnd ) {
@@ -1251,7 +1322,7 @@ throws Exception {
             				this.__tolerance, 2 );
             			diffTable2.setFieldValue(outRow2, (icol + rowNumberColumnOffset), formattedValue, true);
             			if ( doAddEmptyRowForComparisonTable1 ) {
-            				// Since table1 is empty, set table 2 to indicate only it has data.
+            				// Since table1 is empty, set table2 to indicate only it has data.
             				setCellDifferenceIndicator2(outRow2, (icol + rowNumberColumnOffset), CELL_ROW_ONLY_IN_TABLE2);
             			}
             			if ( icol == iColEnd ) {
@@ -1284,15 +1355,15 @@ throws Exception {
 		}
     }
 
-    // If rows remain in table 2:
-    // - add empty rows to comparison table 1
+    // If rows remain in table2:
+    // - add empty rows to comparison table1
     // - and 2 rows to the second comparison table
     // - this should work for simple and advanced analysis
     for ( ; inRow2 < table2.getNumberOfRecords(); ++inRow2 ) {
-    	// Add empty row to table 1:
-   		// - do not set the row number in table 1 since no original data in table 1
+    	// Add empty row to table1:
+   		// - do not set the row number in table1 since no original data in table1
     	if ( Message.isDebugOn ) {
-    		Message.printStatus ( 2, routine, "Adding comparison table 1 empty row [" + outRow1 +
+    		Message.printStatus ( 2, routine, "Adding comparison table1 empty row [" + outRow1 +
     			"] at inRow1=" + inRow1 + " outRow1=" + outRow1 + " diffTable1.size=" +
     			diffTable1.getNumberOfRecords());
     	}
@@ -1305,12 +1376,12 @@ throws Exception {
 		++outRow1;
    		if ( diffTable2 != null ) {
    			if ( Message.isDebugOn ) {
-   				Message.printStatus ( 2, routine, "Before adding ending comparison table 2 row [" + outRow2 +
+   				Message.printStatus ( 2, routine, "Before adding ending comparison table2 row [" + outRow2 +
     				"] at inRow2=" + inRow2 + " outRow2=" + outRow2 + " comaparisonTable2.size=" +
     				diffTable2.getNumberOfRecords());
    			}
-   			// Add contents of table 2:
-   			// - set the row number in table 2
+   			// Add contents of table2:
+   			// - set the row number in table2
    			diffTable2.insertRecord(outRow2, diffTable2.emptyRecord(), false );
    			if ( doRowNumberColumn ) {
    				// Row number is 1+ whereas internal is 0+
@@ -1333,7 +1404,7 @@ throws Exception {
    			}
    			++outRow2;
    			if ( Message.isDebugOn ) {
-   				Message.printStatus ( 2, routine, "After adding ending comparison table 2 row [" + outRow2 +
+   				Message.printStatus ( 2, routine, "After adding ending comparison table2 row [" + outRow2 +
     				"] at inRow2=" + inRow2 + " outRow2=" + outRow2 + " comaparisonTable2.size=" +
     				diffTable2.getNumberOfRecords());
    			}
@@ -1349,9 +1420,9 @@ throws Exception {
 
     	createDiffTable ( doRowNumberColumn );
     }
-    
+
     // Adjust the tables to include only rows of interest.
-    
+
     adjustDiffTableRows ( analysisType, doOutputDifferent, doOutputSame, rowNumberColumnOffset );
 }
 
@@ -1406,6 +1477,7 @@ throws Exception {
     			}
     		}
    		}
+
     	// Copy the difference table1 to a new final difference table.
 
    		String [] reqIncludeColumns = null;
@@ -1414,7 +1486,7 @@ throws Exception {
    		Hashtable<String,String> columnFilters = null;
    		StringDictionary columnExcludeFilters = null;
    		DataTable diffTable = diffTable1.createCopy ( this.diffTable1,
-   			this.diffTableID, reqIncludeColumns, distinctColumns, columnMap, columnFilters, columnExcludeFilters);
+   			this.diffTableID, reqIncludeColumns, distinctColumns, columnMap, columnFilters, columnExcludeFilters );
    		setDiffTable ( diffTable );
 
    		// Copy the first table difference indicator list:
@@ -1602,9 +1674,9 @@ private String formatInputTableValueString ( DataTable table, int irow, int icol
  * This will also set the difference data information.
  * @param outRow the comparison table output column position (0+) for the 'comparisonTableNum' table,
  * used to set the comparison table cell flag
- * @param icol the input column position (0+) from table 1 being compared, should reflect include row number column
- * @param formattedValue1 formatted value from table 1
- * @param formattedValue2 formatted value from table 2
+ * @param icol the input column position (0+) from table1 being compared, should reflect include row number column
+ * @param formattedValue1 formatted value from table1
+ * @param formattedValue2 formatted value from table2
  * @param columnDataType the table column data type, used to detect floating point numbers
  * @param tolerance the tolerance for comparisons, or null if not used
  * @param comaparisonTableNum the comparison table number, used when setting output in the difference array/list
@@ -1947,6 +2019,13 @@ private Integer getPrecision () {
 }
 
 /**
+ * Get the problems from running the comparison.
+ */
+public List<String> getProblems () {
+	return this.problems;
+}
+
+/**
 Return the count of the same cells, based on the first comparison table cell indicators.
 Do not count the row number column.
 @return the count of the same cells.
@@ -2045,7 +2124,7 @@ private Double getTolerance () {
 private boolean ifRowDifferent ( DataTable diffTable, List<Integer>[] differenceList, int iRow, int rowNumberColumnOffset ) {
 	// All cells are assumed to be the same until a difference is detected.
 	boolean ifRowDifferent = false;
-	
+
 	int nCols = diffTable.getNumberOfFields();
 	Integer indicator = null;
 	for ( int iCol = rowNumberColumnOffset; iCol < nCols; iCol++ ) {
@@ -2069,7 +2148,7 @@ private boolean ifRowDifferent ( DataTable diffTable, List<Integer>[] difference
 private boolean ifRowSame ( DataTable diffTable, List<Integer>[] differenceList, int iRow, int rowNumberColumnOffset ) {
 	// All cells are assumed to be the same until a difference is detected.
 	boolean ifRowSame = true;
-	
+
 	int nCols = diffTable.getNumberOfFields();
 	Integer indicator = null;
 	for ( int iCol = rowNumberColumnOffset; iCol < nCols; iCol++ ) {
