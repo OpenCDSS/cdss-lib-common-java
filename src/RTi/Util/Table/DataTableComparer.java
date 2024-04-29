@@ -2056,6 +2056,7 @@ public int getSameCellCount () {
 }
 
 /**
+ * TODO smalers 2024-04-24 this does not seem to work right, maybe because output as only difference can be requested?
 Return the count of the same rows, based on the first table's comparison table.
 @return the count of the same rows.
 */
@@ -2063,7 +2064,7 @@ public int getSameRowCount () {
 	// Determine if a row number column is used.
 	int rowNumberColumnOffset = 0;
     if ( (this.rowNumberColumn != null) && !this.rowNumberColumn.isEmpty() ) {
-    	// Add a row number column to the comparison table(s).
+    	// Shift the index because a row number column was added to the comparison table(s).
     	rowNumberColumnOffset = 1;
     }
 
@@ -2090,6 +2091,7 @@ public int getSameRowCount () {
 		return rowSameCount;
 	}
 }
+
 /**
 Return the first table being compared.
 @return the first table being compared

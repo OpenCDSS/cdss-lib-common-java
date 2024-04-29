@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2024 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -245,7 +245,7 @@ private void initialize ( JFrame parent, JList<?> list, String title ) {
 	__find_JPopupMenu = new JPopupMenu("Search Actions");
 	__find_JPopupMenu.add( new SimpleJMenuItem ( __GO_TO_ITEM, this ) );
 	__find_JPopupMenu.add( new SimpleJMenuItem ( __SELECT_FIRST_ITEM,this));
-	if (	__original_JList.getSelectionMode() == ListSelectionModel.MULTIPLE_INTERVAL_SELECTION ) {
+	if ( __original_JList.getSelectionMode() == ListSelectionModel.MULTIPLE_INTERVAL_SELECTION ) {
 		// Only makes sense if we can select more than one thing in the original list.
 		__find_JPopupMenu.add( new SimpleJMenuItem ( __SELECT_ALL_FOUND_ITEMS,this));
 		__find_JPopupMenu.add( new SimpleJMenuItem ( __SELECT_ALL_NOT_FOUND_ITEMS,this));
@@ -259,6 +259,7 @@ private void initialize ( JFrame parent, JList<?> list, String title ) {
 
 /**
 Respond to KeyEvents.  If enter is pressed, refreshes the dialog.
+@param event KeyEvent to handle
 */
 public void keyPressed ( KeyEvent event ) {
 	int code = event.getKeyCode();
@@ -270,24 +271,28 @@ public void keyPressed ( KeyEvent event ) {
 
 /**
 Does nothing.
+@param event KeyEvent to handle
 */
 public void keyReleased ( KeyEvent event ) {
 }
 
 /**
 Does nothing.
+@param event KeyEvent to handle
 */
 public void keyTyped ( KeyEvent event ) {
 }
 
 /**
 Does nothing.
+@param event MouseEvent to handle
 */
 public void mouseClicked ( MouseEvent event ) {
 }
 
 /**
 Does nothing.
+@param event MouseEvent to handle
 */
 public void mouseEntered ( MouseEvent event ) {
 }
@@ -301,6 +306,7 @@ public void mouseExited ( MouseEvent event ) {
 /**
 Handle mouse pressed event.
 Shows the popup menu if the popup menu trigger (right mouse button usually) was pressed.
+@param event MouseEvent to handle
 */
 public void mousePressed ( MouseEvent event ) {
 	if (__find_JList.getItemCount() > 0
@@ -312,6 +318,7 @@ public void mousePressed ( MouseEvent event ) {
 
 /**
 Does nothing.
+@param event MouseEvent to handle
 */
 public void mouseReleased ( MouseEvent event ) {
 }
@@ -372,36 +379,42 @@ public void windowClosing( WindowEvent event ) {
 
 /**
 Does nothing.
+@param evt WindowEvent object.
 */
 public void windowActivated( WindowEvent evt ) {
 }
 
 /**
 Does nothing.
+@param evt WindowEvent object.
 */
 public void windowClosed( WindowEvent evt ) {
 }
 
 /**
 Does nothing.
+@param evt WindowEvent object.
 */
 public void windowDeactivated( WindowEvent evt ) {
 }
 
 /**
 Does nothing.
+@param evt WindowEvent object.
 */
 public void windowDeiconified( WindowEvent evt ) {
 }
 
 /**
 Does nothing.
+@param evt WindowEvent object.
 */
 public void windowIconified( WindowEvent evt ) {
 }
 
 /**
 Does nothing.
+@param evt WindowEvent object.
 */
 public void windowOpened( WindowEvent evt ) {
 }

@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2024 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -116,9 +116,9 @@ This may be a string or another object.  If a string, it contains the value befo
 private Object __contents;
 
 /**
-Value of the object as a string.  In most cases, the object will be a string.  The
-value is the fully-expanded string (wildcards and other variables are expanded).  If not
-a string, this may contain the toString() representation.
+Value of the object as a string.  In most cases, the object will be a string.
+The value is the fully-expanded string (wildcards and other variables are expanded).
+If not a string, this may contain the toString() representation.
  */
 private String __value;
 
@@ -289,6 +289,11 @@ public String getValue ( PropList props ) {
 
 /**
 Initialize member data.
+@param howSet how the property was set
+@param intKey integer key for the property
+@param stringKey String key for the property
+@param contents Object contents for the property
+@param value String equivalent contents for the property (typically contents.toString())
 */
 private void initialize ( int howSet, int intKey, String key, Object contents, String value ) {
 	__howSet = howSet;
