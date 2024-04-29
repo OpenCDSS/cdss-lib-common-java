@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2024 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -104,7 +104,6 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 	*/
 	private ArrayList<JLabel> numberLabelList = new ArrayList<>();
 
-
 	/**
 	Component to hold keys from the dictionary.
 	*/
@@ -114,6 +113,16 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 	Component to hold values from the dictionary.
 	*/
 	private ArrayList<JTextField> valueTextFieldList = new ArrayList<>();
+
+	/**
+	 * Major delimiter, separating dictionary entries.
+	 */
+	private String majorDelim = ",";
+
+	/**
+	 * Minor delimiter, separating the parts in entry.
+	 */
+	private String minorDelim = ":";
 
 	/**
 	Dialog buttons.
@@ -182,12 +191,12 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 	private boolean error_wait = false;
 
 	/**
-	Constructor.
+	Constructor.  Defaults are major delimiter is a comma and minor delimiter is a colon.
 	@param parent the parent JFrame on which the dialog will appear.
 	This cannot be null.  If necessary, pass in a new JFrame.
 	@param modal whether the dialog is modal.
-	@param dictString the dictionary string to edit.  Can be null, in which case <code>response()
-	</code> will return a new dictionary string filled with the values entered on the form.
+	@param dictString the dictionary string to edit.  Can be null, in which case <code>response()</code>
+	will return a new dictionary string filled with the values entered on the form.
 	The left-side key values can contain duplicate values.
 	@param title dialog title
 	@param notes information to display at the top of the dialog, to help explain the input
@@ -196,12 +205,64 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 	@param initDictSize initial number of key/value pairs to show.  If negative do not allow additional values.
 	If specified as zero, the default size will default to 10 rows.
 	*/
-	public DictionaryJDialog(JFrame parent, boolean modal, String dictString, String title, String [] notes,
-    	String keyLabel, String valueLabel,
+	public DictionaryJDialog (
+		JFrame parent,
+		boolean modal,
+		String dictString,
+		String title,
+		String [] notes,
+    	String keyLabel,
+    	String valueLabel,
+    	int initDictSize ) {
+		this (
+			parent,
+			modal,
+			dictString,
+			// Default delimiters as per historical.
+			",",
+			":",
+			title,
+			notes,
+    		keyLabel,
+    		valueLabel,
+    		initDictSize );
+	}
+
+	/**
+	Constructor.
+	@param parent the parent JFrame on which the dialog will appear.
+	This cannot be null.  If necessary, pass in a new JFrame.
+	@param modal whether the dialog is modal.
+	@param dictString the dictionary string to edit.  Can be null, in which case <code>response()</code>
+	will return a new dictionary string filled with the values entered on the form.
+	The left-side key values can contain duplicate values.
+	@param title dialog title
+	@param notes information to display at the top of the dialog, to help explain the input
+	@param keyLabel label above keys
+	@param valueLabel label above values
+	@param initDictSize initial number of key/value pairs to show.  If negative do not allow additional values.
+	If specified as zero, the default size will default to 10 rows.
+	*/
+	public DictionaryJDialog (
+		JFrame parent,
+		boolean modal,
+		String dictString,
+		String majorDelim,
+		String minorDelim,
+		String title,
+		String [] notes,
+    	String keyLabel,
+    	String valueLabel,
     	int initDictSize ) {
 		super(parent, modal);
 
 		this.dictString = dictString;
+		if ( (majorDelim != null) && !majorDelim.isEmpty() ) {
+			this.majorDelim = majorDelim;
+		}
+		if ( (minorDelim != null) && !minorDelim.isEmpty() ) {
+			this.minorDelim = minorDelim;
+		}
 		this.title = title;
 		if ( notes == null ) {
 	    	notes = new String[0];
@@ -335,35 +396,35 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 		this.error_wait = false;
 
 		StringBuffer b = new StringBuffer();
-		String chars = ":,\"";
+		String reservedChars = majorDelim + minorDelim + "\"";
 		String message = "";
     	// Get data from the dialog.
 		for ( int i = 0; i < this.keyTextFieldList.size(); i++ ) {
 	    	String key = this.keyTextFieldList.get(i).getText().trim();
 	    	String value = this.valueTextFieldList.get(i).getText().trim();
-	    	// Make sure that the key and value do not contain special characters :,"
+	    	// Make sure that the key and value do not contain reserved characters including double quote and the delimiters.
 	    	// TODO SAM 2013-09-08 For now see if can parse out intelligently when ${} surrounds property, as in ${TS:property},
 	    	// but this is not a generic behavior and needs to be handled without hard-coding.
 	    	// Evaluate whether to implement:  It is OK in the value if the value is completely surrounded by single quotes.
-	    	if ( StringUtil.containsAny(key, chars, false) ) {
+	    	if ( StringUtil.containsAny(key, reservedChars, false) ) {
 	        	if ( !key.startsWith("${") && !key.endsWith("}") ) {
-	            	message += "\n" + this.keyLabel + " (" + key + ") is not ${Property} and contains special character(s) " +
-	            		chars + "\nSurround with '  ' to protect or [  ] for array.";
+	            	message += "\n" + this.keyLabel + " (" + key + ") is not ${Property} and contains reserved character(s) " +
+	            		reservedChars + "\nSurround with '  ' to protect or [  ] for array.";
 	        	}
 	    	}
-	    	if ( StringUtil.containsAny(value, chars, false) ) {
+	    	if ( StringUtil.containsAny(value, reservedChars, false) ) {
 	        	if ( ((value.charAt(0) != '\'') && (value.charAt(value.length() - 1) != '\'')) &&
 	             	((value.charAt(0) != '[') && (value.charAt(value.length() - 1) != ']')) &&
 	            	(!value.startsWith("${") && !value.endsWith("}")) ) {
-	            	message = "\n" + this.valueLabel + " (" + value + ") is not ${Property} and contains special character(s) " +
-	            		chars + "\nSurround with '  ' to protect or [  ] for array.";
+	            	message = "\n" + this.valueLabel + " (" + value + ") is not ${Property} and contains reserved character(s) " +
+	            		reservedChars + "\nSurround with '  ' to protect or [  ] for array.";
 	        	}
         	}
 	    	if ( key.length() > 0 ) {
 	        	if ( b.length() > 0 ) {
-	            	b.append ( "," );
+	            	b.append ( majorDelim );
 	        	}
-	        	b.append(key + ":" + value );
+	        	b.append(key + minorDelim + value );
 	    	}
 		}
 		if ( message.length() > 0 ) {
@@ -590,12 +651,12 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 		if ( (this.dictString != null) && (this.dictString.length() > 0) ) {
 	    	// Have an existing dictionary string so parse and use to populate the dialog.
 	    	String [] dictParts;
-	    	if ( dictString.indexOf(",") < 0 ) {
+	    	if ( dictString.indexOf(majorDelim) < 0 ) {
 	        	dictParts = new String[1];
 	        	dictParts[0] = dictString;
 	    	}
 	    	else {
-	        	dictParts = this.dictString.split(",");
+	        	dictParts = this.dictString.split(majorDelim);
 	    	}
 	    	if ( dictParts != null ) {
     	    	keyList = new String[dictParts.length];
@@ -612,7 +673,7 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
     	        	}
     	        	else {
     	            	// No ${property} in the key.
-    	            	colonPos = dictParts[i].indexOf(":");
+    	            	colonPos = dictParts[i].indexOf(minorDelim);
     	        	}
     	        	if ( colonPos >= 0 ) {
   	                	keyList[i] = dictParts[i].substring(0,colonPos).trim();
@@ -742,8 +803,13 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 		}
 		else {
 			// Add more height to show all the notes and a reasonable number of data rows.
-			setSize(650,400);
-			setSize(650,400 + ((notes.length - 7) * 15) );
+			int fieldHeight = keyTextFieldList.get(0).getHeight();
+			int height = 400 + ((notes.length - 7) * fieldHeight);
+			if ( height > 800) {
+				// Don't let the height be more than 800.
+				height = 800;
+			}
+			setSize(650,height);
 		}
 		setResizable ( true );
 		JGUIUtil.center(this);

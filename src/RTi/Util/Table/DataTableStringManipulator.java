@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2024 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -66,6 +66,7 @@ public DataTableStringManipulator ( DataTable table, StringDictionary columnIncl
 
 /**
 Get the list of operators that can be used.
+@return the list of DataTableStringOperatorType that can be used
 */
 public static List<DataTableStringOperatorType> getOperatorChoices() {
     List<DataTableStringOperatorType> choices = new ArrayList<>();
@@ -186,6 +187,7 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
     // In these cases, remove the special characters.
     boolean replaceStart = false;
     boolean replaceEnd = false;
+    boolean removeCharSet = false;
 	if ( (operator == DataTableStringOperatorType.REPLACE) || (operator == DataTableStringOperatorType.REMOVE) ) {
     	if ( inputValue2 != null ) {
     		if ( inputValue2.startsWith("^") ) {
@@ -197,6 +199,12 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
 	    		replaceEnd = true;
 	    		// Remove the dollar sign.
 	    		inputValue2 = inputValue2.substring(0,inputValue2.length()-1);
+    		}
+    		else if ( inputValue2.startsWith("[") && inputValue2.endsWith("]") ) {
+    			// Replacing a character set in [123...].
+    			removeCharSet = true;
+	    		// Remove the braces.
+	    		inputValue2 = inputValue2.substring(1,inputValue2.length()-1);
     		}
     		// Replace "\s" with single space.
     		inputValue2 = inputValue2.replace("\\s"," ");
@@ -353,6 +361,22 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
 	            		}
             		}
             		// Else defaults to default output as determined above.
+            	}
+            	else if ( removeCharSet ) {
+            		// 'input2Val' contains a list of characters to be removed:
+            		// - the original parameter value is something like [123]
+            		// - the brackets were stripped off above
+            		// - rely on built-in String.replace() method
+            		String c;
+            		for ( int i = 0; i < input2Val.length(); i++ ) {
+            			c = String.valueOf(input2Val.charAt(i));
+            			// Check first so that less memory is allocated for 'outputVal'.
+            			if ( input1Val.contains(c) ) {
+            				input1Val = input1Val.replace(c,"");
+            			}
+            		}
+            		// Set the output to the input1Val after it has been processed.
+            		outputVal = input1Val;
             	}
             	else {
             		// Simple replace - may not do anything if not matched.
