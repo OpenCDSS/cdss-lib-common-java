@@ -909,8 +909,21 @@ throws Exception {
 	component = selectedInputFilter.getInputComponent();
 	if ( component instanceof SimpleJComboBox ) {
 		cb = (SimpleJComboBox)component;
-		JGUIUtil.selectTokenMatches ( cb, true, selectedInputFilter.getChoiceDelimiter(),
-			0, selectedInputFilter.getChoiceToken(), input, null, true );
+		if ( setTextIfNoChoiceMatches ) {
+			// Try to match the selection first and if not found set the text.
+			try {
+				JGUIUtil.selectTokenMatches ( cb, true, selectedInputFilter.getChoiceDelimiter(),
+					0, selectedInputFilter.getChoiceToken(), input, null, true );
+			}
+			catch ( Exception e ) {
+				cb.setText(input);
+			}
+		}
+		else {
+			// Just try to select and allow and exception to be thrown if not found.
+			JGUIUtil.selectTokenMatches ( cb, true, selectedInputFilter.getChoiceDelimiter(),
+				0, selectedInputFilter.getChoiceToken(), input, null, true );
+		}
 	}
 	else if ( component instanceof JTextField ) {
 		tf = (JTextField)component;

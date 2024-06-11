@@ -3991,13 +3991,12 @@ once with false before drawing data and then with true after data have been draw
 @param drawingStepType indicates the step during drawing that should be matched.
 If the annotation "Order" property does not match the drawing step then the annotation will not be drawn.
 */
-private void drawAnnotations( TSProduct tsproduct, int subproduct,
-	GRDrawingArea daLeftYAxisGraph, GRDrawingArea daRightYAxisGraph, TSGraphDrawingStepType drawingStepType) {
+private void drawAnnotations ( TSProduct tsproduct, int subproduct,
+	GRDrawingArea daLeftYAxisGraph, GRDrawingArea daRightYAxisGraph, TSGraphDrawingStepType drawingStepType ) {
 	if (_is_reference_graph) {
 		return;
 	}
 	String routine = getClass().getSimpleName() + ".drawAnnotations(" + drawingStepType + ")";
-	int na = tsproduct.getNumAnnotations(subproduct);
 	PropList annotation = null;
 	String s = null;
 	String type = null;
@@ -4027,7 +4026,15 @@ private void drawAnnotations( TSProduct tsproduct, int subproduct,
 
 	boolean drawLeftYAxis = true;
 	boolean drawRightYAxis = false;
+	int na = tsproduct.getNumAnnotations(subproduct);
 	for (int iatt = 0; iatt < na; iatt++) {
+		// Only draw the annotation if it is enabled.
+		String enabled = tsproduct.getLayeredPropValue("Enabled", subproduct, iatt, false, true);
+		if ( (enabled != null) && enabled.equalsIgnoreCase("false") ) {
+			// Ignore the annotation.
+			continue;
+		}
+
 		annotation = new PropList("Annotation " + iatt);
 		valid = true;
 		drawLeftYAxis = true; // Default is left y-axis.
