@@ -352,6 +352,7 @@ private SimpleJComboBox __annotation_Order_JComboBox = null;
 private SimpleJComboBox __annotation_XAxisSystem_JComboBox = null;
 private SimpleJComboBox __annotation_YAxis_JComboBox = null;
 private SimpleJComboBox __annotation_YAxisSystem_JComboBox = null;
+private SimpleJComboBox __annotation_Enabled_JComboBox = null;
 
 private JPanel __annotation_line_JPanel = null;
 private SimpleJComboBox __annotationLineStyleJComboBox = null;
@@ -1572,11 +1573,24 @@ private JPanel createAnnotationJPanel() {
 	__graphAnnotationProvider = new SimpleJComboBox(__annotationProviders);
 	__graphAnnotationProvider.setToolTipText("Advanced feature to get annotations from a database or other system");
 	__graphAnnotationProvider.setPrototypeDisplayValue(	"XXXXXXXXXXXXXXXXXXXX");
-	JGUIUtil.addComponent(annotationProps_JPanel,	new JLabel("Annotation provider: "),
-		0, ++yAnnotationProps, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,	GridBagConstraints.WEST);
-	JGUIUtil.addComponent(annotationProps_JPanel,	__graphAnnotationProvider,
+	JGUIUtil.addComponent(annotationProps_JPanel, new JLabel("Annotation provider: "),
+		0, ++yAnnotationProps, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+	JGUIUtil.addComponent(annotationProps_JPanel, __graphAnnotationProvider,
 		1, yAnnotationProps, 1, 1, 1, 1, _insetsTLBR, GridBagConstraints.NONE,
 		GridBagConstraints.WEST);
+
+	JGUIUtil.addComponent(annotationProps_JPanel, new JLabel("Enabled: "),
+		0, ++yAnnotationProps, 1, 1, 1, 1, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.EAST);
+	__annotation_Enabled_JComboBox = new SimpleJComboBox(false);
+	__annotation_Enabled_JComboBox.setToolTipText("Is the annotation enabled?");
+	__annotation_Enabled_JComboBox.add("False");
+	__annotation_Enabled_JComboBox.add("True");
+	__annotation_Enabled_JComboBox.select(0);
+	__annotation_Enabled_JComboBox.addItemListener(this);
+	JGUIUtil.addComponent(annotationProps_JPanel, __annotation_Enabled_JComboBox,
+		1, yAnnotationProps, 1, 1, 1, 1, _insetsTLBR,
+		GridBagConstraints.NONE, GridBagConstraints.WEST);
 
 	__annotation_ShapeType_JComboBox.addItemListener(this);
 	__annotation_ShapeType_JComboBox.select(0);
@@ -2043,7 +2057,7 @@ private JPanel createDataJPanel () {
 			new JSeparator(SwingConstants.HORIZONTAL),
 			0, ++y, 6, 1, 0, 0, _insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 	_ts_enabled_JCheckBox = new JCheckBox("Time series enabled", true);
-	JGUIUtil.addComponent ( general_JPanel,	_ts_enabled_JCheckBox,
+	JGUIUtil.addComponent ( general_JPanel, _ts_enabled_JCheckBox,
 			0, ++y, 1, 1, 0, 0,
 			_insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 
@@ -3949,6 +3963,13 @@ private void displayAnnotationProperties(int isub, int iann) {
 	}
 	__annotation_YAxisSystem_JComboBox.select(prop_val);
 
+	// Enabled.
+	prop_val = _tsproduct.getLayeredPropValue("Enabled", isub, iann, false, true);
+	if (prop_val == null) {
+		prop_val = _tsproduct.getDefaultPropValue("Enabled", isub, iann, true);
+	}
+	__annotation_Enabled_JComboBox.select(prop_val);
+
 	// Now update properties for each annotation shape type.
 	// Although some are shared, it is easier to duplicate some code so as to be sure about which properties are used.
 
@@ -4658,9 +4679,9 @@ private void displaySubproductProperties ( int isub ) {
 
 	// AnnotationProvider [Annotations]
 
-	prop_val = _tsproduct.getLayeredPropValue("AnnotationProvider",	isub, -1, false);
+	prop_val = _tsproduct.getLayeredPropValue("AnnotationProvider", isub, -1, false);
 	if (prop_val == null) {
-		prop_val = _tsproduct.getDefaultPropValue("AnnotationProvider",	isub, -1);
+		prop_val = _tsproduct.getDefaultPropValue("AnnotationProvider", isub, -1);
 	}
 
 	if ( __graphAnnotationProvider != null ) {
@@ -4989,7 +5010,7 @@ private void displaySubproductProperties ( int isub ) {
 	}
 	else {
 		Message.printWarning ( 2, routine, "LeftYAxisTitleFontSize \"" + prop_val + "\" is not recognized" );
-		_graph_lefty_title_fontsize_JTextField.setText(_tsproduct.getDefaultPropValue("LeftYAxisTitleFontSize",	isub,-1) );
+		_graph_lefty_title_fontsize_JTextField.setText(_tsproduct.getDefaultPropValue("LeftYAxisTitleFontSize", isub,-1) );
 	}
 
 	// "LeftYAxisLabelFontName" [Y Axis (Left)]
@@ -5125,7 +5146,7 @@ private void displaySubproductProperties ( int isub ) {
 
 	prop_val = _tsproduct.getLayeredPropValue (	"LegendFontStyle", isub, -1, false );
 	try {
-	    JGUIUtil.selectIgnoreCase(_graph_legendfontstyle_JComboBox,	prop_val);
+	    JGUIUtil.selectIgnoreCase(_graph_legendfontstyle_JComboBox, prop_val);
 	}
 	catch ( Exception e ) {
 		Message.printWarning ( 2, routine, "LegendFontStyle \"" + prop_val + "\" is not recognized" );
@@ -5364,7 +5385,7 @@ private void displaySubproductProperties ( int isub ) {
 	}
 	else {
 		Message.printWarning ( 2, routine, "RightYAxisTitleFontSize \"" + prop_val + "\" is not recognized" );
-		_graph_righty_title_fontsize_JTextField.setText(_tsproduct.getDefaultPropValue("RightYAxisTitleFontSize",	isub,-1) );
+		_graph_righty_title_fontsize_JTextField.setText(_tsproduct.getDefaultPropValue("RightYAxisTitleFontSize", isub,-1) );
 	}
 
 	// "RightYAxisLabelFontName" [Y Axis (Right)]
@@ -6822,6 +6843,7 @@ private void setAnnotationFieldsEnabled(boolean enabled) {
 	JGUIUtil.setEnabled(__annotation_tableid_JTextField, enabled);
 	JGUIUtil.setEnabled(__annotation_ShapeType_JComboBox, enabled);
 	JGUIUtil.setEnabled(__annotation_Order_JComboBox, enabled);
+	JGUIUtil.setEnabled(__annotation_Enabled_JComboBox, enabled);
 	JGUIUtil.setEnabled(__annotation_line_color_JTextField, enabled);
 	JGUIUtil.setEnabled(__annotation_text_color_JTextField, enabled);
 	JGUIUtil.setEnabled(__annotation_text_color_JComboBox, enabled);
@@ -8372,8 +8394,7 @@ protected int updateTSProduct (int howSet) {
 
 	if (graphTypeLeft == TSGraphType.XY_SCATTER || graphTypeLeft == TSGraphType.PREDICTED_VALUE
 	    || graphTypeLeft == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
-		prop_val = _tsproduct.getLayeredPropValue (
-			"RegressionLineEnabled", _selected_subproduct, _selected_data, false );
+		prop_val = _tsproduct.getLayeredPropValue ( "RegressionLineEnabled", _selected_subproduct, _selected_data, false );
 		if ( _ts_regressionline_JCheckBox.isSelected() ) {
 			gui_val = "true";
 		}
@@ -8422,8 +8443,7 @@ protected int updateTSProduct (int howSet) {
 	if (graphTypeLeft == TSGraphType.XY_SCATTER
 	    || graphTypeLeft == TSGraphType.PREDICTED_VALUE
 	    || graphTypeLeft == TSGraphType.PREDICTED_VALUE_RESIDUAL) {
-		prop_val = _tsproduct.getLayeredPropValue (
-			"XYScatterConfidenceInterval", _selected_subproduct, _selected_data, false);
+		prop_val = _tsproduct.getLayeredPropValue ( "XYScatterConfidenceInterval", _selected_subproduct, _selected_data, false);
 		gui_val= _ts_confidenceinterval_JComboBox.getSelected().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
 			_tsproduct.setPropValue("XYScatterConfidenceInterval", gui_val, _selected_subproduct, _selected_data);
@@ -8482,32 +8502,28 @@ protected int updateTSProduct (int howSet) {
 	// Apply properties based on the annotation shape type.
 
 	if (shape == null || shape.equalsIgnoreCase("Text")) {
-		prop_val = _tsproduct.getLayeredPropValue(
-			"Color", _selected_subproduct, __selectedAnnotationIndex, false, true);
+		prop_val = _tsproduct.getLayeredPropValue( "Color", _selected_subproduct, __selectedAnnotationIndex, false, true);
 		gui_val = __annotation_text_color_JComboBox.getSelected().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
 			_tsproduct.setPropValue("Color", gui_val, _selected_subproduct, __selectedAnnotationIndex, true);
 			ndirty++;
 		}
 
-		prop_val = _tsproduct.getLayeredPropValue(
-			"FontSize", _selected_subproduct, __selectedAnnotationIndex, false, true);
+		prop_val = _tsproduct.getLayeredPropValue( "FontSize", _selected_subproduct, __selectedAnnotationIndex, false, true);
 		gui_val =__annotation_text_FontSize_JTextField.getText().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
 			_tsproduct.setPropValue("FontSize", gui_val, _selected_subproduct, __selectedAnnotationIndex, true);
 			ndirty++;
 		}
 
-		prop_val = _tsproduct.getLayeredPropValue(
-			"FontStyle", _selected_subproduct, __selectedAnnotationIndex, false, true);
+		prop_val = _tsproduct.getLayeredPropValue( "FontStyle", _selected_subproduct, __selectedAnnotationIndex, false, true);
 		gui_val = __annotation_text_FontStyle_JComboBox.getSelected().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
 			_tsproduct.setPropValue("FontStyle", gui_val, _selected_subproduct, __selectedAnnotationIndex, true);
 			ndirty++;
 		}
 
-		prop_val = _tsproduct.getLayeredPropValue( "FontName", _selected_subproduct,
-			__selectedAnnotationIndex, false, true);
+		prop_val = _tsproduct.getLayeredPropValue( "FontName", _selected_subproduct, __selectedAnnotationIndex, false, true);
 		gui_val = __annotation_text_FontName_JComboBox.getSelected().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
 			_tsproduct.setPropValue("FontName", gui_val, _selected_subproduct, __selectedAnnotationIndex, true);
@@ -8515,8 +8531,7 @@ protected int updateTSProduct (int howSet) {
 		}
 
 		prop_val = _tsproduct.getLayeredPropValue( "Point", _selected_subproduct, __selectedAnnotationIndex, false, true);
-		gui_val = __annotation_text_PointX_JTextField.getText().trim()
-			+ "," + __annotation_text_PointY_JTextField.getText().trim();
+		gui_val = __annotation_text_PointX_JTextField.getText().trim() + "," + __annotation_text_PointY_JTextField.getText().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
 			_tsproduct.setPropValue("Point", gui_val, _selected_subproduct, __selectedAnnotationIndex, true);
 			ndirty++;
@@ -8537,32 +8552,28 @@ protected int updateTSProduct (int howSet) {
 		}
 	}
 	else if (shape.equalsIgnoreCase("Line")) {
-		prop_val = _tsproduct.getLayeredPropValue( "Color", _selected_subproduct,
-			__selectedAnnotationIndex, false, true);
+		prop_val = _tsproduct.getLayeredPropValue( "Color", _selected_subproduct, __selectedAnnotationIndex, false, true);
 		gui_val = __annotation_line_color_JComboBox.getSelected().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
 			_tsproduct.setPropValue("Color", gui_val, _selected_subproduct, __selectedAnnotationIndex, true);
 			ndirty++;
 		}
 
-		prop_val = _tsproduct.getLayeredPropValue(
-			"LineStyle", _selected_subproduct, __selectedAnnotationIndex, false, true);
+		prop_val = _tsproduct.getLayeredPropValue( "LineStyle", _selected_subproduct, __selectedAnnotationIndex, false, true);
 		gui_val = __annotationLineStyleJComboBox.getSelected().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
 			_tsproduct.setPropValue("LineStyle", gui_val, _selected_subproduct, __selectedAnnotationIndex, true);
 			ndirty++;
 		}
 
-		prop_val = _tsproduct.getLayeredPropValue(
-			"LineWidth", _selected_subproduct, __selectedAnnotationIndex, false, true);
+		prop_val = _tsproduct.getLayeredPropValue( "LineWidth", _selected_subproduct, __selectedAnnotationIndex, false, true);
 		gui_val = __annotation_line_LineWidth_JTextField.getText().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
 			_tsproduct.setPropValue("LineWidth", gui_val, _selected_subproduct, __selectedAnnotationIndex, true);
 			ndirty++;
 		}
 
-		prop_val = _tsproduct.getLayeredPropValue(
-			"Points", _selected_subproduct, __selectedAnnotationIndex, false, true);
+		prop_val = _tsproduct.getLayeredPropValue( "Points", _selected_subproduct, __selectedAnnotationIndex, false, true);
 		gui_val = __annotation_line_PointX1_JTextField.getText().trim()
 			+ "," + __annotation_line_PointY1_JTextField.getText().trim()
 			+ "," + __annotation_line_PointX2_JTextField.getText().trim()
@@ -8591,42 +8602,35 @@ protected int updateTSProduct (int howSet) {
 		}
 	}
 	else if (shape.equalsIgnoreCase("Symbol")) {
-		prop_val = _tsproduct.getLayeredPropValue(
-			"Color", _selected_subproduct, __selectedAnnotationIndex, false, true);
+		prop_val = _tsproduct.getLayeredPropValue( "Color", _selected_subproduct, __selectedAnnotationIndex, false, true);
 		gui_val = __annotation_symbol_color_JComboBox.getSelected().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
 			_tsproduct.setPropValue("Color", gui_val, _selected_subproduct, __selectedAnnotationIndex, true);
 			ndirty++;
 		}
 
-		prop_val = _tsproduct.getLayeredPropValue(
-			"Point", _selected_subproduct, __selectedAnnotationIndex, false, true);
-		gui_val = __annotation_symbol_PointX_JTextField.getText().trim()
-			+ "," +__annotation_symbol_PointY_JTextField.getText().trim();
+		prop_val = _tsproduct.getLayeredPropValue( "Point", _selected_subproduct, __selectedAnnotationIndex, false, true);
+		gui_val = __annotation_symbol_PointX_JTextField.getText().trim() + "," +__annotation_symbol_PointY_JTextField.getText().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
-			_tsproduct.setPropValue("Point", gui_val,
-			_selected_subproduct, __selectedAnnotationIndex, true);
+			_tsproduct.setPropValue("Point", gui_val, _selected_subproduct, __selectedAnnotationIndex, true);
 			ndirty++;
 		}
 
-		prop_val = _tsproduct.getLayeredPropValue( "SymbolPosition", _selected_subproduct,
-			__selectedAnnotationIndex, false, true);
+		prop_val = _tsproduct.getLayeredPropValue( "SymbolPosition", _selected_subproduct, __selectedAnnotationIndex, false, true);
 		gui_val = __annotation_symbol_SymbolPosition_JComboBox.getSelected().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
 			_tsproduct.setPropValue("SymbolPosition", gui_val, _selected_subproduct, __selectedAnnotationIndex, true);
 			ndirty++;
 		}
 
-		prop_val = _tsproduct.getLayeredPropValue( "SymbolStyle", _selected_subproduct,
-			__selectedAnnotationIndex, false, true);
+		prop_val = _tsproduct.getLayeredPropValue( "SymbolStyle", _selected_subproduct, __selectedAnnotationIndex, false, true);
 		gui_val = __annotation_symbol_SymbolStyle_JComboBox.getSelected().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
 			_tsproduct.setPropValue("SymbolStyle", gui_val, _selected_subproduct, __selectedAnnotationIndex, true);
 			ndirty++;
 		}
 
-		prop_val = _tsproduct.getLayeredPropValue( "SymbolSize", _selected_subproduct,
-			__selectedAnnotationIndex, false, true);
+		prop_val = _tsproduct.getLayeredPropValue( "SymbolSize", _selected_subproduct, __selectedAnnotationIndex, false, true);
 		gui_val = __annotation_symbol_SymbolSize_JComboBox.getSelected().trim();
 		if (!gui_val.equalsIgnoreCase(prop_val)) {
 			_tsproduct.setPropValue("SymbolSize", gui_val, _selected_subproduct, __selectedAnnotationIndex, true);
@@ -8634,16 +8638,21 @@ protected int updateTSProduct (int howSet) {
 		}
 	}
 
-	prop_val = _tsproduct.getLayeredPropValue( "Order", _selected_subproduct, __selectedAnnotationIndex, false, true);
-	gui_val = __annotation_Order_JComboBox.getSelected().trim();
+	prop_val = _tsproduct.getLayeredPropValue( "Enabled", _selected_subproduct, __selectedAnnotationIndex, false, true);
+	gui_val = __annotation_Enabled_JComboBox.getSelected().trim();
 	if (!gui_val.equalsIgnoreCase(prop_val)) {
-		_tsproduct.setPropValue("Order", gui_val,
-		_selected_subproduct, __selectedAnnotationIndex, true);
+		_tsproduct.setPropValue("Enabled", gui_val, _selected_subproduct, __selectedAnnotationIndex, true);
 		ndirty++;
 	}
 
-	prop_val = _tsproduct.getLayeredPropValue(
-		"XAxisSystem", _selected_subproduct, __selectedAnnotationIndex, false, true);
+	prop_val = _tsproduct.getLayeredPropValue( "Order", _selected_subproduct, __selectedAnnotationIndex, false, true);
+	gui_val = __annotation_Order_JComboBox.getSelected().trim();
+	if (!gui_val.equalsIgnoreCase(prop_val)) {
+		_tsproduct.setPropValue("Order", gui_val, _selected_subproduct, __selectedAnnotationIndex, true);
+		ndirty++;
+	}
+
+	prop_val = _tsproduct.getLayeredPropValue( "XAxisSystem", _selected_subproduct, __selectedAnnotationIndex, false, true);
 	gui_val = __annotation_XAxisSystem_JComboBox.getSelected().trim();
 	if (!gui_val.equalsIgnoreCase(prop_val)) {
 		_tsproduct.setPropValue("XAxisSystem", gui_val, _selected_subproduct, __selectedAnnotationIndex, true);

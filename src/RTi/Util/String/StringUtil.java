@@ -3135,6 +3135,34 @@ public static int [][] parseIntegerRangeSequence ( String seq, String delim, int
 }
 
 /**
+Parse a string like "1.0, 2.0, 3.0" or "1.0,2.0,3.0" into an array containing the numbers.
+@param seq string to parse
+@param delim delimiter characters
+@param parseFlag see breakStringList() flag
+@return an array of integers parsed from the string.
+*/
+public static double [] parseDoubleSequenceArray ( String seq, String delim, int parseFlag ) {
+    if ( seq == null ) {
+        return new double[0];
+    }
+    List<String> tokens = breakStringList ( seq.trim(), delim, parseFlag );
+    int size = 0;
+    if ( tokens != null ) {
+        size = tokens.size();
+    }
+    if ( size == 0 ) {
+        return new double[0];
+    }
+    else {
+        double dseq[] = new double[size];
+        for ( int i = 0; i < size; i++ ) {
+            dseq[i] = Double.parseDouble(tokens.get(i).trim() );
+        }
+        return dseq;
+    }
+}
+
+/**
 Parse a string like "1, 2, 3" or "1,2,3" into an array containing the numbers.
 @param seq string to parse
 @param delim delimiter characters

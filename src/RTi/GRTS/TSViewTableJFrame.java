@@ -2597,9 +2597,13 @@ private void setupGUI(boolean mode) {
 
 /**
 Determine if any of the time series has flags.
+@return true if any of the time series has flags
 */
 private boolean timeSeriesHaveFlags () {
     for ( TS ts : __tslist ) {
+    	if ( ts == null ) {
+    		continue;
+    	}
         if ( ts.hasDataFlags() ) {
             return true;
         }

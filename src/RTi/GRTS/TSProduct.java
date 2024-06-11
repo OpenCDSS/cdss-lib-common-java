@@ -1327,6 +1327,9 @@ public void checkAnnotationProperties(int isub, int iann) {
 	if (getLayeredPropValue("Color", isub, iann, false, true) == null) {
 		setPropValue("Color", getDefaultPropValue("Color", isub, iann, true), isub, iann, true);
 	}
+	if (getLayeredPropValue("Enabled", isub, iann, false, true) == null) {
+		setPropValue("Enabled", getDefaultPropValue("Enabled", isub, iann, true), isub, iann, true);
+	}
 	if (getLayeredPropValue("Order", isub, iann, false, true) == null) {
 		setPropValue("Order", getDefaultPropValue("Order", isub, iann, true), isub, iann, true);
 	}
@@ -2466,6 +2469,9 @@ public String getDefaultPropValue ( String param, int subproduct, int its, boole
 		}
 		else if (param.equalsIgnoreCase("Color")) {
 			return "Black";
+		}
+		else if (param.equalsIgnoreCase("Enabled")) {
+			return "True";
 		}
 		else if (param.equalsIgnoreCase("FontName")) {
 			return "Arial";
