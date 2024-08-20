@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2024 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -25,6 +25,7 @@ package RTi.GRTS;
 
 import java.awt.HeadlessException;
 import java.awt.event.WindowListener;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -131,7 +132,7 @@ This is done here so that low-level graph code can get a list of time series and
 private void processGraphProduct ( TSProduct tsproduct )
 throws Exception {
 	String routine = getClass().getSimpleName() + ".processGraphProduct";
-	List<TS> tslist = new Vector<>(10);
+	List<TS> tslist = new ArrayList<>(10);
 	TS ts = null;
 	// Loop through the sub-products (graphs on page) and get the time series to support the graph.
 	String tsid;
@@ -268,16 +269,6 @@ throws Exception {
 	//Message.printStatus(2, routine, "Graph properties=" + tsviewprops);
 
 	String graph_file =	tsproduct.getLayeredPropValue ( "OutputFile", -1, -1 );
-	/* TODO SAM 2008-11-19 Don't think this is needed.
-	if ( graph_file == null ) {
-		if ( IOUtil.isUNIXMachine() ) {
-			graph_file = "/tmp/tmp.png";
-		}
-		else {
-            graph_file = "C:\\TEMP\\tmp.png";
-		}
-	}
-	*/
 	String outputProductFile = tsproduct.getLayeredPropValue ( "OutputProductFile", -1, -1 );
 	String outputProductFormat = tsproduct.getLayeredPropValue ( "OutputProductFormat", -1, -1 );
 	if ( (outputProductFormat == null) || outputProductFormat.isEmpty() ) {
@@ -289,7 +280,7 @@ throws Exception {
 	    // an exception for missing data and for troubleshooting it would be good to see the image.
 		// TODO SAM 2007-06-22 Need to figure out how to combine on-screen drawing with file to do one draw, if possible.
 		if ( (graph_file != null) && (graph_file.length() > 0) ){
-			// Create an in memory image and let the TSGraphJComponent draw to it.
+			// Create an in-memory image and let the TSGraphJComponent draw to it.
 			// Use properties since that was what was done before.
 			// Image image = f.createImage(width,height);
 			// Image ii = f.createImage(width, height);
@@ -314,7 +305,14 @@ throws Exception {
 			graph.paint ( image.getGraphics() );
 			// Figure out the output file name for the product.
 			Message.printStatus ( 2, routine, "Saving graph to image file \"" + graph_file + "\"" );
-			graph.saveAsFile ( graph_file );
+			if ( graph_file.toUpperCase().endsWith("SVG") ) {
+				// Draw the image again as an SVG file.
+				graph.saveAsSVG ( graph_file, "JFreeSVG" );
+			}
+			else {
+				// Image file.
+				graph.saveAsFile ( graph_file );
+			}
 			Message.printStatus ( 2, "", "Done" );
 			graph_file = null;
 			graph = null;
@@ -341,6 +339,7 @@ throws Exception {
 			Message.printWarning(3, routine, "Try running without displaying graph or use -Djava.awt.headless=true.");
 			Message.printWarning(3, routine, e);
 		}
+
 		// Create the output product file if requested:
 		// - this is the same as "Save" in the TSView_Graph window
         // - do this after the product is processed because many properties will be set internally
