@@ -1464,9 +1464,7 @@ public void checkDataProperties(int isub, int its) {
 	}
 
 	if (graphType == TSGraphType.RASTER) {
-	    // Raster graphs use a symbol table to define value ranges and corresponding color, etc.:
-		// - currently raster graph is only available for a single time series
-		// - in the future may allow multiple time series where each raster row is one time series
+	    // Raster graphs use a symbol table to define value ranges and corresponding color, etc.
 		if (getLayeredPropValue("SymbolTablePath",isub,its,false) == null) {
 			setPropValue("SymbolTablePath", "", isub, its);
 		}

@@ -1317,10 +1317,15 @@ private void saveGraph() {
 	fc.addChoosableFileFilter ( jpg_sff );
 	SimpleFileFilter png_sff = new SimpleFileFilter("png", "PNG Image File" );
 	fc.addChoosableFileFilter ( png_sff );
-    SimpleFileFilter svg_sff = new SimpleFileFilter("svg", "Scalable Vector Graphics File" );
-    // Only enabled if batik jars on classpath.
-    if (TSGraphJComponent.svgEnabled) {
-        fc.addChoosableFileFilter ( svg_sff );
+    SimpleFileFilter svgBatik_sff = new SimpleFileFilter("svg", "Scalable Vector Graphics File (Batik)" );
+    // Only enabled if Batik jars on classpath.
+    if (TSGraphJComponent.batikSvgEnabled) {
+        fc.addChoosableFileFilter ( svgBatik_sff );
+    }
+    SimpleFileFilter svgJfree_sff = new SimpleFileFilter("svg", "Scalable Vector Graphics File (JFreeSVG)" );
+    // Only enabled if JFreeSVG jars on classpath.
+    if (TSGraphJComponent.jFreeSvgEnabled) {
+        fc.addChoosableFileFilter ( svgJfree_sff );
     }
 	SimpleFileFilter json_sff = new SimpleFileFilter("json", "Time Series Product File" );
 	fc.addChoosableFileFilter ( json_sff );
@@ -1442,12 +1447,34 @@ private void saveGraph() {
 			Message.printWarning ( 2, routine, e );
 		}
 	}
-    else if ( fileFilter == svg_sff ) {
+    else if ( fileFilter == svgBatik_sff ) {
+    	// Batik SVG.
         try {
             __tsview_JFrame.setWaitCursor(true);
             path = IOUtil.enforceFileExtension ( path, "svg" );
             try {
-                _ts_graph.saveAsSVG(path);
+                _ts_graph.saveAsSVG(path, "Batik");
+            }
+            catch ( Exception e ) {
+                Message.printWarning ( 1, "TSViewGraphJFrame.actionPerformed", "Error printing graph." );
+                Message.printWarning ( 2, "TSViewGraphJFrame.actionPerformed", e );
+            }
+
+            __tsview_JFrame.setWaitCursor(false);
+        }
+        catch (Exception e) {
+            Message.printWarning(1, routine, "Error saving SVG file \"" + path + "\"");
+            Message.printWarning(2, routine, e);
+            __tsview_JFrame.setWaitCursor(false);
+        }
+    }
+    else if ( fileFilter == svgJfree_sff ) {
+    	// JFreeSVG.
+        try {
+            __tsview_JFrame.setWaitCursor(true);
+            path = IOUtil.enforceFileExtension ( path, "svg" );
+            try {
+                _ts_graph.saveAsSVG(path, "JFreeSVG");
             }
             catch ( Exception e ) {
                 Message.printWarning ( 1, "TSViewGraphJFrame.actionPerformed", "Error printing graph." );

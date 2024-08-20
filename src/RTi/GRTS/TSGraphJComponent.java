@@ -36,14 +36,21 @@ import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JFrame;
 import javax.swing.JPopupMenu;
+
+import org.jfree.graphics2d.svg.SVGGraphics2D;
+import org.jfree.graphics2d.svg.SVGUtils;
 
 import RTi.GR.GRAspectType;
 import RTi.GR.GRColor;
@@ -385,21 +392,35 @@ private boolean __paintForSVG = false;
 private TSGraphEditor _tsGraphEditor;
 
 /**
-Indicate whether SVG functionality is present.
+Indicate whether Batik SVG functionality is present.
 */
-public static final boolean svgEnabled;
+public static boolean batikSvgEnabled = false;
+
+/**
+Indicate whether JFreeSVG functionality is present.
+*/
+public static boolean jFreeSvgEnabled = false;
 
 static {
         // By default, SVG features are not enabled:
 		// - if the classes are present, then SVG is enabled
-        boolean enabled = false;
+		// - an old version of Batik was previously used, and it is a large package
+		// - as of July 16, 2024 experiment with JFreeSVG
+        batikSvgEnabled = false;
         try {
             Class.forName("org.apache.batik.svggen.SVGGeneratorContext");
-            enabled = true;
+            batikSvgEnabled = true;
         } catch (ClassNotFoundException cnfe) {
             // Do nothing.
         }
-        svgEnabled = enabled;
+
+        jFreeSvgEnabled = false;
+        try {
+            Class.forName("org.jfree.graphics2d.svg.SVGGraphics2D");
+            jFreeSvgEnabled = true;
+        } catch (ClassNotFoundException cnfe) {
+            // Do nothing.
+        }
 }
 
 /**
@@ -3837,18 +3858,32 @@ Save the graph to an SVG file.
 This is essentially equivalent to printing, but use an SVG graphics driver instead.
 @param path Path to SVG file to save.  The path is not adjusted and therefore
 should generally be specified as absolute and with the *.svg extension.
+@param driver the SVG driver (library) to use, either "Batik" or "JFreeSVG"
 */
-public void saveAsSVG ( String path )
+public void saveAsSVG ( String path, String driver )
 throws FileNotFoundException, IOException {
-    Graphics g = TSGraphJComponent_SaveAsSVG.createGraphics();
+    Graphics g = null;
+    if ( driver.equalsIgnoreCase("Batik") ) {
+    	g = TSGraphJComponent_SaveAsSVG.createGraphics();
+    	// Render into the SVG Graphics2D implementation:
+    	// - the Graphics instance will be cast to Graphics2D in the 'paint' method
+    	__paintForSVG = true;
+    	paint(g);
+    	__paintForSVG = false;
 
-    // Render into the SVG Graphics2D implementation:
-    // - the Graphics instance will be cast to Graphics2D in the 'paint' method
-    __paintForSVG = true;
-    paint(g);
-    __paintForSVG = false;
+    	// Render the graph to the file.
+    	TSGraphJComponent_SaveAsSVG.saveGraphics ( g, path );
+    }
+    else {
+    	g = new SVGGraphics2D ((int)this._drawlim_page.getWidth(), (int)this._drawlim_page.getHeight());
 
-    TSGraphJComponent_SaveAsSVG.saveGraphics(g,path);
+    	__paintForSVG = true;
+    	paint(g);
+    	__paintForSVG = false;
+    	
+    	// Write the graphics to the file.
+    	SVGUtils.writeToSVG(new File(path), ((SVGGraphics2D)g).getSVGElement());
+    }
 
 }
 
