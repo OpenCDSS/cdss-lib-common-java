@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2024 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -94,16 +94,10 @@ Hashtable for caching DateTimeFormat objects, which can be expensive to create o
 When creating a DateTimeFormat every time one is needed for drawing versus creating a single DateTimeFormat and caching it,
 caching is over 500 times faster.  Creating a DateTimeFormat is an expensive operation and should be done rarely.
 */
-private static Hashtable<String,DateTimeFormat> __dateFormatHashtable = new Hashtable<>();
-
-private final int
-	__FORMAT_NONE = 0,
-	__FORMAT_DATETIME = 1,
-	__FORMAT_REPEAT_DATA= 2,
-	__FORMAT_REPEAT_PERCENT = 3;
+private static Hashtable<String,DateTimeFormat> dateFormatHashtable = new Hashtable<>();
 
 /**
-Private so it can't be used.
+Private constructor so it can't be used.
 */
 @SuppressWarnings("unused")
 private GRJComponentDrawingArea() {
@@ -139,7 +133,7 @@ Constructor.  Creates a drawing area with default settings.
 @param dev the device on which to create this drawing area.
 @param props proplist of settings (UNUSED)
 */
-public GRJComponentDrawingArea (GRJComponentDevice dev, PropList props) {
+public GRJComponentDrawingArea ( GRJComponentDevice dev, PropList props ) {
 	Message.printWarning(2, "GRJComponentDrawingArea", "This constructor "
 		+ "has not been completed -- it should not be used.  If "
 		+ "the calling code is using getNewDrawingArea, that method should be deprecated.");
@@ -147,19 +141,22 @@ public GRJComponentDrawingArea (GRJComponentDevice dev, PropList props) {
 }
 
 /**
-Calculates the font size that will fit within, but not over, the given number of pixels in terms of the font's height.
+Calculates the font size in points that will fit within, but not over, the given number of pixels in terms of the font's height.
+@param pixels pixels that the font must fit into
 @return the font size (in points) of the font that will fit.
 */
-public int calculateFontSize(int pixels) {
+public int calculateFontSize ( int pixels ) {
 	return calculateFontSize(_jdev._graphics, pixels);
 }
 
 /**
-Returns the font size that will fit within, but not over,
+Returns the font size in points that will fit within, but not over,
 the given number of pixels in terms of the font's height, using the given Graphics context.
+@param g the Graphics instance to use for drawing
+@param pixels requested font size in pixels
 @return the font size (in points) of the font that will fit.
 */
-public int calculateFontSize(Graphics g, int pixels) {
+public int calculateFontSize ( Graphics g, int pixels ) {
 	Font holdFont = getFont();
 	String name = holdFont.getName();
 	int style = holdFont.getStyle();
@@ -204,19 +201,69 @@ public void clear(GRColor color) {
 /**
 Not implemented.
 */
-public void clip(boolean b) {}
+public void clip ( boolean b ) {
+}
 
 /**
 Not implemented.  Not used in visual devices.
+@param comment the comment string
 */
-public void comment(String comment) {}
+public void comment ( String comment ) {
+}
 
 /**
-Draws an annotation as defined in the given PropList.
+Draws a single annotation (or repeating annotation) as defined in the given PropList.
 @param p the PropList that defines a single annotation.
-TODO (JTS - 2006-05-23) Where are these properties defined?
+<p>
+Properties are as follows.  See the TSView documentation.
+<ul>
+<li>Color</li>
+<li>Order</li>
+<li>ShapeType</li>
+<li>XAxisSystem</li>
+<li>YAxisSystem</li>
+<li>YAxis</li>
+<li>XFormat - specify as <code>DateTime</code> if the shape X-coordinates are a DateTime string</li>
+<li>YFormat - specify as <code>DateTime</code> if the shape Y-coordinates are a DateTime string</li>
+</ul>
+</p>
+<p>
+If a line:
+<ul>
+<li>LineStyle</li>
+<li>LineWidth</li>
+<li>Points</li>
+</ul>
+</p>
+<p>
+If a rectangle:
+<ul>
+<li>Points</li>
+</ul>
+</p>
+<p>
+If a symbol (point):
+<ul>
+<li>OutlineColor</li>
+<li>Point</li>
+<li>SymbolSize</li>
+<li>SymbolStyle</li>
+<li>SymbolPosition</li>
+</ul>
+</p>
+<p>
+If text:
+<ul>
+<li>FontName</li>
+<li>FontSize</li>
+<li>FontStyle</li>
+<li>Point</li>
+<li>Text</li>
+<li>TextPosition</li>
+</ul>
+</p>
 */
-public void drawAnnotation(PropList p) {
+public void drawAnnotation ( PropList p ) {
 	String routine = getClass().getSimpleName() + ".drawAnnotation";
 
 	// Color property is common to all annotations.
@@ -233,7 +280,7 @@ public void drawAnnotation(PropList p) {
 	// OutlineColor property does not need to be defined.
 	GRColor outlineColor = null;
 	propVal = p.getValue("OutlineColor");
-	if (propVal == null || propVal.trim().equals("")) {
+	if ( (propVal == null) || propVal.trim().equals("")) {
 		outlineColor = null;
 	}
 	else {
@@ -242,31 +289,36 @@ public void drawAnnotation(PropList p) {
 
 	// XAxisSystem property is common to all annotations.
 	propVal = p.getValue("XAxisSystem");
-	boolean xAxisPercent = false;
-	if (propVal == null) {}
-	else if (propVal.equalsIgnoreCase("Percent")) {
-		xAxisPercent = true;
+	// Default is draw using data axis (not percent).
+	boolean xIsPercent = false;
+	if (propVal == null) {
+		// Default is data.
 	}
-	else if (propVal.equalsIgnoreCase("Data")) {
+	else if ( propVal.equalsIgnoreCase("Percent") ) {
+		xIsPercent = true;
+	}
+	else if ( propVal.equalsIgnoreCase("Data") ) {
 		// Default.
 	}
 	else {
-		Message.printWarning(2, "drawAnnotation", "Invalid XAxisSystem: " + propVal);
+		Message.printWarning(2, routine, "Invalid XAxisSystem: " + propVal);
 		return;
 	}
 
 	// YAxisSystem property is common to all annotations.
 	propVal = p.getValue("YAxisSystem");
-	boolean yAxisPercent = false;
-	if (propVal == null) {}
+	boolean yIsPercent = false;
+	if (propVal == null) {
+		// Default is data value.
+	}
 	else if (propVal.equalsIgnoreCase("Percent")) {
-		yAxisPercent = true;
+		yIsPercent = true;
 	}
 	else if (propVal.equalsIgnoreCase("Data")) {
 		// Default.
 	}
 	else {
-		Message.printWarning(2, "drawAnnotation", "Invalid YAxisSystem: " + propVal);
+		Message.printWarning(2, routine, "Invalid YAxisSystem: " + propVal);
 		return;
 	}
 
@@ -279,11 +331,13 @@ public void drawAnnotation(PropList p) {
 	// and two more parameters with redundant information offer no improvement.
 
 	String xFormat = p.getValue("XFormat");
-	if (xFormat == null || xFormat.equals("") || xFormat.equalsIgnoreCase("None")) {
+	if ( (xFormat == null) || xFormat.isEmpty() || xFormat.equalsIgnoreCase("None")) {
+		// Simple data value number, can be a decimal equivalent to DateTime.
 		xFormat = null;
 	}
 	String yFormat = p.getValue("YFormat");
-	if (yFormat == null || yFormat.equals("") || yFormat.equalsIgnoreCase("None")) {
+	if ( (yFormat == null) || yFormat.isEmpty() || yFormat.equalsIgnoreCase("None")) {
+		// Simple data value number, can be a decimal equivalent to DateTime.
 		yFormat = null;
 	}
 
@@ -294,8 +348,8 @@ public void drawAnnotation(PropList p) {
 	String[] formatXPts = new String[2];
 	String[] formatYPts = new String[2];
 
-	int xFormatType = __FORMAT_NONE;
-	int yFormatType = __FORMAT_NONE;
+	GRAnnotationCoordinateFormatType xFormatType = GRAnnotationCoordinateFormatType.NONE;
+	GRAnnotationCoordinateFormatType yFormatType = GRAnnotationCoordinateFormatType.NONE;
 
 	/////////////////////////////////////////////////////////////
 	// The next section of code does operations on the "points" or "point" property,
@@ -303,90 +357,114 @@ public void drawAnnotation(PropList p) {
 	// The code is here instead of below so that the common code between "Symbol" and "Text" can be combined.
 	//
 	// The X and Y input formats are checked and if defined the X
-	// and/or Y values (as appropriate) are moved into the proper kind of variables.
+	// and/or Y values have more complex syntax and are parsed accordingly.
 	//
 	// Additionally, this code does error checking on the input X and Y values with their formats.
 	// This ensures that no further processing is done if the input data or formats are incorrect.
-	// Also, this means that in later methods it is guaranteed that the data are valid.
+	// This means that in later methods it is guaranteed that the data are valid.
 
-	// Notes on InputFormats:
-	// - the format of the *InputFormat String is "INPUT TYPE,FORMAT".
-	//   For example, "DateTime,mm-dd"
-	// - However the input values are formatted in the Point or Points properties, they must not have commas.
-	//   These properties are split apart based on commas, so any extras will foul up the process.
-	// - Currently, only the "DateTime" format is supported.
+	// Notes on XFormat and YFormat:
+	// - the format of the String is "FormatType[,FORMAT]".
+	//   For example, "DateTime" or "DateTime,mm-dd"
+	// - The coordinates in the Point and Points properties must adhere to the format if specified, with separating commas.
+	// - Currently, only the "DateTime" format is supported, but it is not really needed because DateTime will be detected.
+	// - RepeatData and RepeatPercent would have format like "RepeatData,NumRepeat,Increment" and "RepeatPercent,NumRepeat,Increment".
 
-	if (shapeType == null) {
+	if ( shapeType == null ) {
 		// Shape should always at least be an empty string, but this will avoid any null pointer errors.
 		return;
 	}
 	else if (shapeType.equalsIgnoreCase("Line") || shapeType.equalsIgnoreCase("Rectangle")) {
 		// Line and rectangle use a "Points" property in similar way.
 		propVal = p.getValue("Points");
-		if (propVal == null || propVal.equals("")) {
-			Message.printWarning(2, "drawAnnotation", "Endpoints for a line annotation must be specified.");
+		if ( (propVal == null) || propVal.isEmpty()) {
+			Message.printWarning(2, routine, "Endpoints for a line annotation must be specified using Points=X1,Y1,X2,Y2.");
 			return;
 		}
 
 		List<String> points = StringUtil.breakStringList(propVal, ",", 0);
-		if (points.size() != 4) {
-			Message.printWarning(2, "drawAnnotation", "Invalid points declaration:"
-				+ " " + propVal + ".  There must be 2 points (4 values) in the form 'X1,Y1,X2,Y2'.");
+		if ( points.size() != 4 ) {
+			Message.printWarning(2, routine, "Invalid points declaration:"
+				+ " " + propVal + ".  There must be 2 points (4 values) in the form 'Points=X1,Y1,X2,Y2'.");
 			return;
 		}
 
-		if ( (xFormat == null) || StringUtil.startsWithIgnoreCase(xFormat, "RepeatData,")
-		    || StringUtil.startsWithIgnoreCase(xFormat, "RepeatPercent,")) {
-			if (xFormat != null) {
-				if (StringUtil.startsWithIgnoreCase(xFormat, "RepeatData,")) {
-				    xFormatType = __FORMAT_REPEAT_DATA;
-					String s = xFormat.substring(11, 12);
-					if (s.equals("-") || s.equals("+")) {}
-					else {
-						Message.printWarning(3, "drawAnnotation", "Invalid format for RepeatData: " + xFormat);
-						return;
-					}
-					s = xFormat.substring(12);
-					if (StringUtil.atod(s) == -1) {
-						Message.printWarning(3, "drawAnnotation", "Invalid value for RepeatData: " + xFormat);
-						return;
-					}
+		// First parse the X coordinates.
+		if ( (xFormat == null) || xFormat.isEmpty() ) {
+			// The simple case:
+			// - this is how annotations have always been defined, as a set of Data or Percent points
+			// - if the value contains a dash not at the front, assume it is a DateTime
+			try {
+				String x1 = points.get(0);
+				if ( !x1.startsWith("-") && (x1.contains("-") || x1.contains("/")) ) {
+					// Assume that it is a DateTime.
+					__xs[0] = DateTime.parse(x1).toDouble();
 				}
 				else {
-				   	xFormatType = __FORMAT_REPEAT_PERCENT;
-					String s = xFormat.substring(14, 15);
-					if (s.equals("-") || s.equals("+")) {}
-					else {
-						Message.printWarning(3, "drawAnnotation", "Invalid format for RepeatPercent: " + xFormat);
-						return;
-					}
-					s = xFormat.substring(15);
-					if (StringUtil.atod(s) == -1) {
-						Message.printWarning(3, "drawAnnotation", "Invalid value for RepeatPercent: " + xFormat);
-						return;
-					}
+					// A normal number or a DateTime in decimal format.
+					__xs[0] = Double.valueOf(x1).doubleValue();
 				}
 			}
-
-			// The simple case -- this is how annotations have always been defined, as a set of Data or Percent points.
-			try {
-				__xs[0] = new Double((points.get(0))).doubleValue();
-			}
 			catch (Exception e) {
-				Message.printWarning(3, "drawAnnotation", "Invalid X1 value: " + points.get(0));
+				Message.printWarning(3, routine, "Invalid X1 value: " + points.get(0));
 				return;
 			}
 			try {
-				__xs[1] = new Double( (points.get(2))).doubleValue();
+				String x2 = points.get(2);
+				if ( !x2.startsWith("-") && (x2.contains("-") || x2.contains("/")) ) {
+					// Assume that it is a DateTime.
+					__xs[1] = DateTime.parse(x2).toDouble();
+				}
+				else {
+					// A normal number or a DateTime in decimal format.
+					__xs[1] = Double.valueOf(x2).doubleValue();
+				}
 			}
 			catch (Exception e) {
-				Message.printWarning(2, "drawAnnotation", "Invalid X2 value: " + points.get(2));
+				Message.printWarning(2, routine, "Invalid X2 value: " + points.get(2));
+				return;
+			}
+		}
+		else if ( (xFormat != null) && StringUtil.startsWithIgnoreCase(xFormat, "RepeatData,") ) {
+			// Syntax is "XFormat=RepeatData,count,increment"
+			// TODO smalers 2024-08-25 Need to implement.
+		    xFormatType = GRAnnotationCoordinateFormatType.REPEAT_DATA;
+			String s = xFormat.substring(11, 12);
+			if (s.equals("-") || s.equals("+")) {
+				// Increment is OK.
+			}
+			else {
+				Message.printWarning(3, routine, "Invalid format for RepeatData: " + xFormat);
+				return;
+			}
+			s = xFormat.substring(12);
+			if (StringUtil.atod(s) == -1) {
+				Message.printWarning(3, routine, "Invalid value for RepeatData: " + xFormat);
+				return;
+			}
+		}
+		else if ( (xFormat != null) && StringUtil.startsWithIgnoreCase(xFormat, "RepeatPercent,") ) {
+			// Syntax is "XFormat=RepeatPercent,count,increment"
+			// TODO smalers 2024-08-25 Need to implement.
+		   	xFormatType = GRAnnotationCoordinateFormatType.REPEAT_PERCENT;
+			String s = xFormat.substring(14, 15);
+			if (s.equals("-") || s.equals("+")) {
+				// Increment is OK.
+			}
+			else {
+				Message.printWarning(3, routine, "Invalid format for RepeatPercent: " + xFormat);
+				return;
+			}
+			s = xFormat.substring(15);
+			if (StringUtil.atod(s) == -1) {
+				Message.printWarning(3, routine, "Invalid value for RepeatPercent: " + xFormat);
 				return;
 			}
 		}
 		else if (StringUtil.startsWithIgnoreCase(xFormat,"DateTime,")) {
-			xFormatType = __FORMAT_DATETIME;
-			// Split the InputFormat string apart and pull out the date format.
+			// The XFormat property has the syntax "DateTime[,FormatString]".
+			xFormatType = GRAnnotationCoordinateFormatType.DATETIME;
+			// Split the XFormat string apart and pull out the date format.
 		    int index = xFormat.indexOf(",");
 			String format = xFormat.substring(index + 1);
 
@@ -394,90 +472,108 @@ public void drawAnnotation(PropList p) {
 
 			// See performance note about caching at static declaration of Hashtable (top of class).
 
-			DateTimeFormat dtf = (DateTimeFormat)__dateFormatHashtable.get(format);
+			DateTimeFormat dtf = GRJComponentDrawingArea.dateFormatHashtable.get(format);
 
 			if (dtf == null) {
 				// If not, cache this object.
 				// The caching process improves performance for objects take a lot to create.
 //				Message.printStatus(2, "", "No cached format found");
 				dtf = new DateTimeFormat(format);
-				__dateFormatHashtable.put(format, dtf);
+				GRJComponentDrawingArea.dateFormatHashtable.put(format, dtf);
 			}
 
 			try {
-				dtf.parse((String)points.get(0));
+				dtf.parse(points.get(0));
 			}
 			catch (Exception e) {
-				Message.printWarning(3, "drawAnnotation", "Invalid X1 value: " + points.get(0));
-				Message.printWarning(3, "drawAnnotation", e);
+				Message.printWarning(3, routine, "Invalid X1 value (expecting XFormat " + xFormatType + "): " + points.get(0));
+				Message.printWarning(3, routine, e);
 				return;
 			}
 			try {
-				dtf.parse((String)points.get(2));
+				dtf.parse(points.get(2));
 			}
 			catch (Exception e) {
-				Message.printWarning(3, "drawAnnotation", "Invalid X2 value: " + points.get(2));
-				Message.printWarning(3, "drawAnnotation", e);
+				Message.printWarning(3, routine, "Invalid X2 value (expecting XFormat " + xFormatType + "): " + points.get(2));
+				Message.printWarning(3, routine, e);
 				return;
 			}
-			formatXPts[0] = (String)points.get(0);
-			formatXPts[1] = (String)points.get(2);
+			formatXPts[0] = points.get(0);
+			formatXPts[1] = points.get(2);
 		}
 
-		if (yFormat == null
-		    || StringUtil.startsWithIgnoreCase(yFormat, "RepeatData,")
-		    || StringUtil.startsWithIgnoreCase(yFormat, "RepeatPercent,")) {
-			if (yFormat != null) {
-				if (StringUtil.startsWithIgnoreCase(yFormat, "RepeatData,")) {
-				    yFormatType = __FORMAT_REPEAT_DATA;
-					String s = yFormat.substring(11, 12);
-					if (s.equals("-") || s.equals("+")) {}
-					else {
-						Message.printWarning(3, "drawAnnotation", "Invalid format for RepeatData: " + yFormat);
-						return;
-					}
-					s = yFormat.substring(12);
-					if (StringUtil.atod(s) == -1) {
-						Message.printWarning(3, "drawAnnotation", "Invalid value for RepeatData: " + yFormat);
-						return;
-					}
-				}
-				else {
-				    yFormatType = __FORMAT_REPEAT_PERCENT;
-					String s = yFormat.substring(14, 15);
-					if (s.equals("-") || s.equals("+")) {}
-					else {
-						Message.printWarning(3, "drawAnnotation", "Invalid format for RepeatPercent: " + yFormat);
-						return;
-					}
-					s = yFormat.substring(15);
-					if (StringUtil.atod(s) == -1) {
-						Message.printWarning(3, "drawAnnotation", "Invalid value for RepeatPercent: " + yFormat);
-						return;
-					}
-				}
-			}
-
+		// Next parse the Y coordinates.
+		if ( (yFormat == null) || yFormat.isEmpty() ) {
 			// The simple case.
 			// This is how annotations have always been defined, as a set of Data or Percent points.
+			String y1 = points.get(1);
 			try {
-				__ys[0] = new Double( ((String)points.get(1))).doubleValue();
+				if ( !y1.startsWith("-") && (y1.contains("-") || y1.contains("/")) ) {
+					// Assume that it is a DateTime.
+					__ys[0] = DateTime.parse(y1).toDouble();
+				}
+				else {
+					// A normal number or a DateTime in decimal format.
+					__ys[0] = Double.valueOf( y1).doubleValue();
+				}
 			}
 			catch (Exception e) {
-				Message.printWarning(3, "drawAnnotation", "Invalid Y1 value: " + points.get(1));
+				Message.printWarning(3, routine, "Invalid Y1 value: " + y1);
 				return;
 			}
+			String y2 = points.get(3);
 			try {
-				__ys[1] = new Double( ((String)points.get(3))).doubleValue();
+				if ( !y2.startsWith("-") && (y2.contains("-") || y2.contains("/")) ) {
+					// Assume that it is a DateTime.
+					__ys[1] = DateTime.parse(y2).toDouble();
+				}
+				else {
+					// A normal number or a DateTime in decimal format.
+					__ys[1] = Double.valueOf( y2).doubleValue();
+				}
 			}
 			catch (Exception e) {
-				Message.printWarning(3, "drawAnnotation", "Invalid Y2 value: " + points.get(3));
+				Message.printWarning(3, routine, "Invalid Y2 value: " + y2);
+				return;
+			}
+		}
+		else if ( StringUtil.startsWithIgnoreCase(yFormat, "RepeatData,") ) {
+			// TODO smalers 2024-08-25 need to implement.
+		    yFormatType = GRAnnotationCoordinateFormatType.REPEAT_DATA;
+			String s = yFormat.substring(11, 12);
+			if (s.equals("-") || s.equals("+")) {
+				// Increment sign is OK.
+			}
+			else {
+				Message.printWarning(3, routine, "Invalid format (expecting YFormat " + yFormatType + "): for RepeatData: " + yFormat);
+				return;
+			}
+			s = yFormat.substring(12);
+			if (StringUtil.atod(s) == -1) {
+				Message.printWarning(3, routine, "Invalid value for RepeatData (expecting integer): " + s);
+				return;
+			}
+		}
+		else if ( StringUtil.startsWithIgnoreCase(yFormat, "RepeatPercent,") ) {
+			// TODO smalers 2024-08-25 need to implement.
+		    yFormatType = GRAnnotationCoordinateFormatType.REPEAT_PERCENT;
+			String s = yFormat.substring(14, 15);
+			if (s.equals("-") || s.equals("+")) {
+				// Leading sign is OK.
+			}
+			else {
+				Message.printWarning(3, routine, "Invalid format for RepeatPercent (expecting YFormat " + yFormatType + "): " + yFormat);
+				return;
+			}
+			s = yFormat.substring(15);
+			if (StringUtil.atod(s) == -1) {
+				Message.printWarning(3, routine, "Invalid value for RepeatPercent (expecting integer): " + s);
 				return;
 			}
 		}
 		else if (StringUtil.startsWithIgnoreCase(yFormat,"DateTime,")) {
-			yFormatType = __FORMAT_DATETIME;
-			// Split the InputFormat string apart and pull out the date format.
+			yFormatType = GRAnnotationCoordinateFormatType.DATETIME;
+			// Split the YFormat string apart and pull out the date format.
 		    int index = yFormat.indexOf(",");
 			String format = yFormat.substring(index + 1);
 
@@ -485,32 +581,32 @@ public void drawAnnotation(PropList p) {
 
 			// See performance note about caching at static declaration of Hashtable (top of class).
 
-			DateTimeFormat dtf = (DateTimeFormat)__dateFormatHashtable.get(format);
+			DateTimeFormat dtf = GRJComponentDrawingArea.dateFormatHashtable.get(format);
 
 			if (dtf == null) {
 				// If not, cache this object.
 				// The caching process improves performance for objects take a lot to create.
 //				Message.printStatus(2, "", "No cached format found");
 				dtf = new DateTimeFormat(format);
-				__dateFormatHashtable.put(format, dtf);
+				GRJComponentDrawingArea.dateFormatHashtable.put(format, dtf);
 			}
 
 			try {
-				dtf.parse((String)points.get(1));
+				dtf.parse(points.get(1));
 			}
 			catch (Exception e) {
-				Message.printWarning(3, "drawAnnotation", "Invalid Y1 value: " + points.get(1));
-				Message.printWarning(3, "drawAnnotation", e);
+				Message.printWarning(3, routine, "Invalid Y1 value: " + points.get(1));
+				Message.printWarning(3, routine, e);
 			}
 			try {
-				dtf.parse((String)points.get(3));
+				dtf.parse(points.get(3));
 			}
 			catch (Exception e) {
-				Message.printWarning(3, "drawAnnotation", "Invalid Y2 value: " + points.get(3));
-				Message.printWarning(3, "drawAnnotation", e);
+				Message.printWarning(3, routine, "Invalid Y2 value: " + points.get(3));
+				Message.printWarning(3, routine, e);
 			}
-			formatYPts[0] = (String)points.get(1);
-			formatYPts[1] = (String)points.get(3);
+			formatYPts[0] = points.get(1);
+			formatYPts[1] = points.get(3);
 		}
 	}
 	else if (shapeType.equalsIgnoreCase("Text") || shapeType.equalsIgnoreCase("Symbol")) {
@@ -526,65 +622,74 @@ public void drawAnnotation(PropList p) {
 
 		propVal = p.getValue("Point");
 		if (propVal == null) {
-			Message.printWarning(3, "drawAnnotation", shapeType + " point for a " + shapeType
+			Message.printWarning(3, routine, shapeType + " point for a " + shapeType
 				+ " annotation must be specified.");
 			return;
 		}
 
 		List<String> point = StringUtil.breakStringList(propVal, ",", 0);
 		if (point.size() != 2) {
-			Message.printWarning(3, "drawAnnotation", "Invalid point declaration:"
-				+ " " + propVal + ".  There must be 2 points in the form 'X1,Y1'.");
+			Message.printWarning(3, routine, "Invalid point declaration: " + propVal + ".  There must be 2 points in the form 'X1,Y1'.");
 			return;
 		}
 
-		if (xFormat == null
-		    || StringUtil.startsWithIgnoreCase(xFormat, "RepeatData,")
-		    || StringUtil.startsWithIgnoreCase(xFormat, "RepeatPercent,")) {
-			if (xFormat != null) {
-				if (StringUtil.startsWithIgnoreCase(xFormat,"RepeatData,")) {
-				    xFormatType = __FORMAT_REPEAT_DATA;
-					String s = xFormat.substring(11, 12);
-					if (s.equals("-") || s.equals("+")) {}
-					else {
-						Message.printWarning(3, "drawAnnotation", "Invalid format for RepeatData: " + xFormat);
-						return;
-					}
-					s = xFormat.substring(12);
-					if (StringUtil.atod(s) == -1) {
-						Message.printWarning(3, "drawAnnotation", "Invalid value for RepeatData: " + xFormat);
-						return;
-					}
-				}
-				else {
-				    xFormatType = __FORMAT_REPEAT_PERCENT;
-					String s = xFormat.substring(14, 15);
-					if (s.equals("-") || s.equals("+")) {}
-					else {
-						Message.printWarning(3, "drawAnnotation", "Invalid format for RepeatPercent: " + xFormat);
-						return;
-					}
-					s = xFormat.substring(15);
-					if (StringUtil.atod(s) == -1) {
-						Message.printWarning(3, "drawAnnotation", "Invalid value for RepeatPercent: " + xFormat);
-						return;
-					}
-				}
-			}
-
+		// First handle X coordinate.
+		if ( (xFormat == null) || xFormat.isEmpty() ) {
 			// The simple case.
 			// This is how annotations have always been defined, as a set of Data or Percent points.
 			try {
-				__xs[0] = new Double(((String)point.get(0))).doubleValue();
+				String x1 = point.get(0);
+				if ( !x1.startsWith("-") && (x1.contains("-") || x1.contains("/")) ) {
+					// Assume that it is a DateTime.
+					__xs[0] = DateTime.parse(x1).toDouble();
+				}
+				else {
+					// A normal number or a DateTime in decimal format.
+					__xs[0] = Double.valueOf(x1).doubleValue();
+				}
 			}
 			catch (Exception e) {
-				Message.printWarning(3, "drawAnnotation", "Invalid X1 value: " + point.get(0));
+				Message.printWarning(3, routine, "Invalid X1 value: " + point.get(0));
+				return;
+			}
+		}
+		else if ( StringUtil.startsWithIgnoreCase(xFormat, "RepeatData,") ) {
+			// TODO smalers 2024-08-25 need to implement.
+		    xFormatType = GRAnnotationCoordinateFormatType.REPEAT_DATA;
+			String s = xFormat.substring(11, 12);
+			if (s.equals("-") || s.equals("+")) {
+				// Sign for increment is OK.
+			}
+			else {
+				Message.printWarning(3, routine, "Invalid format for RepeatData: " + xFormat);
+				return;
+			}
+			s = xFormat.substring(12);
+			if (StringUtil.atod(s) == -1) {
+				Message.printWarning(3, routine, "Invalid value for RepeatData: " + xFormat);
+				return;
+			}
+		}
+		else if ( StringUtil.startsWithIgnoreCase(xFormat, "RepeatPercent,") ) {
+			// TODO smalers 2024-08-25 need to implement.
+		    xFormatType = GRAnnotationCoordinateFormatType.REPEAT_PERCENT;
+			String s = xFormat.substring(14, 15);
+			if (s.equals("-") || s.equals("+")) {
+				// Sign for increment is OK.
+			}
+			else {
+				Message.printWarning(3, routine, "Invalid format for RepeatPercent: " + xFormat);
+				return;
+			}
+			s = xFormat.substring(15);
+			if (StringUtil.atod(s) == -1) {
+				Message.printWarning(3, routine, "Invalid value for RepeatPercent: " + xFormat);
 				return;
 			}
 		}
 		else if (StringUtil.startsWithIgnoreCase(xFormat,"DateTime,")) {
-			xFormatType = __FORMAT_DATETIME;
-			// Split the InputFormat string apart and pull out the date format.
+			xFormatType = GRAnnotationCoordinateFormatType.DATETIME;
+			// Split the XFormat string apart and pull out the date format.
 		    int index = xFormat.indexOf(",");
 			String format = xFormat.substring(index + 1);
 
@@ -592,71 +697,81 @@ public void drawAnnotation(PropList p) {
 
 			// See performance note about caching at static declaration of Hashtable (top of class).
 
-			DateTimeFormat dtf = (DateTimeFormat)__dateFormatHashtable.get(format);
+			DateTimeFormat dtf = GRJComponentDrawingArea.dateFormatHashtable.get(format);
 			if (dtf == null) {
 				// If not, cache this object.
 				// The caching process improves performance for objects take a lot to create.
 //				Message.printStatus(2, "", "No cached format found");
 				dtf = new DateTimeFormat(format);
-				__dateFormatHashtable.put(format, dtf);
+				GRJComponentDrawingArea.dateFormatHashtable.put(format, dtf);
 			}
 			try {
-				dtf.parse((String)point.get(0));
+				dtf.parse(point.get(0));
 			}
 			catch (Exception e) {
-				Message.printWarning(2, "drawAnnotation", "Invalid X1 value: " + point.get(0));
+				Message.printWarning(2, routine, "Invalid X1 value: " + point.get(0));
 				Message.printWarning(3, routine, e);
 			}
-			formatXPts[0] = (String)point.get(0);
+			formatXPts[0] = point.get(0);
 		}
 
-		if (yFormat == null
-		    || StringUtil.startsWithIgnoreCase(yFormat, "RepeatData,")
-		    || StringUtil.startsWithIgnoreCase(yFormat, "RepeatPercent,")) {
-			if (yFormat != null) {
-				if (StringUtil.startsWithIgnoreCase(yFormat, "RepeatData,")) {
-				    yFormatType = __FORMAT_REPEAT_DATA;
-					String s = yFormat.substring(11, 12);
-					if (s.equals("-") || s.equals("+")) {}
-					else {
-						Message.printWarning(3, "drawAnnotation", "Invalid format for RepeatData: " + yFormat);
-						return;
-					}
-					s = yFormat.substring(12);
-					if (StringUtil.atod(s) == -1) {
-						Message.printWarning(3, "drawAnnotation", "Invalid value for RepeatData: " + yFormat);
-						return;
-					}
-				}
-				else {
-				    yFormatType = __FORMAT_REPEAT_PERCENT;
-					String s = yFormat.substring(14, 15);
-					if (s.equals("-") || s.equals("+")) {}
-					else {
-						Message.printWarning(3, "drawAnnotation", "Invalid format for RepeatPercent: " + yFormat);
-						return;
-					}
-					s = yFormat.substring(15);
-					if (StringUtil.atod(s) == -1) {
-						Message.printWarning(3, "drawAnnotation", "Invalid value for epeatPercent: " + yFormat);
-						return;
-					}
-				}
-			}
-
+		// Now handle the Y coordinate.
+		if ( (yFormat == null) || yFormat.isEmpty() ) {
 			// The simple case.
 			// This is how annotations have always been defined, as a set of Data or Percent points.
 			try {
-				__ys[0] = new Double(((String)point.get(1))).doubleValue();
+				String y1 = point.get(1);
+				if ( !y1.startsWith("-") && (y1.contains("-") || y1.contains("/")) ) {
+					// Assume that it is a DateTime.
+					__ys[0] = DateTime.parse(y1).toDouble();
+				}
+				else {
+					// A normal number or a DateTime in decimal format.
+					__ys[0] = Double.valueOf(y1).doubleValue();
+				}
 			}
 			catch (Exception e) {
-				Message.printWarning(3, "drawAnnotation", "Invalid Y1 value: " + point.get(1));
+				Message.printWarning(3, routine, "Invalid Y1 value: " + point.get(1));
+				return;
+			}
+		}
+		else if ( StringUtil.startsWithIgnoreCase(yFormat, "RepeatData,") ) {
+			// TODO smalers 2024-08-25 need to implement.
+		    yFormatType = GRAnnotationCoordinateFormatType.REPEAT_DATA;
+			String s = yFormat.substring(11, 12);
+			if (s.equals("-") || s.equals("+")) {
+				// Sign for increment is OK.
+			}
+			else {
+				Message.printWarning(3, routine, "Invalid format for RepeatData: " + yFormat);
+				return;
+			}
+			s = yFormat.substring(12);
+			if (StringUtil.atod(s) == -1) {
+				Message.printWarning(3, routine, "Invalid value for RepeatData: " + yFormat);
+				return;
+			}
+		}
+		else if ( StringUtil.startsWithIgnoreCase(yFormat, "RepeatPercent,") ) {
+			// TODO smalers 2024-08-25 need to implement.
+		    yFormatType = GRAnnotationCoordinateFormatType.REPEAT_PERCENT;
+			String s = yFormat.substring(14, 15);
+			if (s.equals("-") || s.equals("+")) {
+				// Sign for increment is OK.
+			}
+			else {
+				Message.printWarning(3, routine, "Invalid format for RepeatPercent: " + yFormat);
+				return;
+			}
+			s = yFormat.substring(15);
+			if (StringUtil.atod(s) == -1) {
+				Message.printWarning(3, routine, "Invalid value for epeatPercent: " + yFormat);
 				return;
 			}
 		}
 		else if (StringUtil.startsWithIgnoreCase(yFormat,"DateTime,")) {
-		    yFormatType = __FORMAT_DATETIME;
-			// Split the InputFormat string apart and pull out the date format.
+		    yFormatType = GRAnnotationCoordinateFormatType.DATETIME;
+			// Split the YFormat string apart and pull out the date format.
 		    int index = yFormat.indexOf(",");
 			String format = yFormat.substring(index + 1);
 
@@ -664,34 +779,34 @@ public void drawAnnotation(PropList p) {
 
 			// See performance note about caching at static declaration of Hashtable (top of class).
 
-			DateTimeFormat dtf = (DateTimeFormat)__dateFormatHashtable.get(format);
+			DateTimeFormat dtf = GRJComponentDrawingArea.dateFormatHashtable.get(format);
 			if (dtf == null) {
 				// If not, cache this object.
 				// The caching process improves performance for objects take a lot to create.
 //				Message.printStatus(2, "", "No cached format found");
 				dtf = new DateTimeFormat(format);
-				__dateFormatHashtable.put(format, dtf);
+				GRJComponentDrawingArea.dateFormatHashtable.put(format, dtf);
 			}
 			try {
-				dtf.parse((String)point.get(1));
+				dtf.parse(point.get(1));
 			}
 			catch (Exception e) {
-				Message.printWarning(2, "drawAnnotation", "Invalid Y1 value: " + point.get(1));
-				Message.printWarning(2, "drawAnnotation", e);
+				Message.printWarning(2, routine, "Invalid Y1 value: " + point.get(1));
+				Message.printWarning(2, routine, e);
 			}
-			formatYPts[0] = (String)point.get(1);
+			formatYPts[0] = point.get(1);
 		}
 	}
 	else {
 		// Unknown shape encountered.
-		Message.printWarning(2, "drawAnnotation", "Invalid shape type: " + shapeType);
+		Message.printWarning(2, routine, "Invalid shape type for annotation: " + shapeType);
 		return;
 	}
 
 	// The next section gathers the remaining properties specific to
 	// each shape type and sets up the code to actually draw the annotation.
 
-	if (shapeType.equalsIgnoreCase("Line")) {
+	if ( shapeType.equalsIgnoreCase("Line") ) {
 		String lineStyle = p.getValue("LineStyle");
 		if (lineStyle == null) {
 			// Default.
@@ -703,7 +818,7 @@ public void drawAnnotation(PropList p) {
 			// Default.
 		}
 		else {
-			Message.printWarning(3, "drawAnnotation", "Invalid line style: " + lineStyle);
+			Message.printWarning(3, routine, "Invalid line style: " + lineStyle);
 			return;
 		}
 
@@ -715,35 +830,32 @@ public void drawAnnotation(PropList p) {
 		else {
 			width = StringUtil.atoi(propVal);
 			if (width == -1) {
-				Message.printWarning(3, "drawAnnotation", "Line width must be a positive "
-					+ "integer.  Invalid line width: " + propVal);
+				Message.printWarning(3, routine, "Line width must be a positive integer.  Invalid line width: " + propVal);
 				return;
 			}
 		}
 
-		if (xFormatType == __FORMAT_NONE
-		    && yFormatType == __FORMAT_NONE) {
+		if ( (xFormatType == GRAnnotationCoordinateFormatType.NONE) && (yFormatType == GRAnnotationCoordinateFormatType.NONE) ) {
 			// No input format defined -- simple data/percent drawing.
-			drawAnnotationLine(__xs, __ys, width, lineStyle, xAxisPercent, yAxisPercent);
+			drawAnnotationLine(__xs, __ys, width, lineStyle, xIsPercent, yIsPercent);
 		}
 		else {
-			// Date:
+			// DateTime:
 			drawAnnotationLine(__xs, __ys, formatXPts, formatYPts,
-				xFormat, yFormat, xFormatType, yFormatType, width, lineStyle, xAxisPercent, yAxisPercent);
+				xFormat, yFormat, xFormatType, yFormatType, width, lineStyle, xIsPercent, yIsPercent);
 		}
 	}
-	else if (shapeType.equalsIgnoreCase("Rectangle")) {
-		if (xFormatType == __FORMAT_NONE && yFormatType == __FORMAT_NONE) {
+	else if ( shapeType.equalsIgnoreCase("Rectangle") ) {
+		if ( (xFormatType == GRAnnotationCoordinateFormatType.NONE) && (yFormatType == GRAnnotationCoordinateFormatType.NONE) ) {
 			// No input format defined -- simple data/percent drawing.
-			drawAnnotationRectangle(__xs, __ys, xAxisPercent, yAxisPercent);
+			drawAnnotationRectangle(__xs, __ys, xIsPercent, yIsPercent);
 		}
 		else {
 			// Date:
-			drawAnnotationRectangle(__xs, __ys, formatXPts, formatYPts,
-				xFormat, yFormat, xFormatType, yFormatType, xAxisPercent, yAxisPercent);
+			drawAnnotationRectangle(__xs, __ys, formatXPts, formatYPts, xFormat, yFormat, xFormatType, yFormatType, xIsPercent, yIsPercent);
 		}
 	}
-	else if (shapeType.equalsIgnoreCase("Symbol")) {
+	else if ( shapeType.equalsIgnoreCase("Symbol") ) {
 		propVal = p.getValue("SymbolSize");
 		int size = 0;
 		if (propVal == null) {
@@ -754,7 +866,7 @@ public void drawAnnotation(PropList p) {
 				size = Integer.decode(propVal).intValue();
 			}
 			catch (Exception e) {
-				Message.printWarning(3, "drawAnnotation", "Invalid symbol size: '" + propVal + "'");
+				Message.printWarning(3, routine, "Invalid symbol size: '" + propVal + "'");
 				return;
 			}
 		}
@@ -767,7 +879,7 @@ public void drawAnnotation(PropList p) {
 		propVal = p.getValue("SymbolPosition");
 		int symbolPosition = getAnnotationPosition(propVal);
 		if (symbolPosition == -1) {
-			Message.printWarning(2, "drawAnnotation", "Invalid position value: " + propVal);
+			Message.printWarning(2, routine, "Invalid position value: " + propVal);
 			return;
 		}
 
@@ -785,29 +897,29 @@ public void drawAnnotation(PropList p) {
 		try {
 			symbol = GRSymbolShapeType.valueOfIgnoreCase(propVal);
 			if ( symbol == null ) {
-				Message.printWarning(2, "drawAnnotation", "Invalid symbol style: " + propVal);
+				Message.printWarning(2, routine, "Invalid symbol style: " + propVal);
 				return;
 			}
 		}
 		catch (Exception e) {
-			Message.printWarning(2, "drawAnnotation", "Invalid symbol style: " + propVal);
+			Message.printWarning(2, routine, "Invalid symbol style: " + propVal);
 			return;
 		}
 
-		if (xFormatType == __FORMAT_NONE && yFormatType == __FORMAT_NONE) {
+		if ( (xFormatType == GRAnnotationCoordinateFormatType.NONE) && (yFormatType == GRAnnotationCoordinateFormatType.NONE) ) {
 			// No InputFormats on either axis.
 			drawAnnotationSymbol(__xs, __ys, symbol, size,
 				GRUnits.DEVICE, outlineColor, symbolPosition,
-				xAxisPercent, yAxisPercent, off);
+				xIsPercent, yIsPercent, off);
 		}
 		else {
 			drawAnnotationSymbol(__xs, __ys, formatXPts, formatYPts,
 				xFormat, yFormat, xFormatType, yFormatType,
 				symbol, size, GRUnits.DEVICE, outlineColor,
-				symbolPosition, xAxisPercent, yAxisPercent, off);
+				symbolPosition, xIsPercent, yIsPercent, off);
 		}
 	}
-	else if (shapeType.equalsIgnoreCase("Text")) {
+	else if ( shapeType.equalsIgnoreCase("Text") ) {
 		propVal = p.getValue("FontSize");
 		int fontSize = 10;
 		if (propVal == null) {
@@ -816,13 +928,13 @@ public void drawAnnotation(PropList p) {
 		else {
 			fontSize = StringUtil.atoi(propVal);
 			if (fontSize == -1) {
-				Message.printWarning(3, "drawAnnotation", "Invalid font size: " + propVal);
+				Message.printWarning(3, routine, "Invalid font size: " + propVal);
 				return;
 			}
 		}
 
 		if (fontSize == 0) {
-			// Short-circuit, since nothing visible will be drawn.
+			// Nothing visible will be drawn.
 			return;
 		}
 
@@ -833,7 +945,7 @@ public void drawAnnotation(PropList p) {
 
 		String fontName = p.getValue("FontName");
 		if (fontName == null) {
-			Message.printWarning(3, "drawAnnotation", "Invalid font fontName: " + fontName);
+			Message.printWarning(3, routine, "Invalid font fontName: " + fontName);
 			return;
 		}
 
@@ -841,14 +953,14 @@ public void drawAnnotation(PropList p) {
 
 		String text = p.getValue("Text");
 		if (text == null) {
-			// Nothing to draw -- short-circuit here.
+			// Nothing to draw.
 			return;
 		}
 
 		propVal = p.getValue("TextPosition");
 		int textPosition = getAnnotationPosition(propVal);
 		if (textPosition == -1) {
-			Message.printWarning(3, "drawAnnotation", "Invalid position value: " + propVal);
+			Message.printWarning(3, routine, "Invalid position value: " + propVal);
 			return;
 		}
 
@@ -858,22 +970,23 @@ public void drawAnnotation(PropList p) {
 			off = true;
 		}
 
-		if (xFormatType == __FORMAT_NONE && yFormatType == __FORMAT_NONE) {
-			// No Input Formats defined.
-			drawAnnotationText(__xs, __ys, text, textPosition, xAxisPercent, yAxisPercent, off);
+		if ( (xFormatType == GRAnnotationCoordinateFormatType.NONE) && (yFormatType == GRAnnotationCoordinateFormatType.NONE) ) {
+			// No coordinte formts defined.
+			drawAnnotationText(__xs, __ys, text, textPosition, xIsPercent, yIsPercent, off);
 		}
 		else {
 			drawAnnotationText(__xs, __ys, formatXPts, formatYPts,
 				xFormat, yFormat, xFormatType, yFormatType,
-				text, textPosition, xAxisPercent, yAxisPercent, off);
+				text, textPosition, xIsPercent, yIsPercent, off);
 		}
 
 	}
 }
 
 /**
-Annotation drawing helper code that handles Input Formats for line annotations.
+Annotation drawing helper code that handles formats for line annotations.
 This code will translate the X and/or Y values appropriately and draw the line.
+TODO smalers 2024-08-26 evaluate whether needed to handle DateTime value.
 @param xs the array of x values for this annotation.
 If an XFormat is defined, this parameter is not used -- it will still be non-null, though.
 @param ys the array of y values for this annotation.
@@ -887,10 +1000,22 @@ Can be null, in which case there is no XFormat.  Currently only support "DateTim
 @param yFormatType the kind of Y axis format.
 Can be null, in which case there is no YFormat.  Currently there are no supported YFormats.
 @param lineWidth the width of the line
+@param xIsPercent whether the annotation X coordinate value is percent (true) or data (false).
+@param yIsPercent whether the annotation Y coordinate value is percent (true) or data (false).
 */
-private void drawAnnotationLine(double[] xs, double ys[], String[] formatXs,
-String[] formatYs, String xFormat, String yFormat, int xFormatType,
-int yFormatType, int lineWidth, String lineStyle, boolean xAxisPercent, boolean yAxisPercent) {
+private void drawAnnotationLine (
+	double[] xs,
+	double[] ys,
+	String[] formatXs,
+	String[] formatYs,
+	String xFormat,
+	String yFormat,
+	GRAnnotationCoordinateFormatType xFormatType,
+	GRAnnotationCoordinateFormatType yFormatType,
+	int lineWidth,
+	String lineStyle,
+	boolean xIsPercent,
+	boolean yIsPercent ) {
 	if (xFormat != null) {
 		int index = xFormat.indexOf(",");
 		xFormat = xFormat.substring(index + 1);
@@ -903,13 +1028,13 @@ int yFormatType, int lineWidth, String lineStyle, boolean xAxisPercent, boolean 
 	double x1mod = determineModifier(true, xFormatType, xFormat, formatXs);
 	double y1mod = determineModifier(false, yFormatType, yFormat, formatYs);
 
-	double[] calcX1s = calculateFormatPoints(true, xFormatType, xFormat, xs, formatXs, 0, 2, -1);
-	double[] calcX2s = calculateFormatPoints(true, xFormatType, xFormat, xs, formatXs, 1, 2, calcX1s.length);
-	double[] calcY1s = calculateFormatPoints(false, yFormatType, yFormat, ys, formatYs, 0, 2, -1);
-	double[] calcY2s = calculateFormatPoints(false, yFormatType, yFormat, ys, formatYs, 1, 2, calcY1s.length);
+	double[] calcX1s = calculateAnnotationCoordinates ( true, xFormatType, xFormat, xs, formatXs, 0, 2, -1 );
+	double[] calcX2s = calculateAnnotationCoordinates ( true, xFormatType, xFormat, xs, formatXs, 1, 2, calcX1s.length );
+	double[] calcY1s = calculateAnnotationCoordinates ( false, yFormatType, yFormat, ys, formatYs, 0, 2, -1 );
+	double[] calcY2s = calculateAnnotationCoordinates ( false, yFormatType, yFormat, ys, formatYs, 1, 2, calcY1s.length );
 
-	xAxisPercent = determinePercent(xAxisPercent, xFormatType);
-	yAxisPercent = determinePercent(yAxisPercent, yFormatType);
+	xIsPercent = determineIfAnnotationCoordinateIsPercent ( xIsPercent, xFormatType );
+	yIsPercent = determineIfAnnotationCoordinateIsPercent ( yIsPercent, yFormatType );
 
 	for (int i = 0; i < calcX1s.length; i++) {
 		for (int j = 0; j < calcY1s.length; j++) {
@@ -917,7 +1042,7 @@ int yFormatType, int lineWidth, String lineStyle, boolean xAxisPercent, boolean 
 			__xs[1] = calcX2s[i];
 			__ys[0] = calcY1s[j] + y1mod;
 			__ys[1] = calcY2s[j];
-			drawAnnotationLine(__xs, __ys, lineWidth, lineStyle, xAxisPercent, yAxisPercent);
+			drawAnnotationLine(__xs, __ys, lineWidth, lineStyle, xIsPercent, yIsPercent);
 		}
 	}
 }
@@ -928,16 +1053,21 @@ Annotation line drawing helper code.
 @param ys the y points of the line.
 @param lineWidth the width of the line.
 @param lineStyle the style of the line.
-@param xAxisPercent whether the X axis is percent (true) or data (false).
-@param yAxisPercent whether the Y axis is percent (true) or data (false).
+@param xIsPercent whether the X annotation coordinate value is a percent (true) or data (false).
+@param yIsPercent whether the Y annotation coordinate value is a percent (true) or data (false).
 */
-private void drawAnnotationLine(double[] xs, double[] ys, int lineWidth,
-String lineStyle, boolean xAxisPercent, boolean yAxisPercent) {
+private void drawAnnotationLine (
+	double[] xs,
+	double[] ys,
+	int lineWidth,
+	String lineStyle,
+	boolean xIsPercent,
+	boolean yIsPercent ) {
 	if (lineWidth != 1) {
 		setLineWidth((double)lineWidth);
 	}
 
-	if (xAxisPercent) {
+	if ( xIsPercent ) {
 		__tempXs[0] = ((_datax2 - _datax1) * (xs[0] / 100.0)) + _datax1;
 		__tempXs[1] = ((_datax2 - _datax1) * (xs[1] / 100.0)) + _datax1;
 	}
@@ -946,7 +1076,7 @@ String lineStyle, boolean xAxisPercent, boolean yAxisPercent) {
 		__tempXs[1] = xs[1];
 	}
 
-	if (yAxisPercent) {
+	if ( yIsPercent ) {
 		__tempYs[0] = ((_datay2 - _datay1) * (ys[0] / 100.0)) + _datay1;
 		__tempYs[1] = ((_datay2 - _datay1) * (ys[1] / 100.0)) + _datay1;
 	}
@@ -981,10 +1111,20 @@ If an YFormat is defined, this parameter is not used -- it will still be non-nul
 Can be null, in which case there is no XFormat.  Currently only support "DateTime," format.
 @param yFormatType the kind of Y axis format.
 Can be null, in which case there is no YFormat.  Currently there are no supported YFormats.
+@param xIsPercent whether the annotation X coordinate is percent (true) or data (false).
+@param yIsPercent whether the annotation Y coordinate is percent (true) or data (false).
 */
-private void drawAnnotationRectangle(double[] xs, double ys[], String[] formatXs,
-String[] formatYs, String xFormat, String yFormat, int xFormatType,
-int yFormatType, boolean xAxisPercent, boolean yAxisPercent) {
+private void drawAnnotationRectangle (
+	double[] xs,
+	double ys[],
+	String[] formatXs,
+	String[] formatYs,
+	String xFormat,
+	String yFormat,
+	GRAnnotationCoordinateFormatType xFormatType,
+	GRAnnotationCoordinateFormatType yFormatType,
+	boolean xIsPercent,
+	boolean yIsPercent ) {
 	if (xFormat != null) {
 		int index = xFormat.indexOf(",");
 		xFormat = xFormat.substring(index + 1);
@@ -997,13 +1137,13 @@ int yFormatType, boolean xAxisPercent, boolean yAxisPercent) {
 	double x1mod = determineModifier(true, xFormatType, xFormat, formatXs);
 	double y1mod = determineModifier(false, yFormatType, yFormat, formatYs);
 
-	double[] calcX1s = calculateFormatPoints(true, xFormatType, xFormat, xs, formatXs, 0, 2, -1);
-	double[] calcX2s = calculateFormatPoints(true, xFormatType, xFormat, xs, formatXs, 1, 2, calcX1s.length);
-	double[] calcY1s = calculateFormatPoints(false, yFormatType, yFormat, ys, formatYs, 0, 2, -1);
-	double[] calcY2s = calculateFormatPoints(false, yFormatType, yFormat, ys, formatYs, 1, 2, calcY1s.length);
+	double[] calcX1s = calculateAnnotationCoordinates ( true, xFormatType, xFormat, xs, formatXs, 0, 2, -1 );
+	double[] calcX2s = calculateAnnotationCoordinates ( true, xFormatType, xFormat, xs, formatXs, 1, 2, calcX1s.length );
+	double[] calcY1s = calculateAnnotationCoordinates ( false, yFormatType, yFormat, ys, formatYs, 0, 2, -1 );
+	double[] calcY2s = calculateAnnotationCoordinates ( false, yFormatType, yFormat, ys, formatYs, 1, 2, calcY1s.length );
 
-	xAxisPercent = determinePercent(xAxisPercent, xFormatType);
-	yAxisPercent = determinePercent(yAxisPercent, yFormatType);
+	xIsPercent = determineIfAnnotationCoordinateIsPercent ( xIsPercent, xFormatType );
+	yIsPercent = determineIfAnnotationCoordinateIsPercent ( yIsPercent, yFormatType );
 
 	for (int i = 0; i < calcX1s.length; i++) {
 		for (int j = 0; j < calcY1s.length; j++) {
@@ -1011,7 +1151,7 @@ int yFormatType, boolean xAxisPercent, boolean yAxisPercent) {
 			__xs[1] = calcX2s[i];
 			__ys[0] = calcY1s[j] + y1mod;
 			__ys[1] = calcY2s[j];
-			drawAnnotationRectangle(__xs, __ys, xAxisPercent, yAxisPercent);
+			drawAnnotationRectangle(__xs, __ys, xIsPercent, yIsPercent);
 		}
 	}
 }
@@ -1020,11 +1160,11 @@ int yFormatType, boolean xAxisPercent, boolean yAxisPercent) {
 Annotation rectangle drawing helper code.
 @param xs the x points of the line.
 @param ys the y points of the line.
-@param xAxisPercent whether the X axis is percent (true) or data (false).
-@param yAxisPercent whether the Y axis is percent (true) or data (false).
+@param xIsPercent whether the annotation X coordinate is percent (true) or data (false).
+@param yIsPercent whether the annotation Y coordinate is percent (true) or data (false).
 */
-private void drawAnnotationRectangle(double[] xs, double[] ys, boolean xAxisPercent, boolean yAxisPercent) {
-	if (xAxisPercent) {
+private void drawAnnotationRectangle ( double[] xs, double[] ys, boolean xIsPercent, boolean yIsPercent ) {
+	if (xIsPercent) {
 		__tempXs[0] = ((_datax2 - _datax1) * (xs[0] / 100.0)) + _datax1;
 		__tempXs[1] = ((_datax2 - _datax1) * (xs[1] / 100.0)) + _datax1;
 	}
@@ -1033,7 +1173,7 @@ private void drawAnnotationRectangle(double[] xs, double[] ys, boolean xAxisPerc
 		__tempXs[1] = xs[1];
 	}
 
-	if (yAxisPercent) {
+	if (yIsPercent) {
 		__tempYs[0] = ((_datay2 - _datay1) * (ys[0] / 100.0)) + _datay1;
 		__tempYs[1] = ((_datay2 - _datay1) * (ys[1] / 100.0)) + _datay1;
 	}
@@ -1085,16 +1225,31 @@ Can be null, in which case there is no YFormat.  Currently there are no supporte
 @param size the size of the symbol
 @param units the units in which the symbol will be drawn
 @param pos the position of the symbol
+@param xIsPercent whether the annotation X coordinate is percent (true) or data (false).
+@param yIsPercent whether the annotation Y coordinate is percent (true) or data (false).
 @param off whether the symbol should still attempt to be drawn even if its
 point lies outside the bounds of the drawing area.
 If false, then no attempt to drawn the symbol will be made.
 If true, the symbol will be drawn and there is a chance that part of the drawn area of the symbol will overlap
 the drawing area and be visible.
 */
-private void drawAnnotationSymbol(double[] xs, double[] ys,
-String[] formatXs, String[] formatYs, String xFormat, String yFormat,
-int xFormatType, int yFormatType, GRSymbolShapeType symbol, int size, int units,
-GRColor outlineColor, int pos, boolean xAxisPercent, boolean yAxisPercent, boolean off) {
+private void drawAnnotationSymbol(
+	double[] xs,
+	double[] ys,
+	String[] formatXs,
+	String[] formatYs,
+	String xFormat,
+	String yFormat,
+	GRAnnotationCoordinateFormatType xFormatType,
+	GRAnnotationCoordinateFormatType yFormatType,
+	GRSymbolShapeType symbol,
+	int size,
+	int units,
+	GRColor outlineColor,
+	int pos,
+	boolean xIsPercent,
+	boolean yIsPercent,
+	boolean off ) {
 	if (xFormat != null) {
 		int index = xFormat.indexOf(",");
 		xFormat = xFormat.substring(index + 1);
@@ -1104,19 +1259,18 @@ GRColor outlineColor, int pos, boolean xAxisPercent, boolean yAxisPercent, boole
 		yFormat = yFormat.substring(index + 1);
 	}
 
-	double[] calcXs = calculateFormatPoints(true, xFormatType, xFormat, xs, formatXs, 0, 1, -1);
-	double[] calcYs = calculateFormatPoints(false, yFormatType, yFormat, ys, formatYs, 0, 1, -1);
+	double[] calcXs = calculateAnnotationCoordinates ( true, xFormatType, xFormat, xs, formatXs, 0, 1, -1 );
+	double[] calcYs = calculateAnnotationCoordinates ( false, yFormatType, yFormat, ys, formatYs, 0, 1, -1 );
 
-	xAxisPercent = determinePercent(xAxisPercent, xFormatType);
-	yAxisPercent = determinePercent(yAxisPercent, yFormatType);
+	xIsPercent = determineIfAnnotationCoordinateIsPercent ( xIsPercent, xFormatType );
+	yIsPercent = determineIfAnnotationCoordinateIsPercent ( yIsPercent, yFormatType );
 
 	for (int i = 0; i < calcXs.length; i++) {
 		for (int j = 0; j < calcYs.length; j++) {
 			__xs[0] = calcXs[i];
 			__ys[0] = calcYs[j];
 
-			drawAnnotationSymbol(__xs, __ys, symbol,
-				size, units, outlineColor, pos, xAxisPercent, yAxisPercent, off);
+			drawAnnotationSymbol(__xs, __ys, symbol, size, units, outlineColor, pos, xIsPercent, yIsPercent, off);
 		}
 	}
 }
@@ -1199,16 +1353,27 @@ Can be null, in which case there is no XFormat.  Currently only support "DateTim
 Can be null, in which case there is no YFormat.  Currently there are no supported YFormats.
 @param text the text to draw
 @param pos the position of the text
-@param off whether the text should still attempt to be drawn even if its
-point lies outside the bounds of the drawing area.
+@param xIsPercent whether the annotation X coordinate is percent (true) or data (false).
+@param yIsPercent whether the annotation Y coordinate is percent (true) or data (false).
+@param off whether the text should still attempt to be drawn even if its point lies outside the bounds of the drawing area.
 If false, then no attempt to drawn the text will be made.
 If true, the text will be drawn and there is a chance that part of the drawn area of the text will overlap
 the drawing area and be visible.
 */
-private void drawAnnotationText(double[] xs, double[] ys,
-String[] formatXs, String[] formatYs, String xFormat, String yFormat,
-int xFormatType, int yFormatType, String text, int pos,
-boolean xAxisPercent, boolean yAxisPercent, boolean off) {
+private void drawAnnotationText (
+	double[] xs,
+	double[] ys,
+	String[] formatXs,
+	String[] formatYs,
+	String xFormat,
+	String yFormat,
+	GRAnnotationCoordinateFormatType xFormatType,
+	GRAnnotationCoordinateFormatType yFormatType,
+	String text,
+	int pos,
+	boolean xIsPercent,
+	boolean yIsPercent,
+	boolean off ) {
 	if (xFormat != null) {
 		int index = xFormat.indexOf(",");
 		xFormat = xFormat.substring(index + 1);
@@ -1218,17 +1383,17 @@ boolean xAxisPercent, boolean yAxisPercent, boolean off) {
 		yFormat = yFormat.substring(index + 1);
 	}
 
-	double[] calcXs = calculateFormatPoints(true, xFormatType, xFormat, xs, formatXs, 0, 1, -1);
-	double[] calcYs = calculateFormatPoints(false, yFormatType, yFormat, ys, formatYs, 0, 1, -1);
+	double[] calcXs = calculateAnnotationCoordinates ( true, xFormatType, xFormat, xs, formatXs, 0, 1, -1 );
+	double[] calcYs = calculateAnnotationCoordinates ( false, yFormatType, yFormat, ys, formatYs, 0, 1, -1 );
 
-	xAxisPercent = determinePercent(xAxisPercent, xFormatType);
-	yAxisPercent = determinePercent(yAxisPercent, yFormatType);
+	xIsPercent = determineIfAnnotationCoordinateIsPercent ( xIsPercent, xFormatType );
+	yIsPercent = determineIfAnnotationCoordinateIsPercent ( yIsPercent, yFormatType );
 
 	for (int i = 0; i < calcXs.length; i++) {
 		for (int j = 0; j < calcYs.length; j++) {
 			__xs[0] = calcXs[i];
 			__ys[0] = calcYs[j];
-			drawAnnotationText(__xs, __ys, text, pos, xAxisPercent, yAxisPercent, off);
+			drawAnnotationText(__xs, __ys, text, pos, xIsPercent, yIsPercent, off);
 		}
 	}
 }
@@ -1241,34 +1406,41 @@ but the position will still be intuitive to the user (upper right is still that 
 @param ys the y points of the text.
 @param text the text to draw.
 @param pos the position of the text.
-@param xAxisPercent whether the X axis is percent (true) or data (false).
-@param yAxisPercent whether the Y axis is percent (true) or data (false).
+@param xIsPercent whether the annotation X coordinate value is percent (true) or data (false).
+@param yIsPercent whether the annotation Y coordinate value is percent (true) or data (false).
 @param off whether the text should still attempt to be drawn even if its
 point lies outside the bounds of the drawing area.
 If false, then no attempt to drawn the text will be made.
 If true, the text will be drawn and there is a chance that part of the drawn area of the text will overlap
 the drawing area and be visible.
 */
-private void drawAnnotationText(double[] xs, double[] ys, String text,
-int pos, boolean xAxisPercent, boolean yAxisPercent, boolean off) {
+private void drawAnnotationText (
+	double[] xs,
+	double[] ys,
+	String text,
+	int pos,
+	boolean xIsPercent,
+	boolean yIsPercent,
+	boolean off ) {
 	double tempX = 0;
 	double tempY = 0;
 
-	if (xAxisPercent) {
+	if ( xIsPercent ) {
 		tempX = ((_datax2 - _datax1) * (__xs[0] / 100.0)) + _datax1;
 	}
 	else {
 		tempX = __xs[0];
 	}
 
-	if (yAxisPercent) {
+	if ( yIsPercent ) {
 		tempY = ((_datay2 - _datay1) * (__ys[0] / 100.0)) + _datay1;
 	}
 	else {
 		tempY = __ys[0];
 	}
 
-	boolean yInDa = false; // Is text Y in drawing area?
+	// Is text Y in a drawing area?
+	boolean yInDa = false;
 	if ( _datay2 >= _datay1 ) {
 	    // Normal axis orientation.
 	    if ( (tempY >= _datay1) && (tempY <= _datay2) ) {
@@ -1282,13 +1454,13 @@ int pos, boolean xAxisPercent, boolean yAxisPercent, boolean off) {
         }
 	}
 
-	if ((tempX >= _datax1 && tempX <= _datax2 && yInDa) || off)  {
+	if ( ((tempX >= _datax1) && (tempX <= _datax2) && yInDa) || off)  {
 		GRDrawingAreaUtil.drawText(this, text, tempX, tempY, 0, pos);
 	}
 	else {
 		if (Message.isDebugOn) {
 			Message.printDebug(2, "drawAnnotation", "Text annotation data coordinate (" + tempX + "," +
-			    tempY + ") outside drawing area data limits (" + _datax1 + "," + _datay1 + ") (" +
+			    tempY + ") is outside drawing area data limits (" + _datax1 + "," + _datay1 + ") (" +
 			    _datax2 + "," + _datay2 + ")");
 		}
 	}
@@ -1297,28 +1469,27 @@ int pos, boolean xAxisPercent, boolean yAxisPercent, boolean off) {
 /**
 Draw an arc using the current color, line, etc.
 @param x X-coordinate of center.
-@param rx X-radius.
 @param y Y-coordinate of center.
+@param rx X-radius.
 @param ry Y-radius.
 @param a1 Initial angle to start drawing (0 is at 3 o'clock, then counter-clockwise).
 @param a2 Ending angle.
 */
-public void drawArc(double x, double y, double rx, double ry, double a1, double a2) {
+public void drawArc ( double x, double y, double rx, double ry, double a1, double a2 ) {
 	// Java draws using the rectangle.
-	_jdev._graphics.drawArc ((int)(x - rx), (int)(y - ry),
-		(int)(rx * 2.0), (int)(ry * 2.0), (int)a1, (int)a2 );
+	_jdev._graphics.drawArc ((int)(x - rx), (int)(y - ry), (int)(rx * 2.0), (int)(ry * 2.0), (int)a1, (int)a2 );
 }
 
 /**
 Not implemented.
 */
-public void drawCompoundText (List<String> text, GRColor color, double x, double y, double angle, int flag) {
+public void drawCompoundText ( List<String> text, GRColor color, double x, double y, double angle, int flag ) {
 }
 
 /**
 Not implemented.
 */
-public void drawCompoundText(List<String> text, Color color, double x, double y, double angle, int flag) {
+public void drawCompoundText ( List<String> text, Color color, double x, double y, double angle, int flag ) {
 }
 
 /**
@@ -1326,7 +1497,7 @@ Draw a line.
 @param x array of x points.
 @param y array of y points.
 */
-public void drawLine(double x[], double y[]) {
+public void drawLine ( double x[], double y[] ) {
 	// Scale to device units.
 	//double xs1 = scaleXData ( x[0] );
 	//double ys1 = scaleYData ( y[0] );
@@ -1355,8 +1526,7 @@ Draws an oval in the current color.
 @param xRadius the X radius of the oval
 @param yRadius the Y radius of the oval
 */
-public void drawOval(double centerX, double centerY, double xRadius,
-double yRadius) {
+public void drawOval ( double centerX, double centerY, double xRadius, double yRadius ) {
 	_jdev._graphics.drawOval( (int)(centerX - xRadius), (int)(centerY - yRadius),
 		(int)(xRadius * 2), (int)(yRadius * 2));
 }
@@ -1367,7 +1537,7 @@ Draws a polygon.
 @param x an array of x coordinates
 @param y an array of y coordinates.
 */
-public void drawPolygon (int npts, double x[], double y[]) {
+public void drawPolygon ( int npts, double x[], double y[] ) {
 	// First draw a polyline for the given points.
 	drawPolyline (npts, x, y);
 	// Now connect the first and last points if necessary.
@@ -1382,7 +1552,7 @@ Draws a polyline.
 @param x an array of x coordinates
 @param y an array of y coordinates.
 */
-public void drawPolyline(int npts, double x[], double y[]) {
+public void drawPolyline ( int npts, double x[], double y[] ) {
 	if (npts < 2) {
 		return;
 	}
@@ -1419,7 +1589,7 @@ Draws a rectangle in the current color.
 @param width the width of the rectangle
 @param height the height of the rectangle
 */
-public void drawRectangle(double xll, double yll, double width, double height) {
+public void drawRectangle ( double xll, double yll, double width, double height ) {
 	double[] x = new double[4], y = new double[4];
 
 	x[0] = xll;
@@ -1443,7 +1613,7 @@ Draw text.
 @param a the alpha value of the string.
 @param flag one of the GRText.* values specifying how to draw the string.
 */
-public void drawText(String text, double x, double y, double a, int flag) {
+public void drawText ( String text, double x, double y, double a, int flag ) {
 	drawText(text, x, y, a, flag, 0);
 }
 
@@ -1454,10 +1624,10 @@ Draw text.
 @param y the y location at which to draw the string.
 @param a the alpha value (transparency) of the string (currently not used).
 @param flag one of the GRText.* values specifying how to draw the string.
-@param rotationDegrees number of degrees to rotates the text clock-wise from
-due East.  Standard Java rotation transforms rotate clock-wise with positive numbers.
+@param rotationDegrees number of degrees to rotates the text clock-wise from due East.
+Standard Java rotation transforms rotate clock-wise with positive numbers.
 */
-public void drawText(String text, double x, double y, double a, int flag, double rotationDegrees) {
+public void drawText ( String text, double x, double y, double a, int flag, double rotationDegrees ) {
 	// Make sure that we have a string.
 
 	if (text == null) {
@@ -1581,14 +1751,14 @@ public void drawText(String text, double x, double y, double a, int flag, double
 /**
 Draw an arc using the current color, line, etc.
 @param x X-coordinate of center.
-@param rx X-radius.
 @param y Y-coordinate of center.
+@param rx X-radius.
 @param ry Y-radius.
 @param a1 Initial angle to start drawing (0 is at 3 o'clock, then counterclockwise).
 @param a2 Ending angle.
 @param fillmode arc fill type (currently ignored).
 */
-public void fillArc(double x, double y, double rx, double ry, double a1, double a2, GRArcFillType fillmode) {
+public void fillArc ( double x, double y, double rx, double ry, double a1, double a2, GRArcFillType fillmode ) {
 	// Java draws using the rectangle.
 	_jdev._graphics.fillArc ((int)(x - rx), (int)(y - ry), (int)(rx*2.0), (int)(ry*2.0), (int)a1, (int)a2 );
 }
@@ -1600,7 +1770,7 @@ Fills an oval with the current color.
 @param xRadius the X radius of the oval
 @param yRadius the Y radius of the oval
 */
-public void fillOval(double centerX, double centerY, double xRadius, double yRadius) {
+public void fillOval ( double centerX, double centerY, double xRadius, double yRadius ) {
 	_jdev._graphics.fillOval( (int)(centerX - xRadius), (int)(centerY - yRadius), (int)(xRadius * 2), (int)(yRadius * 2));
 }
 
@@ -1610,7 +1780,7 @@ Fill a polygon.
 @param x an array of x coordinates
 @param y an array of y coordinates
 */
-public void fillPolygon (int npts, double x[], double y[]) {
+public void fillPolygon ( int npts, double x[], double y[] ) {
 	int ix[] = new int[npts];
 	int iy[] = new int[npts];
 	for (int i = 0; i < npts; i++) {
@@ -1627,7 +1797,7 @@ Fills a polygon.
 @param y an array of y coordinates
 @param transparency the amount of transparency in the polygon from 0 (totally opaque) to 255 (totally transparent).
 */
-public void fillPolygon (int npts, double x[], double y[], int transparency) {
+public void fillPolygon ( int npts, double x[], double y[], int transparency ) {
 	if (npts < 1) {
 		return;
 	}
@@ -1668,7 +1838,7 @@ public void fillPolygon (int npts, double x[], double y[], int transparency) {
 Fill a rectangle in the current color.
 @param limits limits defining the rectangle.
 */
-public void fillRectangle (GRLimits limits) {
+public void fillRectangle ( GRLimits limits ) {
 	if (limits == null) {
 		return;
 	}
@@ -1687,7 +1857,7 @@ Fill a rectangle in the current color.
 @param width the width of the rectangle
 @param height the height of the rectangle
 */
-public void fillRectangle(double xll, double yll, double width, double height) {
+public void fillRectangle ( double xll, double yll, double width, double height ) {
 	if (Message.isDebugOn) {
 		Message.printDebug(10, "GRJComponentDrawingArea.fillRectangle(x,y,w,h)",
 			"Filling rectangle at " + xll + "," + yll + " w=" + width + " w=" + height );
@@ -1698,14 +1868,15 @@ public void fillRectangle(double xll, double yll, double width, double height) {
 /**
 Flush graphics (does nothing).  Does not seem to be necessary with Java.
 */
-public void flush () {}
+public void flush () {
+}
 
 /**
 Given a position for an annotation, returns the integer value that should be passed to drawing routines.
 @param position the position of the annotation (e.g., "UpperRight").
 @return the integer value of the position, or -1 if the position is invalid.
 */
-private int getAnnotationPosition(String position) {
+private int getAnnotationPosition ( String position ) {
 	int pos = -1;
 	if (position == null) {
 		// Default to center.
@@ -1766,7 +1937,7 @@ For now, calculate at the centroid so that projection issues do not cause proble
 REVISIT (JTS - 2003-05-05) This parameter isn't even used.
 @return the data extents given a delta in DA units.
 */
-public GRLimits getDataExtents(GRLimits limits, int flag) {
+public GRLimits getDataExtents ( GRLimits limits, int flag ) {
 	String routine = getClass().getSimpleName() + ".getDataExtents";
 
 	// For now, default to getting the limits at the center of the drawing area.
@@ -1796,7 +1967,7 @@ Get the data units given device units.
 @param coordinateType indicates whether coordinates are originating from the device or internally.
 @return the data units given device units.
 */
-public GRPoint getDataXY(double devx, double devy, GRCoordinateType coordinateType) {
+public GRPoint getDataXY ( double devx, double devy, GRCoordinateType coordinateType ) {
 	String routine = getClass().getSimpleName() + ".getDataXY";
 
 	// Interpolate to get the linearized X data value.
@@ -1847,7 +2018,7 @@ public Font getFont() {
 @param flag GRUnits.DATA or GRUnits.DEV, indicating units for returned size.
 Currently, device units are always returned and the GR.getTextExtents call scales to the device.
 */
-public GRLimits getTextExtents(String text, int flag) {
+public GRLimits getTextExtents ( String text, int flag ) {
 	// The font size is not scalable and is in device units.
 	// Use the Java API to get the size information.
 	if (_jdev == null) {
@@ -1880,7 +2051,7 @@ public int getUnits() {
 /**
 Not implemented.
 */
-public double getXData(double xdev) {
+public double getXData ( double xdev ) {
 	Message.printWarning(3, "GRJComponentDrawingArea", "not implemented");
 	return 0.0;
 }
@@ -1888,7 +2059,7 @@ public double getXData(double xdev) {
 /**
 Not implemented.
 */
-public double getYData(double ydev) {
+public double getYData ( double ydev ) {
 	Message.printWarning(3, "GRJComponentDrawingArea", "not implemented");
 	return 0.0;
 }
@@ -1896,16 +2067,16 @@ public double getYData(double ydev) {
 /**
 Not implemented.
 */
-public void grid(int nxg, double xg[], int nyg, double yg[], int flag) {
+public void grid ( int nxg, double xg[], int nyg, double yg[], int flag ) {
 	Message.printWarning(3, "GRJComponentDrawingArea", "not implemented");
 }
 
 /**
-Initialize the Java drawing area data.  Rely on the base class for the most
-part when it calls its initialize routine from its constructor.
+Initialize the Java drawing area data.
+Rely on the base class for the most part when it calls its initialize routine from its constructor.
 @param dev GRJComponentDevice associated with this GRJComponentArea
 */
-private void initialize(GRJComponentDevice dev) {
+private void initialize ( GRJComponentDevice dev ) {
 	int dl = 10;
 
 	if (Message.isDebugOn) {
@@ -1922,7 +2093,7 @@ Draws a line to a point from the last-drawn or position point.
 @param x the x coordinate
 @param y the y coordinate
 */
-public void lineTo(double x, double y) {
+public void lineTo ( double x, double y ) {
 	// Scale to device units.
 	//double xs = scaleXData ( x );
 	//double ys = scaleYData ( y );
@@ -1942,7 +2113,7 @@ public void lineTo(double x, double y) {
 Draws a line to a point from the last-drawn or positioned point.
 @param point GRPoint defining where to draw to.
 */
-public void lineTo(GRPoint point) {
+public void lineTo ( GRPoint point ) {
 	lineTo(point.x, point.y);
 }
 
@@ -1951,17 +2122,17 @@ Used to make transparent polygons.
 @param alpha the transparency level.
 @return an AlphaComposite to use for transparency.
 */
-private AlphaComposite makeComposite(float alpha) {
+private AlphaComposite makeComposite ( float alpha ) {
 	int type = AlphaComposite.SRC_OVER;
 	return(AlphaComposite.getInstance(type, alpha));
 }
 
 /**
-Moves the pen to a point
+Moves the pen to a point.  The next lineTo will draw from the point.
 @param x the x coordinate to move to
 @param y the y coordinate to move to
 */
-public void moveTo(double x, double y) {
+public void moveTo ( double x, double y ) {
 	// Scale to device units.
 	//double xs = scaleXData ( x );
 	//double ys = scaleYData ( y );
@@ -1978,7 +2149,7 @@ public void moveTo(double x, double y) {
 Moves the pen to a point
 @param point the GRPoint to move to
 */
-public void moveTo(GRPoint point) {
+public void moveTo ( GRPoint point ) {
 	moveTo(point.getX(), point.getY());
 }
 
@@ -2017,10 +2188,10 @@ public double scaleXData(double xdata) {
 }
 
 /**
-Scale y data vlaue to device plotting coordinate.
+Scale y data value to device plotting coordinate.
 @param ydata y data value to scale.
 */
-public double scaleYData(double ydata) {
+public double scaleYData ( double ydata ) {
 	if (__scaleYData) {
 		return (_jdev._devy2 - super.scaleYData(ydata));
 //		return(_jdev._devy2 - MathUtil.interpolate( ydata, _datay1, _datay2, _ploty1, _ploty2));
@@ -2035,7 +2206,7 @@ Sets the clip (in data units) for the area outside of which nothing should be dr
 If the dataUnits are null, any clip will be removed.
 @param dataLimits the limits of the area outside of which nothing will be drawn.
 */
-public void setClip(GRLimits dataLimits) {
+public void setClip ( GRLimits dataLimits ) {
 	if (dataLimits == null) {
 		_jdev._graphics.setClip(null);
 	}
@@ -2056,7 +2227,7 @@ Sets the clip shape for the area outside of which nothing should be drawn.
 If the shape is null, any clip will be removed.
 @param clipShape the shape to clip to.
 */
-public void setClip(Shape clipShape) {
+public void setClip ( Shape clipShape ) {
 	_jdev._graphics.setClip(clipShape);
 }
 
@@ -2064,7 +2235,7 @@ public void setClip(Shape clipShape) {
 Set the active color using a color.
 @param color Color to use.
 */
-public void setColor(GRColor color) {
+public void setColor ( GRColor color ) {
 	_color = color;
 	_jdev._graphics.setColor((Color)color);
 }
@@ -2075,7 +2246,7 @@ Set the active color using the RGB components.
 @param g Green component, 0.0 to 1.0.
 @param b Blue component, 0.0 to 1.0.
 */
-public void setColor(float r, float g, float b) {
+public void setColor ( float r, float g, float b ) {
 	_color = new GRColor(r, g, b);
 	Graphics2D gr = _jdev._graphics;
 	gr.setColor(_color);
@@ -2087,8 +2258,8 @@ Set the active color using the RGB components.
 @param g Green component, 0.0 to 1.0.
 @param b Blue component, 0.0 to 1.0.
 */
-public void setColor(double R, double G, double B) {
-	_color = new GRColor((float)R, (float)G, (float)B);
+public void setColor ( double r, double g, double b ) {
+	_color = new GRColor((float)r, (float)g, (float)b);
 	Graphics2D gr = _jdev._graphics;
 	gr.setColor(_color);
 }
@@ -2099,7 +2270,7 @@ Set the font for the drawing area.
 @param style Font style ("Plain", "Bold", or "Italic").
 @param height Font height in points.
 */
-public void setFont(String font, String style, double height) {
+public void setFont ( String font, String style, double height ) {
 	if (font == null) {
 		font = "Helvetica";
 	}
@@ -2134,7 +2305,7 @@ Set the font using a Java font style call.
 @param style the style of the font.
 @param size the size of the font.
 */
-public void setFont(String name, int style, int size) {
+public void setFont ( String name, int style, int size ) {
 	_fontObj = new Font(name, style, size);
 	if (_jdev == null) {
 		return;
@@ -2150,7 +2321,7 @@ Set the line dash for line-drawing commands for GRJComponentDrawingAreas.
 @param dash a float array specifying the dash pattern.  If null, line dashes will be turned off.
 @param offset the initial dash offset.
 */
-public void setLineDash(double[] Dash, double Offset) {
+public void setLineDash ( double[] Dash, double Offset ) {
 	if (Dash != null) {
 		float[] dash = new float[Dash.length];
 		for (int i = 0; i < Dash.length; i++) {
@@ -2169,7 +2340,7 @@ Set the line dash for line-drawing commands for GRJComponentDrawingAreas.
 @param dash a float array specifying the dash pattern.  If null, line dashes will be turned off.
 @param offset the initial dash offset.
 */
-public void setFloatLineDash(float[] dash, float offset) {
+public void setFloatLineDash ( float[] dash, float offset ) {
 	Stroke s = _jdev._graphics.getStroke();
 	if (dash != null) {
 		for (int i = 0; i < dash.length; i++) {
@@ -2199,7 +2370,7 @@ Sets how lines are joined together.
 @param join the line join style (one of java.awt.BasicStroke.JOIN_BEVEL,
 BasicStroke.JOIN_MITER, or BasicStroke.JOIN_ROUND).
 */
-public void setLineJoin(int join) {
+public void setLineJoin ( int join ) {
 	Stroke s = _jdev._graphics.getStroke();
 	BasicStroke newStroke = null;
 	if (s instanceof BasicStroke) {
@@ -2216,10 +2387,10 @@ public void setLineJoin(int join) {
 }
 
 /**
-Sets the line width.
+Sets the line width (pixels).
 @param lineWidth the width that lines should be drawn at.
 */
-public void setLineWidth(double lineWidth) {
+public void setLineWidth ( double lineWidth ) {
 	Stroke s = _jdev._graphics.getStroke();
 	BasicStroke newStroke = null;
 	if (s instanceof BasicStroke) {
@@ -2241,7 +2412,7 @@ Set the line cap to be used for GRJComponentDrawingAreas.
 @param cap the cap style to use (one of java.awt.BasicStroke.CAP_BUTT,
 BasicStroke.CAP_ROUND, BasicStroke.CAP_SQUARE).
 */
-public void setLineCap(int cap) {
+public void setLineCap ( int cap ) {
 	Stroke s = _jdev._graphics.getStroke();
 	BasicStroke newStroke = null;
 	if (s instanceof BasicStroke) {
@@ -2259,25 +2430,44 @@ public void setLineCap(int cap) {
 
 /**
 Sets whether drawing should be scaled to the data extents (true) or not (false).
-@param whether to scale drawing to the data extents (true) or not (false).
+@param set whether to scale drawing to the data extents (true) or not (false).
 */
-public void setScaleData(boolean set) {
+public void setScaleData ( boolean set ) {
 	__scaleXData = set;
 	__scaleYData = set;
 }
 
-private double[] calculateFormatPoints(boolean isXAxis, int formatType,
-String format, double[] points, String[] formatPoints, int pointNum,
-int totalPoints, int minNumPoints) {
+/**
+ * TODO smalers 2024-08-26 need to implement the repeat functionality.
+ * Calculate the font points to use for an axis annotation.
+ * @param isXAxis true if the X-axis, false if the Y-axis
+ * @param formatType the format type for the values, based on the axis type
+ * @param format
+ * @param points
+ * @param formatPoints
+ * @param pointNum
+ * @param totalPoints
+ * @param minNumPoints
+ * @return an array of values for the axis to use a
+ */
+private double[] calculateAnnotationCoordinates (
+	boolean isXAxis,
+	GRAnnotationCoordinateFormatType formatType,
+	String format,
+	double[] points,
+	String[] formatPoints,
+	int pointNum,
+	int totalPoints,
+	int minNumPoints ) {
 	double[] calcPoints = null;
-	if (formatType == __FORMAT_DATETIME) {
+	if ( formatType == GRAnnotationCoordinateFormatType.DATETIME ) {
 		int index = format.indexOf(",");
 		format = format.substring(index + 1);
 
 		// See performance note about caching at static declaration of Hashtable (top of class).
 
 		// Should not be null here, unless some catastrophic error occurred.
-		DateTimeFormat dtf = __dateFormatHashtable.get(format);
+		DateTimeFormat dtf = GRJComponentDrawingArea.dateFormatHashtable.get(format);
 		int num = 0;
 		if ( num < 0 ) {
 			// TODO code added to avoid compiler warning about not used.
@@ -2352,7 +2542,7 @@ int totalPoints, int minNumPoints) {
 			}
 		}
 	}
-	else if (formatType == __FORMAT_REPEAT_DATA) {
+	else if (formatType == GRAnnotationCoordinateFormatType.REPEAT_DATA) {
 		int index = format.indexOf(",");
 		format = format.substring(index + 1);
 		boolean pos = true;
@@ -2443,8 +2633,12 @@ int totalPoints, int minNumPoints) {
 	return calcPoints;
 }
 
-private double determineModifier(boolean isXAxis, int formatType, String format, String[] formatPoints) {
-	if (formatType != __FORMAT_DATETIME) {
+/*
+ * TODO smalers 2024-08-26 need to implement the repeat functionality.
+ * It is not clear what this code does.
+ */
+private double determineModifier ( boolean isXAxis, GRAnnotationCoordinateFormatType formatType, String format, String[] formatPoints ) {
+	if (formatType != GRAnnotationCoordinateFormatType.DATETIME) {
 		return 0;
 	}
 	else {
@@ -2455,7 +2649,7 @@ private double determineModifier(boolean isXAxis, int formatType, String format,
 		// See performance note about caching at static declaration of Hashtable (top of class).
 
 		// Should not be null here, unless some catastrophic error occurred.
-		DateTimeFormat dtf = __dateFormatHashtable.get(format);
+		DateTimeFormat dtf = GRJComponentDrawingArea.dateFormatHashtable.get(format);
 		DateTime dt1 = null;
 		DateTime dt2 = null;
 		try {
@@ -2485,17 +2679,24 @@ private double determineModifier(boolean isXAxis, int formatType, String format,
 	}
 }
 
-private boolean determinePercent(boolean percent, int formatType) {
-	if (formatType == __FORMAT_NONE) {
+/**
+ * TODO smalers 2024-08-26 need to implement the repeat functionality.
+ * Indicate whether the annotation coordinates are percent.
+ * @param percent default return value
+ * @param formatType the axis label format type
+ * @return true if the label should be formatted as a percent (REPEAT_PERCENT), otherwise false
+ */
+private boolean determineIfAnnotationCoordinateIsPercent ( boolean percent, GRAnnotationCoordinateFormatType formatType ) {
+	if (formatType == GRAnnotationCoordinateFormatType.NONE) {
 		return percent;
 	}
-	else if (formatType == __FORMAT_DATETIME) {
+	else if (formatType == GRAnnotationCoordinateFormatType.DATETIME) {
 		return false;
 	}
-	else if (formatType == __FORMAT_REPEAT_DATA) {
+	else if (formatType == GRAnnotationCoordinateFormatType.REPEAT_DATA) {
 		return false;
 	}
-	else if (formatType == __FORMAT_REPEAT_PERCENT) {
+	else if (formatType == GRAnnotationCoordinateFormatType.REPEAT_PERCENT) {
 		return true;
 	}
 	else {
