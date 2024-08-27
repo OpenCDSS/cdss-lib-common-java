@@ -1,4 +1,4 @@
-// GRAspectType - enumeration of aspect types to control aspect for areas
+// GRAnnotationCoordinteFormatType - enumeration of annotation coordinate format types
 
 /* NoticeStart
 
@@ -24,28 +24,30 @@ NoticeEnd */
 package RTi.GR;
 
 /**
-Aspect type for an axis, which controls scaling.
+Annotation coordinate format types.
+For example, use to indicate that an X or Y value is a date/time.
+This is used internally to tell generic annotation code how to handle annotation coordinate data values.
 */
-public enum GRAspectType {
+public enum GRAnnotationCoordinateFormatType {
     /**
-     * True aspect on both axes.
+     * No special formatting (numerical data value or percent formatted as a number using the label precision).
      */
-    TRUE("True"),
+    NONE("None"),
 
     /**
-     * Fill both axes.
+     * Label should be formatted as a date/time.
      */
-    FILL("Fill"),
+    DATETIME("DateTime"),
 
     /**
-     * True aspect on the Y-axis and filled on the X-axis.
+     * Under development?
      */
-    FILLX("FillX"),
+    REPEAT_DATA("RepeatData"),
 
     /**
-     * True aspect on the X-axis and filled on the Y-axis.
+     * Under development?
      */
-    FILLY("FillY");
+    REPEAT_PERCENT("RepeatPercent");
 
     /**
      * The string name that should be displayed.
@@ -56,16 +58,17 @@ public enum GRAspectType {
      * Construct an enumeration value.
      * @param displayName name that should be displayed in choices, etc.
      */
-    private GRAspectType ( String displayName ) {
+    private GRAnnotationCoordinateFormatType ( String displayName ) {
         this.displayName = displayName;
     }
 
     /**
      * Equals method to prevent common programming error of using the equals method instead of ==.
-     * @param aspectType the aspect type string to compare to
+     * @string axisLabelFormatType the axis label format type to compare to
+     * @return true if the strings are equal
      */
-    public boolean equals ( String aspectType ) {
-        if ( aspectType.equalsIgnoreCase(this.displayName) ) {
+    public boolean equals ( String axisLabelFormatType ) {
+        if ( axisLabelFormatType.equalsIgnoreCase(this.displayName) ) {
             return true;
         }
         else {
@@ -85,15 +88,15 @@ public enum GRAspectType {
 
 	/**
 	 * Return the enumeration value given a string name (case-independent).
-	 * @param name enumeration string to evaluate
+	 * @param name the string name to match
 	 * @return the enumeration value given a string name (case-independent), or null if not matched.
 	 */
-	public static GRAspectType valueOfIgnoreCase ( String name ) {
+	public static GRAnnotationCoordinateFormatType valueOfIgnoreCase ( String name ) {
 	    if ( name == null ) {
 	        return null;
 	    }
 	    // Currently supported values.
-	    for ( GRAspectType t : values() ) {
+	    for ( GRAnnotationCoordinateFormatType t : values() ) {
 	        if ( name.equalsIgnoreCase(t.toString()) ) {
 	            return t;
 	        }

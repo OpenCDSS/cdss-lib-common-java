@@ -3988,7 +3988,12 @@ private void doAnalysisAreaStacked () {
 /**
 Draws any annotations on the graph.  This method can be called multiple times,
 once with false before drawing data and then with true after data have been drawn.
-@param drawingStepType indicates the step during drawing that should be matched.
+@param tsproduct the time series product being processed
+@param subproduct the subproduct (graph) being processed, 0+
+@param daLeftYAxisGraph the drawing area for the graph's left Y-axis
+@param daRightAxisGraph the drawing area for the graph's right Y-axis
+@param drawingStepType indicates the step during drawing that should be matched,
+used to position the annotation in the correct rendering layer
 If the annotation "Order" property does not match the drawing step then the annotation will not be drawn.
 */
 private void drawAnnotations ( TSProduct tsproduct, int subproduct,
@@ -3997,6 +4002,9 @@ private void drawAnnotations ( TSProduct tsproduct, int subproduct,
 		return;
 	}
 	String routine = getClass().getSimpleName() + ".drawAnnotations(" + drawingStepType + ")";
+	if ( Message.isDebugOn ) {
+		Message.printDebug(1,"","In \"" + routine + "\"." );
+	}
 	PropList annotation = null;
 	String s = null;
 	String type = null;
@@ -4015,7 +4023,7 @@ private void drawAnnotations ( TSProduct tsproduct, int subproduct,
 
 	// Set clipping for both Y axes.
 	// TODO SAM 2016-10-23 Evaluate whether annotations should be allowed to extend outside graph:
-	// - this may be desirable for symbols, in particular becaue they get cut off
+	// - this may be desirable for symbols, in particular because they get cut off
 	// Left y-axis.
 	Shape clip = GRDrawingAreaUtil.getClip(daLeftYAxisGraph);
 	GRDrawingAreaUtil.setClip(daLeftYAxisGraph, daLeftYAxisGraph.getDataLimits());
@@ -4026,26 +4034,34 @@ private void drawAnnotations ( TSProduct tsproduct, int subproduct,
 
 	boolean drawLeftYAxis = true;
 	boolean drawRightYAxis = false;
-	int na = tsproduct.getNumAnnotations(subproduct);
-	for (int iatt = 0; iatt < na; iatt++) {
+	int numAnnotations = tsproduct.getNumAnnotations(subproduct);
+	boolean isAnnotation = true;
+	boolean allowLayeredProp = false;
+	if ( Message.isDebugOn ) {
+		Message.printDebug(1,"","Drawing " + numAnnotations + " annotations for subproduct " + subproduct );
+	}
+	for ( int iAnnotation = 0; iAnnotation < numAnnotations; iAnnotation++ ) {
 		// Only draw the annotation if it is enabled.
-		String enabled = tsproduct.getLayeredPropValue("Enabled", subproduct, iatt, false, true);
+		String enabled = tsproduct.getLayeredPropValue("Enabled", subproduct, iAnnotation, allowLayeredProp, isAnnotation);
+		if ( Message.isDebugOn ) {
+			Message.printDebug(1,"","Drawing annotation for subproduct " + subproduct + " and annotation " + (iAnnotation + 1) + " enabled=" + enabled );
+		}
 		if ( (enabled != null) && enabled.equalsIgnoreCase("false") ) {
 			// Ignore the annotation.
 			continue;
 		}
 
-		annotation = new PropList("Annotation " + iatt);
+		annotation = new PropList("Annotation " + iAnnotation);
 		valid = true;
 		drawLeftYAxis = true; // Default is left y-axis.
 		drawRightYAxis = false;
-		type = tsproduct.getLayeredPropValue("ShapeType", subproduct, iatt, false, true);
+		type = tsproduct.getLayeredPropValue("ShapeType", subproduct, iAnnotation, allowLayeredProp, isAnnotation);
 		if (type == null) {
 			Message.printWarning(2, routine, "Null shapetype.");
 			valid = false;
 		}
 		else if (type.equalsIgnoreCase("Line")) {
-			points = tsproduct.getLayeredPropValue("Points", subproduct, iatt, false, true);
+			points = tsproduct.getLayeredPropValue("Points", subproduct, iAnnotation, allowLayeredProp, isAnnotation);
 			if (points == null) {
 				valid = false;
 				Message.printWarning(2, routine, "Null points.");
@@ -4059,7 +4075,7 @@ private void drawAnnotations ( TSProduct tsproduct, int subproduct,
 			}
 		}
 		else if (type.equalsIgnoreCase("Rectangle")) {
-			points = tsproduct.getLayeredPropValue("Points", subproduct, iatt, false, true);
+			points = tsproduct.getLayeredPropValue("Points", subproduct, iAnnotation, allowLayeredProp, isAnnotation);
 			if (points == null) {
 				valid = false;
 				Message.printWarning(2, routine, "Null points.");
@@ -4073,7 +4089,7 @@ private void drawAnnotations ( TSProduct tsproduct, int subproduct,
 			}
 		}
 		else if (type.equalsIgnoreCase("Symbol")) {
-			point = tsproduct.getLayeredPropValue("Point", subproduct, iatt, false, true);
+			point = tsproduct.getLayeredPropValue("Point", subproduct, iAnnotation, allowLayeredProp, isAnnotation);
 			if (point == null) {
 				valid = false;
 				Message.printWarning(2, routine, "Null point.");
@@ -4088,7 +4104,7 @@ private void drawAnnotations ( TSProduct tsproduct, int subproduct,
 			isSymbol = true;
 		}
 		else if (type.equalsIgnoreCase("Text")) {
-			point = tsproduct.getLayeredPropValue("Point", subproduct, iatt, false, true);
+			point = tsproduct.getLayeredPropValue("Point", subproduct, iAnnotation, allowLayeredProp, isAnnotation);
 			if (point == null) {
 				valid = false;
 				Message.printWarning(2, routine, "Null point.");
@@ -4107,11 +4123,11 @@ private void drawAnnotations ( TSProduct tsproduct, int subproduct,
 
 		if (!valid) {
 			// Some error encountered in checkProperties for this so skip.
-			Message.printWarning(2, routine, "Invalid annotation: " + (subproduct + 1) + "." + (iatt + 1));
+			Message.printWarning(2, routine, "Invalid annotation: " + (subproduct + 1) + "." + (iAnnotation + 1));
 			continue;
 		}
 
-		s = tsproduct.getLayeredPropValue("Order", subproduct, iatt, false, true);
+		s = tsproduct.getLayeredPropValue("Order", subproduct, iAnnotation, allowLayeredProp, isAnnotation);
 
 		if (s == null) {
 			// Default to on top.
@@ -4133,7 +4149,7 @@ private void drawAnnotations ( TSProduct tsproduct, int subproduct,
 
 		// If the annotation uses an annotation table, have to loop through the table.
 
-		String annotationTableID = tsproduct.getLayeredPropValue("AnnotationTableID", subproduct, iatt, false, true);
+		String annotationTableID = tsproduct.getLayeredPropValue("AnnotationTableID", subproduct, iAnnotation, allowLayeredProp, isAnnotation);
 
 		if ( (annotationTableID != null) && !annotationTableID.isEmpty() ) {
 			// Annotations specified using an annotation table.
@@ -4144,50 +4160,73 @@ private void drawAnnotations ( TSProduct tsproduct, int subproduct,
 			// Optimize to not draw if outside visible graph.
 		}
 		else {
-			// Simple annotations - one shape per annotation.
+			// Simple annotations:
+			// - one shape per annotation
+			// - the getLayeredPropValue method last argument is 'true' indicating that annotations are being processe3d
 			// Properties for all annotations.
 			String yAxis = null;
-			annotation.set("Color", tsproduct.getLayeredPropValue("Color", subproduct, iatt, false, true));
-			annotation.set("Order", tsproduct.getLayeredPropValue("Order", subproduct, iatt, false, true));
-			annotation.set("ShapeType", tsproduct.getLayeredPropValue("ShapeType", subproduct, iatt, false, true));
-			annotation.set("XAxisSystem", tsproduct.getLayeredPropValue("XAxisSystem", subproduct, iatt, false, true));
-			annotation.set("YAxisSystem", tsproduct.getLayeredPropValue("YAxisSystem", subproduct, iatt, false, true));
+			annotation.set("Color", tsproduct.getLayeredPropValue("Color", subproduct, iAnnotation, allowLayeredProp, isAnnotation));
+			annotation.set("Order", tsproduct.getLayeredPropValue("Order", subproduct, iAnnotation, allowLayeredProp, isAnnotation));
+			annotation.set("ShapeType", tsproduct.getLayeredPropValue("ShapeType", subproduct, iAnnotation, allowLayeredProp, isAnnotation));
+			annotation.set("XAxisSystem", tsproduct.getLayeredPropValue("XAxisSystem", subproduct, iAnnotation, allowLayeredProp, isAnnotation));
+			annotation.set("YAxisSystem", tsproduct.getLayeredPropValue("YAxisSystem", subproduct, iAnnotation, allowLayeredProp, isAnnotation));
 			// Now check to see which axis annotations should be drawn on.
-			yAxis = tsproduct.getLayeredPropValue("YAxis", subproduct, iatt, false, true);
+			yAxis = tsproduct.getLayeredPropValue("YAxis", subproduct, iAnnotation, allowLayeredProp, isAnnotation);
 			if ( (yAxis != null) && !yAxis.isEmpty() && yAxis.equalsIgnoreCase("Right") ) {
 				drawLeftYAxis = false;
 				drawRightYAxis = true;
 			}
-			annotation.set("XFormat", tsproduct.getLayeredPropValue("XFormat", subproduct, iatt, false, true)); // Whether axis is number, DateTime, always defaults?
-			annotation.set("YFormat", tsproduct.getLayeredPropValue("YFormat", subproduct, iatt, false, true));
+			// Set whether the axis values for the annotation is number, DateTime:
+			// - set the default up front to the product property
+			// - resent below if not specified to a default based on the value
+			String XFormat = tsproduct.getLayeredPropValue("XFormat", subproduct, iAnnotation, allowLayeredProp, isAnnotation);
+			annotation.set("XFormat", XFormat);
+			String YFormat = tsproduct.getLayeredPropValue("YFormat", subproduct, iAnnotation, allowLayeredProp, isAnnotation);
+			annotation.set("YFormat", YFormat);
 			// Properties for shape type.
 			if (type.equalsIgnoreCase("Line")) {
 				// Properties for Line shape type.
-				annotation.set("LineStyle", tsproduct.getLayeredPropValue("LineStyle", subproduct, iatt, false, true));
-				annotation.set("LineWidth", tsproduct.getLayeredPropValue("LineWidth", subproduct, iatt, false, true));
-				annotation.set("Points", tsproduct.getLayeredPropValue("Points", subproduct, iatt, false, true));
+				annotation.set("LineStyle", tsproduct.getLayeredPropValue("LineStyle", subproduct, iAnnotation, allowLayeredProp, isAnnotation));
+				annotation.set("LineWidth", tsproduct.getLayeredPropValue("LineWidth", subproduct, iAnnotation, allowLayeredProp, isAnnotation));
+				annotation.set("Points", tsproduct.getLayeredPropValue("Points", subproduct, iAnnotation, allowLayeredProp, isAnnotation));
+				if ( (XFormat == null) || XFormat.isEmpty() ) {
+					// Might be a DateTime based on point values.
+				}
 			}
 			else if (type.equalsIgnoreCase("Rectangle")) {
 				// Properties for Rectangle shape type.
-				//annotation.set("OutlineColor", tsproduct.getLayeredPropValue("OutlineColor", subproduct, iatt, false, true)); // Future enhancement.
-				annotation.set("Points", tsproduct.getLayeredPropValue("Points", subproduct, iatt, false, true));
+				//annotation.set("OutlineColor", tsproduct.getLayeredPropValue("OutlineColor", subproduct, iAnnotation, allowLayeredProp, isAnnotation)); // Future enhancement.
+				annotation.set("Points", tsproduct.getLayeredPropValue("Points", subproduct, iAnnotation, allowLayeredProp, isAnnotation));
+				if ( (XFormat == null) || XFormat.isEmpty() ) {
+					// Might be a DateTime based on point values.
+				}
 			}
 			else if (type.equalsIgnoreCase("Symbol")) {
 				// Properties for Symbol shape type.
-				annotation.set("OutlineColor", tsproduct.getLayeredPropValue("OutlineColor", subproduct, iatt, false, true));
-				annotation.set("Point", tsproduct.getLayeredPropValue("Point", subproduct, iatt, false, true));
-				annotation.set("SymbolSize", tsproduct.getLayeredPropValue("SymbolSize", subproduct, iatt, false, true));
-				annotation.set("SymbolStyle", tsproduct.getLayeredPropValue("SymbolStyle", subproduct, iatt, false, true));
-				annotation.set("SymbolPosition", tsproduct.getLayeredPropValue("SymbolPosition", subproduct, iatt, false, true));
+				annotation.set("OutlineColor", tsproduct.getLayeredPropValue("OutlineColor", subproduct, iAnnotation, allowLayeredProp, isAnnotation));
+				annotation.set("Point", tsproduct.getLayeredPropValue("Point", subproduct, iAnnotation, allowLayeredProp, isAnnotation));
+				annotation.set("SymbolSize", tsproduct.getLayeredPropValue("SymbolSize", subproduct, iAnnotation, allowLayeredProp, isAnnotation));
+				annotation.set("SymbolStyle", tsproduct.getLayeredPropValue("SymbolStyle", subproduct, iAnnotation, allowLayeredProp, isAnnotation));
+				annotation.set("SymbolPosition", tsproduct.getLayeredPropValue("SymbolPosition", subproduct, iAnnotation, allowLayeredProp, isAnnotation));
+				if ( (XFormat == null) || XFormat.isEmpty() ) {
+					// Might be a DateTime based on point values.
+				}
 			}
 			else if (type.equalsIgnoreCase("Text")) {
 				// Properties for Text shape type.
-				annotation.set("FontName", tsproduct.getLayeredPropValue("FontName", subproduct, iatt, false, true));
-				annotation.set("FontSize", tsproduct.getLayeredPropValue("FontSize", subproduct, iatt, false, true));
-				annotation.set("FontStyle", tsproduct.getLayeredPropValue("FontStyle", subproduct, iatt, false, true));
-				annotation.set("Point", tsproduct.getLayeredPropValue("Point", subproduct, iatt, false, true));
-				annotation.set("Text", tsproduct.getLayeredPropValue("Text", subproduct, iatt, false, true));
-				annotation.set("TextPosition", tsproduct.getLayeredPropValue("TextPosition", subproduct, iatt, false, true));
+				annotation.set("FontName", tsproduct.getLayeredPropValue("FontName", subproduct, iAnnotation, allowLayeredProp, isAnnotation));
+				annotation.set("FontSize", tsproduct.getLayeredPropValue("FontSize", subproduct, iAnnotation, allowLayeredProp, isAnnotation));
+				annotation.set("FontStyle", tsproduct.getLayeredPropValue("FontStyle", subproduct, iAnnotation, allowLayeredProp, isAnnotation));
+				annotation.set("Point", tsproduct.getLayeredPropValue("Point", subproduct, iAnnotation, allowLayeredProp, isAnnotation));
+				annotation.set("Text", tsproduct.getLayeredPropValue("Text", subproduct, iAnnotation, allowLayeredProp, isAnnotation));
+				annotation.set("TextPosition", tsproduct.getLayeredPropValue("TextPosition", subproduct, iAnnotation, allowLayeredProp, isAnnotation));
+				if ( (XFormat == null) || XFormat.isEmpty() ) {
+					// Might be a DateTime based on point values.
+				}
+			}
+			
+			if ( Message.isDebugOn ) {
+				Message.printStatus(1, routine, "Annotation is:" + annotation);
 			}
 
 			if (isSymbol && niceSymbols) {

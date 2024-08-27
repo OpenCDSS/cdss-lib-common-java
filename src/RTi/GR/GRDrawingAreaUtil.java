@@ -60,12 +60,12 @@ Draws the annotation described in the PropList.  Currently only supported for GR
 @param da the drawing area on which to draw the annotation.
 @param p the PropList describing the annotation.
 */
-public static void drawAnnotation(GRDrawingArea da, PropList p) {
+public static void drawAnnotation ( GRDrawingArea da, PropList p ) {
 	// TODO (JTS - 2006-05-23) I would change this instead to be something like the following:
 	// GRDrawingArea would have an abstract method:
 	//	public boolean canDrawAnnotations();
-	// that returns true for GRJComponentDrawingAreas but is extended
-	// in all others to return false.  That would be much faster, I think.
+	// that returns true for GRJComponentDrawingAreas but is extended in all others to return false.
+	// That would be much faster, I think.
 	if (da instanceof GRJComponentDrawingArea) {
 		((GRJComponentDrawingArea)da).drawAnnotation(p);
 	}
