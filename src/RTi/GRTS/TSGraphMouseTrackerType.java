@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2024 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -67,7 +67,7 @@ public enum TSGraphMouseTrackerType {
 
     /**
      * Name that should be displayed in choices, etc.
-     * @param displayName
+     * @param displayName Name that should be displayed in choices, etc.
      */
     private TSGraphMouseTrackerType(String displayName) {
         this.displayName = displayName;
