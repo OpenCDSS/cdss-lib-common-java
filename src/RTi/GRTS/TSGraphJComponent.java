@@ -1706,21 +1706,29 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 		// - Point
 		// - Raster (only on left Y axis)
 		if ( daLeftYAxisGraph != null ) {
-			if ( (leftYAxisGraphType == TSGraphType.AREA) || (leftYAxisGraphType == TSGraphType.BAR)
-				|| (leftYAxisGraphType == TSGraphType.LINE) || (leftYAxisGraphType == TSGraphType.POINT) ||
+			if (
+				(leftYAxisGraphType == TSGraphType.AREA) ||
+				(leftYAxisGraphType == TSGraphType.AREA_STACKED) ||
+				(leftYAxisGraphType == TSGraphType.BAR) ||
+				(leftYAxisGraphType == TSGraphType.LINE) ||
+				(leftYAxisGraphType == TSGraphType.POINT) ||
 				(leftYAxisGraphType == TSGraphType.RASTER) ) {
 				daGraphList.add(daLeftYAxisGraph);
 				drawTrackerLine = true;
 			}
 		}
 		if ( daRightYAxisGraph != null ) {
-			if ( (rightYAxisGraphType == TSGraphType.AREA) || (rightYAxisGraphType == TSGraphType.BAR)
-				|| (rightYAxisGraphType == TSGraphType.LINE) || (rightYAxisGraphType == TSGraphType.POINT) ) {
+			if (
+				(rightYAxisGraphType == TSGraphType.AREA) ||
+				(rightYAxisGraphType == TSGraphType.AREA_STACKED) ||
+				(rightYAxisGraphType == TSGraphType.BAR) ||
+				(rightYAxisGraphType == TSGraphType.LINE) ||
+				(rightYAxisGraphType == TSGraphType.POINT) ) {
 				//daGraphList.add(daRightYAxisGraph);
 				drawTrackerLine = true;
 			}
 		}
-		//if ( leftYAxisGraphType == TSGraphType.RASTER ) {
+		//if ( leftYAxisGraphType == TSGraphType.RASTER ) { // }
 		if ( trackerType == TSGraphMouseTrackerType.XYAXES ) {
 			// Raster tracker.  No reason for all the logic below.
 			GRLimits daDrawLimits = daLeftYAxisGraph.getDrawingLimits();
@@ -1741,18 +1749,33 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 		List<TSGraph> graphNearestList = null;
 		List<Integer> itsgraphNearestList = null;
 		for ( GRDrawingArea daGraph : daGraphList ) {
+			// The time series for the axis may be original data or derived data, depending on the graph type.
 			List<TS> tsForAxis = new ArrayList<>();
 			if ( daGraph == daLeftYAxisGraph ) {
 				// Include left axis.
 				boolean includeLeftYAxis = true;
 				boolean includeRightYAxis = false;
-				tsForAxis = tsgraph.getEnabledTSList(includeLeftYAxis, includeRightYAxis);
+				if  ( leftYAxisGraphType == TSGraphType.AREA_STACKED ) {
+					// Use derived time series data.
+					tsForAxis = tsgraph.getEnabledDerivedTSList(includeLeftYAxis, includeRightYAxis);
+				}
+				else {
+					// Use the original time series data.
+					tsForAxis = tsgraph.getEnabledTSList(includeLeftYAxis, includeRightYAxis);
+				}
 			}
 			else if ( daGraph == daRightYAxisGraph ) {
 				// Include right axis.
 				boolean includeLeftYAxis = false;
 				boolean includeRightYAxis = true;
-				tsForAxis = tsgraph.getEnabledTSList(includeLeftYAxis, includeRightYAxis);
+				if  ( rightYAxisGraphType == TSGraphType.AREA_STACKED ) {
+					// Use derived time series data.
+					tsForAxis = tsgraph.getEnabledDerivedTSList(includeLeftYAxis, includeRightYAxis);
+				}
+				else {
+					// Use the original time series data.
+					tsForAxis = tsgraph.getEnabledTSList(includeLeftYAxis, includeRightYAxis);
+				}
 			}
 			if ( (trackerType == TSGraphMouseTrackerType.NEAREST_TIME)
 				|| (trackerType == TSGraphMouseTrackerType.NEAREST_TIME_SELECTED) ) {
@@ -1778,7 +1801,8 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 			GRLimits daDrawLimits = daGraph.getDrawingLimits();
 			GRLimits daDataLimits = daGraph.getDataLimits();
 			boolean doDraw = false;
-			if ( (trackerType == TSGraphMouseTrackerType.NEAREST)
+			if (
+				(trackerType == TSGraphMouseTrackerType.NEAREST)
 				|| (trackerType == TSGraphMouseTrackerType.NEAREST_WITH_ID)
 				|| (trackerType == TSGraphMouseTrackerType.NEAREST_SELECTED) ) {
 				if ( daDrawLimits.contains(devx, (devHeight - devy)) ) {
@@ -1786,7 +1810,8 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 					doDraw = true;
 				}
 			}
-			else if ( (trackerType == TSGraphMouseTrackerType.NEAREST_TIME)
+			else if (
+				(trackerType == TSGraphMouseTrackerType.NEAREST_TIME)
 				|| (trackerType == TSGraphMouseTrackerType.NEAREST_TIME_SELECTED) ) {
 				// Only needs to contain X coordinate.
 				if ( daDrawLimits.containsX(devx) ) {

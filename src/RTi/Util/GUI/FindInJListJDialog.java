@@ -31,6 +31,8 @@ import java.awt.Point;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -39,6 +41,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
 import javax.swing.DefaultListModel;
+import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -60,18 +63,25 @@ as long as toString() returns strings that can be searched.
 */
 @SuppressWarnings("serial")
 public class FindInJListJDialog extends JDialog
-implements ActionListener, KeyListener, MouseListener, WindowListener
+implements ActionListener, ItemListener, KeyListener, MouseListener, WindowListener
 {
 private JTextField __find_JTextField;  // Text response from user.
+private JCheckBox ignoreCase_JCheckBox = null; // Checkbox for handling case.
 private JList<?> __original_JList;  // Original List to search.
 private SimpleJList<String>	__find_JList;  // List containing found items in the original list.
 private JPopupMenu	__find_JPopupMenu;  // Popup to edit list.
+private JLabel findListJLabel = null; // Label for the results.
 
-private String __GO_TO_ITEM = "Go To First (Selected) Found Item in Original List";
-private String __SELECT_FIRST_ITEM = "Select First (Selected) Found Item in Original List (deselect others)";
-private String __SELECT_ALL_FOUND_ITEMS = "Select All Found Items in Original List (deselect others)";
-private String __SELECT_ALL_NOT_FOUND_ITEMS = "Select All NOT Found Items in Original List (deselect found items)";
-private int[] __find_index = null;	// Positions in original List for found items.
+private String __GO_TO_ITEM = "Go To First (Selected) Found Item in the Original List";
+private String __SELECT_FIRST_ITEM = "Select First (Selected) Found Item in the Original List (deselect others)";
+private String __SELECT_ALL_FOUND_ITEMS = "Select All Found Items in the Original List (deselect others)";
+private String __SELECT_ALL_NOT_FOUND_ITEMS = "Select All NOT Found Items in the Original List (deselect found items)";
+private String __SELECT_ALL_SELECTED_ITEMS = "Select All Selected Items in Results in the Original List (deselect others)";
+
+/**
+ * Positions in original List for found items (rows in this dialog).
+ */
+private int[] __find_index = null;
 
 /**
 FindInJListJDialog Constructor.
@@ -175,6 +185,21 @@ public void actionPerformed ( ActionEvent event ) {
 			}
 		}
 	}
+	else if ( command.equals(__SELECT_ALL_SELECTED_ITEMS) ) {
+		// Get the selected items from the dialog list.
+		int [] dialogSelectedIndices = __find_JList.getSelectedIndices();
+		int numSelectedDialog = dialogSelectedIndices.length;
+		int [] originalListSelectedIndices = new int[numSelectedDialog];
+		// Loop through the selected indices.
+		int pos = -1;
+		for ( int dialogSelectedIndex : dialogSelectedIndices ) {
+			++pos;
+			originalListSelectedIndices[pos] = this.__find_index[dialogSelectedIndex];
+		}
+		// Select in the original list all the selected items.
+		__original_JList.clearSelection();
+		__original_JList.setSelectedIndices ( originalListSelectedIndices );
+	}
 }
 
 /**
@@ -200,26 +225,33 @@ private void initialize ( JFrame parent, JList<?> list, String title ) {
 	JPanel main_JPanel = new JPanel();
 	main_JPanel.setLayout( new GridBagLayout() );
 	getContentPane().add ( "Center", main_JPanel );
-	int y = 0;
+	int y = -1;
 
 	// Main contents.
 
-    JGUIUtil.addComponent(main_JPanel,
-		new JLabel ( "Search for rows containing:"),
-		0, y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(main_JPanel, new JLabel("Specify the text to search for and press Enter.  Substrings will be matched.  Use * to match a pattern."),
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+    JGUIUtil.addComponent(main_JPanel, new JLabel("Search for rows containing:"),
+		0, ++y, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
 	__find_JTextField = new JTextField (30);
 	__find_JTextField.setToolTipText(
 		"<html>Type the text to search for and press Enter.<br>" +
 		"Then right click on the list below for more options.</html>");
-        JGUIUtil.addComponent(main_JPanel, __find_JTextField,
+    JGUIUtil.addComponent(main_JPanel, __find_JTextField,
 		1, y, 6, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER);
 	__find_JTextField.addKeyListener ( this );
 
-    JGUIUtil.addComponent(main_JPanel, new JLabel ( "Search Results (found items):" ),
+    this.ignoreCase_JCheckBox = new JCheckBox("Ignore case?", true);
+    this.ignoreCase_JCheckBox.addItemListener ( this );
+    JGUIUtil.addComponent(main_JPanel, this.ignoreCase_JCheckBox,
 		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
-	__find_JList = new SimpleJList<String>();
+	this.findListJLabel = new JLabel ( "Search results (found items):" );
+    JGUIUtil.addComponent(main_JPanel, this.findListJLabel,
+		0, ++y, 7, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST);
+
+	__find_JList = new SimpleJList<>();
 	__find_JList.setToolTipText("Right click to see actions to perform on the original list.");
 	__find_JList.setVisibleRowCount ( 10 );
 	__find_JList.setSelectionMode (ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
@@ -246,15 +278,26 @@ private void initialize ( JFrame parent, JList<?> list, String title ) {
 	__find_JPopupMenu.add( new SimpleJMenuItem ( __GO_TO_ITEM, this ) );
 	__find_JPopupMenu.add( new SimpleJMenuItem ( __SELECT_FIRST_ITEM,this));
 	if ( __original_JList.getSelectionMode() == ListSelectionModel.MULTIPLE_INTERVAL_SELECTION ) {
-		// Only makes sense if we can select more than one thing in the original list.
+		// Only makes sense if can select more than one thing in the original list.
 		__find_JPopupMenu.add( new SimpleJMenuItem ( __SELECT_ALL_FOUND_ITEMS,this));
 		__find_JPopupMenu.add( new SimpleJMenuItem ( __SELECT_ALL_NOT_FOUND_ITEMS,this));
+		__find_JPopupMenu.add( new SimpleJMenuItem ( __SELECT_ALL_SELECTED_ITEMS,this));
 	}
 	setResizable ( true );
     pack();
 	setSize(getWidth(), getHeight() + 10);
     JGUIUtil.center( this );
     super.setVisible( true );
+}
+
+/**
+ * Handle item state changed events.
+ * Refresh the list based on a change to the ignore case checkbox.
+ * @param event event to handle
+ */
+public void itemStateChanged ( ItemEvent event ) {
+	// Refresh the results with the current selection.
+	refresh();
 }
 
 /**
@@ -299,6 +342,7 @@ public void mouseEntered ( MouseEvent event ) {
 
 /**
 Does nothing.
+@param event MouseEvent to handle
 */
 public void mouseExited ( MouseEvent event ) {
 }
@@ -335,37 +379,99 @@ private void okClicked() {
 Refresh the list based on the current find string.
 */
 private void refresh() {
-	// First clear the list.
-	__find_JList.removeAll();
+	// First clear the found list.
+	this.__find_JList.removeAll();
 	// Now search the original list.
-	if ( __original_JList == null ) {
+	if ( this.__original_JList == null ) {
 		return;
 	}
-	int size = __original_JList.getModel().getSize();
-	String item = null, item_up = null;
-	String find_text = __find_JTextField.getText().trim().toUpperCase();
-	int find_count = 0;
-	// First cut at index.
-	int [] find_index = new int[size];
-	JGUIUtil.setWaitCursor ( this, true );
-	for ( int i = 0; i < size; i++ ) {
-		item = "" + __original_JList.getModel().getElementAt(i);
-		item_up = item.toUpperCase();
-		if ( item_up.indexOf(find_text) >= 0 ) {
-			((DefaultListModel<String>)__find_JList.getModel()).addElement(item);
-			find_index[find_count] = i;
-			// Set selection to match original list.
-			if ( __original_JList.isSelectedIndex(i) ) {
-				__find_JList.setSelectedIndex(find_count);
-			}
-			++find_count;
+	int originalListSize = this.__original_JList.getModel().getSize();
+	// Item to compare (convert to upper case if ignoring case).
+	String itemText = null;
+	// Find text to compare (convert to upper case if ignoring case).
+	String findText = this.__find_JTextField.getText().trim();
+	String findRegEx = null;
+	boolean ignoreCase = this.ignoreCase_JCheckBox.isSelected();
+	boolean doRegEx = false;
+	if ( findText.contains("*") ) {
+		doRegEx = true;
+		// Convert to a Java regular expression.
+		findRegEx = findText.replace("*", ".*");
+	}
+	if ( ignoreCase ) {
+		findText = this.__find_JTextField.getText().trim().toUpperCase();
+		if ( findRegEx != null ) {
+			// Also convert the regular expression to upper case.
+			findRegEx = findRegEx.toUpperCase();
 		}
 	}
-	// Now resize the find index to the final.
-	__find_index = new int[find_count];
-	for ( int i = 0; i < find_count; i++ ) {
-		__find_index[i] = find_index[i];
+	int findCount = 0;
+	// First cut at index:
+	// - size to the original list full size
+	// - original values will have zero
+	int [] findIndices = new int[originalListSize];
+	JGUIUtil.setWaitCursor ( this, true );
+	boolean matched = false;
+	int selectedIndicesCount = 0;
+	for ( int i = 0; i < originalListSize; i++ ) {
+		// Initialize to no match unless the condition is matched below.
+		matched = false;
+		// Get the item text in the original list.
+		if ( ignoreCase ) {
+			// Convert to upper case for case-independent search.
+			itemText = "" + this.__original_JList.getModel().getElementAt(i);
+			itemText = itemText.toUpperCase();
+		}
+		else {
+			// Case-dependent uses the original text.
+			itemText = "" + this.__original_JList.getModel().getElementAt(i);
+		}
+		if ( doRegEx ) {
+			// Compare using a regular expression.
+			matched = itemText.matches(findRegEx);
+		}
+		else {
+			// Do a simple comparison (should be faster than regular expression).
+			matched = itemText.contains(findText);
+		}
+		if ( matched ) {
+			// The original list item matches the search string:
+			// - add an item to the __find_JList
+			// - add the original next (not upper case)
+			((DefaultListModel<String>)this.__find_JList.getModel()).addElement (
+				"" + this.__original_JList.getModel().getElementAt(i));
+			findIndices[findCount] = i;
+			// Set the dialog selection to match original list.
+			if ( this.__original_JList.isSelectedIndex(i) ) {
+				++selectedIndicesCount;
+			}
+			++findCount;
+		}
 	}
+
+	// Resize the find index to the final:
+	// - only the top of the original array will be filled with data
+	// - the size is the number of selected (found) indices so throw away the end of the array
+	this.__find_index = new int[findCount];
+	for ( int i = 0; i < findCount; i++ ) {
+		this.__find_index[i] = findIndices[i];
+	}
+
+	// Select the matching indices in the __find_JList.
+	int [] selectedIndices = new int[selectedIndicesCount];
+	int selectedIndicesCount2 = 0;
+	if ( selectedIndicesCount > 0 ) {
+		for ( int i = 0; i < this.__find_index.length; i++ ) {
+			if ( this.__original_JList.isSelectedIndex(this.__find_index[i]) ) {
+				selectedIndices[selectedIndicesCount2++] = i;
+			}
+		}
+	}
+	this.__find_JList.setSelectedIndices(selectedIndices);
+
+	// Update the list label.
+	this.findListJLabel.setText("Search results (" + this.__find_index.length + " found items, "
+		+ this.__find_JList.getSelectedItems().size() + " selected):" );
 	JGUIUtil.setWaitCursor ( this, false );
 }
 

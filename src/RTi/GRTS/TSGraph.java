@@ -3898,7 +3898,7 @@ private void doAnalysisAreaStacked () {
     List<TS> tslist = getEnabledTSList(includeLeftYAxis,includeRightYAxis);
     if ( tslist.size() == 0 ) {
         // None are explicitly enabled so process all.
-        // TODO SAM 2010-11-22 Need to evaluate enabled .
+        // TODO SAM 2010-11-22 Need to evaluate enabled.
         tslist = getTSList();
     }
     if ( tslist.size() == 0 ) {
@@ -3916,7 +3916,7 @@ private void doAnalysisAreaStacked () {
         limits = TSUtil.getPeriodFromTS(tslist.get(0), tslist, TSUtil.MAX_POR);
     }
     catch ( Exception e ) {
-
+    	// Ignore the exception, typically for no data.
     }
     int its = -1; // Counter for time series being processed.
     TS newtsPrev = null;
@@ -3932,11 +3932,14 @@ private void doAnalysisAreaStacked () {
         TSGraphType tsGraphType = getTimeSeriesGraphType(TSGraphType.AREA_STACKED, its);
         if ( tsGraphType != TSGraphType.AREA_STACKED ) {
             Message.printStatus(2,routine,"Time series [" + its + "] graph type (" + tsGraphType +
-                ") is not stacked area type...set to null in derived list." );
+                ") is not stacked area type - set to null in derived list." );
             derivedTSList.add(null);
             continue;
         }
-        // If the first time series clone.  Otherwise copy the previous and add to the value.
+        // Clone the original time series and adjust its values:
+        // - the y-value will therefore display stacked total
+        // - if the first time series clone, otherwise copy the previous and add to the value
+        // - the clone will contain the original TSID, etc., for use with the tracker
         TS newts = null;
         if ( newtsPrev == null ) {
             newts = (TS)ts.clone();
@@ -3945,7 +3948,7 @@ private void doAnalysisAreaStacked () {
             }
             catch ( Exception e ) {
                 Message.printWarning(3,routine,
-                    "Error changing period of record for stacked area time series [" + its + "]..." +
+                    "Error changing period of record for stacked area time series [" + its + "] - " +
                     "setting to null in derived list (" + e + ")." );
                 derivedTSList.add(null);
                 continue;
@@ -3958,7 +3961,7 @@ private void doAnalysisAreaStacked () {
             }
             catch ( Exception e ) {
                 Message.printWarning(3,routine,
-                    "Error changing period of record for stacked area time series [" + its + "]..." +
+                    "Error changing period of record for stacked area time series [" + its + "] - " +
                     "setting to null in derived list (" + e + ")." );
                 derivedTSList.add(null);
                 continue;
@@ -3967,7 +3970,7 @@ private void doAnalysisAreaStacked () {
                 TSUtil.add(newts, newtsPrev);
             }
             catch ( Exception e ) {
-                Message.printWarning(3, routine, "Error adding time series for stacked area graph [" + its + "]..." +
+                Message.printWarning(3, routine, "Error adding time series for stacked area graph [" + its + "] - " +
                 		"setting to null in derived list (" + e + ").");
                 derivedTSList.add(null);
                 continue;
@@ -3989,7 +3992,7 @@ private void doAnalysisAreaStacked () {
 Draws any annotations on the graph.  This method can be called multiple times,
 once with false before drawing data and then with true after data have been drawn.
 @param tsproduct the time series product being processed
-@param subproduct the subproduct (graph) being processed, 0+
+@param subproduct the sub-product (graph) being processed, 0+
 @param daLeftYAxisGraph the drawing area for the graph's left Y-axis
 @param daRightAxisGraph the drawing area for the graph's right Y-axis
 @param drawingStepType indicates the step during drawing that should be matched,
@@ -5083,7 +5086,7 @@ private void drawGraphAreaStacked ( TSProduct tsproduct, int subproduct, List<TS
         }
         TSGraphType tsGraphType = getTimeSeriesGraphType ( graphType, its );
         if ( tsGraphType == TSGraphType.AREA_STACKED ) {
-            drawTS(tsproduct, subproduct, its, ts, TSGraphType.AREA_STACKED );
+            drawTS ( tsproduct, subproduct, its, ts, TSGraphType.AREA_STACKED );
         }
     }
     // TODO SAM 2010-11-22 Need to have property to draw on top or bottom - assume top.
@@ -5853,7 +5856,7 @@ Draw a single time series.
 graph type, but can be different if overlaying lines on area graph, for example.
 @param overrideProps run-time override properties to consider when getting graph properties
 */
-private void drawTS(TSProduct tsproduct, int subproduct, int its, TS ts, TSGraphType tsGraphType, PropList overrideProps ) {
+private void drawTS ( TSProduct tsproduct, int subproduct, int its, TS ts, TSGraphType tsGraphType, PropList overrideProps ) {
     String routine = getClass().getSimpleName() + ".drawTS";
 	if ( Message.isDebugOn ) {
 		Message.printStatus(2, routine, _gtype + "Enter drawTS for TSID=" + ts.getIdentifierString() + " TSAlias=" + ts.getAlias());
@@ -7426,7 +7429,7 @@ private void drawTSRenderAreaGraph ( TSProduct tsproduct, int subproduct, int it
                 GRDrawingAreaUtil.fillPolygon(_da_lefty_graph, arrayCount, xArray, yArray );
             }
             if ( !haveMoreData ) {
-                // Done processing data
+                // Done processing data.
                 break;
             }
             else {
@@ -9771,6 +9774,45 @@ private List<TS> getDerivedTSList() {
 }
 
 /**
+Returns a list of all the derived time series that are enabled.  This will never return null.
+If no derived time series are enabled, an empty list will be returned.
+@param includeLeftYAxis if true, include left y-axis time series.
+@param includeRightYAxis if true, include right y-axis time series.
+@return a list of all the derived time series that are enabled.
+*/
+public List<TS> getEnabledDerivedTSList ( boolean includeLeftYAxis, boolean includeRightYAxis ) {
+	if ( (this.__derivedTSList == null) || (this.__derivedTSList.size() == 0) ) {
+		// Don't have any time series for data.
+		return new ArrayList<>();
+	}
+
+	int size = this.__derivedTSList.size();
+	String propValue = null;
+	List<TS> tslist = new ArrayList<>();
+	for ( int its = 0; its < size; its++ ) {
+		propValue = this._tsproduct.getLayeredPropValue("Enabled", this._subproduct, its, false);
+		if ( (propValue != null) && propValue.equalsIgnoreCase("False") ) {
+			// Time series is not enabled so skip it.
+		}
+		else {
+			// Time series is enabled, add to the list if for the requested axis.
+			propValue = this._tsproduct.getLayeredPropValue("YAxis", this._subproduct, its, false);
+			if ( (propValue == null) || propValue.isEmpty() ) {
+				// Default is time series is associated with left axis.
+				propValue = "Left";
+			}
+			if ( includeLeftYAxis && propValue.equalsIgnoreCase("Left") ) {
+				tslist.add(this.__derivedTSList.get(its));
+			}
+			if ( includeRightYAxis && propValue.equalsIgnoreCase("Right") ) {
+				tslist.add(this.__derivedTSList.get(its));
+			}
+		}
+	}
+	return tslist;
+}
+
+/**
 Returns a list of all the time series that are enabled.  This will never return null.
 If no time series are enabled, an empty list will be returned.
 @param includeLeftYAxis if true, include left y-axis time series.
@@ -9778,31 +9820,31 @@ If no time series are enabled, an empty list will be returned.
 @return a list of all the time series that are enabled.
 */
 public List<TS> getEnabledTSList(boolean includeLeftYAxis, boolean includeRightYAxis) {
-	if (__tslist == null || __tslist.size() == 0) {
+	if ( (this.__tslist == null) || (this.__tslist.size() == 0) ) {
 		// Don't have any time series for data.
 		return new ArrayList<TS>();
 	}
 
-	int size = __tslist.size();
+	int size = this.__tslist.size();
 	String propValue = null;
 	List<TS> tslist = new ArrayList<>();
-	for (int its = 0; its < size; its++) {
-		propValue = _tsproduct.getLayeredPropValue("Enabled", _subproduct, its, false);
-		if ( (propValue != null) && propValue.equalsIgnoreCase("False")) {
+	for ( int its = 0; its < size; its++ ) {
+		propValue = this._tsproduct.getLayeredPropValue("Enabled", this._subproduct, its, false);
+		if ( (propValue != null) && propValue.equalsIgnoreCase("False") ) {
 			// Time series is not enabled so skip it.
 		}
 		else {
 			// Time series is enabled, add to the list if for the requested axis.
-			propValue = _tsproduct.getLayeredPropValue("YAxis", _subproduct, its, false);
+			propValue = _tsproduct.getLayeredPropValue("YAxis", this._subproduct, its, false);
 			if ( (propValue == null) || propValue.isEmpty() ) {
 				// Default is time series is associated with left axis.
 				propValue = "Left";
 			}
 			if ( includeLeftYAxis && propValue.equalsIgnoreCase("Left") ) {
-				tslist.add(__tslist.get(its));
+				tslist.add(this.__tslist.get(its));
 			}
 			if ( includeRightYAxis && propValue.equalsIgnoreCase("Right") ) {
-				tslist.add(__tslist.get(its));
+				tslist.add(this.__tslist.get(its));
 			}
 		}
 	}
@@ -11076,6 +11118,7 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph ) {
 
 /**
 Set the derived time series list.
+@param derivedTSList derived time series list, needed when time series are computed in some way
 */
 private void setDerivedTSList ( List<TS> derivedTSList ) {
     __derivedTSList = derivedTSList;

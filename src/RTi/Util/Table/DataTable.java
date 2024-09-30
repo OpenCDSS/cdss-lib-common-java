@@ -1830,7 +1830,19 @@ Return the field index associated with the given field name.
 @param field_name Field name to look up.
 @exception Exception if the field name is not found.
 */
-public int getFieldIndex ( String fieldName )
+public int getFieldIndex ( String fieldName ) throws Exception {
+	// Default historical behavior is to throw an exception when the field index is not found.
+	return getFieldIndex ( fieldName, true );
+}
+
+/**
+Return the field index associated with the given field name.
+@return Index of table entry associated with the given field name.
+@param field_name Field name to look up.
+@param throwException if true, throw an exception if the field is not found, if false, return -1
+@exception Exception if the field name is not found.
+*/
+public int getFieldIndex ( String fieldName, boolean throwException )
 throws Exception {
 	//String routine = getClass().getSimpleName() + ".getFieldndex";
 	int num = _table_fields.size();
@@ -1842,7 +1854,12 @@ throws Exception {
 	}
 
 	// If this line is reached, the given field was never found.
-	throw new Exception( "Unable to find table field with name \"" + fieldName + "\" in table \"" + getTableID() + "\"" );
+	if ( throwException ) {
+		throw new Exception( "Unable to find table field with name \"" + fieldName + "\" in table \"" + getTableID() + "\"" );
+	}
+	else {
+		return -1;
+	}
 }
 
 /**
