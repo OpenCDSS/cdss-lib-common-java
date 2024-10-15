@@ -75,6 +75,22 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 {
 
 	/**
+	 * Possible values for rowHandling.
+	 */
+	private int DO_BLANK = 1; // Legacy behavior, has issue.
+	private int EDIT_IN_PLACE = 2; // New try, does not work because layout gets confused?  Need to evaluate how to remove from GridBagLayout.
+
+	/**
+	 * Whether keeping blank rows (true) or deleting based on user action (false).
+	 */
+	private int rowHandling = DO_BLANK;
+
+	/**
+	 * Whether to print debug message.
+	 */
+	boolean debug = false;
+
+	/**
 	Button labels.
 	*/
 	private final String
@@ -86,11 +102,14 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 
 	/**
 	CheckBoxes to select/deselect all items.
+	This is stored in row 0 of the form.
+	All dictionary data rows are 1+.
 	*/
 	private JCheckBox allCheckBox = null;
 
 	/**
-	CheckBoxes to select items.
+	CheckBoxes to select dictionary items (does not include the 'all' row.
+	This list may include empty rows at the end, which won't be returned in output.
 	*/
 	private ArrayList<JCheckBox> checkBoxList = new ArrayList<>();
 
@@ -100,17 +119,20 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 	private boolean ignoreItemEvents = false;
 
 	/**
-	Labels for string numbers.
+	Labels for row numbers. Labels will be 1+.
+	This list may include empty rows at the end, which won't be returned in output.
 	*/
-	private ArrayList<JLabel> numberLabelList = new ArrayList<>();
+	private ArrayList<JLabel> rowNumberLabelList = new ArrayList<>();
 
 	/**
 	Component to hold keys from the dictionary.
+	This list may include empty rows at the end, which won't be returned in output.
 	*/
 	private ArrayList<JTextField> keyTextFieldList = new ArrayList<>();
 
 	/**
 	Component to hold values from the dictionary.
+	This list may include empty rows at the end, which won't be returned in output.
 	*/
 	private ArrayList<JTextField> valueTextFieldList = new ArrayList<>();
 
@@ -290,22 +312,23 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 		String s = event.getActionCommand();
 
     	if (s.equals(this.BUTTON_ADD)) {
-    		addRow();
+    		addEmptyRow();
     	}
     	else if (s.equals(this.BUTTON_INSERT)) {
 			// Insert a new row before the first selected row.
 			// If nothing is selected, add at the front.
 
-			// Determine the first selected row.
+			// Determine the first selected dictionary data row, 0+.
 			int firstSelectedRow = getFirstSelectedRow();
 			if ( firstSelectedRow < 0 ) {
 				firstSelectedRow = 0;
 			}
 
-			// First add a row at the end similar to the Add button.
-			addRow ();
+			// First add an empty row at the end similar to the Add button.
+			addEmptyRow ();
 
-			// Shift the rows to open a new row
+			// Shift the rows down by one row to open a new row:
+			// - the contents of the rows will be shifted
 			shiftRows ( firstSelectedRow, 1 );
 
 			// Set the row numbers for all:
@@ -313,6 +336,7 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 			setRowNumbers();
 
 			this.scrollPanel.revalidate();
+			this.scrollPanel.repaint();
     	}
 		else if (s.equals(this.BUTTON_REMOVE)) {
 			// Remove the selected rows:
@@ -321,15 +345,30 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 			int firstSelectedRow = getFirstSelectedRow();
 			for ( int i = (this.keyTextFieldList.size() - 1); i >= 0; i-- ) {
 				JCheckBox checkBox = this.checkBoxList.get(i);
-				JTextField ktf = this.keyTextFieldList.get(i);
-				JTextField vtf = this.valueTextFieldList.get(i);
+				JTextField keyTextField = this.keyTextFieldList.get(i);
+				JTextField valueTextField = this.valueTextFieldList.get(i);
+				JLabel numberLabel = this.rowNumberLabelList.get(i);
 				if ( checkBox.isSelected() ) {
-					// Set the content to blank.
-					this.ignoreItemEvents = true;
-					checkBox.setSelected(false);
-					this.ignoreItemEvents = false;
-					ktf.setText("");
-					vtf.setText("");
+					if ( this.rowHandling == this.DO_BLANK ) {
+						// Set the content to blank, but don't actually remove the row.
+						this.ignoreItemEvents = true;
+						checkBox.setSelected(false);
+						this.ignoreItemEvents = false;
+						// Number is reset later.
+						keyTextField.setText("");
+						valueTextField.setText("");
+					}
+					else if ( this.rowHandling == this.EDIT_IN_PLACE ) {
+						// Remove the components from the panel and the lists.
+						scrollPanel.remove(checkBox);
+						this.checkBoxList.remove(checkBox);
+						scrollPanel.remove(numberLabel);
+						this.rowNumberLabelList.remove(numberLabel);
+						scrollPanel.remove(keyTextField);
+						this.keyTextFieldList.remove(keyTextField);
+						scrollPanel.remove(valueTextField);
+						this.valueTextFieldList.remove(valueTextField);
+					}
 
 					// Increment the number of rows removed, used below.
 					++removeCount;
@@ -340,8 +379,19 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 			// - only need to do once after text fields have been cleared out
 			// - do from the earliest item removed because may want to leave an empty row that was previously inserted
 			if ( removeCount > 0 ) {
-				compressLists(firstSelectedRow);
+				if ( this.rowHandling == this.DO_BLANK ) {
+					// This will set the row numbers.
+					compressLists(firstSelectedRow);
+				}
+				else if ( this.rowHandling == this.EDIT_IN_PLACE ) {
+					setRowNumbers();
+				}
+
+				// Redraw the UI.
+				this.scrollPanel.revalidate();
+				this.scrollPanel.repaint();
 			}
+
 		}
     	else if (s.equals(this.BUTTON_CANCEL)) {
 			response ( false );
@@ -360,31 +410,41 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 	/**
 	 * Add a blank row at the end.
 	 */
-	private void addRow () {
+	private void addEmptyRow () {
        	Insets insetsTLBR = new Insets(2,2,2,2);
 
-		// Add a new row at the end.
+		// Add a new row at the end:
+       	// - row zero is the checkbox for all items so all other rows are numbered 1+.
 		int row = this.keyTextFieldList.size() + 1;
 
+		// Checkbox is on the far left.
 		JCheckBox checkBox = new JCheckBox();
+		checkBox.addItemListener(this);
 		this.checkBoxList.add(checkBox);
 		JGUIUtil.addComponent(this.scrollPanel, checkBox,
 			0, row, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
+		// Then the row number 1+
 		JLabel label = new JLabel("" + row);
-		this.numberLabelList.add(label);
+		this.rowNumberLabelList.add(label);
 		JGUIUtil.addComponent(this.scrollPanel, label,
 			1, row, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
+		// Then the text field for the dictionary key.
        	JTextField ktf = new JTextField("",30);
        	this.keyTextFieldList.add(ktf);
        	JGUIUtil.addComponent(this.scrollPanel, ktf,
            	2, row, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
+       	// Then the text field for the dictionary value.
        	JTextField vtf = new JTextField("",40);
        	this.valueTextFieldList.add(vtf);
        	JGUIUtil.addComponent(this.scrollPanel, vtf,
            	3, row, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+       	
+       	// Invalidate the scrollPanel so the new row is drawn.
+       	this.scrollPanel.revalidate();
+       	this.scrollPanel.repaint();
 	}
 
 	/**
@@ -438,41 +498,70 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 
 	/**
 	 * Check the UI state.  Enable/disable buttons as appropriate.
+	 * Events are ignored when changing state.
 	 */
 	public void checkUiState () {
-		//String routine = getClass().getSimpleName() + ".checkUiState";
-		//boolean debug = true;
-
-		int checkBoxSelectedCount = 0;
-
-		for ( JCheckBox checkBox : this.checkBoxList ) {
-			if ( checkBox.isSelected() ) {
-				++checkBoxSelectedCount;
-			}
+		String routine = getClass().getSimpleName() + ".checkUiState";
+		
+		if ( this.debug ) {
+			Message.printStatus(2, routine, "Number of items in dictionary lists = " + this.checkBoxList.size() );
 		}
 
-		if ( checkBoxSelectedCount > 0 ) {
-			// At least one string checkbox is selected:
+		// Count of selected checkboxes in dictionary data rows (does not count the "all" row).
+		int checkBoxSelectedCount = 0;
+		int checkBoxWithTextSelectedCount = 0;
+		// Count of keys that have non-empty text.
+		int keyWithTextCount = 0;
+		int keyWithNoTextCount = 0;
+
+		int listSize = this.checkBoxList.size();
+		for ( int i = 0; i < listSize; i++ ) {
+			if ( this.checkBoxList.get(i).isSelected() ) {
+				++checkBoxSelectedCount;
+				if ( ! this.keyTextFieldList.get(i).getText().trim().isEmpty() ) {
+					++checkBoxWithTextSelectedCount;
+				}
+			}
+			if ( this.keyTextFieldList.get(i).getText().trim().isEmpty() ) {
+				++keyWithNoTextCount;
+			}
+			else {
+				++keyWithTextCount;
+			}
+		}
+		if ( this.debug ) {
+			//Message.printStatus(2, routine, "Number of selected items in dictionary = " + checkBoxSelectedCount );
+			Message.printStatus(2, routine, "Number of items with non-empty keys = " + keyWithTextCount );
+			Message.printStatus(2, routine, "Number of selected checkboxes with non-empty keys = " + checkBoxWithTextSelectedCount );
+		}
+
+		if ( (checkBoxWithTextSelectedCount > 0) && (checkBoxWithTextSelectedCount == keyWithTextCount) ) {
+			// All the checkboxes with text are selected:
+			// - could have been because "all" was selected, resulting all the checkboxes being selected,
+			//   or the user individually selected all the checkboxes
 			// - set the "all" CheckBox to selected
 			// - enable action buttons
 			this.ignoreItemEvents = true;
-			//this.allCheckBox.setSelected(true);
+			this.allCheckBox.setSelected(true);
 			this.ignoreItemEvents = false;
-
-			// Enable action buttons.
-			//this.insertButton.setEnabled(true);
-			this.removeButton.setEnabled(true);
 		}
-		else {
-			// No string checkbox is selected:
+		else if ( (checkBoxWithTextSelectedCount == 0) || (checkBoxWithTextSelectedCount != keyWithTextCount) ) {
+			// No string checkbox is selected or at least one with text is not selected:
 			// - set the "all" CheckBox to NOT selected
 			// - disable action buttons
 			this.ignoreItemEvents = true;
 			this.allCheckBox.setSelected(false);
 			this.ignoreItemEvents = false;
+		}
 
+		if ( this.allCheckBox.isSelected() || (checkBoxSelectedCount > 0) ) {
+			// Enable action buttons.
+			this.insertButton.setEnabled(true);
+			this.removeButton.setEnabled(true);
+		}
+		else {
 			// Disable action buttons.
-			//this.insertButton.setEnabled(false);
+			this.insertButton.setEnabled(false);
 			this.removeButton.setEnabled(false);
 		}
 	}
@@ -515,8 +604,9 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 	}
 
 	/**
-	 * Determine the first selected row (0+).
-	 * @return the first selected row (0+) or -1 if none are selected
+	 * Determine the first data dictionary selected row (0+).
+	 * The 'all' row is separate.
+	 * @return the first data dictionary selected row (0+) or -1 if none are selected
 	 */
 	private int getFirstSelectedRow () {
 		for ( int i = 0; i < this.checkBoxList.size(); i++ ) {
@@ -565,6 +655,9 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
     			}
     			this.ignoreItemEvents = false;
     		}
+    	}
+    	else {
+    		// The 'checkUIState' method will select/deselect the 'allCheckBox'.
     	}
 
     	// Check the GUI state so buttons can be enabled/disabled.
@@ -617,8 +710,8 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 	 * It is easier to renumber after manipulation than try to individually manipulate.
 	 */
 	private void setRowNumbers () {
-		for ( int i = 0; i < this.numberLabelList.size(); i++ ) {
-			this.numberLabelList.get(i).setText("" + (i + 1) );
+		for ( int i = 0; i < this.rowNumberLabelList.size(); i++ ) {
+			this.rowNumberLabelList.get(i).setText("" + (i + 1) );
 		}
 	}
 
@@ -749,7 +842,7 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 			checkBox.addItemListener(this);
 
 			JLabel label = new JLabel("" + (i + 1) );
-			this.numberLabelList.add(label);
+			this.rowNumberLabelList.add(label);
 			JGUIUtil.addComponent(this.scrollPanel, label,
 				1, yScroll, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
@@ -778,7 +871,7 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 			south.add(this.insertButton);
 
 			this.removeButton = new SimpleJButton(this.BUTTON_REMOVE, this);
-			this.removeButton.setToolTipText("Remove the row that is currenty selected.");
+			this.removeButton.setToolTipText("Remove the row that is currenty selected.  Empty rows are shifted to the end and will be ignored when saved.");
 			south.add(this.removeButton);
 		}
 
@@ -792,6 +885,9 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 		south.add(this.cancelButton);
 
 		getContentPane().add("South", south);
+		
+		// Check the GUI state.
+		checkUiState();
 
 		pack();
 		// Set the window size.
@@ -820,16 +916,29 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 	/**
 	 * Shift row contents to new positions.
 	 * Typically this is called after adding a row at the end and shifting some rows to fill that row.
-	 * @param firstRowToShift existing first row to shift
-	 * @param shiftCount number of rows to shift (positive means shift later, negative means shift earlier)
+	 * @param firstRowToShift existing first row to shift (1+)
+	 * @param shiftCount number of rows to shift (positive means shift down, negative means shift up)
 	 */
 	private void shiftRows ( int firstRowToShift, int shiftCount ) {
 		this.ignoreItemEvents = true;
 		if ( shiftCount > 0 ) {
-			// Shift forward:
-			// - go backward so previous contents are retained
+			// Shift down:
+			// - work backward so previous contents are retained
 			// - can only process as many rows as fit,
 			//   which should be OK if add was called to add one at the end and then shift forward by one
+			// - data lists are index 0+
+			//
+			// For example:
+			// Row (zero index):
+			// 0
+			// 1
+			// 2 - firstRowToShift (selected row, new row will be above), 
+			// 3
+			// 4
+			// 5 - new row that was just added
+			//
+			// initial j = 6 - 1 - 1 = 4
+			// j >= 
 			for ( int j = (this.keyTextFieldList.size() - 1 - shiftCount); j >= firstRowToShift; j-- ) {
 				// j - 1 components:
 				JCheckBox checkbox_jshift = this.checkBoxList.get(j + shiftCount);
