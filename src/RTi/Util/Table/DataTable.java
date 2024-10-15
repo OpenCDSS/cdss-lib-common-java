@@ -1215,7 +1215,7 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
         }
     }
     if ( errorCount > 0 ) {
-        throw new RuntimeException ( "There were + " + errorCount + " errors transferring data to new table: " + errorMessage );
+        throw new RuntimeException ( "There were " + errorCount + " errors transferring data to new table: " + errorMessage );
     }
     return newTable;
 }
