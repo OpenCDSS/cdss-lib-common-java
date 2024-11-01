@@ -574,6 +574,7 @@ public static String charToHex(char c) {
  * @param maxParts the maximum number of parts to compare, useful when trailing "beta", etc.
  * cause issues and are not appropriate for production software.
  * Specify as <= 0 to ignore.
+ * @return true if the comparison statement is true, false if not.
  */
 public static boolean compareSemanticVersions(String s1, String operator, String s2, int maxParts) {
 	List<String> s1Parts = breakStringList(s1,".",0);
@@ -3272,28 +3273,46 @@ public static int [] parseIntegerSlice ( String seq, String delim, int parseFlag
 Count the number of unique (non-overlapping) instances of a pattern in a string.
 @param s String to search.
 @param pattern Pattern to search for.  Currently this can only be a one-character string.
-@return The count of the unique instances.
+@return The count of the unique non-overlapping instances.
 */
 public static int patternCount ( String s, String pattern ) {
 	int count = 0;
 	if ( (s == null) || (pattern == null) || (pattern.length() < 1) ) {
 		return count;
 	}
-	if ( pattern.length() == 1 ) {
+	int patternLength = pattern.length();
+	int size = s.length ();
+	if ( patternLength == 1 ) {
 		// Single character.
-		int size = s.length ();
 		char c = pattern.charAt(0);
 		for ( int i = 0; i < size; i++ ) {
 			if ( s.charAt(i) == c ) {
 				++count;
 			}
 		}
-		return count;
 	}
 	else {
-		// TODO smalers 2021-07-24 need to implement.
-		throw new RuntimeException("Only single character patterns are currently supported.");
+		// Process substrings (slower than above).
+		int iend = 0;
+		int increment = 1;
+		for ( int i = 0; i < size; i += increment ) {
+			iend = i + patternLength;
+			if ( iend >= size ) {
+				// Reached the end of the string.
+				break;
+			}
+			else {
+				if ( s.substring(i, iend).equals(pattern) ) {
+					++count;
+					increment = patternLength;
+				}
+				else {
+					increment = 1;
+				}
+			}
+		}
 	}
+	return count;
 }
 
 /**

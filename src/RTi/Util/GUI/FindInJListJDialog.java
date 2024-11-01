@@ -72,11 +72,11 @@ private SimpleJList<String>	__find_JList;  // List containing found items in the
 private JPopupMenu	__find_JPopupMenu;  // Popup to edit list.
 private JLabel findListJLabel = null; // Label for the results.
 
-private String __GO_TO_ITEM = "Go To First (Selected) Found Item in the Original List";
-private String __SELECT_FIRST_ITEM = "Select First (Selected) Found Item in the Original List (deselect others)";
-private String __SELECT_ALL_FOUND_ITEMS = "Select All Found Items in the Original List (deselect others)";
-private String __SELECT_ALL_NOT_FOUND_ITEMS = "Select All NOT Found Items in the Original List (deselect found items)";
-private String __SELECT_ALL_SELECTED_ITEMS = "Select All Selected Items in Results in the Original List (deselect others)";
+private String __GO_TO_ITEM =                      "Go To First Found (and selected) Item in the Original List";
+private String __SELECT_FIRST_ITEM =               "Select First Found (and selected) Item in the Original List (deselect others)";
+private String __SELECT_ALL_FOUND_SELECTED_ITEMS = "Select All Found (and selected) Items in the Original List (deselect others)";
+private String __SELECT_ALL_FOUND_ITEMS =          "Select All Found Items in the Original List (deselect others)";
+private String __SELECT_ALL_NOT_FOUND_ITEMS =      "Select All NOT Found Items in the Original List (deselect found items)";
 
 /**
  * Positions in original List for found items (rows in this dialog).
@@ -185,7 +185,7 @@ public void actionPerformed ( ActionEvent event ) {
 			}
 		}
 	}
-	else if ( command.equals(__SELECT_ALL_SELECTED_ITEMS) ) {
+	else if ( command.equals(__SELECT_ALL_FOUND_SELECTED_ITEMS) ) {
 		// Get the selected items from the dialog list.
 		int [] dialogSelectedIndices = __find_JList.getSelectedIndices();
 		int numSelectedDialog = dialogSelectedIndices.length;
@@ -279,9 +279,9 @@ private void initialize ( JFrame parent, JList<?> list, String title ) {
 	__find_JPopupMenu.add( new SimpleJMenuItem ( __SELECT_FIRST_ITEM,this));
 	if ( __original_JList.getSelectionMode() == ListSelectionModel.MULTIPLE_INTERVAL_SELECTION ) {
 		// Only makes sense if can select more than one thing in the original list.
+		__find_JPopupMenu.add( new SimpleJMenuItem ( __SELECT_ALL_FOUND_SELECTED_ITEMS,this));
 		__find_JPopupMenu.add( new SimpleJMenuItem ( __SELECT_ALL_FOUND_ITEMS,this));
 		__find_JPopupMenu.add( new SimpleJMenuItem ( __SELECT_ALL_NOT_FOUND_ITEMS,this));
-		__find_JPopupMenu.add( new SimpleJMenuItem ( __SELECT_ALL_SELECTED_ITEMS,this));
 	}
 	setResizable ( true );
     pack();
