@@ -1967,15 +1967,25 @@ public String getTimeZoneAbbreviation ( ) {
 }
 
 /**
-Return the week day by returning getDate(TimeZoneDefaultType.GMT).getDay().
-@return The week day (Sunday is 0).
+Return the week day.
+@return The week day (Sunday is 0, Saturday is 6).
 */
-@SuppressWarnings("deprecation")
 public int getWeekDay ( ) {
 	// Always recompute because don't know if DateTime was copied and modified.
 	// Does not matter what timezone because internal date/time values are used in absolute sense.
-	__weekday = getDate(TimeZoneDefaultType.GMT).getDay();
-    return __weekday;
+
+	// TODO smalers 2024-10-29 remove legacy Date.
+	//__weekday = getDate(TimeZoneDefaultType.GMT).getDay();
+	
+	// Use GMT since not important at this point.
+	OffsetDateTime dt = OffsetDateTime.of(this.__year, this.__month, this.__day, 0, 0, 0, 0, ZoneOffset.ofHours(0));
+	// The following returns Monday=1 through Sunday=7.
+    int dayNum = dt.getDayOfWeek().getValue();
+    // Replace 7 with 0.
+    if ( dayNum == 7 ) {
+    	dayNum = 0;
+    }
+    return dayNum;
 }
 
 /**
@@ -2636,6 +2646,84 @@ public static DateTime parse ( String dtString, PropList datetime_props ) {
 			token0DateTime.setPrecision(DateTime.PRECISION_YEAR);
 			// Don't use time zone.
 			token0DateTime.setTimeZone("");
+		}
+		else if (token0.toUpperCase().startsWith("LASTSUNDAY")) {
+			// Set the precision to day.
+			token0DateTime.setPrecision(DateTime.PRECISION_DAY);
+			// Don't use time zone.
+			token0DateTime.setTimeZone("");
+			// Shift the day based on the current day:
+			// - this ignores time zone
+			// - returns 0 for Sunday ... 6 for Saturday
+			int offset = -1*token0DateTime.getWeekDay();
+			Message.printStatus(2, "", "Week day = " + token0DateTime.getWeekDay());
+			token0DateTime.addDay(offset);
+		}
+		else if (token0.toUpperCase().startsWith("LASTMONDAY")) {
+			// Set the precision to day.
+			token0DateTime.setPrecision(DateTime.PRECISION_DAY);
+			// Don't use time zone.
+			token0DateTime.setTimeZone("");
+			int offset = -1*(token0DateTime.getWeekDay() - 1);
+			if ( offset > 0 ) {
+				offset -= 7;
+			}
+			token0DateTime.addDay(offset);
+		}
+		else if (token0.toUpperCase().startsWith("LASTTUESDAY")) {
+			// Set the precision to day.
+			token0DateTime.setPrecision(DateTime.PRECISION_DAY);
+			// Don't use time zone.
+			token0DateTime.setTimeZone("");
+			int offset = -1*(token0DateTime.getWeekDay() - 2);
+			if ( offset > 0 ) {
+				offset -= 7;
+			}
+			token0DateTime.addDay(offset);
+		}
+		else if (token0.toUpperCase().startsWith("LASTWEDNESDAY")) {
+			// Set the precision to day.
+			token0DateTime.setPrecision(DateTime.PRECISION_DAY);
+			// Don't use time zone.
+			token0DateTime.setTimeZone("");
+			int offset = -1*(token0DateTime.getWeekDay() - 3);
+			if ( offset > 0 ) {
+				offset -= 7;
+			}
+			token0DateTime.addDay(offset);
+		}
+		else if (token0.toUpperCase().startsWith("LASTTHURSDAY")) {
+			// Set the precision to day.
+			token0DateTime.setPrecision(DateTime.PRECISION_DAY);
+			// Don't use time zone.
+			token0DateTime.setTimeZone("");
+			int offset = -1*(token0DateTime.getWeekDay() - 4);
+			if ( offset > 0 ) {
+				offset -= 7;
+			}
+			token0DateTime.addDay(offset);
+		}
+		else if (token0.toUpperCase().startsWith("LASTFRIDAY")) {
+			// Set the precision to day.
+			token0DateTime.setPrecision(DateTime.PRECISION_DAY);
+			// Don't use time zone.
+			token0DateTime.setTimeZone("");
+			int offset = -1*(token0DateTime.getWeekDay() - 5);
+			if ( offset > 0 ) {
+				offset -= 7;
+			}
+			token0DateTime.addDay(offset);
+		}
+		else if (token0.toUpperCase().startsWith("LASTSATURDAY")) {
+			// Set the precision to day.
+			token0DateTime.setPrecision(DateTime.PRECISION_DAY);
+			// Don't use time zone.
+			token0DateTime.setTimeZone("");
+			int offset = -1*(token0DateTime.getWeekDay() - 6);
+			if ( offset > 0 ) {
+				offset -= 7;
+			}
+			token0DateTime.addDay(offset);
 		}
 		else {
 			String message = "Requested special date/time value \"" + token0 + "\" is not recognized - cannot parse.";

@@ -60,7 +60,7 @@ public Prop getProp ( String prop ) throws Exception;
 Return a property's contents given the property name.  Return null if not found.
 @param prop Name of property being requested.
 @return the Property contents as the data object.
-@exception Exception if the property is not recognized.
+@exception Exception if the property is not recognized (this is not handled, null is returned instead).
 */
 public Object getPropContents ( String prop ) throws Exception;
 
