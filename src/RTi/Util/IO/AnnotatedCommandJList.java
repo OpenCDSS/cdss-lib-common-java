@@ -43,26 +43,45 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 /**
- * Provides a JList with line numbers and visual problem markers.
+ * Provides a JList with left gutter (line numbers and icon indicating issue) and a right gutter gutter showing relative position of issues:
+ * <pre>
+ * +--------------------------------------AnnotatedComandJList (extends JPanel) ------------+
+ * | +-----------------+-------------------------------------------------+----------------+ |
+ * | | ProblemGutter   |         JList (with data model)                 | OverviewGutter | |
+ * | |                 |                                                 |                | |
+ * | |                 |                                                 |                | |
+ * | |                 |                                                 |                | |
+ * | |                 |                                                 |                | |
+ * | |                 |                                                 |                | |
+ * | +-----------------+-------------------------------------------------+----------------+ |
+ * +----------------------------------------------------------------------------------------+
+ * </pre>
  */
 public class AnnotatedCommandJList extends JPanel {
   private static final long serialVersionUID = 1L;
   /**
-   * GUI component displaying problem overview of entire list.
+   * UI component displaying line numbers and icons for problem, for visible list items.
    */
-  private OverviewGutter _overviewGutter;
   private ProblemGutter _problemGutter;
 
   /**
-   * Extended JList.
+   * UI component displaying overview rectangles in relative Y-position for the entire list.
+   */
+  private OverviewGutter _overviewGutter;
+
+  /**
+   * JList in the middle, which contains the data being displayed.
    */
   private JList _jList;
 
   /**
-   * JScrollPane containing JList.
+   * JScrollPane containing the JList.
    */
   private JScrollPane _jScrollPane;
 
+  /**
+   * List model for the commands, for example a TSCommandProcessorListModel when used with TSTool.
+   */
   private ListModel _dataModel;
 
   /**
@@ -82,7 +101,7 @@ public class AnnotatedCommandJList extends JPanel {
   /**
    * Creates a component for viewing a list with line numbers and markers.
    * <p>
-   * The compound component consists of a JScrollPane containing a JList, ProblemGutter & OverviewGutter.
+   * The compound component consists of a JScrollPane containing a JList, ProblemGutter, and OverviewGutter.
    * </p>
    * <p>
    * Markers can only be displayed for data model items implementing the <code>CommandStatusProvider</code> interface.
@@ -90,7 +109,7 @@ public class AnnotatedCommandJList extends JPanel {
    *
    * @param dataModel - data model to be displayed
    */
-  public AnnotatedCommandJList(ListModel dataModel) {
+  public AnnotatedCommandJList ( ListModel dataModel ) {
 	  _dataModel = dataModel;
 	  initialize();
 	  _jList.setModel(dataModel);
@@ -189,7 +208,8 @@ public class AnnotatedCommandJList extends JPanel {
 
  /**
   * Set the last command phase that for the component.
-  * @param lastCommandPhaseType the last phase command type for the component
+  * @param lastCommandPhase the last command phase run,
+  * provided as a hint to the annotated command list so earlier warnings like discovery are not shown after running
   */
  public void setLastCommandPhase ( CommandPhaseType lastCommandPhaseType ) {
 	 this.lastCommandPhaseType = lastCommandPhaseType;
@@ -197,30 +217,36 @@ public class AnnotatedCommandJList extends JPanel {
  }
 } // AnnotatedCommandJList
 
+// TODO smalers 2024-11-04 Need to remove since not used.
 /**
+ * <p>
  * Provides a ListCellRenderer for JList, enabling a functional JScrollPane horizontal scroll bar.
- *
+ * </p>
+ * <p>
  * By default Swing will show JList items with an ellipsis if they are too long to display in the available space.
  * Therefore, JScrollpane's horizontal scroll bar is not activated.
  * Or, if it is displayed it does not display the knob.
- *
+ * </p>
+ * <p>
  * This behavior can be changed to make the horizontal scroll bar functional by providing
  * the JList a ListCellRenderer which avoids using the ellipsis (i.e., SwingUtilities.layoutCompoundLabel(...))
  * (and the private layoutCompoundLabelImpl method that does the actual implementation).
- * <p><p>
+ * </p>
+ * <p>
  * Usage:
+ * </p>
  * <pre>
  * JList jList = new JList();
  * jList.setCellRenderer(new HorzScrollListCellRenderer());
- * // Following statement needed to cause scrollbar to show
+ * // The following statement is needed to cause the scrollbar to show.
  * jList.setMinimumSize(300,100);
  * </pre>
- *
- * <b>setMinimumSize() is crucial to scroll bar showing,
- * though I haven't researched why. I suspect it somehow triggers code in JScrollPane.
+ * <p>
+ * <b>setMinimumSize() is crucial to scroll bar showing, although it is not clear why (perhaps it somehow triggers code in JScrollPane?).</b>
+ * </p>
  */
 
-class HorzScrollListCellRenderer extends JPanel implements ListCellRenderer {
+class xHorzScrollListCellRenderer extends JPanel implements ListCellRenderer {
   private static final long serialVersionUID = 1L;
   private Object _currentValue;
   private JList _currentList;
@@ -231,7 +257,7 @@ class HorzScrollListCellRenderer extends JPanel implements ListCellRenderer {
    * Creates a HorzListCellRenderer for JList that avoids the use of ellipsis when the rendering width is insufficient.
    * This is necessary if a horizontal scroll bar is to be employed for displaying the text.
    */
-  public HorzScrollListCellRenderer() {
+  public xHorzScrollListCellRenderer() {
   }
 
   public Component getListCellRendererComponent( JList list,

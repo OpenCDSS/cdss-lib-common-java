@@ -124,7 +124,10 @@ public TSViewJFrame getLastTSViewJFrame() {
 /**
 Process a graph product.
 Time series that are indicated in the time series product are collected by matching in memory or reading time series.
-This is done here so that low-level graph code can get a list of time series and not need to do any collecting itself.
+This is done here so that low-level graph code can get a list of time series and not need to do any
+reading from TSTool memory or datastores.
+The time series product then orders the available time series as needed.
+Error handling can also stop going further if no time series are available.
 @param tsproduct Time series product definition.
 @exception Exception if the product cannot be processed
 (e.g., the graph cannot be created due to a lack of data).
@@ -134,7 +137,8 @@ throws Exception {
 	String routine = getClass().getSimpleName() + ".processGraphProduct";
 	List<TS> tslist = new ArrayList<>(10);
 	TS ts = null;
-	// Loop through the sub-products (graphs on page) and get the time series to support the graph.
+	// Loop through the sub-products (graphs on page) and get the time series to support the graph:
+	// - called code will match the time series and use null instances where necessary to ensure the order is OK
 	String tsid;
 	String tsalias;
 	String prop_value = null;
@@ -149,115 +153,135 @@ throws Exception {
 		Message.printStatus ( 2, routine, "Processing template." );
 	}
 	Message.printStatus ( 2, routine, "Processing " + nsubs + " subproducts." );
+	// Counts of time series that have Enabled=False, and read errors.
+	int disabledCount = 0;
+	int readErrorCount = 0;
 	for ( int isub = 0; isub < nsubs; isub++ ) {
 		Message.printStatus ( 2, routine, "Reading time series for graph subproduct [" + isub + "]" );
-		// New.
+		// New:
+		// - TODO smalers 2024-11-12 actually does not seem like IsEnabled was every adopted so phase out in the future
 		prop_value = tsproduct.getLayeredPropValue("IsEnabled", isub, -1 );
 		// Old.
 		if ( prop_value == null ) {
 			prop_value = tsproduct.getLayeredPropValue("Enabled", isub, -1 );
 		}
 		if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+			// Entire graph is disabled.
 			continue;
 		}
 		// Loop through the time series in the subproduct.
-		for ( int i = 0; ; i++ ) {
-			// New version.
-			prop_value = tsproduct.getLayeredPropValue ( "IsEnabled", isub, i );
-			// Old version.
-			if ( prop_value == null ) {
-				prop_value = tsproduct.getLayeredPropValue ( "Enabled", isub, i );
-			}
-			if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
-				// Add a null time series.
-				tslist.add ( null );
-				continue;
-			}
-			prop_value = tsproduct.getLayeredPropValue ( "PeriodStart", isub, i );
-			if ( prop_value != null ) {
-				try {
-                    date1 = DateTime.parse ( prop_value );
-				}
-				catch ( Exception e ) {
-					date1 = null;
-				}
-			}
-			prop_value = tsproduct.getLayeredPropValue ( "PeriodEnd", isub, i );
-			if ( prop_value != null ) {
-				try {
-                    date2 = DateTime.parse ( prop_value );
-				}
-				catch ( Exception e ) {
-					date2 = null;
-				}
-			}
+		String disabledNote = "";
+		for ( int its = 0; ; its++ ) {
+			// Get this TSID and TSAlias first since used in logging.
+			tsalias = tsproduct.getLayeredPropValue ( "TSAlias", isub, its, false );
 			// Make sure this is last since the TSID is used in the following readTimeSeries() call.
 			if ( is_template ) {
-				tsid = tsproduct.getLayeredPropValue ( "TemplateTSID", isub, i, false );
+				tsid = tsproduct.getLayeredPropValue ( "TemplateTSID", isub, its, false );
 			}
 			else {
-                // Just get the normal property.
-				tsid = tsproduct.getLayeredPropValue ( "TSID", isub, i, false );
+               	// Just get the normal property.
+				tsid = tsproduct.getLayeredPropValue ( "TSID", isub, its, false );
 			}
-			// Make sure we have both or none.
-			if ( (date1 == null) || (date2 == null) ) {
-				date1 = null;
-				date2 = null;
+			// New version:
+			// - TODO smalers 2024-11-12 actually does not seem like IsEnabled was every adopted so phase out in the future
+			prop_value = tsproduct.getLayeredPropValue ( "IsEnabled", isub, its );
+			// Old version.
+			if ( prop_value == null ) {
+				prop_value = tsproduct.getLayeredPropValue ( "Enabled", isub, its );
 			}
-			// First try to read the time series using the "TSAlias".
-			// This normally will only return non-null for something like TSTool where the time series may be in memory.
-			tsalias = tsproduct.getLayeredPropValue ( "TSAlias", isub, i, false );
-	        if ( (tsid == null) && (tsalias == null) ) {
-	            // No more time series in the product file.
-	            break;
-	        }
-			if ( !is_template && (tsalias != null) && !tsalias.trim().equals("") ) {
-				// Have the "TSAlias" property so use it instead of the TSID.
-				Message.printStatus ( 2, routine, "Requesting TS read from TS suppliers using alias \"" + tsalias + "\"." );
-				try {
-                    ts = readTimeSeries ( tsalias.trim(), date1, date2,	null, true );
-				}
-				catch ( Exception e ) {
-					// Always add a time series because visual properties are going to be tied to the position of the time series.
-					Message.printWarning ( 2, routine, "Error getting time series \"" +	tsalias.trim() + "\" - setting to null." );
-					ts = null;
-				}
+			if ( (prop_value != null) && prop_value.equalsIgnoreCase("false") ) {
+				// Time series is not enabled so use a null time series.
+				disabledNote = " Enabled=False in product.";
+				++disabledCount;
+				ts = null;
 			}
 			else {
-                // Don't have a "TSAlias" so try to read the time series using the full "TSID".
-				Message.printStatus ( 2, routine, "Requesting TS read from TS suppliers using TSID \"" + tsid + "\".");
-				try {
-                    ts = readTimeSeries ( tsid.trim(), date1, date2, null, true );
+				// The time series is enabled so try to read it.
+				disabledNote = "";
+				prop_value = tsproduct.getLayeredPropValue ( "PeriodStart", isub, its );
+				if ( prop_value != null ) {
+					try {
+                    	date1 = DateTime.parse ( prop_value );
+					}
+					catch ( Exception e ) {
+						date1 = null;
+					}
 				}
-				catch ( Exception e ) {
-					// Always add a time series because visual properties are going to be tied to the position of the time series.
-				    Message.printWarning ( 2, routine,
-				        "Error getting time series \"" + tsid.trim() + "\".  Setting to null." );
-					ts = null;
+				prop_value = tsproduct.getLayeredPropValue ( "PeriodEnd", isub, its );
+				if ( prop_value != null ) {
+					try {
+                    	date2 = DateTime.parse ( prop_value );
+					}
+					catch ( Exception e ) {
+						date2 = null;
+					}
 				}
-				if ( ts == null  ) {
-					// Logic place-holder.
+				// Make sure we have both or none.
+				if ( (date1 == null) || (date2 == null) ) {
+					date1 = null;
+					date2 = null;
 				}
-				else if ( is_template ) {
-					// Non-null TS.  The TemplateTSID was requested but now the actual TSID needs to be set.
-					tsproduct.setPropValue(	"TSID", ts.getIdentifier().toString(), isub, i );
+				// First try to read the time series using the "TSAlias".
+				// This normally will only return non-null for something like TSTool where the time series may be in memory.
+	        	if ( (tsid == null) && (tsalias == null) ) {
+	            	// No more time series in the product file (no more TSID or TSAlias properties).
+	            	break;
+	        	}
+				if ( !is_template && (tsalias != null) && !tsalias.trim().equals("") ) {
+					// Have the "TSAlias" property so use it instead of the TSID.
+					Message.printStatus ( 2, routine, "Requesting TS read from TS suppliers using alias \"" + tsalias + "\"." );
+					try {
+                    	ts = readTimeSeries ( tsalias.trim(), date1, date2,	null, true );
+					}
+					catch ( Exception e ) {
+						// Always add a time series because visual properties are going to be tied to the position of the time series.
+						Message.printWarning ( 2, routine, "Error getting time series \"" +	tsalias.trim() + "\" - setting to null." );
+						ts = null;
+						++readErrorCount;
+					}
+				}
+				else {
+                	// Don't have a "TSAlias" so try to read the time series using the full "TSID".
+					Message.printStatus ( 2, routine, "Requesting TS read from TS suppliers using TSID \"" + tsid + "\".");
+					try {
+                    	ts = readTimeSeries ( tsid.trim(), date1, date2, null, true );
+					}
+					catch ( Exception e ) {
+						// Always add a time series because visual properties are going to be tied to the position of the time series.
+				    	Message.printWarning ( 2, routine,
+				        	"Error getting time series \"" + tsid.trim() + "\".  Setting to null." );
+						ts = null;
+						++readErrorCount;
+					}
+					if ( ts == null  ) {
+						// Logic place-holder.
+					}
+					else if ( is_template ) {
+						// Non-null TS.  The TemplateTSID was requested but now the actual TSID needs to be set.
+						tsproduct.setPropValue(	"TSID", ts.getIdentifier().toString(), isub, its );
+					}
 				}
 			}
 			// In any case add the time series, even if null.
 			if ( ts == null ) {
-			    Message.printStatus(2, routine, "Adding null time series for graph." );
+			    Message.printStatus(2, routine, "No time series available for TSID=\""
+			    	+ tsid + "\" TSAlias=\"" + tsalias + "\"." + disabledNote );
 			}
 			else {
-			    Message.printStatus(2, routine, "Adding time series for graph:  " + ts.getIdentifier() + " period " +
-			            ts.getDate1() + " to " + ts.getDate2() );
+			    Message.printStatus(2, routine, "Adding graph time series [" + tslist.size() + "] : " + ts.getIdentifier() + " period " +
+		            ts.getDate1() + " to " + ts.getDate2() );
+			    tslist.add ( ts );
 			}
-			tslist.add ( ts );
 		}
 	}
 
 	// Now add the time series to the TSProduct.  This simply provides the time series.
-	// They will be looked up as needed when the TSGraph is created.
+	// They will be looked up and aligned as needed when the TSGraph is created.
 
+	Message.printStatus(2, routine, "After full time series product check, have " + tslist.size() +
+		" matching time series for time series product graphs, disabledCount=" + disabledCount +
+		", readErrorCount=" + readErrorCount + " total of " +
+		(tslist.size() + disabledCount + readErrorCount) + " in product.");
 	tsproduct.setTSList ( tslist );
 
 	// Now create the graph.  For now use the PropList associated with the TSProduct.
@@ -381,7 +405,8 @@ public void processProduct ( TSProduct tsproduct )
 throws Exception {
 	String prop_value = null;
 	// Determine whether the product should be processed.
-	// New version.
+	// New version:
+	// - TODO smalers 2024-11-12 actually does not seem like IsEnabled was every adopted so phase out in the future
 	prop_value = tsproduct.getLayeredPropValue ( "IsEnabled", -1, -1 );
 	if ( prop_value == null ) {
 		// Old version.
@@ -441,7 +466,8 @@ public void processReportProduct( TSProduct tsproduct ) throws Exception {
 		report_type = tsproduct.getLayeredPropValue( "ReportType", isub, -1);
 
 		Message.printStatus ( 2, routine, "Reading time series for report subproduct [" + isub + "]" );
-		// New.
+		// New:
+		// - TODO smalers 2024-11-12 actually does not seem like IsEnabled was every adopted so phase out in the future
 		prop_value = tsproduct.getLayeredPropValue("IsEnabled", isub, -1 );
 		// Old.
 		if ( prop_value == null ) {
@@ -455,7 +481,8 @@ public void processReportProduct( TSProduct tsproduct ) throws Exception {
 		for ( int i = 0; ; i++ ) {
 
 			TS ts = null;
-			// New version.
+			// New version:
+			// - TODO smalers 2024-11-12 actually does not seem like IsEnabled was every adopted so phase out in the future
 			prop_value = tsproduct.getLayeredPropValue ( "IsEnabled", isub, i );
 			// Old version.
 			if ( prop_value == null ) {

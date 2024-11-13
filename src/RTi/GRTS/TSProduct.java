@@ -2296,7 +2296,7 @@ For example, a property value like "${WorkingDir}/morepath" will be expanded to 
 @param command the command that is being processed (may be used later for context sensitive values).
 @param propertyValue the property value being expanded.
 */
-public String expandPropertyValue( String propertyValue ) {
+public String expandPropertyValue ( String propertyValue ) {
     String routine = getClass().getSimpleName() + ".expandPropertyValue";
     if ( (propertyValue == null) || (propertyValue.length() == 0) ) {
         // Just return what was provided.
