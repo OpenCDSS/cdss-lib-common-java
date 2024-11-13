@@ -89,16 +89,43 @@ implements AdjustmentListener {
      * Returns next row position.
      */
     void next() {
-      y += barHeight;
+    	y += barHeight;
     }
-  } // End class GutterRowIterator
+  } // End internal class GutterRowIterator
 
+  /**
+   * Whether UI events should be ignored.  Do this during initialization to avoid stack overflow exceptions.
+   */
+  private boolean ignoreEvents = false;
+
+  /**
+   * Package to locate icon image files.
+   */
   private static String PKG = new String ("RTi/Util/IO");
 
+  /**
+   * Icon for errors.
+   */
   private static ImageIcon errorIcon = null;
+  
+  /**
+   * Icon for notices.
+   */
   private static ImageIcon noticeIcon = null;
+  
+  /**
+   * Icon for warnings.
+   */
   private static ImageIcon warningIcon = null;
+  
+  /**
+   * Icon for failures.
+   */
   private static ImageIcon unknownIcon = null;
+  
+  /**
+   * X-offset in pixels to position the icon.
+   */
   private int _iconOffset;
 
   /**
@@ -231,7 +258,11 @@ implements AdjustmentListener {
     }
 
   public void adjustmentValueChanged(AdjustmentEvent ae) {
-    _jScrollPane.validate();
+	  if ( this.ignoreEvents ) {
+		  // Ignore events, typically in initialization.
+		  return;
+	  }
+	  _jScrollPane.validate();
   }
 
   /**
@@ -357,7 +388,8 @@ implements AdjustmentListener {
     private int getMyWidth() {
       FontMetrics fm = _jList.getFontMetrics(_jList.getFont());
 
-      int lineNumberWidth = fm.stringWidth(getVisibleEndLine() + "");
+      // Get the width of the text for the largest line number.
+      int lineNumberWidth = fm.stringWidth("" + getVisibleEndLine());
       _iconOffset = BAR_WIDTH + 4 + lineNumberWidth;
       //int wWidth= warningIcon.getIconWidth();
       return _isComponentExpanded ? lineNumberWidth + warningIcon.getIconWidth() + 4 + BAR_WIDTH : BAR_WIDTH;
@@ -516,10 +548,20 @@ implements AdjustmentListener {
     }
 
     /**
+     * TODO smalers 2024-11-13 THIS IS BEING EVALUTED.
+     * Set whether events should be ignored.
+     * Use to ignore events during initialization, to avoid exceptions.
+     * @param ignoreEvents whether to ignore events
+     */
+    public void setIgnoreEvents ( boolean ignoreEvents ) {
+    	this.ignoreEvents = ignoreEvents;
+    }
+
+    /**
      * Set the last command phase that for the component.
      */
     public void setLastCommandPhase ( CommandPhaseType lastCommandPhaseType ) {
-   	 this.lastCommandPhaseType = lastCommandPhaseType;
+    	this.lastCommandPhaseType = lastCommandPhaseType;
     }
 
     /**

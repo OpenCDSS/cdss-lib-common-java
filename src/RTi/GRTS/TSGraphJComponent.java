@@ -134,7 +134,9 @@ Otherwise, the graphics is not available for setting font-dependent area sizes.
 private boolean _first_paint = true;
 
 /**
-List of time series to plot.  Not sure if this needs to be saved here.
+List of time series to plot, for all subproducts in a product (same as the time series product time series list).
+The list can be matched with subproducts and nulls inserted in a list to align the order with the product definition.
+This list should not have any nulls and disabled time series will have been removed (to avoid resources reading).
 */
 private List<TS> _tslist = null;
 
@@ -453,9 +455,9 @@ public TSGraphJComponent ( TSViewGraphJFrame parent, List<TS> tslist, PropList d
 	this._parent = parent;
 	this._tslist = tslist;
 	// Convert the old-style PropList to a TSProduct instance:
-	// - this also fills _display_props
+	// - this also fills this._display_props
 	this._tsproduct = createTSProductFromPropList ( displayProps, tslist );
-	// Now use _displayProps for further processing.
+	// Now use this._displayProps for further processing.
 	checkDisplayProperties ( this._tsproduct, this._displayProps );
 	this._tsproduct.checkProperties();
 	// Need to figure out the requested height and width because this information is used to create the TSGraph instances.
@@ -518,7 +520,9 @@ public TSGraphJComponent ( TSViewGraphJFrame parent, TSProduct tsproduct, PropLi
 	String routine = "TSGraphJComponent";
 	this._force_redraw = true;
 	this._parent = parent;
-	this._tslist = tsproduct.getTSList(); // Do this for now.  Later remove _tslist.
+	// This list is the total list of time series from the product:
+	// - need to align with subproducts (graphs) so that product 'Data' properties align with time series
+	this._tslist = tsproduct.getTSList(); // Do this for now.  Later remove this._tslist.
 	// Set this components display properties to those passed in.
 	this._displayProps = displayProps;
 	if ( displayProps != null ) {
@@ -560,7 +564,7 @@ public TSGraphJComponent ( TSViewGraphJFrame parent, TSProduct tsproduct, PropLi
 	// Swing seems to need this (the above does not do anything!).
 	setPreferredSize ( new Dimension((int)width, (int)height) );
 
-	// Now create the TSGraph instances that will manage the individual graphs.
+	// Create the TSGraph instances that will manage the individual graphs within the JComponent (canvas).
 	// The limits of the graphs will not be correct because the titles, etc., have not been considered.
 	// The limits will be reset in the first paint() method call and every resize after that.
 	this._tsgraphs = createTSGraphsFromTSProduct ( this._tsproduct, this._displayProps, this._tslist,
@@ -597,22 +601,22 @@ public void addTSViewListener ( TSViewListener listener ) {
 	// Use arrays to make a little simpler than lists to use later.
 	if ( listener != null ) {
 		// Resize the listener array.
-		if ( _listeners == null ) {
-			_listeners = new TSViewListener[1];
-			_listeners[0] = listener;
+		if ( this._listeners == null ) {
+			this._listeners = new TSViewListener[1];
+			this._listeners[0] = listener;
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( 10, _gtype + "TSGraphJComponent.addTSViewListener", "Added TSViewListener" );
+				Message.printDebug ( 10, this._gtype + "TSGraphJComponent.addTSViewListener", "Added TSViewListener" );
 			}
 		}
 		else {
 		    // Need to resize and transfer the list.
-			int size = _listeners.length;
+			int size = this._listeners.length;
 			TSViewListener [] newlisteners = new TSViewListener[size + 1];
 			for ( int i = 0; i < size; i++ ) {
-				newlisteners[i] = _listeners[i];
+				newlisteners[i] = this._listeners[i];
 			}
-			_listeners = newlisteners;
-			_listeners[size] = listener;
+			this._listeners = newlisteners;
+			this._listeners[size] = listener;
 			newlisteners = null;
 		}
 	}
@@ -635,10 +639,10 @@ This is called by TSViewGraphJFrame to let it decide whether to enable the zoom 
 @return true if at least one graph allows zooming.
 */
 public boolean canUseZoom() {
-	int size = _tsgraphs.size();
+	int size = this._tsgraphs.size();
 	String prop_value;
 	for ( int i = 0; i < size; i++ ) {
-		prop_value = _tsproduct.getLayeredPropValue ( "ZoomEnabled", i, -1, false );
+		prop_value = this._tsproduct.getLayeredPropValue ( "ZoomEnabled", i, -1, false );
 		if ( prop_value.equalsIgnoreCase("true") ) {
 			return true;
 		}
@@ -712,11 +716,11 @@ time series data are checked to determine some properties that impact other prop
 private void checkTSProductGraphs ( TSProduct tsproduct, List<TSGraph> tsgraphs ) {
 	// Put here any checks that cannot be performed in the initial call to checkTSProduct(),
 	// which primarily checks that depend on the time series (units for axis labels, etc.).
-	int how_set_prev = _tsproduct.getPropList().getHowSet();
-	_tsproduct.getPropList().setHowSet (Prop.SET_AS_RUNTIME_DEFAULT);
+	int how_set_prev = this._tsproduct.getPropList().getHowSet();
+	this._tsproduct.getPropList().setHowSet (Prop.SET_AS_RUNTIME_DEFAULT);
 
 	int nsubs = tsproduct.getNumSubProducts();
-	//Message.printStatus ( 1, "", _gtype + "Checking " + nsubs + " graphs after graphs were created." );
+	//Message.printStatus ( 1, "", this._gtype + "Checking " + nsubs + " graphs after graphs were created." );
 	TSGraphType graphType = TSGraphType.LINE;
 	List<TS> tslist = null;
 	List<TS> tslistLeftYAxis = null;
@@ -752,7 +756,7 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List<TSGraph> tsgraphs 
 		if ( tslistRightYAxis != null ) {
 			ntsRightYAxis = tslistRightYAxis.size();
 		}
-		//Message.printStatus ( 2, "", _gtype + "Checking " + nts + " time series for graph [" + isub + "]" );
+		//Message.printStatus ( 2, "", this._gtype + "Checking " + nts + " time series for graph [" + isub + "]" );
 
 		// "LeftYAxisIgnoreUnits"
 		//
@@ -882,7 +886,7 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List<TSGraph> tsgraphs 
 			}
 			else {
 			    // Determine the precision from the axis units.
-				String lefty_units = _tsproduct.getLayeredPropValue ( "LeftYAxisUnits", isub, -1, false );
+				String lefty_units = this._tsproduct.getLayeredPropValue ( "LeftYAxisUnits", isub, -1, false );
 				if ( lefty_units.equals("") ) {
 					// Default.
 					tsproduct.setPropValue ( "LeftYAxisLabelPrecision", "2", isub, -1 );
@@ -904,7 +908,7 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List<TSGraph> tsgraphs 
 		// BottomXAxisTitleString may have units.
 
 		if ( tsproduct.getLayeredPropValue("BottomXAxisTitleString", isub, -1, false ) == null ) {
-			tsgraph = _tsgraphs.get(isub);
+			tsgraph = this._tsgraphs.get(isub);
 			if ( tsgraph == null ) {
 				continue;
 			}
@@ -1036,7 +1040,7 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List<TSGraph> tsgraphs 
 			}
 			else {
 			    // Determine the precision from the axis units.
-				String righty_units = _tsproduct.getLayeredPropValue ( "RightYAxisUnits", isub, -1, false );
+				String righty_units = this._tsproduct.getLayeredPropValue ( "RightYAxisUnits", isub, -1, false );
 				if ( righty_units.equals("") ) {
 					// Default...
 					tsproduct.setPropValue ( "RightYAxisLabelPrecision", "2", isub, -1 );
@@ -1055,7 +1059,7 @@ private void checkTSProductGraphs ( TSProduct tsproduct, List<TSGraph> tsgraphs 
 			}
 		}
 	}
-	_tsproduct.getPropList().setHowSet (how_set_prev);
+	this._tsproduct.getPropList().setHowSet (how_set_prev);
 }
 
 /**
@@ -1067,7 +1071,8 @@ This typically would be called in the first paint where the component size is kn
 Set "TSViewParentUIComponent" to the parent UI component (e.g., the main TSTool frame)
 so that warning dialogs can center prior to the graph JFrame being fully constructed.
 This is a special case that improves the user experience on multiple displays.
-@param tsproduct_tslist List of time series to graph for the full TSProduct.
+@param tsproduct_tslist List of time series to graph for the full TSProduct
+(time series for all subproducts in a product).
 @param drawlim_graphs Drawing limits of the area set aside for graphs.
 This area is divided among the individual graphs.
 @return List of TSGraph to use when drawing.  The list is guaranteed to be non-null but may contain zero graphs.
@@ -1076,14 +1081,14 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 	List<TS> tsproduct_tslist, GRLimits drawlim_graphs ) {
 	String routine = getClass().getSimpleName() + ".createTSGraphsFromTSProduct";
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, routine, _gtype + "Creating graphs from TSProduct." );
+		Message.printDebug ( 1, routine, this._gtype + "Creating graphs from TSProduct." );
 	}
 	int nsubs = tsproduct.getNumSubProducts( false );
 	if ( nsubs == 0 ) {
 		// Return an empty list (should not happen).
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine,
-			    _gtype + "Created 0 graphs from TSProduct (no enabled subproducts defined)." );
+			    this._gtype + "Created 0 graphs from TSProduct (no enabled subproducts defined)." );
 		}
 		return new ArrayList<> ( 1 );
 	}
@@ -1097,7 +1102,7 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 	TSGraph tsgraph = null;
 	// Initialize with the number of enabled sub-products.
 	double height = drawlim_graphs.getHeight()/nsubs;
-	if ( _is_reference_graph ) {
+	if ( this._is_reference_graph ) {
 		// Reset the height to the full height since we currently only allow one reference graph on a component.
 		height = drawlim_graphs.getHeight();
 	}
@@ -1108,10 +1113,11 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 		nts = tsproduct_tslist.size();
 	}
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, routine, _gtype + "There are " + nts + " time series associated with the TSProduct" );
+		Message.printDebug ( 1, routine, this._gtype + "There are " + nts + " time series associated with the TSProduct." );
 	}
-	TS ts, tsfound;
-	String prop_val;
+	TS ts = null;
+	TS tsfound = null;
+	String prop_val = null;
 	List<TSGraph> tsgraphs = new ArrayList<> ( nsubs );
 	// This is the value for the tslist that is used by the graph, NOT the value in the entire list.
 	int reference_ts_index = -1;
@@ -1128,7 +1134,7 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 	}
 
 	// Indicate the subproduct that will be used to get reference graph information.
-	_reference_sub = -1;
+	this._reference_sub = -1;
 
 	// Reset nsubs to all the products (even disabled, so that the product indexes work out).
 	nsubs = tsproduct.getNumSubProducts();
@@ -1160,123 +1166,149 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 		tslist = new Vector<>(); // Need new list for every graph.
 		// If cannot match a TSID for the current graph, then the graph is NOT used for a reference graph.
 		reference_ts_index = -1;
-		for ( int jtsid = 0; ; jtsid++ ) { // Loop for TSIDs in graph.
-			// First get the TSID.
+		// Loop over TSID/TSAlias properties in graph:
+		// - will break out when TSID and TSAlais properties are both not found.
+		for ( int jtsid = 0; ; jtsid++ ) {
+			// Check whether there are more time series in the subproduct:
+			// Get the TSID and TSAlias.
 			TSID_prop_val = tsproduct.getLayeredPropValue (	"TSID", isub, jtsid, false );
 			TSAlias_prop_val = tsproduct.getLayeredPropValue ( "TSAlias", isub, jtsid, false );
 			// Allow one or the other (but not both) to be missing.
-			if ( (TSID_prop_val == null) &&	(TSAlias_prop_val == null) ) {
+			if ( ((TSID_prop_val == null) || TSID_prop_val.isEmpty() ) && ((TSAlias_prop_val == null) || TSAlias_prop_val.isEmpty()) ) {
 				// Done with data for the graph.
 				break;
 			}
-			if ( TSID_prop_val == null ) {
-				// Assign blank.
-				TSID_prop_val = "";
-			}
-			if ( TSAlias_prop_val == null ) {
-				// Assign blank.
-				TSAlias_prop_val = "";
-			}
-			if ( TSID_prop_val.indexOf("~") >= 0 ) {
-				// The TSID has input fields so need to compare when searching for time series.
-				check_input = true;
+			// Else, have more data to process.
+
+			if ( ! isTSEnabled(isub, jtsid) ) {
+				// The time series is not enabled in the product:
+				// - insert a null time series into the list
+				tsfound = null;
+				if ( Message.isDebugOn ) {
+			    	Message.printDebug ( 2, routine, this._gtype + "Time series is disabled for TSID=\"" +
+			    		TSID_prop_val + "\" Alias=\"" + TSAlias_prop_val + "\".  Inserting a null time series for the graph." );
+				}
 			}
 			else {
-                check_input = false;
-			}
-			if ( Message.isDebugOn ) {
-			    Message.printDebug ( 2, routine, _gtype + "Looking for time series needed for graph:  TSID_prop_val=\"" + TSID_prop_val +
-                    "\" TSAlias_prop_val = \"" + TSAlias_prop_val + "\"." );
-			}
-			// Now find a matching time series in the available data.
-			// If a match is not found, set the time series to null so the properties line up.
-			tsfound = null;
-			for ( int kts = 0; kts < nts; kts++ ) {
-				ts = tsproduct_tslist.get(kts);
-				if ( ts == null ) {
-					continue;
+				// The time series is enabled so try to find a matching time series in the list.
+				if ( TSID_prop_val == null ) {
+					// Assign blank to simplify logic below.
+					TSID_prop_val = "";
 				}
-				if ( Message.isDebugOn ) {
-				    Message.printDebug ( 2, routine, _gtype + "Comparing to TS in available data: " +
-				            "TSID=\"" + ts.getIdentifier().toString(true) + "\" Alias=\"" + ts.getAlias() + "\"" );
+				if ( TSAlias_prop_val == null ) {
+					// Assign blank to simplify logic below.
+					TSAlias_prop_val = "";
 				}
-				//if ( Message.isDebugOn ) {
-					//Message.printDebug ( 1, routine,
-					//_gtype+"Creating TSGraph, tsid is \""+
-					//ts.getIdentifierString() +
-					//"\" TSID prop is \"" + TSID_prop_val +
-					//"\"" );
-				//}
-                if ( !TSAlias_prop_val.equals("") ) {
-				    // If an alias is specified, just match the alias.
-				    if ( ts.getAlias().equalsIgnoreCase( TSAlias_prop_val) ) {
-				        if ( Message.isDebugOn ) {
-				            Message.printStatus ( 2, routine, _gtype + "Time series aliases match.");
-				        }
-					    tsfound = ts;
-                    }
-                }
-                else {
-					// No alias so use the full TSID with input type.
-					if ( ts.getIdentifier().equals( TSID_prop_val,check_input) ) {
-					    if ( Message.isDebugOn ) {
-					        Message.printDebug ( 2, routine, _gtype + "Time series identifiers match.");
-					    }
-                        tsfound = ts;
-                    }
-                }
-                if ( tsfound != null ) {
-                	if ( Message.isDebugOn ) {
-                		Message.printDebug ( 1, routine, _gtype + "Found a time series, display_props_reference_ts_index=" + display_props_reference_ts_index);
-                	}
-					if(	display_props_reference_ts_index == kts ) {
-						// Set the TSID index within the graph's TS indicating which main graph TS is in the the reference graph.
-						// If a main graph, the reference graph is indicated in the legend.
-						reference_ts_index = jtsid;
-						_reference_sub = isub;
-					}
-					break;
+				if ( TSID_prop_val.indexOf("~") >= 0 ) {
+					// The TSID has input fields so need to compare when searching for time series.
+					check_input = true;
 				}
 				else {
-				    if ( Message.isDebugOn ) {
-				        Message.printDebug ( 2, routine, _gtype + "TSIDs and TSAliases are not equal");
-				    }
+                	check_input = false;
 				}
+				if ( Message.isDebugOn ) {
+			    	Message.printDebug ( 2, routine, this._gtype + "Looking for time series needed for graph:  TSID_prop_val=\"" + TSID_prop_val +
+                    	"\" TSAlias_prop_val = \"" + TSAlias_prop_val + "\"." );
+				}
+
+				// Now find matching time series in the available time series that were provided in the constructor.
+				// If a match is not found or the product indicates a disabled time series,
+				// set the time series to null so the properties in the time series product line up with the time series list.
+				tsfound = null;
+				for ( int kts = 0; kts < nts; kts++ ) {
+					// Try to find a match using the TSAlias and then the TSID.
+					ts = tsproduct_tslist.get(kts);
+					if ( ts == null ) {
+						// Time series is null so can't check for a match.
+						continue;
+					}
+					if ( Message.isDebugOn ) {
+			    		Message.printDebug ( 2, routine, this._gtype + "Comparing to TS in available data: " +
+			            		"TSID=\"" + ts.getIdentifier().toString(true) + "\" Alias=\"" + ts.getAlias() + "\"" );
+					}
+					//if ( Message.isDebugOn ) {
+						//Message.printDebug ( 1, routine,
+						//_gtype+"Creating TSGraph, tsid is \""+
+						//ts.getIdentifierString() +
+						//"\" TSID prop is \"" + TSID_prop_val +
+						//"\"" );
+					//}
+               		if ( !TSAlias_prop_val.equals("") ) {
+			    		// If an alias is specified, just match the alias.
+			    		if ( ts.getAlias().equalsIgnoreCase( TSAlias_prop_val) ) {
+			        		if ( Message.isDebugOn ) {
+			            		Message.printStatus ( 2, routine, this._gtype + "Time series aliases match.");
+			        		}
+				    		tsfound = ts;
+                   		}
+               		}
+               		else {
+						// No alias so use the full TSID with input type.
+						if ( ts.getIdentifier().equals( TSID_prop_val,check_input) ) {
+				    		if ( Message.isDebugOn ) {
+				        		Message.printDebug ( 2, routine, this._gtype + "Time series identifiers match.");
+				    		}
+                       		tsfound = ts;
+                   		}
+               		}
+					if ( tsfound != null ) {
+						if ( Message.isDebugOn ) {
+							Message.printDebug ( 1, routine, this._gtype + "Found a time series, display_props_reference_ts_index=" + display_props_reference_ts_index);
+						}
+						if(	display_props_reference_ts_index == kts ) {
+							// Set the TSID index within the graph's TS indicating which main graph TS is in the the reference graph.
+							// If a main graph, the reference graph is indicated in the legend.
+							reference_ts_index = jtsid;
+							this._reference_sub = isub;
+						}
+						break;
+					}
+					else {
+						if ( Message.isDebugOn ) {
+							Message.printDebug ( 2, routine, this._gtype + "Did not find a time series from TSID or TSAlias.");
+						}
+					}
+				}
+				// Could put the following in the if statement in the loop but for now put here.
+				//
+				// If the "TSIndex" property is found, just use it to match up the time series.
+				// This works well when a PropList and list of TS is used to create the TSProduct, as long as only one graph is used.
+				// Do this after the above loop so that the reference graph can be set up
+				// (note that there is a possibility of the reference graph using the wrong TS because of
+				// duplicate IDs but that usually won't be that much of a problem).
+				//
+				// This approach might be extended to true TSProduct processing if we can assume that a TSID is always
+				// matched with a TS (even if null) and that the order of the TSID in the product description file matches
+				// the order of the time series passed in.
+				prop_val = tsproduct.getLayeredPropValue ( "TSIndex", isub, jtsid, false );
+				if ( (nsubs == 1) && (prop_val != null) && StringUtil.isInteger(prop_val) ) {
+					tsfound = tsproduct_tslist.get( StringUtil.atoi(prop_val) );
+				}
+				// Now add the time series or null reference.
+				if ( tsfound == null ) {
+					if ( Message.isDebugOn ) {
+						Message.printDebug(2, routine, "Could not find time series for graph.  Adding a null time series." );
+					}
+				}
+				else {
+					if ( Message.isDebugOn ) {
+						Message.printDebug( 2, routine, "Found time series \"" + tsfound.getIdentifierString() +
+							"\" alias=\"" + tsfound.getAlias() + "\" for graph." );
+					}
+				} 
 			}
-			// Could put the following in the if statement in the loop but for now put here.
-			//
-			// If the "TSIndex" property is found, just use it to match up the time series.
-			// This works well when a PropList and list of TS is used to create the TSProduct, as long as only one graph is used.
-			// Do this after the above loop so that the reference graph can be set up
-			// (note that there is a possibility of the reference graph using the wrong TS because of
-			// duplicate IDs but that usually won't be that much of a problem).
-			//
-			// This approach might be extended to true TSProduct processing if we can assume that a TSID is always
-			// matched with a TS (even if null) and that the order of the TSID in the product description file matches
-			// the order of the time series passed in.
-			prop_val = tsproduct.getLayeredPropValue ( "TSIndex", isub, jtsid, false );
-			if ( (nsubs == 1) && (prop_val != null) && StringUtil.isInteger(prop_val) ) {
-				tsfound = tsproduct_tslist.get( StringUtil.atoi(prop_val) );
-			}
-			// Now add the time series or null reference.
-            if ( tsfound == null ) {
-                if ( Message.isDebugOn ) {
-                    Message.printDebug(2, routine, "Could not find time series for graph." );
-                }
-            }
-            else {
-                if ( Message.isDebugOn ) {
-                    Message.printDebug( 2, routine, "Found time series \"" + tsfound.getIdentifierString() +
-                            "\" alias=\"" + tsfound.getAlias() + "\" for graph." );
-                }
-            }
+			// Always add a time series, whether a time series that was read or null because not found or disabled.
 			tslist.add ( tsfound );
 		}
-		// Supply the short time series list for the graph and add the graph to the main list to be managed.
+
+		// Create the TSGraph instance:
+		// - supply the short time series list for the graph, aligned with the time series product positions
+		// - add the graph to the main list to be managed for this JComponent
+
 		tsgraph = new TSGraph ( this, drawlim, tsproduct, displayProps, isub, tslist, reference_ts_index );
 		tsgraphs.add ( tsgraph );
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine, _gtype + "Added graph [" + isub + "] reference_ts_index = " + reference_ts_index);
+			Message.printDebug ( 1, routine, this._gtype + "Added graph [" + isub + "] reference_ts_index = " + reference_ts_index);
 		}
 		tsgraph.setShowDrawingAreaOutline(showDrawingAreaOutline);
 	}
@@ -1286,7 +1318,7 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 }
 
 /**
-Create a TSProduct from a simple old-style PropList. The member data _tsproduct is created.
+Create a TSProduct from a simple old-style PropList. The member data this._tsproduct is created.
 It is assumed that a single graph is created from the PropList, using old-style conventions.
 Old-style PropList properties for TSViewFrame are transferred to TSProduct properties.
 Any properties that match expanded TSProduct properties are transferred as is.
@@ -1518,7 +1550,7 @@ private TSProduct createTSProductFromPropList ( PropList proplist, List<TS> tsli
 
 	this._external_Image = (BufferedImage)proplist.getContents("Image");
 	if ( this._external_Image != null ) {
-		Message.printDebug( 1, "", _gtype + "Using external Image for drawing." );
+		Message.printDebug( 1, "", this._gtype + "Using external Image for drawing." );
 		// Disable reference time series (don't want labels in legend).
 		this._displayProps.set ( "ReferenceTSIndex=" + -1 );
 	}
@@ -1544,13 +1576,13 @@ This uses Graphics calls on the entire window.
 */
 private void clearView () {
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, "TSGraphJComponent.clearView", _gtype +	"Clearing the graph." );
+		Message.printDebug ( 1, "TSGraphJComponent.clearView", this._gtype +	"Clearing the graph." );
 	}
-	if ( !_printing && (_graphics != null) ) {
+	if ( !this._printing && (this._graphics != null) ) {
 		// Fill in the background color.  Need this because update() does not do (because of zooming).
-		_graphics.setColor ( getBackground() );
-		_bounds = getBounds();
-		_graphics.fillRect ( 0, 0, _bounds.width, _bounds.height );
+		this._graphics.setColor ( getBackground() );
+		this._bounds = getBounds();
+		this._graphics.fillRect ( 0, 0, this._bounds.width, this._bounds.height );
 	}
 }
 
@@ -1564,7 +1596,7 @@ private void editPoint ( MouseEvent event, TSGraph tsgraph ) {
   GRLimits daLimits = tsgraph.getLeftYAxisGraphDrawingArea().getPlotLimits( GRCoordinateType.DEVICE);
   if ( editPointIsInside(event, daLimits) ) {
       GRPoint datapt = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY( event.getX(), event.getY(), GRCoordinateType.DEVICE );
-      _tsGraphEditor.editPoint(datapt);
+      this._tsGraphEditor.editPoint(datapt);
     }
 }
 
@@ -1595,8 +1627,8 @@ private List<TSGraphDataLimits> determineDataLimits() {
 	List<String> ids = null;
 	List<TS> tslist = null;
 
-	for (int i = 0; i < _tsgraphs.size(); i++) {
-		tslist = _tsgraphs.get(i).getTSList();
+	for (int i = 0; i < this._tsgraphs.size(); i++) {
+		tslist = this._tsgraphs.get(i).getTSList();
 
 		ids = new Vector<>();
 		for ( TS ts : tslist ) {
@@ -1608,7 +1640,7 @@ private List<TSGraphDataLimits> determineDataLimits() {
 			}
 		}
 		ids = StringUtil.sortStringList(ids);
-		dataLimits.add(new TSGraphDataLimits(tslist.size(),ids,_tsgraphs.get(i).getDataLimits()));
+		dataLimits.add(new TSGraphDataLimits(tslist.size(),ids,this._tsgraphs.get(i).getDataLimits()));
 	}
 
 	return dataLimits;
@@ -1618,24 +1650,24 @@ private List<TSGraphDataLimits> determineDataLimits() {
 Draw the drawing area boundaries, for troubleshooting.
 */
 public void drawDrawingAreas () {
-	_da_page.setColor ( GRColor.cyan );
+	this._da_page.setColor ( GRColor.cyan );
 	// Reference and main.
-	GRDrawingAreaUtil.drawRectangle ( _da_graphs,
-				_datalim_graphs.getLeftX(),	_datalim_graphs.getBottomY(),
-				_datalim_graphs.getWidth(),	_datalim_graphs.getHeight() );
-	if ( _is_reference_graph ) {
+	GRDrawingAreaUtil.drawRectangle ( this._da_graphs,
+				this._datalim_graphs.getLeftX(), this._datalim_graphs.getBottomY(),
+				this._datalim_graphs.getWidth(), this._datalim_graphs.getHeight() );
+	if ( this._is_reference_graph ) {
 		// Don't need to draw anything else.
 		return;
 	}
-	GRDrawingAreaUtil.drawRectangle ( _da_page,
-				_datalim_page.getLeftX(), _datalim_page.getBottomY(),
-				_datalim_page.getWidth(), _datalim_page.getHeight() );
-	GRDrawingAreaUtil.drawRectangle ( _da_maintitle,
-				_datalim_maintitle.getLeftX(), _datalim_maintitle.getBottomY(),
-				_datalim_maintitle.getWidth(),_datalim_maintitle.getHeight());
-	GRDrawingAreaUtil.drawRectangle ( _da_subtitle,
-				_datalim_subtitle.getLeftX(), _datalim_subtitle.getBottomY(),
-				_datalim_subtitle.getWidth(), _datalim_subtitle.getHeight() );
+	GRDrawingAreaUtil.drawRectangle ( this._da_page,
+				this._datalim_page.getLeftX(), this._datalim_page.getBottomY(),
+				this._datalim_page.getWidth(), this._datalim_page.getHeight() );
+	GRDrawingAreaUtil.drawRectangle ( this._da_maintitle,
+				this._datalim_maintitle.getLeftX(), this._datalim_maintitle.getBottomY(),
+				this._datalim_maintitle.getWidth(), this._datalim_maintitle.getHeight());
+	GRDrawingAreaUtil.drawRectangle ( this._da_subtitle,
+				this._datalim_subtitle.getLeftX(), this._datalim_subtitle.getBottomY(),
+				this._datalim_subtitle.getWidth(), this._datalim_subtitle.getHeight() );
 }
 
 // TODO sam 2017-03-03 could move this to the TSGraphJComponentGlassPane class if suitable
@@ -1662,8 +1694,8 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 	//   they are in a generic list in the glass pane component and are looked up by name,
 	//   prepended with the TSGraph list position
 	// TODO sam 2017-03-03 figure out where to create the drawing areas so they are recreated each time this method is called.
-	for ( int itsgraph = 1; itsgraph <= _tsgraphs.size(); itsgraph++ ) {
-		TSGraph tsgraph = _tsgraphs.get(itsgraph - 1);
+	for ( int itsgraph = 1; itsgraph <= this._tsgraphs.size(); itsgraph++ ) {
+		TSGraph tsgraph = this._tsgraphs.get(itsgraph - 1);
 		// Left y-axis drawing area:
 		// - give it a name GraphNum.LeftDaName
 		GRJComponentDrawingArea da = new GRJComponentDrawingArea ( glassPane,
@@ -1690,7 +1722,7 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 	TSData tsdata = null; // Data point extracted from time series.
 	int devHeight = this.getHeight(); // Device units need to be transformed since graphics uses y=0 at top.
 	boolean drawTrackerLine = false; // Only draw when in graph type that supports tracker.
-	for ( TSGraph tsgraph : _tsgraphs ) {
+	for ( TSGraph tsgraph : this._tsgraphs ) {
 		++itsgraph;
 		GRDrawingArea daLeftYAxisGraph = tsgraph.getLeftYAxisGraphDrawingArea();
 		GRDrawingArea daRightYAxisGraph = tsgraph.getRightYAxisGraphDrawingArea();
@@ -1761,7 +1793,8 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 				}
 				else {
 					// Use the original time series data.
-					tsForAxis = tsgraph.getEnabledTSList(includeLeftYAxis, includeRightYAxis);
+					boolean includeNulls = false;
+					tsForAxis = tsgraph.getTSListForAxes ( includeLeftYAxis, includeRightYAxis, includeNulls );
 				}
 			}
 			else if ( daGraph == daRightYAxisGraph ) {
@@ -1774,7 +1807,8 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 				}
 				else {
 					// Use the original time series data.
-					tsForAxis = tsgraph.getEnabledTSList(includeLeftYAxis, includeRightYAxis);
+					boolean includeNulls = false;
+					tsForAxis = tsgraph.getTSListForAxes ( includeLeftYAxis, includeRightYAxis, includeNulls );
 				}
 			}
 			if ( (trackerType == TSGraphMouseTrackerType.NEAREST_TIME)
@@ -2071,6 +2105,9 @@ private void drawMouseTrackerCrossHairs ( TSGraphJComponentGlassPane glassPane, 
 
 /**
  * Determine the label to show for the mouse tracker.
+ * @param trackerType the tracker type
+ * @param ts a single time series to use as input to format the label
+ * @param tsdata a single data point to use as input to format the label
  */
 private String drawMouseTrackerLabel ( TSGraphMouseTrackerType trackerType, TS ts, TSData tsdata ) {
 	DateTime dt = tsdata.getDate();
@@ -2199,35 +2236,35 @@ Draw the titles for the component.
 The properties are retrieved again in case they have been reset by a properties GUI.
 */
 private void drawTitles () {
-	if ( _is_reference_graph ) {
+	if ( this._is_reference_graph ) {
 		// Don't need to draw anything.
 		return;
 	}
 
 	// Main title.
 
-	_da_maintitle.setColor ( GRColor.black );
-	String maintitle_font = _tsproduct.getLayeredPropValue ( "MainTitleFontName", -1, -1, false );
-	String maintitle_fontstyle = _tsproduct.getLayeredPropValue ( "MainTitleFontStyle", -1, -1, false );
-	String maintitle_fontsize = _tsproduct.getLayeredPropValue ( "MainTitleFontSize", -1, -1, false );
-	GRDrawingAreaUtil.setFont ( _da_maintitle, maintitle_font, maintitle_fontstyle,
+	this._da_maintitle.setColor ( GRColor.black );
+	String maintitle_font = this._tsproduct.getLayeredPropValue ( "MainTitleFontName", -1, -1, false );
+	String maintitle_fontstyle = this._tsproduct.getLayeredPropValue ( "MainTitleFontStyle", -1, -1, false );
+	String maintitle_fontsize = this._tsproduct.getLayeredPropValue ( "MainTitleFontSize", -1, -1, false );
+	GRDrawingAreaUtil.setFont ( this._da_maintitle, maintitle_font, maintitle_fontstyle,
 		StringUtil.atod(maintitle_fontsize) );
-	String maintitle_string = _tsproduct.expandPropertyValue(
-	    _tsproduct.getLayeredPropValue ( "MainTitleString", -1, -1, false));
-	GRDrawingAreaUtil.drawText ( _da_maintitle, maintitle_string,
-		_datalim_maintitle.getCenterX(), _datalim_maintitle.getCenterY(), 0.0, GRText.CENTER_X|GRText.CENTER_Y );
+	String maintitle_string = this._tsproduct.expandPropertyValue(
+	    this._tsproduct.getLayeredPropValue ( "MainTitleString", -1, -1, false));
+	GRDrawingAreaUtil.drawText ( this._da_maintitle, maintitle_string,
+		this._datalim_maintitle.getCenterX(), this._datalim_maintitle.getCenterY(), 0.0, GRText.CENTER_X|GRText.CENTER_Y );
 
 	// Sub title.
 
-	_da_subtitle.setColor ( GRColor.black );
-	String subtitle_font = _tsproduct.getLayeredPropValue ( "SubTitleFontName", -1, -1, false );
-	String subtitle_fontstyle = _tsproduct.getLayeredPropValue ( "SubTitleFontStyle", -1, -1, false );
-	String subtitle_fontsize = _tsproduct.getLayeredPropValue ( "SubTitleFontSize", -1, -1, false );
-	GRDrawingAreaUtil.setFont ( _da_subtitle, subtitle_font, subtitle_fontstyle, StringUtil.atod(subtitle_fontsize) );
-	String subtitle_string = _tsproduct.expandPropertyValue(
-	    _tsproduct.getLayeredPropValue ( "SubTitleString", -1, -1, false ));
-	GRDrawingAreaUtil.drawText ( _da_subtitle, subtitle_string,
-		_datalim_subtitle.getCenterX(),	_datalim_subtitle.getCenterY(), 0.0,GRText.CENTER_X|GRText.CENTER_Y );
+	this._da_subtitle.setColor ( GRColor.black );
+	String subtitle_font = this._tsproduct.getLayeredPropValue ( "SubTitleFontName", -1, -1, false );
+	String subtitle_fontstyle = this._tsproduct.getLayeredPropValue ( "SubTitleFontStyle", -1, -1, false );
+	String subtitle_fontsize = this._tsproduct.getLayeredPropValue ( "SubTitleFontSize", -1, -1, false );
+	GRDrawingAreaUtil.setFont ( this._da_subtitle, subtitle_font, subtitle_fontstyle, StringUtil.atod(subtitle_fontsize) );
+	String subtitle_string = this._tsproduct.expandPropertyValue(
+	    this._tsproduct.getLayeredPropValue ( "SubTitleString", -1, -1, false ));
+	GRDrawingAreaUtil.drawText ( this._da_subtitle, subtitle_string,
+		this._datalim_subtitle.getCenterX(), this._datalim_subtitle.getCenterY(), 0.0,GRText.CENTER_X|GRText.CENTER_Y );
 }
 
 /**
@@ -2296,12 +2333,12 @@ Determine the TSGraph that an event occurred in, checking only the graph drawing
 @param includePage if true, evaluate whether the click was anywhere on the device (page).
 */
 private TSGraph getEventTSGraph ( GRPoint pt, boolean includeGraphArea, boolean includePage ) {
-	int size = _tsgraphs.size();
+	int size = this._tsgraphs.size();
 	TSGraph tsgraph = null;
 	if ( includeGraphArea ) {
 		for ( int isub = 0; isub < size; isub++ ) {
-			tsgraph = _tsgraphs.get(isub);
-			if ( _is_reference_graph && (isub != _reference_sub) ) {
+			tsgraph = this._tsgraphs.get(isub);
+			if ( this._is_reference_graph && (isub != this._reference_sub) ) {
 				// Don't check the graph.
 				continue;
 			}
@@ -2313,8 +2350,8 @@ private TSGraph getEventTSGraph ( GRPoint pt, boolean includeGraphArea, boolean 
 	if ( includePage ) {
 		// Did not find the graph area above but also check full page.
 		for ( int isub = 0; isub < size; isub++ ) {
-			tsgraph = _tsgraphs.get(isub);
-			if ( _is_reference_graph && (isub != _reference_sub) ) {
+			tsgraph = this._tsgraphs.get(isub);
+			if ( this._is_reference_graph && (isub != this._reference_sub) ) {
 				// Don't check the graph.
 				continue;
 			}
@@ -2331,7 +2368,7 @@ Return the graph interaction mode.
 @return the interaction type (see INTERACTION_*).
 */
 public TSGraphInteractionType getInteractionMode () {
-	return _interaction_mode;
+	return this._interaction_mode;
 }
 
 /**
@@ -2340,7 +2377,7 @@ This can be used, for example, to display a dialog in lower-level code.
 @return the JFrame for the component.
 */
 protected JFrame getJFrame() {
-	return _parent;
+	return this._parent;
 }
 
 /**
@@ -2355,7 +2392,7 @@ protected TSViewZoomHistory getReferenceGraphZoomHistory () {
  * Use of the returned object should generally be for information given that painting will be done in the graph code.
  */
 public List<TSGraph> getTSGraphs () {
-	return _tsgraphs;
+	return this._tsgraphs;
 }
 
 /**
@@ -2364,7 +2401,7 @@ A TSProduct is either passed in during construction (new convention) or is creat
 @return TSProduct associated with the component.
 */
 public TSProduct getTSProduct () {
-	return _tsproduct;
+	return this._tsproduct;
 }
 
 /**
@@ -2372,7 +2409,7 @@ Indicate whether this component is currently printing.
 @return true if the component is currently being printed, false if not.
 */
 public boolean isPrinting () {
-	return _printing;
+	return this._printing;
 }
 
 /**
@@ -2398,7 +2435,21 @@ Indicate whether this component is a reference graph.
 @return true if the component contains a reference graph, false if not.
 */
 public boolean isReferenceGraph () {
-	return _is_reference_graph;
+	return this._is_reference_graph;
+}
+
+/**
+Returns whether the time series for the graph is enabled.
+@param isub the subproduct to check (0+)
+@param its the time series to check (0+)
+@return true if the time series is enabled, false if not.
+*/
+private boolean isTSEnabled ( int isub, int its ) {
+	String propValue = this._tsproduct.getLayeredPropValue("Enabled", isub, its, false);
+	if ( (propValue != null) && propValue.equalsIgnoreCase("False") ) {
+		return false;
+	}
+	return true;
 }
 
 /**
@@ -2564,7 +2615,7 @@ If a mouse tracker is enabled, call the TSViewListener.mouseMotion() method.
 */
 public void mouseDragged ( MouseEvent event ) {
 	//event.consume();
-	if ( (_interaction_mode != TSGraphInteractionType.SELECT) && (_interaction_mode != TSGraphInteractionType.ZOOM) ) {
+	if ( (this._interaction_mode != TSGraphInteractionType.SELECT) && (this._interaction_mode != TSGraphInteractionType.ZOOM) ) {
 		return;
 	}
 
@@ -2586,7 +2637,7 @@ public void mouseDragged ( MouseEvent event ) {
 	// Else dragging in a valid graph.
 	// If they started in outside and are now crossing into a graph, initialize the coordinates similar to mousePressed().
 
-	if ( _mouse_x1 == -1 ) {
+	if ( this._mouse_x1 == -1 ) {
 		// Let the other method do the work.
 		mousePressed ( event );
 		// Don't need to do anything else.
@@ -2595,21 +2646,21 @@ public void mouseDragged ( MouseEvent event ) {
 
 	// Get the coordinates used.
 
-	_mouse_x2 = event.getX();
-	_mouse_y2 = event.getY();
+	this._mouse_x2 = event.getX();
+	this._mouse_y2 = event.getY();
 
 	// Figure out which drawing area the event occurred in.
 
 	TSGraphType graphType = tsgraph.getLeftYAxisGraphType();
 	if ((graphType == TSGraphType.DURATION) || (graphType == TSGraphType.XY_SCATTER)) {
 		// Don't allow zoom.
-		_rubber_banding = false;
+		this._rubber_banding = false;
 		return;
 	}
-	_rubber_banding = true;
+	this._rubber_banding = true;
 	// Let listeners know so the tracker can be updated to help size the rubber band box.
 	// Data units.
-	GRPoint datapt = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY ( _mouse_x2, _mouse_y2, GRCoordinateType.DEVICE );
+	GRPoint datapt = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY ( this._mouse_x2, this._mouse_y2, GRCoordinateType.DEVICE );
 	if ( datapt == null ) {
 		// Generally only happens when the graph cannot be displayed.
 		return;
@@ -2617,21 +2668,22 @@ public void mouseDragged ( MouseEvent event ) {
 	boolean dotrack = true;
 	if ( dotrack ) {
 		// Device units.
-		GRPoint devpt = new GRPoint ( _mouse_x2, _mouse_y2 );
+		GRPoint devpt = new GRPoint ( this._mouse_x2, this._mouse_y2 );
 	    if ( tsgraph.getLeftYAxisGraphType() == TSGraphType.RASTER ) {
 	        // Also associate the time series for the graph, so value can be shown.
 	    	// Tracking is initially tied to the left y-axis.
 	    	boolean includeLeftYAxis = true;
 	    	boolean includeRightYAxis = false;
-	        List<TS> tslist = tsgraph.getEnabledTSList(includeLeftYAxis,includeRightYAxis);
+	    	boolean includeNulls = false;
+	        List<TS> tslist = tsgraph.getTSListForAxes ( includeLeftYAxis, includeRightYAxis, includeNulls );
 	        if ( tslist.size() > 0 ) {
 	            datapt.associated_object = tslist.get(0);
 	            devpt.associated_object = tslist.get(0);
 	        }
 	    }
-		int size = _listeners.length;
+		int size = this._listeners.length;
 		for ( int i = 0; i < size; i++ ) {
-			_listeners[i].tsViewMouseMotion(tsgraph, devpt, datapt);
+			this._listeners[i].tsViewMouseMotion(tsgraph, devpt, datapt);
 		}
 	}
 	// Force a redraw. The _rubber_banding flag will be checked so a full redraw is not done.
@@ -2658,7 +2710,7 @@ If a mouse tracker is enabled, call the TSViewListener.mouseMotion() method.
 @param event MouseEvent to handle.
 */
 public void mouseMoved ( MouseEvent event ) {
-	if ( _listeners == null ) {
+	if ( this._listeners == null ) {
 		return;
 	}
 
@@ -2676,7 +2728,7 @@ public void mouseMoved ( MouseEvent event ) {
 	// Update cross-hair cursor.
 	if ( this.useCursorDecorator ) {
 		if ( getInteractionMode() == TSGraphInteractionType.EDIT ) {
-	    	_cursorDecorator.mouseMoved(event,tsgraph.getLeftYAxisGraphDrawingArea().getPlotLimits( GRCoordinateType.DEVICE));
+	    	this._cursorDecorator.mouseMoved(event,tsgraph.getLeftYAxisGraphDrawingArea().getPlotLimits( GRCoordinateType.DEVICE));
 	    	//  refresh(false);
 		}
 	}
@@ -2691,7 +2743,8 @@ public void mouseMoved ( MouseEvent event ) {
 		// Only left y-axis data are uses with raster.
     	boolean includeLeftYAxis = true;
     	boolean includeRightYAxis = false;
-	    List<TS> tslist = tsgraph.getEnabledTSList(includeLeftYAxis,includeRightYAxis);
+    	boolean includeNulls = false;
+	    List<TS> tslist = tsgraph.getTSListForAxes ( includeLeftYAxis, includeRightYAxis, includeNulls );
 	    if ( tslist.size() == 1 ) {
 	    	// Single time series in the raster graph use the first time series.
 	        datapt.associated_object = tslist.get(0);
@@ -2718,8 +2771,8 @@ public void mouseMoved ( MouseEvent event ) {
 
 	// Call the listeners.
 
-	for ( int ilist = 0; ilist< _listeners.length; ilist++ ) {
-		_listeners[ilist].tsViewMouseMotion ( tsgraph, devpt, datapt );
+	for ( int ilist = 0; ilist < this._listeners.length; ilist++ ) {
+		this._listeners[ilist].tsViewMouseMotion ( tsgraph, devpt, datapt );
 	}
 }
 
@@ -2733,13 +2786,13 @@ public void mousePressed ( MouseEvent event ) {
 	//event.consume();
 	requestFocus();
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, _gtype + "TSGraphJComponent.mousePressed",
+		Message.printDebug ( 1, this._gtype + "TSGraphJComponent.mousePressed",
 			"Mouse pressed at device coordinates " + event.getX() + "," + event.getY() );
 	}
 	// Initialize the coordinates.  If the click is outside any graph,
 	// these values will signal to mouseDragged() that a valid starting point for a box has not been given.
-	_mouse_tsgraph1 = null;
-	_mouse_x1 = _mouse_y1 =_mouse_x2=_mouse_y2=_mouse_xprev=_mouse_yprev=-1;
+	this._mouse_tsgraph1 = null;
+	this._mouse_x1 = this._mouse_y1 = this._mouse_x2 = this._mouse_y2 = this._mouse_xprev = this._mouse_yprev=-1;
 	// Figure out which TSGraph the event occurred in.
 	GRPoint eventPoint = new GRPoint ( event.getX(), event.getY() );
 	// First get the TSGraph considering whether in the graph area and total page.
@@ -2776,7 +2829,7 @@ public void mousePressed ( MouseEvent event ) {
 	}
 	if ( tsgraphForGraph != null ) {
 		// Click was in a graph drawing area.
-		_mouse_tsgraph1 = tsgraphForGraph;
+		this._mouse_tsgraph1 = tsgraphForGraph;
 		int mods = event.getModifiers();
 		if ( (mods & MouseEvent.BUTTON3_MASK) != 0 ) {
 			// Each graph provides its own right-click popup menu to edit properties and view analysis details.
@@ -2792,12 +2845,12 @@ public void mousePressed ( MouseEvent event ) {
 				//remove ( popup_menu );
 			}
 		}
-		else if ( (_interaction_mode == TSGraphInteractionType.SELECT) ||
-			(_interaction_mode == TSGraphInteractionType.ZOOM) ) {
+		else if ( (this._interaction_mode == TSGraphInteractionType.SELECT) ||
+			(this._interaction_mode == TSGraphInteractionType.ZOOM) ) {
 			// Save the point that was selected so that the drag and released events will work.
 			// Also save the initial graph so that we can make sure not to drag outside a valid graph.
-			_mouse_x1 = event.getX();
-			_mouse_y1 = event.getY();
+			this._mouse_x1 = event.getX();
+			this._mouse_y1 = event.getY();
 		}
 	}
 	if ( forceRepaint ) {
@@ -2824,13 +2877,13 @@ public void mouseReleased ( MouseEvent event ) {
 	if ( tsgraph == null ) {
 		// The mouse was released outside a graph valid area.
 		// If a valid previous point is available, use that to close the box.
-		if ( _mouse_tsgraph1 == null ) {
+		if ( this._mouse_tsgraph1 == null ) {
 			// Zoom box never was initialized.
 			return;
 		}
-		tsgraph = _mouse_tsgraph1;
-		x = _mouse_xprev;
-		y = _mouse_yprev;
+		tsgraph = this._mouse_tsgraph1;
+		x = this._mouse_xprev;
+		y = this._mouse_yprev;
 	}
 	else {
 	    // use the valid point within the graph.
@@ -2850,46 +2903,46 @@ public void mouseReleased ( MouseEvent event ) {
 		// Right click so don't do anything.
 		return;
 	}
-	if ( (_interaction_mode == TSGraphInteractionType.SELECT) || (_interaction_mode == TSGraphInteractionType.ZOOM) ) {
+	if ( (this._interaction_mode == TSGraphInteractionType.SELECT) || (this._interaction_mode == TSGraphInteractionType.ZOOM) ) {
 		// Only process if box is "delta" pixels or bigger.
-		int deltax = x - _mouse_x1;
+		int deltax = x - this._mouse_x1;
 		int delta_min = 2;
 		if ( deltax < 0 ) {
 			deltax *= -1;
 		}
-		int deltay = y - _mouse_y1;
+		int deltay = y - this._mouse_y1;
 		if ( deltay < 0 ) {
 			deltay *= -1;
 		}
 		if ( (deltax <= delta_min) || (deltay <= delta_min) ) {
-			if ( _interaction_mode == TSGraphInteractionType.SELECT ) {
+			if ( this._interaction_mode == TSGraphInteractionType.SELECT ) {
 				// Assume they want the original point.
-				GRPoint devpt = new GRPoint ( (double)_mouse_x1, (double)_mouse_y1 );
-				GRPoint datapt = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY(_mouse_x1, _mouse_y1, GRCoordinateType.DEVICE );
-				if ( _listeners != null ) {
-					int size = _listeners.length;
+				GRPoint devpt = new GRPoint ( (double)this._mouse_x1, (double)this._mouse_y1 );
+				GRPoint datapt = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY(this._mouse_x1, this._mouse_y1, GRCoordinateType.DEVICE );
+				if ( this._listeners != null ) {
+					int size = this._listeners.length;
 					// Need to figure out which time series was selected.
 					for ( int i = 0; i < size; i++ ) {
-						_listeners[i].tsViewSelect ( tsgraph, devpt, datapt, (List<Object>)null );
+						this._listeners[i].tsViewSelect ( tsgraph, devpt, datapt, (List<Object>)null );
 					}
 				}
-				_rubber_banding = false;
+				this._rubber_banding = false;
 				// Reset zoom coordinates.
-				_mouse_x2 = _mouse_xprev = -1;
-				if ( (x != _mouse_x1) && (y != _mouse_y1) ) {
+				this._mouse_x2 = this._mouse_xprev = -1;
+				if ( (x != this._mouse_x1) && (y != this._mouse_y1) ) {
 					repaint();
 				}
 				// Don't need to do anything else.
 				return;
 			}
-			else if ( _interaction_mode == TSGraphInteractionType.ZOOM ) {
+			else if ( this._interaction_mode == TSGraphInteractionType.ZOOM ) {
 				// Too small, don't allow.
 				// Reset zoom coordinates and force a redraw to clear the box.
-				_mouse_x2 = _mouse_xprev = -1;
-				if ( (x != _mouse_x1) && (y != _mouse_y1) ) {
+				this._mouse_x2 = this._mouse_xprev = -1;
+				if ( (x != this._mouse_x1) && (y != this._mouse_y1) ) {
 					// There was some motion so need to redraw to clear the box.
 					refresh();
-					_rubber_banding = false;
+					this._rubber_banding = false;
 					//repaint();
 				}
 				// Don't need to do anything else.
@@ -2900,8 +2953,8 @@ public void mouseReleased ( MouseEvent event ) {
 		// Reset the data limits to those from the zoom box.
 		// Make sure that the limits are always specified.
 		int xmin, xmax, ymin, ymax;
-		xmin = xmax = _mouse_x1;
-		ymin = ymax = _mouse_y1;
+		xmin = xmax = this._mouse_x1;
+		ymin = ymax = this._mouse_y1;
 		if ( x < xmin ) {
 			xmin = x;
 		}
@@ -2922,9 +2975,9 @@ public void mouseReleased ( MouseEvent event ) {
 
 		GRLimits newDataLimits = new GRLimits ( pt1, pt2 );
 
-		if ( _interaction_mode == TSGraphInteractionType.ZOOM ) {
+		if ( this._interaction_mode == TSGraphInteractionType.ZOOM ) {
 			// Reset the limits to more appropriate values.
-			if ( _zoom_keep_y_limits ) {
+			if ( this._zoom_keep_y_limits ) {
 				// Set the Y limits to the maximum values.
 				newDataLimits.setTopY ( tsgraph.getMaxDataLimits().getTopY() );
 				newDataLimits.setBottomY( tsgraph.getMaxDataLimits().getBottomY() );
@@ -2934,37 +2987,37 @@ public void mouseReleased ( MouseEvent event ) {
 		tsgraph.setDataLimitsForDrawing ( newDataLimits );
 /* TODO sam 2017-04-23 old comment - need to evaluate
 		// Adjust the limits slightly if monthly or annual data since the data values are plotted in the middle of the interval.
-		if ( _interval_max >= TimeInterval.MONTH ) {
+		if ( this._interval_max >= TimeInterval.MONTH ) {
 			// For monthly time series, data are plotted on the middle of the month so adjust back 15/365.
-			_data_limits.setLeftX ( _data_limits.getLeftX()- .0411);
+			this._data_limits.setLeftX ( this._data_limits.getLeftX()- .0411);
 		}
-		if ( _interval_max >= TimeInterval.YEAR ) {
+		if ( this._interval_max >= TimeInterval.YEAR ) {
 			// For annual time series, data are plotted on June 30 so adjust back 1/2 year.
-			_data_limits.setLeftX ( _data_limits.getLeftX() - .5);
+			this._data_limits.setLeftX ( this._data_limits.getLeftX() - .5);
 		}
 */
 		// Call the listener (or should this happen after the paint?).
-		if ( _interaction_mode == TSGraphInteractionType.SELECT ) {
+		if ( this._interaction_mode == TSGraphInteractionType.SELECT ) {
 			// Just return the select information
-			if ( _listeners != null ) {
-				int size = _listeners.length;
+			if ( this._listeners != null ) {
+				int size = this._listeners.length;
 				for ( int i = 0; i < size; i++ ) {
-					_listeners[i].tsViewSelect ( tsgraph, mouseLimits, newDataLimits, (List<Object>)null );
+					this._listeners[i].tsViewSelect ( tsgraph, mouseLimits, newDataLimits, (List<Object>)null );
 				}
 			}
 		}
-		else if ( _interaction_mode == TSGraphInteractionType.ZOOM ) {
+		else if ( this._interaction_mode == TSGraphInteractionType.ZOOM ) {
 			// Actually reset the data limits.
 			// Only set new drawing area data limits for the main graph.
-			if ( !_is_reference_graph ) {
+			if ( !this._is_reference_graph ) {
 				tsgraph.setDataLimitsForDrawing ( newDataLimits );
-				//_grda.setDataLimits ( _data_limits );
+				//_grda.setDataLimits ( this._data_limits );
 			}
 			// Call external listeners to let them know that a graph has been zoomed.
-			if ( _listeners != null ) {
-				int size = _listeners.length;
+			if ( this._listeners != null ) {
+				int size = this._listeners.length;
 				for ( int i = 0; i < size; i++ ) {
-					_listeners[i].tsViewZoom ( tsgraph, mouseLimits, newDataLimits );
+					this._listeners[i].tsViewZoom ( tsgraph, mouseLimits, newDataLimits );
 				}
 			}
 			// Apply the zoom to other graphs that need to be zoomed.
@@ -2975,11 +3028,11 @@ public void mouseReleased ( MouseEvent event ) {
 			// Before redrawing, set the data limits to the plotting limits that result in the full device being used.
 			// Otherwise, mouse tracking, etc. may not allow selects from outside the actual data limits.
 			// First set so the plotting limits will be recomputed.
-			_force_redraw = true;
+			this._force_redraw = true;
 		}
-		_rubber_banding = false;
+		this._rubber_banding = false;
 		// Reset zoom coordinates.
-		_mouse_x2 = _mouse_xprev = -1;
+		this._mouse_x2 = this._mouse_xprev = -1;
 		repaint();
 	}
 }
@@ -2990,7 +3043,7 @@ This should be called immediately after construction in higher-level code.
 @return true if the TSGraphJComponent (and the graph) should be closed due to a user confirmation.
 */
 public boolean needToClose() {
-	return _need_to_close;
+	return this._need_to_close;
 }
 
 /**
@@ -3000,8 +3053,8 @@ This should be called immediately when a problem occurs in TSGraph constructors 
 @return true if the TSGraphJComponent (and the graph) should be closed due to a user confirmation.
 */
 public boolean needToClose ( boolean need_to_close ) {
-	_need_to_close = need_to_close;
-	return _need_to_close;
+	this._need_to_close = need_to_close;
+	return this._need_to_close;
 }
 
 /**
@@ -3012,67 +3065,67 @@ TSGraph drawing areas are overlaid within the overall component.
 private void openDrawingAreas () {
 	// Full page.
 
-	_da_page = new GRJComponentDrawingArea ( this, "TSGraphJComponent.Page",
+	this._da_page = new GRJComponentDrawingArea ( this, "TSGraphJComponent.Page",
 			GRAspectType.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE, null );
-	_datalim_page = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
-	_da_page.setDataLimits ( _datalim_page );
+	this._datalim_page = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
+	this._da_page.setDataLimits ( this._datalim_page );
 
 	// Drawing area for main title (data are just unit).
 
-	_da_maintitle = new GRJComponentDrawingArea ( this,
+	this._da_maintitle = new GRJComponentDrawingArea ( this,
 			"TSGraphJComponent.MainTitle", GRAspectType.FILL,
 			null, GRUnits.DEVICE, GRLimits.DEVICE, null );
-	_datalim_maintitle = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
-	_da_maintitle.setDataLimits ( _datalim_maintitle );
+	this._datalim_maintitle = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
+	this._da_maintitle.setDataLimits ( this._datalim_maintitle );
 
 	// Drawing area for sub title (data are just unit).
 
-	_da_subtitle = new GRJComponentDrawingArea ( this,
+	this._da_subtitle = new GRJComponentDrawingArea ( this,
 			"TSGraphJComponent.SubTitle", GRAspectType.FILL,
 			null, GRUnits.DEVICE, GRLimits.DEVICE, null );
-	_datalim_subtitle = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
-	_da_subtitle.setDataLimits ( _datalim_subtitle );
+	this._datalim_subtitle = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
+	this._da_subtitle.setDataLimits ( this._datalim_subtitle );
 
 	// Drawing area for graphing.
 
-	_da_graphs = new GRJComponentDrawingArea ( this,
+	this._da_graphs = new GRJComponentDrawingArea ( this,
 			"TSGraphJComponent.Graphs",
 			GRAspectType.FILL, null, GRUnits.DEVICE,
 			GRLimits.DEVICE, null );
-	_datalim_graphs = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
-	_da_graphs.setDataLimits ( _datalim_graphs );
+	this._datalim_graphs = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
+	this._da_graphs.setDataLimits ( this._datalim_graphs );
 
 	// Drawing area for left footer (data are just unit).
 
-	_da_leftfoot = new GRJComponentDrawingArea ( this,
+	this._da_leftfoot = new GRJComponentDrawingArea ( this,
 			"TSGraphJComponent.LeftFooter",
 			GRAspectType.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE,
 			null );
-	_datalim_leftfoot = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
-	_da_leftfoot.setDataLimits ( _datalim_leftfoot );
+	this._datalim_leftfoot = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
+	this._da_leftfoot.setDataLimits ( this._datalim_leftfoot );
 
 	// Drawing area for center footer (data are just unit).
 
-	_da_centerfoot = new GRJComponentDrawingArea ( this,
+	this._da_centerfoot = new GRJComponentDrawingArea ( this,
 			"TSGraphJComponent.CenterFooter",
 			GRAspectType.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE,
 			null );
-	_datalim_centerfoot = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
-	_da_centerfoot.setDataLimits ( _datalim_centerfoot );
+	this._datalim_centerfoot = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
+	this._da_centerfoot.setDataLimits ( this._datalim_centerfoot );
 
 	// Drawing area for right footer (data are just unit).
 
-	_da_rightfoot = new GRJComponentDrawingArea ( this,
+	this._da_rightfoot = new GRJComponentDrawingArea ( this,
 			"TSGraphJComponent.RightFooter",
 			GRAspectType.FILL, null, GRUnits.DEVICE, GRLimits.DEVICE,
 			null );
-	_datalim_rightfoot = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
-	_da_rightfoot.setDataLimits ( _datalim_rightfoot );
+	this._datalim_rightfoot = new GRLimits ( 0.0, 0.0, 1.0, 1.0 );
+	this._da_rightfoot.setDataLimits ( this._datalim_rightfoot );
 }
 
 /**
-Update the TSGraphJComponent visible image, render to printer (set _printing=true before calling),
-or render to SVG file (set __printForSVG=true before calling).
+Update the TSGraphJComponent visible image, render to printer (set this._printing=true before calling),
+or render to SVG file (set this.__printForSVG=true before calling).
 @param g Graphics instance either from the component event handling or from an explicit printView() call.
 */
 public void paint ( Graphics g ) {
@@ -3080,7 +3133,7 @@ public void paint ( Graphics g ) {
 	int dl = 10;
 	boolean resizing = false;
 
-	_double_buffering = true;
+	this._double_buffering = true;
 
 	if ( g == null ) {
 		Message.printDebug( 1, routine, "Null Graphics in paint()." );
@@ -3090,17 +3143,17 @@ public void paint ( Graphics g ) {
 	// Print some messages so we know what the paint is doing.
 
 	if ( Message.isDebugOn ) {
-		if (_printing ) {
-			Message.printDebug ( 1, routine, _gtype + "Printing graph(s)..." );
+		if (this._printing ) {
+			Message.printDebug ( 1, routine, this._gtype + "Printing graph(s)..." );
 		}
-		else if ( __paintForSVG ) {
-	         Message.printDebug ( 1, routine, _gtype + "Saving graph(s) to SVG file..." );
+		else if ( this.__paintForSVG ) {
+	         Message.printDebug ( 1, routine, this._gtype + "Saving graph(s) to SVG file..." );
 	    }
-		else if ( _is_reference_graph ) {
-			Message.printDebug ( 1, routine, _gtype + "Painting reference graph..." );
+		else if ( this._is_reference_graph ) {
+			Message.printDebug ( 1, routine, this._gtype + "Painting reference graph..." );
 		}
 		else {
-		    Message.printDebug ( 1, routine, _gtype + "Painting main graph..." );
+		    Message.printDebug ( 1, routine, this._gtype + "Painting main graph..." );
 		}
 	}
 
@@ -3109,7 +3162,7 @@ public void paint ( Graphics g ) {
 	// The following will be executed at initialization.
 	// The code is here because a valid Graphics is needed to check font sizes, etc.
 
-	if ( _da_page == null ) {
+	if ( this._da_page == null ) {
 		//
 		// This will be executed the first paint.
 		//
@@ -3117,56 +3170,56 @@ public void paint ( Graphics g ) {
 		// (it may actually be set for an image below but setting it here should be OK for initialization).
 		// Once the graphics is set, font sizes can be determined.
 		// Cast to Graphiucs2D, which provides more functionality.
-		_graphics = (Graphics2D)g;
+		this._graphics = (Graphics2D)g;
 		// Now set the drawing limits these are necessary to compute the labels and are for the most part independent of data limits.
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine, _gtype + "Set drawing limits..." );
+			Message.printDebug ( 1, routine, this._gtype + "Set drawing limits..." );
 		}
 		setDrawingLimits ();
 		setGraphDrawingLimits ();
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( 1, routine,
-			_gtype + "Set initial graph drawing limits to " + _drawlim_graphs.toString() );
+			this._gtype + "Set initial graph drawing limits to " + this._drawlim_graphs.toString() );
 		}
 	}
 
-	if ( _waiting ) {
+	if ( this._waiting ) {
 		return;
 	}
 
 	// If rubber-banding, can do before anything else and return.
 	boolean drawingTracker = true;
-	if ( _rubber_banding ) {
-		if (_double_buffering && _buffer != null) {
-			g.drawImage(_buffer, 0, 0, this);
+	if ( this._rubber_banding ) {
+		if (this._double_buffering && (this._buffer != null) ) {
+			g.drawImage(this._buffer, 0, 0, this);
 		}
 
-		g.setColor ( _rubber_band_color );
-		g.setXORMode ( _background_color );
+		g.setColor ( this._rubber_band_color );
+		g.setXORMode ( this._background_color );
 		int xmin, xmax, ymin, ymax;
 		// Now draw the new rectangle (still in XOR mode).
-		// If _mouse_x2 = -1, the code is getting called from mouseReleased() and only the previous rectangle needs to be cleared.
-		if ( _mouse_x2 != -1 ) {
-			if ( _mouse_x1 < _mouse_x2 ) {
-				xmin = _mouse_x1;
-				xmax = _mouse_x2;
+		// If this._mouse_x2 = -1, the code is getting called from mouseReleased() and only the previous rectangle needs to be cleared.
+		if ( this._mouse_x2 != -1 ) {
+			if ( this._mouse_x1 < this._mouse_x2 ) {
+				xmin = this._mouse_x1;
+				xmax = this._mouse_x2;
 			}
 			else {
-			    xmin = _mouse_x2;
-				xmax = _mouse_x1;
+			    xmin = this._mouse_x2;
+				xmax = this._mouse_x1;
 			}
-			if ( _mouse_y1 < _mouse_y2 ) {
-				ymin = _mouse_y1;
-				ymax = _mouse_y2;
+			if ( this._mouse_y1 < this._mouse_y2 ) {
+				ymin = this._mouse_y1;
+				ymax = this._mouse_y2;
 			}
 			else {
-			    ymin = _mouse_y2;
-				ymax = _mouse_y1;
+			    ymin = this._mouse_y2;
+				ymax = this._mouse_y1;
 			}
 			g.drawRect ( xmin, ymin, (xmax - xmin),(ymax - ymin) );
 			// Save the previous coordinates.
-			_mouse_xprev = _mouse_x2;
-			_mouse_yprev = _mouse_y2;
+			this._mouse_xprev = this._mouse_x2;
+			this._mouse_yprev = this._mouse_y2;
 		}
 		// Done drawing.  Reset paint mode to normal just in case the code is changed later to not return.
 		g.setPaintMode ();
@@ -3174,16 +3227,16 @@ public void paint ( Graphics g ) {
 	}
 
 	// See if the graphics is for printing or screen and make a few adjustments accordingly.
-	// Set the base class _printing flag if necessary...
+	// Set the base class this._printing flag if necessary...
 
 	GRLimits new_draw_limits = null;
-	if ( _printing ) {
+	if ( this._printing ) {
 		// Set in the printView method.
 		// Bounds will have been set in printView.
 		new_draw_limits = new GRLimits();
 		// Gets the page size.
 		if ( Message.isDebugOn ) {
-		    Message.printDebug(1, "", "PB: " + _printBounds);
+		    Message.printDebug(1, "", "PB: " + this._printBounds);
 		}
 
 		// Get the drawing limits from the bounds set by the print job.
@@ -3194,10 +3247,10 @@ public void paint ( Graphics g ) {
 		// it automatically knows formats the output for a landscape paper.
 		// All developers need to know is that the page is longer than it is wide.
 		// For RTi's purposes the GR pixel (0, 0) is still in the lower-left corner.
-		new_draw_limits.setLeftX(_printBounds.getLeftX());
-		new_draw_limits.setTopY(_printBounds.getTopY());
-		new_draw_limits.setRightX( _printBounds.getRightX());
-		new_draw_limits.setBottomY(_printBounds.getBottomY());
+		new_draw_limits.setLeftX(this._printBounds.getLeftX());
+		new_draw_limits.setTopY(this._printBounds.getTopY());
+		new_draw_limits.setRightX( this._printBounds.getRightX());
+		new_draw_limits.setBottomY(this._printBounds.getBottomY());
 		if ( Message.isDebugOn ) {
 		    Message.printDebug(1, "", "NL: " + new_draw_limits);
 		}
@@ -3207,18 +3260,18 @@ public void paint ( Graphics g ) {
 		setLimits(new_draw_limits);
 
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine, _gtype + "Using print graphics." );
+			Message.printDebug ( 1, routine, this._gtype + "Using print graphics." );
 		}
-		_graphics = (Graphics2D)g;
+		this._graphics = (Graphics2D)g;
 		// Base class.
-	} // Done _printing.
+	} // Done this._printing.
 	else {
 	    // Drawing to screen or SVG file.
 	    // Gets the component size.
 		// GR handles this.
 		new_draw_limits = getLimits(true);
 		// Need the full device limits elsewhere.
-		_bounds = getBounds ();
+		this._bounds = getBounds ();
 		// Now set the drawing limits to the bounds.
 		new_draw_limits.setLeftX ( 0.0 );
 		new_draw_limits.setBottomY ( 0.0 );
@@ -3226,16 +3279,16 @@ public void paint ( Graphics g ) {
 		new_draw_limits.setTopY ( new_draw_limits.getTopY() );
 		// Need the full device limits elsewhere.
 		if ( Message.isDebugOn ) {
-		    if ( __paintForSVG ) {
-		        Message.printDebug ( 1, routine, _gtype + "Using SVG graphics." );
+		    if ( this.__paintForSVG ) {
+		        Message.printDebug ( 1, routine, this._gtype + "Using SVG graphics." );
 		    }
 		    else {
-		        Message.printDebug ( 1, routine, _gtype + "Using display graphics." );
+		        Message.printDebug ( 1, routine, this._gtype + "Using display graphics." );
 		    }
 		}
-		if ( !_double_buffering || __paintForSVG ) {
+		if ( !this._double_buffering || this.__paintForSVG ) {
 			// Use this graphics.
-			_graphics = (Graphics2D)g;
+			this._graphics = (Graphics2D)g;
 		}
 		// Base class.
 	}
@@ -3243,71 +3296,71 @@ public void paint ( Graphics g ) {
 	// See if the drawing limits need to be reset for drawing.
 	// If the size has changed and double-buffering, create a new image for the off-screen buffer.
 
-	if ( _first_paint || !_drawlim_page.equals(new_draw_limits) ) {
+	if ( this._first_paint || !this._drawlim_page.equals(new_draw_limits) ) {
 		// Set to the new drawing limits for the redraw.
 		// This will cause a recompute of the data used for scaling.
 		//setDrawingLimits ();
 		resizing = true;
 		// If double buffering, create a new image.
-		if ( ((_buffer == null) || _double_buffering) && !_printing && !__paintForSVG) {
+		if ( ((this._buffer == null) || this._double_buffering) && !this._printing && !this.__paintForSVG) {
 			// This needs to be the size of the full component, NOT the drawing limits.
 			// Clean up since images can take a lot of memory.
-			_buffer = null;
+			this._buffer = null;
 			// TODO SAM 2013-01-28 Delete following line after sufficient time has passed.
 			//System.gc();
-			if ( _external_Image != null ) {
+			if ( this._external_Image != null ) {
 				// Image was created external to this class.
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( 1, routine, _gtype + "Using external Image from properties." );
+					Message.printDebug ( 1, routine, this._gtype + "Using external Image from properties." );
 				}
 				System.out.flush();
-				_buffer = _external_Image;
+				this._buffer = this._external_Image;
 			}
 			else {
 			    // Image is maintained in this class.
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( 1, routine, _gtype + "Creating new image because of resize." );
+					Message.printDebug ( 1, routine, this._gtype + "Creating new image because of resize." );
 				}
 				// Base class method.
-				setupDoubleBuffer(0, 0, _bounds.width, _bounds.height);
+				setupDoubleBuffer(0, 0, this._bounds.width, this._bounds.height);
 			}
 		}
 	}
 	else {
 	    // component size has not changed.
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine, _gtype + "Device size has not changed." );
+			Message.printDebug ( dl, routine, this._gtype + "Device size has not changed." );
 		}
 		// All that needs to be done is to copy the image to the current screen.
 		// However, if this is the first time, need to execute the following draw code at least once.
 		resizing = false;
 	}
-	if ( _double_buffering && !_printing && !__paintForSVG) {
+	if ( this._double_buffering && !this._printing && !this.__paintForSVG) {
 		// Use the image graphics.
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine, _gtype + "Using image graphics." );
+			Message.printDebug ( 1, routine, this._gtype + "Using image graphics." );
 		}
-		_graphics = (Graphics2D)(_buffer.getGraphics());
+		this._graphics = (Graphics2D)(this._buffer.getGraphics());
 	}
 
 	// Do the following the first time so that the drawing can use the graphics for font-based sizing.
 
 	boolean didClearView = false;
-	if ( _first_paint || resizing ) {
+	if ( this._first_paint || resizing ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, routine, _gtype + "Device size has changed." );
+			Message.printDebug ( dl, routine, this._gtype + "Device size has changed." );
 		}
 		// Resize the drawing area by setting its drawing limits.
 		setDrawingLimits ();
 		setGraphDrawingLimits ();
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( dl, _gtype + routine, "Setting graph drawing limits to: " + _da_graphs );
+			Message.printDebug ( dl, this._gtype + routine, "Setting graph drawing limits to: " + this._da_graphs );
 		}
 		// Now clear the view so that drawing occurs on a clean background.
 		clearView ();
 		didClearView = true;
 	}
-	if ( _force_redraw_clean && !didClearView ) {
+	if ( this._force_redraw_clean && !didClearView ) {
 		// Another case where a clear background is needed.
 		clearView ();
 	}
@@ -3319,30 +3372,30 @@ public void paint ( Graphics g ) {
 	// * printing has been requested (and need to redraw given page extents, etc.)
 	// * double-buffering is on and a resize has occurred.
 
-	if ( _force_redraw || _force_redraw_clean || _printing || __paintForSVG || !_double_buffering || resizing ) {
+	if ( this._force_redraw || this._force_redraw_clean || this._printing || this.__paintForSVG || !this._double_buffering || resizing ) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine, _gtype + "Drawing graph (_force_redraw=" +
-			_force_redraw + " _force_redraw_clean=" + _force_redraw_clean + " resizing=" + resizing + ")..." );
+			Message.printDebug ( 1, routine, this._gtype + "Drawing graph (_force_redraw=" +
+			this._force_redraw + " _force_redraw_clean=" + this._force_redraw_clean + " resizing=" + resizing + ")..." );
 		}
 		try {
-		    JGUIUtil.setWaitCursor(_parent, true );
+		    JGUIUtil.setWaitCursor(this._parent, true );
 			// If the first time, force a zoom out to synchronize the data limits on all the graphs that
 		    // are at the same zoom level (tried this above but seems to work when called from here).
-			if ( _first_paint ) {
+			if ( this._first_paint ) {
                 if ( Message.isDebugOn ) {
-                    Message.printDebug ( 1, routine, _gtype + "Zooming out the first time to sync graphs." );
+                    Message.printDebug ( 1, routine, this._gtype + "Zooming out the first time to sync graphs." );
                 }
-                // The following causes a call to paint so then _first_paint is false and the round trip back to here does not occur?
+                // The following causes a call to paint so then this._first_paint is false and the round trip back to here does not occur?
                 zoomOut ( false );
                 if ( Message.isDebugOn ) {
-                    Message.printDebug ( 1, routine, _gtype + "After call to zoomOut() __visibleStart=" +
-                        __visibleStart + " __visibleEnd=" + __visibleEnd );
+                    Message.printDebug ( 1, routine, this._gtype + "After call to zoomOut() __visibleStart=" +
+                        this.__visibleStart + " __visibleEnd=" + this.__visibleEnd );
                 }
-			    if ( (__visibleStart != null) && (__visibleEnd != null) ) {
+			    if ( (this.__visibleStart != null) && (__visibleEnd != null) ) {
 			        if ( Message.isDebugOn ) {
-			            Message.printDebug ( 1, routine, _gtype + "Zooming to initial visible extent." );
+			            Message.printDebug ( 1, routine, this._gtype + "Zooming to initial visible extent." );
 			        }
-			        zoomToVisiblePeriod(__visibleStart, __visibleEnd, false );
+			        zoomToVisiblePeriod(this.__visibleStart, this.__visibleEnd, false );
 			    }
 			}
 			// Draw the titles, footers, etc.
@@ -3353,42 +3406,42 @@ public void paint ( Graphics g ) {
 			}
 			// Now loop through and draw each graph on the page.
 			// Only graph enabled subproducts and if a reference graph only graph the corresponding subproduct.
-			int size = _tsgraphs.size();
+			int size = this._tsgraphs.size();
 			if ( Message.isDebugOn ) {
-				Message.printDebug(1, routine, _gtype + "Have " + size + " time series to graph.");
+				Message.printDebug(1, routine, this._gtype + "Have " + size + " time series to graph.");
 			}
 			TSGraph tsgraph;
 			String prop_val;
 			for ( int isub = 0; isub < size; isub++ ) {
 				// If the graph is disabled, do not even draw.
-				prop_val = _tsproduct.getLayeredPropValue ( "Enabled", isub, -1, false );
+				prop_val = this._tsproduct.getLayeredPropValue ( "Enabled", isub, -1, false );
 				if ( Message.isDebugOn ) {
-					Message.printDebug ( 1, routine, _gtype + "Graph["+ isub + "].Enabled is " + prop_val );
+					Message.printDebug ( 1, routine, this._gtype + "Graph["+ isub + "].Enabled is " + prop_val );
 				}
 				if ( prop_val.equalsIgnoreCase("false") ) {
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( 1, routine, _gtype + "Graph is not enabled so skipping." );
+						Message.printDebug ( 1, routine, this._gtype + "Graph is not enabled so skipping." );
 					}
 					continue;
 				}
-				if ( _is_reference_graph &&	(isub != _reference_sub) ) {
+				if ( this._is_reference_graph &&	(isub != this._reference_sub) ) {
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( 1, routine, _gtype + "Graph[" + isub + "] is not the same as reference graph (" + _reference_sub + ") - skipping." );
+						Message.printDebug ( 1, routine, this._gtype + "Graph[" + isub + "] is not the same as reference graph (" + this._reference_sub + ") - skipping." );
 					}
 					continue;
 				}
-				tsgraph = _tsgraphs.get(isub);
+				tsgraph = this._tsgraphs.get(isub);
 				if ( tsgraph == null ) {
 					if ( Message.isDebugOn ) {
-						Message.printDebug ( 1, routine, _gtype + "TSGraph is null - skipping." );
+						Message.printDebug ( 1, routine, this._gtype + "TSGraph is null - skipping." );
 					}
 					continue;
 				}
 				// Debug whether graphs are enabled.
-				//Message.printStatus ( 1, "", _gtype + "Graph ["+ isub + "] is " +
-				// _tsproduct.getLayeredPropValue("MainTitleString", isub, -1, false) );
-				tsgraph.paint ( _graphics );
-				if (_is_reference_graph) {
+				//Message.printStatus ( 1, "", this._gtype + "Graph ["+ isub + "] is " +
+				// this._tsproduct.getLayeredPropValue("MainTitleString", isub, -1, false) );
+				tsgraph.paint ( this._graphics );
+				if (this._is_reference_graph) {
 					continue;
 				}
 			}
@@ -3401,8 +3454,8 @@ public void paint ( Graphics g ) {
 		finally {
 			JGUIUtil.setWaitCursor(_parent, false );
 		}
-		_force_redraw = false;
-		_force_redraw_clean = false;
+		this._force_redraw = false;
+		this._force_redraw_clean = false;
 	}
 
 	if ( drawingTracker ) {
@@ -3413,33 +3466,33 @@ public void paint ( Graphics g ) {
 
 	// Finally, if double buffering and not printing, copy the image from the buffer to the component.
 
-	if ( _double_buffering && !_printing && !__paintForSVG ) {
+	if ( this._double_buffering && !this._printing && !this.__paintForSVG ) {
 		// The graphics is for the display.
 		// Draw to the screen.
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, routine, _gtype + "Copying internal image to display." );
+			Message.printDebug ( 1, routine, this._gtype + "Copying internal image to display." );
 		}
-		g.drawImage ( _buffer, 0, 0, this );
+		g.drawImage ( this._buffer, 0, 0, this );
 		// Use the following to troubleshoot.
 		//saveAsFile(System.getProperty("java.io.tmpdir") + File.separator + "junk.png");
 		// Only do this if double buffering to screen because that is the only time the graphics is created locally.
-		// ?? _graphics.dispose();
+		// ?? this._graphics.dispose();
 	}
 
 	} // Main try wrapped around entire method.
 	catch ( Exception e ) {
-		Message.printWarning ( 3, _gtype + routine, e );
+		Message.printWarning ( 3, this._gtype + routine, e );
 	}
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, routine, _gtype + "...done painting TSGraphJComponent." );
+		Message.printDebug ( 1, routine, this._gtype + "...done painting TSGraphJComponent." );
 	}
 	// Should always get to here the first time.
-	_first_paint = false;
-	if (_printing) {
-		_printing = false;
+	this._first_paint = false;
+	if (this._printing) {
+		this._printing = false;
 	}
-	if (__paintForSVG) {
-	    __paintForSVG = false;
+	if (this.__paintForSVG) {
+	    this.__paintForSVG = false;
 	}
 }
 
@@ -3532,7 +3585,7 @@ public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
 	Top-right Y == Total Height - Imageable Y
 */
 
-		_printBounds = new GRLimits(
+		this._printBounds = new GRLimits(
 			(int)pageFormat.getImageableX(),
 			(int)(pageFormat.getHeight()
 				- (pageFormat.getImageableY()
@@ -3543,11 +3596,11 @@ public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
 				- pageFormat.getImageableY()));
 
 			if ( Message.isDebugOn ) {
-				Message.printDebug(1, "", "PrintBounds after print selection:\n" + _printBounds);
+				Message.printDebug(1, "", "PrintBounds after print selection:\n" + this._printBounds);
 			}
 
 		// Set the printing flag to true.
-		_printing = true;
+		this._printing = true;
 
 /*
 	The following is necessary because of some errors that can arise when
@@ -3654,8 +3707,8 @@ public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
 		g2d.translate(0, transY);
 		paint(g2d);
 
-		_printing = false;
-		_printBounds = null;
+		this._printing = false;
+		this._printBounds = null;
 		return PAGE_EXISTS;
 	}
 }
@@ -3728,7 +3781,7 @@ public void refresh ( boolean recompute_drawing_limits ) {
 		setDrawingLimits ();
 		setGraphDrawingLimits ();
 	}
-	_force_redraw = true;
+	this._force_redraw = true;
 	repaint ();
 }
 
@@ -3754,7 +3807,7 @@ public void reinitializeGraphs(TSProduct product) {
 
 	// Find the latest end date and the earliest start date from the graphs.
 
-	for ( TSGraph g: _tsgraphs ) {
+	for ( TSGraph g: this._tsgraphs ) {
 		if (g.getEndDate() != null) {
 			temp = g.getEndDate();
 			if (end == null || end.lessThanOrEqualTo(temp)) {
@@ -3769,12 +3822,12 @@ public void reinitializeGraphs(TSProduct product) {
 		}
 	}
 
-	_tsproduct = product;
-	_tslist = _tsproduct.getTSList();
+	this._tsproduct = product;
+	this._tslist = this._tsproduct.getTSList();
 
 	// Find the latest end date and the earliest start date from all the time series.
 
-	for ( TS ts : _tslist ) {
+	for ( TS ts : this._tslist ) {
 		temp = ts.getDate1();
 		if ( (maxStart == null) || (temp != null && temp.lessThan(maxStart))) {
 			// Reset the earliest start if it has not been set or time series has earlier period start.
@@ -3795,25 +3848,25 @@ public void reinitializeGraphs(TSProduct product) {
 	// TODO sam 2017-02-2017 need to confirm that the new list of TSGraph always align with the old?
 	// - It should? as long as the interactive add of TSGraph was handled gracefully prior to this point.
 	List<List<TS>> selectedTimeSeriesListOld = new ArrayList<>();
-	List<TSGraph> tsgraphListOld = _tsgraphs;
+	List<TSGraph> tsgraphListOld = this._tsgraphs;
 	for ( TSGraph tsgraph : tsgraphListOld ) {
 		selectedTimeSeriesListOld.add(tsgraph.getSelectedTimeSeriesList());
 	}
 
-	_tsgraphs = createTSGraphsFromTSProduct(_tsproduct, _displayProps, _tslist,
+	this._tsgraphs = createTSGraphsFromTSProduct(this._tsproduct, this._displayProps, this._tslist,
 		new GRLimits(0.0,0.0, getWidth(), getHeight()));
-	checkTSProductGraphs(_tsproduct, _tsgraphs);
+	checkTSProductGraphs(this._tsproduct, this._tsgraphs);
 	// Add the saved information.
-	if ( tsgraphListOld.size() == _tsgraphs.size() ) {
-		for ( int igraph = 0; igraph < _tsgraphs.size(); igraph++ ) {
-			_tsgraphs.get(igraph).setSelectedTimeSeriesList(selectedTimeSeriesListOld.get(igraph));
+	if ( tsgraphListOld.size() == this._tsgraphs.size() ) {
+		for ( int igraph = 0; igraph < this._tsgraphs.size(); igraph++ ) {
+			this._tsgraphs.get(igraph).setSelectedTimeSeriesList(selectedTimeSeriesListOld.get(igraph));
 		}
 	}
 
 	setDrawingLimits();
 	setGraphDrawingLimits();
 	resetGraphDataLimits(v);
-	_force_redraw = true;
+	this._force_redraw = true;
 	clearView();
 	repaint();
 
@@ -3828,7 +3881,7 @@ public void reinitializeGraphs(TSProduct product) {
 	// For this reason, the max start and max end dates are set from the time series (above)
 	// and the current graph zoom dates are set from the current graph dates (above).
 
-	for ( TSGraph g: _tsgraphs ) {
+	for ( TSGraph g: this._tsgraphs ) {
 		if (!g.isReferenceGraph()) {
 			g.setEndDate(end);
 			g.setMaxEndDate(maxEnd);
@@ -3849,7 +3902,7 @@ private void resetGraphDataLimits(List<TSGraphDataLimits> graphDataLimitsList ) 
 	int vCount = 0;
 	List<String> ids = null;
 	List<TS> tslist = null;
-	for ( TSGraph graph: _tsgraphs ) {
+	for ( TSGraph graph: this._tsgraphs ) {
 		tslist = graph.getTSList();
 		ids = new ArrayList<>();
 		for ( TS ts: tslist ) {
@@ -3889,9 +3942,9 @@ throws FileNotFoundException, IOException {
     	g = TSGraphJComponent_SaveAsSVG.createGraphics();
     	// Render into the SVG Graphics2D implementation:
     	// - the Graphics instance will be cast to Graphics2D in the 'paint' method
-    	__paintForSVG = true;
+    	this.__paintForSVG = true;
     	paint(g);
-    	__paintForSVG = false;
+    	this.__paintForSVG = false;
 
     	// Render the graph to the file.
     	TSGraphJComponent_SaveAsSVG.saveGraphics ( g, path );
@@ -3899,9 +3952,9 @@ throws FileNotFoundException, IOException {
     else {
     	g = new SVGGraphics2D ((int)this._drawlim_page.getWidth(), (int)this._drawlim_page.getHeight());
 
-    	__paintForSVG = true;
+    	this.__paintForSVG = true;
     	paint(g);
-    	__paintForSVG = false;
+    	this.__paintForSVG = false;
     	
     	// Write the graphics to the file.
     	SVGUtils.writeToSVG(new File(path), ((SVGGraphics2D)g).getSVGElement());
@@ -3927,18 +3980,18 @@ public void scroll ( double pages, boolean notifyListeners ) {
 	GRLimits maxDataLimits = null;
 	String propValue;
 	int zoomGroup = 0;
-	int numZoomGroups = _tsproduct.getNumZoomGroups();
+	int numZoomGroups = this._tsproduct.getNumZoomGroups();
 	GRLimits currentDataLimits = null;
 	GRLimits newDataLimits = null;
-	int size = _tsgraphs.size();
+	int size = this._tsgraphs.size();
 	for ( int iz = 0; iz < numZoomGroups; iz++ ) {
 		// Loop through and determine the maximum and current limits for the zoom group (zoom groups are 1...N).
 		for ( int isub = 0; isub < size; isub++ ) {
-			zoomGroup = StringUtil.atoi(_tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
+			zoomGroup = StringUtil.atoi(this._tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
 			if ( zoomGroup != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = _tsgraphs.get(isub);
+			tsgraph = this._tsgraphs.get(isub);
 			if ( maxDataLimits == null ) {
 				maxDataLimits = new GRLimits(tsgraph.getMaxDataLimits() );
 			}
@@ -3950,12 +4003,12 @@ public void scroll ( double pages, boolean notifyListeners ) {
 		//"Maximum limits for zoom group [" + iz + "] are " + max_data_limits );
 		// Now loop through again and set the data limits for graph in the zoom group.
 		for ( int isub = 0; isub < size; isub++ ) {
-			zoomGroup = StringUtil.atoi(_tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
+			zoomGroup = StringUtil.atoi(this._tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
 			if ( zoomGroup != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = _tsgraphs.get(isub);
-			propValue = _tsproduct.getLayeredPropValue ("ZoomEnabled", isub, -1, false );
+			tsgraph = this._tsgraphs.get(isub);
+			propValue = this._tsproduct.getLayeredPropValue ("ZoomEnabled", isub, -1, false );
 			if ( !propValue.equalsIgnoreCase("true") ) {
 				continue;
 			}
@@ -4013,12 +4066,12 @@ public void scroll ( double pages, boolean notifyListeners ) {
 				// This is currently only done between a reference graph in this component and
 				// another graph that is managing the notify the reference graph.
 				int nl = 0;
-				if ( _listeners != null ) {
-					nl = _listeners.length;
+				if ( this._listeners != null ) {
+					nl = this._listeners.length;
 				}
 				for ( int il = 0; il < nl; il++ ) {
 					// The device limits are not used but a cast is done later so don't pass null.
-					_listeners[il].tsViewZoom ( tsgraph, new GRLimits(), newDataLimits );
+					this._listeners[il].tsViewZoom ( tsgraph, new GRLimits(), newDataLimits );
 				}
 			}
 		}
@@ -4039,18 +4092,18 @@ public void scrollToEnd ( boolean notifyListeners ) {
 	GRLimits maxDataLimits = null;
 	String propValue;
 	int zoomGroup = 0;
-	int numZoomGroups = _tsproduct.getNumZoomGroups();
+	int numZoomGroups = this._tsproduct.getNumZoomGroups();
 	GRLimits currentDataLimits = null;
 	GRLimits newDataLimits = null;
-	int size = _tsgraphs.size();
+	int size = this._tsgraphs.size();
 	for ( int iz = 0; iz < numZoomGroups; iz++ ) {
 		// Loop through and determine the maximum and current limits for the zoom group (zoom groups are 1...N).
 		for ( int isub = 0; isub < size; isub++ ) {
-			zoomGroup = StringUtil.atoi(_tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
+			zoomGroup = StringUtil.atoi(this._tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
 			if ( zoomGroup != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = _tsgraphs.get(isub);
+			tsgraph = this._tsgraphs.get(isub);
 			if ( maxDataLimits == null ) {
 				maxDataLimits = new GRLimits(tsgraph.getMaxDataLimits() );
 			}
@@ -4062,12 +4115,12 @@ public void scrollToEnd ( boolean notifyListeners ) {
 		//"Maximum limits for zoom group [" + iz + "] are " + max_data_limits );
 		// Now loop through again and set the data limits for graph in the zoom group.
 		for ( int isub = 0; isub < size; isub++ ) {
-			zoomGroup = StringUtil.atoi( _tsproduct.getLayeredPropValue ( "ZoomGroup", isub, -1, false) );
+			zoomGroup = StringUtil.atoi( this._tsproduct.getLayeredPropValue ( "ZoomGroup", isub, -1, false) );
 			if ( zoomGroup != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = _tsgraphs.get(isub);
-			propValue = _tsproduct.getLayeredPropValue ("ZoomEnabled", isub, -1, false );
+			tsgraph = this._tsgraphs.get(isub);
+			propValue = this._tsproduct.getLayeredPropValue ("ZoomEnabled", isub, -1, false );
 			if ( !propValue.equalsIgnoreCase("true") ) {
 				continue;
 			}
@@ -4099,12 +4152,12 @@ public void scrollToEnd ( boolean notifyListeners ) {
 				// This is currently only done between a reference graph in this component and another graph that is managing the
 				// notify the reference graph.
 				int nl = 0;
-				if ( _listeners != null ) {
-					nl = _listeners.length;
+				if ( this._listeners != null ) {
+					nl = this._listeners.length;
 				}
 				for ( int il = 0; il < nl; il++ ) {
 					// The device limits are not used but a cast is done later so don't pass null.
-					_listeners[il].tsViewZoom ( tsgraph, new GRLimits(), newDataLimits );
+					this._listeners[il].tsViewZoom ( tsgraph, new GRLimits(), newDataLimits );
 				}
 			}
 		}
@@ -4125,18 +4178,18 @@ public void scrollToStart ( boolean notifyListeners ) {
 	GRLimits maxDataLimits = null;
 	String propValue;
 	int zoomGroup = 0;
-	int numZoomGroups = _tsproduct.getNumZoomGroups();
+	int numZoomGroups = this._tsproduct.getNumZoomGroups();
 	GRLimits currentDataLimits = null;
 	GRLimits newDataLimits = null;
-	int size = _tsgraphs.size();
+	int size = this._tsgraphs.size();
 	for ( int iz = 0; iz < numZoomGroups; iz++ ) {
 		// Loop through and determine the maximum and current limits for the zoom group (zoom groups are 1...N).
 		for ( int isub = 0; isub < size; isub++ ) {
-			zoomGroup = StringUtil.atoi(_tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
+			zoomGroup = StringUtil.atoi(this._tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
 			if ( zoomGroup != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = _tsgraphs.get(isub);
+			tsgraph = this._tsgraphs.get(isub);
 			if ( maxDataLimits == null ) {
 				maxDataLimits = new GRLimits( tsgraph.getMaxDataLimits() );
 			}
@@ -4148,12 +4201,12 @@ public void scrollToStart ( boolean notifyListeners ) {
 		//"Maximum limits for zoom group [" + iz + "] are " + max_data_limits );
 		// Now loop through again and set the data limits for graph in the zoom group.
 		for ( int isub = 0; isub < size; isub++ ) {
-			zoomGroup = StringUtil.atoi(_tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
+			zoomGroup = StringUtil.atoi(this._tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
 			if ( zoomGroup != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = _tsgraphs.get(isub);
-			propValue = _tsproduct.getLayeredPropValue ( "ZoomEnabled", isub, -1, false );
+			tsgraph = this._tsgraphs.get(isub);
+			propValue = this._tsproduct.getLayeredPropValue ( "ZoomEnabled", isub, -1, false );
 			if ( !propValue.equalsIgnoreCase("true") ) {
 				continue;
 			}
@@ -4186,12 +4239,12 @@ public void scrollToStart ( boolean notifyListeners ) {
 				// This is currently only done between a reference graph in this component and another graph that is managing the
 				// notify the reference graph...
 				int nl = 0;
-				if ( _listeners != null ) {
-					nl = _listeners.length;
+				if ( this._listeners != null ) {
+					nl = this._listeners.length;
 				}
 				for ( int il = 0; il < nl; il++ ) {
 					// The device limits are not used but a cast is done later so don't pass null.
-					_listeners[il].tsViewZoom ( tsgraph, new GRLimits(), newDataLimits );
+					this._listeners[il].tsViewZoom ( tsgraph, new GRLimits(), newDataLimits );
 				}
 			}
 		}
@@ -4212,31 +4265,31 @@ void setDrawingLimits() {
 	// Main and sub-titles and footers will have zero size unless the titles are specified.
 
 	double maintitle_height = 0.0;
-	String maintitle_string = _tsproduct.getLayeredPropValue ( "MainTitleString", -1, -1, false );
+	String maintitle_string = this._tsproduct.getLayeredPropValue ( "MainTitleString", -1, -1, false );
 
 	if ( (maintitle_string != null) && !maintitle_string.equals("") ) {
 		// Get the text extents and set the height based on that.
-		String maintitle_font = _tsproduct.getLayeredPropValue ( "MainTitleFontName", -1, -1, false );
-		String maintitle_fontsize = _tsproduct.getLayeredPropValue ( "MainTitleFontSize", -1, -1, false );
-		String maintitle_fontstyle = _tsproduct.getLayeredPropValue ( "MainTitleFontStyle", -1, -1, false );
-		GRDrawingAreaUtil.setFont ( _da_maintitle, maintitle_font, maintitle_fontstyle,
+		String maintitle_font = this._tsproduct.getLayeredPropValue ( "MainTitleFontName", -1, -1, false );
+		String maintitle_fontsize = this._tsproduct.getLayeredPropValue ( "MainTitleFontSize", -1, -1, false );
+		String maintitle_fontstyle = this._tsproduct.getLayeredPropValue ( "MainTitleFontStyle", -1, -1, false );
+		GRDrawingAreaUtil.setFont ( this._da_maintitle, maintitle_font, maintitle_fontstyle,
 			StringUtil.atod(maintitle_fontsize) );
-		GRLimits text_limits = GRDrawingAreaUtil.getTextExtents ( _da_maintitle, maintitle_string, GRUnits.DEVICE );
+		GRLimits text_limits = GRDrawingAreaUtil.getTextExtents ( this._da_maintitle, maintitle_string, GRUnits.DEVICE );
 		maintitle_height = text_limits.getHeight();
 		text_limits = null;
 	}
 
 	double subtitle_height = 0.0;
-	String subtitle_string = _tsproduct.getLayeredPropValue ( "SubTitleString", -1, -1, false );
+	String subtitle_string = this._tsproduct.getLayeredPropValue ( "SubTitleString", -1, -1, false );
 
 	if ( (subtitle_string != null) && !subtitle_string.equals("") ) {
 		// Get the text extents and set the height based on that.
-		String subtitle_font = _tsproduct.getLayeredPropValue ( "SubTitleFontName", -1, -1, false );
-		String subtitle_fontsize = _tsproduct.getLayeredPropValue ( "SubTitleFontSize", -1, -1, false );
-		String subtitle_fontstyle = _tsproduct.getLayeredPropValue ( "SubTitleFontStyle", -1, -1, false );
-		GRDrawingAreaUtil.setFont ( _da_subtitle, subtitle_font,
+		String subtitle_font = this._tsproduct.getLayeredPropValue ( "SubTitleFontName", -1, -1, false );
+		String subtitle_fontsize = this._tsproduct.getLayeredPropValue ( "SubTitleFontSize", -1, -1, false );
+		String subtitle_fontstyle = this._tsproduct.getLayeredPropValue ( "SubTitleFontStyle", -1, -1, false );
+		GRDrawingAreaUtil.setFont ( this._da_subtitle, subtitle_font,
 			subtitle_fontstyle, StringUtil.atod(subtitle_fontsize));
-		GRLimits text_limits = GRDrawingAreaUtil.getTextExtents ( _da_subtitle, subtitle_string, GRUnits.DEVICE );
+		GRLimits text_limits = GRDrawingAreaUtil.getTextExtents ( this._da_subtitle, subtitle_string, GRUnits.DEVICE );
 		subtitle_height = text_limits.getHeight();
 		text_limits = null;
 	}
@@ -4244,30 +4297,30 @@ void setDrawingLimits() {
 	// Get the window limits.
 
 	GRLimits window_limits = null;
-	if ( _printing ) {
+	if ( this._printing ) {
 		window_limits = new GRLimits(); // Gets the page size.
-		window_limits.setLeftX(_printBounds.getLeftX());
-		window_limits.setBottomY(_printBounds.getBottomY());
-		window_limits.setRightX(_printBounds.getRightX());
-		window_limits.setTopY(_printBounds.getTopY());
-		Message.printDebug(1, "", "PB: " + _printBounds);
+		window_limits.setLeftX(this._printBounds.getLeftX());
+		window_limits.setBottomY(this._printBounds.getBottomY());
+		window_limits.setRightX(this._printBounds.getRightX());
+		window_limits.setTopY(this._printBounds.getTopY());
+		Message.printDebug(1, "", "PB: " + this._printBounds);
 		Message.printDebug(1, "", "WL: " + window_limits);
 	}
 	else {
 	    window_limits = getLimits ( true );
 	}
 
-	_drawlim_page = new GRLimits ( window_limits );
+	this._drawlim_page = new GRLimits ( window_limits );
 
-	if (_printing) {
-		Message.printDebug(1, "", "DL: " + _drawlim_page);
+	if (this._printing) {
+		Message.printDebug(1, "", "DL: " + this._drawlim_page);
 	}
 	window_limits = null;
 
 	// Set the drawing limits for the graph based on the dimensions of the other drawing areas.
 
-	if ( _bounds == null ) {
-		_bounds = getBounds();
+	if ( this._bounds == null ) {
+		this._bounds = getBounds();
 		//checkAndSetBounds();
 	}
 
@@ -4277,67 +4330,67 @@ void setDrawingLimits() {
 
 	if ( maintitle_height == 0.0 ) {
 		// Zero height drawing area place holder.
-		_drawlim_maintitle = new GRLimits (
-			(_drawlim_page.getLeftX() + buffer), _drawlim_page.getTopY(),
-			(_drawlim_page.getRightX() - buffer), _drawlim_page.getTopY() );
+		this._drawlim_maintitle = new GRLimits (
+			(this._drawlim_page.getLeftX() + buffer), this._drawlim_page.getTopY(),
+			(this._drawlim_page.getRightX() - buffer), this._drawlim_page.getTopY() );
 	}
 	else {
-		_drawlim_maintitle = new GRLimits (
-			(_drawlim_page.getLeftX() + buffer),
-			(_drawlim_page.getTopY() - buffer - maintitle_height),
-			(_drawlim_page.getRightX() - buffer),
-			(_drawlim_page.getTopY() - buffer) );
+		this._drawlim_maintitle = new GRLimits (
+			(this._drawlim_page.getLeftX() + buffer),
+			(this._drawlim_page.getTopY() - buffer - maintitle_height),
+			(this._drawlim_page.getRightX() - buffer),
+			(this._drawlim_page.getTopY() - buffer) );
 	}
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 1, "TSGraphJComponent.setDrawingLimits",
-		_gtype + "Main title drawing limits are: " + _drawlim_maintitle );
+		this._gtype + "Main title drawing limits are: " + this._drawlim_maintitle );
 	}
 
 	if ( subtitle_height == 0.0 ) {
 		// Zero height drawing area place holder.
-		_drawlim_subtitle = new GRLimits (
-			(_drawlim_page.getLeftX() + buffer), _drawlim_maintitle.getBottomY(),
-			(_drawlim_page.getRightX() - buffer), _drawlim_maintitle.getBottomY() );
+		this._drawlim_subtitle = new GRLimits (
+			(this._drawlim_page.getLeftX() + buffer), this._drawlim_maintitle.getBottomY(),
+			(this._drawlim_page.getRightX() - buffer), this._drawlim_maintitle.getBottomY() );
 	}
 	else {
-	    _drawlim_subtitle = new GRLimits (
-			(_drawlim_page.getLeftX() + buffer),
-			(_drawlim_maintitle.getBottomY() - buffer - subtitle_height),
-			(_drawlim_page.getRightX() - buffer),
-			(_drawlim_maintitle.getBottomY() - buffer) );
+	    this._drawlim_subtitle = new GRLimits (
+			(this._drawlim_page.getLeftX() + buffer),
+			(this._drawlim_maintitle.getBottomY() - buffer - subtitle_height),
+			(this._drawlim_page.getRightX() - buffer),
+			(this._drawlim_maintitle.getBottomY() - buffer) );
 	}
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 1, "TSGraphJComponent.setDrawingLimits",
-		_gtype + "Sub title drawing limits are: " + _drawlim_subtitle );
+		this._gtype + "Sub title drawing limits are: " + this._drawlim_subtitle );
 	}
 
 	// Graph drawing area (always what is left).
 
-	if ( _is_reference_graph ) {
-		_drawlim_graphs = new GRLimits (
-			_drawlim_page.getLeftX(), _drawlim_page.getBottomY(),
-			_drawlim_page.getRightX(), _drawlim_page.getTopY() );
+	if ( this._is_reference_graph ) {
+		this._drawlim_graphs = new GRLimits (
+			this._drawlim_page.getLeftX(), this._drawlim_page.getBottomY(),
+			this._drawlim_page.getRightX(), this._drawlim_page.getTopY() );
 	}
 	else {
-	    _drawlim_graphs = new GRLimits (
-			(_drawlim_page.getLeftX() + buffer), (_drawlim_page.getBottomY() + buffer),
-			(_drawlim_page.getRightX() - buffer), (_drawlim_subtitle.getBottomY() - buffer) );
+	    this._drawlim_graphs = new GRLimits (
+			(this._drawlim_page.getLeftX() + buffer), (this._drawlim_page.getBottomY() + buffer),
+			(this._drawlim_page.getRightX() - buffer), (this._drawlim_subtitle.getBottomY() - buffer) );
 	}
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 1, "TSGraphJComponent.setDrawingLimits",
-		_gtype + "Graph drawing limits are: " + _drawlim_graphs.toString() );
+		this._gtype + "Graph drawing limits are: " + this._drawlim_graphs.toString() );
 	}
 
 	// Now set in the drawing areas.
 
-	if ( (_da_maintitle != null) && (_drawlim_maintitle != null) ) {
-		_da_maintitle.setDrawingLimits ( _drawlim_maintitle, GRUnits.DEVICE, GRLimits.DEVICE );
+	if ( (this._da_maintitle != null) && (this._drawlim_maintitle != null) ) {
+		this._da_maintitle.setDrawingLimits ( this._drawlim_maintitle, GRUnits.DEVICE, GRLimits.DEVICE );
 	}
-	if ( (_da_subtitle != null) && (_drawlim_subtitle != null) ) {
-		_da_subtitle.setDrawingLimits ( _drawlim_subtitle, GRUnits.DEVICE, GRLimits.DEVICE );
+	if ( (this._da_subtitle != null) && (this._drawlim_subtitle != null) ) {
+		this._da_subtitle.setDrawingLimits ( this._drawlim_subtitle, GRUnits.DEVICE, GRLimits.DEVICE );
 	}
-	if ( (_da_graphs != null) && (_drawlim_graphs != null) ) {
-		_da_graphs.setDrawingLimits ( _drawlim_graphs, GRUnits.DEVICE, GRLimits.DEVICE );
+	if ( (this._da_graphs != null) && (this._drawlim_graphs != null) ) {
+		this._da_graphs.setDrawingLimits ( this._drawlim_graphs, GRUnits.DEVICE, GRLimits.DEVICE );
 	}
 }
 
@@ -4360,17 +4413,17 @@ This is typically called at initialization and when the component size changes
 The logic in this method needs to be consistent with that in the createTSGraphsFromTSProduct() code.
 */
 public void setGraphDrawingLimits () {
-	int nsubs = _tsgraphs.size();
+	int nsubs = this._tsgraphs.size();
 	TSGraph tsgraph;
 	GRLimits drawlim;
 	// Loop through the graphs.  If a reference graph, we should only go through once (but leave in the loop for now).
-	String propVal = _displayProps.getValue("ReferenceGraph");
+	String propVal = this._displayProps.getValue("ReferenceGraph");
 	boolean referenceGraph = false;
 	if ( (propVal != null) && propVal.equalsIgnoreCase("true") ) {
 		referenceGraph = true;
 	}
 
-	double totalHeight = _drawlim_graphs.getHeight();
+	double totalHeight = this._drawlim_graphs.getHeight();
 
 	// Loop through and find all the subproducts that have had y size percents defined.  Total their percents.
 	int percent = 0;
@@ -4387,7 +4440,7 @@ public void setGraphDrawingLimits () {
 
 	String prop_val = null;
 	for (int isub = 0; isub < nsubs; isub++) {
-		prop_val = _tsproduct.getLayeredPropValue("LayoutYPercent", isub, -1, false);
+		prop_val = this._tsproduct.getLayeredPropValue("LayoutYPercent", isub, -1, false);
 		if (prop_val != null) {
 			if (StringUtil.isInteger(prop_val)) {
 				i = StringUtil.atoi(prop_val);
@@ -4433,13 +4486,13 @@ public void setGraphDrawingLimits () {
 //	System.out.println("");
 
 	for ( i = 0; i < nsubs; i++ ) {
-		tsgraph = _tsgraphs.get(i);
+		tsgraph = this._tsgraphs.get(i);
 		if ( tsgraph == null ) {
 			continue;
 		}
 		if ( referenceGraph ) {
 			// A reference graph so the dimension will be all of the component.
-			drawlim = new GRLimits ( _drawlim_graphs );
+			drawlim = new GRLimits ( this._drawlim_graphs );
 		}
 		else {
 		    // Determine the drawing limits from the number of graphs and their layout.
@@ -4450,13 +4503,13 @@ public void setGraphDrawingLimits () {
 
 			runningTotal += heights[i];
 			drawlim = new GRLimits(
-				_drawlim_graphs.getLeftX(), _drawlim_graphs.getTopY() - runningTotal,
-				_drawlim_graphs.getRightX(), _drawlim_graphs.getTopY() - runningTotal + heights[i]);
+				this._drawlim_graphs.getLeftX(), this._drawlim_graphs.getTopY() - runningTotal,
+				this._drawlim_graphs.getRightX(), this._drawlim_graphs.getTopY() - runningTotal + heights[i]);
 //System.out.println("" + drawlim);
 			/*
 			drawlim = new GRLimits (
-				_drawlim_graphs.getLeftX(), _drawlim_graphs.getTopY() - (i + 1)*height,
-				_drawlim_graphs.getRightX(), _drawlim_graphs.getTopY() - i*height );
+				this._drawlim_graphs.getLeftX(), this._drawlim_graphs.getTopY() - (i + 1)*height,
+				this._drawlim_graphs.getRightX(), this._drawlim_graphs.getTopY() - i*height );
 			*/
 		}
 		// The following triggers resetting the dimensions of all the drawing limits for the graph.
@@ -4472,10 +4525,10 @@ public void setInteractionMode ( TSGraphInteractionType mode ) {
 	if ( (mode == TSGraphInteractionType.NONE) || (mode == TSGraphInteractionType.SELECT) ||
 		(mode == TSGraphInteractionType.ZOOM) || (mode == TSGraphInteractionType.EDIT)) {
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, _gtype + "TSGraphJComponent.setInteractionMode",
+			Message.printDebug ( 1, this._gtype + "TSGraphJComponent.setInteractionMode",
 			"Set interaction mode to " + mode );
 		}
-		_interaction_mode = mode;
+		this._interaction_mode = mode;
 	}
 }
 
@@ -4527,12 +4580,12 @@ public void showInfoDialog ( TSGraph tsgraph, int x, int y ) {
 		}
 	}
 	if ( mints == null ) {
-		new ResponseJDialog ( _parent, "Time Series Information",
+		new ResponseJDialog ( this._parent, "Time Series Information",
 		"Unable to find nearest time series.", ResponseJDialog.OK );
 	}
 	else {
 	    d.setPrecision ( mints.getDataIntervalBase() );
-		new ResponseJDialog ( _parent, "Time Series Information",
+		new ResponseJDialog ( this._parent, "Time Series Information",
 		"Nearest time series is:\n" +
 		"Time Series Identifier:  " + mints.getIdentifier() + "\n" +
 		"Time Series Description:  " + mints.getDescription() + "\n"+
@@ -4618,8 +4671,8 @@ public void tsViewZoom (TSGraph g, GRShape dev_shape, GRShape data_shape) {
 		// Do nothing.
 		return;
 	}
-	//Message.printStatus ( 1, "", _gtype + "Received a zoom event from " +
-	//	_tsproduct.getLayeredPropValue("MainTitleString",
+	//Message.printStatus ( 1, "", this._gtype + "Received a zoom event from " +
+	//	this._tsproduct.getLayeredPropValue("MainTitleString",
 	//		g.getSubProductNumber(), -1, false) + ":" +
 	//		" isref:" + g.isReferenceGraph() + " :" + (GRLimits)data_shape );
 	zoom ( g, (GRLimits)dev_shape, (GRLimits)data_shape );
@@ -4644,9 +4697,9 @@ public void update(Graphics g) {
 public void zoom ( GRLimits newdataLimits ) {
 	// Call the other method with necessary data.
 	GRLimits mouseLimits = null;
-	if ( _is_reference_graph ) {
-		if ( _tsgraphs.size() > 0 ) {
-			TSGraph tsgraph = _tsgraphs.get(0);
+	if ( this._is_reference_graph ) {
+		if ( this._tsgraphs.size() > 0 ) {
+			TSGraph tsgraph = this._tsgraphs.get(0);
 			zoom ( tsgraph, mouseLimits, newdataLimits );
 		}
 	}
@@ -4662,14 +4715,14 @@ Only graphs in the same zoom group are updated and it assumed that each graph wi
 @param newdata_limits Data limits for zoom extent in the original graph.
 */
 public void zoom ( TSGraph tsgraph, GRLimits mouse_limits, GRLimits newdata_limits ) {
-	String zoom_group = _tsproduct.getLayeredPropValue ( "ZoomGroup", tsgraph.getSubProductNumber(), -1, false );
-	//Message.printStatus ( 1, "", _gtype + "zoom() data limits are" + newdata_limits.toString() );
-	int size = _tsgraphs.size();
+	String zoom_group = this._tsproduct.getLayeredPropValue ( "ZoomGroup", tsgraph.getSubProductNumber(), -1, false );
+	//Message.printStatus ( 1, "", this._gtype + "zoom() data limits are" + newdata_limits.toString() );
+	int size = this._tsgraphs.size();
 	TSGraph tsgraph2;
 	for ( int isub = 0; isub < size; isub++ ) {
-		tsgraph2 = _tsgraphs.get(isub);
+		tsgraph2 = this._tsgraphs.get(isub);
 		if ( tsgraph2.canZoom() && zoom_group.equalsIgnoreCase(
-			_tsproduct.getLayeredPropValue ( "ZoomGroup", isub, -1, false ) ) ) {
+			this._tsproduct.getLayeredPropValue ( "ZoomGroup", isub, -1, false ) ) ) {
 			//if ( tsgraph2.isReferenceGraph() ) {
 				tsgraph2.setDataLimitsForDrawing ( newdata_limits );
 			//}
@@ -4693,22 +4746,22 @@ This method is also called one time in the first paint to force the different gr
 the data limits in the graphs but do not redraw (a redraw may occur elsewhere after this method is called).
 */
 public void zoomOut ( boolean re_draw ) {
-	int size = _tsgraphs.size();
+	int size = this._tsgraphs.size();
 	// Loop through the zoom levels and zoom each group of graphs to the maximum data extent within the zoom group.
 
 	TSGraph tsgraph;
 	GRLimits max_data_limits = null;
 	String prop_value;
 	int zoom_group = 0;
-	int num_zoom_groups = _tsproduct.getNumZoomGroups();
+	int num_zoom_groups = this._tsproduct.getNumZoomGroups();
 	for ( int iz = 0; iz < num_zoom_groups; iz++ ) {
 		// Loop through and determine the maximum limits for the zoom group (zoom groups are 1...N).
 		for ( int isub = 0; isub < size; isub++ ) {
-			zoom_group = StringUtil.atoi( _tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
+			zoom_group = StringUtil.atoi( this._tsproduct.getLayeredPropValue ("ZoomGroup", isub, -1, false) );
 			if ( zoom_group != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = _tsgraphs.get(isub);
+			tsgraph = this._tsgraphs.get(isub);
 			if ( max_data_limits == null ) {
 				max_data_limits = new GRLimits( tsgraph.getMaxDataLimits() );
 			}
@@ -4720,12 +4773,12 @@ public void zoomOut ( boolean re_draw ) {
 		//"Maximum limits for zoom group [" + iz + "] are " + max_data_limits );
 		// Now loop through again and set the data limits for graph in the zoom group.
 		for ( int isub = 0; isub < size; isub++ ) {
-			zoom_group = StringUtil.atoi( _tsproduct.getLayeredPropValue ( "ZoomGroup", isub, -1, false) );
+			zoom_group = StringUtil.atoi( this._tsproduct.getLayeredPropValue ( "ZoomGroup", isub, -1, false) );
 			if ( zoom_group != (iz + 1) ) {
 				continue;
 			}
-			tsgraph = _tsgraphs.get(isub);
-			prop_value = _tsproduct.getLayeredPropValue ( "ZoomEnabled", isub, -1, false );
+			tsgraph = this._tsgraphs.get(isub);
+			prop_value = this._tsproduct.getLayeredPropValue ( "ZoomEnabled", isub, -1, false );
 			if ( prop_value.equalsIgnoreCase("true") ) {
 				if (tsgraph.getNumTS() > 0) {
 					tsgraph.setDataLimitsForDrawing(max_data_limits);
@@ -4746,20 +4799,20 @@ It is assumed that zoomOut() has already been called to compute the maximum limi
 the data limits in the graphs but do not redraw (a redraw may occur elsewhere after this method is called).
 */
 public void zoomToVisiblePeriod ( DateTime visibleStart, DateTime visibleEnd, boolean re_draw ) {
-    int size = _tsgraphs.size();
+    int size = this._tsgraphs.size();
     // Loop through the zoom levels and zoom each group of graphs to the maximum data extent within the zoom group.
 
     TSGraph tsgraph;
     int zoom_group = 0;
-    int num_zoom_groups = _tsproduct.getNumZoomGroups();
+    int num_zoom_groups = this._tsproduct.getNumZoomGroups();
     for ( int iz = 0; iz < num_zoom_groups; iz++ ) {
         // Loop through and set the data limits for graph in the zoom group to the specified period (leave the value axis the same).
         for ( int isub = 0; isub < size; isub++ ) {
-            zoom_group = StringUtil.atoi( _tsproduct.getLayeredPropValue ( "ZoomGroup", isub, -1, false) );
+            zoom_group = StringUtil.atoi( this._tsproduct.getLayeredPropValue ( "ZoomGroup", isub, -1, false) );
             if ( zoom_group != (iz + 1) ) {
                 continue;
             }
-            tsgraph = _tsgraphs.get(isub);
+            tsgraph = this._tsgraphs.get(isub);
             if (tsgraph.getNumTS() > 0) {
                 GRLimits limits = tsgraph.getDataLimits();
                 // Set the period.
@@ -4788,7 +4841,7 @@ public void setDisplayCursor(boolean display) {
  * @param tsGraphEditor editor instance
  */
 public void setEditor ( TSGraphEditor tsGraphEditor ) {
-    _tsGraphEditor = tsGraphEditor;
+    this._tsGraphEditor = tsGraphEditor;
 }
 
 }

@@ -7663,24 +7663,24 @@ Example of POR calculation:
 </pre>
 @return The TSLimits for the list of time series (recomputed).
 If the limits do not overlap, return the maximum.
-@param ts A list of time series of interest.
+@param tslist A list of time series of interest, null time series are ignored.
 @param por_flag Use a *_POR flag.
 @exception RTi.TS.TSException If the period cannot be determined from the time series.
 */
-public static TSLimits getPeriodFromTS ( List<? extends TS> ts, int por_flag )
+public static TSLimits getPeriodFromTS ( List<? extends TS> tslist, int por_flag )
 throws TSException {
 	String 	message, routine = TSUtil.class.getSimpleName() + ".getPeriodFromTS";
 	TS tsPtr = null;
 	int	dl = 10, i = 0;
 	DateTime end = null, tsPtr_end, tsPtr_start, start = null;
 
-	if( ts == null ) {
-		message = "Unable to get period for time series - time series list is null";
+	if ( tslist == null ) {
+		message = "Unable to get period for time series - time series list is null.";
 		Message.printWarning(3, routine, message );
 		throw new TSException ( message );
 	}
 
-	int listSize = ts.size();
+	int listSize = tslist.size();
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( dl, routine, "Getting " + por_flag + "-flag limits for " + listSize + " time series." );
 	}
@@ -7699,7 +7699,7 @@ throws TSException {
 
     int nullcount = 0;
 	for ( int its = 0; its < listSize; its++ ) {
-		tsPtr = ts.get(its);
+		tsPtr = tslist.get(its);
 		if ( tsPtr != null ) {
             if ( tsPtr.getDate1() != null ) {
                 start = tsPtr.getDate1();
@@ -7729,7 +7729,7 @@ throws TSException {
 	// Now loop through the remaining time series.
 
 	for( i = 1; i < listSize; i++ ) {
-		tsPtr = ts.get(i);
+		tsPtr = tslist.get(i);
 		if( tsPtr == null ) {
 			// Ignore the time series.
 			continue;
