@@ -1586,6 +1586,8 @@ The following built-in properties are checked in addition to dynamic properties
 <li>datatype</li>
 <li>description</li>
 <li>interval</li>
+<li>periodEnd</li>
+<li>periodStart</li>
 <li>tsid</li>
 <li>units</li>
 </ul>
@@ -1616,6 +1618,14 @@ public Object getProperty ( String propertyName ) {
     	else if ( propertyName.equalsIgnoreCase("interval") ) {
     		// Null is allowed.
     		propertyValue = this.getIdentifier().getInterval();
+    	}
+    	else if ( propertyName.equalsIgnoreCase("periodEnd") ) {
+    		// Null is allowed.
+    		propertyValue = this.getDate2();
+    	}
+    	else if ( propertyName.equalsIgnoreCase("periodStart") ) {
+    		// Null is allowed.
+    		propertyValue = this.getDate1();
     	}
     	else if ( propertyName.equalsIgnoreCase("tsid") ) {
     		// Identifier without input type.

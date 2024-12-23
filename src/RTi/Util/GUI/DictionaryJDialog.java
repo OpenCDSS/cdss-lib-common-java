@@ -441,7 +441,7 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
        	this.valueTextFieldList.add(vtf);
        	JGUIUtil.addComponent(this.scrollPanel, vtf,
            	3, row, 1, 1, 1, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
-       	
+
        	// Invalidate the scrollPanel so the new row is drawn.
        	this.scrollPanel.revalidate();
        	this.scrollPanel.repaint();
@@ -502,7 +502,7 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 	 */
 	public void checkUiState () {
 		String routine = getClass().getSimpleName() + ".checkUiState";
-		
+
 		if ( this.debug ) {
 			Message.printStatus(2, routine, "Number of items in dictionary lists = " + this.checkBoxList.size() );
 		}
@@ -798,6 +798,7 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
     	int yScroll = -1;
 
     	this.allCheckBox = new JCheckBox();
+    	this.allCheckBox.setToolTipText("Select/deselect all rows for button actions.");
 		JGUIUtil.addComponent(this.scrollPanel,
 			this.allCheckBox,
 			0, ++yScroll, 1, 1, 0, 0, insetsTLBR,
@@ -836,6 +837,7 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
         	}
 
 			JCheckBox checkBox = new JCheckBox();
+			checkBox.setToolTipText("Select/deselect row for button actions.");
 			this.checkBoxList.add(checkBox);
 			JGUIUtil.addComponent(this.scrollPanel, checkBox,
 				0, ++yScroll, 1, 1, 0, 0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST);
@@ -871,7 +873,7 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 			south.add(this.insertButton);
 
 			this.removeButton = new SimpleJButton(this.BUTTON_REMOVE, this);
-			this.removeButton.setToolTipText("Remove the row that is currenty selected.  Empty rows are shifted to the end and will be ignored when saved.");
+			this.removeButton.setToolTipText("Remove rows that are currenty selected.  Empty rows are shifted to the end and will be ignored when saved.");
 			south.add(this.removeButton);
 		}
 
@@ -885,7 +887,7 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 		south.add(this.cancelButton);
 
 		getContentPane().add("South", south);
-		
+
 		// Check the GUI state.
 		checkUiState();
 
@@ -932,13 +934,13 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 			// Row (zero index):
 			// 0
 			// 1
-			// 2 - firstRowToShift (selected row, new row will be above), 
+			// 2 - firstRowToShift (selected row, new row will be above),
 			// 3
 			// 4
 			// 5 - new row that was just added
 			//
 			// initial j = 6 - 1 - 1 = 4
-			// j >= 
+			// j >=
 			for ( int j = (this.keyTextFieldList.size() - 1 - shiftCount); j >= firstRowToShift; j-- ) {
 				// j - 1 components:
 				JCheckBox checkbox_jshift = this.checkBoxList.get(j + shiftCount);

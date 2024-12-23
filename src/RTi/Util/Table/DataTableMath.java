@@ -83,15 +83,57 @@ public static List<String> getOperatorChoicesAsStrings() {
 }
 
 /**
+ * Determine whether the input is all integers or longs, * used to help with casting.
+ * @return true if all the input is integers (short, integer, long), otherwise return false
+ */
+private boolean inputIsIntegers (
+	int input1Field, int input1FieldType, Double input1ConstantDouble, Integer input1ConstantInteger, Long input1ConstantLong,
+	int input2Field, int input2FieldType, Double input2ConstantDouble, Integer input2ConstantInteger, Long input2ConstantLong ) {
+	String routine = getClass().getSimpleName() + ".inputIsIntegers";
+	boolean inputIsIntegers = true;
+	if ( input1Field >= 0 ) {
+		// Have an input1 field (column) to check.
+		if ( (input1FieldType != TableField.DATA_TYPE_INT) && (input1FieldType != TableField.DATA_TYPE_SHORT) && (input1FieldType != TableField.DATA_TYPE_LONG) ) {
+			// Input field is not an integer type.
+			Message.printStatus(2,routine,"Input field 1 is not an integer type.");
+			inputIsIntegers = false;
+		}
+	}
+	if ( inputIsIntegers ) {
+		if ( input2Field >= 0 ) {
+			// Have an input2 field (column) to check.
+			if ( (input2FieldType != TableField.DATA_TYPE_INT) && (input2FieldType != TableField.DATA_TYPE_SHORT) && (input2FieldType != TableField.DATA_TYPE_LONG) ) {
+				// Input field is not an integer type.
+				Message.printStatus(2,routine,"Input field 2 is not an integer type.");
+				inputIsIntegers = false;
+			}
+		}
+		else {
+			// Check the second constant.
+			if ( input2ConstantLong == null ) {
+				// The second constant is an integer or long (long is set if an integer and holds larger values).
+				Message.printStatus(2,routine,"Constant field 2 is not an integer/long type.");
+				inputIsIntegers = false;
+			}
+		}
+	}
+	Message.printStatus(2,routine,"inputIsIntegers output=" + inputIsIntegers);
+	return inputIsIntegers;
+}
+
+/**
 Perform a math calculation.
 @param input1 the name of the first column to use as input
 @param operator the operator to execute for processing data
 @param input2 the name of the second column to use as input, or a constant
 @param output the name of the output column
+@param outputType the output column type (TableField.DATA_*), or -1 to automatically determine
 @param nonValue value to assign when floating point numbers cannot be computed (null or Double.NaN)
 @param problems a list of strings indicating problems during processing
 */
-public void math ( String input1, DataTableMathOperatorType operator, String input2, String output,
+public void math (
+	String input1, DataTableMathOperatorType operator, String input2,
+	String output, int outputType,
     Double nonValue,
 	TableRowConditionEvaluator evaluator,
     List<String> problems ) {
@@ -104,6 +146,7 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
     Double input1ConstantDouble = null;
     Integer input1ConstantInteger = null;
     Long input1ConstantLong = null;
+
     // First try to get the input field assuming that the first input is a column name.
     try {
         input1Field = this.table.getFieldIndex(input1);
@@ -141,6 +184,8 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
     		problems.add ( "Input column (1) \"" + input1 + "\" not found in table \"" + this.table.getTableID() + "\"" );
     	}
     }
+    
+    // Check the second input, which might be a table column, or a constant.
     int input2Field = -1;
     Double input2ConstantDouble = null;
     Integer input2ConstantInteger = null;
@@ -149,7 +194,7 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
     if ( requireInput2 ) {
         // Need to get the second input to do the math.
         if ( StringUtil.isDouble(input2) ) {
-            // Second input supplied as a double.
+            // Second input supplied as a double, which is more restrictive because it has a decimal.
             input2ConstantDouble = Double.parseDouble(input2);
             input2FieldType = TableField.DATA_TYPE_DOUBLE;
             if ( Message.isDebugOn ) {
@@ -158,23 +203,36 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
         }
         if ( StringUtil.isInteger(input2) ) {
             // Second input supplied as an integer:
-        	// - use Integer instead of double (handle below if 1st and 2nd arguments are different)
-        	// - also set Long in case output is Long
+        	// - use Integer in addition to double (handle below if 1st and 2nd arguments are different type)
+        	// - also set Long in case output is Long and can't fit in an Integer
             input2ConstantInteger = Integer.valueOf(input2);
             input2ConstantLong = Long.valueOf(input2);
+            input2ConstantDouble = Double.valueOf(input2);
             input2FieldType = TableField.DATA_TYPE_INT;
             if ( Message.isDebugOn ) {
             	Message.printStatus(2, routine, "Second input provided as constant integer: " + input2);
             }
         }
-        if ( (input2ConstantDouble == null) && (input2ConstantInteger == null) ) {
+        else if ( StringUtil.isLong(input2) ) {
+            // Second input supplied as a long:
+        	// - use Long in addition to double (handle below if 1st and 2nd arguments are different type)
+        	// - cannot set Integer because the value is too large
+            input2ConstantLong = Long.valueOf(input2);
+            input2ConstantDouble = Double.valueOf(input2);
+            input2FieldType = TableField.DATA_TYPE_LONG;
+            if ( Message.isDebugOn ) {
+            	Message.printStatus(2, routine, "Second input provided as constant long integer (too big for normal integer): " + input2);
+            }
+        }
+        if ( (input2ConstantDouble == null) && (input2ConstantInteger == null) && (input2ConstantLong == null) ) {
             // Second input supplied as a column name rather than constant number.
             try {
                 input2Field = this.table.getFieldIndex(input2);
                 input2FieldType = this.table.getFieldDataType(input2Field);
             }
             catch ( Exception e ) {
-                problems.add ( "Input column (2) \"" + input2 + "\" not found in table \"" + this.table.getTableID() + "\"" );
+                problems.add ( "Input 2 is not integer, long, or double and column 2 \"" + input2 +
+                	"\" is not found in table \"" + this.table.getTableID() + "\"" );
             }
         }
     }
@@ -201,7 +259,12 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
     catch ( Exception e ) {
     	// Existing column does not exist.
         // Automatically add to the table, initialize with null (not nonValue).
-        if ( operator == DataTableMathOperatorType.TO_INTEGER ) {
+    	if ( outputType >= 0 ) {
+    		// Output type is explicitly specified, so use the provided type.
+            outputFieldType = outputType;
+    		Message.printStatus(2, routine, "Output type is explicitly set to \"" + TableField.getDataTypeAsString(outputType) + "\"");
+    	}
+    	else if ( operator == DataTableMathOperatorType.TO_INTEGER ) {
         	// Output field type is integer by definition.
             outputFieldType = TableField.DATA_TYPE_INT;
         }
@@ -225,42 +288,55 @@ public void math ( String input1, DataTableMathOperatorType operator, String inp
         else {
         	// One or both output fields are floating point so default output to double.
         	// This is consistent with most common programming languages and handles mixed case
+        	// Also use this for division so that fractions are not truncated.
             outputFieldType = TableField.DATA_TYPE_DOUBLE;
         }
         // Create the table output field of the correct type.
         if ( outputFieldType == TableField.DATA_TYPE_INT ) {
-        	Message.printWarning(3, routine, "Output field \"" + output + "\" not found in table \"" +
+        	Message.printWarning(3, routine, "Output column \"" + output + "\" not found in table \"" +
             	this.table.getTableID() + "\" - automatically adding integer column." );
             outputField = this.table.addField(new TableField(outputFieldType,output,-1,-1), null );
         }
         else if ( outputFieldType == TableField.DATA_TYPE_LONG ) {
-        	Message.printWarning(3, routine, "Output field \"" + output + "\" not found in table \"" +
+        	Message.printWarning(3, routine, "Output column \"" + output + "\" not found in table \"" +
             	this.table.getTableID() + "\" - automatically adding long column." );
             outputField = this.table.addField(new TableField(outputFieldType,output,-1,-1), null );
         }
         else if ( outputFieldType == TableField.DATA_TYPE_DOUBLE ) {
-        	Message.printWarning(3, routine, "Output field \"" + output + "\" not found in table \"" +
+        	Message.printWarning(3, routine, "Output column \"" + output + "\" not found in table \"" +
             	this.table.getTableID() + "\" - automatically adding double column." );
         	// Use the maximum width and precision of the input columns.
         	int precision = 4;
         	int width = 10;
-        	if ( input1Field >= 0 ) {
-            	precision = this.table.getFieldPrecision(input1Field);
-            	width = this.table.getFieldWidth(input1Field);
-            	if ( input2Field >= 0 ) {
-            		precision = MathUtil.max(precision,this.table.getFieldPrecision(input2Field));
-            		width = MathUtil.max(width,this.table.getFieldWidth(input2Field));
-            	}
+        	if ( inputIsIntegers(input1Field, input1FieldType, input1ConstantDouble, input1ConstantInteger, input1ConstantLong,
+        			input2Field, input2FieldType, input2ConstantDouble, input2ConstantInteger, input2ConstantLong) ) {
+        		// Input is all integers or longs and output is Double:
+        		// - can't examine input Double to determine precision and width
+        		// - use default width and precision
+        		precision = 4;
+        		width = -1;
         	}
-        	else if ( input2Field >= 0 ) {
-        		// Second input is a table column so use the column properties to set the output precision.
-            	precision = this.table.getFieldPrecision(input2Field);
-            	width = this.table.getFieldWidth(input2Field);
-        	}
-        	if ( input2ConstantDouble != null ) {
-        		// Set the output precision based on the original double (number of digits after the period).
-           		width = input2.length();
-           		precision = MathUtil.max(precision,StringUtil.numberOfDigits(input2, 1));
+        	else {
+        		// Some input is Double:
+        		// - set the width and precision based on the largest double
+        		if ( input1Field >= 0 ) {
+            		precision = this.table.getFieldPrecision(input1Field);
+            		width = this.table.getFieldWidth(input1Field);
+            		if ( input2Field >= 0 ) {
+            			precision = MathUtil.max(precision,this.table.getFieldPrecision(input2Field));
+            			width = MathUtil.max(width,this.table.getFieldWidth(input2Field));
+            		}
+        		}
+        		else if ( input2Field >= 0 ) {
+        			// Second input is a table column so use the column properties to set the output precision.
+            		precision = this.table.getFieldPrecision(input2Field);
+            		width = this.table.getFieldWidth(input2Field);
+        		}
+        		if ( input2ConstantDouble != null ) {
+        			// Set the output precision based on the original double (number of digits after the period).
+           			width = input2.length();
+           			precision = MathUtil.max(precision,StringUtil.numberOfDigits(input2, 1));
+        		}
         	}
             outputField = this.table.addField(new TableField(outputFieldType,output,width,precision),null);
         }

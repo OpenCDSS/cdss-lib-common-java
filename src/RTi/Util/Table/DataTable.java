@@ -1252,12 +1252,12 @@ throws Exception {
 
 /**
 Deletes a record from the table.
-@param recordNum the number of the record to delete.
+@param recordNum the number of the record to delete (0+).
 */
 public void deleteRecord(int recordNum)
 throws Exception {
-	if (recordNum < 0 || recordNum > (_table_records.size() - 1)) {
-		throw new Exception ("Record number " + recordNum + " out of bounds.");
+	if ( (recordNum < 0) || (recordNum > (_table_records.size() - 1)) ) {
+		throw new Exception ("Record number " + recordNum + " to delete is out of bounds (0 to " + (_table_records.size() - 1) + " are allowed).");
 	}
 
 	_table_records.remove(recordNum);
@@ -4338,14 +4338,6 @@ throws Exception {
 }
 
 /**
-Set the table identifier.
-@param table_id Identifier for the table
-*/
-public void setTableID ( String table_id ) {
-    __table_id = table_id;
-}
-
-/**
 Set the number of records in the table.
 This method should typically only be called when data are read on-the-fly
 (and are not stored in memory in the table records).
@@ -4407,6 +4399,14 @@ throws Exception {
 	}
 	TableField tableField = _table_fields.get(index);
 	tableField.setDataType ( data_type );
+}
+
+/**
+Set the table identifier.
+@param table_id Identifier for the table
+*/
+public void setTableID ( String table_id ) {
+    __table_id = table_id;
 }
 
 /**

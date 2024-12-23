@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2024 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -325,7 +325,15 @@ Lookup the type of data represented in this field as an internal integer given t
 Array data type like "[double]" is not currently handled.
 */
 public static int lookupDataType ( String dataType ) {
-    if ( dataType.equalsIgnoreCase("bool") || dataType.equalsIgnoreCase("boolean")) {
+	if ( (dataType == null) || dataType.isEmpty() ) {
+		return -1;
+	}
+	
+	// Remove the trailing note if present.
+	if ( dataType.contains("-") ) {
+		dataType = dataType.substring(0,dataType.indexOf("-")).trim();
+	}
+	if ( dataType.equalsIgnoreCase("bool") || dataType.equalsIgnoreCase("boolean")) {
         return DATA_TYPE_BOOLEAN;
     }
     else if ( dataType.equalsIgnoreCase("date") ) {

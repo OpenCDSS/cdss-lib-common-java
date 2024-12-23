@@ -5343,11 +5343,9 @@ private void drawLegend ( GRAxisEdgeType axis ) {
 
 	    GRDrawingAreaUtil.setLineWidth( da_legend, 1 );
 		GRDrawingAreaUtil.setColor(da_legend, GRColor.white);
-		GRDrawingAreaUtil.fillRectangle(da_legend, -4, -4,
-			datalim_legend.getWidth() + 8, datalim_legend.getHeight() + 8);
+		GRDrawingAreaUtil.fillRectangle(da_legend, -4, -4, (datalim_legend.getWidth() + 8) , (datalim_legend.getHeight() + 8) );
 		GRDrawingAreaUtil.setColor(da_legend, GRColor.black);
-		GRDrawingAreaUtil.drawRectangle(da_legend, -4, -4,
-			datalim_legend.getWidth() + 8, datalim_legend.getHeight() + 8);
+		GRDrawingAreaUtil.drawRectangle(da_legend, -4, -4, (datalim_legend.getWidth() + 8) , (datalim_legend.getHeight() + 8) );
 	}
 	else {
 		// Includes "None" case.
@@ -5446,10 +5444,11 @@ private void drawLegend ( GRAxisEdgeType axis ) {
 	// TODO smalers 2024-11-11 delete the imatch code once tested out.
 	//int imatch = -1; // Used to match a specific time series.
 
-	// Position of time series that are not null (0+).
-	int iNotNull = 0;
+	// Position of time series that are not null (0+):
+	// - initialize to -1 because it is incremented below
+	int iNotNull = -1;
 	// The following loop works when plotting the time series list forward or backward.
-	for ( int i = iStart; i != iEnd; i = i + iIncrement ) {
+	for ( int i = iStart; i != iEnd; i = (i + iIncrement) ) {
 		//imatch = -1; // Used below to match a specific time series in TSGraph index order.
 		predicted = false;
 
@@ -5554,7 +5553,7 @@ private void drawLegend ( GRAxisEdgeType axis ) {
 			// - everything besides PREDICTED_VALUE and PREDICTED_VALUE_RESIDUAL
 			// - 'i' is the time series position 0+
 			if ( i >= size ) {
-				// TODO smalers 2024-11-11 need to simplfiy the loop iteration for different graph types.
+				// TODO smalers 2024-11-11 need to simplify the loop iteration for different graph types.
 				break;
 			}
 			if ( Message.isDebugOn ) {
@@ -5564,7 +5563,7 @@ private void drawLegend ( GRAxisEdgeType axis ) {
 				if ( !isTSEnabled(i) ) {
 					// Time series is not being drawn so don't include in the legend.
 					if ( Message.isDebugOn ) {
-						Message.printDebug(1, routine, "  Time series is not enabled - ignoring." );
+						Message.printDebug(1, routine, "  Time series [" + i + "] is not enabled - ignoring." );
 					}
 					continue;
 				}
@@ -5580,16 +5579,20 @@ private void drawLegend ( GRAxisEdgeType axis ) {
 			if ( ts == null ) {
 				// Null time series so don't draw the legend.
 				if ( Message.isDebugOn ) {
-					Message.printDebug(1, routine, "  Time series is not null - ignoring." );
+					Message.printDebug(1, routine, "  Time series [" + i + "] is null - ignoring." );
 				}
 				continue;
 			}
 			// If here have the time series that matches the position in the time series product:
-			// - increment the counter of time series that are not null (1+).
+			// - increment the index of time series that are not null (0+).
 			++iNotNull;
+			//legend = getLegendString(ts, iNotNull);
 			legend = getLegendString(ts, iNotNull);
 			if ( legend == null ) {
 				// Something went wrong so can't draw the legend.
+				if ( Message.isDebugOn ) {
+					Message.printDebug(1, routine, "  Skipping null legend for time series [" + i + "]." );
+				}
 				continue;
 			}
 			if ( Message.isDebugOn ) {
@@ -5645,7 +5648,7 @@ private void drawLegend ( GRAxisEdgeType axis ) {
 			prop_value = this._tsproduct.getLayeredPropValue("Color", this.subproduct, i, false);
 			try {
 				if ( Message.isDebugOn ) {
-					Message.printDebug(1, routine, "Color from property is \"" + prop_value + "\"");
+					Message.printDebug(1, routine, "  Color from property is \"" + prop_value + "\"");
 				}
 				da_legend.setColor(GRColor.parseColor(prop_value));
 			}
@@ -10011,7 +10014,7 @@ protected String getRightYAxisViewMinY () {
 Return the legend string for a time series.
 @return a legend string.  If null is returned, the legend should not be drawn.
 @param ts Time series to get legend.
-@param i Loop counter for time series (0-index).
+@param its Loop counter for time series (0+).
 For graphs such as period of record, the loop counter should be for non-null time series.
 */
 private String getLegendString ( TS ts, int its ) {
@@ -10050,7 +10053,7 @@ private String getLegendString ( TS ts, int its ) {
 		legend = ts.formatLegend ( ts.getLegend() );
 	}
 	else if ( !subproduct_legend_format.equalsIgnoreCase("Auto") ) {
-		// Use the subproduct legend.
+		// Use the sub-product legend.
 		legend = ts.formatLegend ( subproduct_legend_format );
 	}
 	else {
