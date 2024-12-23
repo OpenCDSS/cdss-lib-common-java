@@ -2455,7 +2455,7 @@ public static boolean isInList ( List<String> list, String item ) {
 }
 
 /**
-Determine whether a string can be converted to an integer.
+Determine whether a string can be converted to an integer, will return false if it is too long (in which case use 'isLong').
 @return true if the string can be converted to a integer.
 @param s String to convert.
 */
@@ -2468,6 +2468,7 @@ public static boolean isInteger( String s ) {
 		return true;
 	}
 	catch( NumberFormatException e ){
+		// May be because the number is too large to fit into an integer.
 		return false;
 	}
 }
