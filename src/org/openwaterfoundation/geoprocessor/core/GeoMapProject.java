@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import RTi.Util.Message.Message;
+
 /**
     Map project that when serialized using to JSON will
     result in a map project file that can be used by other tools such as Leaflet map viewer.
@@ -42,7 +44,7 @@ import java.util.TreeMap;
                     GeoLayer              # ID will be used in output to reference above GeoLayer [].
                     GeoLayerSymbol        # Symbol configuration for the layer.
  */
-public class GeoMapProject {
+public class GeoMapProject implements Cloneable {
 
 	/**
 	 * Unique identifier for the project.
@@ -75,6 +77,12 @@ public class GeoMapProject {
 	private List<GeoMap> geoMaps = new ArrayList<>();
 
 	/**
+	 * Constructor needed for deserialization.
+	 */
+	public GeoMapProject ( ) {
+	}
+
+	/**
 	 * Constructor.
 	 * @param geoMapProjectId GeoMap project identifier
 	 * @param name project name
@@ -99,6 +107,36 @@ public class GeoMapProject {
 	 */
 	public void addMap ( GeoMap geomap ) {
 		this.geoMaps.add(geomap);
+	}
+
+	/**
+	Clone the project object.
+	*/
+	public Object clone () {
+		try {
+			// Clone the base class (Object).
+        	GeoMapProject project = (GeoMapProject)super.clone();
+        	// Primitives like 'name' will be automatically cloned.
+        	// Clone the maps.
+        	if ( this.geoMaps == null ) {
+        		// Use an empty list.
+        		project.geoMaps = new ArrayList<>();
+        	}
+        	else {
+        		project.geoMaps = new ArrayList<>();
+        		for ( GeoMap map : this.geoMaps ) {
+        			project.geoMaps.add ( (GeoMap)map.clone() );
+        		}
+        	}
+        	// Return the cloned object.
+        	return project;
+		}
+		catch ( CloneNotSupportedException e ) {
+			// Should not happen because everything is clone-able.
+			String routine = getClass().getSimpleName() + ".clone";
+			Message.printWarning(3,routine,e);
+			throw new InternalError();
+		}
 	}
 
 	/**
@@ -175,6 +213,30 @@ public class GeoMapProject {
 	 */
 	public Map<String,Object> getProperties () {
 		return this.properties;
+	}
+
+	/**
+	 * Set the project description.
+	 * @param description
+	 */
+	public void setDescription ( String description ) {
+		this.description = description;
+	}
+
+	/**
+	 * Set the project ID.
+	 * @param id
+	 */
+	public void setGeoMapProjectId ( String geoMapProjectId ) {
+		this.geoMapProjectId = geoMapProjectId;
+	}
+
+	/**
+	 * Set the project name.
+	 * @param name
+	 */
+	public void setName ( String name ) {
+		this.name = name;
 	}
 
 }

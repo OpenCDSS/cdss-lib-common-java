@@ -1,4 +1,4 @@
-// GeoLayerSingleSymbol - spatial data layer single symbol
+// GeoMapProjectResponse - map project response, to handle reading JSON with named project
 
 /* NoticeStart
 
@@ -23,37 +23,31 @@ NoticeEnd */
 
 package org.openwaterfoundation.geoprocessor.core;
 
-import java.util.SortedMap;
-
 /**
- * Layer symbol.
+ * Map project response to handle reading web service or JSON file.
  */
-public class GeoLayerSingleSymbol extends GeoLayerSymbol implements Cloneable {
+public class GeoMapProjectResponse {
+
+	/**
+	 * Unique identifier for the project.
+	 */
+	private GeoMapProject geoMapProject = null;
 
 	/**
 	 * Constructor.
-	 * @param name symbol name
-	 * @param description symbol description
-	 * @param properties properties for the symbol
+	 * @param geoMapProjectId GeoMap project identifier
+	 * @param name project name
+	 * @param description project description
+	 * @param properties project properties
 	 */
-	public GeoLayerSingleSymbol ( String name, String description, SortedMap<String,Object> properties ) {
-		super ( name, description, properties );
-		setClassificationType ( GeoLayerSymbolClassificationType.SINGLE_SYMBOL);
+	public GeoMapProjectResponse ( ) {
 	}
 
 	/**
-	Clone the symbol object.
-	*/
-	public Object clone () {
-		//try {
-			// Clone the base class (Object):
-			// - no need to do any more work here
-        	GeoLayerSingleSymbol layerSymbol = (GeoLayerSingleSymbol)super.clone();
-        	return layerSymbol;
-		//}
-		//catch ( CloneNotSupportedException e ) {
-			// Should not happen because everything is clone-able.
-			//throw new InternalError();
-		//}
+	 * Return the GeoMapProject instance.
+	 * @return the GeoMapProject instance.
+	 */
+	public GeoMapProject getGeoMapProject () {
+		return this.geoMapProject;
 	}
 }

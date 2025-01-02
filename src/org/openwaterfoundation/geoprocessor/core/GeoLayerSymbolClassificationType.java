@@ -23,12 +23,14 @@ NoticeEnd */
 
 package org.openwaterfoundation.geoprocessor.core;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
 Map project types.
 */
-public enum GeoLayerSymbolClassificationType {
+public enum GeoLayerSymbolClassificationType implements Cloneable {
     /**
-     * Categorized - categoriews (bins, ranges) of values
+     * Categorized - categories (bins, ranges) of values
      */
     CATEGORIZED("Categorized"),
 
@@ -62,6 +64,7 @@ public enum GeoLayerSymbolClassificationType {
      * @return the display name.
      */
     @Override
+    @JsonValue
     public String toString() {
         return displayName;
     }

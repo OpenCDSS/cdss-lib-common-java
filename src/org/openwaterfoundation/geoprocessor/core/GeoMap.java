@@ -40,7 +40,7 @@ import java.util.TreeMap;
                     GeoLayer              # ID will be used in output to reference above GeoLayer [].
                     GeoLayerSymbol        # Symbol configuration for the layer.
  */
-public class GeoMap {
+public class GeoMap implements Cloneable {
 
 	/**
 	 * Unique identifier for the map.
@@ -79,7 +79,7 @@ public class GeoMap {
 	private List<GeoLayerViewGroup> geoLayerViewGroups = new ArrayList<>();
 
 	/**
-	 * Constructor.
+	 * Constructor needed for deserialization.
 	 */
 	public GeoMap () {
 	}
@@ -120,11 +120,67 @@ public class GeoMap {
 	}
 
 	/**
+	Clone the map object.
+	*/
+	public Object clone () {
+		try {
+			// Clone the base class (Object).
+        	GeoMap map = (GeoMap)super.clone();
+        	// Primitives like 'name' will be automatically cloned.
+        	// Clone the maps.
+        	if ( this.geoLayers == null ) {
+        		map.geoLayers = null;
+        	}
+        	else {
+        		map.geoLayers = new ArrayList<>();
+        		for ( GeoLayer layer : this.geoLayers ) {
+        			map.geoLayers.add ( (GeoLayer)layer.clone() );
+        		}
+        	}
+        	// Clone the layer view groups.
+        	if ( this.geoLayerViewGroups == null ) {
+        		map.geoLayerViewGroups = null;
+        	}
+        	else {
+        		map.geoLayerViewGroups = new ArrayList<>();
+        		for ( GeoLayerViewGroup layerViewGroup : this.geoLayerViewGroups ) {
+        			map.geoLayerViewGroups.add ( (GeoLayerViewGroup)layerViewGroup.clone() );
+        		}
+        	}
+        	// Return the cloned object.
+        	return map;
+		}
+		catch ( CloneNotSupportedException e ) {
+			// Should not happen because everything is clone-able.
+			throw new InternalError();
+		}
+	}
+
+	/**
 	 * Return the description.
 	 * @return the description
 	 */
 	public String getDescription () {
 		return this.description;
+	}
+
+	/**
+	 * Return the layer matching the given identifier.
+	 * @param geoLayerId the layer identifier
+	 * @return the matching layer in the map, or null if not found
+	 */
+	public GeoLayer getLayerForLayerId ( String geoLayerId ) {
+		if ( geoLayerId == null ) {
+			// No layer ID was provided.
+			return null;
+		}
+		for ( GeoLayer geoLayer : this.geoLayers ) {
+			if ( geoLayer.getGeoLayerId().equals(geoLayerId) ) {
+				return geoLayer;
+			}
+		}
+		// Not found.
+		return null;
 	}
 
 	/**
