@@ -32,7 +32,7 @@ import java.util.TreeMap;
 /**
  * Map layer group.
  */
-public class GeoLayerViewGroup {
+public class GeoLayerViewGroup implements Cloneable {
 
 	/**
 	 * Unique identifier for the layer view group.
@@ -66,14 +66,6 @@ public class GeoLayerViewGroup {
 	}
 	
 	/**
-	 * Add a layer view to the group.
-	 * @param geoLayerView the layer view to add to the group
-	 */
-	public void addGeoLayerView ( GeoLayerView geoLayerView ) {
-		this.geoLayerViews.add ( geoLayerView );
-	}
-
-	/**
 	 * Constructor.
 	 * @param geoLayerViewGroupId GeoLayerViewGroup identifier
 	 * @param name group name
@@ -89,6 +81,41 @@ public class GeoLayerViewGroup {
 		}
 		else {
 			// Use the default empty map.
+		}
+	}
+
+	/**
+	 * Add a layer view to the group.
+	 * @param geoLayerView the layer view to add to the group
+	 */
+	public void addGeoLayerView ( GeoLayerView geoLayerView ) {
+		this.geoLayerViews.add ( geoLayerView );
+	}
+
+	/**
+	Clone the layer view group object.
+	*/
+	public Object clone () {
+		try {
+			// Clone the base class (Object).
+        	GeoLayerViewGroup layerViewGroup = (GeoLayerViewGroup)super.clone();
+        	// Primitives like 'name' will be automatically cloned.
+        	// Clone the layer views.
+        	if ( this.geoLayerViews == null ) {
+        		layerViewGroup.geoLayerViews = null;
+        	}
+        	else {
+        		layerViewGroup.geoLayerViews = new ArrayList<>();
+        		for ( GeoLayerView layerView : this.geoLayerViews ) {
+        			layerViewGroup.geoLayerViews.add ( (GeoLayerView)layerView.clone() );
+        		}
+        	}
+        	// Return the cloned object.
+        	return layerViewGroup;
+		}
+		catch ( CloneNotSupportedException e ) {
+			// Should not happen because everything is clone-able.
+			throw new InternalError();
 		}
 	}
 

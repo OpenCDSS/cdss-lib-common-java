@@ -30,7 +30,7 @@ import java.util.TreeMap;
 /**
  * Map layer.
  */
-public class GeoLayerView {
+public class GeoLayerView implements Cloneable {
 
 	/**
 	 * Unique identifier for the layer view.
@@ -84,6 +84,30 @@ public class GeoLayerView {
 		}
 		else {
 			// Use the default empty map.
+		}
+	}
+
+	/**
+	Clone the layer view group object.
+	*/
+	public Object clone () {
+		try {
+			// Clone the base class (Object).
+        	GeoLayerView layerView = (GeoLayerView)super.clone();
+        	// Primitives like 'name' will be automatically cloned.
+        	// Clone the layer views.
+        	if ( this.geoLayerSymbol == null ) {
+        		layerView.geoLayerSymbol = null;
+        	}
+        	else {
+        		layerView.geoLayerSymbol = (GeoLayerSymbol)this.geoLayerSymbol.clone();
+        	}
+        	// Return the cloned object.
+        	return layerView;
+		}
+		catch ( CloneNotSupportedException e ) {
+			// Should not happen because everything is clone-able.
+			throw new InternalError();
 		}
 	}
 

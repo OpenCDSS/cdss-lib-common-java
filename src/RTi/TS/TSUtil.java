@@ -7786,62 +7786,103 @@ throws TSException {
 /**
 Return an array of valid format specifiers for the TS.formatHeader() method
 (which at some point may be moved to this class),
-in the format "%X - Description" where X is the format specifier.
+in the format '%X - Description' where X is the format specifier.
+Also include '${ts:property}' strings at the end.
 This is useful for building graphical interfaces.
 @return an array of format specifiers.
-@param includeDescription If false, only the %X specifiers are returned.  if
-True, the description is also returned.
+@param includeDescription If false, only the %X specifiers are returned.
+If True, the description is also returned.
 */
-public static String[] getTSFormatSpecifiers(boolean includeDescription ) {
-	String [] formats = new String[22];
+public static String[] getTSFormatSpecifiers ( boolean includeDescription ) {
+	return getTSFormatSpecifiers ( true, includeDescription );
+}
+
+/**
+Return an array of valid format specifiers for the TS.formatHeader() method
+(which at some point may be moved to this class),
+in the format "%X - Description" where X is the format specifier.
+This is useful for building graphical interfaces.
+@param includeProperties If false, only the %X specifiers are returned.
+If true, '{ts:property}' strings are also included at the end of the list.
+@param includeDescription If false, the %X specifiers are returned without descriptions.
+If True, the description is also returned similar to "%A - Alias".
+@return an array of format specifier strings.
+*/
+public static String[] getTSFormatSpecifiers ( boolean includeProperties, boolean includeDescription ) {
+	String [] formats = new String[30];
     // TODO SAM 2013-06-14 Evaluate other sort order to match TSID order.
 	if ( includeDescription ) {
-		formats[0] = "%A - Alias";
-		formats[1] = "%b - Interval, base";
-		formats[2] = "%D - Description";
-		formats[3] = "%F - Identifier";
-		formats[4] = "%I - Interval";
-		formats[5] = "%i - Input name";
-		formats[6] = "%L - Location";
-		formats[7] = "%l - Location, main";
-		formats[8] = "%m - Interval, mult";
-		formats[9] = "%p - Data period";
-		formats[10] = "%S - Source";
-		formats[11] = "%s - Source, main";
-		formats[12] = "%U - Units";
-		formats[13] = "%T - Data type";
-		formats[14] = "%t - Data type, main";
-		formats[15] = "%k - Data type, sub";
-		formats[16] = "%w - Location, sub";
-		formats[17] = "%x - Source, sub";
-		formats[18] = "%y - Location type";
-		formats[19] = "%Z - Scenario";
-		formats[20] = "%z - Sequence ID";
-		formats[21] = "%% - Literal %";
+		// Include a description.
+		int i = 0;
+		formats[i++] = "%A - Alias";
+		formats[i++] = "%b - Interval, base";
+		formats[i++] = "%D - Description";
+		formats[i++] = "%F - Identifier (TSID)";
+		formats[i++] = "%I - Interval";
+		formats[i++] = "%i - Input name";
+		formats[i++] = "%L - Location";
+		formats[i++] = "%l - Location, main";
+		formats[i++] = "%m - Interval, mult";
+		formats[i++] = "%p - Data period";
+		formats[i++] = "%S - Source";
+		formats[i++] = "%s - Source, main";
+		formats[i++] = "%U - Units";
+		formats[i++] = "%T - Data type";
+		formats[i++] = "%t - Data type, main";
+		formats[i++] = "%k - Data type, sub";
+		formats[i++] = "%w - Location, sub";
+		formats[i++] = "%x - Source, sub";
+		formats[i++] = "%y - Location type";
+		formats[i++] = "%Z - Scenario";
+		formats[i++] = "%z - Sequence ID";
+		formats[i++] = "%% - Literal %";
+		if ( includeProperties ) {
+			formats[i++] = "${ts:alias} - Alias";
+			formats[i++] = "${ts:datatype} - Data type";
+			formats[i++] = "${ts:description} - Description";
+			formats[i++] = "${ts:interval} - Interval";
+			formats[i++] = "${ts:periodend} - Period start";
+			formats[i++] = "${ts:periodstart} - Period end";
+			formats[i++] = "${ts:tsid} - Identifier (TSID)";
+			formats[i++] = "${ts:units} - Units";
+		}
 	}
 	else {
-	    formats[0] = "%A";
-		formats[1] = "%b";
-		formats[2] = "%D";
-		formats[3] = "%F";
-		formats[4] = "%I";
-		formats[5] = "%i";
-		formats[6] = "%L";
-		formats[7] = "%l";
-		formats[8] = "%m";
-		formats[9] = "%p";
-		formats[10] = "%S";
-		formats[11] = "%s";
-		formats[12] = "%U";
-		formats[13] = "%T";
-		formats[14] = "%k";
-		formats[15] = "%u";
-		formats[16] = "%w";
-		formats[17] = "%x";
-		formats[18] = "%x";
-		formats[19] = "%Z";
-		formats[20] = "%z";
-		formats[21] = "%%";
+		// Do not include a description.
+		int i = 0;
+	    formats[i++] = "%A";
+		formats[i++] = "%b";
+		formats[i++] = "%D";
+		formats[i++] = "%F";
+		formats[i++] = "%I";
+		formats[i++] = "%i";
+		formats[i++] = "%L";
+		formats[i++] = "%l";
+		formats[i++] = "%m";
+		formats[i++] = "%p";
+		formats[i++] = "%S";
+		formats[i++] = "%s";
+		formats[i++] = "%U";
+		formats[i++] = "%T";
+		formats[i++] = "%t";
+		formats[i++] = "%k";
+		formats[i++] = "%u";
+		formats[i++] = "%w";
+		formats[i++] = "%x";
+		formats[i++] = "%x";
+		formats[i++] = "%Z";
+		formats[i++] = "%z";
+		formats[i++] = "%%";
+		if ( includeProperties ) {
+			formats[i++] = "${ts:alias}";
+			formats[i++] = "${ts:datatype}";
+			formats[i++] = "${ts:description}";
+			formats[i++] = "${ts:interval}";
+			formats[i++] = "${ts:periodend}";
+			formats[i++] = "${ts:periodstart}";
+			formats[i++] = "${ts:tsid}";
+			formats[i++] = "${ts:units}";
+		}
 	}
 	return formats;
 }

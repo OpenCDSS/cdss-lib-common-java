@@ -1,4 +1,4 @@
-// MapProjectType - map project types
+// GeoLayerFormatType - layer format types
 
 /* NoticeStart
 
@@ -26,45 +26,26 @@ package org.openwaterfoundation.geoprocessor.core;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
-Map project types.
+Layer formats.
 */
-public enum GeoMapProjectType {
+public enum GeoLayerFormatType {
     /**
-     * Dashboard - maps and other information products.
+     * WMTS.
      */
-    DASHBOARD("Dashboard"),
+    WMTS("WMTS"),
 
     /**
-     * Grid - multiple maps shown in a 2D grid.
+     * GeoJSON.
      */
-    GRID("Grid"),
+    GEOJSON("GeoJSON");
 
-    /**
-     * Single map - stand-alone map.
-     */
-    SINGLE_MAP("SingleMap"),
-
-    /**
-     * Story - a sequence of maps and visualizations.
-     */
-    STORY("Story"),
-
-    /**
-     * Unknown - the project type is unknown (used during initialization).
-     */
-    UNKNOWN("Unknown");
-
-	/**
-	 * The visible enumeration value.
-	 */
-	@JsonValue
     private final String displayName;
 
     /**
      * Name that should be displayed in choices, etc.
      * @param displayName
      */
-    private GeoMapProjectType(String displayName) {
+    private GeoLayerFormatType(String displayName) {
         this.displayName = displayName;
     }
 
@@ -73,6 +54,7 @@ public enum GeoMapProjectType {
      * @return the display name.
      */
     @Override
+    @JsonValue
     public String toString() {
         return displayName;
     }
@@ -81,12 +63,12 @@ public enum GeoMapProjectType {
      * Return the enumeration value given a string name (case-independent).
      * @return the enumeration value given a string name (case-independent), or null if not matched.
      */
-    public static GeoMapProjectType valueOfIgnoreCase(String name) {
+    public static GeoLayerFormatType valueOfIgnoreCase(String name) {
         if ( name == null ) {
             return null;
         }
-        GeoMapProjectType [] values = values();
-        for ( GeoMapProjectType t : values ) {
+        GeoLayerFormatType [] values = values();
+        for ( GeoLayerFormatType t : values ) {
             if ( name.equalsIgnoreCase(t.toString()) ) {
                 return t;
             }

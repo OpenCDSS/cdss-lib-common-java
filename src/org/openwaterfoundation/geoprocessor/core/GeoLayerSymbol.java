@@ -29,7 +29,7 @@ import java.util.TreeMap;
 /**
  * Layer symbol.
  */
-public class GeoLayerSymbol {
+public class GeoLayerSymbol implements Cloneable {
 
 	/**
 	 * Name for the symbol.
@@ -57,6 +57,12 @@ public class GeoLayerSymbol {
 	private TreeMap<String,Object> properties = new TreeMap<>();
 	
 	/**
+	 * Constructor needed for deserialization.
+	 */
+	public GeoLayerSymbol () {
+	}
+
+	/**
 	 * Constructor.
 	 * @param name symbol name
 	 * @param description symbol description
@@ -65,6 +71,22 @@ public class GeoLayerSymbol {
 	public GeoLayerSymbol ( String name, String description, SortedMap<String,Object> properties ) {
 		this.name = name;
 		this.description = description;
+	}
+
+	/**
+	Clone the symbol object.
+	*/
+	public Object clone () {
+		try {
+			// Clone the base class (Object).
+        	GeoLayerSymbol layerSymbol = (GeoLayerSymbol)super.clone();
+        	// Primitives will automatically be cloned.
+        	return layerSymbol;
+		}
+		catch ( CloneNotSupportedException e ) {
+			// Should not happen because everything is clone-able.
+			throw new InternalError();
+		}
 	}
 
 	/**

@@ -29,12 +29,10 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 /**
  * Map layer.
  */
-public class GeoLayer {
+public class GeoLayer implements Cloneable {
 
 	/**
 	 * Unique identifier for the layer.
@@ -117,6 +115,23 @@ public class GeoLayer {
 	 */
 	public void appendToHistory ( String historyComment ) {
 		this.history.add(historyComment);
+	}
+
+	/**
+	Clone the layer object.
+	*/
+	public Object clone () {
+		try {
+			// Clone the base class (Object).
+        	GeoLayer layer = (GeoLayer)super.clone();
+        	// Primitives like 'name' will be automatically cloned.
+        	// Return the cloned object.
+        	return layer;
+		}
+		catch ( CloneNotSupportedException e ) {
+			// Should not happen because everything is clone-able.
+			throw new InternalError();
+		}
 	}
 
 	/**

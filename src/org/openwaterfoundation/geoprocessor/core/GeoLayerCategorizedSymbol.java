@@ -28,7 +28,7 @@ import java.util.SortedMap;
 /**
  * Layer symbol.
  */
-public class GeoLayerCategorizedSymbol extends GeoLayerSymbol {
+public class GeoLayerCategorizedSymbol extends GeoLayerSymbol implements Cloneable {
 
 	/**
 	 * Constructor.
@@ -39,5 +39,21 @@ public class GeoLayerCategorizedSymbol extends GeoLayerSymbol {
 	public GeoLayerCategorizedSymbol ( String name, String description, SortedMap<String,Object> properties ) {
 		super ( name, description, properties );
 		setClassificationType ( GeoLayerSymbolClassificationType.CATEGORIZED);
+	}
+
+	/**
+	Clone the symbol object.
+	*/
+	public Object clone () {
+		//try {
+			// Clone the base class (Object):
+			// - no need to do any more work here
+        	GeoLayerCategorizedSymbol layerSymbol = (GeoLayerCategorizedSymbol)super.clone();
+        	return layerSymbol;
+		//}
+		//catch ( CloneNotSupportedException e ) {
+			// Should not happen because everything is clone-able.
+			//throw new InternalError();
+		//}
 	}
 }
