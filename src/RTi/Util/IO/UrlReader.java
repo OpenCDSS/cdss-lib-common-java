@@ -51,6 +51,17 @@ public class UrlReader {
 	/**
 	 * UrlReader constructor.
 	 * @param url URL to read.
+	 * @param timeout connect (time until a connection is established) and
+	 * read (time until data available for reading) timeout in milliseconds, or < 0 to not specify the timeout
+	 */
+	public UrlReader ( String url, int timeout ) {
+		// Call the overloaded method.
+		this ( url, null, null, timeout );
+	}
+
+	/**
+	 * UrlReader constructor
+	 * @param url URL to read.
 	 * @param requestProperties request properties to send, can be null or empty map
 	 * @param requestData request data to send, can be null
 	 */

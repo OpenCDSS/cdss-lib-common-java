@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -55,6 +55,7 @@ private String itemSep = ",";
 
 /**
 Construct the parser by specifying the input string, the key/value separator, and the dictionary item separator.
+The resulting dictionary is guaranteed to be non-null but may be empty.
 @param s string dictionary to parse.
 @param keyValueSep separator character between key and value, default is ':'.
 @param itemSep separator character between items, default is ','.
@@ -63,7 +64,7 @@ public StringDictionary ( String s, String keyValueSep, String itemSep ) {
     if ( (s != null) && (s.length() > 0) && (s.indexOf(keyValueSep) > 0) ) {
         // First break map pairs:
     	// - TODO smalers 2019-09-29 this needs logic to handle quoted and bracketed values
-        List<String>pairs = StringUtil.breakStringList(s, itemSep, 0 );
+        List<String> pairs = StringUtil.breakStringList(s, itemSep, 0 );
         // Now break pairs and put in LinkedHashMap.
         for ( String pair : pairs ) {
             String [] parts = pair.split(keyValueSep);
@@ -86,14 +87,16 @@ public String get ( String key ) {
 }
 
 /**
-Get the dictionary as a TreeMap.
+Return the dictionary as a LinkedHashMap.
+@return the dictionary as a LinkedHashMap
 */
 public LinkedHashMap<String,String> getLinkedHashMap() {
     return this.dict;
 }
 
 /**
- * Get the number of entries in the dictionary.
+ * Return the number of entries in the dictionary.
+ * @return the number of entries in the dictionary
  */
 public int size() {
 	return this.dict.size();
@@ -101,6 +104,7 @@ public int size() {
 
 /**
 Return the string representation of the dictionary in form "key1:value1,key2:value2".
+@return the string representation of the dictionary
 */
 public String toString() {
     Iterator<Map.Entry<String,String>> i = this.dict.entrySet().iterator();

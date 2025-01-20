@@ -579,10 +579,15 @@ public static String charToHex(char c) {
 public static boolean compareSemanticVersions(String s1, String operator, String s2, int maxParts) {
 	List<String> s1Parts = breakStringList(s1,".",0);
 	List<String> s2Parts = breakStringList(s2,".",0);
-	int lenMax = s1Parts.size();
-	lenMax = Math.max(lenMax,s2Parts.size());
-	if ( (maxParts > 0) && (lenMax > maxParts) ) {
-		lenMax = maxParts;
+	// Number of parts to compare:
+	// - maximum of the parts in the version strings
+	int numParts = s1Parts.size();
+	// Number of period-delimited parts maximum for s1 and s2.
+	numParts = Math.max(numParts,s2Parts.size());
+	if ( (maxParts > 0) && (numParts > maxParts) ) {
+		// Restrict the number of parts to compare to the maximum (if specified as > 0):
+		// - only do if the actual number of parts is > the maximum requested (otherwise no need to set)
+		numParts = maxParts;
 	}
 	String s1PartUpper;
 	String s2PartUpper;
@@ -593,47 +598,57 @@ public static boolean compareSemanticVersions(String s1, String operator, String
 	// Care is taken to use a width that contains the value for each string.
 	StringBuilder b1 = new StringBuilder();
 	StringBuilder b2 = new StringBuilder();
-	for ( int i = 0; i < lenMax; i++ ) {
-		// Append version separator.
+	for ( int i = 0; i < numParts; i++ ) {
 		if ( i != 0 ) {
+			// Append version separator for 2nd, 3rd, etc. parts.
 			b1.append(".");
 			b2.append(".");
 		}
-		// Get the length needed for the part.
+		// Get the length needed for the part:
+		// - will be the maximum of the lengths of each version's part
 		int lenPart = 0;
-		if ( s1Parts.size() >= (i - 1) ) {
-			// Have an s1 part.
+		if ( s1Parts.size() > i ) {
+			// Have an s1 part:
+			// - initialize the length of the part
 			lenPart = s1Parts.get(i).length();
 		}
-		if ( s2Parts.size() >= (i - 1) ) {
-			// Have an s2 part.
+		if ( s2Parts.size() > i ) {
+			// Have an s2 part:
+			// - increase the length of the part if necessary
 			lenPart = Math.max(lenPart,(s2Parts.get(i).length()));
 		}
-		// Right justify string and pad with leading spaces for shorter string.
-		String formatPart = "%" + lenPart + "." + lenPart + "s";
-		if ( s1Parts.size() >= (i - 1) ) {
+		// Right justify string and pad with leading spaces for shorter string:
+		// - the format will be something like %3.3s
+		// - the space character comes before other alphanumeric characters in the ASCII table
+		String formatForPart = "%" + lenPart + "." + lenPart + "s";
+		if ( s1Parts.size() > i ) {
+			// Have a part to format.
 			s1PartUpper = s1Parts.get(i).toUpperCase();
 		}
 		else {
+			// Default to empty string.
 			s1PartUpper = "";
 		}
-		b1.append(formatString(s1PartUpper,formatPart));
-		if ( s2Parts.size() >= (i - 1) ) {
+		b1.append(formatString(s1PartUpper,formatForPart));
+		if ( s2Parts.size() > i ) {
+			// Have a part to format.
 			s2PartUpper = s2Parts.get(i).toUpperCase();
 		}
 		else {
+			// Default to empty string.
 			s2PartUpper = "";
 		}
-		b2.append(formatString(s2PartUpper,formatPart));
+		b2.append(formatString(s2PartUpper,formatForPart));
 	}
+	boolean result = compareUsingOperator(b1.toString(), operator, b2.toString());
+	//Message.printStatus(2,"","\"" + b1 + "\" " + operator + " \"" + b2 + "\" evaluates to " + result);
 	// Return the comparison of the formatted strings.
-	//Message.printStatus(2,"","Comparing \"" + b1 + "\" and \"" + b2 + "\"");
-	return compareUsingOperator(b1.toString(), operator, b2.toString());
+	return result;
 }
 
 /**
  * Compare two strings lexicographically (alphabetically) using an operator.
- * Convert to upper or lower case prior to calling to compare by ignoring case.
+ * Convert to upper or lower case prior to calling this method to compare by ignoring case.
  * Null evaluates to "zero".
  * If s1 is null and s2 is null, only evaluate to true for = operator.
  * If s1 is null and s2 is not, only evaluate to true for < or !=.
@@ -2105,7 +2120,7 @@ Process lists of strings to handle include and exclude.
 The returned list is populated first considering the "includeFirst" parameter and the other list is removed.
 The returned list is typically an overall list of strings to include.
 This could be used, for example, to indicate which columns in a table to include in processing.
-@param initialList An initial list to check for inclusion,
+@param initialList An initial list to check for inclusion (potential strings),
 if null then includeList will be used and should not contain regular expressions.
 @param includeList A list of strings to include, can be null.
 @param excludeList A list of strings to exclude, can be null.
@@ -2125,7 +2140,9 @@ public static List<String> includeExcludeStrings ( List<String> initialList,
     List<String> returnList = new ArrayList<>();
     List<String> listToRemove = null;
     List<String> listToInclude = null;
-    // Initialize list.
+    // Initialize list:
+    // - handle whether the include or exclude list is added first
+    // - then the second list is removed from the first
     if ( includeFirst ) {
     	listToInclude = includeList;
     	listToRemove = excludeList;
@@ -2177,7 +2194,8 @@ public static List<String> includeExcludeStrings ( List<String> initialList,
 		    }
 	    }
     }
-    // Loop through the initial list:
+    // Remove items from the first list:
+    // - Loop through the return list
     // - must use indices because list size is changed during looping
     int s1Size = returnList.size();
     String s1;
@@ -2230,8 +2248,8 @@ public static List<String> includeExcludeStrings ( List<String> initialList,
 Evaluate a list of strings and return a new list that matches strings to include.
 The returned list includes only strings in the included list.
 This could be used, for example, to indicate which columns in a table to include in processing.
-@param initialList An initial list of strings to evaluate, none of which are regex.
-@param includeList A list of strings to include, which can include regex.
+@param initialList An initial list of strings to evaluate (potential strings to include), none of which are Java regex.
+@param includeList A list of strings to include, which can include Java regex.
 @param ignoreCase if true, the comparison of strings ignores case.
 @param checkRegex if true, compare strings by allowing Java regular expressions (String.matches()).
 In this case, if ignoreCase=true, strings are converted to uppercase before evaluating.
@@ -2606,7 +2624,7 @@ Determine if strings match, while ignoring uppercase/lowercase.
 The input strings are converted to uppercase before the comparison is made.
 @return true if the string matches the regular expression, ignoring case.
 @param s String to check.
-@param regex Regular expression used as input to String.matches().
+@param regex Java regular expression used as input to String.matches().
 */
 public static boolean matchesIgnoreCase ( String s, String regex ) {
 	return s.toUpperCase().matches ( regex.toUpperCase() );
@@ -2635,7 +2653,7 @@ public static boolean matchesIgnoreCase ( String s, String regex ) {
 @param ignore_case if true, case will be ignored when comparing strings.  If
 false, strings will be compared literally.
 @param candidate_string String to evaluate.
-@param regexp_string Regular expression string to match.
+@param regexp_string Java regular expression string to match.
 @deprecated Use the standard String.matches() method or StringUtil.matchesIgnoreCase().
 */
 public static boolean matchesRegExp ( boolean ignore_case, String candidate_string, String regexp_string ) {
@@ -2875,7 +2893,7 @@ public static boolean matchesRegExp ( boolean ignore_case, String candidate_stri
 /**
 Check to see if a String matches a regular expression, considering case explicitly.
 @param candidate_string String to evaluate.
-@param regexp_string Regular expression string to match.
+@param regexp_string Java regular expression string to match.
 @return true if the candidate string matches the regular expression.
 @deprecated Use the standard String.matches() method or StringUtil.matchesIgnoreCase().
 */
@@ -3979,6 +3997,63 @@ public static List<String> toList ( Enumeration<String> e ) {
 		v.add ( e.nextElement() );
 	}
 	return v;
+}
+
+/**
+ * Convert a String to a Java regular expressions.
+ * Each string is evaluated as follows:
+ * <ul>
+ * <li> Null strings are omitted from the output but empty strings are added to allow matching empty strings.</li>
+ * <li> Starts with 'regex:' (any case) - use the following string as a Java regular expression (can return an empty string).</li>
+ * <li> Else if contains '*' - treat as simple globbing (replace '*' with '.*' to work as a Java regular expression match).</li>
+ * <li> Else, use the string as is.</li>
+ * </ul>
+ * @return the regular expression (will be null if the original string is null)
+ */
+public static String toRegex ( String s ) {
+	if ( s == null ) {
+		return null;
+	}
+	else if ( s.toUpperCase().startsWith("REGEX:") ) {
+		if ( s.length() == 6 ) {
+			// OK to add an empty string.
+			return "";
+		}
+		else {
+			// Add what follows.
+			return s.substring(6);
+		}
+	}
+	else if ( s.contains("*") ) {
+		return s.replace("*", ".*");
+	}
+	else {
+		return s;
+	}
+}
+
+/**
+ * Convert a List of String to a list of Java regular expressions.
+ * Each string is evaluated as follows:
+ * <ul>
+ * <li> Null strings are omitted from the output but empty strings are added to allow matching empty strings.</li>
+ * <li> Starts with 'regex:' (any case) - use the following string as a Java regular expression.</li>
+ * <li> Else if contains '*' - treat as simple globbing (replace '*' with '.*' to work as a Java regular expression match).</li>
+ * <li> Else, use the string as is.</li>
+ * </ul>
+ * @return the list of regular expressions (will always be null but may be an empty list)
+ */
+public static List<String> toRegExList ( List<String> list ) {
+	List<String> regexList = new ArrayList<>();
+	if ( list != null ) {
+		for ( String s : list ) {
+			String regex = toRegex ( s );
+			if ( regex != null ) {
+				regexList.add ( regex );
+			}
+		}
+	}
+	return regexList;
 }
 
 /**
