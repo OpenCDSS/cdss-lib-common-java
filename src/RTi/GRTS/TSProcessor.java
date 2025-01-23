@@ -282,6 +282,11 @@ throws Exception {
 		" matching time series for time series product graphs, disabledCount=" + disabledCount +
 		", readErrorCount=" + readErrorCount + " total of " +
 		(tslist.size() + disabledCount + readErrorCount) + " in product.");
+	if ( (tslist.size() == 0) && (readErrorCount > 0) ) {
+		// No time series are found for the graph and there were errors (not all disabled):
+		// - throw an exception
+		throw new RuntimeException ( "No time series are found for the graph." );
+	}
 	tsproduct.setTSList ( tslist );
 
 	// Now create the graph.  For now use the PropList associated with the TSProduct.

@@ -34,13 +34,13 @@ public enum CommandStatusType {
     /**
      * UNKNOWN indicates that the command could not be executed (no results).
      */
-    UNKNOWN (-1, "UNKNOWN"),
+    UNKNOWN (-1, "UNKNOWN", "Unknown"),
 
     /**
      * When used with Command processing, INFO indicates information relevant to a command,
      * perhaps to explain a warning that might come up later.
      */
-    INFO (-2, "INFO"),
+    INFO (-2, "INFO", "Info"),
 
     /**
      * When used with Command processing, NOTIFICATION indicates a notification for a command,
@@ -48,43 +48,50 @@ public enum CommandStatusType {
      * This type is typically only used with comments.
      * This is additive to SUCCESS, WARNING, and FAILURE and is used to decorate commands
      */
-    NOTIFICATION (-3, "NOTIFICATION"),
+    NOTIFICATION (-3, "NOTIFICATION", "Notification"),
 
 	/**
 	 * When used with Command processing, SUCCESS indicates that results could be generated, with no warnings.
 	 */
-	SUCCESS (0, "SUCCESS"),
+	SUCCESS (0, "SUCCESS", "Success"),
 
 	/**
 	 * WARNING indicates that partial results were generated,
 	 * but which may be in error due to initialization or runtime errors.
 	 */
-	WARNING (1, "WARNING"),
+	WARNING (1, "WARNING", "Warning"),
 
 	/**
 	 * FAILURE indicates that the command could not be executed (no results).
 	 */
-	FAILURE (2, "FAILURE");
+	FAILURE (2, "FAILURE", "Failure");
 
     /**
 	 * Status as an integer, used to set severity, with 0 being success similar to Linux error code and larger number indicating more severe issue.
 	 */
-	private int __type;
+	private int type;
 
 	/**
-	 * Status type name, e.g., "SUCCESS", "FAILURE".
+	 * Status type name, upper case (e.g., "SUCCESS", "FAILURE")
 	 */
-	private String __typename;
+	private String typename;
+
+	/**
+	 * Status type name, mixed case (e.g., "Success", "Failure")
+	 */
+	private String typenameMixed;
 
 	/**
 	 * Construct the status type using the type/severity and name.
 	 * It is private because other code should use the predefined instances.
 	 * @param type command status type as an integer
-	 * @param typename command status type name
+	 * @param typename command status type name (upper case)
+	 * @param typenameMixed command status type name (mixed case)
 	 */
-	private CommandStatusType ( int type, String typename ) {
-		__type = type;
-		__typename = typename;
+	private CommandStatusType ( int type, String typename, String typenameMixed ) {
+		this.type = type;
+		this.typename = typename;
+		this.typenameMixed = typenameMixed;
 	}
 
 	/**
@@ -93,7 +100,7 @@ public enum CommandStatusType {
 	 * @return true if equal and false if not
 	 */
 	public boolean equals ( CommandStatusType type ) {
-		if ( __type == type.getSeverity() ) {
+		if ( this.type == type.getSeverity() ) {
 			return true;
 		}
 		else {
@@ -107,7 +114,7 @@ public enum CommandStatusType {
 	 * @return the severity of the problem.
 	 */
     public int getSeverity() {
-        return __type;
+        return this.type;
     }
 
 	/**
@@ -117,7 +124,7 @@ public enum CommandStatusType {
 	 * @return true if the provided severity is greater than that of the instance.
 	 */
 	public boolean greaterThan ( CommandStatusType type ) {
-		if ( __type > type.getSeverity() ) {
+		if ( this.type > type.getSeverity() ) {
 			return true;
 		}
 		else {
@@ -132,7 +139,7 @@ public enum CommandStatusType {
 	 * @return true if the provided severity is greater than that of the instance.
 	 */
 	public boolean greaterThanOrEqualTo ( CommandStatusType type ) {
-		if ( __type >= type.getSeverity() ) {
+		if ( this.type >= type.getSeverity() ) {
 			return true;
 		}
 		else {
@@ -183,13 +190,12 @@ public enum CommandStatusType {
 			return FAILURE;
 		}
 		else {
-			throw new InvalidParameterException ( "The command status type \"" + cst +
-				"\" is not a recognized type.");
+			throw new InvalidParameterException ( "The command status type \"" + cst + "\" is not a recognized type.");
 		}
 	}
 
 	/**
-	 * Return a String representation of the command status, as follows:
+	 * Return a String representation of the command status, upper case, as follows:
 	 * <pre>
 	 * UNKNOWN - status is unknown (not implemented or not initialized)
 	 * INFO - informational message
@@ -200,6 +206,13 @@ public enum CommandStatusType {
 	 * </pre>
 	 */
 	public String toString () {
-		return __typename;
+		return this.typename;
+	}
+
+	/**
+	 * Return a String representation of the command status, mixed case.
+	 */
+	public String toMixedCaseString () {
+		return this.typenameMixed;
 	}
 }

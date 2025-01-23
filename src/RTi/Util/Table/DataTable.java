@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -194,19 +194,19 @@ public void addToComments( List<String> comments ) {
 /**
 Adds a record to end of the list of TableRecords maintained in the DataTable.
 Use insertRecord() to insert within the existing records.
-@param newRecord new record to be added.
+@param record record to add
+@return the new record (allows command chaining)
 @exception Exception when the number of fields in new_record is not equal to the
 number of fields in the current TableField declaration.
-@return the new record (allows command chaining)
 */
-public TableRecord addRecord ( TableRecord newRecord )
+public TableRecord addRecord ( TableRecord record )
 throws Exception {
 	int num_table_fields = _table_fields.size();
-	int num_new_record_fields = newRecord.getNumberOfFields();
+	int num_new_record_fields = record.getNumberOfFields();
 	_add_record_called = true;
 	if ( num_new_record_fields == num_table_fields ) {
-		_table_records.add ( newRecord );
-		return newRecord;
+		_table_records.add ( record );
+		return record;
 	}
 	else {
         throw new Exception ( "Number of fields in the new record (" +
