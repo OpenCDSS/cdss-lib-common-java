@@ -152,7 +152,7 @@ A short alias for the time series identifier.
 private String __alias;
 
 /**
-The location (combining the main location and the sub-location).
+The location (combining the main location and the sub-location), does not include the location type.
 */
 private String __full_location;
 
@@ -923,18 +923,18 @@ then the regular expression is split into time series identifier parts and
 a string comparison of the major parts is done (so that the number of "." does not cause a problem).
 This version <b>does not</b> compare the input type and name (use the overloaded version to do so).
 See the overloaded version for more information.
-@return true if the identifier string matches the instance (if the string does not match,
-the individual five main parts are also compared and if they match true is returned).
-Wild-cards are allowed in the identifier. Comparisons are done case-independent by converting strings to upper-case.
 @param id_regexp String identifier to compare,
 with identifier fields containing regular expressions using glob syntax (* will be replaced with Java-style .*).
 @param check_alias If true, check the alias first for a match.  If not matched, the identifier is checked.
 If false, the alias is not checked and only the identifier string is checked.
+@return true if the identifier string matches the instance (if the string does not match,
+the individual five main parts are also compared and if they match true is returned).
+Wild-cards are allowed in the identifier. Comparisons are done case-independent by converting strings to upper-case.
 */
-public boolean matches ( String id_regexp, boolean check_alias, boolean include_input ) {
+public boolean matches ( String idGlobRegexp, boolean check_alias, boolean include_input ) {
 	// Do a comparison on the whole string.  The user may or may not have defined an alias with periods.
     // Only allow * wildcards when matching the whole string so replace . with literal.
-    String java_regexp=StringUtil.replaceString(id_regexp,".","\\.").toUpperCase();
+    String java_regexp=StringUtil.replaceString(idGlobRegexp,".","\\.").toUpperCase();
     // Replace * used in calling code with .* so java string comparison works.
     java_regexp=StringUtil.replaceString(java_regexp,"*",".*").toUpperCase();
     // TODO smalers 2015-06-02 Do all of the following need to be escaped or let some flow through?:  \.[]{}()*+-?^$|
@@ -948,12 +948,14 @@ public boolean matches ( String id_regexp, boolean check_alias, boolean include_
     if ( __identifier.toUpperCase().matches(java_regexp) ) {
         return true;
     }
-    // If here, check to see if the string contains periods that that indicate that identifier parts need checked.
-    if ( id_regexp.indexOf(".") >= 0 ) {
+    // If here, check to see if the original string contains periods that that indicate that identifier parts need checked:
+    // - period will only be present if TSID with parts is specified
+    if ( idGlobRegexp.indexOf(".") >= 0 ) {
 		// Regular expression to match contains parts so compare the parts.
 		try {
-		    TSIdent tsident = new TSIdent ( id_regexp );
-			return matches ( tsident.getLocation(),
+		    TSIdent tsident = new TSIdent ( idGlobRegexp );
+			return matches (
+					tsident.getLocation(),
 					tsident.getSource(),
 					tsident.getType(),
 					tsident.getInterval(),
@@ -1033,8 +1035,6 @@ If include_input=true, the input type and name will be checked, even if they are
 Therefore, it may be important in some cases that calling code check to see whether the
 input information is part of the time series identifier and pass true only if such information
 is actually available in both the instance and the values being checked.
-@return true if the identifier string equals the instance (if the string does not match,
-the individual five main parts are also compared and if they match true is returned).
 @param location_regexp Location regular expression to compare.
 @param source_regexp Data source regular expression to compare.
 @param data_type_regexp Data type regular expression to compare.
@@ -1045,6 +1045,8 @@ the individual five main parts are also compared and if they match true is retur
 @param input_name_regexp Input name regular expression to compare.
 @param include_input If true, the input type and name are included in the comparison.
 If false, only the 5-part TSID are checked.
+@return true if the identifier string equals the instance (if the string does not match,
+the individual five main parts are also compared and if they match true is returned).
 */
 public boolean matches ( String location_regexp, String source_regexp, String data_type_regexp,
     String interval_regexp, String scenario_regexp, String sequenceID_regexp, String input_type_regexp,
@@ -1075,7 +1077,7 @@ public boolean matches ( String location_regexp, String source_regexp, String da
 	if ( sequenceID_regexp != null ) {
 	    sequenceID_regexp_Java = StringUtil.replaceString( sequenceID_regexp,"*",".*").replace("${", "\\$\\{").replace("}", "\\}").toUpperCase();
 	}
-	// Compare the 5-part identifier first.
+	// Compare the 5-part identifier parts first.
 	if ( !__full_location.toUpperCase().matches(location_regexp_Java) ) {
 		return false;
 	}
