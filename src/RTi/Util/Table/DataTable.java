@@ -485,7 +485,7 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
     int [] appendTableColumnTypes = appendTable.getFieldDataTypes(); // Append column types, lined up with original table.
     // Get filter columns and glob-style regular expressions.
     int [] columnNumbersToFilter = new int[columnFilters.size()];
-    String [] columnFilterGlobs = new String[columnFilters.size()];
+    String [] columnFilterGlobRegex = new String[columnFilters.size()];
     Enumeration<String> keys = columnFilters.keys();
     int ikey = -1;
     String key = null;
@@ -495,11 +495,11 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
         try {
             key = keys.nextElement();
             columnNumbersToFilter[ikey] = appendTable.getFieldIndex(key);
-            columnFilterGlobs[ikey] = columnFilters.get(key);
+            columnFilterGlobRegex[ikey] = columnFilters.get(key);
             // Turn default globbing notation into internal Java regex notation.
-            columnFilterGlobs[ikey] = columnFilterGlobs[ikey].replace("*", ".*").toUpperCase();
+            columnFilterGlobRegex[ikey] = columnFilterGlobRegex[ikey].replace("*", ".*").toUpperCase();
             Message.printStatus(2, routine, "Filtering column [" + columnNumbersToFilter[ikey] + "] \"" +
-                key + "\" to match \"" + columnFilterGlobs[ikey] + "\"");
+                key + "\" to match \"" + columnFilterGlobRegex[ikey] + "\"");
         }
         catch ( Exception e ) {
             ++errorCount;
@@ -593,12 +593,12 @@ public int appendTable ( DataTable table, DataTable appendTable, String [] reqIn
                     Object o = appendTable.getFieldValue(irow, columnNumbersToFilter[icol]);
                     if ( o == null ) {
                         filterMatches = false;
-                        // Message.printStatus(2, routine, "Object is null, cannot check against filter \"" + columnFilterGlobs[icol] + "\"");
+                        // Message.printStatus(2, routine, "Object is null, cannot check against filter \"" + columnFilterGlobRegex[icol] + "\"");
                         break; // Don't include nulls when checking values.
                     }
                     s = ("" + o).toUpperCase();
-                    // Message.printStatus(2, routine, "Checking \"" + s + "\" against filter \"" + columnFilterGlobs[icol] + "\"");
-                    if ( !s.matches(columnFilterGlobs[icol]) ) {
+                    // Message.printStatus(2, routine, "Checking \"" + s + "\" against filter \"" + columnFilterGlobRegex[icol] + "\"");
+                    if ( !s.matches(columnFilterGlobRegex[icol]) ) {
                         // A filter did not match so don't copy the record.
                         filterMatches = false;
                         break;
@@ -901,6 +901,7 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
         // Copy all.
         columnNamesToCopy = table.getFieldNames();
     }
+
     /* TODO SAM 2013-11-26 Remove this once tested - distinct columns are NOT required to be in output.
     if ( (distinctColumns != null) && (distinctColumns.length > 0) ) {
         // Add the distinct columns to the requested columns if not already included.
@@ -930,8 +931,10 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
         }
     }
     */
+
     // Figure out which columns numbers should be copied.
     // Initialize an array with -1 and then set to actual table columns if matching.
+
     int errorCount = 0;
     StringBuffer errorMessage = new StringBuffer();
     int [] columnNumbersToCopy = new int[columnNamesToCopy.length];
@@ -945,15 +948,18 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
             if ( errorMessage.length() > 0 ) {
                 errorMessage.append(" ");
             }
-            errorMessage.append ( "Requested column \"" + columnNamesToCopy[icol] + "\" not found in existing table.");
+            errorMessage.append ( "Requested column \"" + columnNamesToCopy[icol] + "\" not found in the existing table.");
         }
     }
+
     // Get (include) filter columns and glob-style regular expressions.
+
     if ( columnFilters == null ) {
-        columnFilters = new Hashtable<String,String>();
+        columnFilters = new Hashtable<>();
     }
     int [] columnNumbersToFilter = new int[columnFilters.size()];
-    String [] columnFilterGlobs = new String[columnFilters.size()];
+    String [] columnNamesToFilter = new String[columnFilters.size()];
+    String [] columnFilterGlobRegex = new String[columnFilters.size()];
     Enumeration<String> keys = columnFilters.keys();
     int ikey = -1;
     String key = null;
@@ -962,46 +968,55 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
         columnNumbersToFilter[ikey] = -1;
         try {
             key = keys.nextElement();
+            columnNamesToFilter[ikey] = key;
             columnNumbersToFilter[ikey] = table.getFieldIndex(key);
-            columnFilterGlobs[ikey] = columnFilters.get(key);
+            columnFilterGlobRegex[ikey] = columnFilters.get(key);
             // Turn default globbing notation into internal Java regex notation.
-            columnFilterGlobs[ikey] = columnFilterGlobs[ikey].replace("*", ".*").toUpperCase();
+            columnFilterGlobRegex[ikey] = columnFilterGlobRegex[ikey].replace("*", ".*").toUpperCase();
         }
         catch ( Exception e ) {
             ++errorCount;
             if ( errorMessage.length() > 0 ) {
                 errorMessage.append(" ");
             }
-            errorMessage.append ( "ColumnFilters \"" + key + "\" not found in existing table.");
+            errorMessage.append ( "ColumnFilters \"" + key + "\" not found in the existing table.");
         }
     }
+
     // Get exclude filter columns and glob-style regular expressions.
+
     int [] columnExcludeFiltersNumbers = new int[0];
-    String [] columnExcludeFiltersGlobs = null;
+    String [] columnExcludeFiltersNames = new String[0];
+    String [] columnExcludeFiltersGlobRegex = null;
     if ( columnExcludeFilters != null ) {
         LinkedHashMap<String, String> map = columnExcludeFilters.getLinkedHashMap();
+        columnExcludeFiltersNames = new String[map.size()];
         columnExcludeFiltersNumbers = new int[map.size()];
-        columnExcludeFiltersGlobs = new String[map.size()];
+        columnExcludeFiltersGlobRegex = new String[map.size()];
         ikey = -1;
         for ( Map.Entry<String,String> entry : map.entrySet() ) {
             ++ikey;
             columnExcludeFiltersNumbers[ikey] = -1;
             try {
                 key = entry.getKey();
+                columnExcludeFiltersNames[ikey] = key;
                 columnExcludeFiltersNumbers[ikey] = table.getFieldIndex(key);
-                columnExcludeFiltersGlobs[ikey] = map.get(key);
+                columnExcludeFiltersGlobRegex[ikey] = map.get(key);
                 // Turn default globbing notation into internal Java regex notation.
-                columnExcludeFiltersGlobs[ikey] = columnExcludeFiltersGlobs[ikey].replace("*", ".*").toUpperCase();
+                columnExcludeFiltersGlobRegex[ikey] = columnExcludeFiltersGlobRegex[ikey].replace("*", ".*").toUpperCase();
             }
             catch ( Exception e ) {
                 ++errorCount;
                 if ( errorMessage.length() > 0 ) {
                     errorMessage.append(" ");
                 }
-                errorMessage.append ( "ColumnExcludeFilters column \"" + key + "\" not found in existing table.");
+                errorMessage.append ( "ColumnExcludeFilters column \"" + key + "\" not found in the existing table.");
             }
         }
     }
+    
+    // Get the distinct column numbers.
+    
     int [] distinctColumnNumbers = null;
     if ( (distinctColumns != null) && (distinctColumns.length > 0) ) {
         distinctColumnNumbers = new int[distinctColumns.length];
@@ -1016,11 +1031,13 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
                 if ( errorMessage.length() > 0 ) {
                     errorMessage.append(" ");
                 }
-                errorMessage.append ( "Distinct column \"" + distinctColumns[id] + "\" not found in existing table.");
+                errorMessage.append ( "Distinct column \"" + distinctColumns[id] + "\" not found in the existing table.");
             }
         }
     }
+
     // Create a new data table with the requested column names.
+
     DataTable newTable = new DataTable();
     newTable.setTableID ( newTableID );
     // Get the column information from the original table.
@@ -1047,8 +1064,25 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
         }
         newTable.addField(newTableField, null );
     }
-    // Now loop through all the data records and copy to the output table.
-    int icol;
+
+    // Loop through all the data records and copy to the output table:
+    // - check each row against the include and exclude filters if specified
+
+   	if ( Message.isDebugOn && (columnNumbersToFilter.length > 0) ) {
+    	Message.printStatus(2, routine, "Checking table rows for include filters:");
+        for ( ikey = 0; ikey < columnNumbersToFilter.length; ikey++ ) {
+        	Message.printStatus(2, routine, "  Include column name = \"" + columnNamesToFilter[ikey]
+        		+ "\" column number = " + columnNumbersToFilter[ikey] + ", regex = " + columnFilterGlobRegex[ikey] );
+        }
+    }
+   	if ( Message.isDebugOn && (columnExcludeFiltersNumbers.length > 0) ) {
+    	Message.printStatus(2, routine, "Checking table rows for exclude filters:");
+        for ( ikey = 0; ikey < columnExcludeFiltersNumbers.length; ikey++ ) {
+        	Message.printStatus(2, routine, "  Exclude column name = \"" + columnExcludeFiltersNames[ikey]
+        		+ "\" number = " + columnExcludeFiltersNumbers[ikey] + ", regex = " + columnExcludeFiltersGlobRegex[ikey] );
+        }
+    }
+
     int irowCopied = 0;
     boolean somethingCopied = false;
     boolean filterMatches, distinctMatches;
@@ -1058,25 +1092,37 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
         oDistinctCheck = new Object[distinctColumnNumbers.length];
     }
     String s;
-    int distinctMatchesCount = 0; // The number of distinct column value that match the current row.
+    // The number of distinct column value that match the current row.
+    int distinctMatchesCount = 0;
     for ( int irow = 0; irow < table.getNumberOfRecords(); irow++ ) {
+    	// Whether something was copied:
+    	// - if try will increment the row count of the copy at the end
         somethingCopied = false;
+        // Whether the filters match:
+        // - default to true and set to false if filters don't match
+        // - default of true works if no filters are used
         filterMatches = true;
+        
+        // Check the include filters.
+
         if ( columnNumbersToFilter.length > 0 ) {
             // Filters can be done on any columns so loop through to see if row matches before doing copy.
-            for ( icol = 0; icol < columnNumbersToFilter.length; icol++ ) {
+            for ( int icol = 0; icol < columnNumbersToFilter.length; icol++ ) {
                 if ( columnNumbersToFilter[icol] < 0 ) {
+                	// Was not able to determine the filter columns
                     filterMatches = false;
                     break;
                 }
                 try {
                     o = table.getFieldValue(irow, columnNumbersToFilter[icol]);
                     if ( o == null ) {
+                    	// Null value so can't check the value.
                         filterMatches = false;
-                        break; // Don't include nulls when checking values.
+                        // Don't include nulls when checking values.
+                        break;
                     }
                     s = ("" + o).toUpperCase();
-                    if ( !s.matches(columnFilterGlobs[icol]) ) {
+                    if ( !s.matches(columnFilterGlobRegex[icol]) ) {
                         // A filter did not match so don't copy the record.
                         filterMatches = false;
                         break;
@@ -1095,11 +1141,13 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
                 continue;
             }
         }
+
         // If here need to check the exclude filters on the row.
+
         if ( columnExcludeFiltersNumbers.length > 0 ) {
             int matchesCount = 0;
             // Filters can be done on any columns so loop through to see if row matches before doing copy.
-            for ( icol = 0; icol < columnExcludeFiltersNumbers.length; icol++ ) {
+            for ( int icol = 0; icol < columnExcludeFiltersNumbers.length; icol++ ) {
                 if ( columnExcludeFiltersNumbers[icol] < 0 ) {
                     // Can't do filter so don't try.
                     break;
@@ -1107,16 +1155,17 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
                 try {
                     o = table.getFieldValue(irow, columnExcludeFiltersNumbers[icol]);
                     if ( o == null ) {
-                    	if ( columnExcludeFiltersGlobs[icol].isEmpty() ) {
+                    	if ( columnExcludeFiltersGlobRegex[icol].isEmpty() ) {
                     		// Trying to match blank cells.
                     		++matchesCount;
                     	}
-                    	else { // Don't include nulls when checking values.
+                    	else {
+                    		// Don't include nulls when checking values.
                     		break;
                     	}
                     }
                     s = ("" + o).toUpperCase();
-                    if ( s.matches(columnExcludeFiltersGlobs[icol]) ) {
+                    if ( s.matches(columnExcludeFiltersGlobRegex[icol]) ) {
                         // A filter matched so don't copy the record.
                         ++matchesCount;
                     }
@@ -1134,12 +1183,14 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
                 continue;
             }
         }
+
         // If here then the row is OK to include.
+
         if ( (distinctColumnNumbers != null) && (distinctColumnNumbers.length > 0) ) {
             // Distinct columns can be done on any columns so loop through to see if row matches before doing copy.
             // First retrieve the objects and store in an array because a distinct combinations of 1+ values is checked.
             distinctMatches = false;
-            for ( icol = 0; icol < distinctColumnNumbers.length; icol++ ) {
+            for ( int icol = 0; icol < distinctColumnNumbers.length; icol++ ) {
                 if ( distinctColumnNumbers[icol] < 0 ) {
                     break;
                 }
@@ -1158,7 +1209,7 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
             // Now actually check the values.
             for ( Object [] odArray : distinctList ) {
                 distinctMatchesCount = 0;
-                for ( icol = 0; icol < distinctColumnNumbers.length; icol++ ) {
+                for ( int icol = 0; icol < distinctColumnNumbers.length; icol++ ) {
                     if ( (oDistinctCheck[icol] == null) ||
                         ((oDistinctCheck[icol] instanceof String) && ((String)oDistinctCheck[icol]).trim().length() == 0) ) {
                         // TODO SAM 2013-11-25 Don't include nulls and blank strings in distinct values.
@@ -1187,8 +1238,10 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
                 // The row will be added below.
             }
         }
+
         // If here then the row can be added.
-        for ( icol = 0; icol < columnNumbersToCopy.length; icol++ ) {
+
+        for ( int icol = 0; icol < columnNumbersToCopy.length; icol++ ) {
             try {
                 if ( columnNumbersToCopy[icol] < 0 ) {
                     // Value in new table is null.
@@ -2571,7 +2624,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
 
     // Get filter columns and glob-style regular expressions.
     int [] columnNumbersToFilter = new int[columnFilters.size()];
-    String [] columnFilterGlobs = new String[columnFilters.size()];
+    String [] columnFilterGlobRegex = new String[columnFilters.size()];
     keys = columnFilters.keys();
     ikey = -1;
     key = null;
@@ -2581,9 +2634,9 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
         try {
             key = (String)keys.nextElement();
             columnNumbersToFilter[ikey] = tableToJoin.getFieldIndex(key);
-            columnFilterGlobs[ikey] = columnFilters.get(key);
+            columnFilterGlobRegex[ikey] = columnFilters.get(key);
             // Turn default globbing notation into internal Java regex notation.
-            columnFilterGlobs[ikey] = columnFilterGlobs[ikey].replace("*", ".*").toUpperCase();
+            columnFilterGlobRegex[ikey] = columnFilterGlobRegex[ikey].replace("*", ".*").toUpperCase();
         }
         catch ( Exception e ) {
             message = "Filter column \"" + key + "\" not found in table \"" + tableToJoin.getTableID() + "\".";
@@ -2615,7 +2668,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                     }
                     // Do filter on strings only using uppercase.
                     s = ("" + o).toUpperCase();
-                    if ( !s.matches(columnFilterGlobs[icol]) ) {
+                    if ( !s.matches(columnFilterGlobRegex[icol]) ) {
                         // A filter did not match so don't copy the record.
                         joinTableRecordMatchesFilter[irow] = false;
                         break;
@@ -4534,7 +4587,7 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
     StringBuffer errorMessage = new StringBuffer();
     // Get filter columns and glob-style regular expressions.
     int [] columnNumbersToFilter = new int[columnFilters.size()];
-    String [] columnFilterGlobs = new String[columnFilters.size()];
+    String [] columnFilterGlobRegex = new String[columnFilters.size()];
     Enumeration<String> keys = columnFilters.keys();
     int ikey = -1;
     String key = null;
@@ -4544,9 +4597,9 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
         try {
             key = keys.nextElement();
             columnNumbersToFilter[ikey] = getFieldIndex(key);
-            columnFilterGlobs[ikey] = columnFilters.get(key);
+            columnFilterGlobRegex[ikey] = columnFilters.get(key);
             // Turn default globbing notation into internal Java regex notation.
-            columnFilterGlobs[ikey] = columnFilterGlobs[ikey].replace("*", ".*").toUpperCase();
+            columnFilterGlobRegex[ikey] = columnFilterGlobRegex[ikey].replace("*", ".*").toUpperCase();
         }
         catch ( Exception e ) {
             ++errorCount;
@@ -4613,7 +4666,7 @@ public void setTableValues ( Hashtable<String,String> columnFilters, HashMap<Str
                         break; // Don't include nulls when checking values.
                     }
                     s = ("" + o).toUpperCase();
-                    if ( !s.matches(columnFilterGlobs[icol]) ) {
+                    if ( !s.matches(columnFilterGlobRegex[icol]) ) {
                         // A filter did not match so don't process the record.
                         filterMatches = false;
                         break;
@@ -5138,7 +5191,7 @@ throws Exception {
         sortFlag = StringUtil.SORT_DESCENDING;
     }
     if ( getFieldDataType(iCol) == TableField.DATA_TYPE_STRING ) {
-        String value;
+        String value = null;
         List<String> values = new ArrayList<>(nrecords);
         TableRecord rec;
         for ( int irec = blockStartRow; irec <= blockEndRow; irec++ ) {
@@ -5154,13 +5207,14 @@ throws Exception {
             }
             catch ( Exception e ) {
                 // Should not happen but if it does it is probably bad.
-                throw new RuntimeException ( e );
+                String message = "Error sorting table row [" + irec + "] string value=" + value;
+                throw new RuntimeException ( message, e );
             }
         }
         StringUtil.sortStringList(values, sortFlag, sortOrderArray2, true, true);
     }
     else if ( getFieldDataType(iCol) == TableField.DATA_TYPE_DATE ) {
-        Object value;
+        Object value = null;
         double [] values = new double[nrecords];
         TableRecord rec;
         DateTime dt = null;
@@ -5181,13 +5235,14 @@ throws Exception {
             }
             catch ( Exception e ) {
                 // Should not happen but if it does it is probably bad.
-                throw new RuntimeException ( e );
+                String message = "Error sorting table row [" + irec + "] date value=" + value;
+                throw new RuntimeException ( message, e );
             }
         }
         MathUtil.sort(values, MathUtil.SORT_QUICK, sortFlag, sortOrderArray2, true);
     }
     else if ( getFieldDataType(iCol) == TableField.DATA_TYPE_DATETIME ) {
-        Object value;
+        Object value = null;
         double [] values = new double[nrecords];
         TableRecord rec;
         for ( int irec = blockStartRow, pos = 0; irec <= blockEndRow; irec++, pos++ ) {
@@ -5201,14 +5256,15 @@ throws Exception {
             }
             catch ( Exception e ) {
                 // Should not happen but if it does it is probably bad.
-                throw new RuntimeException ( e );
+                String message = "Error sorting table row [" + irec + "] date/time value=" + value;
+                throw new RuntimeException ( message, e );
             }
         }
         MathUtil.sort(values, MathUtil.SORT_QUICK, sortFlag, sortOrderArray2, true);
     }
     else if ( (getFieldDataType(iCol) == TableField.DATA_TYPE_DOUBLE) ||
     	(getFieldDataType(iCol) == TableField.DATA_TYPE_FLOAT) ) {
-    	Object o;
+    	Object o = null;
         double value;
         double [] values = new double[nrecords];
         TableRecord rec;
@@ -5231,13 +5287,20 @@ throws Exception {
             }
             catch ( Exception e ) {
                 // Should not happen but if it does it is probably bad.
-                throw new RuntimeException ( e );
+            	if ( getFieldDataType(iCol) == TableField.DATA_TYPE_DOUBLE ) {
+            		String message = "Error sorting table row [" + irec + "] double value=" + o;
+            		throw new RuntimeException ( message, e );
+            	}
+            	else {
+            		String message = "Error sorting table row [" + irec + "] float value=" + o;
+            		throw new RuntimeException ( message, e );
+            	}
             }
         }
         MathUtil.sort(values, MathUtil.SORT_QUICK, sortFlag, sortOrderArray2, true);
     }
     else if ( getFieldDataType(iCol) == TableField.DATA_TYPE_INT) {
-        Integer value;
+        Integer value = null;
         int [] values = new int[nrecords];
         TableRecord rec;
         for ( int irec = blockStartRow, pos = 0; irec <= blockEndRow; irec++, pos++ ) {
@@ -5251,7 +5314,8 @@ throws Exception {
             }
             catch ( Exception e ) {
                 // Should not happen but if it does it is probably bad.
-                throw new RuntimeException ( e );
+                String message = "Error sorting table row [" + irec + "] integer value=" + value;
+                throw new RuntimeException ( message, e );
             }
         }
         MathUtil.sort(values, MathUtil.SORT_QUICK, sortFlag, sortOrderArray2, true);

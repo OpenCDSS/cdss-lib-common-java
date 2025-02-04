@@ -412,9 +412,9 @@ no estimate is given for the percent complete and calling code can make its own 
 @param message A short message describing the status (e.g., "Running command ..." ).
 */
 public void notifyCommandProgressListeners ( int istep, int nstep, float percentComplete, String message ) {
-	if ( __CommandProgressListener_array != null ) {
-	    for ( int i = 0; i < __CommandProgressListener_array.length; i++ ) {
-	        __CommandProgressListener_array[i].commandProgress(istep, nstep, this, percentComplete, message);
+	if ( this.__CommandProgressListener_array != null ) {
+	    for ( int i = 0; i < this.__CommandProgressListener_array.length; i++ ) {
+	        this.__CommandProgressListener_array[i].commandProgress(istep, nstep, this, percentComplete, message);
 	    }
 	}
 }

@@ -462,7 +462,9 @@ public class TableRowConditionEvaluator {
 						}
 					}
 				    else {
-					    throw new Exception ("ISEMPTY operator is not implemented for data type: " + o.getClass() );
+				    	// For data types other than String not null is by definition not empty.
+					    //throw new Exception ("ISEMPTY operator is not implemented for value " + o + ", data type: " + o.getClass() );
+				    	return false;
 				    }
 				}
 				else if ( this.operator.equals("!ISEMPTY") ) {
@@ -477,6 +479,13 @@ public class TableRowConditionEvaluator {
 				}
 				else {
 				    throw new Exception ("Operator " + operator + " is not recognized." );
+				}
+			}
+			else {
+				// Object is null:
+				// - match isempty condition
+				if ( this.operator.equals("ISEMPTY") ) {
+					return true;
 				}
 			}
 		}
