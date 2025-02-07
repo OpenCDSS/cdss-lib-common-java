@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -42,7 +42,7 @@ The full command string for the command, as specified during initialization.
 This is initialized to blank.
 It can include spaces at the beginning for indentation.
 */
-private String __commandString = "";
+private String commandString = "";
 
 /**
  * Number of spaces as indentation at the beginning of the command string.
@@ -54,38 +54,38 @@ protected int indentSpaceCount = 0;  // Use protected for commands like TSID.
 The command name only, as taken from the command string.
 This is initialized to blank;
 */
-private String __commandName = "";
+private String commandName = "";
 
 /**
 The command processor, which will run the command and be associated with the command GUI.
 */
-private CommandProcessor __processor = null;
+private CommandProcessor processor = null;
 
 /**
 Array of CommandProcessorEventListeners.
 */
-private CommandProcessorEventListener [] __CommandProcessorEventListener_array = null;
+private CommandProcessorEventListener [] CommandProcessorEventListener_array = null;
 
 /**
 Array of CommandProgressListeners.
 */
-private CommandProgressListener [] __CommandProgressListener_array = null;
+private CommandProgressListener [] CommandProgressListener_array = null;
 
 /**
 The command parameters, determined from processing the command string.
 This is initialized to an empty PropList and should be set when initializing the command.
 */
-private PropList __parameters = new PropList ( "" );
+private PropList parameters = new PropList ( "" );
 
 /**
 The status for the command.
 */
-private CommandStatus __status = new CommandStatus();
+private CommandStatus status = new CommandStatus();
 
 /**
 Whether or not the command is a plugin.
 */
-private boolean __isPlugin = false;
+private boolean isPlugin = false;
 
 // TODO SAM 2016-03-23 Evaluate whether command profile should be null and only instantiated based
 // on a processor property, in order to save memory.
@@ -93,7 +93,7 @@ private boolean __isPlugin = false;
 The runtime profile for the command.
 Although designed to have a profile for each command phase, focus on the run phase for now.
 */
-private CommandProfile __profile = new CommandProfile();
+private CommandProfile profile = new CommandProfile();
 
 /**
 Default constructor for a command.
@@ -113,27 +113,27 @@ public void addCommandProcessorEventListener ( CommandProcessorEventListener lis
     // See if the listener has already been added.
     // Resize the listener array.
     int size = 0;
-    if ( __CommandProcessorEventListener_array != null ) {
-        size = __CommandProcessorEventListener_array.length;
+    if ( this.CommandProcessorEventListener_array != null ) {
+        size = this.CommandProcessorEventListener_array.length;
     }
     for ( int i = 0; i < size; i++ ) {
-        if ( __CommandProcessorEventListener_array[i] == listener ) {
+        if ( this.CommandProcessorEventListener_array[i] == listener ) {
             return;
         }
     }
-    if ( __CommandProcessorEventListener_array == null ) {
-        __CommandProcessorEventListener_array = new CommandProcessorEventListener[1];
-        __CommandProcessorEventListener_array[0] = listener;
+    if ( this.CommandProcessorEventListener_array == null ) {
+        this.CommandProcessorEventListener_array = new CommandProcessorEventListener[1];
+        this.CommandProcessorEventListener_array[0] = listener;
     }
     else {
         // Need to resize and transfer the list.
-        size = __CommandProcessorEventListener_array.length;
+        size = this.CommandProcessorEventListener_array.length;
         CommandProcessorEventListener [] newlisteners = new CommandProcessorEventListener[size + 1];
         for ( int i = 0; i < size; i++ ) {
-                newlisteners[i] = __CommandProcessorEventListener_array[i];
+                newlisteners[i] = this.CommandProcessorEventListener_array[i];
         }
-        __CommandProcessorEventListener_array = newlisteners;
-        __CommandProcessorEventListener_array[size] = listener;
+        this.CommandProcessorEventListener_array = newlisteners;
+        this.CommandProcessorEventListener_array[size] = listener;
         newlisteners = null;
     }
 }
@@ -150,27 +150,27 @@ public void addCommandProgressListener ( CommandProgressListener listener ) {
     // See if the listener has already been added.
     // Resize the listener array.
     int size = 0;
-    if ( __CommandProgressListener_array != null ) {
-        size = __CommandProgressListener_array.length;
+    if ( this.CommandProgressListener_array != null ) {
+        size = this.CommandProgressListener_array.length;
     }
     for ( int i = 0; i < size; i++ ) {
-        if ( __CommandProgressListener_array[i] == listener ) {
+        if ( this.CommandProgressListener_array[i] == listener ) {
             return;
         }
     }
-    if ( __CommandProgressListener_array == null ) {
-    	__CommandProgressListener_array = new CommandProgressListener[1];
-    	__CommandProgressListener_array[0] = listener;
+    if ( this.CommandProgressListener_array == null ) {
+    	this.CommandProgressListener_array = new CommandProgressListener[1];
+    	this.CommandProgressListener_array[0] = listener;
     }
     else {
         // Need to resize and transfer the list.
-        size = __CommandProgressListener_array.length;
+        size = this.CommandProgressListener_array.length;
         CommandProgressListener [] newlisteners = new CommandProgressListener[size + 1];
         for ( int i = 0; i < size; i++ ) {
-            newlisteners[i] = __CommandProgressListener_array[i];
+            newlisteners[i] = this.CommandProgressListener_array[i];
         }
-        __CommandProgressListener_array = newlisteners;
-        __CommandProgressListener_array[size] = listener;
+        this.CommandProgressListener_array = newlisteners;
+        this.CommandProgressListener_array[size] = listener;
         newlisteners = null;
     }
 }
@@ -179,11 +179,11 @@ public void addCommandProgressListener ( CommandProgressListener listener ) {
 Check the command parameter for valid values, combination, etc.
 This should normally be implemented in the derived class.
 @param parameters The parameters for the command.
-@param command_tag an indicator to be used when printing messages, to allow a cross-reference to the original commands.
-@param warning_level The warning level to use when printing parse warnings
+@param commandTag an indicator to be used when printing messages, to allow a cross-reference to the original commands.
+@param warningLevel The warning level to use when printing parse warnings
 (recommended is 2 for initialization, and 1 for interactive command editor dialogs).
 */
-public void checkCommandParameters ( PropList parameters, String command_tag, int warning_level )
+public void checkCommandParameters ( PropList parameters, String commandTag, int warningLevel )
 throws InvalidCommandParameterException {
 }
 
@@ -196,26 +196,26 @@ public Object clone () {
         AbstractCommand command = (AbstractCommand)super.clone();
 		// _command_string and _command_name are automatically cloned
 		// Processor is not cloned, use a reference to the same processor.
-		command.__processor = __processor;
+		command.processor = this.processor;
 		// Clone the status.
-		command.__status = (CommandStatus)__status.clone();
+		command.status = (CommandStatus)this.status.clone();
 		// Clone the parameters.
 		// Do this the brute force way for now using string properties but later need to evaluate,
 		// especially if full objects are used for parameters.
 		// TODO SAM 2007-09-02 Need full clone() on PropList.
 		PropList props = new PropList ( "" );
-		int size = command.__parameters.size();
+		int size = command.parameters.size();
 		Prop prop = null;
 		for ( int i = 0; i < size; i++ ) {
-			prop = command.__parameters.elementAt(i);
+			prop = command.parameters.elementAt(i);
 			if ( prop == null ) {
 				// Should not happen.
 			}
 			else {
-				props.set ( prop.getKey(),	prop.getValue() );
+				props.set ( prop.getKey(), prop.getValue() );
 			}
 		}
-		command.__parameters = props;
+		command.parameters = props;
 		return command;
 	}
 	catch ( CloneNotSupportedException e ) {
@@ -231,7 +231,7 @@ The instance may be a newly created command or one that has been created previou
 @param parent Parent JFrame on which the model command editor dialog will be shown.
 */
 public boolean editCommand ( JFrame parent ) {
-	// Use the generic command editor..
+	// Use the generic command editor.
 	return (new GenericCommand_JDialog ( parent, this )).ok();
 }
 
@@ -256,8 +256,8 @@ public static Command editNewCommand ( JFrame parent ) {
 Return the command name, from the command string.
 @return the command name, from the command string.
 */
-public String getCommandName ()
-{	return __commandName;
+public String getCommandName () {
+	return this.commandName;
 }
 
 /**
@@ -269,15 +269,15 @@ so that defaults are not explicitly displayed?
 @return the parameters being used by the command.  A non-null list is guaranteed.
 */
 public PropList getCommandParameters () {
-	return __parameters;
+	return this.parameters;
 }
 
 /**
 Return the command processor that is managing the command.
 @return the CommandProcessor used to process the command.
 */
-public CommandProcessor getCommandProcessor ()
-{	return __processor;
+public CommandProcessor getCommandProcessor () {
+	return this.processor;
 }
 
 /**
@@ -287,7 +287,7 @@ Return the command profile for the requested phase.  Currently a profile is only
 */
 public CommandProfile getCommandProfile ( CommandPhaseType phase ) {
     if ( phase == CommandPhaseType.RUN ) {
-        return __profile;
+        return this.profile;
     }
     return null;
 }
@@ -298,7 +298,7 @@ The version provided in this abstract version returns UNKNOWN for the status.
 Commands that extend from this abstract class should set the status more explicitly.
 */
 public CommandStatus getCommandStatus () {
-	return __status;
+	return this.status;
 }
 
 /**
@@ -306,7 +306,7 @@ Returns the original command string.
 @return the original command string.
 */
 public String getCommandString() {
-	return __commandString;
+	return this.commandString;
 }
 
 /**
@@ -314,7 +314,7 @@ public String getCommandString() {
  * This will result in different handling of command data.
  */
 public boolean getIsCommandPlugin () {
-	return this.__isPlugin;
+	return this.isPlugin;
 }
 
 /**
@@ -328,6 +328,7 @@ public int getIndentSpaceCount () {
 
 /**
  * Return the command indentation spaces, used by toString().
+ * @return the command indentation spaces, used by toString()
  */
 public String getIndentSpaces() {
 	// In-line to increase performance for common indentations:
@@ -377,9 +378,9 @@ If false, a blank command will be initialized
 public void initializeCommand ( String commandString, CommandProcessor processor, boolean full_initialization )
 throws InvalidCommandSyntaxException, InvalidCommandParameterException {
 	// Save the processor.
-	__processor = processor;
+	this.processor = processor;
 	// Call the method so that indentation is determined.
-	//__commandString = command;
+	//this.commandString = command;
 	setCommandString(commandString);
 	if ( full_initialization ) {
 		// Parse the command.
@@ -395,9 +396,9 @@ Notify registered CommandProcessorEventListeners of a CommandProcessorEvent.
 @param event event to pass to listeners.
 */
 public void notifyCommandProcessorEventListeners ( CommandProcessorEvent event ) {
-	if ( __CommandProcessorEventListener_array != null ) {
-	    for ( int i = 0; i < __CommandProcessorEventListener_array.length; i++ ) {
-	        __CommandProcessorEventListener_array[i].handleCommandProcessorEvent(event);
+	if ( this.CommandProcessorEventListener_array != null ) {
+	    for ( int i = 0; i < this.CommandProcessorEventListener_array.length; i++ ) {
+	        this.CommandProcessorEventListener_array[i].handleCommandProcessorEvent(event);
 	    }
 	}
 }
@@ -412,9 +413,9 @@ no estimate is given for the percent complete and calling code can make its own 
 @param message A short message describing the status (e.g., "Running command ..." ).
 */
 public void notifyCommandProgressListeners ( int istep, int nstep, float percentComplete, String message ) {
-	if ( this.__CommandProgressListener_array != null ) {
-	    for ( int i = 0; i < this.__CommandProgressListener_array.length; i++ ) {
-	        this.__CommandProgressListener_array[i].commandProgress(istep, nstep, this, percentComplete, message);
+	if ( this.CommandProgressListener_array != null ) {
+	    for ( int i = 0; i < this.CommandProgressListener_array.length; i++ ) {
+	        this.CommandProgressListener_array[i].commandProgress(istep, nstep, this, percentComplete, message);
 	    }
 	}
 }
@@ -436,7 +437,7 @@ Command strings can optionally be indented, for example if in an If or For block
 public void parseCommand ( String commandString )
 throws InvalidCommandSyntaxException, InvalidCommandParameterException {
 	String routine = getClass().getSimpleName() + ".parseCommand", message;
-	
+
 	// Determine the indent.
 	this.indentSpaceCount = 0;
 	for ( int i = 0; i < commandString.length(); i++ ) {
@@ -448,7 +449,7 @@ throws InvalidCommandSyntaxException, InvalidCommandParameterException {
 			break;
 		}
 	}
-	
+
 	// Parse the trimmed command to get the name and parameters.
     // The following causes problems with commands that have quoted parameters that include ().
     // Therefore, parse more brute force to get the command name and parameter list string.
@@ -471,7 +472,7 @@ throws InvalidCommandSyntaxException, InvalidCommandParameterException {
 	if ( parameterString.length() > 0 ) {
 		// Parameters are available to parse.
 		try {
-		    this.__parameters = PropList.parse ( Prop.SET_FROM_PERSISTENT, parameterString, routine,"," );
+		    this.parameters = PropList.parse ( Prop.SET_FROM_PERSISTENT, parameterString, routine,"," );
 		}
 		catch ( Exception e ) {
 			message = "Syntax error in \"" + commandTrimmed + "\".  Not enough tokens.";
@@ -483,21 +484,21 @@ throws InvalidCommandSyntaxException, InvalidCommandParameterException {
 
 /**
 Run the command.
-@param command_number The command number from the processor (0+), used to cross-reference the log to command instances.
+@param commandNumber The command number from the processor (0+), used to cross-reference the log to command instances.
 @exception CommandWarningException Thrown if non-fatal warnings occur (the command could produce some results).
 @exception CommandException Thrown if fatal warnings occur (the command could not produce output).
 */
-public void runCommand ( int command_number )
+public void runCommand ( int commandNumber )
 throws InvalidCommandParameterException, CommandWarningException, CommandException, InterruptedException {
 	// Does nothing.
 }
 
 /**
 Set the command name, as taken from the command string.
-@param command_name The command name.
+@param commandName The command name.
 */
-public void setCommandName ( String command_name ) {
-	__commandName = command_name;
+public void setCommandName ( String commandName ) {
+	this.commandName = commandName;
 }
 
 /**
@@ -510,9 +511,9 @@ Passing a value of null will effectively unset the parameter
 */
 public void setCommandParameter ( String parameter, String value ) {
 	// Handle values with equals with care.
-    __parameters.set ( parameter, value );
+    this.parameters.set ( parameter, value );
 	// Refresh the command string.
-	__commandString = toString();
+	this.commandString = toString();
 }
 
 /**
@@ -520,9 +521,9 @@ Set the command parameters.  This is most often called when the parameters have 
 @param parameters The command parameters as a PropList - only String parameter values are recognized.
 */
 public void setCommandParameters ( PropList parameters ) {
-	__parameters = parameters;
+	this.parameters = parameters;
 	//Refresh the command string.
-	__commandString = toString();
+	this.commandString = toString();
 }
 
 /**
@@ -530,7 +531,7 @@ Set the command processor.  Normally this is set in the runCommand() method.
 @param processor The CommandProcessor used to process the command.
 */
 public void setCommandProcessor ( CommandProcessor processor ) {
-	__processor = processor;
+	this.processor = processor;
 }
 
 /**
@@ -541,7 +542,7 @@ This is used, for example, to track command performance (processing time) and me
 */
 public void setCommandProfile ( CommandPhaseType phase, CommandProfile profile ) {
     if ( phase == CommandPhaseType.RUN ) {
-        __profile = profile;
+        this.profile = profile;
     }
 }
 
@@ -551,7 +552,7 @@ This is currently used only by the generic command editor and should only be imp
 @param commandString Command string for the command.
 */
 public void setCommandString ( String commandString ) {
-	this.__commandString = commandString;
+	this.commandString = commandString;
 	// Set the indent count so that spaces can be added in toString() later.
 	this.indentSpaceCount = 0;
 	for ( int i = 0; i < commandString.length(); i++ ) {
@@ -568,9 +569,10 @@ public void setCommandString ( String commandString ) {
 /**
  * Set whether the command is a plugin.
  * This will result in different handling of command data and documentation.
+ * @param isPlugin set whether the command is a plugin command
  */
 public void setIsCommandPlugin ( boolean isPlugin ) {
-	this.__isPlugin = isPlugin;
+	this.isPlugin = isPlugin;
 }
 
 /**
@@ -579,7 +581,18 @@ This version can be relied on to satisfy that requirement.
 @return the formatted command string.
 */
 public String toString() {
-	return toString ( this.__parameters );
+	return toString ( this.parameters );
+}
+
+/**
+Return the command string with the specified parameter string.
+This can be called, for example, with "..." or "" for use in the TSTool UI progress messages when a full command string is too long.
+The method should be overloaded for commands that do not follow the CommandName( ... ) pattern, such as comments.
+@param parameterString the parameter string in the command parentheses ()
+@return the formatted command string.
+*/
+public String toString ( String parameterString ) {
+	return this.commandName + "(" + parameterString + ")";
 }
 
 /**
@@ -589,7 +602,7 @@ Each command should have a default toString() method that calls this method to c
 @return the formatted command string.
 */
 public String toString(String [] parameterOrder ) {
-	return toString ( this.__parameters, parameterOrder );
+	return toString ( this.parameters, parameterOrder );
 }
 
 /**
@@ -616,7 +629,7 @@ public String toString ( PropList commandParameters, String[] parameterOrder ) {
 		return toStringDefault(commandParameters);
 	}
 
-	// Create the  list of command parameters.
+	// Create the list of command parameters.
 	StringBuilder b = new StringBuilder ();
 	String stringValue;
 	Object contents;
@@ -654,7 +667,7 @@ public String toString ( PropList commandParameters, String[] parameterOrder ) {
 	for ( int i = 0; i < this.indentSpaceCount; i++ ) {
 		b.insert(0," ");
 	}
-	b.insert(this.indentSpaceCount, this.__commandName + "(" );
+	b.insert(this.indentSpaceCount, this.commandName + "(" );
 	b.append(")");
 	return ( b.toString() );
 }
@@ -726,7 +739,7 @@ public String toStringDefault ( PropList commandParameters ) {
 	for ( int i = 0; i < this.indentSpaceCount; i++ ) {
 		b.insert(0," ");
 	}
-	b.insert(this.indentSpaceCount, this.__commandName + "(" );
+	b.insert(this.indentSpaceCount, this.commandName + "(" );
 	b.append(")");
 	return ( b.toString() );
 }
