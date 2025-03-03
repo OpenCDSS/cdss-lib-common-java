@@ -61,11 +61,13 @@ import java.net.URL;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -137,16 +139,19 @@ private static String _argv[] = new String[0];
 
 /**
 Applet, null if not an applet.
+This is typically not used because applets hav been phased out due to security risk.
 */
 private static Applet _applet = null;
 
 /**
 Applet context.  Call setAppletContext() from init() of an application that uses this class.
+This is typically not used because applets hav been phased out due to security risk.
 */
 private static AppletContext _applet_context = null;
 
 /**
 Document base for the applet.
+This is typically not used because applets hav been phased out due to security risk.
 */
 private static URL _document_base = null;
 
@@ -173,7 +178,7 @@ Program name, as it should appear in title bars, Help About, etc.
 private static String _progname = "";
 
 /**
-Program version, typically "XX.XX.XX" or "XX.XX.XX beta".
+Program version, typically a semantic version like "1.2.3" or "1.2.3.beta".
 */
 private static String _progver = "";
 
@@ -594,7 +599,7 @@ public static boolean fileReadable ( String filename ) {
 public static StringBuilder fileToStringBuilder ( String filename )
 throws FileNotFoundException, IOException {
 	StringBuilder sb = new StringBuilder();
-	
+
 	BufferedReader reader = null;
 	try {
 		reader = new BufferedReader(new FileReader(filename) );
@@ -619,11 +624,22 @@ Read in a file and store it in a string list (list of String).
 @return a list of String read from the file, with newlines removed.
 @exception IOException if there is an error.
 */
-public static List<String> fileToStringList ( String filename )
+public static List<String> fileToStringList ( String filename ) throws IOException {
+	return fileToStringList ( filename, -1 );
+}
+
+/**
+Read in a file and store it in a string list (list of String).
+@param filename	File to read and convert to string list.
+@param maxLines the maximum number of lines to read (negative to ignore)
+@return a list of String read from the file, with newlines removed.
+@exception IOException if there is an error.
+*/
+public static List<String> fileToStringList ( String filename, int maxLines )
 throws IOException {
 	List<String> list = null;
 	String message, routine = IOUtil.class.getSimpleName() + ".fileToStringList", tempstr;
-	
+
 	if ( filename == null ) {
 		message = "Filename is NULL";
 		Message.printWarning ( 10, routine, message );
@@ -652,8 +668,13 @@ throws IOException {
 
 	try {
 		list = new ArrayList<>(50);
+		int lineCount = 0;
 		while ( true ) {
 			tempstr = fp.readLine();
+			++lineCount;
+			if ( (maxLines > 0) && (lineCount > maxLines) ) {
+				break;
+			}
 			if ( tempstr == null ) {
 				break;
 			}
@@ -1063,7 +1084,7 @@ public static FileHeader getFileHeader ( String fileName, List<String> commentIn
 	boolean	iscomment, isignore;
 
 	// Need to handle error.
-	
+
 	revlen = HEADER_REVISION_STRING.length();
 	if ( fileName == null ) {
 		Message.printWarning ( 10, routine, "NULL file name pointer" );
@@ -1094,7 +1115,7 @@ public static FileHeader getFileHeader ( String fileName, List<String> commentIn
 	}
 
 	// Now read lines until we get to the end of the file or hit a non-header line (OK to skip "ignore_comments").
-	
+
 	FileHeader header = new FileHeader ();
 
 	int length_comments = commentIndicators.size();
@@ -1217,8 +1238,10 @@ public static FileHeader getFileHeader ( String fileName, List<String> commentIn
  * @param listRecursive if true, list sub-folder contents recursively
  * @param listFiles if true, include files in output
  * @param listFolders if true, include folders in output
- * @param includePatterns if specified, include only the filenames that match the pattern (leading path is not checked) - use glob-style wildcards
- * @param excludePatterns if specified, exclude filenames that match the pattern (after includePatterns is evaluated) - use glob-style wildcards
+ * @param includePatterns if specified, include only the filenames that match any of the specified patterns
+ * (leading path is not checked) - use glob-style wildcards
+ * @param excludePatterns if specified, exclude filenames that match any of the specified patterns
+ * (after includePatterns is evaluated) - use glob-style wildcards
  */
 public static List<File> getFiles ( File startingFolder, boolean listRecursive, boolean listFiles, boolean listFolders,
 		List<String> includePatterns, List<String> excludePatterns ) throws IOException {
@@ -1244,7 +1267,7 @@ public static List<File> getFiles ( File startingFolder, boolean listRecursive, 
 	}
 	// Needed because inner block below needs final.
 	final int startingFolderLen = startingFolderLen0;
-	
+
 	// The pathMatcher is for the entire absolute path.
 	//PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher(pattern);
 
@@ -1253,9 +1276,9 @@ public static List<File> getFiles ( File startingFolder, boolean listRecursive, 
 	// - the starting folder limits the paths that are evaluated but each path is still the full absolute path
 	Path startingFolderPath = Paths.get(startingFolder.getAbsolutePath());
 	Files.walkFileTree(startingFolderPath, new SimpleFileVisitor<Path>() {
-		
+
 		// The methods below handle directories (folder) separate from files.
-		
+
 		/**
 		 * Handle each directory that is visited, necessary to include directories.
 		 */
@@ -1383,7 +1406,7 @@ public static List<File> getFiles ( File startingFolder, boolean listRecursive, 
 					okToAdd = false;
 				}
 			}
-			
+
 			// Check to see if the file only (not leading path) matches the pattern filters.
 			if ( okToAdd ) {
 				String fileName = file.getName();
@@ -1426,12 +1449,12 @@ public static List<File> getFiles ( File startingFolder, boolean listRecursive, 
 			}
 			return FileVisitResult.CONTINUE;
 		}
-		
+
 		@Override
 		public FileVisitResult visitFileFailed(Path file, IOException exc ) throws IOException {
 			return FileVisitResult.CONTINUE;
 		}
-		
+
 	});
 	return matchingFiles;
 }
@@ -1459,7 +1482,7 @@ public static List<String> getFilesFromPathList ( List<String> paths, String fil
 		Message.printWarning ( 10, routine, "NULL file name" );
 		return newlist;
 	}
-	
+
 	npaths = paths.size();
 	newlist = new ArrayList<>(10);
 	String dirsep = System.getProperty ( "file.separator");
@@ -1501,7 +1524,7 @@ public static List<File> getFilesMatchingPattern(String pattern) throws IOExcept
 	// The starting folder limits the paths that are evaluated but each path is still the full absolute path.
 	Path startingFolderPath = Paths.get(startingFolder);
 	Files.walkFileTree(startingFolderPath, new SimpleFileVisitor<Path>() {
-		
+
 		@Override
 		public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
 			if ( Message.isDebugOn ) {
@@ -1515,12 +1538,12 @@ public static List<File> getFilesMatchingPattern(String pattern) throws IOExcept
 			}
 			return FileVisitResult.CONTINUE;
 		}
-		
+
 		@Override
 		public FileVisitResult visitFileFailed(Path file, IOException exc ) throws IOException {
 			return FileVisitResult.CONTINUE;
 		}
-		
+
 	});
 	return files;
 }
@@ -1563,6 +1586,70 @@ public static List<File> getFilesMatchingPattern(String folder, String extension
         }
         return matchedFiles;
     }
+}
+
+/**
+ * Determine the overall attributes for files in folder.
+ * The size of all files is summed.
+ * The modification time is the latest modification time.
+ * @param folder the starting folder for the file search
+ * @param listRecursive whether to list files recursively in sub-folders
+ * @param includePatterns if specified, include only the filenames that match the pattern (leading path is not checked) - use glob-style wildcards
+ * @param excludePatterns if specified, exclude filenames that match the pattern (after includePatterns is evaluated) - use glob-style wildcards
+ * @return the size in bytes
+ * @throws IOException if the folder does not exist
+ */
+public static BasicFolderAttributes getFolderAttributes ( File folder, boolean listRecursive, List<String> includePatterns, List<String> excludePatterns )
+throws IOException {
+	String routine = IOUtil.class.getSimpleName() + ".getFolderAttributes";
+	// Properties for files in the folder.
+	FileTime filesMinCreationTime = null;
+	FileTime filesMaxCreationTime = null;
+	FileTime filesMinModifiedTime = null;
+	FileTime filesMaxModifiedTime = null;
+	long size = 0;
+	try {
+		boolean listFiles = true;
+		boolean listFolders = true;
+		List<File> files = getFiles ( folder, listRecursive, listFiles, listFolders, includePatterns, excludePatterns);
+		//Message.printStatus(2, routine, "Have " + files.size() + " files in folder \"" + folder.getAbsolutePath() + "\".");
+		// Loop through the files and evaluate each.
+		for ( File file : files ) {
+			Path path = Paths.get(file.getAbsolutePath());
+			BasicFileAttributes fileAttrib = Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+			FileTime creationTime = fileAttrib.creationTime();
+			FileTime lastModifiedTime = fileAttrib.lastModifiedTime();
+			if ( (filesMinCreationTime == null) || (creationTime.compareTo(filesMinCreationTime) < 0) ) {
+				filesMinCreationTime = creationTime;
+			}
+			if ( (filesMaxCreationTime == null) || (creationTime.compareTo(filesMaxCreationTime) > 0) ) {
+				filesMaxCreationTime = creationTime;
+			}
+			if ( (filesMinModifiedTime == null) || (lastModifiedTime.compareTo(filesMinModifiedTime) < 0) ) {
+				filesMinModifiedTime = lastModifiedTime;
+			}
+			if ( (filesMaxModifiedTime == null) || (lastModifiedTime.compareTo(filesMaxModifiedTime) > 0) ) {
+				filesMaxModifiedTime = lastModifiedTime;
+			}
+			size += file.length();
+		}
+	}
+	catch ( Exception e ) {
+		Message.printWarning(3, routine, "Error getting folder size.");
+		Message.printWarning(3, routine, e );
+		size = 0;
+	}
+
+	// Get the attributes for the folder.
+	Path path = Paths.get(folder.getAbsolutePath());
+	BasicFileAttributes fileAttrib = Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+
+	// Create a file attributes object based on the operating system.
+	BasicFolderAttributes folderAttrib = new BasicFolderAttributes (
+		folder, fileAttrib.creationTime(), fileAttrib.lastModifiedTime(), size,
+		filesMinCreationTime, filesMaxCreationTime, filesMinModifiedTime, filesMaxModifiedTime );
+
+	return folderAttrib;
 }
 
 /**
@@ -1629,7 +1716,7 @@ public static List<String> getJarFilesManifests() {
 	// Get the Classpath and split it into a String array.
 	// The order of the elements in the array is the same as the order in which things are included in the classpath.
 	String[] jars = System.getProperty("java.class.path").split(System.getProperty("path.separator"));
-	
+
 	Attributes a = null;
 	int j = -1;
 	int size = -1;
@@ -1640,21 +1727,21 @@ public static List<String> getJarFilesManifests() {
 	String tab = "    ";
 	List<String> sort = null;
 	List<String> v = new ArrayList<>();
-	
+
 	v.add ("---------------------------------------------------------------------------");
 	v.add ("Manifest values for each jar file in the class path are listed below:");
 	v.add ("- manifest values are sorted");
 	v.add ("---------------------------------------------------------------------------");
 	v.add ("");
-	
+
 	for (int i = 0; i < jars.length; i++) {
 		if (!StringUtil.endsWithIgnoreCase(jars[i], ".jar")) {
 			// Directories, etc, can be specified in a class path but only process the jar files in the class path.
 			continue;
 		}
-		
-		v.add(jars[i]);	
-		
+
+		v.add(jars[i]);
+
 		try {
 			// Create a JarFile instance:
 			// - will find the jar file in the class path?
@@ -1676,7 +1763,7 @@ public static List<String> getJarFilesManifests() {
 			size = sort.size();
 			for (j = 0; j < size; j++) {
 				v.add(sort.get(j));
-			}			
+			}
 		}
 		catch (Exception e) {
 			String routine = IOUtil.class.getSimpleName() + ".getJarFilesManifests";
@@ -1739,7 +1826,7 @@ public static int getOSArchBits () {
 	if ( !isUNIXMachine() ) {
 	    String arch = System.getenv("PROCESSOR_ARCHITECTURE");
 	    String wow64Arch = System.getenv("PROCESSOR_ARCHITEW6432");
-	
+
 	    int realArch = 32;
 	    if ( ((arch != null) && arch.endsWith("64")) || ((wow64Arch != null) && wow64Arch.endsWith("64")) ||
 	    	System.getProperty("os.arch").contains("64") && !System.getProperty("os.arch").equals("IA64N") ) {
@@ -1792,12 +1879,12 @@ public static String getPathUsingWorkingDir ( String path ) {
 			    Message.printWarning(3, routine, e);
 			    // FIXME SAM 2009-05-05 Evaluate whether to do the following - used for startup issues before logging?
 				e.printStackTrace();
-			}		
+			}
 			return fullPath;
 			//return ( _working_dir + "/" + path );
 		}
 	}
-	else {	
+	else {
 		if (path.startsWith("\\\\")) {
 			// UNC path.
 			return path;
@@ -1808,14 +1895,14 @@ public static String getPathUsingWorkingDir ( String path ) {
 		if ( _working_dir.equals("") || _working_dir.equals(".") ) {
 			return path;
 		}
-		else {	
+		else {
 			String fullPath = path;
    			try {
    				fullPath = (new File(_working_dir + "\\" + path).getCanonicalPath().toString());
     		} catch (IOException e) {
     		    Message.printWarning(3, routine, e);
     			e.printStackTrace();
-    		}	
+    		}
 			return fullPath;
 			//return ( _working_dir + "\\" + path );
 		}
@@ -2053,7 +2140,7 @@ See also getJarFileManifests() method for details for each jar file.
 */
 public static List<String> getSystemProperties() {
 	String tab = "    ";
-	
+
 	List<String> systemProperties = new ArrayList<>();
 
 	systemProperties.add("System Properties Defined for Application: ");
@@ -2072,7 +2159,7 @@ public static List<String> getSystemProperties() {
 	if (_argv != null) {
 		for (int i = 0; i < _argv.length; i++) {
 			length = _argv[i].length() + 1;
-		
+
 			if (totalLength + length >= 80) {
 				// Full command line would be too big for the line,
 				// so add the current line and put the next argument on what will be the next line.
@@ -2087,7 +2174,7 @@ public static List<String> getSystemProperties() {
 	}
 	systemProperties.add(command);
 	systemProperties.add("");
-	
+
 	systemProperties.add("Operating System Information:");
 	systemProperties.add(tab + "Name: " + System.getProperty("os.name"));
 	systemProperties.add(tab + "Version: " + System.getProperty("os.version"));
@@ -2103,7 +2190,7 @@ public static List<String> getSystemProperties() {
     	systemProperties.add(tab + " " + name + " = \"" + System.getenv(name) + "\"");
     }
     systemProperties.add("");
-	
+
 	systemProperties.add("Java Virtual Machine Memory Information:");
 	systemProperties.add(tab + "JVM PID: " + IOUtil.getProcessId() );
 	Runtime r = Runtime.getRuntime();
@@ -2113,7 +2200,7 @@ public static List<String> getSystemProperties() {
 	systemProperties.add(tab + "Used memory: " + used + " bytes, " + used/1024 + " kb, " + used/1048576 + " mb");
 	systemProperties.add(tab + "Free memory: " + r.freeMemory() + " bytes, " + r.freeMemory()/1024 + " kb, " + r.freeMemory()/1048576 + " mb");
 	systemProperties.add("");
-	
+
     systemProperties.add("Java Virtual Machine Properties (System.getProperties()): ");
     Properties properties = System.getProperties();
     Set<String> names = properties.stringPropertyNames();
@@ -2132,7 +2219,7 @@ public static List<String> getSystemProperties() {
     	}
     }
     systemProperties.add("");
-	
+
 	systemProperties.add("Java Information:");
 	systemProperties.add(tab + "Vendor: " + System.getProperty("java.vendor"));
 	systemProperties.add(tab + "Version: " + System.getProperty("java.version"));
@@ -2162,9 +2249,9 @@ public static List<String> getSystemProperties() {
 		totalLength = cp.length();
 	}
 	systemProperties.add(cp);
-		
+
 	systemProperties.add("");
-	
+
 	return systemProperties;
 }
 
@@ -2454,7 +2541,7 @@ public static boolean isPortOpen(int port) {
 		return false;
 	}
 }
-	
+
 /**
 Returns whether the program is running as an applet (must be set with setRunningApplet).
 */
@@ -2498,7 +2585,7 @@ Count the number of lines in a file.
 public static int lineCount ( File file)
 throws IOException {
 	String message, routine = IOUtil.class.getSimpleName() + ".lineCount", tempstr;
-	
+
 	if ( file == null ) {
 		message = "Filename is null.";
 		//Message.printWarning ( 10, routine, message );
@@ -2546,7 +2633,7 @@ return the number of pattern matches (more than one match per line is allowed)
 public static int matchCount ( File file, String pattern, boolean countLines )
 throws IOException {
 	String message, tempstr;
-	
+
 	if ( file == null ) {
 		message = "Filename is null.";
 		//Message.printWarning ( 10, routine, message );
@@ -2577,14 +2664,13 @@ throws IOException {
 		if ( tempstr == null ) {
 			break;
 		}
-		
+
 		if ( countLines ) {
 			if ( tempstr.matches(pattern) ) {
 				++count;
 			}
 		}
 		else {
-			
 		}
 	}
 	fp.close ();
@@ -2687,9 +2773,9 @@ public static int printCreatorHeader ( PrintWriter ofp, String commentLinePrefix
 	if ( !_initialized ) {
 		initialize ();
 	}
-	
+
 	// Get the formatted header comments.
-	
+
 	List<String> comments = formatCreatorHeader ( commentLinePrefix, maxwidth, isXml );
 
 	for ( String c: comments ) {
@@ -2898,7 +2984,7 @@ public static PrintWriter processFileHeaders ( String oldFile, String newFile, L
 			}
 		}
 	}
-	
+
 	if ( is_xml ) {
 		ofp.println ( "-->" );
 	}
@@ -2954,7 +3040,7 @@ throws IOException {
 		file = tmp.getCanonicalPath().toString();
 	}
 	tmp = null;
-	
+
 	// Add a period to the beginning of the extension if one doesn't exist already.
 	if ( !(extension.startsWith(".")) ) {
 		extension = "." + extension;
@@ -2972,7 +3058,7 @@ throws IOException {
 	}
 	// Add the new extension.
 	file_new += extension;
-	return file_new;	
+	return file_new;
 }
 
 /**
@@ -3367,7 +3453,7 @@ public static String toAbsolutePath ( String dir, String path ) {
 	}
 	while (path.length() > 1 && path.endsWith(File.separator)) {
 		path = path.substring(0, path.length() - 1);
-	}	
+	}
 
 	int path_length = path.length();
 	String sep = File.separator;
@@ -3488,7 +3574,7 @@ throws Exception {
 	}
 
 	String sep = File.separator;
-	
+
 	boolean unix = true;
 
 	if (sep.equals("\\")) {
@@ -3504,7 +3590,7 @@ throws Exception {
 				" to relative using directory \"" + rootDir + "\"");
 		}
 	}
-		
+
 	// Always trim any trailing directory separators off the directory paths.
 	while (rootDir.length() > 1 && rootDir.endsWith(File.separator)) {
 		rootDir = rootDir.substring(0, rootDir.length() - 1);
@@ -3519,13 +3605,13 @@ throws Exception {
 	}
 
 	// Check to see if the relDir dir is farther up the same branch that the rootDir is on.
-	
+
 	if ((unix && relDir.startsWith(rootDir)) || (!unix && StringUtil.startsWithIgnoreCase(relDir, rootDir))){
 
 		// At this point, it is known that relDir is longer than rootDir.
 		String c = "" + relDir.charAt(rootDir.length());
 
-		if (c.equals(File.separator)) {	
+		if (c.equals(File.separator)) {
 			String higher = relDir.substring(rootDir.length());
 			if (higher.startsWith(sep)) {
 				higher = higher.substring(1);
@@ -3540,7 +3626,7 @@ throws Exception {
 	// Get the final directory separator from the first directory,
 	// and then start working backwards in the string to find where the
 	// second directory and the first directory share directory information.
-	int start = rootDir.lastIndexOf(sep);	
+	int start = rootDir.lastIndexOf(sep);
 	int x = 0;
 	for (int i = start; i >= 0; i--) {
 		String s = String.valueOf(rootDir.charAt(i));
@@ -3568,7 +3654,7 @@ throws Exception {
 					return ".." + sep + uncommon;
 				}
 			}
-			else {	
+			else {
 				if (uncommon.trim().equals("")) {
 					uncommon = "..";
 				}
@@ -3582,7 +3668,7 @@ throws Exception {
 			return uncommon;
 		}
 	}
-	
+
 	return relDir;
 }
 
