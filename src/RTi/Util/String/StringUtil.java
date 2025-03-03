@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2024 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -573,7 +573,7 @@ public static String charToHex(char c) {
  * @param s2 second version string, with format similar to the first.
  * @param maxParts the maximum number of parts to compare, useful when trailing "beta", etc.
  * cause issues and are not appropriate for production software.
- * Specify as <= 0 to ignore.
+ * Specify as <= 0 to automatically determine the number of parts from each version available to compare.
  * @return true if the comparison statement is true, false if not.
  */
 public static boolean compareSemanticVersions(String s1, String operator, String s2, int maxParts) {

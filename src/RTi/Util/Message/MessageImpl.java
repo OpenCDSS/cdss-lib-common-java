@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -408,7 +408,7 @@ throws IOException {
 
 	// If here, the log file was successfully opened.
 
-	Message.printStatus ( 1, routine, "Opened log file \"" + logfile + "\".  Previous messages not in file." );
+	Message.printStatus ( 1, routine, "Opened log file \"" + logfile + "\".  Previous messages are in the startup or previous log file." );
 
 	setLogFile ( logfile );
 	Message.setOutputFile ( Message.LOG_OUTPUT, ofp );
@@ -466,7 +466,7 @@ protected void printDebug( int level, String routine, String message ) {
 	else {
 		routine_string = "";
 	}
-	
+
 	Object [] arg_list = null;
 
 	// Format the final string.
@@ -589,7 +589,7 @@ protected void printMessageLevels ( boolean flag ) {
 	else {
 		// Print to the system.
 		PrintWriter fp = new PrintWriter ( System.out, true );
-	
+
 		fp.println ();
 		fp.println ( "-------------------------------------------------");
 		fp.println ( "File  Debug   Status  Warning  File      Function");
@@ -1073,7 +1073,7 @@ protected void setOutputFunction ( int i, Object obj, String function_name ) {
 		}
 		return;
 	}
-		
+
 	@SuppressWarnings("rawtypes")
 	Class [] args = new Class[3];
 
