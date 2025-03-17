@@ -1239,9 +1239,9 @@ public static FileHeader getFileHeader ( String fileName, List<String> commentIn
  * @param listFiles if true, include files in output
  * @param listFolders if true, include folders in output
  * @param includePatterns if specified, include only the filenames that match any of the specified patterns
- * (leading path is not checked) - use glob-style wildcards
+ * (leading path is not checked) - use java regular expression patterns (e.g., ".*" instead of "*")
  * @param excludePatterns if specified, exclude filenames that match any of the specified patterns
- * (after includePatterns is evaluated) - use glob-style wildcards
+ * (after includePatterns is evaluated) - use java regular expression patterns (e.g., ".*" instead of "*")
  */
 public static List<File> getFiles ( File startingFolder, boolean listRecursive, boolean listFiles, boolean listFolders,
 		List<String> includePatterns, List<String> excludePatterns ) throws IOException {
