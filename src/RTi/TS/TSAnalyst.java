@@ -4,61 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// TSAnalyst - class to analyze a time series
-// ----------------------------------------------------------------------------
-// History:
-//
-// 21 Dec 1998	Steven A. Malers, RTi	Initial version.
-// 13 Apr 1999	SAM, RTi		Add finalize.
-// 07 Jun 1999	SAM, RTi		Add createStatisticsMonthTS method and
-//					the coverage report.
-// 22 Mar 2001	SAM, RTi		Convert static methods to instance
-//					methods.
-// 2001-11-06	SAM, RTi		Update javadoc and verify that unused
-//					variables are set to null.  Remove
-//					static from internal data to minimize
-//					memory footprint.
-// 2001-12-18	SAM, RTi		Add createStatisticsYearTS().
-// 2002-01-08	SAM, RTi		Add "SetMissingIfMissing" property to
-//					createStatisticsYearTS().
-// 2002-11-26	SAM, RTi		Update the data coverage report to use
-//					2 more symbols and breaks.
-// 2003-06-02	SAM, RTi		Upgrade to use generic classes.
-//					* Change TSDate to DateTime.
-//					* Change TS.INTERVAL* to TimeInterval.
-// 2005-09-12	SAM, RTi		* Rename main create methods to use
-//					  "Statistic" not "Statistics".
-// 2005-09-20	SAM, RTi		* Combine the code for year statistic.
-//					* Add additional year statistics.
-// 2005-09-22	SAM, RTi		* Add AllowMissingCount for the year
-//					  statistic code.
-// 2005-09-28	SAM, RTi		* Add DayOfMax, DayOfMin, Max, Min
-//					  statistics.
-//					* Add CountGE, CountGT, CountLE, CountLT
-//					  statistics.
-// 2005-10-12	SAM, RTi		Fix bug where DayOfFirstGE did not set
-//					the units.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-// EndHeader
 
 package RTi.TS;
 
@@ -1005,21 +966,6 @@ throws TSException
 		Message.printWarning ( 2, routine, e );
 		throw new TSException ( message );
 	}
-}
-
-/**
-Finalize before garbage collection.
-@exception Throwable if there is an error.
-*/
-protected void finalize ()
-throws Throwable
-{	_ts = null;
-
-	_data_coverage_report_Vector = null;
-	_data_coverage_report_date1 = null;
-	_data_coverage_report_date2 = null;
-	_data_coverage_report_props = null;
-	super.finalize();
 }
 
 /**

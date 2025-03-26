@@ -4,71 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//-----------------------------------------------------------------------------
-// PrintJGUI - print utility
-//-----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// Notes:	(1)	This GUI accepts a vector of strings and prints the
-//			strings to the printer.  Some formatting options are
-//			available.
-//		(2)	The debug messages in this code HAS been wrapped with
-//			isDebugOn.
-//-----------------------------------------------------------------------------
-// History:
-//
-// 02 Dec 1997	Steven A. Malers, RTi	Copy ExportGUI, merge the example from
-//					the O'Reilly AWT book, and implement
-//					simple printing.
-// 14 Mar 1998	SAM, RTi		Add Javadoc.
-// 06 Apr 1998	SAM, RTi		Overload print to take a font size.
-//					Still use the fixed-width font.
-// 29 Apr 1998	SAM, RTi		Overload print to take a PropList and
-//					convert the arguments to properties.
-//					Also add a LinesPerPage property
-//					to allow flexibility.
-// 15 May 1998  DLG, RTi		Fixed bug introduced by SAM. Was not
-//					checking the font size as set using
-//					a PropList object.
-// 13 Apr 1999	SAM, RTi		Add finalize.
-// 21 May 1999	SAM, RTi		Add buffer around page so that the
-//					printing is not cut off by non-printable
-//					area.
-// 12 Oct 2000	SAM, RTi		Trim the end of lines that are printed -
-//					newlines from a TextArea seem to cause
-//					junk ? characters at the end of output
-//					lines.  When printing from a TextArea,
-//					use an 8 point font.
-// 26 Apr 2001	SAM, RTi		Change so that if a one-element Vector
-//					is being printed, split the one line
-//					by newlines for printing.
-//-----------------------------------------------------------------------------
-// 2003-06-05	J. Thomas Sapienza, RTi	Implemented SWING versions of the
-//					print code.  Original print code works
-//					just fine with Swing components for
-//					printing text, so simply converted the
-//					old Frames to JFrames, TextAreas to
-//					JTextAreas, etc.
-// 2005-11-16	JTS, RTi		Added JDialog support.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
 
 package RTi.Util.IO;
 
@@ -87,8 +38,6 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-
-import RTi.Util.IO.SecurityCheck;
 
 import RTi.Util.Message.Message;
 
@@ -139,15 +88,6 @@ private static AppletContext    _appletContext; // current applet context
 private static URL              _documentBase;	// complete URL of the HTML
 						// file that loaded the applet.
 */
-
-/**
-Finalize before garbage collection.
-*/
-protected void finalize()
-throws Throwable
-{	_export = null;
-	super.finalize();
-}
 
 /**
 Print to the local printer given the calling Frame and a vector of String's to

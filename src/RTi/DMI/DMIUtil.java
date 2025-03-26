@@ -4,128 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// DMIUtil.java - static methods for use with the DMI package
-//
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2002-10-25	Steven A. Malers, RTi	Initial version - don't want to keep
-//					adding to DMI when static utility
-//					methods may not always be used and would
-//					add to the size of DMI.  Start with the
-//					getAvailableOdbcDsn() method.
-// 2002-12-24	SAM, RTi		* Move general code from the DMI class
-//					  to streamline the DMI class.
-//					* Fill out the formatDateTime() class
-//					  to actually do something, using CDSS
-//					  HBData.formatSQLDate() as a model.
-//					* Make the specific isMissingXXX()
-//					  methods private to encourage only the
-//					  isMissing() methods to be used.
-// 2003-03-05	J. Thomas Sapienza, RTi	Moved formatting code for where strings
-//					and order clauses in here from 
-//					the old HydroBaseDMI.
-// 2003-03-08	SAM, RTi		Add createHTMLDataDictionary() method to
-//					automatically create a data dictionary
-//					from a database connection.
-// 2003-03-31	JTS, RTi		Fixed bug in formatDateTime that was
-//					resulting in the wrong output for the
-//					given precision.
-// 2003-04-21	JTS, RTi		Added test HTML-generating Data 
-//					dictionary code.
-// 2003-04-22	JTS, RTi		Added the initial duplicateTable() code.
-// 2003-04-23	JTS, RTi		* Added removeTable()
-//					* Cleaned up duplicateTable().
-//					* Added code to the Data Dictionary 
-//					  generator to read SQL Server table
-//					  and column comments.
-// 2003-07-31	JTS, RTi		Data dictionary code now only limits
-//					its initial query to finding type
-//					TABLE database objects.
-// 2003-09-02	JTS, RTi		* Cleaned out some old debugging code.
-//					* Updated javadocs for recently-added
-//					  methods.
-// 2003-10-23	JTS, RTi		Added isMissing() methods for primitive
-//					containers (Double, Integer, etc).
-// 2003-11-12	JTS, RTi		* Corrected error in formatDateTime that
-//					  was (for Access databases) putting in
-//					  'day' instead of the actual day and
-//					  'year' instead of the actual year.
-//					* Corrected error in formatDateTime 
-//					  that was screwing up Informix dates.
-// 2004-01-02	SAM, RTi		* Add getWhereClausesFromInputFilter().
-// 2004-01-21	JTS, RTi		* Corrected bug in formatWhere clause
-//					  caused by passing in a *
-// 2004-06-22	JTS, RTi		* Added getExtremeRecord().
-//					* Added getMaxRecord().
-//					* Added getMinRecord().
-// 2004-10-25	SAM, RTi		Change getWhereClausesFromInputFilter()
-//					to check the operator ignoring case.
-//					Some tools now use the operator string
-//					in a persistent way that may not match
-//					the case.
-// 2004-11-18	JTS, RTi		* Corrected error in how table anchor
-//					  links were generated as they were not
-//					  working with IE.
-// 					* Foreign links are now pulled out of
-//					  the table and added to the HTML
-//					  data dictionary.
-// 					* Converted so that ResultSets are now
-//					  closed with DMI.closeResultSet().
-//					* Port number no longer appears on
-//					  data dictionary.
-//					* Data dictionary now has a legend for
-//					  table colors.
-//					* Data dictionary now has links from
-//					  the reference table definitions to
-//					  the contents, and vice versa.
-// 2004-11-19	JTS, RTi		DateTimes can now be formatted for
-//					PostgreSQL databases.
-// 2005-01-11	JTS, RTi		* Where fields are now trimmed when 
-//					  pulled out of filter panels.
-//					* Method to create where clauses from
-//					  input filters now does so via 
-//					  a separate call which operates on 
-//					  a single filter and its operator.
-// 2005-04-25	JTS, RTi		Added formatDateTime() that allows 
-//					leaving off the escape characters from
-//					the date string.  This was done
-//					primarily for use with stored 
-//					procedure dates.
-// 2005-11-16	JTS, RTi		Added resultSetHasColumn().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-// EndHeader
-
-// REVISIT (JTS - 2003-04-24)
-// TO-DO:
-// 1) Add an error section at the bottom of the data dictionary listing 
-//    all the errors encountered (i.e., if in Access and unable to get the list
-//    of foreign keys)
-// 2) Get the stored procedures out of the database and list those
-// 3) For reference tables, add something to split certain reference tables
-//    into multiple lines (because they scroll off the page)
-// 4) Should display table views
 
 package RTi.DMI;
 
@@ -167,7 +61,7 @@ public static final Date MISSING_DATE = null;
 
 /** 
 Constant that represents a missing boolean value.
-Booleans must be handled internally as an object, not primitive, so that a null state can be 
+Booleans must be handled internally as an object, not primitive, so that a null state can be set.
 */
 public static final Double MISSING_BOOLEAN = null;
 
@@ -180,14 +74,14 @@ public static final double MISSING_DOUBLE = Double.NaN;
 Constant that represents the low end of a missing double value, when performing
 comparisons where roundoff may have occurred.
 */
-// TODO SAM 2015-08-06 Evaluate whether this can be permanently removed
+// TODO SAM 2015-08-06 Evaluate whether this can be permanently removed.
 //public static final double MISSING_DOUBLE_FLOOR = -999.1;
 
 /**
 Constant that represents the high end of a missing double value, when performing
 comparisons where roundoff may have occurred.
 */
-//TODO SAM 2015-08-06 Evaluate whether this can be permanently removed
+//TODO SAM 2015-08-06 Evaluate whether this can be permanently removed.
 //public static final double MISSING_DOUBLE_CEILING = -998.9;
 
 /**
@@ -1574,11 +1468,11 @@ private static String formatWhereCheckNumber(int type, String numString) {
 	
 	// Determine if the numString is of the expected type. IF not, throw an Exception.
 	if (type == StringUtil.TYPE_INTEGER) {
-		Integer isInteger = new Integer(numString);
+		Integer isInteger = Integer.valueOf(numString);
 		formatString = isInteger.toString();		
 	}
 	else if (type == StringUtil.TYPE_DOUBLE || type == StringUtil.TYPE_FLOAT) {
-		Double isDouble = new Double(numString);
+		Double isDouble = Double.valueOf(numString);
 		formatString = isDouble.toString();		
 	}
 	return formatString;
@@ -2807,7 +2701,7 @@ public static HashMap<String,Integer> getResultSetColumns ( ResultSet rs ) throw
 	String columnName;
 	for ( int i = 1; i <= columnCount; i++ ) {
 		columnName = meta.getColumnName(i);
-		columnMap.put(columnName, new Integer(i));
+		columnMap.put(columnName, Integer.valueOf(i));
 	}
 	return columnMap;
 }
@@ -3473,7 +3367,7 @@ public static List<List<Object>> processResultSet(ResultSet rs) throws SQLExcept
 	ResultSetMetaData rsmd = rs.getMetaData();	
 	int columnCount = rsmd.getColumnCount();
 	for (int i = 0; i < columnCount; i++) {
-		types.add(new Integer(rsmd.getColumnType(i + 1)));
+		types.add(Integer.valueOf(rsmd.getColumnType(i + 1)));
 	}
 
 	while(rs.next()) {
@@ -3484,7 +3378,7 @@ public static List<List<Object>> processResultSet(ResultSet rs) throws SQLExcept
 	
 			switch(val) {
 				case java.sql.Types.BIGINT:
-					row.add(new Integer(rs.getInt(i + 1)));
+					row.add(Integer.valueOf(rs.getInt(i + 1)));
 					break;
 				case java.sql.Types.BIT:
 					row.add("java.sql.Types.BIT");
@@ -3496,16 +3390,16 @@ public static List<List<Object>> processResultSet(ResultSet rs) throws SQLExcept
 					row.add(rs.getDate(i + 1));  
 					break;
 				case java.sql.Types.DECIMAL:
-					row.add(new Double(rs.getDouble(i + 1)));
+					row.add(Double.valueOf(rs.getDouble(i + 1)));
 					break;
 				case java.sql.Types.DOUBLE:			
-					row.add(new Double(rs.getDouble(i + 1)));
+					row.add(Double.valueOf(rs.getDouble(i + 1)));
 					break;
 				case java.sql.Types.FLOAT:
-					row.add(new Float(rs.getFloat(i + 1)));  
+					row.add(Float.valueOf(rs.getFloat(i + 1)));  
 					break;
 				case java.sql.Types.INTEGER:
-					row.add(new Integer(rs.getInt(i + 1)));  
+					row.add(Integer.valueOf(rs.getInt(i + 1)));  
 					break;
 				case java.sql.Types.LONGVARBINARY:
 					row.add(rs.getBinaryStream(i + 1));
@@ -3526,10 +3420,10 @@ public static List<List<Object>> processResultSet(ResultSet rs) throws SQLExcept
 					row.add(rs.getObject(i + 1)); 
 					break;
 				case java.sql.Types.REAL:
-					row.add(new Float(rs.getFloat(i + 1))); 
+					row.add(Float.valueOf(rs.getFloat(i + 1))); 
 					break;
 				case java.sql.Types.SMALLINT:
-					row.add(new Integer(rs.getInt(i + 1)));  
+					row.add(Integer.valueOf(rs.getInt(i + 1)));  
 					break;
 				case java.sql.Types.TIME:
 					row.add(rs.getTime(i + 1));  
@@ -3538,7 +3432,7 @@ public static List<List<Object>> processResultSet(ResultSet rs) throws SQLExcept
 					row.add(rs.getTimestamp(i + 1));  
 					break;
 				case java.sql.Types.TINYINT:
-					row.add(new Integer(rs.getInt(i + 1)));  
+					row.add(Integer.valueOf(rs.getInt(i + 1)));  
 					break;
 				case java.sql.Types.VARBINARY:
 					row.add(rs.getBinaryStream(i + 1));

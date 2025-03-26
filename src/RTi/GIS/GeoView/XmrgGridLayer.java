@@ -4,104 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//------------------------------------------------------------------------------
-// XmrgGridLayer - read/write/manipulate NWS XMRG grid files
-//------------------------------------------------------------------------------
-// Copyright: See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// History:
-// 
-// 8 Aug 2001	Morgan Sheedy,RTi	Initial Implementation
-// 
-// 13 Aug 2001	AMS,RTi			Added readData and getData methods
-// 
-// 20 Aug 2001	AMS,RTi			Changed method name readData to
-// 					readAllData.  Added method to read
-// 					and store only data that is >0.  New
-// 					method named readPositiveDataOnly.
-// 
-// 27 Aug 2001	AMS,RTi			writeShapeFile changed to reflect
-// 					new methods: writeSHPandSHX and 
-// 					writeDBF.
-// 
-// 					Removed memory intensive calls to
-// 					multiple methods when processing the 
-// 					40+thousand individual cell x,y coords.
-// 
-// 2001-09-17	Steven A. Malers, RTi	Rename the class from Xmrg to
-// 					XmrgGridLayer to give a better
-// 					indication of its contents and
-// 					differenciate from other grid classes.
-// 					Make significant changes to reuse the
-// 					GeoGridLayer and GeoLayer base class
-// 					methods and to allow for on-the-fly
-// 					access to data, similar to the Dbase
-// 					files in shapefiles.  Streamline the
-// 					code to read and write files now that
-// 					the code has been debugged (hopefully).
-// 2001-10-08	SAM, RTi		Review Javadoc and clean up before C++
-// 					port.  Set the data format in
-// 					_data_format.
-// 2002-12-19	SAM, RTi		Add constructor to create an empty grid
-// 					in memory.  Add a method to write the
-// 					grid to XMRG grid format.  Replace the
-// 					use of TSDate with DateTime.
-// 2003-01-17	SAM, RTi		Fix a bug in the writeXmrgFile() method.
-// 					The random access file needed to be
-// 					removed before writing and use "rw".
-// 2003-03-25	SAM, RTi		Change so that an EndianRandomAccessFile
-//					is used for I/O so that HP (big-endian)
-//					and Linux (little-endian) versions can
-//					be handled.  The XMRG file is read
-//					correctly regardless of its source.
-//					The latest NWS XMRG standard (AWIPS
-//					build 5.2.2) split the user id field
-//					into a leading 2-characters for the
-//					operating system and 8-characters for
-//					the user id.
-// 2004-09-09	J. Thomas Sapienza, RTi	Added a method (resize) that works 
-//					similar to the extract_xmrg program.  
-//					Given points that define a new grid
-//					boundary, the grid is resized to have
-//					a new area.  Typically this will be used
-//					to clip the area, but there's no reason
-//					it couldn't be used to make the area
-//					larger.
-//					  Also added a new version of
-//					convertEndianXmrgFile that allows 
-//					simultaneous conversion and resizing.
-// 2004-09-16	JTS, RTi		Added accumulate().
-// 2004-10-19	JTS, RTi		Changed the way exceptions are handled
-//					in accumulate().
-// 2004-11-11	JTS, RTi		Added getGrid() and isBigEndian().
-// 2004-11-15	JTS, RTi		* When XMRG grids were resized, the
-//					  header max value was not being 
-//					  recomputed.  That is done now.
-//					* When grids are resized their
-//					  limits are now recomputed.
-// 2004-11-16	JTS, RTi		Added determineMaxValueHeader().
-// 2004-11-30	JTS, RTi		* Added setProcessFlag().
-//					* Added setUserID().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//------------------------------------------------------------------------------
-// EndHeader
 
 package RTi.GIS.GeoView;
 
@@ -474,23 +392,6 @@ public void determineMaxValueHeader() {
 	}	
 
 	setMaxValueHeader((int)max);
-}
-
-/**
-Cleans up and calls garbage collector.
-@exception Throwable if there is an error.
-*/
-public void finalize() throws Throwable {
-	if ( __raf != null ) {
-		__raf.close();
-	}
-	__raf = null;
-	__oper_sys = null;
-	__userID = null;
-	__savedDate = null;
-	__procFlag = null; 
-	__validDate = null;
-	super.finalize();
 }
 
 /**

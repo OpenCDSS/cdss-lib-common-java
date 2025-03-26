@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -554,7 +554,7 @@ private boolean __checkText = true;
 /**
 Specifies whether the HTML has been closed and written yet or not.
 */
-private boolean __closed = false;
+//private boolean __closed = false;
 
 /**
 Specifies whether the HTML has HTML and BODY tags.
@@ -814,27 +814,6 @@ throws Exception {
 	__hL[6] = 0;
 
 	__subWriter = true;
-}
-
-/**
-Cleans up member variables.
-If the HTML has not been closed yet (i.e., not written to disk), this will attempt to do so.
-This may be unreliable, so do not rely on it.
-*/
-public void finalize() 
-throws Throwable {
-	if (!__subWriter) {
-		if (!__closed) {
-			closeFile();
-			__closed = true;
-		}
-		
-		__htmlFile = null;
-		__hL = null;
-		__htmlBuffer = null;
-	}
-	
-	super.finalize();
 }
 
 /**
@@ -1358,7 +1337,7 @@ throws Exception {
 	if (__writeToFile) {
 		__htmlFile.close();
 	}
-	__closed = true;
+	//__closed = true;
 }
 
 /**

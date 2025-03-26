@@ -4,34 +4,23 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
 
-/******************************************************************************
-* File: CheckFile.java
-* Author: KAT
-* Date: 2007-03-15
-* Stores all information for a CheckFile.  A check file is an html file that
-* has information on data checks for various components.
-*******************************************************************************
-* Revisions 
-*******************************************************************************
-* 2007-03-15	Kurt Tometich	Initial version.
-******************************************************************************/
 package RTi.Util.IO;
 
 import java.util.List;
@@ -504,30 +493,23 @@ private void writeTableOfContents( HTMLWriter html )  throws Exception
 		html.tableRowStart();
 		html.tableHeaders( data_table_header );
 		html.tableRowEnd();
-		// Write out the data and links to data checks
-		// as a table with links to missing and specific data checks
+		// Write out the data and links to data checks as a table with links to missing and specific data checks.
 		for ( int i = 0; i < __spec_data.size(); i++ ) {
-			// get the data models
+			// Get the data models.
 			CheckFile_DataModel dm = ( CheckFile_DataModel )__spec_data.get(i);
 			CheckFile_DataModel dm_gen = ( CheckFile_DataModel )__gen_data.get(i);
 			// get the data needed for the TOC from the data models
-			//String data_size = new Integer( 
-			//		dm_gen.getDataSize() ).toString();
-			String data_size = new Integer ( 
-				dm_gen.getTotalNumberProblems()).toString();
-			String total_size = new Integer( 
-				dm_gen.getTotalChecked() ).toString();
-			String[] toc_values = { dm.getTitle(), "Zero or Missing",
-				data_size, total_size };
-			// write the first data section (row)
-			// this section has the general data check info and links
+			//String data_size = Integer.valueOf( dm_gen.getDataSize() ).toString();
+			String data_size = Integer.valueOf ( dm_gen.getTotalNumberProblems()).toString();
+			String total_size = Integer.valueOf( dm_gen.getTotalChecked() ).toString();
+			String[] toc_values = { dm.getTitle(), "Zero or Missing", data_size, total_size };
+			// Write the first data section (row).
+			// This section has the general data check info and links.
 			writeTocDataSection( html, toc_values, i );
-			data_size = new Integer( dm.getTotalNumberProblems()).toString();
-			total_size = new Integer( 
-				dm.getTotalChecked() ).toString();
+			data_size = Integer.valueOf( dm.getTotalNumberProblems()).toString();
+			total_size = Integer.valueOf( dm.getTotalChecked() ).toString();
 			String[] toc_values2 = { dm.getTitle(), data_size, total_size };
-			// write the second data section (row)
-			// this section has the specific data check info and links
+			// Write the second data section (row) this section has the specific data check info and links.
 			writeTocDataSection( html, toc_values2, i );
 		}
 		html.tableEnd();
@@ -536,18 +518,16 @@ private void writeTableOfContents( HTMLWriter html )  throws Exception
 }
 
 /**
-Writes the data portion of the table of contents.  This section contains
-a table with links to data checks.
+Writes the data portion of the table of contents.  This section contains a table with links to data checks.
 @param html HTMLWriter object.
 @param toc Table of contents list data.
-@param index Current index of the iteration of the data Vectors.
+@param index Current index of the iteration of the data Lists.
 @throws Exception
  */
 private void writeTocDataSection( HTMLWriter html, String[] toc, int index ) 
-throws Exception 
-{
+throws Exception {
 	if ( html != null && toc != null ) {
-		// HTML anchors used to link table of contents to data sections
+		// HTML anchors used to link table of contents to data sections.
 		String base_anchor = "#data" + index;
 		String generic_anchor = "#generic" + index;
 		// proplist for <td rowspan=2>

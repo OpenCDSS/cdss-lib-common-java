@@ -4,38 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// DataType - data type class
-// ----------------------------------------------------------------------------
-// Copyright:  See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2003-10-31	Steven A. Malers, RTi	Initial version.  Copy DataUnits and
-//					update the code.  The design is meant to
-//					be compatible with RTi's RiverTrak and
-//					the NWSRFS, in particular to support
-//					SHEF output of time series.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-// EndHeader
 
 package RTi.Util.IO;
 
@@ -45,7 +29,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import RTi.Util.IO.IOUtil;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
@@ -233,24 +216,6 @@ public static void addDataType ( DataType type )
 	}
 	// Need to add the units to the list...
 	__types_Vector.add ( type );
-}
-
-/**
-Finalize before garbage collection.
-@exception Throwable if an error occurs.
-*/
-protected void finalize ()
-throws Throwable
-{	__abbreviation = null;
-	__description = null;
-	__default_engl_units = null;
-	__default_si_units = null;
-	__dimension = null;
-	__meas_loc_type = null;
-	__meas_time_scale = null;
-	__record_type = null;
-	__SHEF_pe = null;
-	super.finalize();
 }
 
 /**

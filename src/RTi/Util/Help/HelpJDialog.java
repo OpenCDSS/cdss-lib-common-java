@@ -4,54 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//-----------------------------------------------------------------------------
-// HelpJDialog - dialog to display initial help information with the
-// 	potential to lead to the online help
-//-----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// Notes:       (1)  When null is passed as the online help key, additional
-//			information is not available and the "More help" 
-//			button will not be displayed.  Otherwise, the 
-//			"More help" button is enabled.
-//		(2)  This doesn't implement the paging ability similar to that
-//			of ReportGUI because this is intended for brief help.
-//			Anything more should automatically use the 
-//			URL.showHelpForKey 
-//-----------------------------------------------------------------------------
-// History:
-// 25 Aug 1999	CEN, RTi		Created class.
-// 01 Sep 1999	CEN, RTi		Changed name from PrelimHelpGUI to
-//					HelpJDialog and extended from JDialog
-//					rather than JFrame.  Added additional
-//					javadoc.
-// 2001-11-14	Steven A. Malers, RTi	Review javadoc.  Add finalize().  Remove
-//					import *.  Verify that variables are set
-//					to null when no longer used.  Use
-//					GUIUtil instead of GUI.
-// 2003-05-27	J. Thomas Sapienza, RTi	Made this class a window listener in 
-//					order to remove the HelpJDialog$1.class
-//					internal class.
-//-----------------------------------------------------------------------------
-// 2003-08-25	JTS, RTi		Initial Swing version.
-//-----------------------------------------------------------------------------
 
 package RTi.Util.Help;
 
@@ -80,8 +48,7 @@ import RTi.Util.IO.PropList;
 import RTi.Util.String.StringUtil;
 
 /**
-The HelpJDialog displays a simple message and allows full help to be brought
-up, if the user wants more information.
+The HelpJDialog displays a simple message and allows full help to be brought up, if the user wants more information.
 */
 @SuppressWarnings("serial")
 public class HelpJDialog extends JDialog
@@ -129,8 +96,8 @@ HelpJDialog constructor
 
 </table>
 */
-public HelpJDialog ( JFrame parent, List<String> helpInfo, PropList props )
-{	super ( parent );
+public HelpJDialog ( JFrame parent, List<String> helpInfo, PropList props ) {
+	super ( parent );
 	_props = props;
 	setGUI ( );
 
@@ -152,8 +119,8 @@ public HelpJDialog ( JFrame parent, List<String> helpInfo, PropList props )
 Responds to ActionEvents, including the help and close button presses.
 @param ae ActionEvent.
 */
-public void actionPerformed ( ActionEvent ae ) 
-{	Object source = ae.getSource ();
+public void actionPerformed ( ActionEvent ae )  {
+	Object source = ae.getSource ();
 	if ( source == _help_JButton ) {
 		URLHelp.showHelpForKey ( _help_key );
 	}
@@ -166,30 +133,16 @@ public void actionPerformed ( ActionEvent ae )
 /**
 Close the dialog.
 */
-private void closeWindow ()
-{	setVisible ( false );
+private void closeWindow () {
+	setVisible ( false );
 	dispose();
-}
-
-/**
-Clean up for garbage collection.
-@exception Throwable if an error occurs.
-*/
-protected void finalize()
-throws Throwable
-{	_help_JTextArea = null;
-	_props = null;
-	_help_key = null;
-	_close_JButton = null;
-	_help_JButton = null;
-	super.finalize();
 }
 
 /**
 Sets up the awt portion of the GUI.
 */
-private void setGUI ( ) 
-{	GridBagLayout gbl = new GridBagLayout();
+private void setGUI ( )  {
+	GridBagLayout gbl = new GridBagLayout();
 	String propValue;
 	int width, height;
 
@@ -204,9 +157,9 @@ private void setGUI ( )
 	if ( _props == null )
 		_props = new PropList ("PrelimHelpGUIProps");
 
-	_help_key = _props.getValue ( "HelpKey" );	
+	_help_key = _props.getValue ( "HelpKey" );
 
-	// Determine the width
+	// Determine the width.
 	propValue = _props.getValue ( "TotalWidth" );
 	if ( propValue == null )  {
 		width = 600;
@@ -214,7 +167,7 @@ private void setGUI ( )
 	else {	width = StringUtil.atoi ( propValue );
 	}
 
-	// Determine the height
+	// Determine the height.
 	propValue = _props.getValue ( "TotalHeight" );
 	if ( propValue == null )  {
 		height = 550;
@@ -228,8 +181,8 @@ private void setGUI ( )
 	}
 	else {	setTitle ( "Help" );
 	}
-	
-	// Center panel
+
+	// Center panel.
 	JPanel centerJPanel = new JPanel();
 	centerJPanel.setLayout ( gbl );
 	getContentPane().add ( "Center", centerJPanel );
@@ -237,47 +190,39 @@ private void setGUI ( )
 	_help_JTextArea = new JTextArea();
 	_help_JTextArea.setEditable ( false );
 
-	// want to set to fixed width font
+	// Want to set to fixed width font.
 	Font oldFont = _help_JTextArea.getFont();
 	Font newFont = null;
 	if (oldFont == null) {
 		newFont = new Font("Courier", Font.PLAIN, 11);
 	}
 	else {
-		newFont = new Font("Courier", oldFont.getStyle(), 
-			oldFont.getSize());
+		newFont = new Font("Courier", oldFont.getStyle(), oldFont.getSize());
 	}
 	_help_JTextArea.setFont (newFont);
-	
+
 	GUIUtil.addComponent ( centerJPanel, new JScrollPane(_help_JTextArea),
-		0, 0, 1, 1, 1, 1, 10, 10, 10, 10, 
+		0, 0, 1, 1, 1, 1, 10, 10, 10, 10,
 		GridBagConstraints.BOTH, GridBagConstraints.WEST );
 
-	// Bottom JPanel
+	// Bottom JPanel.
 	JPanel bottomJPanel = new JPanel();
 	bottomJPanel.setLayout ( new FlowLayout(FlowLayout.CENTER));
 	getContentPane().add ( "South", bottomJPanel );
 
 	_close_JButton = new SimpleJButton ( "Close", this );
 	bottomJPanel.add ( _close_JButton );
-	
+
 	if ( _help_key != null ) {
 		_help_JButton = new SimpleJButton ( "More help", this );
 		bottomJPanel.add ( _help_JButton );
 	}
-		
+
 	pack();
 	setSize ( width, height );
 	GUIUtil.center ( this );
 
 	setVisible ( true );
-
-	// Clean up...
-
-	gbl = null;
-	propValue = null;
-	centerJPanel = null;
-	bottomJPanel = null;
 }
 
 public void windowActivated(WindowEvent e) {}

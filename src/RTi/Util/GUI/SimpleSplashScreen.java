@@ -4,36 +4,23 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
 
-//==============================================================================
-// SimpleSplashScreen - A simple splash screen window
-// -----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// -----------------------------------------------------------------------------
-// History:
-//
-// 2005-01-04 Luiz Teixeira, RTi	Origional version based on samples on
-//					on the web.
-// 2005-01-07 Luiz Teixeira, RTi	Added dispose on mouse clicked. 
-// 2005-04-26	J. Thomas Sapienza, RTi	* Removed all ".*"s in imports.
-//					* Added finalize().
-// -----------------------------------------------------------------------------
 package RTi.Util.GUI;
 
 import java.awt.Color;
@@ -51,8 +38,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 /**
-Class to display a simple splash screen window during the initialization of the
-main application.
+Class to display a simple splash screen window during the initialization of the main application.
 */
 @SuppressWarnings("serial")
 public class SimpleSplashScreen extends Window
@@ -96,7 +82,7 @@ Default constructor
 public SimpleSplashScreen( Frame applicastionFrame, String splashFilename )
 {
 // REVISIT (JTS - 2005-04-26)
-// Frame should probably be changed to JFrame
+// Frame should probably be changed to JFrame.
 	super( applicastionFrame );
 	__splashFilename = splashFilename;
 	__toolK          = Toolkit.getDefaultToolkit();
@@ -104,9 +90,8 @@ public SimpleSplashScreen( Frame applicastionFrame, String splashFilename )
 	showSplashScreen();
 	applicastionFrame.addWindowListener( new WindowListener() );
 	
-	// Users shall be able to close the splash window by clicking on its
-	// display area. This mouse listener listens for mouse clicks and
-	// disposes the splash window.
+	// Users shall be able to close the splash window by clicking on its display area.
+	// This mouse listener listens for mouse clicks and disposes the splash window.
         MouseAdapter disposeOnClick = new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
                 dispose();
@@ -116,28 +101,17 @@ public SimpleSplashScreen( Frame applicastionFrame, String splashFilename )
 }
 
 /**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__splashFilename = null;
-	__splashImage = null;
-	__toolK = null;
-	super.finalize();
-}
-
-/**
 Load the splash image.
 */
-public Image loadSplashImage()
-{
+public Image loadSplashImage() {
 	MediaTracker tracker = new MediaTracker( this );
 	Image result;
 	result = __toolK.getImage( __splashFilename );
 	tracker.addImage( result, 0 );
 	try {
 		tracker.waitForAll();
-	} catch (Exception e) {
+	}
+	catch (Exception e) {
 	  	e.printStackTrace();
 	}
 	__splashWidth  = result.getWidth ( this );
@@ -148,8 +122,7 @@ public Image loadSplashImage()
 /**
 Show the splash screen. 
 */
-public void showSplashScreen()
-{
+public void showSplashScreen() {
 	Dimension screenDimension = __toolK.getScreenSize();
 	int w = __splashWidth  + ( 2 * BORDERSIZE );
 	int h = __splashHeight + ( 2 * BORDERSIZE );
@@ -163,8 +136,7 @@ public void showSplashScreen()
 /**
 Paint
 */
-public void paint( Graphics g )
-{
+public void paint( Graphics g ) {
 	g.drawImage( __splashImage,
 		     BORDERSIZE,
 		     BORDERSIZE,
@@ -173,22 +145,17 @@ public void paint( Graphics g )
 		     this );
 }
 
-//==============================================================================
-
 /**
 */
-class WindowListener extends WindowAdapter
-{
+class WindowListener extends WindowAdapter {
 
-/**
-*/
-public void windowOpened( WindowEvent Event )
-{
-	setVisible( false );
-	dispose();
-}
+	/**
+	*/
+	public void windowOpened( WindowEvent Event ) {
+		setVisible( false );
+		dispose();
+	}
 
 }
     
 }
-//==============================================================================

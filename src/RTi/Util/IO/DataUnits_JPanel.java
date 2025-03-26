@@ -4,54 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// DataTable_JPanel - panel for displaying a worksheet containing data table
-//	data.
-// ----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2003-08-21	J. Thomas Sapienza, RTi	Initial version.
-// 2004-01-22	JTS, RTi		Revised to use JScrollWorksheet
-//					for displaying row headers.
-// 2004-07-29	JTS, RTi		* In-memory DataTables can now be passed
-//					  in, instead of just files containing
-//					  data tables.
-//					* Fixed bug where some of the 
-//					  constructors were not calling
-//					  setupGUI().
-// 2004-10-13	JTS, RTi		When a the name of the file containing
-//					a datatable is passed in, if the file
-//					cannot be read properly a message
-//					is printed where normally the worksheet
-//					would appear.
-// 2004-10-22	JTS, RTi		Corrected a bug where tables in 
-//					memory (eg, not read from a file)
-//					were not being displayed properly.
-// 2004-10-28	JTS, RTi		When column widths are being set, if
-//					there are no widths in the table model
-//					column widths will now be estimated
-//					using the header column names.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
 
 package RTi.Util.IO;
 
@@ -64,8 +32,6 @@ import javax.swing.JPanel;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.JScrollWorksheet;
 import RTi.Util.GUI.JWorksheet;
-
-import RTi.Util.IO.PropList;
 
 import RTi.Util.Message.Message;
 
@@ -176,20 +142,6 @@ throws Exception {
 	__props = props;
 
 	setupGUI();
-}
-
-/**
-Cleans up member variables.
-*/
-public void finalize() 
-throws Throwable
-{
-	__dataUnitsList = null;
-	__parent = null;
-	__widths = null;
-	__worksheet = null;
-	__props = null;
-	super.finalize();
 }
 
 /**

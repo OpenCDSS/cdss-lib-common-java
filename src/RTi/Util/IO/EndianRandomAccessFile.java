@@ -4,65 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//-----------------------------------------------------------------------------
-// EndianRandomAccessFile.java - RandomAccessFile for big or little endian file
-//-----------------------------------------------------------------------------
-// Copyright:  See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// History:
-//
-// 2001-08-12	Morgan Sheedy,		Initial Implementation for reading
-//		Riverside Technology,	little endians.
-//		inc.
-// 2001-08-15	AMS, RTi		Added methods to write out little
-//					endians.
-// 2001-08-27	Steven A. Malers, RTi	Review code and incorporate into RTi
-//					IO package.
-// 2001-08-31	AMS,RTi			Overloaded every read/write method to
-//					add seek methods.
-// 2001-09-26	SAM, RTi		Add readLittleEndianChar1().  Change so
-//					the mode is actually passed to the base
-//					class in the constructor.  Fix
-//					read methods.  Many were rereading
-//					bytes over the first byte in _b.
-// 2003-01-23	SAM, RTi		Overload the constructor to add the
-//					flag indicating whether the class should
-//					by default write in the same endianness
-//					as the computer.  Add readEndian*() and
-//					writeEndian*() methods.  Clean up the
-//					javadoc.
-// 2003-03-27	SAM, RTi		Change so that the buffer array _b is
-//					resized when dealing with character
-//					strings.  Previously a local array was
-//					often created, resulting in slower
-//					performance.
-// 2003-11-23	SAM, RTi		Add writeChar1() since Java does not
-//					have this equivalent without dealing
-//					with bytes manually.  Similarly add
-//					readChar1(), and readString1().
-// 2003-11-26	SAM, RTi		Add readLittleEndianString1().
-// 2003-12-04	SAM, RTi		* Add isBigEndian() and setBigEndian().
-// 2004-03-11	Scott Townsend		Add readLittleEndianByte().
-// 2004-04-06	SAT,RTi			Add writeLittleEndianByte(...).
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
 
 package RTi.Util.IO;
 
@@ -181,15 +138,6 @@ throws IOException
 	_b = new byte[8];
 	__match_system = match_system;
 	__is_big_endian = IOUtil.isBigEndianMachine();
-}
-
-/**
-Finalizes and cleans up.
-@exception Throwable if there is an error.
-*/
-public void finalize() throws Throwable {
-	_b = null;
-	super.finalize();
 }
 
 /**

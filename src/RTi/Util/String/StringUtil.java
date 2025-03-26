@@ -233,7 +233,7 @@ public static float atof( String s ) {
 	}
 	float value=(float)0.0;
 	try {
-		value = new Float( s.trim() ).floatValue();
+		value = Float.valueOf( s.trim() ).floatValue();
 	}
 	catch( NumberFormatException e ){
 		Message.printWarning ( 50, "StringUtil.atof", "Unable to convert \"" + s + "\" to float." );
@@ -255,7 +255,7 @@ public static double atod( String s ) {
 	}
 	double value=0.0;
 	try {
-		value = new Double( s.trim() ).doubleValue();
+		value = Double.valueOf( s.trim() ).doubleValue();
 	}
 	catch( NumberFormatException e ){
 		Message.printWarning( 50, "StringUtil.atod", "Unable to convert \"" + s + "\" to double." );
@@ -277,7 +277,7 @@ public static long atol( String s ) {
 	}
 	long value=0;
 	try {
-		value = new Long( s.trim() ).longValue();
+		value = Long.valueOf( s.trim() ).longValue();
 	}
 	catch( NumberFormatException e ){
 		Message.printWarning( 50, "StringUtil.atol", "Unable to convert \"" + s + "\" to long." );
@@ -1150,37 +1150,37 @@ public static final List<Object> fixedRead ( String string, int[] field_types, i
 		// 2. Add to the list.
 		//Message.printStatus ( 2, "", "String to convert to object is \"" + var + "\"" );
 		if ( dtype == StringUtil.TYPE_CHARACTER ) {
-			tokens.add ( new Character(var.charAt(0)) );
+			tokens.add ( Character.valueOf(var.charAt(0)) );
 		}
 		else if ( dtype == StringUtil.TYPE_DOUBLE ) {
 			String sdouble = var.toString().trim();
 			if ( sdouble.length() == 0 ) {
-				tokens.add ( new Double ( "0.0" ) );
+				tokens.add ( Double.valueOf ( "0.0" ) );
 			}
 			else {
-				tokens.add ( new Double ( sdouble ) );
+				tokens.add ( Double.valueOf ( sdouble ) );
 			}
 		}
 		else if ( dtype == StringUtil.TYPE_FLOAT ) {
 			String sfloat = var.toString().trim();
 			if ( sfloat.length() == 0 ) {
-				tokens.add ( new Float ( "0.0" ) );
+				tokens.add ( Float.valueOf ( "0.0" ) );
 			}
 			else {
-				tokens.add ( new Float ( sfloat ) );
+				tokens.add ( Float.valueOf ( sfloat ) );
 			}
 		}
 		else if ( dtype == StringUtil.TYPE_INTEGER ) {
 			String sinteger = var.toString().trim();
 			if ( sinteger.length() == 0 ) {
-				tokens.add ( new Integer ( "0" ) );
+				tokens.add ( Integer.valueOf ( "0" ) );
 			}
 			else {
 				// check for "+".
 				if ( sinteger.startsWith("+")) {
 					sinteger = sinteger.substring(1);
 				}
-				tokens.add ( new Integer ( sinteger ) );
+				tokens.add ( Integer.valueOf ( sinteger ) );
 			}
 		}
 		else if ( dtype == StringUtil.TYPE_STRING ) {
@@ -1946,7 +1946,7 @@ Note that the String.format() method can be used instead of this function.
 */
 public static final String formatString ( double d, String format ) {
 	List<Double> v = new ArrayList<>(1);
-	v.add ( new Double(d) );
+	v.add ( Double.valueOf(d) );
 	return formatString ( v, format );
 }
 
@@ -1972,7 +1972,7 @@ Note that the String.format() method can be used instead of this function.
 */
 public static final String formatString ( float f, String format ) {
 	List<Float> v = new ArrayList<>(1);
-	v.add ( new Float(f) );
+	v.add ( Float.valueOf(f) );
 	return formatString ( v, format );
 }
 
@@ -1985,7 +1985,7 @@ Note that the String.format() method can be used instead of this function.
 */
 public static final String formatString ( int i, String format ) {
 	List<Integer> v = new ArrayList<>(1);
-	v.add ( new Integer(i) );
+	v.add ( Integer.valueOf(i) );
 	return formatString ( v, format );
 }
 
@@ -2011,7 +2011,7 @@ Note that the String.format() method can be used instead of this function.
 */
 public static final String formatString ( long l, String format ) {
 	List<Long> v = new ArrayList<>(1);
-	v.add ( new Long(l) );
+	v.add ( Long.valueOf(l) );
 	return formatString ( v, format );
 }
 
@@ -2445,7 +2445,7 @@ public static boolean isDouble( String s ) {
         return false;
     }
     try {
-        new Double( s.trim() ).doubleValue();
+        Double.valueOf( s.trim() ).doubleValue();
 		return true;
 	}
 	catch( NumberFormatException e ){
@@ -2501,7 +2501,7 @@ public static boolean isLong(String s) {
         return false;
     }
 	try {
-		new Long(s).longValue();
+		Long.valueOf(s).longValue();
 		return true;
 	}
 	catch (NumberFormatException e) {
@@ -3689,8 +3689,8 @@ public static String round ( String string, int precision ) {
 	// If we get to here we need to do the more complicated roundoff stuff.
 	// First check if the precision is zero.  If so, round off the main number and return.
 	if ( precision == 0 ) {
-		long ltemp = Math.round ( new Double(string).doubleValue() );
-		return ( new Long(ltemp).toString() );
+		long ltemp = Math.round ( Double.valueOf(string).doubleValue() );
+		return ( Long.valueOf(ltemp).toString() );
 	}
 	// If get to here, we have more than a zero precision and need to jump through some hoops.
 	// First, create a new string that has the remainder.
@@ -3698,11 +3698,11 @@ public static String round ( String string, int precision ) {
 	// Next insert a decimal point after the precision digits.
 	remainder_string.insert(precision,'.');
 	// Now convert the string to a Double.
-	Double dtemp = new Double ( remainder_string.toString() );
+	Double dtemp = Double.valueOf ( remainder_string.toString() );
 	// Now round.
 	long ltemp = Math.round ( dtemp.doubleValue() );
 	// Now convert back to a string.
-	String rounded_remainder = new String ( new Long(ltemp).toString() );
+	String rounded_remainder = new String ( Long.valueOf(ltemp).toString() );
  	String integer_string = string.substring(0,integer_length);
 	if ( rounded_remainder.length() < precision ) {
 		// The number working with had leading zeros and lost that during the round.  Insert zeros again.
@@ -3720,7 +3720,7 @@ public static String round ( String string, int precision ) {
 		// Therefore, need to use all but the first digit of
 		// the rounded remainder and we need to increment our original number (or decrement if negative!).
 		char first_char = string.charAt(0);
-		long new_long = new Long(integer_string).longValue();
+		long new_long = Long.valueOf(integer_string).longValue();
 		if ( first_char == '-' ) {
 			// Negative.
 			--new_long;

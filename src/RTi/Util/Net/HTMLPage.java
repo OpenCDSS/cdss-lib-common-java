@@ -4,37 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//------------------------------------------------------------------------------
-// HTMLPage - interface to parse and create a HTML page
-//------------------------------------------------------------------------------
-// Copyright: See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// Notes:	For the most part, this class is used to print HTML pages, e.g.,
-//		for CGI interfaces.  Be very careful using printStatus because
-//		it may print to the HTML page!
-//------------------------------------------------------------------------------
-// History:
-//
-// 05 Feb 1999	Steven A. Malers, RTi	Initial version.
-// 08 Mar 1999	SAM, RTi		Add form, table capabilities.
-//------------------------------------------------------------------------------
 
 package RTi.Util.Net;
 
@@ -46,12 +31,11 @@ import java.util.List;
 import RTi.Util.Message.Message;
 
 /**
-This class provides an interface to parse and print HTML pages, e.g., for
-CGI programs.  Currently the class does not automatically detect errors (e.g.,
-it will not automatically insert a head if you print a body before the head).
-You must insert the page
-segments programatically by calling the proper methods.  For example, call using
-the following sequence:
+This class provides an interface to parse and print HTML pages, e.g., for CGI programs.
+Currently the class does not automatically detect errors
+(e.g., it will not automatically insert a head if you print a body before the head).
+You must insert the page segments programatically by calling the proper methods.
+For example, call using the following sequence:
 <p>
 <pre>
 	String outfile = new String ( "CGI.out" );
@@ -59,15 +43,12 @@ the following sequence:
 	htmlpage.printContentType();	// If doing CGI.
 	htmlpage.printHTML(true);	// Start HTML.
 	htmlpage.printHead(true);	// Start Head.
-	htmlpage.printTitle("CGI Web Interface");
-					// Title.
+	htmlpage.printTitle("CGI Web Interface"); // Title.
 	htmlpage.printHead(false);	// End Head.
 	htmlpage.printBody(true);	// Start body.
-	htmlpage.printPreformattedText(true);
-					// Start pre-formatted text.
+	htmlpage.printPreformattedText(true); // Start pre-formatted text.
 	// Print content here using htmlpage.print(), etc..
-	htmlpage.printPreformattedText(false);
-					// End pre-formatted text.
+	htmlpage.printPreformattedText(false); // End pre-formatted text.
 	htmlpage.printBody(false);	// End body.
 	htmlpage.printHTML(false);	// End HTML page.
 	htmlpage.close();		// Close HTML file.
@@ -157,26 +138,6 @@ public void close ()
 		_out.flush();
 		_out.close();
 	}
-}
-
-/**
-Clean up instance before garbage collection.
-*/
-protected void finalize ()
-throws Throwable
-{
-	// Only close the HTML file if it was originally opened with the name.
-	// Otherwise, the code that created the instance may have other plans
-	// for the PrintWriter.
-
-	if ( _htmlfile != null ) {
-		if ( _out != null ) {
-			close ();
-		}
-		_htmlfile = null;
-	}
-	_out = null;
-	super.finalize();
 }
 
 /**

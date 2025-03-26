@@ -4,35 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// NetworkFeature - a representation of a feature (e.g., Node, Link) in a
-//			network
-// ----------------------------------------------------------------------------
-// History:
-// 
-// 2003-07-28	Steven A. Malers,	Initial version - copy and modify
-//		Riverside Technology,	HBNode.
-//		inc.
-// 2005-04-26	J. Thomas Sapienza, RTi	Added finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
 
 package RTi.Util.IO;
 
@@ -55,7 +42,7 @@ public abstract class NetworkFeature extends Object
 						// types (e.g., node type
 						// numbers).  To be set
 						// in the derived class.
-private String [] __feature_names = null;	// An array of allowed feature
+//private String [] __feature_names = null;	// An array of allowed feature
 						// names (e.g., short names
 						// corresponding to node types).
 
@@ -270,21 +257,6 @@ public int deleteUpstreamNode ( HBNode upstream_node )
 	}
 }
 */
-
-/**
-Finalize before garbage collection.
-*/
-protected void finalize ()
-throws Throwable {
-	IOUtil.nullArray(__feature_names);
-	_type = null;
-	_id = null;
-	_name = null;
-	_upstream_feature_Vector = null;
-	_downstream_feature_Vector = null;
-	_data = null;
-	super.finalize();
-}
 
 /**
 Return the identifier for the feature.

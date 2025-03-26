@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -24,8 +24,8 @@ NoticeEnd */
 package RTi.GIS.GeoView;
 
 /**
-Class to hold degrees, minutes, and seconds, in particular useful for conversion from decimal degrees in a way
-that holds discrete values.
+Class to hold degrees, minutes, and seconds,
+in particular useful for conversion from decimal degrees in a way that holds discrete values.
 */
 public class DegMinSec
 {
@@ -53,8 +53,7 @@ private Double __decdeg = null;
 /**
 Construct from parts.
 */
-public DegMinSec ( int deg, int min, double sec )
-{
+public DegMinSec ( int deg, int min, double sec ) {
     __deg = deg;
     __min = min;
     __sec = sec;
@@ -65,23 +64,21 @@ Construct from decimal degrees.
 @param decdeg decimal degrees to parse
 @return new DegMinSec instance corresponding to specified decimal degrees
 */
-public DegMinSec ( double decdeg )
-{
+public DegMinSec ( double decdeg ) {
     parseDecdeg ( decdeg, this );
-    __decdeg = new Double(decdeg);
+    __decdeg = Double.valueOf(decdeg);
 }
 
 /**
 Return the decimal degrees corresponding to the instance.
 */
-public double getDecDegrees ()
-{
+public double getDecDegrees () {
     if ( __decdeg != null ) {
-        // Have the value from the constructor
+        // Have the value from the constructor.
         return __decdeg;
     }
     else {
-        // Calculate from the parts
+        // Calculate from the parts.
         double decdeg = __deg + __min/60.0 + __sec/3600.0;
         return decdeg;
     }
@@ -90,32 +87,28 @@ public double getDecDegrees ()
 /**
 Return the degrees.
 */
-public int getDeg ()
-{
+public int getDeg () {
     return __deg;
 }
 
 /**
 Return the minutes.
 */
-public int getMin ()
-{
+public int getMin () {
     return __min;
 }
 
 /**
 Return the seconds.
 */
-public double getSec ()
-{
+public double getSec () {
     return __sec;
 }
 
 /**
 Create from a string.
 */
-public static DegMinSec parseDegMinSec ( String dms, DegMinSecFormatType format )
-{
+public static DegMinSec parseDegMinSec ( String dms, DegMinSecFormatType format ) {
     DegMinSec dmso = new DegMinSec(0,0,0.0);
     if ( format == DegMinSecFormatType.DEGMMSS ) {
         // Format is DegMMSS with no partial seconds.  Degrees can be 2 or 3 digits, zero padded.
@@ -133,12 +126,11 @@ public static DegMinSec parseDegMinSec ( String dms, DegMinSecFormatType format 
 /**
 Create from decimal degrees.  The seconds are not truncated/rounded.
 @param decdeg decimal degrees
-@param dms if non-null, use the object to set the parsed values (useful to improve performance by not
-creating a new object); if null, return a new object
+@param dms if non-null, use the object to set the parsed values
+(useful to improve performance by not creating a new object); if null, return a new object
 @return DegMinSec object corresponding to decimal degrees
 */
-public static DegMinSec parseDecdeg ( double decdeg, DegMinSec dms )
-{
+public static DegMinSec parseDecdeg ( double decdeg, DegMinSec dms ) {
     if ( dms == null ) {
         dms = new DegMinSec(0,0,0.0);
     }
@@ -156,13 +148,12 @@ Return a string representation of the object.
 <li>    DEGMMSS corresponds to "DegMSS", where minutes and seconds
         are padded with zeros.  Fractions of seconds are truncated (no attempt to round).
         </li>
+</ol>
 */
-public String toString ( DegMinSecFormatType format )
-{
+public String toString ( DegMinSecFormatType format ) {
     if ( format == DegMinSecFormatType.DEGMMSS ) {
         StringBuffer b = new StringBuffer("");
-        // Do not round the arc-seconds because there is no way to go the other direction with
-        // only 4 decimals of output.
+        // Do not round the arc-seconds because there is no way to go the other direction with only 4 decimals of output.
         int deg = getDeg();
         b.append ( "" + (int)deg);
         String min = "" + getMin();

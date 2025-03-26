@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -467,8 +467,8 @@ throws Exception {
 		for (int j = 0; j < dataSize; j++) {
 			data = dataV.get(j);
 			data.setVisible(true);
-			animationFieldsV.add( new Integer(data.getAttributeField()));
-			maxValuesV.add(new Double(data.getAnimationFieldMax()));
+			animationFieldsV.add( Integer.valueOf(data.getAttributeField()));
+			maxValuesV.add(Double.valueOf(data.getAnimationFieldMax()));
 		}
 
 		// Get the GeoViewAnimationLayerData object that tells much about how this layer should be built.
@@ -704,7 +704,7 @@ private List<Integer> getGroupDataNums(String groupName) {
 	List<Integer> found = new ArrayList<>();
 	for (int i = 0; i < __numData; i++) {
 		if (groupName.equalsIgnoreCase(__data[i].getGroupName())) {
-			found.add(new Integer(i));
+			found.add(Integer.valueOf(i));
 		}
 	}
 	return found;
@@ -1070,7 +1070,7 @@ public void startAnimation() {
 	String p = __pauseTextField.getText().trim();
 	int millis = 1500;
 	try {
-		double d = (new Double(p)).doubleValue() * 1000;
+		double d = (Double.valueOf(p)).doubleValue() * 1000;
 		millis = (int)d;
 	}
 	catch (Exception e) {

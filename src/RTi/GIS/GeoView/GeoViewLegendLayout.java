@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@ NoticeEnd */
 
 package RTi.GIS.GeoView;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.JCheckBox;
 
@@ -63,27 +63,27 @@ private String __title = null;
 
 /**
 The checkboxes that were added to the legend.
-The items in this list correspond to the items in the other Vectors at the same position.
+The items in this list correspond to the items in the other lists at the same position.
 */
-public List<JCheckBox> __checkboxes = new Vector<>();
+public List<JCheckBox> __checkboxes = new ArrayList<>();
 
 /**
 The nodes that were added to the legend.
-The items in this list correspond to the items in the other Vectors at the same position.
+The items in this list correspond to the items in the other lists at the same position.
 */
-public List<SimpleJTree_Node> __nodes = new Vector<>();
+public List<SimpleJTree_Node> __nodes = new ArrayList<>();
 
 /**
 The layers that were added to the legend.
-The items in this list correspond to the items in the other Vectors at the same position.
+The items in this list correspond to the items in the other lists at the same position.
 */
-public List<GeoLayerView> __layers = new Vector<>();
+public List<GeoLayerView> __layers = new ArrayList<>();
 
 /**
 A list of Booleans that specify whether the layer in the layers list at the same position is visible.
-The items in this list correspond to the items in the other Vectors at the same position.
+The items in this list correspond to the items in the other lists at the same position.
 */
-public List<Boolean> __visibles = new Vector<>();
+public List<Boolean> __visibles = new ArrayList<>();
 
 /**
 Adds an item to the legend.
@@ -97,7 +97,7 @@ JCheckBox checkbox, boolean visible) {
 	__nodes.add(node);
 	__layers.add(layer);
 	__checkboxes.add(checkbox);
-	__visibles.add(new Boolean(visible));
+	__visibles.add(Boolean.valueOf(visible));
 	count++;
 }
 
@@ -105,10 +105,10 @@ JCheckBox checkbox, boolean visible) {
 Clears everything from the legend.
 */
 public void empty() {
-	__nodes = new Vector<>();
-	__layers = new Vector<>();
-	__visibles = new Vector<>();
-	__checkboxes = new Vector<>();
+	__nodes = new ArrayList<>();
+	__layers = new ArrayList<>();
+	__visibles = new ArrayList<>();
+	__checkboxes = new ArrayList<>();
 	count = 0;
 }
 
@@ -285,7 +285,7 @@ Sets the layer legend at the given position visible or not.
 @param visible whether to set the layer visible or invisible.
 */
 public void setLayerLegendVisible(int num, boolean visible) {
-	__visibles.set(num, new Boolean(visible));
+	__visibles.set(num, Boolean.valueOf(visible));
 }
 
 /**

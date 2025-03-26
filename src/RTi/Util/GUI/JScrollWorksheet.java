@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,31 +20,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// JScrollWorksheet - Factory class for creating worksheets that use 
-//	Row Headers and which need to be scrollable.
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-// 2004-01-20	J. Thomas Sapienza, RTi	Initial version.
-// 2004-01-22	JTS, RTi		* Added the constructor that takes a 
-//					  parameter saying which columns to use
-//					  as the row header.
-// 					* Added the constructor that takes a
-//					  parameter of the worksheet to use
-//					  as the row header.
-// 2004-01-23	JTS, RTi		Renamed to JScrollWorksheet.
-// 2004-05-05	JTS, RTi		Expanded to allow use of a 
-//					DragAndDropJWorksheet.
-// 2005-04-26	JTS, RTi		Added finalize().
-// 2006-01-31	JTS, RTi		On UNIX, scrolling events are now 
-//					listened for by JWorksheets to correct
-//					a repaint issue.  This is explained 
-//					in much more detail at:
-//					JWorksheet.adjustmentValueChanged().
-// ----------------------------------------------------------------------------
 
 // REVISIT (JTS - 2004-01-23)
 // remove unnecssary constructors
@@ -76,15 +51,16 @@ To add a scrollable worksheet to a GUI using this class will require code simila
 
 	// create the scrolled worksheet
 	JScrollWorksheet jsw = new JScrollWorksheet(0, 0, props);
-	
+
 	// get out the worksheet
 	JWorksheet worksheet = jsw.getJWorksheet();
-	
+
 	// add the scrolled worksheet object (which functions
 	// as a JScrollPane around the returned worksheet) to the GUI
 	JGUIUtil.addComponent(mainPanel, jsw, ....);
 </tt></blockquote>
 */
+@SuppressWarnings("serial")
 public class JScrollWorksheet extends JScrollPane {
 
 /**
@@ -108,7 +84,7 @@ Constructor.
 @param tableModel the table model for the worksheet
 @param props the properties for the worksheet
 */
-public JScrollWorksheet(JWorksheet_DefaultTableCellRenderer cellRenderer, 
+public JScrollWorksheet(JWorksheet_DefaultTableCellRenderer cellRenderer,
 JWorksheet_AbstractTableModel tableModel, PropList props) {
 	__worksheet = new JWorksheet(cellRenderer, tableModel, props);
 
@@ -122,7 +98,7 @@ Constructor.
 @param props the properties for the worksheet
 @param cols the columns of the worksheet to use as the row header.
 */
-public JScrollWorksheet(JWorksheet_DefaultTableCellRenderer cellRenderer, 
+public JScrollWorksheet(JWorksheet_DefaultTableCellRenderer cellRenderer,
 JWorksheet_AbstractTableModel tableModel, PropList props, int[] cols) {
 	__worksheet = new JWorksheet(cellRenderer, tableModel, props);
 
@@ -136,7 +112,7 @@ Constructor.
 @param props the properties for the worksheet
 @param worksheet the worksheet to use as the row header.
 */
-public JScrollWorksheet(JWorksheet_DefaultTableCellRenderer cellRenderer, 
+public JScrollWorksheet(JWorksheet_DefaultTableCellRenderer cellRenderer,
 JWorksheet_AbstractTableModel tableModel, PropList props, JWorksheet worksheet){
 	__worksheet = new JWorksheet(cellRenderer, tableModel, props);
 
@@ -162,7 +138,7 @@ Constructor.
 @param props the properties for the worksheet
 @param dnd whether to create a DragAndDropJWorksheet (true) or not (false)
 */
-public JScrollWorksheet(JWorksheet_DefaultTableCellRenderer cellRenderer, 
+public JScrollWorksheet(JWorksheet_DefaultTableCellRenderer cellRenderer,
 JWorksheet_AbstractTableModel tableModel, PropList props, boolean dnd) {
 	__dnd = dnd;
 	if (dnd) {
@@ -183,9 +159,8 @@ Constructor.
 @param cols the columns of the worksheet to use as the row header.
 @param dnd whether to create a DragAndDropJWorksheet (true) or not (false)
 */
-public JScrollWorksheet(JWorksheet_DefaultTableCellRenderer cellRenderer, 
-JWorksheet_AbstractTableModel tableModel, PropList props, int[] cols, boolean dnd)
-{
+public JScrollWorksheet(JWorksheet_DefaultTableCellRenderer cellRenderer,
+JWorksheet_AbstractTableModel tableModel, PropList props, int[] cols, boolean dnd) {
 	__dnd = dnd;
 	if (dnd) {
 		__dndWorksheet = new DragAndDropJWorksheet(cellRenderer, tableModel, props);
@@ -205,9 +180,8 @@ Constructor.
 @param worksheet the worksheet to use as the row header.
 @param dnd whether to create a DragAndDropJWorksheet (true) or not (false)
 */
-public JScrollWorksheet(JWorksheet_DefaultTableCellRenderer cellRenderer, 
-JWorksheet_AbstractTableModel tableModel, PropList props, JWorksheet worksheet, boolean dnd)
-{
+public JScrollWorksheet(JWorksheet_DefaultTableCellRenderer cellRenderer,
+JWorksheet_AbstractTableModel tableModel, PropList props, JWorksheet worksheet, boolean dnd) {
 	__dnd = dnd;
 	if (dnd) {
 		__dndWorksheet = new DragAndDropJWorksheet(cellRenderer, tableModel, props);
@@ -226,8 +200,7 @@ Constructor.
 @param props the properties for the worksheet
 @param dnd whether to create a DragAndDropJWorksheet (true) or not (false)
 */
-public JScrollWorksheet(int rows, int cols, PropList props, boolean dnd)
-{
+public JScrollWorksheet(int rows, int cols, PropList props, boolean dnd) {
 	__dnd = dnd;
 	if (dnd) {
 		__dndWorksheet = new DragAndDropJWorksheet(rows, cols, props);
@@ -248,16 +221,6 @@ protected JViewport createViewport() {
 }
 
 /**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__worksheet = null;
-	__dndWorksheet = null;
-	super.finalize();
-}
-
-/**
 Returns the worksheet created and managed by this class.
 @return the worksheet created and managed by this class.
 */
@@ -274,7 +237,7 @@ public JWorksheet getJWorksheet() {
 Initializes the scrolling interface for the worksheet and if necessary, sets up the row headers.
 */
 private void initialize() {
-	// lifted from JScrollPane constructor.
+	// Lifted from JScrollPane constructor.
 	setLayout(new ScrollPaneLayout.UIResource());
 	setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 	setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -287,7 +250,7 @@ private void initialize() {
 		getVerticalScrollBar().addAdjustmentListener(__worksheet);
 		getHorizontalScrollBar().addAdjustmentListener(__worksheet);
 	}
-	
+
 	if (__dnd) {
 		if (__dndWorksheet != null) {
 			setViewportView(__dndWorksheet);
@@ -304,8 +267,8 @@ private void initialize() {
 	if (!this.getComponentOrientation().isLeftToRight()) {
 		viewport.setViewPosition(new Point(Integer.MAX_VALUE, 0));
 	}
-	
-	// this is set up in the proplist that is used to create the worksheet.
+
+	// This is set up in the proplist that is used to create the worksheet.
 	if (__dnd) {
 		if (__dndWorksheet.isUsingRowHeaders()) {
 			__dndWorksheet.enableRowHeader();
@@ -322,7 +285,7 @@ private void initialize() {
 Initializes the scrolling interface for the worksheet and if necessary, sets up the row headers.
 */
 private void initialize(JWorksheet worksheet, int[] cols) {
-	// lifted from JScrollPane constructor.
+	// Lifted from JScrollPane constructor.
 	setLayout(new ScrollPaneLayout.UIResource());
 	setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 	setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -331,7 +294,7 @@ private void initialize(JWorksheet worksheet, int[] cols) {
 	setHorizontalScrollBar(createHorizontalScrollBar());
 
 	if (IOUtil.isUNIXMachine()) {
-		// See JWorksheet.adjustmentValueChanged() for an explanation of why the following is done.	
+		// See JWorksheet.adjustmentValueChanged() for an explanation of why the following is done.
 		getVerticalScrollBar().addAdjustmentListener(__worksheet);
 		getHorizontalScrollBar().addAdjustmentListener(__worksheet);
 	}
@@ -353,7 +316,7 @@ private void initialize(JWorksheet worksheet, int[] cols) {
 		viewport.setViewPosition(new Point(Integer.MAX_VALUE, 0));
 	}
 
-	// this is set up in the proplist that is used to create the worksheet.
+	// This is set up in the proplist that is used to create the worksheet.
 	if (__dnd) {
 		if (__dndWorksheet.isUsingRowHeaders()) {
 			__dndWorksheet.enableRowHeader(worksheet, cols);

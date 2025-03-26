@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -619,7 +619,6 @@ typically true unless processing a graph in batch mode, in which case an image f
 */
 private void openGUI ( boolean mode ) {
 	String routine = getClass().getSimpleName() + ".openGUI";
-	int	y = 0;
 
 	// Start a big try block to set up the GUI.
 	try {
@@ -804,7 +803,7 @@ private void openGUI ( boolean mode ) {
     		0, 0, 1, 1, 1.0, 1.0, insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.SOUTH );
     	layeredPane = new JLayeredPane ();
     	layeredPane.setPreferredSize(new Dimension(_ts_graph.getWidth(),_ts_graph.getHeight()));
-    	layeredPane.add(panelForTSGraphJComponent,new Integer(JLayeredPane.DEFAULT_LAYER));
+    	layeredPane.add(panelForTSGraphJComponent,Integer.valueOf(JLayeredPane.DEFAULT_LAYER));
     	//_tsGraphGlassPane = new TSGraphJComponentGlassPane(_ts_graph, _ts_graph);
     	//layeredPane.add(_tsGraphGlassPane,2);
     	// This should automatically resize to fill
@@ -820,17 +819,17 @@ private void openGUI ( boolean mode ) {
     	layeredPane.setLayout(gbl);
     	//_ts_graph.setOpaque(false); // Doesn't do anything?
     	//_ts_graph.setBackground(new Color(0,0,0,0));
-    	addLayeredPaneComponent ( layeredPane, _ts_graph, new Integer(JLayeredPane.DEFAULT_LAYER) );
+    	addLayeredPaneComponent ( layeredPane, _ts_graph, Integer.valueOf(JLayeredPane.DEFAULT_LAYER) );
     	// The above sets the horizontal layout but the following ensures vertical ordering in layer (1=bottom).
     	layeredPane.setPosition(_ts_graph, 1);
     	//JPanel testJPanel = new JPanel();
     	//testJPanel.setOpaque(false);
-    	//addLayeredPaneComponent ( layeredPane, testJPanel, new Integer(JLayeredPane.DEFAULT_LAYER + 1) );
+    	//addLayeredPaneComponent ( layeredPane, testJPanel, Integer.valueOf(JLayeredPane.DEFAULT_LAYER + 1) );
     	//layeredPane.setPreferredSize(new Dimension(_ts_graph.getWidth(),_ts_graph.getHeight()));
     	//layeredPane.add(panelForTSGraphJComponent,1);
     	//_tsGraphGlassPane = new TSGraphJComponentGlassPane(_ts_graph, layeredPane.getRootPane());
     	this.tsgraphGlassPane = new TSGraphJComponentGlassPane(_ts_graph, null);
-    	addLayeredPaneComponent ( layeredPane, this.tsgraphGlassPane, new Integer(JLayeredPane.DEFAULT_LAYER) );
+    	addLayeredPaneComponent ( layeredPane, this.tsgraphGlassPane, Integer.valueOf(JLayeredPane.DEFAULT_LAYER) );
     	// The above sets the horizontal layout but the following ensures vertical ordering in layer (0=top).
     	//layeredPane.setLayer(_tsGraphGlassPane, JLayeredPane.DEFAULT_LAYER, 0);
     	layeredPane.setPosition(this.tsgraphGlassPane, 0);
@@ -918,7 +917,6 @@ private void openGUI ( boolean mode ) {
 		// since the reference graph is not sized in the TSGraphJComponent itself.
 		_ref_graph.setMinimumSize(new Dimension(10,15));
 		// Only fill horizontally.
-		y++;
 		JGUIUtil.addComponent (reference_JPanel,
 				new JLabel("Visible Period (white):"),
 				0, 0, 1, 1, 0.0, 0.0,
@@ -1117,17 +1115,14 @@ private void openGUI ( boolean mode ) {
 	button_bottom_JPanel.add ( __close_JButton );
 
 	//add ( "South", button_JPanel );
-	++y;
 	JGUIUtil.addComponent ( bottom_JPanel, button_top_JPanel,
 		0, 2, 1, 1, 0.0, 0.0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.CENTER );
 
-	++y;
 	JGUIUtil.addComponent ( bottom_JPanel, button_bottom_JPanel,
 		0, 3, 1, 1, 1.0, 0.0, insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.SOUTH );
 
 	// Add panel for status and tracker window.
 
-	++y;
 	JPanel status_JPanel = new JPanel ();
 	status_JPanel.setLayout ( gbl );
 	__message_JTextField = new JTextField ();
@@ -1146,7 +1141,6 @@ private void openGUI ( boolean mode ) {
 	JGUIUtil.addComponent ( status_JPanel, __tracker_JTextField,
 			1, 0, 1, 1, .7, 1.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
-	++y;
 	JGUIUtil.addComponent ( bottom_JPanel, status_JPanel,
 		0, 4, 1, 1, 1.0, 0.0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.SOUTH );
 

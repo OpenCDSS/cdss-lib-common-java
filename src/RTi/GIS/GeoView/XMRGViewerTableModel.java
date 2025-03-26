@@ -4,37 +4,24 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
 
-// ----------------------------------------------------------------------------
-// XMRGViewerTableModel - a table model for displaying XMRG information.
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-// 2004-10-14	J. Thomas Sapienza, RTi	Initial version.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-
 package RTi.GIS.GeoView;
-
-import RTi.GIS.GeoView.GeoGrid;
-import RTi.GIS.GeoView.XmrgGridLayer;
 
 import RTi.GR.GRLimits;
 
@@ -134,11 +121,10 @@ at the given row and column.
 */
 public Object getValueAt(int row, int col) {
 	try {
-		return new Double(__grid.getAbsDataValue(col, 
-			(_rows - 1) - row));	
+		return Double.valueOf(__grid.getAbsDataValue(col, (_rows - 1) - row));	
 	}
 	catch (Exception e) {
-		return new Double(-999.99);
+		return Double.valueOf(-999.99);
 	}
 }
 

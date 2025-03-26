@@ -4,57 +4,44 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// Node - a representation of a node on network
-// ----------------------------------------------------------------------------
-// History:
-// 
-// 2003-07-28	Steven A. Malers,	Initial version - copy and modify 
-//		Riverside Technology,	HBNodeNetwork.
-//		inc.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
 
 package RTi.Util.IO;
 
 import java.lang.String;
 
 /**
-This Node class represents a node on a network, for use with the NodeNetwork
-class.
+This Node class represents a node on a network, for use with the NodeNetwork class.
 REVISIT JAVADOC: see NodeNetwork
 */
 public class Node extends NetworkFeature
 {
 
-// REVISIT - figure out better how used
+// REVISIT - figure out better how used.
 /**
-Indiate how upstream nodes are constructed.  The default is to add tributaries
-first (like makenet) but CWRAT adds the main stem first.
+Indiate how upstream nodes are constructed.
+The default is to add tributaries first (like makenet) but CWRAT adds the main stem first.
 */
 public static final int TRIBS_ADDED_FIRST	= 1;
 public static final int TRIBS_ADDED_LAST	= 2;
 
 // REVISIT - why needed?
-//private int		_node_in_reach_number;	// The node count in the
-						// reach (starting at one)
+//private int		_node_in_reach_number;	// The node count in the reach (starting at one)
 // REVISIT - just use the Vector size.
 //private int		_nupstream;		// number of upstream nodes
 
@@ -104,16 +91,8 @@ Construct a node.
 @param name Node name.
 @param type Node type.
 */
-public Node ( String id, String name, String type )
-{	super ( id, name, type );
+public Node ( String id, String name, String type ) {
+	super ( id, name, type );
 }
 
-/**
-Finalize before garbage collection.
-*/
-protected void finalize ()
-throws Throwable
-{	super.finalize();
 }
-
-} // End of Node

@@ -4,42 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// SHEFType - SHEF data type class
-// ----------------------------------------------------------------------------
-// Copyright:  See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2003-10-31	Steven A. Malers, RTi	Initial version.  Copy DataType and
-//					update the code.  The design is meant to
-//					be compatible with RTi's RiverTrak and
-//					the NWSRFS, in particular to support
-//					SHEF output of time series.
-// 2003-11-18	SAM, RTi		When reading the NWS SHEFPPDB file, save
-//					the fully-expanded SHEF PE code as the
-//					PE.  It is not clear whether this will
-//					cause other issues.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-// EndHeader
 
 package RTi.Util.IO;
 
@@ -49,7 +29,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Vector;
 
-import RTi.Util.IO.IOUtil;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.TimeScaleType;
@@ -170,21 +149,6 @@ public static void addSHEFType ( SHEFType type )
 	}
 	// Need to add the units to the list...
 	__types_Vector.add ( type );
-}
-
-/**
-Finalize before garbage collection.
-@exception Throwable if an error occurs.
-*/
-protected void finalize ()
-throws Throwable
-{	__description = null;
-	__default_interval_base = null;
-	__units_engl = null;
-	__units_si = null;
-	__meas_time_scale = null;
-	__SHEF_pe = null;
-	super.finalize();
 }
 
 /**

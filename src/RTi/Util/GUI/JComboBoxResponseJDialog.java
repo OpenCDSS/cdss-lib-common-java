@@ -4,41 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// JComboBoxResponseJDialog - provides a pop-up dialog allowing user to enter
-//	a text response.
-// ----------------------------------------------------------------------------
-//  Copyright:	See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History: 
-// 2004-02-23	J. Thomas Sapienza, RTi	Initial version adapted from 
-//					TextResponseJDialog.
-// 2005-04-26	JTS, RTi		Added finalize().
-// 2005-06-13	JTS, RTi		* The combo box can now be made editable
-//					* Combo box responds to ENTER to submit
-//					  a value.
-// 2005-08-10	JTS, RTi		* Deprecated some constructors.
-//					* Allowed the combo box maximum row 
-//					  count to be specified.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
 
 package RTi.Util.GUI;
 
@@ -67,7 +48,7 @@ import RTi.Util.String.StringUtil;
 Class that provides a dialog from which the user can select a response in a combo box.
 */
 @SuppressWarnings("serial")
-public class JComboBoxResponseJDialog 
+public class JComboBoxResponseJDialog
 extends JDialog
 implements ActionListener, KeyListener, WindowListener {
 
@@ -109,8 +90,7 @@ JComboBoxResponseJDialog constructor
 @param mode mode in which this gui is to be used(i.e., OK, OK | CANCEL)
 process different types of yes responses from the calling form.
 */
-public JComboBoxResponseJDialog(JFrame parent, String title, String label,
-List<String> choices, int mode) {	
+public JComboBoxResponseJDialog(JFrame parent, String title, String label, List<String> choices, int mode) {	
 	this(parent, title, label, choices, mode, false);
 }
 
@@ -135,12 +115,12 @@ JComboBoxResponseJDialog constructor
 @param title Dialog title
 @param label Label to display in the GUI.
 @param choices the choices to populate the combo box with.
-@param mode mode in which this gui is to be used(i.e., OK, OK | CANCEL)
-process different types of yes reponses from the calling form.
+@param mode mode in which this UI is to be used(i.e., OK, OK | CANCEL)
+process different types of yes responses from the calling form.
 @param editable whether the combo box is editable or not.
 @param numRowsVisible the number of rows in the JComboBox to ensure are visible
-when the user clicks the combo box to select something.  If less than or 
-equal to 0, will not be considered and the default will be used.
+when the user clicks the combo box to select something.
+If less than or equal to 0, will not be considered and the default will be used.
 */
 public JComboBoxResponseJDialog(JFrame parent, String title, String label,
 List<String> choices, int mode, boolean editable, int numRowsVisible) {	
@@ -165,44 +145,31 @@ public void actionPerformed(ActionEvent event) {
 }
 
 /**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__cancelButton = null;
-	__okButton = null;
-	__comboBox = null;
-	super.finalize();
-}
-
-/**
 Instantiates the GUI components
 @param parent JFrame class instantiating this class.
 @param title Dialog title
 @param label Label to display in the GUI.
 @param choices choices to populate the combo box with.
-@param mode mode in which this gui is to be used(i.e., OK, OK | CANCEL)
-process different types of yes reponses from the calling form.
+@param mode mode in which this UI is to be used(i.e., OK, OK | CANCEL)
+process different types of yes responses from the calling form.
 @param numRowsVisible the number of rows in the JComboBox to ensure are visible
-when the user clicks the combo box to select something.  If less than or 
-equal to 0, will not be considered and the default will be used.
+when the user clicks the combo box to select something.
+If less than or equal to 0, will not be considered and the default will be used.
 */
-private void initialize(JFrame parent, String title, String label, 
-List<String> choices, int mode, int numRowsVisible) {
+private void initialize(JFrame parent, String title, String label, List<String> choices, int mode, int numRowsVisible) {
 	__mode = mode;
 
 	addWindowListener(this);
 
         // North Panel
         JPanel north_Panel = new JPanel();
-  
-	// Split the text based on the new-line delimiter(we use \n, not the
-	// platform's separator!
+
+	// Split the text based on the new-line delimiter(we use \n, not the platform's separator!
 
 	List<String> vec = StringUtil.breakStringList(label, "\n", 0);
 
 	if (vec != null) {
-		// Add each string...
+		// Add each string.
 		for(int i = 0; i < vec.size(); i++) {
         		north_Panel.add(new JLabel("    " + vec.get(i) + "     "));
 		}
@@ -220,14 +187,14 @@ List<String> choices, int mode, int numRowsVisible) {
         north_Panel.setLayout(new GridLayout(vec.size()+1, 1));
         getContentPane().add("North", north_Panel);
 
-	// Now add the buttons...
+	// Now add the buttons.
 
         // South Panel
         JPanel south_Panel = new JPanel();
         south_Panel.setLayout(new BorderLayout());
         getContentPane().add("South", south_Panel);
-        
-        // South Panel: North
+
+        // Panel for buttons.
         JPanel southNorth_Panel = new JPanel();
         southNorth_Panel.setLayout(new FlowLayout(FlowLayout.CENTER));
         south_Panel.add("North", southNorth_Panel);
@@ -242,8 +209,7 @@ List<String> choices, int mode, int numRowsVisible) {
 		__okButton.addActionListener(this);
 	}
 
-	// show the appropriate buttons depending upon
-	// the selected mode.
+	// Show the appropriate buttons depending upon the selected mode.
 	if ((__mode & ResponseJDialog.OK) != 0) {
 	        southNorth_Panel.add(__okButton);
 	}
@@ -251,14 +217,14 @@ List<String> choices, int mode, int numRowsVisible) {
 	        southNorth_Panel.add(__cancelButton);
 	}
 
-        // frame settings
+        // Frame settings.
 	if (title != null) {
 		setTitle(title);
 	}
 	else if (__frameTitle != null) {
 		setTitle(__frameTitle);
 	}
-	// Dialogs do no need to be resizable...
+	// Dialogs do no need to be resizable.
 	setResizable(false);
         pack();
         JGUIUtil.center(this);
@@ -266,8 +232,7 @@ List<String> choices, int mode, int numRowsVisible) {
 }
 
 /**
-If the combo box is editable and ENTER is pressed in it, this makes the 
-GUI respond as if OK were pressed.
+If the combo box is editable and ENTER is pressed in it, this makes the GUI respond as if OK were pressed.
 @param event the KeyEvent that happened.
 */
 public void keyPressed(KeyEvent event) {
@@ -304,8 +269,7 @@ public String response() {
 }
 
 /**
-This function sets the JFrame Title variable that is used
-for all instances of this class.
+This function sets the JFrame Title variable that is used for all instances of this class.
 @param title Frame title
 */
 public static void setFrameTitle(String title) {

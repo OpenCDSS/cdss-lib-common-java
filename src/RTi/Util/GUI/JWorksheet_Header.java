@@ -4,32 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// JWorksheet_Header - The header for a JWorksheet.
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-// 2003-07-01	J. Thomas Sapienza, RTi	Initial version.
-// 2003-11-18	JTS, RTi		Added finalize().
-// ----------------------------------------------------------------------------
 
 package RTi.Util.GUI;
 
@@ -38,15 +28,12 @@ import java.awt.event.MouseEvent;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumnModel;
 
-import RTi.Util.IO.IOUtil;
-
 /**
-This class is the header that a JWorksheet uses.  It provides additional 
-functionality that normal headers do not, such as the ability to set tooltips
-on columns.
+This class is the header that a JWorksheet uses.  It provides additional
+functionality that normal headers do not, such as the ability to set tooltips on columns.
 */
 @SuppressWarnings("serial")
-public class JWorksheet_Header 
+public class JWorksheet_Header
 extends JTableHeader {
 
 /**
@@ -55,8 +42,8 @@ The number of columns in the table model.
 private int __numColumns;
 
 /**
-An array of tooltips, one per absolute column.  If a column has a 
-<code>null</code> tooltip, no tooltip will be shown for that column.
+An array of tooltips, one per absolute column.
+If a column has a <code>null</code> tooltip, no tooltip will be shown for that column.
 */
 private String[] __tooltips;
 
@@ -68,22 +55,13 @@ public JWorksheet_Header() {
 }
 
 /**
-Constructor. 
+Constructor.
 @param tcm the TableColumnModel for which this will be the header.
 */
 public JWorksheet_Header(TableColumnModel tcm) {
 	super(tcm);
 
 	initialize();
-}
-
-/**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	IOUtil.nullArray(__tooltips);
-	super.finalize();
 }
 
 /**

@@ -4,33 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//-----------------------------------------------------------------------------
-// NetworkLayer - class to represent a Network object as a GeoLayer
-//-----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// History:
-//
-// 2003-07-31	Steven A. Malers, RTi	Initial version to read select files.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
 
 package RTi.GIS.GeoView;
 
@@ -89,15 +78,6 @@ throws Exception
 	initialize ();
 	setDataFormat ( "Network" );
 	_network = network;
-}
-
-/**
-Finalize before garbage collection.
-*/
-protected void finalize ()
-throws Throwable
-{	_network = null;
-	super.finalize();
 }
 
 /**
@@ -364,7 +344,7 @@ throws IOException
 					record.addFieldValue (
 					(String)tokens.elementAt(1) );
 					record.addFieldValue (
-					new Double((String)
+					Double.valueOf((String)
 					tokens.elementAt(2)));
 				}
 				else if ( (filetype == STATE) ||
@@ -568,7 +548,7 @@ throws IOException
 				record.addFieldValue ( id );
 				if ( filetype == RIVER ) {
 					record.addFieldValue ( name );
-					record.addFieldValue(new Double(order));
+					record.addFieldValue(Double.valueOf(order));
 				}
 				else if ( (filetype == STATE) ||
 					(filetype == COUNTY) ||
@@ -809,7 +789,7 @@ throws IOException
 					((String)
 					tokens.elementAt(0)).trim() );
 				record.addFieldValue (
-					new Double( StringUtil.atod(elev)) );
+					Double.valueOf( StringUtil.atod(elev)) );
 				record.addFieldValue (
 					((String)
 					tokens.elementAt(4)).trim() );

@@ -4,38 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// EndianDataOutputStream - write little or big endian binary data streams
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2004-05-05	J. Thomas Sapienza, RTi	Initial version.  Most code adapted
-//					from EndianDataInputStream and
-//					EndianRandomAccessFile.
-// 2004-12-01	Steven A. Malers, RTi	Review code.
-//					* Change javadoc "read" to "write" to
-//					  reflect the functionality of the code.
-//					* Change parameter names from "i"
-//					  (input) to "o" (output) to reflect the
-//					  functionality of the code.
-// ----------------------------------------------------------------------------
 
 package RTi.Util.IO;
 
@@ -43,15 +27,12 @@ import java.io.DataOutputStream;
 import java.io.OutputStream;
 import java.io.IOException;
 
-import RTi.Util.IO.IOUtil;
-
 /**
 This class extends the basic DataOutputStream class by providing LittleEndian
 versions of some write methods.  This allows one output stream to be used to
 write big and little endian values.  By default, Java assumes big endian
 data, and unicode (2-byte) strings.  Use this class if there is a chance that
-binary files may be written on multiple platforms and a standard needs to be
-enforced.
+binary files may be written on multiple platforms and a standard needs to be enforced.
 @see java.io.DataOutputStream
 */
 public class EndianDataOutputStream 
@@ -96,15 +77,6 @@ public EndianDataOutputStream(OutputStream ostream, boolean match_system)
 	__byte8 = new byte[8];
 	__match_system = match_system;
 	__is_big_endian = IOUtil.isBigEndianMachine();
-}
-
-/**
-Finalize before garbage collection.
-*/
-protected void finalize()
-throws Throwable
-{	__byte8 = null;
-	super.finalize();
 }
 
 /**

@@ -4,59 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// JWorksheet_RowSelectionModel.java - Class to handle row selections in the 
-//	JWorksheet.
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-// 2002-12-XX	J. Thomas Sapienza, RTi	Initial version.
-// 2003-03-04	JTS, RTi		Javadoc'd, revised.  
-// 2003-03-13	JTS, RTi		Added code to determine which rows
-//					are selected.
-// 2003-04-14	JTS, RTi		Added getSelectedColumn() and 
-//					getSelectedColumns()
-// 2003-05-22	JTS, RTi		Revised to allow selection of an entire
-//					row if the first column is selected.
-// 2003-09-23	JTS, RTi		* Renamed selectRow to 
-//					  selectAllCellsInRow().
-//					* Renamed selectCurrentRow to
-//					  selectAllCellsInCurrentRow().
-//					* Added selectRow() and made it public.
-// 					* Added clearSelection().
-// 2003-10-15	JTS, RTi		Added selectAllRows().
-// 2003-10-24	JTS, RTi		Added selectColumn().
-// 2003-10-27	JTS, RTi		__oneClickRowSelection is now by 
-//					default 'false'.
-// 2003-11-18	JTS, RTi		* Added finalize().
-//					* Added selectCell().
-// 2004-01-22	JTS, RTi		Added selectable code so that worksheets
-//					can be made unselectable.
-// 2004-06-07	JTS, RTi		Corrected bug in selectCell() that
-//					was causing nothing to be selected.
-// 2006-01-17	JTS, RTi		Added workaround for errors caused by
-//					by changes in Java 1.5 to 
-//					addSelectionInterval().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
 
 package RTi.Util.GUI;
 
@@ -73,23 +36,23 @@ import RTi.Util.Message.Message;
 /**
 This class, in conjunction with the JWorksheet_ColSelectionModel, allows a JTable to have
 a selection model that is like that of Microsoft Excel.  This class shares
-data with the JWorksheet_ColSelectionModel that is in the same JTable, and 
-JWorksheet_ColSelectionModel shares its data with this one.  The two need 
+data with the JWorksheet_ColSelectionModel that is in the same JTable, and
+JWorksheet_ColSelectionModel shares its data with this one.  The two need
 to interoperate very closely in order to get the desired effect.<p>
 
 JTables by default have two selection models:<ol>
-<li>The main one is a row selection model that keeps track of which rows 
+<li>The main one is a row selection model that keeps track of which rows
 are selected.  With this one in place users can either choose single rows,
 multiple rows, or SINGLE individual cells.</li>
 <li>Each column also has a selection model in place that keeps track of which
 columns are selected.  If single cell selection is turned on, then only
-one column can be selected.  If multiple row or single row selection is 
+one column can be selected.  If multiple row or single row selection is
 used, then all the columns in a row are selected when a row is selected.</li>
 </ol><p>
 
-The row selection model tells the JTable which rows are selected, and the 
-column selection model tells which columns are selected.  
-The interesting thing about how these are implemented by default is that 
+The row selection model tells the JTable which rows are selected, and the
+column selection model tells which columns are selected.
+The interesting thing about how these are implemented by default is that
 there is no mechanism to say something like:
 "Column 1 is selected in row 1, 2 and 4, but columns 2 and 3 are selected in row 3"<p>
 
@@ -97,7 +60,7 @@ If a column is selected in one row, it is selected in ALL rows.<p>
 
 The JWorksheet_ColSelectionModel and JWorksheet_RowSelectionModel overcome these limitations.
 
-Under 1.5, some selection method calls changed. 
+Under 1.5, some selection method calls changed.
 1.4 actions and methods:
 click - setSelectionInterval
 ctrl-click - addSelectionInterval
@@ -109,12 +72,12 @@ click - setSelectionInterval
 ctrl-click - addSelectionInterval
 shift-click - setSelectionInterval
 click-drag - setSelectionInterval
-  
+
 The partial fix is to reroute the method calls to the 1.4 behavior.  Additionally, current row/column needed to be set
 in some instances such as selecting or deselection cells.
 */
 @SuppressWarnings("serial")
-public class JWorksheet_RowSelectionModel 
+public class JWorksheet_RowSelectionModel
 extends DefaultListSelectionModel {
 
 /**
@@ -124,15 +87,15 @@ private JWorksheet_ColSelectionModel __colsm = null;
 
 /**
 A 1-D representation of the 2-D array of cells.  This is a sort of double
-buffer on top of the cellsSelected array of highlighted cells so that 
-cells can be selected and drawn as highlighted, and then the selection 
+buffer on top of the cellsSelected array of highlighted cells so that
+cells can be selected and drawn as highlighted, and then the selection
 cancelled (e.g., by dragging the mouse back and de-highlighting them) and
 only the originally-selected cells remain highlighted.
 */
 protected boolean[] _buffer = null;
 
 /**
-A 1-D representation of the 2-D array of cells.  This specifies which ones 
+A 1-D representation of the 2-D array of cells.  This specifies which ones
 are highlighted (have a value of true) so the JTable renderer can highlight
 them.  This represents the entire size of the table (row * height), but each
 cell is held in a single bit.
@@ -140,7 +103,7 @@ cell is held in a single bit.
 protected boolean[] _cellsSelected = null;
 
 /**
-Whether a potential drag was started on the row selection model.  
+Whether a potential drag was started on the row selection model.
 This happens when a cell is clicked on, and then clicked on again while it was already selected.
 */
 public boolean __possibleDrag = false;
@@ -154,7 +117,7 @@ to determine which cells are highlighted.
 protected boolean _drawnToBuffer = false;
 
 /**
-Whether all the cells in a row will be selected if the 0th column is clicked on.  
+Whether all the cells in a row will be selected if the 0th column is clicked on.
 */
 private boolean __oneClickRowSelection = false;
 
@@ -219,7 +182,7 @@ The highest row number selected.
 protected int _max = -1;
 
 /**
-Sets the "partner" row selection model for use when two worksheets work 
+Sets the "partner" row selection model for use when two worksheets work
 together to do the same selection style.  See the TSViewTable code in GRTS for an example of how it works.
 */
 private JWorksheet_RowSelectionModel __partner = null;
@@ -247,7 +210,7 @@ public JWorksheet_RowSelectionModel(int tRows, int tCols) {
 }
 
 /**
-Overrides method in DefaultListSelectionModel.  
+Overrides method in DefaultListSelectionModel.
 Adds a selection interval to the list of selected intervals.
 @param row0 the first row of the selection interval
 @param row1 the last row of the selection interval.
@@ -255,7 +218,7 @@ Adds a selection interval to the list of selected intervals.
 public void addSelectionInterval(int row0, int row1)
 {   String routine = "JWorksheet_RowSelectionModel.addSelectionInterval";
     int dl = 10;
-    
+
     if ( is15 ) {
         _currRow = row1;
         if (row0 != row1) {
@@ -308,7 +271,7 @@ public void addSelectionInterval(int row0, int row1)
 		// ignore -- this is an error encountered when running with Java 1.5.
 	}
 	else {
-		_buffer[index] = true;		
+		_buffer[index] = true;
 	}
 
 	System.arraycopy(_buffer, 0, _cellsSelected, 0, _size);
@@ -339,7 +302,7 @@ Clears all selected cells and notifies their listeners that they were deselected
 */
 public void clearSelection() {
 	zeroArray(_buffer);
-	System.arraycopy(_buffer, 0, _cellsSelected, 0, _size);	
+	System.arraycopy(_buffer, 0, _cellsSelected, 0, _size);
 	notifyAllListeners(0, _rows);
 }
 
@@ -376,17 +339,6 @@ public boolean dragWasTriggered() {
 }
 
 /**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__colsm = null;
-	_buffer = null;
-	_cellsSelected = null;
-	super.finalize();
-}
-
-/**
 Forces all the cells in the specified row to be deselected, no matter what the
 other internal settings of the row selection model are.
 @param row the row to deselect.
@@ -395,7 +347,7 @@ protected void forceDeselectRow(int row) {
 	for (int i = 0; i < _cols; i++) {
 		_buffer[(row * _cols) + i] = false;
 	}
-	System.arraycopy(_buffer, 0, _cellsSelected, 0, _size);	
+	System.arraycopy(_buffer, 0, _cellsSelected, 0, _size);
 	notifyAllListeners(row, row);
 }
 
@@ -407,7 +359,7 @@ private void forceSelectAllCellsInRow(int row) {
 	for (int i = 0; i < _cols; i++) {
 		_buffer[(row * _cols) + i] = true;
 	}
-	System.arraycopy(_buffer, 0, _cellsSelected, 0, _size);		
+	System.arraycopy(_buffer, 0, _cellsSelected, 0, _size);
 	notifyAllListeners(row, row);
 }
 
@@ -461,7 +413,7 @@ public int[] getSelectedColumns() {
 	for (int i = 0; i < _cols; i++) {
 		for (int j = 0; j < _rows; j++) {
 			if (_buffer[(j * _cols) + i] == true) {
-				v.add(new Integer(i));
+				v.add(Integer.valueOf(i));
 				j = _rows + 1;
 			}
 		}
@@ -502,7 +454,7 @@ public int[] getSelectedRows() {
 	for (int i = 0; i < _rows; i++) {
 		for (int j = 0; j < _cols; j++) {
 			if (_buffer[(i * _cols) + j] == true) {
-				v.add(new Integer(i));
+				v.add(Integer.valueOf(i));
 				j = _cols + 1;
 			}
 		}
@@ -580,7 +532,7 @@ private void notifyAllListeners(int startRow, int endRow)
 			e = new ListSelectionEvent(this, startRow - 30, endRow + 30, true);
 		}
 		((ListSelectionListener)listeners[i]).valueChanged(e);
-	}	
+	}
 }
 
 /**
@@ -593,14 +545,14 @@ public void removeIndexInterval(int row0, int row1) {
 }
 
 /**
-Overrides method in DefaultListSelectionModel.  Removes a selection interval from those already selected.  
+Overrides method in DefaultListSelectionModel.  Removes a selection interval from those already selected.
 @param row0 the first row to remove
 @param row1 the last row to remove.
 */
 public void removeSelectionInterval(int row0, int row1)
 {   String routine = "JWorksheet_RowSelectionModel.removeSelectionInterval";
     int dl = 10;
-	if (__oneClickRowSelection && __partner != null) {	
+	if (__oneClickRowSelection && __partner != null) {
 		__partner.forceDeselectRow(row0);
 	}
 
@@ -638,13 +590,13 @@ public void removeSelectionInterval(int row0, int row1)
 	__colsm._reset = true;
 	_drawnToBuffer = true;
 	_startRow = row0;
-	_buffer[((_currRow * _cols) + _startCol)] = false;		
+	_buffer[((_currRow * _cols) + _startCol)] = false;
 	if (_currCol == 0) {
 		deselectCurrentRow();
 	}
 	System.arraycopy(_buffer, 0, _cellsSelected, 0, _size);
 	notifyAllListeners(_startRow, _startRow);
-}	
+}
 
 /**
 Selects all the cells the current row.
@@ -666,7 +618,7 @@ private void selectAllCellsInRow(int row) {
 	}
 	if (__partner != null) {
 		__partner.forceSelectAllCellsInRow(row);
-	}	
+	}
 	notifyAllListeners(row, row);
 }
 
@@ -688,7 +640,7 @@ public void selectCell(int row, int visibleColumn) {
 		if ((j % _cols) == 0) {
 			currRow++;
 		}
-		
+
 		if ((j % _cols) == visibleColumn) {
 			if (currRow == row) {
 				_buffer[j] = true;
@@ -703,7 +655,7 @@ public void selectCell(int row, int visibleColumn) {
 	for (; j < _buffer.length; j++) {
 		_buffer[j] = false;
 	}
-	
+
 	notifyAllListeners(0, _rows);
 }
 
@@ -726,7 +678,7 @@ public void selectRow(int row)
 	_currRow = row;
 	_startCol = 0;
 	_currCol = 0;
-	
+
 	int sstartCol = 0;
 	int endCol = _cols;
 
@@ -744,7 +696,7 @@ public void selectRowWithoutDeselecting(int row) {
 	_currRow = row;
 	_startCol = 0;
 	_currCol = 0;
-	
+
 	int sstartCol = 0;
 	int endCol = _cols;
 
@@ -761,7 +713,7 @@ public void selectAllRows() {
 	__colsm._reset = true;
 	_drawnToBuffer = true;
 	System.arraycopy(_cellsSelected, 0, _buffer, 0, _size);
-	
+
 	for (int j = 0; j < _buffer.length; j++) {
 		_buffer[j] = true;
 	}
@@ -776,7 +728,7 @@ public void selectColumn(int visibleColumn) {
 	__colsm._reset = true;
 	_drawnToBuffer = true;
 	System.arraycopy(_cellsSelected, 0, _buffer, 0, _size);
-	
+
 	for (int j = 0; j < _buffer.length; j++) {
 		if ((j % _cols) == visibleColumn) {
 			_buffer[j] = true;
@@ -785,7 +737,7 @@ public void selectColumn(int visibleColumn) {
 			_buffer[j] = false;
 		}
 	}
-	notifyAllListeners(0, _rows);	
+	notifyAllListeners(0, _rows);
 }
 
 /**
@@ -796,14 +748,14 @@ public void setAnchorSelectionIndex(int anchorIndex) {
     // called when ctrl-shift-click
     int dl = 10;    // Debug level, to help track down Java 1.4 to 1.5 changes in behavior
     String routine = "JWorksheet_RowSelectModel.setAnchorSelectionIndex";
-    
+
     if ( Message.isDebugOn ) {
         Message.printDebug(dl,routine,"ROW: setAnchorSelectionIndex(" + anchorIndex + ")");
     }
 }
 
 /**
-Overrides method in DefaultListSelectionModel.  Sets the lead selection row.  
+Overrides method in DefaultListSelectionModel.  Sets the lead selection row.
 @param leadIndex the lead row.
 */
 public void setLeadSelectionIndex(int leadIndex)
@@ -914,7 +866,7 @@ public void setSelectionInterval(int row0, int row1)
 {   String routine = "JWorksheet_RowSelectionModel.setSelectionInterval";
     int dl = 10;
     //System.out.println("ROW.setSelectionInterval " + row0+","+row1);
-    
+
     if ( is15 ) {
         _currRow = row1;
         if ( row0 != row1) {
@@ -930,7 +882,7 @@ public void setSelectionInterval(int row0, int row1)
     if (!__selectable) {
         return;
     }
-	
+
     if ( Message.isDebugOn ) {
         Message.printDebug ( dl, routine, "ROW: setSelectionInterval(" + row0 + ", " + row1 + ")");
     }
@@ -959,7 +911,7 @@ public void setSelectionInterval(int row0, int row1)
 	else {
 		__possibleDrag = false;
 	}
-	
+
 	if (_drawnToBuffer == true) {
 		zeroArray(_cellsSelected);
 	}
@@ -996,7 +948,7 @@ Sets the JWorksheet_ColSelectionModel to use.
 public void setColSelectionModel(
 JWorksheet_ColSelectionModel csm) {
 	__colsm = csm;
-	__colsm._rCols = _cols;	
+	__colsm._rCols = _cols;
 	addListSelectionListener(__colsm);
 }
 

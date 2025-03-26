@@ -4,40 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// DataUnitsConversion - data units conversion class
-// ----------------------------------------------------------------------------
-// Copyright:  See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 13 Jan 1998	Steven A. Malers, RTi	Initial version.
-// 19 Mar 1998	SAM, RTi		Add javadoc.
-// 13 Apr 1999	SAM, RTi		Add finalize.  Clean up code.  Add
-//					constructor that takes data.
-// 2001-11-06	SAM, RTi		Review javadoc.  Verify that variables
-//					are set to null when no longer used.
-// 2001-12-09	SAM, RTi		Copy TSUnits* to Data* to allow general
-//					use of classes.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
 
 package RTi.Util.IO;
 
@@ -53,13 +35,10 @@ because that function depends on DataUnits data.
 public class DataUnitsConversion
 {
 
-private double	_add_factor;		// Factor to add to convert from
-					// _original_units to _new_units.
-private double	_mult_factor;		// Factor to multiply by to convert from
-					// _original_units to _new_units.
+private double	_add_factor;		// Factor to add to convert from _original_units to _new_units.
+private double	_mult_factor;		// Factor to multiply by to convert from _original_units to _new_units.
 private String	_original_units;	// The original data units.
-private String	_new_units;		// The new data units (result of
-					// applying the factors).
+private String	_new_units;		// The new data units (result of applying the factors).
 
 /**
 Construct and set the multiplication factor to 1.0 and the add factor to 0.0.
@@ -111,17 +90,6 @@ public DataUnitsConversion ( DataUnitsConversion conv )
 	setMultFactor ( conv._mult_factor );
 	setOriginalUnits ( conv._original_units );
 	setNewUnits ( conv._new_units );
-}
-
-/**
-Finalize before garbage collection.
-@exception Throwable if an error occurs.
-*/
-protected void finalize()
-throws Throwable
-{	_original_units = null;
-	_new_units = null;
-	super.finalize();
 }
 
 /**

@@ -4,68 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//------------------------------------------------------------------------------
-// TZ - class to encapsulate time zone information
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// History:
-// 
-// 01 Oct 1997	Matthew J. Rutherford,	Created class description.
-//		RTi
-// 02 Jan 1998	Steven A. Malers, RTi	Clean up code a little.
-// 25 Mar 1998	SAM, RTi		Add javadoc.
-// 21 Jun 1998	SAM, RTi		Update to match C++, where the time zone
-//					list includes a blank zone, equivalent
-//					to no offset and the end of the list has
-//					an offset of -999.
-// 13 Apr 1999	SAM, RTi		Add finalize.
-// 30 Aug 2001	SAM, RTi		Fix clone() to be more robust.
-//					Clean up javadoc.  Alphabetize methods.
-//					Change RESET options to non-static since
-//					they are not used outside this class.
-// 2001-11-06	SAM, RTi		Review javadoc.  Verify that variables
-//					are set to null when no longer used.
-// 2001-12-13	SAM, RTi		Copy TSTimeZone to this class.  Change
-//					to throw Exception when information
-//					cannot be found.  Change "code" in
-//					method to "abbr" - easier to keep clear
-//					with the time zone number.
-// 2001-12-19	SAM, RTi		Use a new TZData structure that allows
-//					more detail.  Remove
-//					getDefinedAbbreviation().
-//					Remove reset().  A time zone can either
-//					be looked up in the known data or
-//					defined.
-// 2003-11-03	SAM, RTi		Add getMatchingDefinedTZ().  This is
-//					used by the SHEF time series writer to
-//					determine whether a time series time
-//					zone can be matched with a SHEF time
-//					zone.
-// 2004-04-14	SAM, RTi		* Add getMatchingDefinedTZ() that uses
-//					  the offset as input.
-//					* Minor cleanup to some of the
-//					  documentation for the overloaded
-//					  method.
-//------------------------------------------------------------------------------
-// EndHeader
 
 package	RTi.Util.Time;
 
@@ -511,17 +465,6 @@ public boolean equals ( TZ tz )
 		return true;
 	}
         return false;
-}
-
-/**
-Finalize before garbage collection.
-@exception Throwable if there is an error.
-*/
-protected void finalize ()
-throws Throwable
-{	_abbreviation = null;
-	_description = null;
-	super.finalize();
 }
 
 /**

@@ -4,45 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// JWorksheet_DefaultTableCellEditor - Class that overrides the default 
-//	worksheet cell editor.  
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-// 2003-10-13	J. Thomas Sapienza, RTi	Initial version.
-// 2003-10-22	JTS, RTi		* Added getCellEditorValue().
-//					* Added stopCellEditing().
-//					* Adapted code from the source code
-//					  for DefaultCellEditor so this class
-//					  works as desired.
-// 2003-11-18	JTS, RTi		* Added code to set the edit cell in
-//					  the worksheet.
-//					* Overrode cancelCellEditing().
-//					* Added finalize().
-// 2004-02-02	JTS, RTi		Changed the default value that is shown
-//					when editing to a blank ("") so that
-//					the editor functions more like Excel.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
 
 package RTi.Util.GUI;
 
@@ -71,6 +48,7 @@ all the behavior of the original cell editor, but it also gives the ability to
 do some nice handling of MISSING values as well as highlighting the cell that
 is currently being edited.
 */
+@SuppressWarnings("serial")
 public class JWorksheet_DefaultTableCellEditor
 extends DefaultCellEditor
 implements TableCellEditor {
@@ -79,6 +57,7 @@ implements TableCellEditor {
 Array of values used to allow editing of multiple types of classes in one
 editor.  From the original java code.
 */
+@SuppressWarnings("rawtypes")
 private Class[] __argTypes = new Class[]{String.class};
 
 /**
@@ -115,18 +94,6 @@ public void cancelCellEditing() {
 }	
 
 /**
-Cleans up member variables.
-*/
-public void finalize() 
-throws Throwable {
-	IOUtil.nullArray(__argTypes);
-	__constructor = null;
-	__worksheet = null;
-	__editorValue = null;
-	super.finalize();
-}
-
-/**
 Returns a component that is used for editing the data in the cell; from 
 TableCellEditor.<p>
 Its original javadocs:<br>
@@ -153,6 +120,7 @@ boolean isSelected, int row, int column) {
 	// The following code was taken from DefaultCellEditor.java ...
 
 	__editorValue = null;
+	@SuppressWarnings("rawtypes")
 	Class columnClass = table.getColumnClass(absColumn);
 	// Since our obligation is to produce a value which is
 	// assignable for the required type it is OK to use the

@@ -4,34 +4,26 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+(at your option) any later version.
 
     CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
 
-//-----------------------------------------------------------------------------
-// TreeNode - primitive data for Tree component
-//-----------------------------------------------------------------------------
-// History:
-//
-// 2001-12-13	Steven A. Malers, RTi	Original version, from HDF package (see
-//					copyright information below).
-//-----------------------------------------------------------------------------
 /****************************************************************************
  * NCSA HDF                                                                 *
- * National Comptational Science Alliance                                   *
+ * National Computational Science Alliance                                   *
  * University of Illinois at Urbana-Champaign                               *
  * 605 E. Springfield, Champaign IL 61820                                   *
  *                                                                          *
@@ -99,48 +91,59 @@ advised of the possibility of such damage.
 */
 
 //package ncsa.hdf.util;
-package RTi.Util.GUI;
+package RTi.Util.GUI.unused;
 
 import java.awt.Image;
 
 /**
  * A TreeNode class was written by Sandip Chitale. This class will be used as
- * a base clas to implemnt a node of the tree data structres like heirarchical
- * file systems.
+ * a base class to implement a node of the tree data structures like hierarchical file systems.
  *
- * @author  HDF Group, NCSA. Modified by Peter Cao, Septemper 10, 1998.
+ * @author  HDF Group, NCSA. Modified by Peter Cao, September 10, 1998.
  */
-public class TreeNode
-{
-    /** the node label */
-    String label;
-
-    /** the node object defined by users */
-    Object userObject;
-
-    /** the default icon */
-    Image defaultIcon;
-
-    /** the open folder icon */
-    Image expandedIcon;
-
-    /** the icon for leaf node */
-    Image leafIcon;
-
-    /** the level of the node in the tree */
-    int level;
-
-    /** if the node is expanded */
-    boolean isExpanded;
+public class TreeNode {
+    /**
+     * The node label.
+     */
+    private String label;
 
     /**
-     * creates a new tree node
-     * @param obj            the node object
-     * @param defaultImage   the default image
-     * @param expandedImage  the expanded image
+     * The node object defined by users.
      */
-    public TreeNode(Object obj, Image defaultImage, Image expandedImage)
-    {
+    private Object userObject;
+
+    /**
+     * The default icon.
+     */
+    private Image defaultIcon;
+
+    /**
+     * The open folder icon.
+     */
+    private Image expandedIcon;
+
+    /**
+     * The icon for leaf node.
+     */
+    private Image leafIcon;
+
+    /**
+     * The level of the node in the tree.
+     */
+    private int level;
+
+    /**
+     * If the node is expanded.
+     */
+    private boolean isExpanded;
+
+    /**
+     * Creates a new tree node.
+     * @param obj the node object
+     * @param defaultImage the default image
+     * @param expandedImage the expanded image
+     */
+    public TreeNode ( Object obj, Image defaultImage, Image expandedImage ) {
         userObject = obj;
         defaultIcon = defaultImage;
         expandedIcon = expandedImage;
@@ -153,151 +156,169 @@ public class TreeNode
     }
 
     /**
-     * create the tree node with specified node object and the default image
-     * @param obj          the node object
+     * Create the tree node with specified node object and the default image
+     * @param obj the node object
      * @param defaultImage the default image
      */
-    public TreeNode(Object obj ,Image defaultImage)
-    {
+    public TreeNode ( Object obj, Image defaultImage ) {
         this(obj, defaultImage, null);
     }
 
     /**
-     * adds the node into the tree, derived class should override it
+     * Adds the node into the tree, derived class should override it.
      */
-    public void added() { }
-
-    /**
-     * deletes the node from the tree, derived class should override it
-     */
-    public void deleted() { }
-
-    /**
-     * selects the node in the tree, derived class should override it
-     */
-    public void select() {}
-
-    /**
-     * expands or collapses the node, derived class should override it
-     */
-    public  void  expandCollapse()
-    {
-        if (isExpandable()) toggleExpanded();
+    public void added() {
     }
 
-    /** checks if the node is expandable */
-    public  boolean  isExpandable() {
+    /**
+     * Deletes the node from the tree, derived class should override it.
+     */
+    public void deleted() {
+    }
+
+    /**
+     * Selects the node in the tree, derived class should override it.
+     */
+    public void select() {
+    }
+
+    /**
+     * Expands or collapses the node, derived class should override it.
+     */
+    public void expandCollapse() {
+        if (isExpandable()) {
+        	toggleExpanded();
+        }
+    }
+
+    /**
+     * Checks if the node is expandable 
+     */
+    public boolean isExpandable() {
         return(!(expandedIcon == null));
     }
 
     /**
-     * set the expand image
+     * Set the expand image.
      *
      * @param expandedImage the expanded image
      */
-    public  void  setExpandable(Image expandedImage) {
+    public void setExpandable(Image expandedImage) {
         expandedIcon = expandedImage;
     }
 
-    /** check if the node is expanded */
-    public  boolean  isExpanded() {
+    /**
+     * Check if the node is expanded.
+     */
+    public boolean isExpanded() {
         return isExpanded;
     }
 
     /**
-     * set the expanded status
+     * Set the expanded status.
      *
      * @param b  indicator if the node is expanded
      */
-    public  void  setExpanded(boolean b) {
+    public void setExpanded(boolean b) {
       if (isExpandable()) isExpanded = b;
     }
 
-    public  void toggleExpanded() {
+    public void toggleExpanded() {
       if (isExpanded()) setExpanded(false);
       else setExpanded(true);
     }
 
-    /** get the node object */
+    /**
+     * Get the node object.
+     */
     public Object getObject() {
         return userObject;
     }
 
-    /** get the default image */
-    public  Image  getDefaultImage() {
+    /**
+     * Get the default image.
+     */
+    public Image getDefaultImage() {
         return defaultIcon;
     }
 
-    /** set the default image */
-    public  void  setDefaultImage(Image defaultImage)
-    {
+    /**
+     * Set the default image.
+     */
+    public void setDefaultImage(Image defaultImage) {
         defaultIcon = defaultImage;
     }
 
-    /** set the leaf image */
-    public  void  setLeafImage(Image img)
-    {
+    /**
+     * Set the leaf image.
+     */
+    public void setLeafImage(Image img) {
         leafIcon = img;
     }
 
-    /** get the leaf image */
-    public  Image  getLeafImage()
-    {
+    /**
+     * Get the leaf image.
+     */
+    public Image getLeafImage() {
         return leafIcon;
     }
 
-    /** get the node level */
-    public int getLevel()
-    {
+    /**
+     * Get the node level.
+     */
+    public int getLevel() {
         return level;
     }
 
-    /** set the level of the node
+    /**
+     * Set the level of the node.
      * @param level the level value of the node 
      */
-    public void setLevel(int level)
-    {
+    public void setLevel(int level) {
         this.level = level;
     }
 
-    /** sets the label of the node
+    /**
+     * Sets the label of the node.
      *  @param label the label
      */
-    public void setLabel(String label)
-    {
+    public void setLabel(String label) {
         this.label = label;
     }
 
-    /** gets the label of the node
+    /**
+     * Gets the label of the node.
      */
     public String getLabel() { return label; }
 
-    /** get the collapse image(expanded).
+    /**
+     * Get the collapse image(expanded).
      *@return the image
      */
-    public  Image getCollapseImage()
-    {
+    public Image getCollapseImage() {
         return expandedIcon;
     }
 
     /**
      * Returns the parameter string representing the state of this 
      * node. This string is useful for debugging.
-     * @return     the parameter string of this node.
+     * @return the parameter string of this node.
      */
     protected String paramString() {
-	return "isExpandable="+isExpandable()+
+    	return "isExpandable="+isExpandable()+
             ",isExpanded="+isExpanded() +
             ",level="+level;
     }
 
     /**
      * Returns a string representation of this node and its values.
-     * @return    a string representation of this node.
+     * @return a string representation of this node.
      */
     public String toString() {
-	return getClass().getName() + "[" + paramString() + "]";
+    	return getClass().getName() + "[" + paramString() + "]";
     }
 
-	public Object getUserObject() { return userObject; }
+	public Object getUserObject() {
+		return userObject;
+	}
 }

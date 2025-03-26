@@ -1,4 +1,4 @@
-// DataTable - coordinating class for the Table utility
+// Table - coordinating class for the Table utility
 
 /* NoticeStart
 
@@ -81,7 +81,7 @@ try {
 
 	TableRecord contents = new TableRecord (3);
 	contents.addFieldValue ( "123456" );
-	contents.addFieldValue ( new Integer (6));
+	contents.addFieldValue ( Integer.valueOf (6));
 	contents.addFieldValue ( "RTi station" );
 
 	myTable.addRecord ( contents );
@@ -99,8 +99,8 @@ try {
 */
 public class Table {
 
-private List<TableField> _table_fields;	// vector of data types - DATA_TYPE_*
-private List<TableRecord> _table_records;	// vector of records 
+private List<TableField> _table_fields;	// List of data types - DATA_TYPE_*.
+private List<TableRecord> _table_records;	// List of records.
 
 /**
 Construct a new table.
@@ -110,8 +110,7 @@ public Table ( List<TableField> tableFieldsVector) {
 	initialize ( tableFieldsVector );
 }
 
-private void initialize ( List<TableField> tableFieldsVector )
-{
+private void initialize ( List<TableField> tableFieldsVector ) {
 	_table_fields = tableFieldsVector;
 	_table_records = new Vector<TableRecord>( 10, 10 );
 }
@@ -122,56 +121,50 @@ Adds a record to the vector of TableRecords.
 @exception when the number of entries in new_record is not equal to the number of entries in the current TableField declaration
 */
 public void addRecord ( TableRecord new_record )
-throws Exception
-{
+throws Exception {
 	int num_table_fields = _table_fields.size();
 	int num_new_record_fields = new_record.getNumberOfFields();
-	if ( num_new_record_fields == num_table_fields )
+	if ( num_new_record_fields == num_table_fields ) {
 		_table_records.add ( new_record );
-	else 
+	}
+	else {
 		throw new Exception ( "Number of records in the new record (" +
 		num_new_record_fields + ") does not match current " +
 		"description of the table fields." );
+	}
 }
 
 /**
 Add a field to the TableField and each entry in TableRecord
 @param tableField type of data the new field will contain
 */
-public void addField ( TableField tableField )
-{
+public void addField ( TableField tableField ) {
 	_table_fields.add ( tableField );
 
-	// add field to each record
+	// Add field to each record.
 	int num = _table_records.size();
 	TableRecord tableRecord;
 	for ( int i=0; i<num; i++ ) {
 		tableRecord = (TableRecord)_table_records.get(i);
 
-		// add element and set default to 0 or ""
-		// these are ordered in the most likely types to optimize
+		// Add element and set default to 0 or "" these are ordered in the most likely types to optimize.
 		int data_type = tableField.getDataType();
-		if ( data_type == TableField.DATA_TYPE_STRING )
+		if ( data_type == TableField.DATA_TYPE_STRING ) {
 			tableRecord.addFieldValue( new String ( "" ));
-		else if ( data_type == TableField.DATA_TYPE_INT )
-			tableRecord.addFieldValue( new Integer ( 0 ));
-		else if ( data_type == TableField.DATA_TYPE_DOUBLE )
-			tableRecord.addFieldValue( new Double ( 0 ));
-		else if ( data_type == TableField.DATA_TYPE_SHORT )
-			tableRecord.addFieldValue( new Short ( "0" ));
-		else if ( data_type == TableField.DATA_TYPE_FLOAT )
-			tableRecord.addFieldValue( new Float ( 0 ));
+		}
+		else if ( data_type == TableField.DATA_TYPE_INT ) {
+			tableRecord.addFieldValue( Integer.valueOf ( 0 ));
+		}	
+		else if ( data_type == TableField.DATA_TYPE_DOUBLE ) {
+			tableRecord.addFieldValue( Double.valueOf ( 0 ));
+		}	
+		else if ( data_type == TableField.DATA_TYPE_SHORT ) {
+			tableRecord.addFieldValue( Short.valueOf ( "0" ));
+		}
+		else if ( data_type == TableField.DATA_TYPE_FLOAT ) {
+			tableRecord.addFieldValue( Float.valueOf ( 0 ));
+		}
 	}
-}
-
-/**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	_table_fields = null;
-	_table_records = null;
-	super.finalize();
 }
 
 /**
@@ -179,8 +172,7 @@ Returns a field index.
 @return Index of table entry associated with the given heading.
 */
 public int getFieldIndex ( String heading )
-throws Exception
-{
+throws Exception {
 	int num = _table_fields.size();
 	for ( int i=0; i<num; i++ ) {
 		if (((TableField)_table_fields.get(i)).
@@ -188,17 +180,15 @@ throws Exception
 			return i;
 	}
 
-	// if this line is reached, the given heading was never found
-	throw new Exception( "Unable to find field with heading \"" + 
-		heading + "\"" );
+	// If this line is reached, the given heading was never found.
+	throw new Exception( "Unable to find field with heading \"" + heading + "\"" );
 }
 
 /**
 Returns the number of fields in the table.
 @return number of fields this table is current representing
 */
-public int getNumberOfFields ()
-{
+public int getNumberOfFields () {
 	return _table_fields.size();
 }
 
@@ -206,8 +196,7 @@ public int getNumberOfFields ()
 Returns the number of records within this table.
 @return number of records within this table
 */
-public int getNumberOfRecords ()
-{
+public int getNumberOfRecords () {
 	return _table_records.size();
 }
 
@@ -215,8 +204,7 @@ public int getNumberOfRecords ()
 Returns the TableFeld object for the specified zero-based index.
 @return TableField object for the specified zero-based index.
 */
-public TableField getTableField ( int index )
-{
+public TableField getTableField ( int index ) {
 	return ((TableField)_table_fields.get( index ));
 }
 
@@ -228,8 +216,7 @@ Returns a field value.
 Returned object must be properly cast.
 */
 public Object getFieldValue ( int record_index, String heading )
-throws Exception
-{
+throws Exception {
 	return getFieldValue ( record_index, getFieldIndex(heading) );
 }
 
@@ -241,30 +228,29 @@ Returns a field value.
 Returned object must be properly cast.
 */
 public Object getFieldValue ( int record_index, int field_index )
-throws Exception
-{
+throws Exception {
 	String rtn = "getFieldValue";
 	int num_recs = _table_records.size();
 	int num_fields = _table_fields.size();
 
-	if ( num_recs <= record_index )
+	if ( num_recs <= record_index ) {
 		throw new Exception ( "Requested record index " + record_index +
 		" is not available (only " + num_recs + 
 		" have been established." );
+	}
 
-	if ( num_fields <= field_index )
+	if ( num_fields <= field_index ) {
 		throw new Exception ( "Requested field index " + field_index +
 		" is not available (only " + num_fields +
 		" have been established." );
+	}
 
 	/* break this up ...
 	return (((TableRecord)_table_records.elementAt(record_index)).
 		getFieldValue(field_index));
 	*/
-	Message.printStatus ( 10, rtn, "Getting table record " + record_index +
-		" from " + num_recs + " available records." );
-	TableRecord tableRecord = (TableRecord)_table_records.
-		get(record_index);
+	Message.printStatus ( 10, rtn, "Getting table record " + record_index + " from " + num_recs + " available records." );
+	TableRecord tableRecord = (TableRecord)_table_records.get(record_index);
 	Message.printStatus ( 10, rtn, "Getting table record field." );
 	return tableRecord.getFieldValue(field_index);
 }
@@ -273,8 +259,7 @@ throws Exception
 Returns the header title for an index.
 @return heading title for specified zero-based index.
 */
-public String getHeadingForIndex ( int index )
-{
+public String getHeadingForIndex ( int index ) {
 	return ((TableField)_table_fields.get ( index )).getName();
 }
 
@@ -283,11 +268,10 @@ Returns the table record at a specified index.
 @return TableRecord at specified record_index
 */
 public TableRecord getRecord ( int record_index )
-throws Exception
-{
-	 if ( _table_records.size() <= record_index )
-	 	throw new Exception ( 
-		"Unable to return TableRecord at index " + record_index );
+throws Exception {
+	 if ( _table_records.size() <= record_index ) {
+	 	throw new Exception ( "Unable to return TableRecord at index " + record_index );
+	 }
 	 return ((TableRecord)_table_records.get(record_index));
 }
 
@@ -295,8 +279,7 @@ throws Exception
 Returns all the table records.
 @return vector of TableRecord
 */
-public List<TableRecord> getTableRecords ( )
-{
+public List<TableRecord> getTableRecords ( ) {
 	return _table_records;
 }
 
@@ -306,10 +289,10 @@ Set table header for the specified zero-based index.
 @param header header of the field
 */
 public void setTableFieldHeader ( int index, String header )
-throws Exception 
-{
-	if ( _table_fields.size() <= index )
+throws Exception {
+	if ( _table_fields.size() <= index ) {
 		throw new Exception ( "Index " + index + " is not valid." );
+	}
 	TableField tableField = (TableField)_table_fields.get(index);
 	tableField.setName ( header );
 }
@@ -320,10 +303,10 @@ Set field data type for the specified zero-based index.
 @param data_type data type; use FieldType.DATA_TYPE_*
 */
 public void setTableFieldType ( int index, int data_type )
-throws Exception
-{
-	if ( _table_fields.size() <= index )
+throws Exception {
+	if ( _table_fields.size() <= index ) {
 		throw new Exception ( "Index " + index + " is not valid." );
+	}
 	TableField tableField = (TableField)_table_fields.get(index);
 	tableField.setDataType ( data_type );
 }
@@ -335,10 +318,10 @@ Set field data type and header for the specified zero-based index.
 @param header header of the field
 */
 public void setTableField( int index, int data_type, String header )
-throws Exception
-{
-	if ( _table_fields.size() <= index )
+throws Exception {
+	if ( _table_fields.size() <= index ) {
 		throw new Exception ( "Index " + index + " is not valid." );
+	}
 	TableField tableField = (TableField)_table_fields.get(index);
 	tableField.setDataType ( data_type );
 	tableField.setName ( header );
@@ -354,8 +337,7 @@ Given a clear definition of what data to expect, reads and stores data in table
 */
 public static Table parseDelimitedFile ( String filename, String delimiter,
 	List<TableField> tableFields, int num_lines_header )
-throws Exception
-{
+throws Exception {
 	String rtn = "Table.parseDelimitedFile";	
 	String iline;
 	boolean processed_header = false;
@@ -365,6 +347,7 @@ throws Exception
 
 	BufferedReader in = new BufferedReader ( new FileReader ( filename ));
 
+	try {
 	table = new Table( tableFields );
 	if ( num_lines_header == 0 )
 		processed_header = true;
@@ -372,23 +355,25 @@ throws Exception
 	while (( iline = in.readLine ()) != null ) {
 
 		// check if read comment or empty line
-		if ( iline.startsWith("#") || iline.trim().length()==0)
+		if ( iline.startsWith("#") || iline.trim().length()==0) {
 			continue;
+		}
 
-		columns = StringUtil.breakStringList ( iline,
-			delimiter, StringUtil.DELIM_SKIP_BLANKS );
+		columns = StringUtil.breakStringList ( iline, delimiter, StringUtil.DELIM_SKIP_BLANKS );
 
 		// line is part of header ... 
 		if ( !processed_header ) {
 			num_fields = columns.size();
-			if ( num_fields < tableFields.size() )
+			if ( num_fields < tableFields.size() ) {
 				throw new IOException ( 
 				"table fields specifications do not " +
 				"match data found in file." );
+			}
 			
 			num_lines_header_read++;
-			if ( num_lines_header_read == num_lines_header )
+			if ( num_lines_header_read == num_lines_header ) {
 				processed_header = true;
+			}
 		}
 		else {
 			// line contains data - store in table as record
@@ -407,14 +392,18 @@ throws Exception
 					contents.addField ( modifiedString );
 					*/
 				}
-				else if ( type == TableField.DATA_TYPE_DOUBLE )
-					contents.addFieldValue ( new Double ( columns.get(i)));
-				else if ( type == TableField.DATA_TYPE_INT )
-					contents.addFieldValue( new Integer ( columns.get(i)));
-				else if ( type == TableField.DATA_TYPE_SHORT )
-					contents.addFieldValue( new Short ( columns.get(i)));
-				else if ( type == TableField.DATA_TYPE_FLOAT )
-					contents.addFieldValue( new Float ( columns.get(i)));
+				else if ( type == TableField.DATA_TYPE_DOUBLE ) {
+					contents.addFieldValue ( Double.valueOf ( columns.get(i)));
+				}
+				else if ( type == TableField.DATA_TYPE_INT ) {
+					contents.addFieldValue( Integer.valueOf ( columns.get(i)));
+				}
+				else if ( type == TableField.DATA_TYPE_SHORT ) {
+					contents.addFieldValue( Short.valueOf ( columns.get(i)));
+				}
+				else if ( type == TableField.DATA_TYPE_FLOAT ) {
+					contents.addFieldValue( Float.valueOf ( columns.get(i)));
+				}
 			}
 			table.addRecord ( contents );
 			} catch ( Exception e ) {
@@ -423,18 +412,22 @@ throws Exception
 		}
 	}
 	
-	in.close();
+	}
+	finally {
+		if ( in != null ) {
+			in.close();
+		}
+	}
 	return table;
 }
 
 /**
 Reads header of delimited file and return vector of TableField objects
-@return vector of TableField objects (only header titles will be set)
+@return list of TableField objects (only header titles will be set)
 @param filename name of file containing delimited data
 */
 public static List<TableField> parseDelimitedFileHeader ( String filename )
-throws Exception
-{
+throws Exception {
 	return parseDelimitedFileHeader ( filename, "," );
 }
 
@@ -447,8 +440,8 @@ to TableField.DATA_TYPE_STRING.  This should be changed if not appropriate.
 @param delimiter string representing delimiter in data file 
 */
 public static List<TableField> parseDelimitedFileHeader ( String filename, String delimiter )
-throws Exception
-{	String iline;
+throws Exception {
+	String iline;
 	List<String> columns;
 	List<TableField> tableFields = null;
 	int num_fields=0;
@@ -456,14 +449,15 @@ throws Exception
 
 	BufferedReader in = new BufferedReader ( new FileReader ( filename ));
 
+	try {
 	while (( iline = in.readLine ()) != null ) {
 
-		// check if read comment or empty line
-		if ( iline.startsWith("#") || iline.trim().length()==0)
+		// Check if read comment or empty line.
+		if ( iline.startsWith("#") || iline.trim().length()==0) {
 			continue;
+		}
 
-		columns = StringUtil.breakStringList ( iline,
-			delimiter, StringUtil.DELIM_SKIP_BLANKS );
+		columns = StringUtil.breakStringList ( iline, delimiter, StringUtil.DELIM_SKIP_BLANKS );
 
 		num_fields = columns.size();
 		tableFields = new Vector<TableField>( num_fields, 1 );
@@ -475,8 +469,12 @@ throws Exception
 		}
 		return tableFields;
 	}
-	
-	in.close();
+	}
+	finally {
+		if ( in != null ) {
+			in.close();
+		}
+	}
 	return tableFields;
 }
 

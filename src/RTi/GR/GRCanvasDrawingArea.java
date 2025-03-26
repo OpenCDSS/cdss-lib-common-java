@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -26,7 +26,7 @@ package RTi.GR;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
-import java.awt.Graphics;		// For now use old graphics, not 2D
+import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Shape;
 
@@ -38,16 +38,13 @@ import java.lang.Math;
 import java.util.List;
 
 import RTi.Util.IO.PropList;
-
 import RTi.Util.Math.MathUtil;
-
 import RTi.Util.Message.Message;
-import sun.font.FontManagerFactory;
 
 /**
 Drawing area for GRCanvasDevice.
 */
-public class GRCanvasDrawingArea 
+public class GRCanvasDrawingArea
 extends GRDrawingArea {
 
 /**
@@ -197,16 +194,15 @@ public void fillPolygon ( int npts, double x[], double y[], int transparency ) {
 	}
 	int alpha = 255 - transparency;
 	if ( alpha == 255 ) {
-		// Totally opaque...
+		// Totally opaque.
 		fillPolygon ( npts, x, y );
 		return;
 	}
 
 	int ix[] = new int[npts];
 	int iy[] = new int[npts];
-	// 1. Find the high and low x and y bounds of the polygon in 
-	//    order to create an off-screen image that is sized correctly
-	//    to fit the Polygon, and little else.
+	// 1. Find the high and low x and y bounds of the polygon to
+	//    create an off-screen image that is sized correctly to fit the Polygon, and little else.
 	int loX = ix[0];
 	int hiX = ix[0];
 	int loY = iy[0];
@@ -218,13 +214,13 @@ public void fillPolygon ( int npts, double x[], double y[], int transparency ) {
 		iy[i] = (int)y[i];
 		if (ix[i] < loX) {
 			loX = ix[i];
-		} 
+		}
 		if (ix[i] > hiX) {
 			hiX = ix[i];
 		}
 		if (iy[i] < loY) {
 			loY = iy[i];
-		} 
+		}
 		if (iy[i] > hiY) {
 			hiY = iy[i];
 		}
@@ -259,58 +255,58 @@ public void fillPolygon ( int npts, double x[], double y[], int transparency ) {
 
 	// 4. Create a Graphics object from the buffer Image.
 	Graphics bg = buffer.getGraphics();
-	
-	// 5. In this step, a color is chosen to be the transparent color.  
+
+	// 5. In this step, a color is chosen to be the transparent color.
 	//    When the buffer Image is finally drawn on-screen,
 	//    none of the pixels that have the transparent color will be drawn.
 	//    Their alpha levels will all be 0.
-	//  
+	//
 	//    This can be somewhat confusing, so here is an explanation:
-	//    Because Image objects can only contain rectangular areas, 	
+	//    Because Image objects can only contain rectangular areas,
 	//    Polygons drawn within Images will often have extra space left over outside of the Polygon.
 	//    For instance:
-	// 
-	//    +--------+           This Image was size to contain a 
-	//    | /\__   |           single Polygon.  If this image were 
-	//    |/    \__|           drawn to the screen, all of the space 
-	//    |\  /\__/|           around the Polygon but within the 
-	//    | \/     |           boundaries of the Image would be 
+	//
+	//    +--------+           This Image was size to contain a
+	//    | /\__   |           single Polygon.  If this image were
+	//    |/    \__|           drawn to the screen, all of the space
+	//    |\  /\__/|           around the Polygon but within the
+	//    | \/     |           boundaries of the Image would be
 	//    +--------+           drawn, as well.
 	//
-	//    In order to avoid that problem, the base background color 
+	//    In order to avoid that problem, the base background color
 	//    (the area outside the polygon in the image above) is set to
 	//    a color (K) that appears nowhere else in the image.
 	//    Then, the alpha value for every pixel that is color K is set to 0.
-	//    When this Image is later drawn to the screen, none of the space 
-	//    around the polygon will appear because all the pixels of that 
+	//    When this Image is later drawn to the screen, none of the space
+	//    around the polygon will appear because all the pixels of that
 	//    out-lying background space have been set to K, and are therefore transparent.
 	//    Only the polygon will appear to have been drawn.
-	// 
-	//    Incidentally, this is how transparent GIFs work.  
+	//
+	//    Incidentally, this is how transparent GIFs work.
 	//
 	//    Note: colors that come close to being the same color as K will not be turned to transparent.
 	//    Only those pixels that have the exact same R, G and B will have their alpha levels set to 0.
-		
+
 	// This chooses a very dark gray/green - which is unlikely to be used.
-	
+
 	////////////////////////////////////////////////////////
 	//  IMPORTANT NOTE:
 	//  While in theory any color can be chosen to be the KColor, in practice it's not the case.
-	//  Inconsistencies in the execution of the code revealed that in some cases Java was "rounding" 
+	//  Inconsistencies in the execution of the code revealed that in some cases Java was "rounding"
 	//  the RGB color values of the drawn pixels to the nearest multiple of 8.
 	//  Color(1, 2, 1) became Color(0, 0, 0).  Color(10, 10, 10) became Color(8, 8, 8).
 	//
 	//  For this reason, the transparent color is set below to be a very dark green (nearly black),
-	//  and all of its pixel color values are multiples of 8.  
+	//  and all of its pixel color values are multiples of 8.
 	//
-	//  Don't change this, as it may render the code unworkable in the the future.  
+	//  Don't change this, as it may render the code unworkable in the the future.
 	//
 	//  The reason for why Java does this isn't clear, but it's a fact of working with JDK 1.1.8.
 	Color Kcolor = new Color(0, 8, 0);
-		
+
 	// Now fill the buffer Image with this color.
 	bg.setColor(Kcolor);
-	bg.fillRect(0, 0, width, height);		
+	bg.fillRect(0, 0, width, height);
 
 	// 6. Draw the Polygon into the buffer Image using the current color.
 	bg.setColor(_color);
@@ -319,7 +315,7 @@ public void fillPolygon ( int npts, double x[], double y[], int transparency ) {
 	// 7. Using a PixelGrabber, get the pixels from the buffer Image as a 1-D array of integers.
 	//    A PixelGrabber starts a separate thread and uses it to get all of the pixels out of the image.
 	//
-	//    Each int contains the color and alpha information for the pixel it represents.  
+	//    Each int contains the color and alpha information for the pixel it represents.
 	//
 	//    - Alpha values are stored in the first 8 bits
 	//    - Red is stored in the second 8 bits
@@ -334,16 +330,16 @@ public void fillPolygon ( int npts, double x[], double y[], int transparency ) {
 	}
 	catch ( Exception ie ) {
 		// An exception is thrown if the thread getting the pixels is interrupted.
-		// This should happen rarely, if ever.  
+		// This should happen rarely, if ever.
 		//
-		// Print error messages, but do not continue processing this image for drawing transparently.  
+		// Print error messages, but do not continue processing this image for drawing transparently.
 		//
 		// The best thing to do is probably to simply paint the polygon non-transparently.
 		fillPolygon ( npts, x, y );
 	}
 
 	// 8. Now the pixels have been pulled out of the Image,
-	//    but they all have alpha values that render them completely opaque.  
+	//    but they all have alpha values that render them completely opaque.
 	//    Each pixel gets checked to see if it has the K color or not.
 	//
 	//    If a pixel has the K color, its alpha value gets set to 0 and it is completely transparent.
@@ -369,8 +365,8 @@ public void fillPolygon ( int npts, double x[], double y[], int transparency ) {
 
 		// Set the pixel to its own previous color, but with the new alpha value.
 		pixels[i] = (a << 24) | (pixels[i] & 0x00ffffff);
-	}	
-		
+	}
+
 	// 9. In order to turn an array of pixels back into an Image, a MemoryImageSource object is used.
 	//    Create that object, and then create an Image from it,
 	//    in which the Polygon will be drawn with its level of transparency, on top of a totally-transparent background.
@@ -416,16 +412,6 @@ public void fillRectangle (	double xll, double yll, double width, double height 
 }
 
 /**
-Finalize before garbage collection.
-*/
-public void finalize ()
-throws Throwable {
-	_font_obj = null;
-	_jdev = null;
-	super.finalize();
-}
-
-/**
 Flush graphics.  Does not seem to be necessary with Java.
 */
 public void flush () {
@@ -445,7 +431,7 @@ This is useful when it is known (guessed?) that output needs to be, for example,
 15 points high but it is not known what the corresponding data values are.
 This can be used, for example, to draw a box around text.
 The flags need to be implemented to allow the extents to be determined exactly at the limits given,
-at the centroid of the drawing area, etc.  
+at the centroid of the drawing area, etc.
 For now, calculate at the centroid so that projection issues do not cause problems.
 @param limits the limits for the drawing area.
 @param flag indicates whether units should be returned in device or data units.  Always defaults to GRUnits.DATA
@@ -828,7 +814,7 @@ public void drawText ( String text, double x, double y, double a, int flag, doub
 Scale x data value to device plotting coordinate.
 @param xdata x data value to scale
 */
-public double scaleXData ( double xdata ) {	
+public double scaleXData ( double xdata ) {
 	return MathUtil.interpolate(xdata, _datax1, _datax2, _plotx1, _plotx2);
 		// , GRAxis.X );
 }
@@ -839,7 +825,7 @@ Scale y data vlaue to device plotting coordinate.
 */
 public double scaleYData ( double ydata ) {
 	return ( _jdev._devy2 -
-		MathUtil.interpolate ( ydata, _datay1, _datay2, 
+		MathUtil.interpolate ( ydata, _datay1, _datay2,
 		_ploty1, _ploty2));
 		//, GRAxis.Y ));
 }
@@ -983,7 +969,7 @@ Not implemented.
 */
 public void drawCompoundText(List<String> text, GRColor color, double x, double y, double angle, int flag) {
 }
-	
+
 /**
 Not implemented.
 */

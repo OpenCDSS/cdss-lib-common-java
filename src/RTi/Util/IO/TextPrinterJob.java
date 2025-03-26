@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -86,8 +86,8 @@ Requested whether to show page count.
 private boolean __requestedShowPageCount = false;
 
 /**
-Printing a list of strings by constructing the printer job.  Default properties are provided but
-can be changed in the printer dialog (if not in batch mode).
+Printing a list of strings by constructing the printer job.
+Default properties are provided but can be changed in the printer dialog (if not in batch mode).
 @param textList list of strings to print
 @param reqPrintJobName the name of the print job (default is to use the system default job name)
 @param reqPrinterName the name of the requested printer (e.g., \\MyComputer\MyPrinter)
@@ -105,8 +105,7 @@ can be changed in the printer dialog (if not in batch mode).
 @param reqShowPageCount whether to show the page count in the footer
 @param reqPages requested page ranges, where each integer pair is a start-stop page (pages 0+)
 @param reqDoubleSided whether double-sided printing should be used - currently not supported
-@param reqPrintFile name of a file to print to (for PDF, etc.), or null if not used.  If specified, a full
-path should be given.
+@param reqPrintFile name of a file to print to (for PDF, etc.), or null if not used.  If specified, a full path should be given.
 @param showDialog if true, then the printer dialog will be shown to change default printer properties
 */
 public TextPrinterJob ( List<String> textList, String reqPrintJobName, String reqPrinterName,
@@ -115,14 +114,14 @@ public TextPrinterJob ( List<String> textList, String reqPrintJobName, String re
     String reqHeader, String reqFooter,
     boolean reqShowLineCount, boolean reqShowPageCount, int [][] reqPages, boolean reqDoubleSided,
     String reqPrintFile, boolean showDialog )
-throws PrinterException, PrintException, URISyntaxException
-{   // Most data managed in parent class...
+throws PrinterException, PrintException, URISyntaxException {
+    // Most data managed in parent class.
     super ( reqPrintJobName, reqPrinterName,
             reqPaperSize, reqPaperSource, reqOrientation, reqMarginLeft,
             reqMarginRight, reqMarginTop, reqMarginBottom,
             reqPages, reqDoubleSided,
             reqPrintFile, showDialog );
-    // Locally relevant data...
+    // Locally relevant data.
     setTextList ( textList );
     setRequestedHeader ( reqHeader );
     setRequestedFooter ( reqFooter );
@@ -141,21 +140,21 @@ Want the font size to be >= 6 (too difficult to read) and <= 12 (starts to look 
 For some standard page sizes always pick a certain size because the imageable page height
 should not vary much from normal defaults.
 */
-private int determineLinesPerPage ( PageFormat pageLayout )
-{   int linesPerPage = getRequestedLinesPerPage();
+private int determineLinesPerPage ( PageFormat pageLayout ) {
+    int linesPerPage = getRequestedLinesPerPage();
     if ( linesPerPage > 0 ) {
         return linesPerPage;
     }
     
-    // TODO SAM 2011-06-23 Need to include European sizes
-    // Standard page sizes...
+    // TODO SAM 2011-06-23 Need to include European sizes.
+    // Standard page sizes.
     double pageHeight = pageLayout.getHeight();
     if ( (pageHeight > 611.0) && (pageHeight < 613.0) ) {
-        // 8.5 in
+        // 8.5 in.
         return 75;
     }
     else if ( (pageHeight > 791.0) && (pageHeight < 793.0) ) {
-        // 11 in
+        // 11 in.
         return 100;
     }
     else if ( (pageHeight > 1223.0) && (pageHeight < 1225.0) ) {
@@ -177,27 +176,16 @@ private int determineLinesPerPage ( PageFormat pageLayout )
 }
 
 /**
-Finalize before garbage collection.
-*/
-protected void finalize()
-throws Throwable
-{	__textList = null;
-	super.finalize();
-}
-
-/**
 Return the font.
 */
-public Font getFont ()
-{
+public Font getFont () {
     return __font;
 }
 
 /**
 Return the number of pages being printed.
 */
-public int getNumberOfPages ()
-{
+public int getNumberOfPages () {
     int linesPerPage = determineLinesPerPage ( getPrinterJob().getPageFormat(getPrintRequestAttributes()) );
     int numberOfPages = 0;
     List<String> textList = getTextList();

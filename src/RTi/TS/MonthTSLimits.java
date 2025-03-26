@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,41 +20,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// MonthTSLimits - simple class for returning time series data limits
-// ----------------------------------------------------------------------------
-// Notes:	(1)	This class stores the data limits for data space.
-//			It stores the maximum and minimum values and the dates
-//			associated with the values.
-//		(2)	This class extends the TSLimits class.  Monthly time
-//			series are meant to have the overall limits and limits
-//			by month.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 30 Dec 1998	Steven A. Malers, RTi	Initial version.  Extend TSLimits.
-// 13 Apr 1999	SAM, RTi		Add finalize.
-// 2001-11-06	SAM, RTi		Review javadoc.  Verify that variables
-//					are set to null when no longer used.
-// 2003-03-25	SAM, RTi		Update to use new data units member
-//					in the base class, to deal with current
-//					and original units better.
-// 2003-06-02	SAM, RTi		Upgrade to use generic classes.
-//					* Change TSDate to DateTime.
-// 2004-05-23	SAM, RTi		* Add percent to the toString() output
-//					  for missing and non-missing
-//					  (requested by Leonard Rice and makes
-//					  sense since other intervals show it
-//					  in output).
-// 2005-02-04	SAM, RTi		Add merge() to merge two MonthTSLimits()
-//					together.
-//					The toString() method for missing
-//					monthly data was not handling null min
-//					and max dates for the period - fix it.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-// EndHeader
 
 package RTi.TS;
 
@@ -79,7 +44,7 @@ public class MonthTSLimits extends TSLimits
 
 MonthTS _ts = null;
 
-// Data are by month (12 values)...
+// Data are by month (12 values).
 
 private double [] _max_value_by_month = null;
 private DateTime [] _max_value_date_by_month = null;
@@ -210,11 +175,11 @@ Construct the MonthTS limits between two dates.
 @exception TSException if there is an error computing the limits.
 */
 public MonthTSLimits ( MonthTS ts, DateTime startdate, DateTime enddate )
-throws TSException
-{	// Compute the total limits...
+throws TSException {
+	// Compute the total limits.
 	super ( ts, startdate, enddate );
 	try {
-		// Compute the monthly limits...
+		// Compute the monthly limits.
 		initialize ();
 		_ts = ts;
 		calculateDataLimits ( ts, startdate, enddate, false );
@@ -224,32 +189,6 @@ throws TSException
 		Message.printWarning ( 2, "MonthTSLimits(MonthTS)", message );
 		throw new TSException ( message );
 	}
-}
-
-/**
-Finalize before garbage collection.
-@exception Throwable if there is an error.
-*/
-protected void finalize ()
-throws Throwable
-{	_ts = null;
-	for ( int i = 0; i < 12; i++ ) {
-		_max_value_date_by_month[i] = null;
-		_min_value_date_by_month[i] = null;
-		_non_missing_data_date1_by_month[i] = null;
-		_non_missing_data_date2_by_month[i] = null;
-	}
-	_max_value_by_month = null;
-	_min_value_by_month = null;
-	_max_value_date_by_month = null;
-	_min_value_date_by_month = null;
-	_mean_by_month = null;
-	_missing_data_count_by_month = null;
-	_non_missing_data_count_by_month = null;
-	_non_missing_data_date1_by_month = null;
-	_non_missing_data_date2_by_month = null;
-	_sum_by_month = null;
-	super.finalize();
 }
 
 /**

@@ -4,62 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// GeoProjection - projection base class
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2001-10-01	Steven A. Malers, RTi	Add getProjectionNames() method.  Lists
-//					of projections are handled differently
-//					than other code.  Instead of hard-coding
-//					static information, known projections
-//					names are returned dynamically.  This
-//					allows new projections to be defined in
-//					the future and minimizes static data
-//					space.
-// 2001-10-08	SAM, RTi		Review javadoc.  Add copy constructor to
-//					help with C++.
-// 2001-11-27	SAM, RTi		Update projectShape() to handle shapes
-//					other than GRPolygon.  Fix bug where
-//					projectShape() needed to always reuse
-//					the shape when calling the projection
-//					methods.  Add asinz(), mlfn(),
-//					adjust_lon(), e0fn(), e1fn(), e2fn(),
-//					e3fn(), sign() methods consistent
-//					with the GCTP package to support
-//					UTMProjection and others.  Add _zone,
-//					_units, _datam.
-// 2001-12-07	SAM, RTi		Update projectShape() to handle
-//					GRPolylineList and GRPolypoint.  This
-//					should cover most common needs.
-// 2001-12-09	SAM, RTi		Add getKilometersForUnit() to allow
-//					scale conversions and output.  Support
-//					GRArc in projectShape().  Add a static
-//					global geographic_projection instance
-//					to optimize code (often geographic
-//					projections are needed during
-//					conversions).
-// 2004-10-27	J. Thomas Sapienza, RTi	Implements Cloneable.
-// 2005-04-27	JTS, RTi		Added all member variables to finalize()
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
 
 package RTi.GIS.GeoView;
 
@@ -401,16 +361,6 @@ public boolean equals ( GeoProjection other )
 		return true;
 	}
 	return false;
-}
-
-/**
-Clean up memory for garbage collection.
-*/
-protected void finalize()
-throws Throwable
-{	_projection_name = null;
-	_datum = null;
-	super.finalize();
 }
 
 /**

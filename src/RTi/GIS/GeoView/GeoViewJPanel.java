@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -970,13 +970,13 @@ throws Exception {
 		double size = 20;
 
 		if (tsize != null) {
-			size = (new Double(tsize)).doubleValue();
+			size = (Double.valueOf(tsize)).doubleValue();
 			if (tmeas == null) {
 				tmeas = max;
 			}
 
-			double dmax = (new Double(max)).doubleValue();
-			double temp = (new Double(tmeas)).doubleValue();
+			double dmax = (Double.valueOf(max)).doubleValue();
+			double temp = (Double.valueOf(tmeas)).doubleValue();
 			double pct = temp / dmax;
 			size *= pct;
 		}

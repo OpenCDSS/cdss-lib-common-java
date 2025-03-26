@@ -4,38 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//------------------------------------------------------------------------------
-// WindowManager - abstract class to allow applications to easily manage
-//	their windows.
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// History:
-// 2004-02-05	J. Thomas Sapienza, RTi	Initial version based off of StateMod's
-//					WindowManager.
-// 2004-02-26	JTS, RTi		Changed docs and code after review 
-//					by SAM.
-// 2004-12-21	JTS, RTi		Added closeAllWindows().
-// 2005-04-26	JTS, RTi		Added finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//------------------------------------------------------------------------------
 
 package RTi.Util.GUI;
 
@@ -43,8 +27,6 @@ import java.util.List;
 import java.util.Vector;
 
 import javax.swing.JFrame;
-
-import RTi.Util.IO.IOUtil;
 
 import RTi.Util.Message.Message;
 
@@ -472,18 +454,6 @@ derived class.
 @return the window that is displayed.
 */
 public abstract JFrame displayWindow(int window_type, boolean editable);
-
-/**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	_allowMultipleWindowInstances = null;
-	_windowStatus = null;
-	IOUtil.nullArray(_windows);
-	IOUtil.nullArray(_windowInstanceInformation);
-	super.finalize();
-}
 
 /**
 Locates the position of an index within the internal data Vectors.

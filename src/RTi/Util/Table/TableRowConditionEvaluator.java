@@ -25,8 +25,6 @@ package RTi.Util.Table;
 
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
-import RTi.Util.Table.DataTable;
-import RTi.Util.Table.TableField;
 
 /**
  * Create an evaluator for table row condition.
@@ -72,7 +70,7 @@ public class TableRowConditionEvaluator {
 	private Double valueDouble = null;
 	private Integer valueInt = null;
 	private String valueString = null;
-	private String valueStringUpper = null;
+	//private String valueStringUpper = null;
 	
 	/**
 	 * List of rows to process.
@@ -251,12 +249,12 @@ public class TableRowConditionEvaluator {
     		value2 = arg2;
     	}
     	this.valueString = value2;
-    	this.valueStringUpper = value2.toUpperCase();
+    	//this.valueStringUpper = value2.toUpperCase();
     	if ( StringUtil.isInteger(value2) ) {
-    		this.valueInt = new Integer(value2);
+    		this.valueInt = Integer.valueOf(value2);
     	}
     	if ( StringUtil.isDouble(value2) ) {
-    		this.valueDouble = new Double(value2);
+    		this.valueDouble = Double.valueOf(value2);
     	}
 
 	    // Make sure that the left side of the condition matches a table column

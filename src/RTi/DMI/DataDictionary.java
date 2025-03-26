@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -52,7 +52,7 @@ public class DataDictionary
 Field numbers used in determining field values when generating data dictionaries.
 Equivalent is databaseMetaData.getColumns() and then getString("COLUMN_NAME"), etc.
 */
-private final int 
+private final int
 	__POS_NUM = 11,
 	__POS_COLUMN_NAME = 0,
 	__POS_IS_PRIMARY_KEY = 1,
@@ -69,31 +69,28 @@ private final int
 /**
 Constructor.
 */
-public DataDictionary ()
-{
-	
+public DataDictionary () {
 }
 
 /**
 Creates an HTML data dictionary.
 The data dictionary consists of three main sections:<ol>
-<li>The initial table list.  This shows a list of all the tables in the
-database and any accompanying remarks.  Each table name is a link to the 
-table detail in section 2, below:</li>
+<li>The initial table list.  This shows a list of all the tables in the database and any accompanying remarks.
+Each table name is a link to the table detail in section 2, below:</li>
 <li>A detailed list of the columns and column types for every table.</li>
 <li>A list of all the reference tables passed in to this method and a dump of all their data.</li>
 @param dmi DMI instance for an opened database connection.
-@param filename Complete name of the data dictionary HTML file to write.  If
-the filename does not end with ".html", that will be added to the end of the filename.
+@param filename Complete name of the data dictionary HTML file to write.
+If the filename does not end with ".html", that will be added to the end of the filename.
 @param newline string to replace newlines with (e.g., "<br">).
-@param surroundWithPre if true, output comments/remarks surrounded by <pre></pre>, for example
-to keep newlines as is.
+@param surroundWithPre if true, output comments/remarks surrounded by <pre></pre>,
+for example to keep newlines as is.
 @param encodeHtmlChars if true, encode HTML characters that have meaning, such as < so as to pass through to HTML.
 @param referenceTables If not null, the contents of these tables will be listed
-in a section of the data dictionary to illustrate possible values for lookup fields.  
-@param excludeTables list of tables that should be
-excluded from the data dictionary.  The names of the tables in this list
-must match the actual table names exactly (cases and spaces).  May be null.  May contain wildcard *.
+in a section of the data dictionary to illustrate possible values for lookup fields.
+@param excludeTables list of tables that should be excluded from the data dictionary.
+The names of the tables in this list must match the actual table names exactly (cases and spaces).  May be null.
+May contain wildcard *.
 @param metadataForTables table to provide metadata for tables (currently only description),
 used when database software does not provide, or null if not used - must include columns id, name, description
 @param metadataForColumns table to provide metadata for columns (currently only description),
@@ -102,26 +99,24 @@ used when database software does not provide, or null if not used - must include
 public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 	boolean surroundWithPre, boolean encodeHtmlChars,
 	List<String> referenceTables, List<String> excludeTables,
-	DataTable metadataForTables, DataTable metadataForColumns)
-{
+	DataTable metadataForTables, DataTable metadataForColumns) {
 	String routine = getClass().getSimpleName() + ".createHTMLDataDictionary";
 
 	// The following are used with metadata tables for use when database metadata does not provide
-	// table and column names, such as SQLite
+	// table and column names, such as SQLite.
 	List<String> metaColumnNames1 = new ArrayList<>();
-	metaColumnNames1.add("name"); // Table name to lookup in table metadata
+	metaColumnNames1.add("name"); // Table name to lookup in table metadata.
 	List<Object> metaColumnValues1 = new ArrayList<>();
-	List<String> metaColumnNames2 = new ArrayList<>(); // Table ID and column name to lookup column metadata
-	metaColumnNames2.add("table_id"); // Match the internal table ID associated with the column
-	metaColumnNames2.add("name"); // Match the column name
-	List<Object> metaColumnValues2 = new ArrayList<>(); // Values matching the above, assigned below
+	List<String> metaColumnNames2 = new ArrayList<>(); // Table ID and column name to lookup column metadata.
+	metaColumnNames2.add("table_id"); // Match the internal table ID associated with the column.
+	metaColumnNames2.add("name"); // Match the column name.
+	List<Object> metaColumnValues2 = new ArrayList<>(); // Values matching the above, assigned below.
 
 	// Get the name of the data.  If the name is null, it's most likely
-	// because the connection is going through ODBC, in which case the 
-	// name of the ODBC source will be used.
+	// because the connection is going through ODBC, in which case the name of the ODBC source will be used.
 	String dbName = dmi.getDatabaseName();
 	if ( dmi.getDatabaseEngineType() == DMIDatabaseType.SQLITE ) {
-		// Database name is not specified in the name
+		// Database name is not specified in the name:
 		// - use the filename
 		File f = new File(dmi.getDatabaseServer());
 		dbName = f.getName();
@@ -132,11 +127,11 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 		}
 	}
 
-	// do the following so no worries about making null checks
+	// do the following so no worries about making null checks.
 	if (referenceTables == null) {
-		referenceTables = new ArrayList<String>();
+		referenceTables = new ArrayList<>();
 	}
-	
+
 	if (!StringUtil.endsWithIgnoreCase(filename, ".html")) {
 		filename = filename + ".html";
 	}
@@ -152,8 +147,8 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 		return;
 	}
 
-	// Write out the header information.  
-	// This info tells when the Data Dictionary was 
+	// Write out the header information.
+	// This info tells when the Data Dictionary was
 	// created and if the database connection is through JDBC:
 	// - the name of the database engine
 	// - the name of the database server
@@ -190,30 +185,30 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 	ResultSet rs = null;
     String [] tableTypes = { "TABLE", "VIEW" };
     if ( dmi.getDatabaseEngineType() == DMIDatabaseType.SQLSERVER ) {
-        // SQL Server does not seem to recognize the type array so get all and then filter below
+        // SQL Server does not seem to recognize the type array so get all and then filter below.
         tableTypes = null;
     }
 	DatabaseMetaData metadata = null;
-	try {	
+	try {
 		metadata = dmi.getConnection().getMetaData();
 		rs = metadata.getTables(null, null, null, tableTypes);
 		if (rs == null) {
 			Message.printWarning(2, routine, "Error getting list of tables.  Aborting");
 			return;
-		} 
-	} 
+		}
+	}
 	catch (Exception e) {
 		Message.printWarning(2, routine, "Error getting list of tables - aborting (" + e + ").");
 		Message.printWarning(2, routine, e);
 		return;
-	} 
+	}
 
-	// Loop through the result set and pull out the list of all the table names and the table remarks.  
-	Message.printStatus(2, routine, "Building table name and remark list");	
+	// Loop through the result set and pull out the list of all the table names and the table remarks.
+	Message.printStatus(2, routine, "Building table name and remark list");
 	String temp;
 	String temp2;
-	List<String> tableNames = new ArrayList<String>(); // Used for sorting the list of tables
-	List<JdbcTableMetadata> tableList0 = new ArrayList<JdbcTableMetadata>();
+	List<String> tableNames = new ArrayList<>(); // Used for sorting the list of tables
+	List<JdbcTableMetadata> tableList0 = new ArrayList<>();
 	boolean doFullTableMetadata = true;
 	boolean idColumnSupported = true;
 	boolean idColumnSetterSupported = true;
@@ -223,14 +218,14 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 				break;
 			}
 			JdbcTableMetadata table = new JdbcTableMetadata();
-			// Table name...
+			// Table name.
 			temp = rs.getString(3);
 			String tableName = temp;
 			if (!rs.wasNull()) {
-				// Table name was not null so process
+				// Table name was not null so process.
 				tableNames.add(temp.trim());
 				table.setName(temp.trim());
-				// Remarks...
+				// Remarks.
 				temp = rs.getString(5);
 				if (rs.wasNull()) {
 					temp = null;
@@ -242,7 +237,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 					metaColumnValues1.add(tableName);
 					List<TableRecord> recs = metadataForTables.getRecords(metaColumnNames1, metaColumnValues1);
 					if ( recs.size() == 1 ) {
-						// TODO smalers 2020-10-05 'id' and 'description' column names are currently hard-coded
+						// TODO smalers 2020-10-05 'id' and 'description' column names are currently hard-coded.
 						int icol = metadataForTables.getFieldIndex("id");
 						Object o = recs.get(0).getFieldValue(icol);
 						if ( (o != null) && (o instanceof Integer) ) {
@@ -255,7 +250,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 				if ( (temp != null) && !temp.trim().isEmpty() ) {
 					table.setRemarks(temp.trim());
 				}
-				else {	
+				else {
 					// Add a multi-character blank string so when it's placed in the HTML table,
 					// it will be turned into &nbsp; and will keep the table cell full.
 					table.setRemarks("  ");
@@ -280,7 +275,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 						}
 					}
 					catch ( Exception e ) {
-						// Not all databases support
+						// Not all databases support.
 						idColumnSupported = false;
 					}
 					try {
@@ -290,7 +285,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 						}
 					}
 					catch ( Exception e ) {
-						// Not all databases support
+						// Not all databases support.
 						idColumnSetterSupported = false;
 					}
 				}
@@ -302,8 +297,8 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 		    Message.printWarning(3, routine, "Error getting list of table names (" + e + ").");
 			Message.printWarning(3, routine, e);
 		}
-	} 
-	try {	
+	}
+	try {
 		DMI.closeResultSet(rs);
 	}
 	catch (Exception e) {
@@ -317,10 +312,10 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 	for ( int i = 0; i < sortOrder.length; i++ ) {
 		tableList.add(tableList0.get(sortOrder[i]));
 	}
-	
+
 	Message.printStatus(2, routine, "Read " + tableNames.size() + " tables from database.");
 
-	// Remove the list of system tables for each kind of database (all database types have certain system tables)
+	// Remove the list of system tables for each kind of database (all database types have certain system tables).
 	boolean isSQLServer = false;
 	//String databaseEngine = dmi.getDatabaseEngine();
 	DMIDatabaseType databaseEngineType = dmi.getDatabaseEngineType();
@@ -329,16 +324,16 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
     for ( int i = 0; i < systemTablePatternsToRemove.length; i++ ) {
         StringUtil.removeMatching(tableNames,systemTablePatternsToRemove[i],true);
     }
-	
+
 	// Remove all the tables that were in the excludeTables parameter passed in to this method.
 	if (excludeTables != null) {
 		for ( String excludeTable : excludeTables ) {
-			// Handle glob-style wildcards and protect other than *
-			// Escape special characters that may occur in table names 
+			// Handle glob-style wildcards and protect other than *.
+			// Escape special characters that may occur in table names .
 			String excludeTable2 = excludeTable.replace(".", "\\.").replace("*",".*").replace("$", "\\$");
 			for ( int i = tableList.size() - 1; i >= 0; i-- ) {
 				String table = tableList.get(i).getName();
-				// Remove table name at end so loop works
+				// Remove table name at end so loop works.
 				if ( table.matches(excludeTable2) ) {
 					if ( Message.isDebugOn ) {
 						Message.printDebug(1,routine,"Removing table \"" + table + "\" from dictionary.");
@@ -350,10 +345,9 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 	}
 
 	Message.printStatus(2, routine, "Printing table names and remarks");
-	// Print out a table containing the names of all the tables 
-	// that will be reported on as well as any table remarks for 
-	// those tables.  Each table name will be a link to its detailed
-	// column information later in the data dictionary.
+	// Print out a table containing the names of all the tables
+	// that will be reported on as well as any table remarks for those tables.
+	// Each table name will be a link to its detailed column information later in the data dictionary.
 	try {
 		html.paragraph();
 		html.heading(2, dbName + " Tables");
@@ -361,7 +355,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 		//html.blockquoteStart();
 		html.tableStart("border=2 cellspacing=0");
 		html.tableRowStart("valign=top");
-		html.tableRowStart("valign=top style=\"background-color:#CCCCCC\"");	
+		html.tableRowStart("valign=top style=\"background-color:#CCCCCC\"");
 		html.tableHeader("Table Name");
 		html.tableHeader("Remarks");
 		if ( doFullTableMetadata ) {
@@ -376,7 +370,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 			}
 		}
 		html.tableRowEnd();
-	
+
 		for ( JdbcTableMetadata table : tableList ) {
 			String name = table.getName();
 			html.tableRowStart("valign=top");
@@ -412,7 +406,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 		Message.printWarning(2, routine, e);
 	}
 
-	// Format the key for table formats
+	// Format the key for table formats.
 	try {
 		html.paragraph();
 		html.heading(2, "Table Color Legend");
@@ -420,12 +414,12 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 		//html.blockquoteStart();
 
 		html.tableStart("border=2 cellspacing=0");
-		
+
 		html.tableRowStart("valign=top style=\"background-color:#CCCCCC\"");
 		html.tableHeader("Table Section");
 		html.tableHeader("Formatting Style");
 		html.tableRowEnd();
-		
+
 		html.tableRowStart("valign=top");
 		html.tableCell("Column Names");
 		html.tableCellStart("valign=top style=\"background-color:#CCCCCC\"");
@@ -443,7 +437,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 		html.boldEnd();
 		html.tableCellEnd();
 		html.tableRowEnd();
-		
+
 		html.tableRowStart("valign=top");
 		html.tableCell("Foreign Key Fields");
 		html.tableCellStart("valign=top style=\"background-color:orange\"");
@@ -476,7 +470,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 	    Message.printWarning(3,routine,"Error creating table detail heading (" + e + ").");
 		Message.printWarning(3, routine, e);
 	}
-	
+
 	Message.printStatus(2, routine, "Writing table details for " + tableList.size() + " tables");
 
 	String primaryKeyField = null;
@@ -499,7 +493,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 					j = referenceTables.size() + 1;
 				}
 			}
-			
+
 			html.headingEnd(3);
 			//html.blockquoteStart();
 
@@ -509,22 +503,22 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 			int primaryKeysSize = 0;
 			try {
 				primaryKeysRS = metadata.getPrimaryKeys(null, null, tableName);
-				primaryKeysV = new ArrayList<String>();
+				primaryKeysV = new ArrayList<>();
 				while (primaryKeysRS.next()) {
-					primaryKeysV.add(primaryKeysRS.getString(4));	
+					primaryKeysV.add(primaryKeysRS.getString(4));
 				}
 				primaryKeysSize = primaryKeysV.size();
 				DMI.closeResultSet(primaryKeysRS);
 			}
 			catch (Exception e) {
 				// If an exception is thrown here, it is probably because the JDBC driver does not
-				// support the "getPrimaryKeys" method.  
+				// support the "getPrimaryKeys" method.
 				// No problem, it will be treated as if there were no primary keys.
 			    Message.printWarning(2,routine,"Error getting primary keys for table \"" + tableName +
 			         "\" - not formatting primary keys (" + e + ").");
 			}
 
-			// Get a list of all the table columns that have foreign key references to other tables
+			// Get a list of all the table columns that have foreign key references to other tables.
 			ResultSet foreignKeysRS = null;
 			List<String> foreignKeyPriTablesV = null;
 			List<String> foreignKeyPriFieldsV = null;
@@ -532,9 +526,9 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 			int foreignKeysSize = 0;
 			try {
 				foreignKeysRS = metadata.getImportedKeys(null, null, tableName);
-				foreignKeyPriFieldsV = new ArrayList<String>();
-				foreignKeyPriTablesV = new ArrayList<String>();
-				foreignKeyFieldsV = new ArrayList<String>();
+				foreignKeyPriFieldsV = new ArrayList<>();
+				foreignKeyPriTablesV = new ArrayList<>();
+				foreignKeyFieldsV = new ArrayList<>();
 				while (foreignKeysRS.next()) {
 					foreignKeyPriTablesV.add(foreignKeysRS.getString(3));
 					foreignKeyPriFieldsV.add(foreignKeysRS.getString(4));
@@ -548,7 +542,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 	                 "\" - not formatting foreign keys (" + e + ").");
 			}
 
-			// Get a list of all the fields that are exported so that foreign keys can link to them
+			// Get a list of all the fields that are exported so that foreign keys can link to them.
 			ResultSet exportedKeysRS = null;
 			List<String> exportedKeysV = null;
 			int exportedKeysSize = 0;
@@ -578,10 +572,10 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 			if (rs == null) {
 				Message.printWarning(3, routine, "Error getting columns for \"" + tableName+"\" table.");
 				continue;
-			} 
+			}
 
-			// Loop through each column and move all its important data into a list of lists.  This data will
-			// be run through at least twice, and to do that
+			// Loop through each column and move all its important data into a list of lists.
+			// This data will be run through at least twice, and to do that
 			// with a ResultSet would require several expensive opens and closes.
 
 			String columnName = null;
@@ -590,7 +584,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 				foreignKey = false;
 				primaryKey = false;
 				foreignKeyPos = -1;
-				List<String> columnMetadataList = new ArrayList<String>();
+				List<String> columnMetadataList = new ArrayList<>();
 				for ( int ic = 0; ic < __POS_NUM; ic++ ) {
 					columnMetadataList.add("");
 				}
@@ -600,7 +594,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 				    // advances the record
 				    printColumnMetadata ( rs );
 				}
-				// Get the 'column name' and store it in list position __POS_COLUMN_NAME
+				// Get the 'column name' and store it in list position __POS_COLUMN_NAME.
 				columnName = rs.getString(4);
 				if (columnName == null) {
 					columnName = " ";
@@ -611,14 +605,14 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 				columnMetadataList.set(__POS_COLUMN_NAME, columnName);
 				columnNames.add(columnName);
 
-				// Get whether this is a primary key or not and store either "TRUE" (for it being a 
-				// primary key) or "FALSE" in list position __POS_IS_PRIMARY_KEY
+				// Get whether this is a primary key or not and store either "TRUE"
+				// (for it being a primary key) or "FALSE" in list position __POS_IS_PRIMARY_KEY.
 				for (int j = 0; j < primaryKeysSize; j++) {
 					if (columnName.equals(primaryKeysV.get(j).trim())) {
-						primaryKey = true;		
+						primaryKey = true;
 						j = primaryKeysSize + 1;
 					}
-				}				
+				}
 				if (primaryKey) {
 					columnMetadataList.set(__POS_IS_PRIMARY_KEY,"TRUE");
 				}
@@ -626,21 +620,21 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 					columnMetadataList.set(__POS_IS_PRIMARY_KEY,"FALSE");
 				}
 
-				// Get the 'column type' and store it in list position __POS_COLUMN_TYPE
+				// Get the 'column type' and store it in list position __POS_COLUMN_TYPE.
 				temp = rs.getString(6);
 				if (temp == null) {
 					temp = "Unknown";
-				} 
+				}
 				else {
 					temp = temp.trim();
 				}
 				columnMetadataList.set(__POS_COLUMN_TYPE,temp);
 
-				// Get the 'column size' and store it in list position __POS_COLUMN_SIZE
+				// Get the 'column size' and store it in list position __POS_COLUMN_SIZE.
 				temp = rs.getString(7);
 				columnMetadataList.set(__POS_COLUMN_SIZE,temp );
-				
-				// Get the 'column num digits' and store it in list position __POS_NUM_DIGITS
+
+				// Get the 'column num digits' and store it in list position __POS_NUM_DIGITS.
 				temp = rs.getString(9);
 				if (temp == null) {
 					columnMetadataList.set(__POS_NUM_DIGITS,"0");
@@ -649,7 +643,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 					columnMetadataList.set(__POS_NUM_DIGITS,temp);
 				}
 
-				// Get whether the column is nullable and store it in list position __POS_NULLABLE
+				// Get whether the column is nullable and store it in list position __POS_NULLABLE.
 				temp = rs.getString(18);
 				if (temp == null) {
 					temp = "Unknown";
@@ -658,44 +652,44 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 					temp = temp.trim();
 				}
 				columnMetadataList.set(__POS_NULLABLE, temp );
-				
-				// Get the column remarks and store them in list position __POS_REMARKS
+
+				// Get the column remarks and store them in list position __POS_REMARKS.
 				if (isSQLServer) {
 	                temp = rs.getString(12);
 					//columnData.set(__POS_REMARKS,getSQLServerColumnComment(dmi, tableName, columnName));
-				} 
+				}
 				else {
 					temp = rs.getString(12);
 				}
 				if ( ((temp == null) || temp.trim().isEmpty()) && (metadataForColumns != null) && (table.getMetadataTableId() >= 0) ) {
-					// Try getting column name from the metadata table
+					// Try getting column name from the metadata table.
 					metaColumnValues2.clear();
-					metaColumnValues2.add(new Integer(table.getMetadataTableId())); // Internal ID for the table of interest, determined above
-					metaColumnValues2.add(columnName); // ID for the table of interest
+					metaColumnValues2.add(Integer.valueOf(table.getMetadataTableId())); // Internal ID for the table of interest, determined above.
+					metaColumnValues2.add(columnName); // ID for the table of interest.
 					List<TableRecord> recs = metadataForColumns.getRecords(metaColumnNames2, metaColumnValues2);
 					if ( recs.size() == 1 ) {
-						// TODO smalers 2020-10-05 description column is currently hard-coded
+						// TODO smalers 2020-10-05 description column is currently hard-coded.
 						int icol = metadataForColumns.getFieldIndex("description");
 						temp = recs.get(0).getFieldValueString(icol);
 					}
 				}
-				// If still null use a default
+				// If still null use a default.
 				if (temp == null) {
 					temp = "   ";
-				} 
+				}
 				else {
 					temp = temp.trim();
 				}
 				columnMetadataList.set(__POS_REMARKS,temp);
-				
+
 				// Get whether the column is exported for foreign keys to connect to and store it
-				// in Vector position __POS_EXPORTED as either "TRUE" or "FALSE"
+				// in List position __POS_EXPORTED as either "TRUE" or "FALSE".
 				for (int j = 0; j < exportedKeysSize; j++) {
 					if (columnName.equals(exportedKeysV.get(j).trim())) {
-						exportedKey = true;		
+						exportedKey = true;
 						j = exportedKeysSize + 1;
 					}
-				}				
+				}
 				if (exportedKey) {
 					columnMetadataList.set(__POS_EXPORTED,"TRUE");
 				}
@@ -703,23 +697,23 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 					columnMetadataList.set(__POS_EXPORTED,"FALSE");
 				}
 
-				// Get whether the column is a foreign key field and store it in Vector position 
-				// __POS_FOREIGN as either "TRUE" or "FALSE"
+				// Get whether the column is a foreign key field and store it in Vector position
+				// __POS_FOREIGN as either "TRUE" or "FALSE".
 
 				// Additionally, set the table of the primary key to which the foreign key connects as
-				// Vector position __POS_PRIMARY_TABLE.  
-				// If not a foreign key, that position will be null
+				// List position __POS_PRIMARY_TABLE.
+				// If not a foreign key, that position will be null.
 
-				// Set the field of the primary key to which the foreign key connects as Vector position
+				// Set the field of the primary key to which the foreign key connects as List position
 				// __POS_PRIMARY_FIELD.  If not a foreign key, that position will be null.
 
 				for (int j = 0; j < foreignKeysSize; j++) {
 					if (columnName.equals( foreignKeyFieldsV.get(j).trim())) {
-						foreignKey = true;		
-						foreignKeyPos = j; 
+						foreignKey = true;
+						foreignKeyPos = j;
 						j = foreignKeysSize + 1;
 					}
-				}				
+				}
 				if (foreignKey) {
 					columnMetadataList.set(__POS_FOREIGN,"TRUE");
 					columnMetadataList.set(__POS_PRIMARY_TABLE,foreignKeyPriTablesV.get(foreignKeyPos));
@@ -730,17 +724,17 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 					columnMetadataList.set(__POS_PRIMARY_TABLE,null);
 					columnMetadataList.set(__POS_PRIMARY_FIELD,null);
 				}
-				
-				tableColumnsMetadataList.add(columnMetadataList);		
+
+				tableColumnsMetadataList.add(columnMetadataList);
 			}
 
-			try {	
+			try {
 				DMI.closeResultSet(rs);
 			}
 			catch (Exception e) {
 				Message.printWarning(2, routine, e);
 			}
-		
+
 			// Create the table and the table header for displaying the table column information.
 			html.tableStart("border=2 cellspacing=0");
 			html.tableRowStart("valign=top style=\"background-color:#CCCCCC\"");
@@ -751,14 +745,14 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 			if (foreignKeysSize > 0) {
 				html.tableHeader("Foreign Key Link");
 			}
-			html.tableRowEnd();			
+			html.tableRowEnd();
 
-			// Next, an alphabetized list of the column names in the table will be compiled.  This will be used
-			// to display columns in the right sorting order.
+			// Next, an alphabetized list of the column names in the table will be compiled.
+			// This will be used to display columns in the right sorting order.
 			int numColumns = columnNames.size();
 			int[] order = new int[numColumns];
-			// FIXME SAM 2014-03-08 set the order to the original for now
-			// Some code most have been lost here
+			// FIXME SAM 2014-03-08 set the order to the original for now.
+			// Some code most have been lost here.
 			for ( int j = 0; j < numColumns; j++ ) {
 			    order[j] = j;
 			}
@@ -767,10 +761,10 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 			for (int j = 0; j < numColumns; j++) {
 				sortedVectors[j] = (List<String>)tableColumnsMetadataList.get(order[j]);
 			}
-			
+
 			// Now that the sorted order of the column names (and the lists of data) is known,
-			// loop through the data lists looking for columns which are in 
-			// the Primary key.  They will be displayed in bold face font with a yellow background.
+			// loop through the data lists looking for columns which are in the Primary key.
+			// They will be displayed in bold face font with a yellow background.
 			for (int j = 0; j < numColumns; j++) {
 				List<String> columnData = sortedVectors[j];
 				temp = null;
@@ -779,8 +773,8 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 
 				if (temp.equals("TRUE")) {
 					html.tableRowStart("valign=top style=\"background-color:yellow\"");
-					
-					// display the column name
+
+					// Display the column name.
 					temp = columnData.get(__POS_COLUMN_NAME);
 					html.tableCellStart();
 					html.boldStart();
@@ -789,22 +783,22 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 					if (temp2.equals("TRUE")) {
 						html.anchor("Table:" + tableName + "." + temp);
 					}
-										
+
 					html.addText(temp);
 					html.boldEnd();
 					html.tableCellEnd();
 
-					// display the remarks
+					// Display the remarks.
 					temp = columnData.get(__POS_REMARKS);
-					/* TODO smalers 2020-10-05 remarks should have been set above
+					/* TODO smalers 2020-10-05 remarks should have been set above.
 					if ( ((temp == null) || temp.trim().isEmpty()) && (metadataForColumns != null) && (table.getMetadataTableId() >= 0) ) {
-						// Try getting column name from the metadata table
+						// Try getting column name from the metadata table.
 						metaColumnValues2.clear();
-						metaColumnValues2.add(new Integer(table.getMetadataTableId())); // Internal ID for the table of interest, determined above
+						metaColumnValues2.add(Integer.valueOf(table.getMetadataTableId())); // Internal ID for the table of interest, determined above
 						metaColumnValues2.add(columnName); // ID for the table of interest
 						List<TableRecord> recs = metadataForColumns.getRecords(metaColumnNames2, metaColumnValues2);
 						if ( recs.size() == 1 ) {
-							// TODO smalers 2020-10-05 description column is currently hard-coded
+							// TODO smalers 2020-10-05 description column is currently hard-coded.
 							int icol = metadataForColumns.getFieldIndex("description");
 							temp = recs.get(0).getFieldValueString(icol);
 						}
@@ -816,7 +810,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 					html.boldEnd();
 					html.tableCellEnd();
 
-					// display the column type
+					// Display the column type.
 					temp = columnData.get(__POS_COLUMN_TYPE);
 					Message.printStatus(2, routine, "Table \"" + tableName + "\" column \"" + columnName + "\" type is " + temp );
 					if (temp.equalsIgnoreCase("real")) {
@@ -839,7 +833,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 					html.boldEnd();
 					html.tableCellEnd();
 
-					// display whether it's nullable
+					// Display whether it's nullable.
 					temp = columnData.get(__POS_NULLABLE);
 					html.tableCellStart();
 					html.boldStart();
@@ -866,7 +860,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 				}
 			}
 
-			// Now do the same thing for the other fields, the non-primary key fields.  
+			// Now do the same thing for the other fields, the non-primary key fields.
 			for (int j = 0; j < numColumns; j++) {
 				List<String> column = sortedVectors[j];
 				String isPrimaryKey = column.get(__POS_IS_PRIMARY_KEY);
@@ -879,22 +873,22 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 					else {
 						html.tableRowStart( "valign=top");
 					}
-					
-					// display the column name
+
+					// Display the column name.
 					String columnName2 = column.get(__POS_COLUMN_NAME);
 					html.tableCellStart();
 					html.addText(columnName2);
 					html.tableCellEnd();
 
-					// display the remarks
+					// Display the remarks.
 					String remarks = column.get(__POS_REMARKS);
 					if ( (remarks == null) || remarks.isEmpty() && (metadataForTables != null) ) {
-						// Try getting column name from the metadata table
+						// Try getting column name from the metadata table.
 						metaColumnValues1.clear();
-						metaColumnValues1.add(tableName); // ID for the table of interest
+						metaColumnValues1.add(tableName); // ID for the table of interest.
 						List<TableRecord> recs = metadataForColumns.getRecords(metaColumnNames1, metaColumnValues1);
 						if ( recs.size() == 1 ) {
-							// TODO smalers 2020-10-05 description column is currently hard-coded
+							// TODO smalers 2020-10-05 description column is currently hard-coded.
 							int icol = metadataForColumns.getFieldIndex("description");
 							remarks = recs.get(0).getFieldValueString(icol);
 						}
@@ -903,7 +897,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 					writeRemarks(html,remarks,newline,surroundWithPre,encodeHtmlChars);
 					html.tableCellEnd();
 
-					// display the column type
+					// Display the column type.
 					String columnType = column.get(__POS_COLUMN_TYPE);
 					Message.printStatus(2, routine, "Table \"" + tableName + "\" column \"" + columnName + "\" type is " + columnType );
 					if (columnType.equalsIgnoreCase("real")) {
@@ -917,20 +911,20 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 						(columnType.equalsIgnoreCase("integer"))||
 						(columnType.equalsIgnoreCase("counter"))||
 						(columnType.equalsIgnoreCase("datetime"))) {
-						// TODO smalers 2018-09-21 not sure why not just print the column size always as below
+						// TODO smalers 2018-09-21 not sure why not just print the column size always as below.
 					}
 					else {
 						columnType = columnType + "(" + column.get(__POS_COLUMN_SIZE) + ")";
 					}
 					if ( columnType.startsWith("_") ) {
-						// Used for arrays in PostgreSQL and maybe others
-						columnType = columnType + "[...]"; // TODO smalers 2018-09-21 need to get actual dimension
+						// Used for arrays in PostgreSQL and maybe others.
+						columnType = columnType + "[...]"; // TODO smalers 2018-09-21 need to get actual dimension.
 					}
 					html.tableCellStart();
 					html.addText(columnType);
 					html.tableCellEnd();
 
-					// display whether it's nullable
+					// Display whether it's nullable.
 					String isNullable = column.get(__POS_NULLABLE);
 					html.tableCellStart();
 					html.addText(isNullable);
@@ -948,11 +942,11 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 					}
 					else if (foreignKeysSize > 0) {
 						html.tableCell("  ");
-					}					
-					
+					}
+
 					html.tableRowEnd();
 				}
-			}			
+			}
 
 			// Close the table, insert a paragraph break, and get ready to do it again for the next table.
 			html.tableEnd();
@@ -966,11 +960,11 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 	}
 
 	Message.printStatus(2, routine, "Listing stored procedures (not implemented yet)");
-	// List stored procedures...
-	// Not yet done
+	// List stored procedures.
+	// Not yet done.
 	// TODO (JTS - 2003-04-22) does this need to be done?
 
-	// Now list the contents of the reference tables.  These tables are dumped out in their entirety. 
+	// Now list the contents of the reference tables.  These tables are dumped out in their entirety.
 
 	if (referenceTables.size() > 0) {
 		Message.printStatus(2, routine, "Printing contents of reference tables");
@@ -995,13 +989,13 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 	String refTableName;
 	for (int i = 0; i < referenceTables.size(); i++) {
 		refTableName = referenceTables.get(i);
-	
-		try {	
+
+		try {
 			rs = metadata.getColumns(null, null, refTableName, null);
 			if (rs == null) {
 				Message.printWarning(2, routine, "Error getting columns for \"" + refTableName + "\" table.");
 				continue;
-			} 
+			}
 			html.anchor("ReferenceTable:" + refTableName);
 			html.headingStart(3);
 			html.addText(refTableName + "  ");
@@ -1041,17 +1035,17 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 				try {
 					rs = dmi.dmiSelect(sql);
 
-					// Create the header for the reference table
+					// Create the header for the reference table.
 					html.tableStart("border=2 cellspacing=0");
 					html.tableRowStart( "valign=top style=\"background-color:#CCCCCC\"");
-				
+
 					for (j = 0; j < columnNames.size(); j++) {
 						html.tableHeader(columnNames.get(j));
 					}
 					html.tableRowEnd();
 
-					// Start dumping out all the data in the reference table.  The data is retrieved as
-					// Strings, which seems to work fine.
+					// Start dumping out all the data in the reference table.
+					// The data is retrieved as Strings, which seems to work fine.
 					String tableCellValue;
 					while (rs.next()) {
 						html.tableRowStart("valign=top");
@@ -1073,7 +1067,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 				}
 			}
 			//html.blockquoteEnd();
-			html.paragraph();		
+			html.paragraph();
 		}
 		catch (Exception e) {
 			Message.printWarning(2, routine, "Error dumping reference table data (" + e + ").");
@@ -1089,15 +1083,14 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 	catch (Exception e) {
 		Message.printWarning(2, routine, "Error closing the HTML file (" + e + ").");
 		Message.printWarning(2, routine, e);
-	}		
+	}
 	Message.printStatus(2, routine, "Done creating data dictionary");
 }
 
 /**
 Print the column metadata from a result set.
 */
-private static void printColumnMetadata ( ResultSet rs )
-{
+private static void printColumnMetadata ( ResultSet rs ) {
     try {
         Message.printStatus(2,"","TABLE_CAT=" + rs.getString(1) );
         Message.printStatus(2,"","TABLE_SCHEM=" + rs.getString(2) );
@@ -1124,7 +1117,7 @@ private static void printColumnMetadata ( ResultSet rs )
         Message.printStatus(2,"","IS_AUTOINCREMENT=" + rs.getString(23) );
     }
     catch ( Exception e ) {
-        // Ignore, most likely something like Microsoft Access not supporting indices correctly
+        // Ignore, most likely something like Microsoft Access not supporting indices correctly.
     }
 }
 
@@ -1145,9 +1138,9 @@ throws Exception
 		html.addText(temp);
 	}
 	else {
-		// Just write the text
+		// Just write the text.
 		if ( (newline != null) && !newline.isEmpty() ) {
-			temp = temp.replace("\n",newline);							
+			temp = temp.replace("\n",newline);
 		}
 		html.write(temp);
 	}

@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2024 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -2513,7 +2513,7 @@ private double[] calculateAnnotationCoordinates (
 			List<Double> v = new Vector<>();
 			int count = 0;
 			while (!done) {
-				v.add(new Double(dt1.toDouble()));
+				v.add(Double.valueOf(dt1.toDouble()));
 				count++;
 				dt1 = dtf.iterateRelativeDateTime(dt1);
 				if (minNumPoints > -1) {
@@ -2565,7 +2565,7 @@ private double[] calculateAnnotationCoordinates (
 				highBound = _datay2;
 			}
 			while (!done) {
-				v.add(new Double(temp));
+				v.add(Double.valueOf(temp));
 				count++;
 				temp += mod;
 
@@ -2593,7 +2593,7 @@ private double[] calculateAnnotationCoordinates (
 				lowBound = _datay1;
 			}
 			while (!done) {
-				v.add(new Double(temp));
+				v.add(Double.valueOf(temp));
 				count++;
 				temp -= mod;
 

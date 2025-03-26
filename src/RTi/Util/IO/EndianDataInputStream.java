@@ -4,49 +4,28 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// EndianDataInputStream - read little or big endian binary data streams
-// ----------------------------------------------------------------------------
-// History:
-//
-// 14 Jun 1999	Steven A. Malers,	Initial version.
-//		Riverside Technology,
-//		inc.
-// 2001-11-26	SAM, RTi		Add readChar1() and readString1() to
-//					read big-endian 8-bit characters and
-//					strings.  These methods are not found
-//					in the standard big-endian
-//					DataInputStream.
-// 2004-05-05	J. Thomas Sapienza, RTi	Added support for reading both
-//					big endian and little endian values 
-//					from the stream.
-// 2004-5-07	Scott Townsend, RTi	Added a readEndianChar1 method.
-// ----------------------------------------------------------------------------
 
 package RTi.Util.IO;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
 import java.io.IOException;
-
-import RTi.Util.IO.IOUtil;
 
 /**
 This class extends the basic DataInputStream class by providing LittleEndian
@@ -97,15 +76,6 @@ public EndianDataInputStream(InputStream istream, boolean matchSystem) {
 	__byte8 = new byte[8];
 	__match_system = matchSystem;
 	__is_big_endian = IOUtil.isBigEndianMachine();
-}
-
-/**
-Finalize before garbage collection.
-*/
-protected void finalize()
-throws Throwable {
-	__byte8 = null;
-	super.finalize();
 }
 
 /**

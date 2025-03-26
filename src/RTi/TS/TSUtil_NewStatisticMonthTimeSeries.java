@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -39,7 +39,7 @@ Compute a MonthTS that has a statistic for each month in the period.
 */
 public class TSUtil_NewStatisticMonthTimeSeries
 {
-    
+
 /**
 Enumerations used when processing the statistic.
 */
@@ -48,8 +48,8 @@ private enum TestType {
     GT, // Test >
     LE, // Test <=
     LT, // Test <
-    NOT_USED }; // Unknown test
-    
+    NOT_USED }; // Unknown test.
+
 /**
 Time series to analyze.
 */
@@ -109,7 +109,7 @@ private DateTime __analysisWindowEnd = null;
 Search start date/time for analysis window, within a month.
 */
 private DateTime __searchStart = null;
-    
+
 /**
 Construct the analysis object with required input.  Values will be checked for validity.
 Execute the newStatisticMonthTS() method to perform the analysis.
@@ -134,10 +134,10 @@ public TSUtil_NewStatisticMonthTimeSeries ( TS ts, String newTSID, TSStatisticTy
     Double testValue, Double [] monthTestValues,
     Integer allowMissingCount, Integer minimumSampleSize,
     DateTime analysisStart, DateTime analysisEnd,
-    DateTime analysisWindowStart, DateTime analysisWindowEnd, DateTime searchStart )
-{   String routine = getClass().getName();
+    DateTime analysisWindowStart, DateTime analysisWindowEnd, DateTime searchStart ) {
+    String routine = getClass().getName();
     String message;
-    
+
     if ( ts == null ) {
         // Nothing to do.
         message = "Null input time series - cannot calculate statistic time series.";
@@ -171,21 +171,21 @@ public TSUtil_NewStatisticMonthTimeSeries ( TS ts, String newTSID, TSStatisticTy
     setTestValue ( testValue );
     setMonthTestValues ( monthTestValues );
     if ( allowMissingCount == null ) {
-        allowMissingCount = new Integer(-1); // Default.
+        allowMissingCount = Integer.valueOf(-1); // Default.
     }
     setAllowMissingCount ( allowMissingCount.intValue() );
     if ( minimumSampleSize == null ) {
-        minimumSampleSize = new Integer(-1); // Default.
+        minimumSampleSize = Integer.valueOf(-1); // Default.
     }
     setMinimumSampleSize ( minimumSampleSize );
     setAnalysisStart ( analysisStart );
     setAnalysisEnd ( analysisEnd );
-    
+
     // FIXME SAM 2009-11-04 Need to make this check specific to the time series interval and time scale.
     if ( !isStatisticSupported(statisticType, TimeInterval.UNKNOWN, null) ) {
         throw new InvalidParameterException ( "Statistic \"" + statisticType + "\" is not supported.");
     }
-    
+
     setAnalysisWindowStart ( analysisWindowStart );
     setAnalysisWindowEnd ( analysisWindowEnd );
     setSearchStart ( searchStart );
@@ -213,8 +213,8 @@ Currently only Month... to precision are evaluated (not day... etc.).
 private void calculateStatistic (
     TS ts, MonthTS monthts, TSStatisticType statisticType, Double testValue, Double [] monthTestValues,
     DateTime analysisStart, DateTime analysisEnd, int allowMissingCount, int minimumSampleSize,
-    DateTime analysisWindowStart, DateTime analysisWindowEnd, DateTime searchStart )
-{   String routine = getClass().getSimpleName() + ".calculateStatistic";
+    DateTime analysisWindowStart, DateTime analysisWindowEnd, DateTime searchStart ) {
+    String routine = getClass().getSimpleName() + ".calculateStatistic";
     // Initialize the settings to evaluate the statistic and set appropriate information in the time series.
     boolean statisticIsCount = isStatisticCount(statisticType);
     boolean statisticIsDayOf = isStatisticDayOf(statisticType);
@@ -226,9 +226,9 @@ private void calculateStatistic (
         statisticIsCount, statisticIsDayOf, statisticIsFirst, statisticIsLast ) );
     monthts.setDataUnits(getStatisticTimeSeriesDataUnits(statisticType, statisticIsCount, statisticIsDayOf,
         ts.getDataUnits()) );
-    
+
     //Message.printStatus ( 2, routine, "Overall analysis period is " + analysisStart + " to " + analysisEnd );
-    
+
     double testValueDouble = Double.NaN; // OK to initialize to this because checks will have verified real value.
     if ( isTestValueNeeded( statisticType ) ) {
         if ( testValue != null) {
@@ -279,11 +279,11 @@ private void calculateStatistic (
         while ( true ) {
             if ( iterateForward ) {
                 // First call will initialize and return first point.
-                data = tsi.next();  
+                data = tsi.next();
             }
             else {
                 // First call will initialize and return last point.
-                data = tsi.previous();  
+                data = tsi.previous();
             }
             if ( data != null ) {
                 // Still analyzing data in the analysis window.
@@ -458,7 +458,7 @@ private void calculateStatistic (
                     if ( (nMissing + nNotMissing) > 0 ) {
                         monthts.setDataValue ( monthDate, 100.0*(double)nMissing/(double)(nMissing + nNotMissing) );
                     }
-                }        
+                }
                 else if ( statisticType == TSStatisticType.NONMISSING_COUNT ) {
                     // Always assign.
                     monthts.setDataValue ( monthDate, (double)nNotMissing );
@@ -583,8 +583,8 @@ statistic (e.g., average value for the year).  Pass TimeInterval.UNKNOWN to get 
 @param timescale indicates whether the statistic is
 expected on accumulated, mean, instantaneous data.  Pass null to get all choices.  CURRENTLY NOT USED.
 */
-public static List<TSStatisticType> getStatisticChoicesForInterval ( int interval, TimeScaleType timescale )
-{   List<TSStatisticType> statistics = new ArrayList<>();
+public static List<TSStatisticType> getStatisticChoicesForInterval ( int interval, TimeScaleType timescale ) {
+    List<TSStatisticType> statistics = new ArrayList<>();
     // Add in alphabetical order, splitting up by interval as appropriate.
     // Daily or finer.
     if ( (interval <= TimeInterval.DAY) || (interval == TimeInterval.UNKNOWN) ) {
@@ -715,8 +715,8 @@ Determine the statistic time series description.
 */
 private String getStatisticTimeSeriesDescription ( TSStatisticType statisticType, TestType testType,
     Double testValue, Double [] monthTestValues,
-    boolean statisticIsCount, boolean statisticIsDayOf, boolean statisticIsFirst, boolean statisticIsLast )
-{   String testString = "?test?";
+    boolean statisticIsCount, boolean statisticIsDayOf, boolean statisticIsFirst, boolean statisticIsLast ) {
+    String testString = "?test?";
     String testValueString = "?testValue?";
     String desc = "?";
     if ( testValue != null ) {
@@ -943,12 +943,12 @@ percent missing, percent not missing).
 @param createData if true, calculate the data value array; if false, only assign metadata
 @return The statistics time series.
 */
-public MonthTS newStatisticMonthTS ( boolean createData )
-{   String message, routine = getClass().getSimpleName() + ".newStatisticMonthTS";
+public MonthTS newStatisticMonthTS ( boolean createData ) {
+    String message, routine = getClass().getSimpleName() + ".newStatisticMonthTS";
     int dl = 10;
 
     // Get the data needed for the analysis - originally provided in the constructor.
-    
+
     TS ts = getTimeSeries();
     String newTSID = getNewTSID();
     TSStatisticType statisticType = getStatisticType();
@@ -961,7 +961,7 @@ public MonthTS newStatisticMonthTS ( boolean createData )
     DateTime analysisWindowStart = getAnalysisWindowStart();
     DateTime analysisWindowEnd = getAnalysisWindowEnd();
     DateTime searchStart = getSearchStart();
-    
+
     if ( Message.isDebugOn ) {
         Message.printDebug ( dl, routine, "Trying to create statistic month TS for \"" +
         ts.getIdentifierString() + "\"" );
@@ -1010,7 +1010,7 @@ public MonthTS newStatisticMonthTS ( boolean createData )
     // Dates determined above
     monthts.setDate1 ( analysisStart );
     monthts.setDate2 ( analysisEnd );
-    
+
     if ( !createData ) {
         return monthts;
     }
@@ -1035,10 +1035,9 @@ Determine whether it is OK to set a monthly statistic based on handling of missi
 @param nonMissingCount number of non-missing values in the month.
 @param allowMissingCount the number of values allowed to be missing in a month (or -1 if no limit).
 @param minimumSampleSize the minimum sample size, or -1 if no limit.
- */
+*/
 private boolean okToSetMonthStatistic ( int missingCount, int nonMissingCount,
-    int allowMissingCount, int minimumSampleSize )
-{
+    int allowMissingCount, int minimumSampleSize ) {
     // Check the missing count.
     if ( (allowMissingCount < 0) || (missingCount <= allowMissingCount) ) {
         // So far OK to set, but check sample size.

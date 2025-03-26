@@ -4,33 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// DragAndDropJWorksheet - Class that implements a JWorksheet from which data 
-//	can be dragged and onto which data can be dropped.
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-// 2004-03-01	J. Thomas Sapienza, RTi	Initial version.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
 
 package RTi.Util.GUI;
 
@@ -56,39 +45,34 @@ import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 
 /**
-This class implements a JWorksheet that supports dragging data out of and 
-dropping data into.
+This class implements a JWorksheet that supports dragging data out of and dropping data into.
 */
 @SuppressWarnings("serial")
 public class DragAndDropJWorksheet
 extends JWorksheet
-implements DragGestureListener, DragSourceListener, DropTargetListener, 
-DragAndDrop {
+implements DragGestureListener, DragSourceListener, DropTargetListener, DragAndDrop {
 
 /**
-The DragAndDropControl object that holds information about how this object 
-works with DragAndDrop.
+The DragAndDropControl object that holds information about how this object works with DragAndDrop.
 */
 private DragAndDropControl __data = null;
 
 /**
-Constructor.  Creates a JWorksheet with the specified cell renderer and table 
-model.  For information about the support properties that can be passed in 
-in the proplist, see the JWorksheet javadocs.
+Constructor.  Creates a JWorksheet with the specified cell renderer and table model.
+For information about the support properties that can be passed in in the proplist, see the JWorksheet javadocs.
 @param cellRenderer the cell renderer to use.
 @param tableModel the table model to use.
 @param props the properties that define JWorksheet behavior.
 */
-public DragAndDropJWorksheet(JWorksheet_DefaultTableCellRenderer cellRenderer, 
+public DragAndDropJWorksheet(JWorksheet_DefaultTableCellRenderer cellRenderer,
 JWorksheet_AbstractTableModel tableModel, PropList props) {
 	super(cellRenderer, tableModel, props);;
 	initialize(DragAndDropUtil.ACTION_COPY, DragAndDropUtil.ACTION_NONE);
 }
 
 /**
-Constructor.  Creates a JWorksheet with the specified number of rows and 
-columns. For information about the support properties that can be passed in 
-in the proplist, see the JWorksheet javadocs.
+Constructor.  Creates a JWorksheet with the specified number of rows and columns.
+For information about the support properties that can be passed in in the proplist, see the JWorksheet javadocs.
 @param rows the number of rows in the empty worksheet.
 @param cols the number of columns in the empty worksheet.
 @param props the properties that define JWorksheet behavior.
@@ -98,28 +82,17 @@ public DragAndDropJWorksheet(int rows, int cols, PropList props) {
 	initialize(DragAndDropUtil.ACTION_COPY, DragAndDropUtil.ACTION_NONE);
 }
 
-/** 
+/**
 Returns the data flavors in which the worksheet can transfer data.
 @return the data flavors in which the worksheet can transfer data.
 */
 public DataFlavor[] getDataFlavors() {
 	if (__data.getAlternateTransferable() != null) {
-		return __data.getAlternateTransferable()
-			.getTransferDataFlavors();
+		return __data.getAlternateTransferable().getTransferDataFlavors();
 	}
 	else {
-		return DragAndDropTransferPrimitive.getTransferDataFlavors(
-			DragAndDropTransferPrimitive.TYPE_STRING);
+		return DragAndDropTransferPrimitive.getTransferDataFlavors( DragAndDropTransferPrimitive.TYPE_STRING);
 	}
-}
-
-/**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__data = null;
-	super.finalize();
 }
 
 /**
@@ -136,15 +109,13 @@ Returns the transferable object that can be dragged from this worksheet.
 */
 public Transferable getTransferable() {
 	if (IOUtil.testing()) {
-		Message.printStatus(1, "", "getTransferable: "
-			+ __data.getAlternateTransferable());
+		Message.printStatus(1, "", "getTransferable: " + __data.getAlternateTransferable());
 	}
 	if (__data.getAlternateTransferable() != null) {
 		return __data.getAlternateTransferable();
 	}
 	else {
-		return new DragAndDropTransferPrimitive(
-			"No alternate transferable set");
+		return new DragAndDropTransferPrimitive( "No alternate transferable set");
 	}
 }
 
@@ -159,7 +130,7 @@ public boolean handleDropData(Object o, Point p) {
 	if (o instanceof DragAndDropTransferPrimitive) {
 	}
 	else {
-		// should be String
+		// Should be String.
 	}
 	return true;
 }
@@ -170,19 +141,15 @@ Initializes the drag and drop aspects of this class.
 @param dropAction the action to take on dropping.
 */
 private void initialize(int dragAction, int dropAction) {
-	// create the data object (for use by DragAndDropUtil)
+	// Create the data object (for use by DragAndDropUtil).
 	__data = new DragAndDropControl(dragAction, dropAction);
 
-	// only allow dragging if the worksheet is not editable
+	// Only allow dragging if the worksheet is not editable.
 	if (__data.allowsDrag()) {
-		__data.setDragSource(
-			DragAndDropUtil.createDragSource(
-			this, dragAction, this));
+		__data.setDragSource( DragAndDropUtil.createDragSource( this, dragAction, this));
 	}
 	if (__data.allowsDrop()) {
-		__data.setDropTarget(
-			DragAndDropUtil.createDropTarget(
-			this, dropAction, this));			
+		__data.setDropTarget( DragAndDropUtil.createDropTarget( this, dropAction, this));
 	}
 }
 
@@ -199,11 +166,10 @@ public void dragStarted() {}
 Does nothing (DragAndDrop interface method).
 */
 public void dragSuccessful(int action) {
-	int result = DragAndDropUtil.determineAction(
-		__data.getDragAction(), action);
+	int result = DragAndDropUtil.determineAction( __data.getDragAction(), action);
 	if (result == DragAndDropUtil.ACTION_MOVE) {
 	}
-}	
+}
 
 /**
 Does nothing (DragAndDrop interface method).
@@ -254,11 +220,10 @@ public void dragGestureRecognized(DragGestureEvent dge) {
 	int row = rowAtPoint(p);
 
 	if (isCellSelected(row, col)) {
-		if (((JWorksheet_RowSelectionModel)getSelectionModel())
-			.dragWasTriggered()) {
+		if (((JWorksheet_RowSelectionModel)getSelectionModel()).dragWasTriggered()) {
 			DragAndDropUtil.dragStart(this, this, dge);
 		}
-	}	
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////

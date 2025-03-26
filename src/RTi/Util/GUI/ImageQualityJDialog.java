@@ -4,34 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// ImageQualityJDialog - a dialog for easily selecting the quality setting
-//	of a JPEG.
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-// 2003-08-27	J. Thomas Sapienza, RTi	Initial version.
-// 2005-04-26	JTS, RTi		Added finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
 
 package RTi.Util.GUI;
 
@@ -50,21 +38,17 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 
-import RTi.Util.GUI.SimpleJButton;
-
 /**
-This class provides a simple dialog for specifying the quality of a JPEG in a 
-way that can be used in the JPEG encoder RTi uses.  The Dialog consists of a 
-slider, an OK button, a CANCEL button, and some information for the user.  
-The user can select a value from 0 - 100, and this value will be accessible 
-after the OK button is pressed. 
-If the user presses, CANCEL, the value that is returned is -1.  
-If the user closes the dialog from the X button in the upper-right-hand 
-corner, the value returned is also -1.
+This class provides a simple dialog for specifying the quality of a JPEG in a
+way that can be used in the JPEG encoder RTi uses.
+The Dialog consists of a slider, an OK button, a CANCEL button, and some information for the user.
+The user can select a value from 0 - 100, and this value will be accessible after the OK button is pressed.
+If the user presses, CANCEL, the value that is returned is -1.
+If the user closes the dialog from the X button in the upper-right-hand corner, the value returned is also -1.
 */
 @SuppressWarnings("serial")
-public class ImageQualityJDialog 
-extends JDialog 
+public class ImageQualityJDialog
+extends JDialog
 implements ActionListener, WindowListener {
 
 /**
@@ -95,8 +79,7 @@ public ImageQualityJDialog(JFrame parent) {
 }
 
 /**
-Responds when the user presses the OK or Cancel button and sets the quality
-value accordingly.
+Responds when the user presses the OK or Cancel button and sets the quality value accordingly.
 @param e the ActionEvent that happened.
 */
 public void actionPerformed(ActionEvent e) {
@@ -110,15 +93,6 @@ public void actionPerformed(ActionEvent e) {
 		__quality = __slider.getValue();
 		dispose();
 	}
-}
-
-/**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__slider = null;
-	super.finalize();
 }
 
 /**
@@ -145,21 +119,21 @@ private void setupGUI() {
 	__slider.setMinorTickSpacing(5);
 
 	JGUIUtil.addComponent(panel, __slider,
-		0, 0, 1, 1, 1, 1, 
+		0, 0, 1, 1, 1, 1,
 		GridBagConstraints.BOTH, GridBagConstraints.CENTER);
-	JGUIUtil.addComponent(panel, 
+	JGUIUtil.addComponent(panel,
 		new JLabel("Select the quality of the saved image."),
 		0, 1, 1, 1, 0, 0,
 		GridBagConstraints.NONE, GridBagConstraints.CENTER);
 	JGUIUtil.addComponent(panel,
 		new JLabel("(Towards 0 means more compression, "),
-		0, 2, 1, 1, 0, 0, 
+		0, 2, 1, 1, 0, 0,
 		GridBagConstraints.NONE, GridBagConstraints.CENTER);
 	JGUIUtil.addComponent(panel,
 		new JLabel("towards 100 means higher quality)"),
-		0, 3, 1, 1, 0, 0, 
-		GridBagConstraints.NONE, GridBagConstraints.CENTER);		
-	
+		0, 3, 1, 1, 0, 0,
+		GridBagConstraints.NONE, GridBagConstraints.CENTER);
+
 	getContentPane().add("Center", panel);
 
 	JPanel bottom = new JPanel();
