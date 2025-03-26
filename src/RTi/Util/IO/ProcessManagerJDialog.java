@@ -11,85 +11,15 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//------------------------------------------------------------------------------
-// ProcessManagerJDialog - class that wraps a JDialog around ProcessManager
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// History:
-// 
-// 02 May 1998	Catherine E.		Created initial version of class.
-//		Nutting-Lane, RTi
-// 15 Oct 1998	Steven A. Malers, RTi	Changed so that the X button closes the
-//					GUI and make the GUI come up wider.
-// 30 Nov 1998	CEN, RTi		Added function to retrieve
-//					ProcessManager _proc itself.
-// 14 Apr 1999	CEN, RTi		Added code to compensate for bugs in
-//					Java 1.2.  Documented this below in the
-//					code for future removal.
-// 07 Jan 2001	SAM, RTi		Change GUI to GUIUtil.  Change import *
-//					to specific imports.
-// 07 Aug 2001	SAM, RTi		When closing down and when the process
-//					is finished, unset the output function
-//					for Message so the GUI only shows the
-//					output from the command.  Add
-//					finalize().  Change to set color of
-//					GUI to red if an error.  Change so sleep
-//					is not a static variable.
-// 16 Aug 2001	SAM, RTi		Update so when getting output from the
-//					ProcessManager, null strings are
-//					ignored.  This is necessary to support
-//					NT temporary files.  Change checkQuery()
-//					to checkProcess().  The former was a
-//					hold-over from the initial threaded
-//					query code for HydroBase.
-// 23 Aug 2001	SAM, RTi		Add the cleanup() method to clean up
-//					the process and event timer thread.
-//					Without this the CPU can get hammered
-//					by old process threads.  Change so
-//					the command is shown in a TextField so
-//					it does not mess up the display if very
-//					long.  Change _proc to _process_manager
-//					to make code clearer.
-// 2002-08-05	SAM, RTi		Add close() method so that the GUI can
-//					be automatically closed when a
-//					successful run occurs.
-// 2002-08-07	SAM, RTi		Fix so that timer thread is destroyed
-//					before the process manager to avoid
-//					the thread trying to use a null
-//					process manager.
-// 2002-10-11	SAM, RTi		Change name of class from
-//					ProcessManagerGUI to
-//					ProcessManagerJDialog.  Use a dialog
-//					so it can be made modal
-// 2002-10-20	SAM, RTi		Update the constructor to take a
-//					ProcessManager instead of a raw command
-//					because the ProcessManager has more
-//					settings now and it would be difficult
-//					to pass all variations through.
-// 2002-10-23	SAM, RTi		* Put the output in a JScrollPane -
-//					  scrolling was not working.
-//					* Increase the default history size to
-//					  500 and allow it to be changed with
-//					  a property.
-// 2004-08-25	J. Thomas Sapienza, RTi	Revised the GUI-building code so that
-//					if a "HelpKey" parameter is not set in
-//					the proplist, the Help button will not
-//					appear on the GUI.
-// 2005-04-26	JTS, RTi		Convert GUIUtil to JGUIUtil.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//------------------------------------------------------------------------------
-//EndHeader
 
 package RTi.Util.IO;
 
@@ -114,7 +44,6 @@ import javax.swing.SwingUtilities;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.Help.URLHelp;
-import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Time.StopWatch;
@@ -298,27 +227,6 @@ public void close ()
 	// Close down the process, if necessary...
 	cleanup ();
 	dispose();
-}
-
-/**
-Clean up for garbage collection.
-*/
-protected void finalize()
-throws Throwable
-{	__process_manager = null;
-	__output_JList = null;
-	__output_ListModel = null;
-	__cancel_JButton = null;
-	__close_JButton = null;
-	__help_JButton = null;
-	__top_JPanel = null;
-	__south_JPanel = null;
-	__command_JLabel = null;
-	__command_JTextField = null;
-	__status0_JLabel = null;
-	__status_JLabel = null;
-	__thread = null;
-	super.finalize();
 }
 
 /**

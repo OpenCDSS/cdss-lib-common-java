@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -393,10 +393,10 @@ throws IOException {
 					// Sometimes overflow values have
 					// "******" so set to zero if there is a problem.
 					try {
-					    contents.addFieldValue (new Double(data_string.trim()));
+					    contents.addFieldValue (Double.valueOf(data_string.trim()));
 					}
 					catch (Exception e3) {
-						contents.addFieldValue (new Double ( 0.0 ));
+						contents.addFieldValue (Double.valueOf ( 0.0 ));
 						Message.printWarning ( 2, routine, "Field [" + i + "] Record [" +
 						i_dbf + "] Invalid data string for number: \"" + data_string + "\"" );
 					}
@@ -410,10 +410,10 @@ throws IOException {
 					// Sometimes overflow values have
 					// "******" so set to zero if there is a problem.
 					try {
-					    contents.addFieldValue (new Float(data_string.trim()));
+					    contents.addFieldValue (Float.valueOf(data_string.trim()));
 					}
 					catch (Exception e3) {
-						contents.addFieldValue (new Float ( 0.0 ));
+						contents.addFieldValue (Float.valueOf ( (float)0.0 ));
 						Message.printWarning ( 2, routine, "Field [" + i + "] Record [" +
 						i_dbf + "] Invalid data string for float: \"" + data_string + "\"" );
 					}
@@ -428,10 +428,10 @@ throws IOException {
 					// Sometimes overflow values have
 					// "******" so set to zero if there is a problem.
 					try {
-					    contents.addFieldValue (new Integer(data_string.trim()));
+					    contents.addFieldValue (Integer.valueOf(data_string.trim()));
 					}
 					catch (Exception e3) {
-						contents.addFieldValue (new Integer(0));
+						contents.addFieldValue (Integer.valueOf(0));
 						Message.printWarning ( 2, routine, "Field [" + i + "] Record [" +
 						i_dbf + "] Invalid data string for integer: \"" + data_string + "\"" );
 					}
@@ -503,10 +503,10 @@ throws Exception {
 			_field_buffer[field_index][j] = _raf.readLittleEndianChar1();
 		}
 		try {
-		    o = new Float ( new String (_field_buffer[field_index] ) );
+		    o = Float.valueOf ( new String (_field_buffer[field_index] ) );
 		}
 		catch ( Exception e ) {
-			o = new Double ( 0.0 );
+			o = Double.valueOf ( 0.0 );
 			Message.printWarning (2,"DbaseDataTable.readFieldValue",
 			"Field [" + field_index + "] Record [" + record_index +
 			"] Invalid data string for number: \"" + new String(_field_buffer[field_index]) + "\"" );
@@ -518,10 +518,10 @@ throws Exception {
 			_field_buffer[field_index][j] = _raf.readLittleEndianChar1();
 		}
 		try {
-		    o = new Double ( new String (_field_buffer[field_index] ) );
+		    o = Double.valueOf ( new String (_field_buffer[field_index] ) );
 		}
 		catch ( Exception e ) {
-			o = new Double ( 0.0 );
+			o = Double.valueOf ( 0.0 );
 			Message.printWarning (2,"DbaseDataTable.readFieldValue",
 			"Field [" + field_index + "] Record [" + record_index +
 			"] Invalid data string for number: \"" + new String(_field_buffer[field_index]) + "\"" );

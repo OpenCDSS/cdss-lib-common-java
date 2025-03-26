@@ -71,7 +71,7 @@ try {
 	// Now define a record to be included in the table.
 	TableRecord contents = new TableRecord (3);
 	contents.addFieldValue ( "123456" );
-	contents.addFieldValue ( new Integer (6));
+	contents.addFieldValue ( Integer.valueOf (6));
 	contents.addFieldValue ( "Station ID" );
 
 	myTable.addRecord ( contents );
@@ -294,10 +294,10 @@ public int addField ( int insertPos, TableField tableField, Object initValue, Da
 		else if ( dataType == TableField.DATA_TYPE_INT ) {
 			if ( initFunction != null ) {
 				if ( initFunction == DataTableFunctionType.ROW ) {
-					initValue = new Integer(i + 1);
+					initValue = Integer.valueOf(i + 1);
 				}
 				else if ( initFunction == DataTableFunctionType.ROW0 ) {
-					initValue = new Integer(i);
+					initValue = Integer.valueOf(i);
 				}
 			}
 		    if ( addAtEnd ) {
@@ -310,10 +310,10 @@ public int addField ( int insertPos, TableField tableField, Object initValue, Da
 		else if ( dataType == TableField.DATA_TYPE_DOUBLE ) {
 			if ( initFunction != null ) {
 				if ( initFunction == DataTableFunctionType.ROW ) {
-					initValue = new Double(i + 1);
+					initValue = Double.valueOf(i + 1);
 				}
 				else if ( initFunction == DataTableFunctionType.ROW0 ) {
-					initValue = new Double(i);
+					initValue = Double.valueOf(i);
 				}
 			}
 		    if ( addAtEnd ) {
@@ -326,10 +326,10 @@ public int addField ( int insertPos, TableField tableField, Object initValue, Da
 		else if ( dataType == TableField.DATA_TYPE_SHORT ) {
 			if ( initFunction != null ) {
 				if ( initFunction == DataTableFunctionType.ROW ) {
-					initValue = new Short((short)(i + 1));
+					initValue = Short.valueOf((short)(i + 1));
 				}
 				else if ( initFunction == DataTableFunctionType.ROW0 ) {
-					initValue = new Short((short)(i));
+					initValue = Short.valueOf((short)(i));
 				}
 			}
 		    if ( addAtEnd ) {
@@ -342,10 +342,10 @@ public int addField ( int insertPos, TableField tableField, Object initValue, Da
 		else if ( dataType == TableField.DATA_TYPE_FLOAT ) {
 			if ( initFunction != null ) {
 				if ( initFunction == DataTableFunctionType.ROW ) {
-					initValue = new Float(i + 1);
+					initValue = Float.valueOf(i + 1);
 				}
 				else if ( initFunction == DataTableFunctionType.ROW0 ) {
-					initValue = new Float(i);
+					initValue = Float.valueOf(i);
 				}
 			}
 		    if ( addAtEnd ) {
@@ -358,10 +358,10 @@ public int addField ( int insertPos, TableField tableField, Object initValue, Da
         else if ( dataType == TableField.DATA_TYPE_LONG ) {
 			if ( initFunction != null ) {
 				if ( initFunction == DataTableFunctionType.ROW ) {
-					initValue = new Long(i + 1);
+					initValue = Long.valueOf(i + 1);
 				}
 				else if ( initFunction == DataTableFunctionType.ROW0 ) {
-					initValue = new Long(i);
+					initValue = Long.valueOf(i);
 				}
 			}
             if ( addAtEnd ) {
@@ -781,16 +781,16 @@ throws Exception {
 	        	    this.setFieldValue(irec, fieldNum, Double.NaN );
 	    		}
 	    		else {
-	        	    this.setFieldValue(irec, fieldNum, new Double(f.doubleValue()));
+	        	    this.setFieldValue(irec, fieldNum, Double.valueOf(f.doubleValue()));
 	    		}
 	        }
 	    	else if ( o instanceof Integer ) {
 	    	    i = (Integer)o;
-	            this.setFieldValue(irec, fieldNum, new Double(i.doubleValue()));
+	            this.setFieldValue(irec, fieldNum, Double.valueOf(i.doubleValue()));
 	        }
 	    	else if ( o instanceof String ) {
 	    	    s = (String)o;
-	        	this.setFieldValue(irec, fieldNum, new Double(s));
+	        	this.setFieldValue(irec, fieldNum, Double.valueOf(s));
 	        }
 	    }
 	    else if ( newDataType == TableField.DATA_TYPE_FLOAT ) {
@@ -800,16 +800,16 @@ throws Exception {
 	        	    this.setFieldValue(irec, fieldNum, Float.NaN );
 	    		}
 	    		else {
-	        	    this.setFieldValue(irec, fieldNum, new Float(d.doubleValue()));
+	        	    this.setFieldValue(irec, fieldNum, Float.valueOf((float)d.doubleValue()));
 	    		}
 	        }
 	    	else if ( o instanceof Integer ) {
 	    	    i = (Integer)o;
-	            this.setFieldValue(irec, fieldNum, new Float(i.floatValue()));
+	            this.setFieldValue(irec, fieldNum, Float.valueOf(i.floatValue()));
 	        }
 	    	else if ( o instanceof String ) {
 	    	    s = (String)o;
-	        	this.setFieldValue(irec, fieldNum, new Float(s));
+	        	this.setFieldValue(irec, fieldNum, Float.valueOf(s));
 	        }
 	    }
 	    else if ( newDataType == TableField.DATA_TYPE_INT ) {
@@ -820,7 +820,7 @@ throws Exception {
 	        	    this.setFieldValue(irec, fieldNum, null );
 	    		}
 	    		else {
-	        	    this.setFieldValue(irec, fieldNum, new Integer(d.intValue()));
+	        	    this.setFieldValue(irec, fieldNum, Integer.valueOf(d.intValue()));
 	    		}
 	        }
 	    	else if ( o instanceof Float ) {
@@ -830,12 +830,12 @@ throws Exception {
 	        	    this.setFieldValue(irec, fieldNum, null );
 	    		}
 	    		else {
-	        	    this.setFieldValue(irec, fieldNum, new Integer(f.intValue()));
+	        	    this.setFieldValue(irec, fieldNum, Integer.valueOf(f.intValue()));
 	    		}
 	        }
 	    	else if ( o instanceof String ) {
 	    	    s = (String)o;
-	        	this.setFieldValue(irec, fieldNum, new Integer(s));
+	        	this.setFieldValue(irec, fieldNum, Integer.valueOf(s));
 	        }
 	    }
 	    else if ( newDataType == TableField.DATA_TYPE_STRING ) {
@@ -1444,19 +1444,19 @@ public static DataTable duplicateDataTable(DataTable originalTable, boolean clon
     		for (int j = 0; j < numFields; j++) {
     			type = newTable.getFieldDataType(j);
     			if (type == TableField.DATA_TYPE_INT) {
-    	        	newRecord.addFieldValue(new Integer(((Integer)originalTable.getFieldValue(i, j)).intValue()));
+    	        	newRecord.addFieldValue(Integer.valueOf(((Integer)originalTable.getFieldValue(i, j)).intValue()));
     			}
     			else if (type == TableField.DATA_TYPE_SHORT) {
-    	        	newRecord.addFieldValue(new Short(((Short)originalTable.getFieldValue(i, j)).shortValue()));
+    	        	newRecord.addFieldValue(Short.valueOf(((Short)originalTable.getFieldValue(i, j)).shortValue()));
     			}
     			else if (type == TableField.DATA_TYPE_DOUBLE) {
-    	        	newRecord.addFieldValue(new Double(((Double)originalTable.getFieldValue(i, j)).doubleValue()));
+    	        	newRecord.addFieldValue(Double.valueOf(((Double)originalTable.getFieldValue(i, j)).doubleValue()));
     			}
     			else if (type == TableField.DATA_TYPE_FLOAT) {
-    	        	newRecord.addFieldValue(new Float(((Float)originalTable.getFieldValue(i, j)).floatValue()));
+    	        	newRecord.addFieldValue(Float.valueOf(((Float)originalTable.getFieldValue(i, j)).floatValue()));
     			}
     			else if (type == TableField.DATA_TYPE_STRING) {
-    	        	newRecord.addFieldValue(new String((String)originalTable.getFieldValue(i, j)));
+    	        	newRecord.addFieldValue((String)originalTable.getFieldValue(i, j));
     			}
     			else if (type == TableField.DATA_TYPE_DATE) {
     	        	newRecord.addFieldValue( ((Date)originalTable.getFieldValue(i, j)).clone());
@@ -1465,7 +1465,7 @@ public static DataTable duplicateDataTable(DataTable originalTable, boolean clon
                     newRecord.addFieldValue( ((DateTime)originalTable.getFieldValue(i, j)).clone());
                 }
     			else if (type == TableField.DATA_TYPE_LONG) {
-                    newRecord.addFieldValue(new Long(((Long)originalTable.getFieldValue(i, j)).longValue()));
+                    newRecord.addFieldValue(Long.valueOf(((Long)originalTable.getFieldValue(i, j)).longValue()));
                 }
     		}
     		newTable.addRecord(newRecord);
@@ -2697,7 +2697,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
     for ( int irow = 0; irow < tableNumRows; irow++ ) {
     	if ( handleMultipleMatchesHow == HandleMultipleJoinMatchesHowType.NUMBER_COLUMNS ) {
     		// Initialize the number of matches for this row.
-    		matchCountList.add(new Integer(0));
+    		matchCountList.add(Integer.valueOf(0));
     	}
         // Loop through all rows in the second table
         for ( int irowJoin = 0; irowJoin < tableToJoin.getNumberOfRecords(); irowJoin++ ) {
@@ -2788,7 +2788,7 @@ public int joinTable ( DataTable table, DataTable tableToJoin, Hashtable<String,
                                 	if ( handleMultipleMatchesHow == HandleMultipleJoinMatchesHowType.NUMBER_COLUMNS ) {
                                         // Increment the match counter.
                                 		if ( icol == 0 ) {
-                                			matchCountList.set(irow,new Integer(matchCountList.get(irow) + 1));
+                                			matchCountList.set(irow,Integer.valueOf(matchCountList.get(irow) + 1));
                                 			Message.printStatus(2, routine, "Incremented match counter [" + irow +
                                 				"] to " + matchCountList.get(irow) + " for column \"" + table2CopyColumnNames[icol] + "\"");
                                 		}
@@ -3080,19 +3080,19 @@ throws Exception {
     					}
     				}
     				else if ( field_types[i] ==	TableField.DATA_TYPE_DOUBLE ){
-    					contents.addFieldValue(	new Double(col));
+    					contents.addFieldValue(	Double.valueOf(col));
     				}
     				else if ( field_types[i] ==	TableField.DATA_TYPE_INT ) {
-    					contents.addFieldValue(	new Integer(col));
+    					contents.addFieldValue(	Integer.valueOf(col));
     				}
     				else if ( field_types[i] ==	TableField.DATA_TYPE_SHORT ) {
-    					contents.addFieldValue(	new Short(col));
+    					contents.addFieldValue(	Short.valueOf(col));
     				}
     				else if ( field_types[i] ==	TableField.DATA_TYPE_FLOAT ) {
-    					contents.addFieldValue(	new Float(col));
+    					contents.addFieldValue(	Float.valueOf(col));
     				}
                     else if ( field_types[i] == TableField.DATA_TYPE_LONG ) {
-                        contents.addFieldValue( new Long(col));
+                        contents.addFieldValue( Long.valueOf(col));
                     }
     			}
     			table.addRecord ( contents );
@@ -3402,7 +3402,7 @@ throws Exception {
                 	// Single integer.
                     int row = Integer.parseInt(vi);
                     Message.printStatus ( 2, routine, "Header row is [" + row + "]");
-                    HeaderLineList.add(new Integer(row));
+                    HeaderLineList.add(Integer.valueOf(row));
                     HeaderLinesList_maxval = Math.max(HeaderLinesList_maxval, row);
                 }
                 else {
@@ -3424,7 +3424,7 @@ throws Exception {
                         last_header = Integer.parseInt(vi.substring(pos+1).trim());
                         // Add a list of integers corresponding to the header rows, zero index.
                         for ( int is = first_header; is <= last_header; is++ ) {
-                            HeaderLineList.add(new Integer(is));
+                            HeaderLineList.add(Integer.valueOf(is));
                             HeaderLinesList_maxval = Math.max(HeaderLinesList_maxval, is);
                         }
                     }
@@ -3532,7 +3532,7 @@ throws Exception {
             String vi = v.get(i);
             if ( StringUtil.isInteger(vi)) {
                 int row = Integer.parseInt(vi);
-                skipLinesList.add(new Integer(row));
+                skipLinesList.add(Integer.valueOf(row));
                 skipLinesList_maxval = Math.max(skipLinesList_maxval, row);
             }
             else {
@@ -3551,7 +3551,7 @@ throws Exception {
                     }
                     last_to_skip = Integer.parseInt(vi.substring(pos+1).trim());
                     for ( int is = first_to_skip; is <= last_to_skip; is++ ) {
-                        skipLinesList.add(new Integer(is));
+                        skipLinesList.add(Integer.valueOf(is));
                         skipLinesList_maxval = Math.max(skipLinesList_maxval, is);
                     }
                 }

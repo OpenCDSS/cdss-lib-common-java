@@ -4,35 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//---------------------------------------------------------------------------
-// DragAndDropSimpleJList - class that supports drag and drop operations 
-// 	on a JList.
-//---------------------------------------------------------------------------
-// Copyright:  See the COPYRIGHT file.
-//---------------------------------------------------------------------------
-// History:
-//
-// 2003-05-06	J. Thomas Sapienza, RTi	Initial version.
-// 2005-04-08	JTS, RTi		Renamed from DragAndDropMutableJList.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//---------------------------------------------------------------------------
 
 package RTi.Util.GUI;
 
@@ -60,12 +47,10 @@ import javax.swing.event.ListSelectionListener;
 @SuppressWarnings("serial")
 public class DragAndDropSimpleJList
 extends SimpleJList<String>
-implements DragGestureListener, DragSourceListener, DropTargetListener, 
-DragAndDrop, ListSelectionListener {
+implements DragGestureListener, DragSourceListener, DropTargetListener, DragAndDrop, ListSelectionListener {
 
 /**
-The DragAndDropControl object that holds information about how this object 
-works with DragAndDrop.
+The DragAndDropControl object that holds information about how this object works with DragAndDrop.
 */
 private DragAndDropControl __data = null;
 
@@ -77,7 +62,7 @@ Constructor.
 public DragAndDropSimpleJList(int dragAction, int dropAction) {
 	super();
 	initialize(dragAction, dropAction);
-}	
+}
 
 /**
 Constructor.
@@ -101,28 +86,17 @@ public DragAndDropSimpleJList(List<String> list, int dragAction, int dropAction)
 	initialize(dragAction, dropAction);
 }
 
-/** 
+/**
 Returns the data flavors in which the combo box can transfer data.
 @return the data flavors in which the combo box can transfer data.
 */
 public DataFlavor[] getDataFlavors() {
 	if (__data.getAlternateTransferable() != null) {
-		return __data.getAlternateTransferable()
-			.getTransferDataFlavors();
+		return __data.getAlternateTransferable().getTransferDataFlavors();
 	}
 	else {
-		return DragAndDropTransferPrimitive.getTransferDataFlavors(
-			DragAndDropTransferPrimitive.TYPE_STRING);
+		return DragAndDropTransferPrimitive.getTransferDataFlavors( DragAndDropTransferPrimitive.TYPE_STRING);
 	}
-}
-
-/**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__data = null;
-	super.finalize();
 }
 
 /**
@@ -142,8 +116,7 @@ public Transferable getTransferable() {
 		return __data.getAlternateTransferable();
 	}
 	else {
-		return new DragAndDropTransferPrimitive(
-			(String)getSelectedItem());
+		return new DragAndDropTransferPrimitive( (String)getSelectedItem());
 	}
 }
 
@@ -153,16 +126,14 @@ Handles data that has been dropped on this combo box.
 */
 public boolean handleDropData(Object o, Point p) {
 	// REVISIT (JTS - 2004-05-06)
-	// come back and actually add support for dropping things on the list,
-	// once we start doing that.  No time right now.
+	// Come back and actually add support for dropping things on the list, once we start doing that.  No time right now.
 	if (o == null) {
 		return false;
 	}
 	if (o instanceof DragAndDropTransferPrimitive) {
-		
 	}
 	else {
-		// should be String
+		// Should be String.
 	}
 	return true;
 }
@@ -173,23 +144,18 @@ Initializes the drag and drop aspects of this class.
 @param dropAction the action to take on dropping.
 */
 private void initialize(int dragAction, int dropAction) {
-	// create the data object (for use by DragAndDropUtil)
+	// Create the data object (for use by DragAndDropUtil).
 	__data = new DragAndDropControl(dragAction, dropAction);
 
-	// only allow dragging if the combo box is not editable
+	// Only allow dragging if the combo box is not editable.
 	if (__data.allowsDrag()) {
-		__data.setDragSource(
-			DragAndDropUtil.createDragSource(
-			this, dragAction, this));
+		__data.setDragSource( DragAndDropUtil.createDragSource( this, dragAction, this));
 	}
 	if (__data.allowsDrop()) {
-		__data.setDropTarget(
-			DragAndDropUtil.createDropTarget(
-			this, dropAction, this));			
+		__data.setDropTarget( DragAndDropUtil.createDropTarget( this, dropAction, this));
 	}
 	setSelectionModel(new SimpleJList_SelectionModel(getItemCount()));
-	((SimpleJList_SelectionModel)getSelectionModel())
-		.setSupportsDragAndDrop(true);
+	((SimpleJList_SelectionModel)getSelectionModel()).setSupportsDragAndDrop(true);
 	getSelectionModel().addListSelectionListener(this);
 	addMouseListener((SimpleJList_SelectionModel)getSelectionModel());
 }
@@ -207,12 +173,11 @@ public void dragStarted() {}
 Does nothing (DragAndDrop interface method).
 */
 public void dragSuccessful(int action) {
-	int result = DragAndDropUtil.determineAction(
-		__data.getDragAction(), action);
+	int result = DragAndDropUtil.determineAction( __data.getDragAction(), action);
 	if (result == DragAndDropUtil.ACTION_MOVE) {
 		remove(getSelectedIndex());
 	}
-}	
+}
 
 /**
 Does nothing (DragAndDrop interface method).
@@ -254,19 +219,17 @@ public void setAlternateTransferable(Transferable t) {
 
 /**
 Recognizes a drag only if a click is made on a cell that is already selected
-and a drag is started.  Otherwise, allow normal worksheet cell-selection via
-dragging.
+and a drag is started.  Otherwise, allow normal worksheet cell-selection via dragging.
 */
 public void dragGestureRecognized(DragGestureEvent dge) {
 	Point p = dge.getDragOrigin();
 	int row = locationToIndex(p);
 
 	if (isSelectedIndex(row)) {
-		if (((SimpleJList_SelectionModel)getSelectionModel())
-			.dragWasTriggered()) {
+		if (((SimpleJList_SelectionModel)getSelectionModel()).dragWasTriggered()) {
 			DragAndDropUtil.dragStart(this, this, dge);
 		}
-	}	
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////

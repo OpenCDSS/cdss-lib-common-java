@@ -4,40 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// JWorksheet_JWorksheet_ColSelectionModel.java - Class to handle col 
-//	selections in the JWorksheet.
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-// 2002-12-XX	J. Thomas Sapienza, RTi	Initial version.
-// 2003-03-04	JTS, RTi		Javadoc'd, revised.  
-// 2003-03-20	JTS, RTi		Revised after SAM's review.
-// 2003-05-22	JTS, RTi		Revised to allow selection of entire
-//					row if the first column is selected.
-// 2003-11-18	JTS, RTi		Added finalize().
-// 2006-01-17	JTS, RTi		Added workaround for errors cause by 
-//					changes in Java 1.5 in 
-//					isSelectedIndex().
-// ----------------------------------------------------------------------------
 
 package RTi.Util.GUI;
 
@@ -76,6 +58,7 @@ If a column is selected in one row, it is selected in ALL rows.
 
 The JWorksheet_ColSelectionModel and JWorksheet_RowSelectionModel overcome these limitations.
 */
+@SuppressWarnings("serial")
 public class JWorksheet_ColSelectionModel extends DefaultListSelectionModel 
 implements ListSelectionListener {
 
@@ -194,17 +177,6 @@ public void addSelectionInterval(int col0, int col1)
     _anchor = col0;
     _lead = col1;
     __rowsm._startCol = col0;
-}
-
-/**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__rowsm = null;
-	__buffer = null;
-	__cellsSelected = null;
-	super.finalize();
 }
 
 /**

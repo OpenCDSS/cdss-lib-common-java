@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -27,10 +27,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
 import javax.swing.JPanel;
-
-import RTi.Util.GUI.JGUIUtil;
-import RTi.Util.GUI.JScrollWorksheet;
-import RTi.Util.GUI.JWorksheet;
 
 import RTi.Util.IO.PropList;
 
@@ -45,10 +41,10 @@ it could be used independently.
 public class TableModel_JPanel extends JPanel
 {
 
-private JWorksheet_AbstractRowTableModel __tm = null; // Table model to display
-private JWorksheet_DefaultTableCellRenderer __cr = null; // Cell renderer for table model
+private JWorksheet_AbstractRowTableModel __tm = null; // Table model to display.
+private JWorksheet_DefaultTableCellRenderer __cr = null; // Cell renderer for table model.
 
-private TableModel_JFrame __parent = null; // Parent JFrame
+private TableModel_JFrame __parent = null; // Parent JFrame.
 
 /**
 Column widths for the worksheet's fields.
@@ -101,7 +97,7 @@ throws Exception
 }
 
 /**
-Constructor.  
+Constructor.
 @param parent the JFrame in which this panel is displayed.
 @param tm the table model to display in the panel.
 @param cr the cell renderer to use for displays.
@@ -131,20 +127,6 @@ throws Exception
 }
 
 /**
-Cleans up member variables.
-*/
-public void finalize() 
-throws Throwable
-{	__tm = null;
-	__cr = null;
-	__parent = null;
-	__widths = null;
-	__worksheet = null;
-	__props = null;
-	super.finalize();
-}
-
-/**
 Returns the number of rows in the worksheet.
 @return the number of rows in the worksheet.
 */
@@ -158,9 +140,9 @@ public int getWorksheetRowCount() {
 /**
 Sets up the GUI.
 */
-private void setupGUI() 
-throws Exception
-{	setLayout(new GridBagLayout());
+private void setupGUI()
+throws Exception {
+	setLayout(new GridBagLayout());
 	String routine = "TableModel_JPanel.setupGUI";
 
 	JScrollWorksheet jsw = null;
@@ -176,10 +158,10 @@ throws Exception
 	}
 	__worksheet.setPreferredScrollableViewportSize(null);
 	__worksheet.setHourglassJFrame(__parent);
-	//__worksheet.addMouseListener(this);	
+	//__worksheet.addMouseListener(this);
 	//__worksheet.addKeyListener(this);
 
-	JGUIUtil.addComponent(this, jsw, 
+	JGUIUtil.addComponent(this, jsw,
 		0, 0, 1, 1, 1, 1,
 		GridBagConstraints.BOTH, GridBagConstraints.CENTER);
 }

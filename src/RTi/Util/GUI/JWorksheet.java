@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -1943,7 +1943,7 @@ private void calculateStatistics () throws Exception {
 			// TODO sam 2017-04-01 Worksheet should handle case even when object
 			// is a different type than the column, but this is generally not done in tables.
 			if ( canCalcStats[icol]) {
-				rec.setFieldValue((icol+1), new Integer(count[icol]));
+				rec.setFieldValue((icol+1), Integer.valueOf(count[icol]));
 			}
 		}
 		table.addRecord(rec);
@@ -1953,22 +1953,22 @@ private void calculateStatistics () throws Exception {
 			if ( canCalcStats[icol]) {
 				if ( classes[icol] == Double.class) {
 					if ( (count[icol] > 0) && !Double.isNaN(sum[icol]) ) {
-						rec.setFieldValue((icol+1), new Double(sum[icol])/count[icol]);
+						rec.setFieldValue((icol+1), Double.valueOf(sum[icol])/count[icol]);
 					}
 				}
 				else if ( classes[icol] == Float.class) {
 					if ( (count[icol] > 0) && !Double.isNaN(sum[icol]) ) {
-						rec.setFieldValue((icol+1), new Float(sum[icol])/count[icol]);
+						rec.setFieldValue((icol+1), Float.valueOf((float)sum[icol])/count[icol]);
 					}
 				}
 				else if ( classes[icol] == Long.class) {
 					if ( count[icol] > 0 ) {
-						rec.setFieldValue((icol+1), new Long(isum[icol])/count[icol]);
+						rec.setFieldValue((icol+1), Long.valueOf(isum[icol])/count[icol]);
 					}
 				}
 				else if ( classes[icol] == Integer.class) {
 					if ( count[icol] > 0 ) {
-						rec.setFieldValue((icol+1), new Integer((int)isum[icol])/count[icol]);
+						rec.setFieldValue((icol+1), Integer.valueOf((int)isum[icol])/count[icol]);
 					}
 				}
 			}
@@ -1980,22 +1980,22 @@ private void calculateStatistics () throws Exception {
 			if ( canCalcStats[icol]) {
 				if ( classes[icol] == Double.class) {
 					if ( !Double.isNaN(min[icol]) ) {
-						rec.setFieldValue((icol+1), new Double(min[icol]));
+						rec.setFieldValue((icol+1), Double.valueOf(min[icol]));
 					}
 				}
 				else if ( classes[icol] == Float.class) {
 					if ( !Double.isNaN(min[icol]) ) {
-						rec.setFieldValue((icol+1), new Float(min[icol]));
+						rec.setFieldValue((icol+1), Float.valueOf((float)min[icol]));
 					}
 				}
 				else if ( classes[icol] == Long.class) {
 					if ( imin[icol] != Long.MAX_VALUE ) {
-						rec.setFieldValue((icol+1), new Long(imin[icol]));
+						rec.setFieldValue((icol+1), Long.valueOf(imin[icol]));
 					}
 				}
 				else if ( classes[icol] == Integer.class) {
 					if ( imin[icol] != Long.MAX_VALUE ) {
-						rec.setFieldValue((icol+1), new Integer((int)imin[icol]));
+						rec.setFieldValue((icol+1), Integer.valueOf((int)imin[icol]));
 					}
 				}
 			}
@@ -2007,22 +2007,22 @@ private void calculateStatistics () throws Exception {
 			if ( canCalcStats[icol]) {
 				if ( classes[icol] == Double.class) {
 					if ( !Double.isNaN(max[icol]) ) {
-						rec.setFieldValue((icol+1), new Double(max[icol]));
+						rec.setFieldValue((icol+1), Double.valueOf(max[icol]));
 					}
 				}
 				else if ( classes[icol] == Float.class) {
 					if ( !Double.isNaN(max[icol]) ) {
-						rec.setFieldValue((icol+1), new Float(max[icol]));
+						rec.setFieldValue((icol+1), Float.valueOf((float)max[icol]));
 					}
 				}
 				else if ( classes[icol] == Long.class) {
 					if ( imax[icol] != Long.MIN_VALUE ) {
-						rec.setFieldValue((icol+1), new Long(imax[icol]));
+						rec.setFieldValue((icol+1), Long.valueOf(imax[icol]));
 					}
 				}
 				else if ( classes[icol] == Integer.class) {
 					if ( imax[icol] != Long.MIN_VALUE ) {
-						rec.setFieldValue((icol+1), new Long(imax[icol]));
+						rec.setFieldValue((icol+1), Long.valueOf(imax[icol]));
 					}
 				}
 			}
@@ -2034,19 +2034,19 @@ private void calculateStatistics () throws Exception {
 			if ( canCalcStats[icol]) {
 				if ( classes[icol] == Double.class) {
 					if ( !Double.isNaN(sum[icol]) ) {
-						rec.setFieldValue((icol+1), new Double(sum[icol]));
+						rec.setFieldValue((icol+1), Double.valueOf(sum[icol]));
 					}
 				}
 				else if ( classes[icol] == Float.class) {
 					if ( !Double.isNaN(sum[icol]) ) {
-						rec.setFieldValue((icol+1), new Float(sum[icol]));
+						rec.setFieldValue((icol+1), Float.valueOf((float)sum[icol]));
 					}
 				}
 				else if ( classes[icol] == Long.class) {
-					rec.setFieldValue((icol+1), new Long(isum[icol]));
+					rec.setFieldValue((icol+1), Long.valueOf(isum[icol]));
 				}
 				else if ( classes[icol] == Integer.class) {
-					rec.setFieldValue((icol+1), new Integer((int)isum[icol]));
+					rec.setFieldValue((icol+1), Integer.valueOf((int)isum[icol]));
 				}
 			}
 		}
@@ -2465,7 +2465,7 @@ throws Exception {
 			else if (colClass == Integer.class) {
 				// Integer cells will have formatting information and should be aligned differently from other cells.
 				right = true;
-				i = (new Integer(o.toString())).intValue();
+				i = (Integer.valueOf(o.toString())).intValue();
 				if (DMIUtil.isMissing(i)) {
 					s = " ";
 				}
@@ -2476,7 +2476,7 @@ throws Exception {
 			else if (colClass == Double.class) {
 				// Double cells will have formatting information and should be aligned differently from other cells.
 				right = true;
-				d = (new Double(o.toString())).doubleValue();
+				d = (Double.valueOf(o.toString())).doubleValue();
 				if (DMIUtil.isMissing(d)) {
 					s = " ";
 				}
@@ -2885,47 +2885,6 @@ public void enableRowHeader(JWorksheet worksheet, int[] cols) {
 			__listRowHeader = null;
 		}
 	}
-}
-
-/**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__columnRemoved = null;
-	__columnHeaderColor = null;
-	__rowHeaderColor = null;
-	__cellFont = null;
-	__altTextCols = null;
-	__altTextRows = null;
-	__attrCols = null;
-	__attrRows = null;
-	__columnAlignments = null;
-	__hourglassJDialog = null;
-	__hourglassJFrame = null;
-	__cancelMenuItem = null;
-	__copyMenuItem = null;
-	__copyWithHeaderMenuItem = null;
-	__pasteMenuItem = null;
-	__mainPopup = null;
-	__popup = null;
-	__columnHeaderView = null;
-	__worksheetRowHeader = null;
-	IOUtil.nullArray(__cellAttrs);
-	__rowCountColumnAttributes = null;
-	__copyPasteAdapter = null;
-	__defaultCellRenderer = null;
-	__hcr = null;
-	__partner = null;
-	__listRowHeader = null;
-	IOUtil.nullArray(__altText);
-	IOUtil.nullArray(__columnNames);
-	__cellFontName = null;
-	__columnHeaderFontName = null;
-	__rowHeaderFontName = null;
-	__worksheetListeners = null;
-
-	super.finalize();
 }
 
 /**
@@ -4092,8 +4051,8 @@ public List<int []> getSelectedCells() {
 	for (int i = 0; i < getRowCount(); i++) {
 		for (int j = 0; j < getColumnCount(); j++) {
 			if (isCellSelected(i, j)) {
-				rows.add(new Integer(i));
-				cols.add(new Integer(j));
+				rows.add(Integer.valueOf(i));
+				cols.add(Integer.valueOf(j));
 			}
 		}
 	}
@@ -5080,7 +5039,7 @@ private void readPropList(PropList p) {
 
 	s = p.getValue("JWorksheet.CellFontSize");
 	if (s != null) {
-		__cellFontSize = (new Integer(s)).intValue();
+		__cellFontSize = (Integer.valueOf(s)).intValue();
 	}
 	else {
 		__cellFontSize = tfsize;
@@ -5136,7 +5095,7 @@ private void readPropList(PropList p) {
 
 	s = p.getValue("JWorksheet.ColumnHeaderFontSize");
 	if (s != null) {
-		__columnHeaderFontSize = (new Integer(s)).intValue();
+		__columnHeaderFontSize = (Integer.valueOf(s)).intValue();
 	}
 	else {
 		__columnHeaderFontSize = hfsize;
@@ -5144,7 +5103,7 @@ private void readPropList(PropList p) {
 
 	s = p.getValue("JWorksheet.RowHeaderFontSize");
 	if (s != null) {
-		__rowHeaderFontSize = (new Integer(s)).intValue();
+		__rowHeaderFontSize = (Integer.valueOf(s)).intValue();
 	}
 	else {
 		__rowHeaderFontSize = hfsize;

@@ -4,39 +4,24 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
 
-//------------------------------------------------------------------------------
-// PictureJPanel - Component to display images.
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// Notes:
-//	(1)Supports the following images: gif, jpg
-//------------------------------------------------------------------------------
-// History: 
-//
-// 2002-09-12	J. Thomas Sapienza, RTi	Created initial version from 
-//					PictureJPanel.java
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
-
-package RTi.Util.GUI; 
+package RTi.Util.GUI;
 
 import javax.swing.JPanel;
 
@@ -50,7 +35,7 @@ import RTi.Util.Message.Message;
 PictureJPanel is a JPanel that displays an Image.
 */
 @SuppressWarnings("serial")
-public class PictureJPanel extends JPanel {	
+public class PictureJPanel extends JPanel {
 
 /**
 The image to be displayed.
@@ -74,16 +59,6 @@ public PictureJPanel(Image image) {
 }
 
 /**
-Clean up for garbage collection.
-@exception Throwable if there is an error.
-*/
-protected void finalize()
-throws Throwable {
-	__image = null;
-	super.finalize();
-}
-
-/**
 Manages redraw events for an instance of this class.
 @param g Graphics object
 */
@@ -91,7 +66,7 @@ public void paintComponent(Graphics g) {
 	super.paintComponent(g);
 	if (__image != null) {
   	      g.drawImage(__image, 0, 0, this);
-        }
+    }
 }
 
 /**
@@ -108,20 +83,18 @@ Set a new image for an instance of this class, given a path to the image file.
 The image file is assumed to be in the class path and/or JAR.
 @param image_file Image file to read (GIF or JPG).
 */
-public void setImage(String image_file) {	
+public void setImage(String image_file) {
 	/*
-	Image image = Toolkit.getDefaultToolkit().getImage(
-		getClass().getResource(image_file));
+	Image image = Toolkit.getDefaultToolkit().getImage( getClass().getResource(image_file));
 	setImage ( image );
 	image = null;
 	*/
 	Image image = this.getToolkit().getImage( image_file );
 	String function = "setImage";
-	// use the MediaTracker object to hault processing
-	// until the _map_Image is completely loaded.
+	// Use the MediaTracker object to halt processing until the _map_Image is completely loaded.
 	MediaTracker mt = new MediaTracker( this );
 	mt.addImage( image, 0 );
-	try {	
+	try {
 		setImage(image);
 		mt.waitForID(0);
 		if (mt.isErrorID(0)) {

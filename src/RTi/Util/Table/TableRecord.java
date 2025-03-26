@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2024 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ Setting the record size initially improves performance because less memory adjus
 <pre>
 TableRecord contents = new TableRecord (3);
 contents.addFieldValue ( "123456" );
-contents.addFieldValue ( new Integer (6));
+contents.addFieldValue ( Integer.valueOf (6));
 contents.addFieldValue ( "Station ID" );
 </pre>
 

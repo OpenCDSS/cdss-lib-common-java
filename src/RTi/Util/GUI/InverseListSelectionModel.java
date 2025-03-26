@@ -4,34 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//---------------------------------------------------------------------------
-// InverseListSelectionModel - class to allow inverse list selections, where
-// 	all values are selected by default and the user selects the items to
-// 	deselect.
-//---------------------------------------------------------------------------
-// Copyright:  See the COPYRIGHT file.
-//---------------------------------------------------------------------------
-// History:
-// 2003-03-26	J. Thomas Sapienza, RTi	Initial version.
-// 2005-04-26	JTS, RTi		Added finalize().
-//---------------------------------------------------------------------------
 
 package RTi.Util.GUI;
 
@@ -39,30 +27,27 @@ import javax.swing.DefaultListSelectionModel;
 
 /**
 This class provides a list selection model in which the default
-mode is for all the rows to be selected and cells are deselected when they
-are clicked on.  This is the inverse of the way the list usually works.  <p>
-Developers do not need to interact directly with this class, instead, they 
-should use a SimpleJList and call setInverseListSelection(true) on that, like
-the following:<p>
+mode is for all the rows to be selected and cells are deselected when they are clicked on.
+This is the inverse of the way the list usually works.  <p>
+Developers do not need to interact directly with this class, instead,
+they should use a SimpleJList and call setInverseListSelection(true) on that, like the following:<p>
 <code>
         SimpleJList divisionJList = new SimpleJList(names);
 	divisionJList.setInverseListSelection(true);
 </code>
 */
 @SuppressWarnings("serial")
-public class InverseListSelectionModel 
+public class InverseListSelectionModel
 extends DefaultListSelectionModel {
 
 /**
-An array which remembers which rows should (true) and shouldn't be (false)
-selected.
+An array which remembers which rows should (true) and shouldn't be (false) selected.
 */
 private boolean[] __selected;
 
 /**
 Constructor.
-@param size the number of elements in the JList that should be monitored 
-for selection or not.
+@param size the number of elements in the JList that should be monitored for selection or not.
 */
 public InverseListSelectionModel(int size) {
 	initialize(size);
@@ -91,11 +76,11 @@ public void add(int index) {
 	for (i = (index + 1); i < length; i++) {
 		__selected[i] = temp[i];
 	}
-}		
+}
 
 /**
-Adds an interval of values to the selected list. 
-Overrides method in DefaultListSelectionModel. 
+Adds an interval of values to the selected list.
+Overrides method in DefaultListSelectionModel.
 @param row0 the first row to be selected.
 @param row1 the last row to be selected.
 */
@@ -112,15 +97,6 @@ public void clearSelection() {
 		__selected[i] = false;
 	}
 	super.removeSelectionInterval(0, (__selected.length - 1));
-}
-
-/**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__selected = null;
-	super.finalize();
 }
 
 /**
@@ -151,8 +127,7 @@ public int getMinSelectionIndex() {
 
 
 /**
-Initializes the __selected array and also initializes the entire list to be
-selected.
+Initializes the __selected array and also initializes the entire list to be selected.
 @param size the size of the JList to be monitored for selection.
 */
 private void initialize(int size) {
@@ -164,8 +139,7 @@ private void initialize(int size) {
 }
 
 /**
-Returns true if the given row is selected.  Overrides method in 
-DefaultListSelectionModel.
+Returns true if the given row is selected.  Overrides method in DefaultListSelectionModel.
 @param row the row to check if it is selected.
 @return true if the row is selected, false otherwise.
 */
@@ -177,7 +151,7 @@ public boolean isSelected(int row) {
 }
 
 /**
-Returns true if the list has no rows selected.  
+Returns true if the list has no rows selected.
 Overrides method in DefaultListSelectionModel.
 @return true if the list has no rows selected, false otherwise.
 */
@@ -191,8 +165,7 @@ public boolean isSelectionEmpty() {
 }
 
 /**
-Removes the row from the list of selected rows and shifts all the higher rows'
-selection values down in the array.
+Removes the row from the list of selected rows and shifts all the higher rows' selection values down in the array.
 @param index the location of the new item.
 */
 public void remove(int index) {
@@ -212,7 +185,7 @@ public void remove(int index) {
 
 /**
 Removes an interval of values from the selected list.
-Overrides method in DefaultListSelectionModel; 
+Overrides method in DefaultListSelectionModel;
 @param row0 the first row to be selected.
 @param row1 the last row to be selected.
 */
@@ -235,12 +208,12 @@ public void selectAll() {
 	for (int i = 0; i < length; i++) {
 		__selected[i] = true;
 		super.addSelectionInterval(i, i);
-	}	
+	}
 }
 
 /**
 Sets a selection of rows as selected.
-Overrides method in DefaultListSelectionModel; 
+Overrides method in DefaultListSelectionModel;
 @param row0 the first row to be selected.
 @param row1 the last row to be selected.
 */

@@ -1,34 +1,26 @@
-// UTMProjection - implement Universal Transverse Mercatum projection
+// UTMProjection - implement Universal Transverse Mercatur projection
 
 /* NoticeStart
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
 
-// ----------------------------------------------------------------------------
-// UTMProjection - implement Universal Transverse Mercatum projection
-// ----------------------------------------------------------------------------
-// Copyright: see the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-//
-// Notes from GCTP:
-//
 /*******************************************************************************
 NAME                            UNIVERSAL TRANSVERSE MERCATOR
 
@@ -42,7 +34,7 @@ PROGRAMMER              DATE		REASON
 D. Steinwand, EROS      Nov, 1991
 T. Mittan		Mar, 1993
 S. Nelson		Feb, 1995	Divided tmfor.c into two files, one
-					for UTM (utmfor.c) and one for 
+					for UTM (utmfor.c) and one for
 					TM (tmfor.c).  This was a
 					necessary change to run forward
 					projection conversions for both
@@ -85,31 +77,23 @@ import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
 /**
-The UTMProjection class projects and unprojects the Universal Transverse
-Mercator (UTM) projection.  This class implements logic from the GCTP package.
+The UTMProjection class projects and unprojects the Universal Transverse Mercator (UTM) projection.
+This class implements logic from the GCTP package.
 */
 public class UTMProjection extends GeoProjection {
 
 /**
 Constructor.
 */
-public UTMProjection()
-{	super ( "UTM" );
-}
-
-/**
-Finalize and clean up.
-@exception Throwable if there is an error.
-*/
-protected void finalize() throws Throwable
-{	super.finalize();
+public UTMProjection() {
+	super ( "UTM" );
 }
 
 /**
 Parse a projection and return an instance of UTMProjection if a valid string is provided.
-@param projection_string String describing the projection.  The string contains
-comma-separated parameters to define the projection.  At a minimum, "UTM" and
-a zone are required.  Optionally, include datum (default "NAD83"),
+@param projection_string String describing the projection.
+The string contains comma-separated parameters to define the projection.  At a minimum, "UTM" and a zone are required.
+Optionally, include datum (default "NAD83"),
 false easting (default 500000), false northing (default 0),
 central longitude (default computed from zone), origin latitude (default 0), and scale (default .9996).
 Empty strings are allowed and result in appropriate defaults.
@@ -117,8 +101,8 @@ Empty strings are allowed and result in appropriate defaults.
 @exception Exception if there is an error parsing the projection information.
 */
 public static UTMProjection parse ( String projection_string )
-throws Exception
-{	List<String> tokens = StringUtil.breakStringList ( projection_string, ",", 0);
+throws Exception {
+	List<String> tokens = StringUtil.breakStringList ( projection_string, ",", 0);
 	int size = 0;
 	if ( tokens != null ) {
 		size = tokens.size();
@@ -134,17 +118,17 @@ throws Exception
 		throw new Exception ( "Illegal UTM zone number " + projection._zone);
 	}
 
-	// 2 is the datum for spheroid (this sets _datum, _r_major and _r_minor)...
+	// 2 is the datum for spheroid (this sets _datum, _r_major and _r_minor).
 	if ( size >= 3 ) {
 		projection.setSpheroid ( (String)tokens.get(2) );
 	}
 	else {
-		// Will use default...
+		// Will use default.
 		projection.setSpheroid ( "NAD83" );
 	}
 
-	// 3 is false Easting...
-	// 4 is false Northing...
+	// 3 is false Easting.
+	// 4 is false Northing.
 
 	projection._false_easting = 500000.0;
 	if ( projection._zone < 0 ) {
@@ -155,13 +139,13 @@ throws Exception
 	}
 
 	if ( size >= 4 ) {
-		// Input string may have easting...
+		// Input string may have easting.
 		if ( StringUtil.isDouble((String)tokens.get(3)) ) {
 			projection._false_easting = StringUtil.atod((String)tokens.get(3) );
 		}
 	}
 	if ( size >= 5 ) {
-		// Input string may have northing...
+		// Input string may have northing.
 		if ( StringUtil.isDouble((String)tokens.get(4)) ) {
 			projection._false_northing = StringUtil.atod((String)tokens.get(4) );
 		}
@@ -214,29 +198,28 @@ throws Exception
 Project latitude and longitude to the UTM coordinate system.
 @return the projected (to UTM) points.
 @param p Point to project from longitude, latitude.
-@param reuse_point Indicates whether the point that is passed in should be re-used for the output 
-(doing so saves memory).
+@param reuse_point Indicates whether the point that is passed in should be re-used for the output (doing so saves memory).
 */
-public GRPoint project ( GRPoint p, boolean reuse_point )
-{	double delta_lon;	// Delta longitude (Given longitude - center)
-	double sin_phi, cos_phi;// sin and cos value
-	double al, als;		// temporary values
-	double b;		// temporary values
-	double c, t, tq;	// temporary values
-	double con, n, ml;	// cone constant, small m
+public GRPoint project ( GRPoint p, boolean reuse_point ) {
+	double delta_lon;	// Delta longitude (Given longitude - center).
+	double sin_phi, cos_phi;// Sin and cos value.
+	double al, als;		// Temporary values.
+	double b;		// Temporary values.
+	double c, t, tq;	// Temporary values.
+	double con, n, ml;	// Cone constant, small m.
 
 	double D2R = 1.745329251994328e-2;
-	double lon = p.x*D2R;	// Longitude to project, radians
-	double lat = p.y*D2R;	// Latitude to project, radians
-	double x = 0.0;		// UTM X
-	double y = 0.0;		// UTM Y
+	double lon = p.x*D2R;	// Longitude to project, radians.
+	double lat = p.y*D2R;	// Latitude to project, radians.
+	double x = 0.0;		// UTM X.
+	double y = 0.0;		// UTM Y.
 
 	// Forward equations
 	delta_lon = adjust_lon(lon - _lon_center);
 	sin_phi = Math.sin ( lat );
 	cos_phi = Math.cos ( lat );
 
-	// This part was in the fortran code and is for the spherical form
+	// This part was in the fortran code and is for the spherical form.
 	if ( _ind ) {
 		b = cos_phi * Math.sin(delta_lon);
 		if ((Math.abs(Math.abs(b) - 1.0)) < .0000000001) {
@@ -250,7 +233,7 @@ public GRPoint project ( GRPoint p, boolean reuse_point )
 			if ( lat < 0 ) {
 				con = -con;
 			}
-			y = _r_major * _scale_factor * (con - _lat_origin); 
+			y = _r_major * _scale_factor * (con - _lat_origin);
 		}
 	}
 	else {
@@ -262,10 +245,10 @@ public GRPoint project ( GRPoint p, boolean reuse_point )
 		con = 1.0 - _es*sin_phi*sin_phi;
 		n   = _r_major / Math.sqrt(con);
 		ml  = _r_major * mlfn(_e0, _e1, _e2, _e3, lat);
-		
+
 		x  = _scale_factor*n*al*(1.0 + als/6.0*(1.0 - t + c + als/20.0 *
       			(5.0 - 18.0*t + t*t + 72.0*c - 58.0*_esp))) + _false_easting;
-		
+
 		y  = _scale_factor*(ml - _ml0 + n*tq*(als * (0.5 + als/24.0*
       			(5.0 - t + 9.0*c + 4.0*c*c + als/30.0*
 			(61.0 - 58.0*t + t*t + 600.0*c - 330.0*_esp))))) + _false_northing;
@@ -289,25 +272,24 @@ public GRPoint project ( GRPoint p, boolean reuse_point )
 Un-project coordinates from UTM back to longitude, latitude.
 @return the un-projected (from UTM) points.
 @param p Point to un-project to longitude, latitude.
-@param reuse_point Indicates whether the point that is passed in should be re-used for the output
-(doing so saves memory).
+@param reuse_point Indicates whether the point that is passed in should be re-used for the output (doing so saves memory).
 */
-public GRPoint unProject(GRPoint p, boolean reuse_point)
-{	double x = p.x;
+public GRPoint unProject(GRPoint p, boolean reuse_point) {
+	double x = p.x;
 	double y = p.y;
 	double lon;
 	double lat;
-	double con,phi;		// temporary angles
-	double delta_phi;	// difference between longitudes
-	long i;			// counter variable
-	double sin_phi, cos_phi, tan_phi;	// sin cos and tangent values
-	double c, cs, t, ts, n, r, d, ds;	// temporary variables
-	double f, h, g, temp;			// temporary variables
-	long max_iter = 6;			// maximun number of iterations
+	double con,phi;		// Temporary angles.
+	double delta_phi;	// Difference between longitudes.
+	long i;			// Counter variable.
+	double sin_phi, cos_phi, tan_phi;	// Sin cos and tangent values.
+	double c, cs, t, ts, n, r, d, ds;	// Temporary variables.
+	double f, h, g, temp;			// Temporary variables.
+	long max_iter = 6;			// Maximun number of iterations.
 	double HALF_PI = Math.PI*.5;
 	double EPSLN = 1.0e-10;
 
-	// Fortran code for spherical form 
+	// Fortran code for spherical form .
 
 	if ( _ind ) {
 		f = Math.exp(x/(_r_major * _scale_factor));
@@ -317,7 +299,7 @@ public GRPoint unProject(GRPoint p, boolean reuse_point)
 		con = Math.sqrt((1.0 - h * h)/(1.0 + g * g));
 		lat = asinz(con);
 		if ( temp < 0 ) {
-     			lat = -lat;
+   			lat = -lat;
 		}
 		if ((g == 0) && (h == 0)) {
 			lon = _lon_center;
@@ -327,23 +309,22 @@ public GRPoint unProject(GRPoint p, boolean reuse_point)
 		}
 	}
 	else {
-		// Inverse equations
+		// Inverse equations.
 		x = x - _false_easting;
 		y = y - _false_northing;
 
 		con = (_ml0 + y / _scale_factor) / _r_major;
 		phi = con;
 		for (i=0;;i++) {
-			delta_phi=((con + _e1 * Math.sin(2.0*phi) -
-					_e2 * Math.sin(4.0*phi) + _e3 * Math.sin(6.0*phi))/_e0) - phi;
-			// Commented in GCTP code...
+			delta_phi=((con + _e1 * Math.sin(2.0*phi) - _e2 * Math.sin(4.0*phi) + _e3 * Math.sin(6.0*phi))/_e0) - phi;
+			// Commented in GCTP code.
 			//delta_phi = ((con + e1 * sin(2.0*phi) - e2 * sin(4.0*phi)) / e0) - phi;
 			phi += delta_phi;
 			if (Math.abs(delta_phi) <= EPSLN) {
 				break;
 			}
-			if (i >= max_iter) { 
-				Message.printWarning ( 3, "UTMProjection.unProject", "Latitude failed to converge"); 
+			if (i >= max_iter) {
+				Message.printWarning ( 3, "UTMProjection.unProject", "Latitude failed to converge");
 				lat = 0.0;
 				lon = 0.0;
 				break;
@@ -358,7 +339,7 @@ public GRPoint unProject(GRPoint p, boolean reuse_point)
 			cs   = c*c;
 			t    = tan_phi*tan_phi;
 			ts   = t*t;
-			con  = 1.0 - _es*sin_phi*sin_phi; 
+			con  = 1.0 - _es*sin_phi*sin_phi;
 			n    = _r_major /Math.sqrt(con);
 			r    = n * (1.0 - _es) / con;
 			d    = x / (n * _scale_factor);
@@ -386,11 +367,11 @@ public GRPoint unProject(GRPoint p, boolean reuse_point)
 		p.ymax = p.y;
 		p.ymin = p.y;
 		return p;
-	}	
-	//if reuse is false, create new GRPoint
+	}
+	// If reuse is false, create new GRPoint.
 	else {
 		return new GRPoint(lon*R2D,lat*R2D);
 	}
 }
-	
+
 }

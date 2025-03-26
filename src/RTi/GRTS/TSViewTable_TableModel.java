@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -837,7 +837,7 @@ public Object getConsecutiveValueAt(int row, int col) {
 
 	if (col > 0) {
 		TS ts = this._data.get(col-1);
-		return new Double(ts.getDataValue(this.__priorDateTime));
+		return Double.valueOf(ts.getDataValue(this.__priorDateTime));
 	}
 	else {
 		return this.__priorDateTime;
@@ -1085,7 +1085,7 @@ public Object getValueAt(int row, int col) {
 	    	return getValueAtFormatValueWithFlag(ts, this.__workingDate, this.__dataFormats[col-1]);
 		}
 		else {
-	    	return new Double(ts.getDataValue(this.__workingDate));
+	    	return Double.valueOf(ts.getDataValue(this.__workingDate));
 		}
 	}
 }
@@ -1171,7 +1171,7 @@ public Object getValueAtIrregular(int row, int col) {
             value = ts.getDataValue(dt);
             //Message.printStatus(2, "getValue", "" + "Row [" + row + "] " + dt + " Col [" + col + "] value=" + value +
             //    " Row [" + (_rows - 1) + "] " + getValueAtIrregular(_rows - 1, 0) );
-            return new Double(value);
+            return Double.valueOf(value);
         }
     }
 }
@@ -1265,7 +1265,7 @@ public void setValueAt(Object value, int row, int col) {
 		ts.setDataValue(d, ((Double)value).doubleValue());
 	}
 	else if (value instanceof String) {
-		ts.setDataValue(d, (new Double((String)value)).doubleValue());
+		ts.setDataValue(d, Double.valueOf((String)value).doubleValue());
 	}
 
 	super.setValueAt(value, row, col);

@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -50,8 +50,8 @@ Statistic to calculate.
 private TSStatisticType __statisticType = null;
 
 /**
-Statistic result that was calculated, a Double for floating-point statistics like Mean, or an Integer
-for integer statistics like Count.
+Statistic result that was calculated, a Double for floating-point statistics like Mean,
+or an Integer for integer statistics like Count.
 */
 private Object __statisticResult = null;
 
@@ -116,8 +116,8 @@ in precision of the original data.  If null, the entire year of data will be ana
 */
 public TSUtil_CalculateTimeSeriesStatistic ( TS ts, TSStatisticType statistic,
     DateTime analysisStart, DateTime analysisEnd, DateTime analysisWindowStart, DateTime analysisWindowEnd,
-    Double value1, Double value2, Double value3 )
-{   // Save data members.
+    Double value1, Double value2, Double value3 ) {
+    // Save data members.
     __ts = ts;
     __statisticType = statistic;
     __analysisStart = analysisStart;
@@ -140,38 +140,38 @@ The length statistics indicates the number of intervals where each interval has 
 @return the computed statistic value
 */
 private void calculateDeficitSurplusSeqStatistic(TSStatisticType statisticType, TS ts, DateTime start, DateTime end )
-throws Exception
-{   String routine = getClass().getName() + ".calculateDeficitSurplusStatistic";
-    // First compute the mean of the data, needed to evaluate the statistic
+throws Exception {
+   String routine = getClass().getSimpleName() + ".calculateDeficitSurplusStatistic";
+    // First compute the mean of the data, needed to evaluate the statistic.
     double [] values = TSUtil.toArrayNoMissing ( ts, start, end );
     double mean = MathUtil.mean(values);
-    
-    boolean checkSurplus = true; // Default when computing surplus statistics
+
+    boolean checkSurplus = true; // Default when computing surplus statistics.
     if ( (statisticType == TSStatisticType.DEFICIT_SEQ_MAX) ||
         (statisticType == TSStatisticType.DEFICIT_SEQ_MEAN) ||
         (statisticType == TSStatisticType.DEFICIT_SEQ_MIN) ||
         (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MAX) ||
         (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MEAN) ||
         (statisticType == TSStatisticType.DEFICIT_SEQ_LENGTH_MIN) ) {
-        checkSurplus = false; // Check for deficit
+        checkSurplus = false; // Check for deficit.
     }
-    
-    // Now loop through the period and analyze
+
+    // Now loop through the period and analyze.
     int tsBase = ts.getDataIntervalBase();
     int tsMult = ts.getDataIntervalMult();
-    double value; // time series value
-    boolean isMissing; // Whether "value" is missing
-    double conditionTotal = 0.0; // Total of deficit or surplus
-    double conditionTotalSum = 0.0; // Sum of conditionTotal, for computing mean
-    boolean inCondition = false; // Current time-step is in required condition, based on checkSurplus
-    int inConditionCount = 0; // Number of time-steps in required condition
-    int inConditionCountSum = 0; // Sum of inConditionCount, for computing mean length
-    int inConditionInstanceCount = 0; // Number of times in condition
-    boolean inConditionPrev = false; // Whether previous time-step was in condition
-    double statistic = -999.0; // Value of statistic being computed (if never reset, will return null)
-    DateTime statisticDate = null; // Time-step at start of condition
+    double value; // Time series value.
+    boolean isMissing; // Whether "value" is missing.
+    double conditionTotal = 0.0; // Total of deficit or surplus.
+    double conditionTotalSum = 0.0; // Sum of conditionTotal, for computing mean.
+    boolean inCondition = false; // Current time-step is in required condition, based on checkSurplus.
+    int inConditionCount = 0; // Number of time-steps in required condition.
+    int inConditionCountSum = 0; // Sum of inConditionCount, for computing mean length.
+    int inConditionInstanceCount = 0; // Number of times in condition.
+    boolean inConditionPrev = false; // Whether previous time-step was in condition.
+    double statistic = -999.0; // Value of statistic being computed (if never reset, will return null).
+    DateTime statisticDate = null; // Time-step at start of condition.
     for ( DateTime date = start; date.lessThanOrEqualTo(end); date.addInterval(tsBase,tsMult) ) {
-        // Get the data value and check for missing
+        // Get the data value and check for missing.
         value = ts.getDataValue ( date );
         if ( ts.isDataMissing(value) ) {
             isMissing = true;
@@ -179,28 +179,28 @@ throws Exception
         else {
             isMissing = false;
         }
-        // Check the current value for surplus or deficit condition
+        // Check the current value for surplus or deficit condition.
         if ( checkSurplus ) {
-            // Checking for surplus
+            // Checking for surplus.
             if ( isMissing || (value <= mean) ) {
-                // Not in surplus condition
+                // Not in surplus condition.
                 inCondition = false;
             }
             else {
-                // In surplus condition
+                // In surplus condition.
                 inCondition = true;
                 ++inConditionCount;
                 conditionTotal += (value - mean);
             }
         }
         else {
-            // Checking for deficit
+            // Checking for deficit.
             if ( isMissing || (value >= mean) ) {
-                // Not in deficit condition
+                // Not in deficit condition.
                 inCondition = false;
             }
             else {
-                // In deficit condition
+                // In deficit condition.
                 inCondition = true;
                 ++inConditionCount;
                 conditionTotal += (mean - value);
@@ -211,7 +211,7 @@ throws Exception
         // processing for in condition sequence - in these cases, update the statistic if necessary
         // (means are computed after the loop).
         if ( (!inCondition && inConditionPrev) || (inCondition && date.equals(end) ) ) {
-            // Need to complete processing the condition instance
+            // Need to complete processing the condition instance.
             if ( (statisticType == TSStatisticType.DEFICIT_SEQ_MAX) ||
                 (statisticType == TSStatisticType.SURPLUS_SEQ_MAX) ) {
                 if ( conditionTotal > statistic ) {
@@ -241,21 +241,21 @@ throws Exception
                 }
             }
             Message.printStatus ( 2, routine, "Statistic="+ statistic + " at=" + statisticDate);
-            // Add to the totals
+            // Add to the totals.
             conditionTotalSum += conditionTotal;
             inConditionCountSum += inConditionCount;
             ++inConditionInstanceCount;
-            // Reset for next condition
+            // Reset for next condition.
             conditionTotal = 0.0;
             inConditionCount = 0;
         }
-        // Now save the condition for the next loop iteration
+        // Now save the condition for the next loop iteration.
         inConditionPrev = inCondition;
     }
     Message.printStatus ( 2, routine, "conditionTotalSum="+ conditionTotalSum +
         " inConditionCountSum=" + inConditionCountSum +
         " inConditionInstanceCount=" + inConditionInstanceCount );
-    // If the statistic is one of the means, compute it here...
+    // If the statistic is one of the means, compute it here.
     if ( (statisticType == TSStatisticType.DEFICIT_SEQ_MEAN) ||
         (statisticType == TSStatisticType.SURPLUS_SEQ_MEAN) ) {
         if ( inConditionInstanceCount > 0 ) {
@@ -268,14 +268,14 @@ throws Exception
             statistic = inConditionCountSum/inConditionInstanceCount;
         }
     }
-    // A valid statistic should always be >= 0
+    // A valid statistic should always be >= 0.
     if ( statistic >= 0.0 ) {
         Class<?> c = getStatisticDataClass();
         if ( c == Double.class ) {
-            setStatisticResult ( new Double(statistic) );
+            setStatisticResult ( Double.valueOf(statistic) );
         }
         else if ( c == Integer.class ) {
-            setStatisticResult ( new Integer((int)(statistic + .01)) );
+            setStatisticResult ( Integer.valueOf((int)(statistic + .01)) );
         }
         setStatisticResultDateTime ( statisticDate );
     }
@@ -291,22 +291,22 @@ A surplus is when a a value is above the mean.
 @return the computed statistic value
 */
 private void calculateDeficitSurplusStatistic(TSStatisticType statisticType, TS ts, DateTime start, DateTime end )
-throws Exception
-{   //String routine = getClass().getName() + ".calculateDeficitSurplusStatistic";
-    // First compute the mean of the data, needed to evaluate the statistic
+throws Exception {
+    //String routine = getClass().getName() + ".calculateDeficitSurplusStatistic";
+    // First compute the mean of the data, needed to evaluate the statistic.
     double [] values = TSUtil.toArrayNoMissing ( ts, start, end );
     double mean = MathUtil.mean(values);
-    
-    boolean checkSurplus = true; // Default when computing surplus statistics
+
+    boolean checkSurplus = true; // Default when computing surplus statistics.
     if ( (statisticType == TSStatisticType.DEFICIT_MAX) ||
         (statisticType == TSStatisticType.DEFICIT_MEAN) ||
         (statisticType == TSStatisticType.DEFICIT_MIN) ) {
-        checkSurplus = false; // Check for deficit
+        checkSurplus = false; // Check for deficit.
     }
-    
-    // Loop through the values and determine if they are a surplus or deficit
+
+    // Loop through the values and determine if they are a surplus or deficit.
     double [] values2 = new double[values.length];
-    int values2Count = 0; // Count of number of deficit or surplus values
+    int values2Count = 0; // Count of number of deficit or surplus values.
     for ( int i = 0; i < values.length; i++ ) {
         if ( checkSurplus && (values[i] > mean) ) {
             values2[values2Count++] = (values[i] - mean);
@@ -314,9 +314,9 @@ throws Exception
         else if ( !checkSurplus && (values[i] < mean) ) {
             values2[values2Count++] = (mean - values[i]);
         }
-        // Else 0 is not in either category
+        // Else 0 is not in either category.
     }
-    
+
     if ( (statisticType == TSStatisticType.DEFICIT_MAX) || (statisticType == TSStatisticType.SURPLUS_MAX) ) {
         if ( values2Count > 0 ) {
             setStatisticResult ( MathUtil.max(values2Count, values2) );
@@ -343,23 +343,23 @@ Calculate the missing value sequence statistics (where statistics are based on a
 @return the computed statistic value
 */
 private void calculateMissingSeqStatistic(TSStatisticType statisticType, TS ts, DateTime start, DateTime end )
-throws Exception
-{   String routine = getClass().getName() + ".calculateMissingSeqStatistic";
-    
-    // Loop through the period and analyze
+throws Exception {
+    String routine = getClass().getSimpleName() + ".calculateMissingSeqStatistic";
+
+    // Loop through the period and analyze.
     int tsBase = ts.getDataIntervalBase();
     int tsMult = ts.getDataIntervalMult();
-    double value; // time series value
-    boolean isMissing; // Whether "value" is missing
-    boolean inCondition = false; // Current time-step is in required condition, based on checkSurplus
-    int inConditionCount = 0; // Number of time-steps in required condition
-    // TODO smalers 2019-06-01 evaluate how needed
-    //int inConditionInstanceCount = 0; // Number of times in condition
-    boolean inConditionPrev = false; // Whether previous time-step was in condition
-    double statistic = 0.0; // Value of statistic being computed, zero is ok
-    DateTime statisticDate = null; // Time-step at start of condition, null if never have condition
+    double value; // Time series value.
+    boolean isMissing; // Whether "value" is missing.
+    boolean inCondition = false; // Current time-step is in required condition, based on checkSurplus.
+    int inConditionCount = 0; // Number of time-steps in required condition.
+    // TODO smalers 2019-06-01 evaluate how needed.
+    //int inConditionInstanceCount = 0; // Number of times in condition.
+    boolean inConditionPrev = false; // Whether previous time-step was in condition.
+    double statistic = 0.0; // Value of statistic being computed, zero is ok.
+    DateTime statisticDate = null; // Time-step at start of condition, null if never have condition.
     for ( DateTime date = start; date.lessThanOrEqualTo(end); date.addInterval(tsBase,tsMult) ) {
-        // Get the data value and check for missing
+        // Get the data value and check for missing.
         value = ts.getDataValue ( date );
         if ( ts.isDataMissing(value) ) {
             isMissing = true;
@@ -367,14 +367,14 @@ throws Exception
         else {
             isMissing = false;
         }
-        // Check the current value for missing
-        // Checking for surplus
+        // Check the current value for missing.
+        // Checking for surplus.
         if ( !isMissing ) {
-            // Not in missing sequence
+            // Not in missing sequence.
             inCondition = false;
         }
         else {
-            // In missing sequence
+            // In missing sequence.
             inCondition = true;
             ++inConditionCount;
         }
@@ -383,7 +383,7 @@ throws Exception
         // processing for in condition sequence - in these cases, update the statistic if necessary
         // (means are computed after the loop).
         if ( (!inCondition && inConditionPrev) || (inCondition && date.equals(end) ) ) {
-            // Need to complete processing the condition instance
+            // Need to complete processing the condition instance.
             if ( statisticType == TSStatisticType.MISSING_SEQ_LENGTH_MAX ) {
                 if ( inConditionCount > statistic ) {
                     statistic = inConditionCount;
@@ -391,17 +391,17 @@ throws Exception
                 }
             }
             Message.printStatus ( 2, routine, "Statistic=" + statistic + " at=" + statisticDate);
-            // Add to the totals
+            // Add to the totals.
             //++inConditionInstanceCount;
-            // Reset for next condition
+            // Reset for next condition.
             inConditionCount = 0;
         }
-        // Now save the condition for the next loop iteration
+        // Now save the condition for the next loop iteration.
         inConditionPrev = inCondition;
     }
-    // Statistic should always be >= 0
+    // Statistic should always be >= 0.
     if ( statistic >= 0 ) {
-        setStatisticResult ( new Integer((int)(statistic + .001)) );
+        setStatisticResult ( Integer.valueOf((int)(statistic + .001)) );
         setStatisticResultDateTime ( statisticDate );
     }
 }
@@ -410,8 +410,7 @@ throws Exception
 Check the time series.
 */
 public void calculateTimeSeriesStatistic ()
-throws Exception
-{
+throws Exception {
     TSStatisticType statisticType = getStatisticType();
     double value1 = (getValue1() == null) ? -999.0 : getValue1().doubleValue();
     double value2 = (getValue2() == null) ? -999.0 : getValue2().doubleValue();
@@ -424,12 +423,12 @@ throws Exception
     boolean haveAnalysisWindow = false;
     if ( (analysisWindowStart != null) && (analysisWindowEnd != null) ) {
         haveAnalysisWindow = true;
-        // TODO SAM 2013-02-10 Throw exception below if analysis window is specified but is not supported
+        // TODO SAM 2013-02-10 Throw exception below if analysis window is specified but is not supported.
     }
-    // Initialize the results to null
+    // Initialize the results to null.
     setStatisticResult((Double)null);
 	setStatisticResultDateTime(null);
-    // If statistic takes more work, call other supporting code and then return
+    // If statistic takes more work, call other supporting code and then return.
     // Statistics computed (further below) also store the date/time corresponding to a statistic value,
     // whereas the ones immediately below don't utilize this information.
     if ( statisticType == TSStatisticType.NQYY ) {
@@ -453,34 +452,34 @@ throws Exception
         if ( haveAnalysisWindow ) {
             throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
         }
-        // Convert all the values to an array and then call the math method
+        // Convert all the values to an array and then call the math method.
         double [] values = TSUtil.toArrayNoMissing ( ts, getAnalysisStart(), getAnalysisEnd() );
         double auto = MathUtil.lagAutoCorrelation(values.length,values,1);
-        setStatisticResult ( new Double(auto) );
+        setStatisticResult ( Double.valueOf(auto) );
         return;
     }
     else if ( statisticType == TSStatisticType.TREND_OLS ) {
         if ( haveAnalysisWindow ) {
             throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
         }
-        // Convert all the values to an array and then call the math method
+        // Convert all the values to an array and then call the math method.
         double [] values = TSUtil.toArrayNoMissing ( ts, getAnalysisStart(), getAnalysisEnd() );
         double [] dts = TSUtil.toArray ( ts, getAnalysisStart(), getAnalysisEnd(),
-            null, // No month list
-            false, // Don't include missing
-            false, // Don't match paired time series non-missing
-            null, // No paired time series
+            null, // No month list.
+            false, // Don't include missing.
+            false, // Don't match paired time series non-missing.
+            null, // No paired time series.
             TSToArrayReturnType.DATE_TIME);
         Regression regress = MathUtil.regress(dts, values,
-            false, // Do not check for missing values (they are already removed)
-            0.0, // Missing X, not used
-            0.0, // Missing Y, not used
-            null ); // No assigned Y intercept
+            false, // Do not check for missing values (they are already removed).
+            0.0, // Missing X, not used.
+            0.0, // Missing Y, not used.
+            null ); // No assigned Y intercept.
         setStatisticResult ( regress );
         return;
     }
     else if ( statisticType == TSStatisticType.LAST ) {
-        // Get the last non-missing or missing value in the analysis period, considering the analysis window
+        // Get the last non-missing or missing value in the analysis period, considering the analysis window.
         if ( analysisEnd == null ) {
             analysisEnd = ts.getDate2();
         }
@@ -498,7 +497,7 @@ throws Exception
         	}
         }
         else {
-        	// Just use the last value in the analysis period
+        	// Just use the last value in the analysis period.
     		setStatisticResult(ts.getDataValue(analysisEnd));
     		setStatisticResultDateTime(analysisEnd);
     		setStatisticResultHasDateTime(true);
@@ -506,7 +505,7 @@ throws Exception
         return;
     }
     else if ( statisticType == TSStatisticType.LAST_NONMISSING ) {
-        // Get the last non-missing value in the analysis period, considering the analysis window
+        // Get the last non-missing value in the analysis period, considering the analysis window.
 		setStatisticResultHasDateTime(true);
         if ( analysisEnd == null ) {
             analysisEnd = ts.getDate2();
@@ -518,7 +517,7 @@ throws Exception
         if ( haveAnalysisWindow ) {
         	win = new DateTimeWindow(analysisWindowStart,analysisWindowEnd);
         }
-        // Iterate backwards
+        // Iterate backwards.
         TSIterator tsi = ts.iterator(analysisStart,analysisEnd);
         TSData tsdata = null;
         DateTime dt = null;
@@ -526,14 +525,14 @@ throws Exception
         while ( (tsdata = tsi.previous()) != null ) {
         	dt = tsdata.getDate();
             if ( haveAnalysisWindow ) {
-            	// Don't check unless in the analysis window
+            	// Don't check unless in the analysis window.
             	if ( !win.isDateTimeInWindow(dt) ) {
             		continue;
             	}
             }
         	last = tsdata.getDataValue();
         	if ( !ts.isDataMissing(last) ) {
-        		setStatisticResult(new Double(last));
+        		setStatisticResult(Double.valueOf(last));
         		setStatisticResultDateTime(dt);
         		break;
         	}
@@ -544,50 +543,50 @@ throws Exception
         if ( haveAnalysisWindow ) {
             throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
         }
-        // Convert all the values to an array and then call the math method
+        // Convert all the values to an array and then call the math method.
         double [] values = TSUtil.toArrayNoMissing ( ts, getAnalysisStart(), getAnalysisEnd() );
         double mean = MathUtil.mean(values);
-        setStatisticResult ( new Double(mean) );
+        setStatisticResult ( Double.valueOf(mean) );
         return;
     }
     else if ( statisticType == TSStatisticType.SKEW ) {
         if ( haveAnalysisWindow ) {
             throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
         }
-        // Convert all the values to an array and then call the math method
+        // Convert all the values to an array and then call the math method.
         double [] values = TSUtil.toArrayNoMissing ( ts, getAnalysisStart(), getAnalysisEnd() );
         double skew = MathUtil.skew(values.length, values);
-        setStatisticResult ( new Double(skew) );
+        setStatisticResult ( Double.valueOf(skew) );
         return;
     }
     else if ( statisticType == TSStatisticType.STD_DEV ) {
         if ( haveAnalysisWindow ) {
             throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
         }
-        // Convert all the values to an array and then call the math method
+        // Convert all the values to an array and then call the math method.
         double [] values = TSUtil.toArrayNoMissing ( ts, getAnalysisStart(), getAnalysisEnd() );
         double stdDev = MathUtil.standardDeviation(values);
-        setStatisticResult ( new Double(stdDev) );
+        setStatisticResult ( Double.valueOf(stdDev) );
         return;
     }
     else if ( statisticType == TSStatisticType.TOTAL ) {
         if ( haveAnalysisWindow ) {
             throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
         }
-        // Convert all the values to an array and then call the math method
+        // Convert all the values to an array and then call the math method.
         double [] values = TSUtil.toArrayNoMissing ( ts, getAnalysisStart(), getAnalysisEnd() );
         double sum = MathUtil.sum(values);
-        setStatisticResult ( new Double(sum) );
+        setStatisticResult ( Double.valueOf(sum) );
         return;
     }
     else if ( statisticType == TSStatisticType.VARIANCE ) {
         if ( haveAnalysisWindow ) {
             throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
         }
-        // Convert all the values to an array and then call the math method
+        // Convert all the values to an array and then call the math method.
         double [] values = TSUtil.toArrayNoMissing ( ts, getAnalysisStart(), getAnalysisEnd() );
         double var = MathUtil.variance(values);
-        setStatisticResult ( new Double(var) );
+        setStatisticResult ( Double.valueOf(var) );
         return;
     }
     else if ( (statisticType == TSStatisticType.DEFICIT_MAX) ||
@@ -599,7 +598,7 @@ throws Exception
         if ( haveAnalysisWindow ) {
             throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
         }
-        // Get period for the specific time series
+        // Get period for the specific time series.
         TSLimits limits = TSUtil.getValidPeriod(ts, getAnalysisStart(), getAnalysisEnd());
         calculateDeficitSurplusStatistic(statisticType, ts, limits.getDate1(), limits.getDate2() );
         return;
@@ -619,7 +618,7 @@ throws Exception
         if ( haveAnalysisWindow ) {
             throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
         }
-        // Get period for the specific time series
+        // Get period for the specific time series.
         TSLimits limits = TSUtil.getValidPeriod(ts, getAnalysisStart(), getAnalysisEnd());
         calculateDeficitSurplusSeqStatistic(statisticType, ts, limits.getDate1(), limits.getDate2() );
         return;
@@ -628,14 +627,14 @@ throws Exception
         if ( haveAnalysisWindow ) {
             throw new InvalidParameterException ( "Analysis window is not supported for statistic \"" + statisticType );
         }
-        // Get period for the specific time series
+        // Get period for the specific time series.
         TSLimits limits = TSUtil.getValidPeriod(ts, getAnalysisStart(), getAnalysisEnd());
         calculateMissingSeqStatistic(statisticType, ts, limits.getDate1(), limits.getDate2() );
         return;
     }
-    
+
     // Else, iterate through the time series and do the work below - typically "search" or accumulation
-    // type statistics rather than analyzing a sample array in code supported above
+    // type statistics rather than analyzing a sample array in code supported above.
     TSIterator tsi = ts.iterator(getAnalysisStart(), getAnalysisEnd());
     TSData data = null;
 
@@ -651,19 +650,19 @@ throws Exception
     boolean isMissing;
     int countNotMissing = 0;
     int countMissing = 0;
-    int countStatistic = 0; // Statistic value for counts
+    int countStatistic = 0; // Statistic value for counts.
     //double diff;
     double statisticResult = ts.getMissing();
     DateTime statisticResultDateTime = null;
     boolean statisticCalculated = false;
     DateTime analysisWindowStartForIterator = null;
     DateTime analysisWindowEndForIterator = null;
-    // Set whether a date/time corresponds to the result
+    // Set whether a date/time corresponds to the result.
     if ( (statisticType == TSStatisticType.MAX) || (statisticType == TSStatisticType.MIN) ) {
 		setStatisticResultHasDateTime(true);
     }
     while ( (data = tsi.next()) != null ) {
-        // Analyze the value
+        // Analyze the value.
         date = tsi.getDate();
         if ( haveAnalysisWindow ) {
             // If the iterator window date/times are null, initialize to get precision, etc.
@@ -673,10 +672,10 @@ throws Exception
                 analysisWindowEndForIterator = new DateTime(analysisWindowEnd);
                 analysisWindowEndForIterator.setPrecision(date.getPrecision());
             }
-            // Always set the year since the other parts will be initialized
+            // Always set the year since the other parts will be initialized.
             analysisWindowStartForIterator.setYear(date.getYear());
             analysisWindowEndForIterator.setYear(date.getYear());
-            // Check to make sure the date/time is in the analysis window
+            // Check to make sure the date/time is in the analysis window.
             if ( date.lessThan(analysisWindowStartForIterator) || date.greaterThan(analysisWindowEndForIterator) ) {
                 continue;
             }
@@ -741,10 +740,10 @@ throws Exception
         }
         //tsvaluePrev = tsvalue;
     }
-    // Set the final statistic value
-    // Handle counts differently to improve performance
+    // Set the final statistic value.
+    // Handle counts differently to improve performance.
     if ( statisticType == TSStatisticType.COUNT ) {
-        setStatisticResult ( countNotMissing + countMissing ); 
+        setStatisticResult ( countNotMissing + countMissing );
     }
     else if ( (statisticType == TSStatisticType.GE_COUNT) ||
         (statisticType == TSStatisticType.GT_COUNT) ||
@@ -753,26 +752,26 @@ throws Exception
         setStatisticResult ( countStatistic );
     }
     else if ( statisticType == TSStatisticType.MISSING_COUNT ) {
-        setStatisticResult ( countMissing ); 
+        setStatisticResult ( countMissing );
     }
     else if ( statisticType == TSStatisticType.MISSING_PERCENT ) {
         int countTotal = countNotMissing + countMissing;
         if ( countTotal != 0 ) {
-            setStatisticResult ( new Double(100.0*countMissing/(double)countTotal) );
+            setStatisticResult ( Double.valueOf(100.0*countMissing/(double)countTotal) );
         }
     }
     else if ( statisticType == TSStatisticType.NONMISSING_COUNT ) {
-        setStatisticResult ( countNotMissing ); 
+        setStatisticResult ( countNotMissing );
     }
     else if ( statisticType == TSStatisticType.NONMISSING_PERCENT ) {
         int countTotal = countNotMissing + countMissing;
         if ( countTotal != 0 ) {
-            setStatisticResult ( new Double(100.0*countNotMissing/(double)countTotal) );
+            setStatisticResult ( Double.valueOf(100.0*countNotMissing/(double)countTotal) );
         }
     }
     else if ( statisticCalculated ) {
         // All other statistics - numerical values - just set from values computed locally above
-    	// The date may be null and whether a date is used was set above
+    	// The date may be null and whether a date is used was set above.
         setStatisticResult ( statisticResult );
         setStatisticResultDateTime ( statisticResultDateTime );
     }
@@ -782,8 +781,7 @@ throws Exception
 Return the analysis end date/time.
 @return the analysis end date/time.
 */
-public DateTime getAnalysisEnd ()
-{
+public DateTime getAnalysisEnd () {
     return __analysisEnd;
 }
 
@@ -791,8 +789,7 @@ public DateTime getAnalysisEnd ()
 Return the analysis start date/time.
 @return the analysis start date/time.
 */
-public DateTime getAnalysisStart ()
-{
+public DateTime getAnalysisStart () {
     return __analysisStart;
 }
 
@@ -800,8 +797,7 @@ public DateTime getAnalysisStart ()
 Return the analysis window end date/time.
 @return the analysis window end date/time.
 */
-private DateTime getAnalysisWindowEnd ()
-{
+private DateTime getAnalysisWindowEnd () {
     return __analysisWindowEnd;
 }
 
@@ -809,8 +805,7 @@ private DateTime getAnalysisWindowEnd ()
 Return the analysis window start date/time.
 @return the analysis window start date/time.
 */
-private DateTime getAnalysisWindowStart ()
-{
+private DateTime getAnalysisWindowStart () {
     return __analysisWindowStart;
 }
 
@@ -819,9 +814,8 @@ Return the number of values that are required to evaluate a statistic.
 @return the number of values that are required to evaluate a statistic.
 @param statisticType the statistic type that is being evaluated.
 */
-public static int getRequiredNumberOfValuesForStatistic ( TSStatisticType statisticType )
-{
-    // Many basic statistics do not need additional input...
+public static int getRequiredNumberOfValuesForStatistic ( TSStatisticType statisticType ) {
+    // Many basic statistics do not need additional input.
     if ( (statisticType == TSStatisticType.COUNT) ||
         (statisticType == TSStatisticType.DEFICIT_MAX) ||
         (statisticType == TSStatisticType.DEFICIT_MEAN) ||
@@ -867,7 +861,7 @@ public static int getRequiredNumberOfValuesForStatistic ( TSStatisticType statis
     }
     // The following statistics need additional input.
     else if ( statisticType == TSStatisticType.NQYY ) {
-        // Need days to average (N), return frequency (YY), and allowed missing in average
+        // Need days to average (N), return frequency (YY), and allowed missing in average.
         return 3;
     }
     else {
@@ -881,9 +875,8 @@ public static int getRequiredNumberOfValuesForStatistic ( TSStatisticType statis
 /**
 Get the list of statistics that can be performed.
 */
-public static List<TSStatisticType> getStatisticChoices()
-{
-    List<TSStatisticType> choices = new ArrayList<TSStatisticType>();
+public static List<TSStatisticType> getStatisticChoices() {
+    List<TSStatisticType> choices = new ArrayList<>();
     choices.add ( TSStatisticType.COUNT );
     choices.add ( TSStatisticType.DEFICIT_MAX );
     choices.add ( TSStatisticType.DEFICIT_MEAN );
@@ -931,8 +924,7 @@ public static List<TSStatisticType> getStatisticChoices()
 Get the list of statistics that can be performed.
 @return the statistic display names as strings.
 */
-public static List<String> getStatisticChoicesAsStrings()
-{
+public static List<String> getStatisticChoicesAsStrings() {
     List<TSStatisticType> choices = getStatisticChoices();
     List<String> stringChoices = new ArrayList<String>();
     for ( TSStatisticType choice : choices ) {
@@ -945,12 +937,11 @@ public static List<String> getStatisticChoicesAsStrings()
 Return the statistic data class.  This is useful for data management and ensures that
 the class is known even if the statistic is null or NaN.
 */
-public Class<?> getStatisticDataClass ()
-{
+public Class<?> getStatisticDataClass () {
     TSStatisticType t = getStatisticType();
-    // Most are Double so check for integers and DateTime
+    // Most are Double so check for integers and DateTime.
     // Note that some of the MEAN statistics are computed from integers but the final statistic is a double
-    // and therefore not included in the following integer list
+    // and therefore not included in the following integer list.
     if ( (t == TSStatisticType.COUNT) ||
         (t == TSStatisticType.DEFICIT_SEQ_LENGTH_MAX) ||
         (t == TSStatisticType.DEFICIT_SEQ_LENGTH_MIN) ||
@@ -978,8 +969,7 @@ Return the value of the statistic that was calculated.
 @return the value of the statistic that was calculated, as a Double for floating point statistics and
 Integer for integer statistics.
 */
-public Object getStatisticResult()
-{
+public Object getStatisticResult() {
     return __statisticResult;
 }
 
@@ -987,17 +977,15 @@ public Object getStatisticResult()
 Return the date/time for the statistic that was calculated.
 @return the date/time for the statistic that was calculated.
 */
-public DateTime getStatisticResultDateTime()
-{
+public DateTime getStatisticResultDateTime() {
     return __statisticResultDateTime;
 }
 
 /**
 Return whether the statistic has a date/time result in addition to statistic.
-This will be true 
+This will be true .
 */
-public boolean getStatisticResultHasDateTime()
-{
+public boolean getStatisticResultHasDateTime() {
 	return __statisticResultHasDateTime;
 }
 
@@ -1005,8 +993,7 @@ public boolean getStatisticResultHasDateTime()
 Return the name of the statistic being calculated.
 @return the name of the statistic being calculated.
 */
-public TSStatisticType getStatisticType ()
-{
+public TSStatisticType getStatisticType () {
     return __statisticType;
 }
 
@@ -1014,8 +1001,7 @@ public TSStatisticType getStatisticType ()
 Return the time series being analyzed.
 @return the time series being analyzed.
 */
-public TS getTimeSeries ()
-{
+public TS getTimeSeries () {
     return __ts;
 }
 
@@ -1023,8 +1009,7 @@ public TS getTimeSeries ()
 Return Value1 for the check.
 @return Value1 for the check.
 */
-public Double getValue1 ()
-{
+public Double getValue1 () {
     return __value1;
 }
 
@@ -1032,8 +1017,7 @@ public Double getValue1 ()
 Return Value2 for the check.
 @return Value2 for the check.
 */
-public Double getValue2 ()
-{
+public Double getValue2 () {
     return __value2;
 }
 
@@ -1041,48 +1025,42 @@ public Double getValue2 ()
 Return Value3 for the check.
 @return Value3 for the check.
 */
-public Double getValue3 ()
-{
+public Double getValue3 () {
     return __value3;
 }
 
 /**
 Set the statistic result.  Use this when setting to null.
 */
-private void setStatisticResult ( Double statisticResult )
-{
+private void setStatisticResult ( Double statisticResult ) {
     __statisticResult = statisticResult;
 }
 
 /**
 Set the statistic result.
 */
-private void setStatisticResult ( double statisticResult )
-{
-    __statisticResult = new Double(statisticResult);
+private void setStatisticResult ( double statisticResult ) {
+    __statisticResult = Double.valueOf(statisticResult);
 }
 
 /**
 Set the statistic result, for integer statistics like count.
 */
-private void setStatisticResult ( int statisticResult )
-{
-    __statisticResult = new Integer(statisticResult);
+private void setStatisticResult ( int statisticResult ) {
+    __statisticResult = Integer.valueOf(statisticResult);
 }
 
 /**
 Set the statistic result for regression analysis.
 */
-private void setStatisticResult ( Regression statisticResult )
-{
+private void setStatisticResult ( Regression statisticResult ) {
     __statisticResult = statisticResult;
 }
 
 /**
 Set the date/time for statistic result.  A copy is made because the instance may be changing during iteration.
 */
-private void setStatisticResultDateTime ( DateTime statisticResultDateTime )
-{
+private void setStatisticResultDateTime ( DateTime statisticResultDateTime ) {
 	if ( statisticResultDateTime != null ) {
 		statisticResultDateTime = new DateTime(statisticResultDateTime);
 	}
@@ -1092,8 +1070,7 @@ private void setStatisticResultDateTime ( DateTime statisticResultDateTime )
 /**
 Set whether the statistic has a date/time result in addition to statistic.
 */
-private void setStatisticResultHasDateTime(boolean statisticResultHasDateTime)
-{
+private void setStatisticResultHasDateTime(boolean statisticResultHasDateTime) {
 	__statisticResultHasDateTime = statisticResultHasDateTime;
 }
 

@@ -4,43 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//-----------------------------------------------------------------------------
-// DragAndDropSimpleJComboBox - Implements a SimpleJComboBox that supports 
-//	drag and drop capability.
-//-----------------------------------------------------------------------------
-// Copyright: See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// History: 
-// 2004-02-24	J. Thomas Sapienza, RTi	Initial version.
-// 2004-04-27	JTS, RTi		Revised after SAM's review.
-// 2004-06-01	JTS, RTi		In order to support dragging from a
-//					combo box in Linux, changed the way
-//					drags are handled so that they start
-//					from within the popup list that shows
-//					all the possible combo box values.
-// 2004-09-20	JTS, RTi		Started using a specific 
-//					ListCellRenderer so that a user can
-//					drag from the list that appears when
-//					the combo box is clicked on.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
 
 package RTi.Util.GUI;
 
@@ -111,7 +90,7 @@ public DragAndDropSimpleJComboBox(boolean editable, int dragAction, int dropActi
 
 /**
 Creates a SimpleJComboBox that supports drag and drop.
-@param v a Vector of values to initialize the combo box with.
+@param v a List of values to initialize the combo box with.
 @param dragAction the action to take when dragging data.  
 See DragAndDropUtil.ACTION_*.  Drags can only be performed if the combo box is NON editable.
 @param dropAction the action to take when dropping data.  
@@ -132,8 +111,7 @@ See DragAndDropUtil.ACTION_*.  Drags can only be performed if the combo box is N
 @param dropAction the action to take when dropping data.  
 See DragAndDropUtil.ACTION_*.  Drops can only be performed if the combo box is editable.
 */
-public DragAndDropSimpleJComboBox(List v, boolean editable, int dragAction, 
-int dropAction) {
+public DragAndDropSimpleJComboBox(List v, boolean editable, int dragAction, int dropAction) {
 	super(v, editable);
 	initialize(dragAction, dropAction);
 }
@@ -144,11 +122,9 @@ Creates a SimpleJComboBox that supports drag and drop.
 @param editable whether the text in this object is editable.  SimpleJComboBoxes
 with editable text cannot support drag operations.
 @param dragAction the action to take when dragging data.  
-See DragAndDropUtil.ACTION_*.  Drags can only be performed if the combo box
-is NON editable.
+See DragAndDropUtil.ACTION_*.  Drags can only be performed if the combo box is NON editable.
 @param dropAction the action to take when dropping data.  
-See DragAndDropUtil.ACTION_*.  Drops can only be performed if the combo box
-is editable.
+See DragAndDropUtil.ACTION_*.  Drops can only be performed if the combo box is editable.
 */
 public DragAndDropSimpleJComboBox(int size, boolean editable, int dragAction, 
 int dropAction) {
@@ -170,16 +146,6 @@ See DragAndDropUtil.ACTION_*.  Drops can only be performed if the combo box is e
 public DragAndDropSimpleJComboBox(List v, int size, boolean editable, int dragAction, int dropAction) {
 	super(v, size, editable);
 	initialize(dragAction, dropAction);
-}
-
-/**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__data = null;
-	__lastSelectedItem = null;
-	super.finalize();
 }
 
 /** 
@@ -221,8 +187,7 @@ public boolean handleDropData(Object o, Point p) {
 		return false;
 	}
 	if (o instanceof DragAndDropTransferPrimitive) {
-		setText("" + ((String)((DragAndDropTransferPrimitive)o)
-			.getData()));
+		setText("" + ((String)((DragAndDropTransferPrimitive)o).getData()));
 	}
 	else {
 		// this class is set up (see getDataFlavors()) to recognize
@@ -244,13 +209,13 @@ Initializes the drag and drop aspects of this class.
 @param dropAction the action to take on dropping.
 */
 private void initialize(int dragAction, int dropAction) {
-	// create the data object (for use by DragAndDropUtil)
+	// Create the data object (for use by DragAndDropUtil).
 	__data = new DragAndDropControl(dragAction, dropAction);
 
 	Accessible a = getUI().getAccessibleChild(this, 0);
 	JList list = null;
 	if (a != null && a instanceof ComboPopup) {
-		// get the popup list
+		// Get the popup list.
 		list = ((ComboPopup)a).getList();
 	}	
 		
@@ -259,40 +224,32 @@ private void initialize(int dragAction, int dropAction) {
 	// only allow dragging if the combo box is not editable
 	if (__data.allowsDrag() && !isEditable()
 		&& list != null) {
-		__data.setDragSource(
-			DragAndDropUtil.createDragSource(
-			list, dragAction, this));
+		__data.setDragSource( DragAndDropUtil.createDragSource( list, dragAction, this));
 	}
-	// only allow drops if the combobox is editable
+	// Only allow drops if the combobox is editable.
 	if (__data.allowsDrop() && isEditable()) {
 		// note:
-		// it was essential that the drop target be the editor 
-		// for the combo box and not the combo box itself.  Otherwise,
-		// there was some weird behavior.
+		// it was essential that the drop target be the editor for the combo box and not the combo box itself.
+		// Otherwise, there was some weird behavior.
 		if (isEditable()) {
-			__data.setDropTarget(
-				DragAndDropUtil.createDropTarget(
+			__data.setDropTarget( DragAndDropUtil.createDropTarget(
 				(JTextComponent)getEditor()
 				.getEditorComponent(), 
 				dropAction, this));			
 		}
 	}
 	else {
-		// turn off the default drag and drop support in the text 
-		// component.
+		// turn off the default drag and drop support in the text component.
 		__data.setDropAction(DragAndDropUtil.ACTION_NONE);
-		((JTextComponent)getEditor().getEditorComponent())
-			.setTransferHandler(null);
+		((JTextComponent)getEditor().getEditorComponent()).setTransferHandler(null);
 	}
 
-	DragAndDropDefaultListCellRenderer lcr 
-		= new DragAndDropDefaultListCellRenderer(this);
+	DragAndDropDefaultListCellRenderer lcr = new DragAndDropDefaultListCellRenderer(this);
 	setRenderer(lcr);
 }
 
 /**
-Sets whether dragging is enabled, and makes sure it is not enabled if the
-combo box is editable.
+Sets whether dragging is enabled, and makes sure it is not enabled if the combo box is editable.
 @param action the action to take on dragging
 */
 public void setDragAction(int action) {
@@ -306,8 +263,7 @@ public void setDragAction(int action) {
 
 /**
 Sets the item that was last-selected from the list that appears when the 
-combo box is clicked on.  This is so that items in the middle of the list
-can be dragged.
+combo box is clicked on.  This is so that items in the middle of the list can be dragged.
 @param lastSelectedItem the text of the last-selected item.
 */
 protected void setLastSelectedItem(String lastSelectedItem) {

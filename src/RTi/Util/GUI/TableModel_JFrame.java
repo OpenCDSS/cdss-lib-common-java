@@ -4,33 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// TableModel_JFrame - generic Frame for displaying a table model in JWorksheet
-//	format.
-// ----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2004-10-27	Steven A. Malers, RTi	Copy DataTable_JFrame and modify.
-// ----------------------------------------------------------------------------
 
 package RTi.Util.GUI;
 
@@ -40,8 +29,6 @@ import java.awt.GridBagLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-
-import RTi.Util.GUI.JGUIUtil;
 
 import RTi.Util.IO.PropList;
 
@@ -54,7 +41,7 @@ a table model and renderer are available.
 public class TableModel_JFrame extends JFrame
 {
 
-private JWorksheet_AbstractRowTableModel __tm = null;	// Table model to display
+private JWorksheet_AbstractRowTableModel __tm = null;	// Table model to display.
 private JWorksheet_DefaultTableCellRenderer __cr = null;// Cell renderer for the table model.
 private TableModel_JPanel __tm_JPanel = null;		// The panel to hold the worksheet.
 private PropList __worksheet_props = null;		// Properties to control the worksheet.
@@ -101,22 +88,8 @@ throws Exception
 	__cr = cr;
 	// Can be null...
 	__worksheet_props = worksheet_props;
-	
-	setupGUI();
-}
 
-/**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable
-{	__tm = null;
-	__cr = null;
-	__tm_JPanel = null;
-	__message_JTextField = null;
-	__status_JTextField = null;
-	__worksheet_props = null;
-	super.finalize();
+	setupGUI();
 }
 
 /**
@@ -136,13 +109,13 @@ public void setMessageStatus(String message, String status) {
 /**
 Sets up the GUI.
 */
-private void setupGUI() 
-throws Exception
-{	if ( __worksheet_props != null ) {
+private void setupGUI()
+throws Exception {
+	if ( __worksheet_props != null ) {
 		__tm_JPanel = new TableModel_JPanel ( this, __tm, __cr, __worksheet_props );
 	}
 	else {
-		// Use defaults...
+		// Use defaults.
 		__tm_JPanel = new TableModel_JPanel ( this, __tm, __cr );
 	}
 
@@ -176,7 +149,7 @@ throws Exception
 	setMessageStatus("Displaying " + count + " record" + plural + ".", "Ready");
 
 	setVisible(true);
-	toFront(); // Needed because sometimes gets hidden
+	toFront(); // Needed because sometimes gets hidden.
 
 	__tm_JPanel.setWorksheetColumnWidths();
 }

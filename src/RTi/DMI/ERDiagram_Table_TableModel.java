@@ -205,8 +205,8 @@ public Object getValueAt(int row, int col) {
 
 	switch (col) {
 		case __COL_NAME:	return table.getName();
-		case __COL_X:		return new Double(table.getX());
-		case __COL_Y:		return new Double(table.getY());
+		case __COL_X:		return Double.valueOf(table.getX());
+		case __COL_Y:		return Double.valueOf(table.getY());
 		default:		return "";
 	}
 }

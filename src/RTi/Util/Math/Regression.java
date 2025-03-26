@@ -4,60 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//------------------------------------------------------------------------------
-// Regression - math regression class.
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// History:
-// 
-// 27 May 1998	Catherine E.		Created initial version.
-//		Nutting-Lane, RTi
-// 04 Nov 1998	Steven A. Malers, RTi	Add javadoc.  Still need to add
-//					constructors, etc. that actually do the
-//					regression.
-// 09 Jan 1999	SAM, RTi		Add number of points.
-// 13 Apr 1999	SAM, RTi		Add finalize.
-// 28 Oct 2000	SAM, RTi		Add "lag_intervals" and set/get methods
-//					for use by code that analyzes lagged
-//					time series.  Add code to store and
-//					access the minimum and maximum values
-//					used in the analysis.  This is useful
-//					when setting axis labels in graphs.
-// 2002-03-18	SAM, RTi		Clarify documentation to use X and Y
-//					rather than Q and S.
-// 2002-03-24	SAM, RTi		Change methods around to be compatible
-//					with general X versus Y regression.  For
-//					example, change *Max1() to *MaxX().  Add
-//					data and methods to support more complex
-//					derived classes (e.g., add n1, n2).
-// 2002-04-03	SAM, RTi		Add transformed RMSE so that both
-//					transformed and untransformed error can
-//					be reported.
-// 2002-04-08	SAM, RTi		Update to have storage for Y mean and
-//					standard deviation.
-// 2002-05-14	SAM, RTi		Add parameter for forced intercept.
-// 2005-04-26	J. Thomas Sapienza, RTi	Added all data members to finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//------------------------------------------------------------------------------
-// EndHeader
 
 package RTi.Util.Math;
 
@@ -236,17 +198,6 @@ Default constructor.  Typically the data in this class are set by the MathUtil.r
 */
 public Regression ()
 {
-}
-
-/**
-Finalize before garbage collection.
-@exception Throwable if an error occurs.
-*/
-protected void finalize()
-throws Throwable {
-	_X1 = null;
-	_Y1 = null;
-	super.finalize();
 }
 
 /**

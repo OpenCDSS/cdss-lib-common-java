@@ -4,36 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// Generic_TableModel - Table Model for a generic worksheet.  Manages 
-// a Vector of GenericWorksheetData objects.
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-// 2003-12-10	J. Thomas Sapienza, RTi	Initial version.
-// 2005-03-23	JTS, RTi		Removed reference to the 0th (row
-//					count) column.
-// 2005-04-26	JTS, RTi		Added finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
 
 package RTi.Util.GUI;
 
@@ -42,25 +28,19 @@ import java.util.List;
 
 import RTi.DMI.DMIUtil;
 
-import RTi.Util.GUI.JWorksheet_AbstractRowTableModel;
-
-import RTi.Util.IO.IOUtil;
-
 /**
-This class is a table model for displaying GenericWorksheetData objects in
-a worksheet.  Unlike hard-coded table models (which are useful for more 
-complicated worksheets), all the settings for this table model, such as 
-column names, column formats, etc, can be set at run time.<p>
+This class is a table model for displaying GenericWorksheetData objects in a worksheet.
+Unlike hard-coded table models (which are useful for more complicated worksheets),
+all the settings for this table model, such as column names, column formats, etc, can be set at run time.<p>
 <b>How to Use a Generic Table Model</b><p>
-There are several ways to go about creating a worksheet that displays data 
-from GenericWorksheetObjects.  This first method can be used for when 
-there is no actual data ready with which to populate the table model:<p>
+There are several ways to go about creating a worksheet that displays data from GenericWorksheetObjects.
+This first method can be used for when there is no actual data ready with which to populate the table model:<p>
 <pre>
 	// create a table model that will have 3 data fields
 	Generic_TableModel model = new Generic_TableModel(3);
 
 	// at this point, the class information for each field must be set.
-	// There are two ways to go about this.  
+	// There are two ways to go about this.
 	// First (if no GenericWorksheetData objects representative of
 	// what will be stored in the worksheet are available):
 	if (haveNoRepresentativeObjects) {
@@ -92,7 +72,7 @@ If, however, there is a Vector of data objects to be placed in the worksheet,
 and the first GenericWorksheetData object in the Vector has NO null values,
 the following can be done:<p>
 <pre>
-	// create the table model.  This will automatically determine the 
+	// create the table model.  This will automatically determine the
 	// column classes from the first element in the Vector.
 	Generic_TableModel model = new Generic_TableModel(vector);
 
@@ -117,8 +97,8 @@ The first way to do this is to manually create a new (and empty) data object:<p>
 <pre>
 	GenericWorksheetData d = new GenericWorksheetData(3);
 	d.setValueAt(0, "test");
-	d.setValueAt(1, new Integer(111));
-	d.setValueAt(2, new Double(999));
+	d.setValueAt(1, Integer.valueOf(111));
+	d.setValueAt(2, Double.valueOf(999));
 	__worksheet.addRow(d);
 </pre>
 <p>
@@ -133,7 +113,7 @@ have it build an empty data object:<p>
 </pre>
 */
 @SuppressWarnings("serial")
-public class Generic_TableModel 
+public class Generic_TableModel
 extends JWorksheet_AbstractRowTableModel<GenericWorksheetData> {
 
 /**
@@ -178,7 +158,7 @@ Array of the tool tips for each column.
 private String[] __toolTips = null;
 
 /**
-Constructor.  
+Constructor.
 Sets up a table model for the given number of columns.  The
 Class for each column <b>must</b> be set with setColumnClass() prior to
 putting this model in a worksheet, or a call should be made to
@@ -194,19 +174,19 @@ public Generic_TableModel(int columns) {
 }
 
 /**
-Constructor.  
-Sets up a table model and determines the number of columns from the first 
-value in the data Vector.  If the data Vector is empty or null, 
+Constructor.
+Sets up a table model and determines the number of columns from the first
+value in the data Vector.  If the data Vector is empty or null,
 an exception is thrown because the number of columns cannot be determined.<p>
-The class type for each field is determined from the Classes of the data in 
-the first element of the Vector, so the first element of the data Vector cannot have any null values.  
+The class type for each field is determined from the Classes of the data in
+the first element of the Vector, so the first element of the data Vector cannot have any null values.
 @param data the Vector of GenericWorksheetData values to start the worksheet
 with.  Must have a size &gt;0 and be non-null.  The first element cannot have
 any null values.
 @throws Exception if a null or 0-size data Vector is passed in, or if the
 first element of the Vector has any null values.
 */
-public Generic_TableModel(List<GenericWorksheetData> data) 
+public Generic_TableModel(List<GenericWorksheetData> data)
 throws Exception {
 	if (data == null || data.size() == 0) {
 		throw new Exception ("Cannot determine number of columns.");
@@ -244,20 +224,6 @@ public void determineColumnClasses(GenericWorksheetData data) {
 	for (int i = 0; i < __COLUMNS; i++) {
 		__classes[i] = (data.getValueAt(i)).getClass();
 	}
-}
-
-/**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__editable = null;
-	IOUtil.nullArray(__classes);
-	__widths = null;
-	IOUtil.nullArray(__formats);
-	IOUtil.nullArray(__names);
-	IOUtil.nullArray(__toolTips);
-	super.finalize();
 }
 
 /**
@@ -301,7 +267,7 @@ public String[] getColumnToolTips() {
 }
 
 /**
-Returns an array containing the widths (in number of characters) that the 
+Returns an array containing the widths (in number of characters) that the
 fields in the table should be sized to.
 @return an integer array containing the widths for each field.
 */
@@ -311,7 +277,7 @@ public int[] getColumnWidths() {
 
 /**
 Returns the format that the specified column should be displayed in when
-the table is being displayed in the given table format. 
+the table is being displayed in the given table format.
 @param column column for which to return the format.
 @return the format (as used by StringUtil.formatString() in which to display the column.
 */
@@ -342,7 +308,7 @@ public Object getValueAt(int row, int col) {
 }
 
 /**
-Initializes the data arrays.  
+Initializes the data arrays.
 */
 private void initialize() {
 	__classes = new Class[__COLUMNS];
@@ -351,19 +317,19 @@ private void initialize() {
 	for (int i = 0; i < __COLUMNS; i++) {
 		__names[i] = "COLUMN " + i;
 	}
-	
+
 	__formats = new String[__COLUMNS];
 
 	for (int i = 0; i < __COLUMNS; i++) {
 		__formats[i] = "";
-	}	
-	
+	}
+
 	__toolTips = new String[__COLUMNS];
 	__widths = new int[__COLUMNS];
 
 	for (int i = 0; i < __COLUMNS; i++) {
 		__widths[i] = 8;
-	}		
+	}
 
 	__editable = new boolean[__COLUMNS];
 	for (int i = 0; i < __COLUMNS; i++) {
@@ -390,7 +356,7 @@ public void setColumnClass(int column, Class<?> c) {
 
 /**
 Sets whether the specified column is editable or not.
-@param column the column to set editable.  Cannot change the editability of 
+@param column the column to set editable.  Cannot change the editability of
 column 0.
 @param editable whether the column is editable (true) or not.
 */
@@ -415,7 +381,7 @@ Sets the column name, format, and width at once.
 @param format the format to use in the column.
 @param width the width to set the column to.
 */
-public void setColumnInformation(int column, String name, String format, 
+public void setColumnInformation(int column, String name, String format,
 int width) {
 	setColumnName(column, name);
 	setColumnFormat(column, format);
@@ -430,7 +396,7 @@ Sets the column name, format, width, and tool tip at once.
 @param width the width to set the column to.
 @param toolTip the toolTip to set on the column.
 */
-public void setColumnInformation(int column, String name, String format, 
+public void setColumnInformation(int column, String name, String format,
 int width, String toolTip) {
 	setColumnName(column, name);
 	setColumnFormat(column, format);
@@ -446,7 +412,7 @@ Sets the column name, format, width and editability at once.
 @param width the width to set the column to.
 @param editable whether the column is editable or not.
 */
-public void setColumnInformation(int column, String name, String format, 
+public void setColumnInformation(int column, String name, String format,
 int width, boolean editable) {
 	setColumnName(column, name);
 	setColumnFormat(column, format);
@@ -463,13 +429,13 @@ Sets the column name, format, width, tool tip and editability at once.
 @param toolTip the toolTip to set on the column.
 @param editable whether the column is editable or not.
 */
-public void setColumnInformation(int column, String name, String format, 
+public void setColumnInformation(int column, String name, String format,
 int width, String toolTip, boolean editable) {
 	setColumnName(column, name);
 	setColumnFormat(column, format);
 	setColumnWidth(column, width);
 	setColumnToolTip(column, toolTip);
-	setColumnEditable(column, editable);	
+	setColumnEditable(column, editable);
 }
 
 /**
@@ -487,7 +453,7 @@ Sets the tool tip on the specified column.
 @param tip the tool tip to set on the column.
 */
 public void setColumnToolTip(int column, String tip) {
-	__toolTips[column] = tip;	
+	__toolTips[column] = tip;
 	__tipsSet = true;
 }
 
@@ -515,23 +481,23 @@ public void setValueAt(Object value, int row, int col) {
 	}
 
 	GenericWorksheetData d = _data.get(row);
-	
+
 	if (value == null) {
 		Class<?> c = __classes[col];
 		if (c == String.class) {
 			value = DMIUtil.MISSING_STRING;
 		}
 		else if (c == Double.class) {
-			value = new Double(DMIUtil.MISSING_DOUBLE);
+			value = Double.valueOf(DMIUtil.MISSING_DOUBLE);
 		}
 		else if (c == Integer.class) {
-			value = new Integer(DMIUtil.MISSING_INT);
+			value = Integer.valueOf(DMIUtil.MISSING_INT);
 		}
 		else if (c == Date.class) {
 			value = DMIUtil.MISSING_DATE;
 		}
 	}
-	
+
 	d.setValueAt(col, value);
 
 	super.setValueAt(value, row, col);

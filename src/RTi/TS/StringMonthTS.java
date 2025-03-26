@@ -4,59 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// StringMonthTS - store a monthly time series as strings
-// ----------------------------------------------------------------------------
-// Notes:	(1)	A string time series contains monthly data as strings.
-//			It is used, for examplem by the
-//			TSUtil.fillUsingPattern routine.  For example, a pattern
-//			may consist of "WET", "DRY", and "AVG" strings for each
-//			month in the time series.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 06 Jul 1998	Steven A. Malers, RTi	Copy StateModMonth TS and update to
-//					merge with the TSPattern code previously
-//					developed by Catherine.
-// 20 Aug 1998	SAM, RTi		Modify signature for getDataPosition.
-// 13 Apr 1999	SAM, RTi		Add finalize.
-// 2001-11-06	SAM, RTi		Review javadoc.  Verify that variables
-//					are set to null when no longer used.
-//					Change some methods to have a void
-//					return type to agree with base class.
-// 2003-01-08	SAM, RTi		Add hasData().
-// 2003-06-02	SAM, RTi		Upgrade to use generic classes.
-//					* Change TSDate to DateTime.
-// 2004-03-04	J. Thomas Sapienza, RTi	* Class now implements Serializable.
-//					* Class now implements Transferable.
-//					* Class supports being dragged or 
-//					  copied to clipboard.
-// 2005-04-27	SAM, RTi		* Remove Warning 2 message in
-//					  getDataValueAsString() when date is
-//					  outside of the data period.
-// 2005-05-06	SAM, RTi		Add ability to handle missing data like
-//					numeric time series.
-//					* Add isDataMissing ( String ).
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-// EndHeader
 
 package RTi.TS;
 
@@ -226,16 +189,6 @@ public int allocateDataSpace( String value )
 	}
 
 	return 0;
-}
-
-/**
-Finalize before garbage collection.
-@exception Throwable if an error occurs.
-*/
-protected void finalize()
-throws Throwable
-{	_data = null;
-	_unique_data = null;
 }
 
 /**

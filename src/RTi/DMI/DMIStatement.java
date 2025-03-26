@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -35,8 +35,8 @@ import RTi.Util.Time.TimeZoneDefaultType;
 import RTi.Util.String.StringUtil;
 
 /**
-The DMIStatement class stores basic information about SQL statements.  It serves
-as the base class for more specific statements.
+The DMIStatement class stores basic information about SQL statements.
+It is the base class for more specific statements.
 */
 public class DMIStatement {
 
@@ -64,24 +64,24 @@ DMI that will execute the query.  It is used to determine the database type for 
 protected DMI _dmi;
 
 /**
-The object that holds information about the stored procedure, if one is
-being used.  If this query will not use a stored procedure, this is null.
+The object that holds information about the stored procedure, if one is being used.
+If this query will not use a stored procedure, this is null.
 */
 protected DMIStoredProcedureData _spData = null;
 
 /**
-A counter for stored procedures that tracks the parameter being set via
-a setValue() call.  This is necessary in order to be able to use the existing
-write.*() methods in DMIs and have them work with both stored procedures and 
-the old style dmi statements.  As addValue() statements are called, the
-counter is incremented so the stored procedure knows the position into which
+A counter for stored procedures that tracks the parameter being set via a setValue() call.
+This is necessary in order to be able to use the existing write.*() methods in DMIs and
+have them work with both stored procedures and the old style dmi statements.
+As addValue() statements are called,
+the counter is incremented so the stored procedure knows the position into which
 the value placed by the next addValue() statement should go.
 */
 private int __paramNum;
 
 /**
-Array of the parameters set in a stored procedure, for use in printing the
-stored procedure out in executable format when a query is run.
+Array of the parameters set in a stored procedure,
+for use in printing the stored procedure out in executable format when a query is run.
 */
 private String[] __spParameters = null;
 
@@ -121,9 +121,10 @@ List for table names used in the statement (e.g., FROM XXXX, XXXX).
 protected List<String> _table_Vector;
 
 /**
-List for values to be inserted or updated with the statement.  Values may be Java objects
-(String, Integer, etc.) or a DMISelectStatement, which will do a select on the value, for
-example to select foreign key from the human-readable data value.
+List for values to be inserted or updated with the statement.
+Values may be Java objects (String, Integer, etc.) or a DMISelectStatement,
+which will do a select on the value,
+for example to select foreign key from the human-readable data value.
 */
 protected List<Object> _values_Vector;
 
@@ -176,32 +177,32 @@ public void addField ( String field ) {
 }
 
 /**
-Adds the table to be INNER joined to a select query.  An ON clause will need
-to be set via the addJoinOn() method.
+Adds the table to be INNER joined to a select query.
+An ON clause will need to be set via the addJoinOn() method.
 */
 public void addInnerJoin(String tableName, String on) {
 	_join_Vector.add(tableName);
-	_join_type_Vector.add(new Integer(_JOIN_INNER));
+	_join_type_Vector.add(Integer.valueOf(_JOIN_INNER));
 	_on_Vector.add(on);
 }	
 
 /**
-Adds the table to be LEFT joined to a select query.  An ON clause will need
-to be set via the addJoinOn() method.
+Adds the table to be LEFT joined to a select query.
+An ON clause will need to be set via the addJoinOn() method.
 */
 public void addLeftJoin(String tableName, String on) {
 	_join_Vector.add(tableName);
-	_join_type_Vector.add(new Integer(_JOIN_LEFT));
+	_join_type_Vector.add(Integer.valueOf(_JOIN_LEFT));
 	_on_Vector.add(on);
 }	
 
 /**
-Adds the table to be RIGHT joined to a select query.  An ON clause will need
-to be set via the addJoinOn() method.
+Adds the table to be RIGHT joined to a select query.
+An ON clause will need to be set via the addJoinOn() method.
 */
 public void addRightJoin(String tableName, String on) {
 	_join_Vector.add(tableName);
-	_join_type_Vector.add(new Integer(_JOIN_RIGHT));
+	_join_type_Vector.add(Integer.valueOf(_JOIN_RIGHT));
 	_on_Vector.add(on);
 }	
 
@@ -214,7 +215,7 @@ throws Exception {
 		setNullValue(__paramNum++);
 	}
 	else {
-		// this is for insert/update statements
+		// This is for insert/update statements.
 		_values_Vector.add(null);
 	}
 }
@@ -229,7 +230,7 @@ public void addOrderByClause(String order_by_clause) {
 	for (int i = 0; i < size; i++) {
 		s = _order_by_Vector.get(i);
 		if (s.equalsIgnoreCase(order_by_clause)) {
-			// already present in the order by list, do not add again.
+			// Already present in the order by list, do not add again.
 			return;
 		}
 	}
@@ -264,7 +265,7 @@ throws Exception {
 		setValue(value, __paramNum++);
 	}
 	else {
-		_values_Vector.add(new Boolean(value));
+		_values_Vector.add(Boolean.valueOf(value));
 	}
 }
 
@@ -331,7 +332,7 @@ throws Exception {
 		setValue(value, __paramNum++);
 	}
 	else {
-		_values_Vector.add (new Double(value));
+		_values_Vector.add (Double.valueOf(value));
 	}
 }
 
@@ -359,7 +360,7 @@ throws Exception {
 		setValue(value, __paramNum++);
 	}
 	else {
-		_values_Vector.add (new Float(value));
+		_values_Vector.add (Float.valueOf(value));
 	}
 }
 
@@ -382,7 +383,7 @@ throws Exception {
 		setValue(value, __paramNum++);
 	}
 	else {
-		_values_Vector.add(new Integer(value));
+		_values_Vector.add(Integer.valueOf(value));
 	}
 }
 
@@ -410,7 +411,7 @@ throws Exception {
 		setValue(value, __paramNum++);
 	}
 	else {
-		_values_Vector.add(new Long(value));
+		_values_Vector.add(Long.valueOf(value));
 	}
 }
 
@@ -643,26 +644,6 @@ throws SQLException {
 	// A false indicates that the query returned an int value or void.
 	// It executes select and insert/update statements.
 	return __storedProcedureCallableStatement.execute();
-}
-
-/**
-Clean up for garbage collection.
-@exception Throwable if there is an error.
-*/
-protected void finalize()
-throws Throwable {
-	_dmi = null;
-	_spData = null;
-	_autonumber_Vector = null;
-	_field_Vector = null;
-	_join_Vector = null;
-	_join_type_Vector = null;
-	_on_Vector = null;
-	_order_by_Vector = null;
-	_table_Vector = null;
-	_values_Vector = null;
-	_where_Vector = null;
-	super.finalize();
 }
 
 /**
@@ -1117,20 +1098,20 @@ throws Exception {
 			break;
 		case java.sql.Types.SMALLINT:
 		case java.sql.Types.INTEGER:
-			Integer I = new Integer(value);
+			Integer I = Integer.valueOf(value);
 			setValue(I.intValue(), pos);
 			break;
 		case java.sql.Types.BIGINT:
-			Long L = new Long(value);
+			Long L = Long.valueOf(value);
 			setValue(L.longValue(), pos);
 			break;
 		case java.sql.Types.REAL:
-			Float F = new Float(value);
+			Float F = Float.valueOf(value);
 			setValue(F.floatValue(), pos);
 			break;
 		case java.sql.Types.DOUBLE:
 		case java.sql.Types.FLOAT:
-			Double D = new Double(value);
+			Double D = Double.valueOf(value);
 			setValue(D.doubleValue(), pos);
 			break;
 		case java.sql.Types.DATE:
@@ -1139,7 +1120,7 @@ throws Exception {
 				value = value.substring(1, len - 1);
 			}
 			DateTime DT = DateTime.parse(value);
-		    // TODO SAM 2016-03-11 the following matches legacy behavior but handling of time zone may need additional evaluation
+		    // TODO SAM 2016-03-11 the following matches legacy behavior but handling of time zone may need additional evaluation.
 			setValue(new java.sql.Date(DT.getDate(TimeZoneDefaultType.LOCAL).getTime()), pos);
 			break;
 		case java.sql.Types.TIMESTAMP:

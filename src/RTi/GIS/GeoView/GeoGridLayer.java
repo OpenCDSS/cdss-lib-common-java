@@ -4,43 +4,27 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
 
-// -----------------------------------------------------------------------------
-// GeoGridLayer - GeoLayer to store grid data
-// -----------------------------------------------------------------------------
-// Copyright: See the COPYRIGHT file
-// -----------------------------------------------------------------------------
-// History:
-//
-// 2001-10-02	Steven A. Malers, RTi	Create this class to handle generic
-//					output of shapefiles.  Most other
-//					functionality is in GeoLayer, GeoGrid,
-//					GRGrid, and derived classes like
-//					XmrgGridLayer.
-// 2001-10-08	SAM, RTi		Review javadoc.
-// 2002-12-19	SAM, RTi		Add setDataValue().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// -----------------------------------------------------------------------------
-
 package RTi.GIS.GeoView;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
@@ -50,10 +34,10 @@ import RTi.Util.Table.TableField;
 import RTi.Util.Table.TableRecord;
 
 /**
-The GeoGridLayer class extends GeoLayer and stores GeoGrid data using a Vector
-of GRGrid.  Although it is possible that a Vector of GRGrid could be saved,
-currently only a single GRGrid shape is typically stored in the shape list (e.g.,
-for use by XmrgGridLayer).  This class implements methods that can be used for
+The GeoGridLayer class extends GeoLayer and stores GeoGrid data using a List of GRGrid.
+Although it is possible that a Vector of GRGrid could be saved,
+currently only a single GRGrid shape is typically stored in the shape list (e.g., for use by XmrgGridLayer).
+This class implements methods that can be used for
 any grid-based layer, such as saving the cells with > 0 data values as a shapefile.
 */
 public class GeoGridLayer extends GeoLayer
@@ -68,30 +52,21 @@ private GeoGrid __grid = null;
 Constructor.
 @param filename Name of layer file.
 */
-public GeoGridLayer ( String filename )
-{	super ( filename );
+public GeoGridLayer ( String filename ) {
+	super ( filename );
 }
 
 /**
-Clean up for garbage collection.
-*/
-protected void finalize ()
-throws Throwable
-{	__grid = null;
-	super.finalize();
-}
-
-/**
-Get the data value for a column and row.  This method should be defined in
-a derived class to take advantage of on-the-fly reading.  If not defined and
-accessed in a derived class, the GeoGrid.getDataValue() method is called.
+Get the data value for a column and row.
+This method should be defined in a derived class to take advantage of on-the-fly reading.
+If not defined and accessed in a derived class, the GeoGrid.getDataValue() method is called.
 @param column Column of cell to read data for.
 @param row Row of cell to read data for.
 @exception IOException if there is an error reading the data.
 */
 public double getDataValue ( int column, int row )
-throws IOException
-{	return __grid.getDataValue ( column, row );
+throws IOException {
+	return __grid.getDataValue ( column, row );
 }
 
 /**
@@ -103,32 +78,31 @@ public GeoGrid getGrid() {
 }
 
 /**
-Set the data value for a column and row.  This method should be defined in
-a derived class to take advantage of on-the-fly writing.  If not defined and
-accessed in a derived class, the GeoGrid.setDataValue() method is called.
+Set the data value for a column and row.
+This method should be defined in a derived class to take advantage of on-the-fly writing.
+If not defined and accessed in a derived class, the GeoGrid.setDataValue() method is called.
 @param column Column of cell to read data for.
 @param row Row of cell to read data for.
 @param value Value to set for the row and cell.
 @exception IOException if there is an error setting the data value.
 */
 public void setDataValue ( int column, int row, double value )
-throws IOException
-{	__grid.setDataValue ( column, row, value );
+throws IOException {
+	__grid.setDataValue ( column, row, value );
 }
 
 /**
 Set the grid containing the data.
 @return the grid containing the data.
 */
-public void setGrid ( GeoGrid grid )
-{
+public void setGrid ( GeoGrid grid ) {
 	__grid = grid;
 }
 
 /**
-Write an ESRIShapefile.  This method exists in this class to allow a shapefile
-to be created for any GeoGridLayer.  The actual writing of the files occurs in
-ESRIShapefile but the packaging of the necessary data occurs in this class.
+Write an ESRIShapefile.
+This method exists in this class to allow a shapefile to be created for any GeoGridLayer.
+The actual writing of the files occurs in ESRIShapefile but the packaging of the necessary data occurs in this class.
 Minimum and maximum data values can be specified to allow a range of cells to be written.
 @param filename Name of shapefile to write (with or without .shp).
 @param to_projection Projection that data should be written.
@@ -140,12 +114,11 @@ values are checked.  Only cells with data in the limits are output.
 */
 public void writeShapefile ( String filename, GeoProjection to_projection,
 	boolean use_data_limits, double min_data_value, double max_data_value )
-throws IOException
-{	// Create the DataTable from the grid.  Note that GeoLayer (the base
-	// class) has an _attribute_table object.  However, at this time it
-	// is probably ok to just create one when we need rather than try to
-	// carry around.  This may change if we allow the attribute table to
-	// be viewed in a GUI, etc.
+throws IOException {
+	// Create the DataTable from the grid.
+	// Note that GeoLayer (the base class) has an _attribute_table object.
+	// However, at this time it is probably ok to just create one when we need rather than try to carry around.
+	// This may change if we allow the attribute table to be viewed in a GUI, etc.
 
 	List<TableField> fields = new Vector<TableField> ( 3 );
 	fields.add ( new TableField(TableField.DATA_TYPE_INT, "COLUMN", 10, 0 ) );
@@ -154,12 +127,11 @@ throws IOException
 	DataTable table = new DataTable ( fields );
 	fields = null;
 
-	// Now create the polygons to write to the shapefile.  In the future it
-	// might be possible to let the ESRIShapefile class know more about
-	// the GRID shape but for now create a list of GRPolygon that can
-	// be written in ESRIShapefile.
+	// Now create the polygons to write to the shapefile.
+	// In the future it might be possible to let the ESRIShapefile class know more about
+	// the GRID shape but for now create a list of GRPolygon that can be written in ESRIShapefile.
 
-	List<GRShape> shapes = new Vector<GRShape>();	// could optimize more
+	List<GRShape> shapes = new ArrayList<>();// Could optimize more.
 	int c = 0;
 	double value = 0.0;
 	TableRecord record = null;
@@ -178,13 +150,13 @@ throws IOException
 			if ( use_data_limits && ((value < min_data_value) || (value > max_data_value)) ) {
 				continue;
 			}
-			// Create the shape...
+			// Create the shape.
 			shapes.add ( __grid.getCellPolygon ( c, r ) );
-			// Create the attribute record...
+			// Create the attribute record.
 			record = new TableRecord(3);
-			record.addFieldValue ( new Integer(c) );
-			record.addFieldValue ( new Integer(r) );
-			record.addFieldValue ( new Double(value) );
+			record.addFieldValue ( Integer.valueOf(c) );
+			record.addFieldValue ( Integer.valueOf(r) );
+			record.addFieldValue ( Double.valueOf(value) );
 			try {
 				table.addRecord ( record );
 			}
@@ -194,7 +166,7 @@ throws IOException
 		}
 	}
 
-	// Write the shapefile.  The "from" projection is just this layer's projection...
+	// Write the shapefile.  The "from" projection is just this layer's projection.
 
 	ESRIShapefile.write ( filename, table, shapes, getProjection(), to_projection );
 }

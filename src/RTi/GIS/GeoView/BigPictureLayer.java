@@ -4,46 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//------------------------------------------------------------------------------
-// BigPictureLayer - store data for big picture layer (multiple bar symbols)
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// Notes:	(1) Assumes first column is the id (String), second column is
-//			the name (String), and remaining columns are doubles
-//------------------------------------------------------------------------------
-// History:
-// 
-// 29 Jun 1999	Catherine E.		Created initial version of class.
-//		Nutting-Lane, RTi	
-// 21 Sep 2001	Steven A. Malers, RTi	Change Table to DataTable.
-// 2001-10-18	SAM, RTi		Review javadoc.  Add finalize().  Set
-//					unused data to null.  Remove unused
-//					classes in imports.
-// 2002-06-20	SAM, RTi		Update to have a join field for the
-//					related layers, which is used to relate
-//					to other layers.  Previously the join
-//					field was assumed to be the first field
-//					(position 0) but this does not work with
-//					shapefiles!
-//------------------------------------------------------------------------------
 
 package RTi.GIS.GeoView;
 
@@ -107,19 +83,6 @@ throws Exception
 	}
 
 	return new GRLimits ( 0, ymin, 1, ymax );
-}
-
-/**
-Clean up for garbage collection.
-@exception Throwable if an error occurs.
-*/
-protected void finalize()
-throws Throwable
-{	_parent_geolayers = null;
-	_parent_join_fields = null;
-	_big_picture_table = null;
-	_big_picture_limits = null;
-	super.finalize();
 }
 
 public DataTable getBigPictureTable () {

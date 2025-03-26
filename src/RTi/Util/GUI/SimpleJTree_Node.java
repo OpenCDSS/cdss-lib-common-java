@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -30,23 +30,30 @@ import javax.swing.Icon;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
-This is a specialized node used by SimpleJTree's that overrides DefaultMutableTreeNode
-and can be used inside of JTrees.
-SimpleJTree_Nodes are used instead of DefaultMutableTreeNodes because these nodes keep
-track of additional data that comes in very handy, such as:<ul>
+<p>
+This is a specialized node used by SimpleJTree's that overrides DefaultMutableTreeNode and can be used inside of JTrees.
+SimpleJTree_Nodes are used instead of DefaultMutableTreeNodes because these nodes include additional useful data,
+including:
+</p>
+
+<ul>
 <li>The Name associated with the node</li>
 <li>Whether the node contains a component or text<li>
 </ul>
+
 <p>
 The most useful data is the name, because if names are used then nodes can
 be programatically referred to in the tree by a pre-determined name.
 Instead of finding a node by manually recursing through a tree or by keeping a reference to a specific node,
 the node can be referred to be name, instead.
+</p>
+
 <p>
 <b>Note:</b> This class is ready-to-go for insertion in a SimpleJTree,
 and applications can just use this class, but at the same time this class
 is easily extensible for more specialized purposes if necessary.
 For an example of a specialized version, see RTi.GIS.GeoView.GeoViewLegendJTree_Node.
+</p>
 */
 @SuppressWarnings("serial")
 public class SimpleJTree_Node
@@ -254,7 +261,7 @@ public String getSuperString() {
 	return super.toString();
 }
 
-// TODO SAM 2015-12-13 Why is this here?  Doesn't the base class have already for node labels
+// TODO SAM 2015-12-13 Why is this here?  Doesn't the base class have already for node labels.
 /**
 Return the text of this node (which is what is stored in the node if a Component is not stored in it).
 @return the text of this node.

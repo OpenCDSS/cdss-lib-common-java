@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2024 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -9650,7 +9650,7 @@ Set the time series data to a constant value, without setting the data flag.
 public static void setConstant ( TS ts, DateTime startDate, DateTime endDate, double value ) {
 	String setFlag = null;
 	String setFlagDesc = null;
-	Double valueDouble = new Double(value);
+	Double valueDouble = Double.valueOf(value);
 	setConstant ( ts, startDate, endDate, valueDouble, setFlag, setFlagDesc );
 }
 

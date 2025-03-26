@@ -4,157 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// TSRegression - this class is a wrapper for the RTi.Util.Math.Regression
-//		class.  It allows analysis methods related to regression to be
-//		applied to time series data.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 27 May 1998	Catherine E.
-//		Nutting-Lane, RTi	Created initial version.
-// 04 Nov 1998	Steven A. Malers, RTi	Alphabetize methods.  Add a toString
-//					method to get a nice summary of the
-//					regression statistics (for log files,
-//					etc.).  Enable the regression on
-//					construction (CEN wanted to do this
-//					before and I have wised up to the idea).
-//					Add exceptions to the get routines if
-//					the regression was not successful.
-// 08 Jan 1999	SAM, RTi		Update to give better messages in
-//					toString when there is a data problem.
-//					Track the number of points used so we
-//					can see the sample size.
-// 13 Apr 1999	SAM, RTi		Add finalize.
-// 05 Nov 2000	SAM, RTi		Use setMax*(), etc. in the base class to
-//					store max/min values that can be used
-//					for graphing.  Clean up the
-//					documentation some.  Update toString()
-//					to have a non-data-filling version.
-// 13 Apr 2001	SAM, RTi		Update to format regression results to
-//					6-digits of precision (still quite a
-//					lot but better than default of many
-//					more digits).  Fix bug where min/max
-//					values for the second time series were
-//					not getting set correctly.
-// 26 Apr 2001	SAM, RTi		Change the line separator in toString()
-//					to "\n".
-// 2001-11-06	SAM, RTi		Review javadoc.  Verify that variables
-//					are set to null when no longer used.
-// 2002-02-25	SAM, RTi		Add support for the MOVE2 algorithm.
-//					Rename variables to be more clear what
-//					the is independent (X) and what is the
-//					dependent (Y) variable.  The previous
-//					logic had them reversed, at least in the
-//					variable names versus documentation!
-//					This did not impact the filling as long
-//					as the output period was set but was
-//					causing problems for general use.
-// 2002-03-22	SAM, RTi		Add support for the MOVE1 algorithm.
-//					Add more information to the results.
-//					Support monthly and log analysis for
-//					MOVE1 and MOVE2.  Add an analysis
-//					period.  Generalize the code to not be
-//					so focused on regression.  For example,
-//					change the RegressMethod property to
-//					AnalysisMethod and change the regress()
-//					method to analyze().  Change variable
-//					names to be generic for the analysis
-//					methods (e.g., use N1 for the number of
-//					points in the overlapping period).
-// 2002-03-31	SAM, RTi		Change in plan... the MOVE2 method needs
-//					2 analysis periods, one each for the
-//					independent and dependent time series.
-//					The periods passed in to the method are
-//					done so via properties.
-// 2002-04-03	SAM, RTi		Expand the RMSE to show both the
-//					transformed and untransformed data
-//					coordinates.
-// 2002-04-04	SAM, RTi		Complete the new analyzeOLSRegression()
-//					method.
-// 2002-04-05	SAM, RTi		Add more statistics MeanY and SY and
-//					split the output into two tables to
-//					make it easier to fit on a page of
-//					output.
-// 2002-05-20	SAM, RTi		Add AnalysisMonth property to support
-//					seasonal comparisons.  Add getPropList()
-//					to allow properties to be compared with
-//					user-defined properties (e.g, in
-//					TSViewPropertiesFrame).  Add
-//					getAnalyzeMonth() to return boolean
-//					array indicating whether months are
-//					analyzed.  Add more error handling to
-//					more gracefully indicate when an
-//					analysis could not be completed.  The
-//					isAnalyzed() method should be called
-//					rather than catching an exception on
-//					the constructor because a partial
-//					monthly analysis may be possible.
-// 2003-05-14	SAM, RTi		* Add an Intercept property, to be used
-//					  with linear regression.
-// 2003-06-02	SAM, RTi		Upgrade to use generic classes.
-//					* Change TSDate to DateTime.
-// 2003-09-26	SAM, RTi		* Tracking down a problem in the plot -
-//					  display more information in toString()
-//					  when isAnalyzed() is false. 
-// 2005-04-14	SAM, RTi		* Add getPropList() method to get the
-//					  properties that were provided at
-//					  construction and which control the
-//					  logic.
-//					* Add getIndependentAnalysisStart(),
-//					  getIndependentAnalysisEnd(),
-//					  getDependentAnalysisStart(),
-//					  getDependnetAnalysisEnd() to
-//					  facilitate processing.
-// 2005-04-18	SAM, RTi		* Overload the constructor to pass in
-//					  the data arrays.  This will allow
-//					  chaining of processing so that
-//					  conversion from time series to arrays
-//					  can be minimized.  Additional
-//					  optimization may occur as performance
-//					  is evaluated (e.g., if the arrays
-//					  stay the same, then there may be no
-//					  need to recompute basic statistics).
-// 2005-05-03	Luiz Teixeira, RTi	Added the method createPredictedTS().
-//					Added the method getPredictedTS().
-// 2005-05-04	LT, RTi			Update the method createPredictedTS().
-//					to compute the residual.
-//					Added the method getResidualTS().
-// 2005-05-06	SAM, RTi		Clean up some of the properties to be
-//					more consistent with parameters used
-//					in TSTool and other software:
-//					* FillPeriodStart -> FillStart
-//					* FillPeriodEnd -> FillEnd
-//					* IndependentAnalysisPeriodStart ->
-//					  IndependentAnalysisStart
-//					* IndependentAnalysisPeriodEnd ->
-//					  IndependentAnalysisEnd
-//					* DependentAnalysisPeriodStart ->
-//					  DependentAnalysisStart
-//					* DependentAnalysisPeriodEnd ->
-//					  DependentAnalysisEnd
-//					Support the old versions but print a
-//					warning level 2.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-// EndHeader
 
 package RTi.TS;
 
@@ -356,7 +221,7 @@ Data value to substitute for the original when using a log transform and the ori
 Can be any number > 0.
 TODO SAM 2010-12-17 Allow NaN to throw the number away, but this changes counts, etc.
 */
-private Double __leZeroLogValue = new Double(getDefaultLEZeroLogValue()); // Default
+private Double __leZeroLogValue = Double.valueOf(getDefaultLEZeroLogValue()); // Default.
 /**
 Indicates the data transformation.
 */
@@ -1685,34 +1550,11 @@ throws Exception
 }
 
 /**
-Finalize before garbage collection.
-@exception Throwable if there is an error.
-*/
-protected void finalize ()
-throws Throwable
-{	
-	__yTSpredicted = null;
-	__yTSresidual  = null;
-	
-	_xTS = null;
-	_yTS = null;
-
-	_b_monthly = null;
-	_a_monthly = null;
-	_n1_monthly = null;
-	_rmseMonthly = null;
-	_r_monthly = null;
-	_is_analyzed_monthly = null;
-	super.finalize();
-}
-
-/**
 Free the resources computed during the analysis, including arrays of numbers.  Normally these are left in
 memory to facilitate reporting or further analysis (although currently there are no getter methods).
 Freeing the resources may be necessary in large analysis.
 */
-public void freeResources ()
-{
+public void freeResources () {
     __X = null;
     __X_monthly = null;
     __X1 = null;

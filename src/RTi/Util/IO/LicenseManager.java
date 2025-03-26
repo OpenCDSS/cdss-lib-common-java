@@ -4,41 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// LicenseManager.java -- manages reading license files that have encrypted
-//	strings in them.
-// ----------------------------------------------------------------------------
-// Copyright:  See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2002-08-26	J. Thomas Sapienza, RTi	Initial version.
-// 2002-08-07	JTS, RTi		Added javadoc, suport for writing 
-//					persistent files.
-// 2002-11-11	JTS, RTi		Revised some commenting.
-// 2003-01-09	JTS, RTi		The class was almost completely gutted
-//					and restarted.
-// 2003-01-11	JTS, RTi		Revisions to accomodate SAM's
-//					LicenseManager design.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
 
 package RTi.Util.IO;
 
@@ -236,21 +217,6 @@ throws Exception {
 		__licenseKey = license;
 	}
 	return license;
-}
-
-/**
-Clean up data members.
-*/
-public void finalize() 
-throws Throwable {
-	__product = null;
-	__licenseOwner = null;
-	__licenseType = null;
-	__licenseCount = null;
-	__licenseExpires = null;
-	__licenseKey = null;
-
-	super.finalize();
 }
 
 /**

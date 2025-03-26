@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -44,6 +44,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.tree.TreeNode;
 
 import RTi.GR.GRClassificationType;
 import RTi.GR.GRLegend;
@@ -497,9 +498,7 @@ public List<GeoViewLegendJTree_Node> getAllLayerNodes() {
 
 	if (__projectNode != null) {
 		if (__projectNode.getChildCount() >= 0) {
-			for ( @SuppressWarnings("unchecked")
-			Enumeration<GeoViewLegendJTree_Node> e = __projectNode.children();
-				e.hasMoreElements();) {
+			for ( Enumeration<TreeNode> e = __projectNode.children(); e.hasMoreElements() ; ) {
 				GeoViewLegendJTree_Node n = (GeoViewLegendJTree_Node)e.nextElement();
 				getAllLayerNodes(n, v);
 			}
@@ -518,8 +517,7 @@ private void getAllLayerNodes(GeoViewLegendJTree_Node node, List<GeoViewLegendJT
 		v.add(node);
 	}
 	if (node.getChildCount() >= 0) {
-		for (@SuppressWarnings("unchecked")
-		Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
+		for ( Enumeration<TreeNode> e = node.children(); e.hasMoreElements(); ) {
 			GeoViewLegendJTree_Node n = (GeoViewLegendJTree_Node)e.nextElement();
 			getAllLayerNodes(n, v);
 		}
@@ -538,15 +536,11 @@ public List<GeoViewLegendJTree_Node> getAllNodes() {
 		return v;
 	}
 
-	GeoViewLegendJTree_Node node = null;
-
-	for (@SuppressWarnings("unchecked")
-	Enumeration<GeoViewLegendJTree_Node> e = __projectNode.children(); e.hasMoreElements();) {
-		node = e.nextElement();	
+	for ( Enumeration<TreeNode> e = __projectNode.children(); e.hasMoreElements(); ) {
+		GeoViewLegendJTree_Node node = (GeoViewLegendJTree_Node)e.nextElement();	
 		v.add(node);
-		for (@SuppressWarnings("unchecked")
-		Enumeration<GeoViewLegendJTree_Node> e2 = node.children(); e2.hasMoreElements();) {
-			v.add(e2.nextElement());
+		for ( Enumeration<TreeNode> e2 = node.children(); e2.hasMoreElements(); ) {
+			v.add((GeoViewLegendJTree_Node)e2.nextElement());
 		}
 	}
 	return v;

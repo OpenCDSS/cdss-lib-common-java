@@ -4,46 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//-----------------------------------------------------------------------------
-// DataSetComponent - an object to maintain information about a single
-//			component from a data set
-//-----------------------------------------------------------------------------
-// History:
-//
-// 2003-07-12	Steven A. Malers, RTi	Created class. Copy
-//					StateCU_DataSetComponent and make more
-//					general.
-// 2003-07-15	J. Thomas Sapienza, RTi	Added hasData()
-// 2003-10-13	SAM, RTi		* Initialize __is_dirty and __is_group
-//					  to false.
-//					* Add a copy constructor.
-// 2005-04-26	J. Thomas Sapienza, RTi	Added all data members to finalize().
-// 2006-04-10	SAM, RTi		* Added isOutput() to indicate whether
-//					  the component is being created as
-//					  output.  This is used to evaluate
-//					  whether data checks need to be done.
-//					* Add getDataCheckResults() and
-//					  setDataCheckResults() to handle
-//					  verbose output for data checks.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
 
 package RTi.Util.IO;
 
@@ -244,23 +220,6 @@ Get the parent (group) component.
 */
 public DataSetComponent getParentComponent()
 {	return __parent;
-}
-
-/**
-Finalize before garbage collection.
-@exception Throwable if an error occurs.
-*/
-protected void finalize()
-throws Throwable
-{	__commandFileName = null;
-	__data_file_name = null;
-	__list_file_name = null;
-	__name = null;
-	__data = null;
-	__list_source = null;
-	__parent = null;
-	__dataset = null;
-	super.finalize();
 }
 
 /**

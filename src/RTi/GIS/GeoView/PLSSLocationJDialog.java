@@ -4,39 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//-----------------------------------------------------------------------------
-// PLSSLocationJDialog - a dialog for entering a PLSS location.
-//-----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// History:
-//
-// 2005-01-14	J. Thomas Sapienza, RTi	Initial version from 
-//					HydroBase_GUI_BuildLocationQuery.
-// 2005-02-01	JTS, RTi		The wildcard character can now be
-//					changed.
-// 2005-02-02	JTS, RTi		* Added support for half sections.
-//					* Added Clear button.
-// 2005-04-27	JTS, RTi		Added finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
 
 package RTi.GIS.GeoView;
 
@@ -72,17 +55,17 @@ Class that assists various forms in building a location query.
 TODO (JTS - 2006-05-23) Example of using this.
 */
 @SuppressWarnings("serial")
-public class PLSSLocationJDialog 
-extends JDialog 
+public class PLSSLocationJDialog
+extends JDialog
 implements WindowListener, KeyListener, ActionListener {
 
 /**
 Button labels.
 */
 private final String
-	__BUTTON_CANCEL = 	"Cancel",
-	__BUTTON_CLEAR = 	"Clear",
-	__BUTTON_OK = 		"OK";
+	__BUTTON_CANCEL = "Cancel",
+	__BUTTON_CLEAR = "Clear",
+	__BUTTON_OK = "OK";
 
 /**
 A string used to represent an unset value in the location.
@@ -90,8 +73,7 @@ A string used to represent an unset value in the location.
 private String __wildcard = " ";
 
 /**
-The interaction the user had with the dialog to close it (either 
-ResponseJDialog.OK or ResponseJDialog.CANCEL).
+The interaction the user had with the dialog to close it (either ResponseJDialog.OK or ResponseJDialog.CANCEL).
 */
 private int __response = -1;
 
@@ -110,7 +92,7 @@ JTextField to hold the township.
 */
 private JTextField __tsJTextField;
 
-// TODO SAM 2007-05-09 Evaluate how used
+// TODO SAM 2007-05-09 Evaluate how used.
 /**
 The location object that stores the data initially passed into this dialog.
 */
@@ -150,9 +132,9 @@ private SimpleJComboBox __rangeJComboBox;
 Combo box for holding township.
 */
 private SimpleJComboBox __tsJComboBox;
-         
+
 /**
-Constructor. 
+Constructor.
 @param parent the parent frame on which to build this modal dialog.
 @param cdssFormat whether the location data are in CDSS format.
 @throws Exception if an error occurs
@@ -161,7 +143,7 @@ public PLSSLocationJDialog(JFrame parent, boolean cdssFormat)
 throws Exception {
 	super(parent, true);
 
-	if (cdssFormat) {	
+	if (cdssFormat) {
 		__wildcard = "*";
 	}
 
@@ -169,18 +151,17 @@ throws Exception {
 
 	setupGUI();
 
-        super.setVisible(true);
+    super.setVisible(true);
 }
 
 /**
-Constructor.  Builds a dialog and populates the components with the data
-stored in the given location object.
+Constructor.  Builds a dialog and populates the components with the data stored in the given location object.
 @param parent the parent frame on which to build this modal dialog.
 @param location the location object to use for filling in data in the dialog.
 @param cdssFormat whether the location data are in CDSS format.
 @throws Exception if an error occurs
 */
-public PLSSLocationJDialog(JFrame parent, PLSSLocation location, 
+public PLSSLocationJDialog(JFrame parent, PLSSLocation location,
 boolean cdssFormat)
 throws Exception {
 	super(parent, true);
@@ -205,19 +186,19 @@ Responds to action performed events.
 public void actionPerformed(ActionEvent evt) {
 	String command = evt.getActionCommand().trim();
 
-        if (command.equals(__BUTTON_CANCEL)) {
+    if (command.equals(__BUTTON_CANCEL)) {
 		__response = ResponseJDialog.CANCEL;
 		response();
-        }
+    }
 	else if (command.equals(__BUTTON_CLEAR)) {
 		clear();
 	}
-        else if (command.equals(__BUTTON_OK)) {
-                __response = ResponseJDialog.OK;
+    else if (command.equals(__BUTTON_OK)) {
+        __response = ResponseJDialog.OK;
 		if (checkData()) {
 			response();
 		}
-        }
+    }
 }
 
 /**
@@ -228,7 +209,7 @@ public PLSSLocation buildLocation() {
 	String routine = "PLSSLocationJDialog.buildLocation";
 
 	PLSSLocation location = new PLSSLocation();
-	
+
 	try {
 		String s = __pmJComboBox.getSelected();
 		if (!s.equals(__wildcard)) {
@@ -281,8 +262,7 @@ public PLSSLocation buildLocation() {
 		}
 	}
 	catch (Exception e) {
-		// this should never happen since the inputs are constrained
-		// (mostly) by the dialog
+		// This should never happen since the inputs are constrained (mostly) by the dialog.
 		Message.printWarning(1, routine, "Error creating location.");
 		Message.printWarning(2, routine, e);
 		return null;
@@ -302,11 +282,10 @@ private boolean checkData() {
 	int i = StringUtil.atoi(s);
 	if (!s.trim().equals("")) {
 		if (i <= 0) {
-			message += "Township (" + s + ") must be greater "
-				+ "than 0\n";
+			message += "Township (" + s + ") must be greater than 0\n";
 		}
 	}
-	
+
 	s = __rangeJTextField.getText();
 	i = StringUtil.atoi(s);
 	if (!s.trim().equals("")) {
@@ -319,8 +298,7 @@ private boolean checkData() {
 	i = StringUtil.atoi(s);
 	if (!s.trim().equals("")) {
 		if (i <= 0) {
-			message += "Section (" + s + ") must be greater "
-				+ "than 0\n";
+			message += "Section (" + s + ") must be greater than 0\n";
 		}
 		else if (i > 36) {
 			message += "Section (" + s + ") must be less than 37\n";
@@ -330,14 +308,13 @@ private boolean checkData() {
 	if (message.length() == 0) {
 		return true;
 	}
-	
-	new ResponseJDialog(this, "Error in Location data",
-		message, ResponseJDialog.OK);
+
+	new ResponseJDialog(this, "Error in Location data", message, ResponseJDialog.OK);
 	return false;
 }
 
 /**
-Clears any data that has been entered on the GUI, clearing all the text fields 
+Clears any data that has been entered on the GUI, clearing all the text fields
 and setting all the combo boxes to the wildcard value.
 */
 private void clear() {
@@ -354,8 +331,7 @@ private void clear() {
 }
 
 /**
-Fills the components on the dialog with the location data stored in the 
-specified PLSSLocation object.
+Fills the components on the dialog with the location data stored in the specified PLSSLocation object.
 @param location the PLSSLocation object to use for filling in the components.
 */
 private void fillComponentData(PLSSLocation location) {
@@ -366,7 +342,7 @@ private void fillComponentData(PLSSLocation location) {
 	else {
 		__pmJComboBox.setText(s);
 	}
-	
+
 	int i = location.getTownship();
 	if (i == PLSSLocation.UNSET) {
 		__tsJTextField.setText("");
@@ -441,33 +417,13 @@ private void fillComponentData(PLSSLocation location) {
 }
 
 /**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__wildcard = null;
-	__rangeJTextField = null;
-	__sectionJTextField = null;
-	__tsJTextField = null;
-	//__location = null;
-	__halfSectionJComboBox = null;
-	__pmJComboBox = null;
-	__q10JComboBox = null;
-	__q40JComboBox = null;
-	__q160JComboBox = null;
-	__rangeJComboBox = null;
-	__tsJComboBox = null;
-         super.finalize();
-}
-
-/**
 Responds to key pressed events.
 @param event the key event that happened.
 */
 public void keyPressed(KeyEvent event) {
 	int code = event.getKeyCode();
-	
-        // enter key acts as an ok action event
+
+    // Enter key acts as an ok action event.
 	if (code == KeyEvent.VK_ENTER) {
 		__response = ResponseJDialog.OK;
 		response();
@@ -496,7 +452,7 @@ public PLSSLocation response() {
 	if (__response == ResponseJDialog.CANCEL) {
 		return null;
 	}
-	else {	
+	else {
 		return buildLocation();
 	}
 }
@@ -507,18 +463,18 @@ Sets up the GUI.
 private void setupGUI() {
 	addWindowListener(this);
 
-        // objects used throughout the GUI layout
-        Insets insetsTLNR = new Insets(7,7,0,7);                         
+        // Objects used throughout the GUI layout.
+        Insets insetsTLNR = new Insets(7,7,0,7);
         Insets insetsTNNN = new Insets(7,0,0,0);
         Insets insetsNLNR = new Insets(0,7,0,7);
         GridBagLayout gbl = new GridBagLayout();
 
-        // Center panel
+        // Center panel.
         JPanel centerJPanel = new JPanel();
         centerJPanel.setLayout(gbl);
         getContentPane().add("Center", centerJPanel);
 
-        JGUIUtil.addComponent(centerJPanel, new JLabel("PM:"), 
+        JGUIUtil.addComponent(centerJPanel, new JLabel("PM:"),
 		0, 0, 1, 1, 0, 0, insetsTLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
         __pmJComboBox = new SimpleJComboBox();
@@ -529,15 +485,15 @@ private void setupGUI() {
         __pmJComboBox.add("S");
         __pmJComboBox.add("U");
         __pmJComboBox.select(0);
-        JGUIUtil.addComponent(centerJPanel, __pmJComboBox, 
+        JGUIUtil.addComponent(centerJPanel, __pmJComboBox,
 		1, 0, 1, 1, 0, 0, insetsTNNN, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
-	JGUIUtil.addComponent(centerJPanel, new JLabel("Township:"), 
+	JGUIUtil.addComponent(centerJPanel, new JLabel("Township:"),
 		0, 1, 1, 1, 0, 0, insetsNLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
         __tsJTextField = new JTextField(10);
 	__tsJTextField.addKeyListener(this);
-        JGUIUtil.addComponent(centerJPanel, __tsJTextField, 
+        JGUIUtil.addComponent(centerJPanel, __tsJTextField,
 		1, 1, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         __tsJComboBox = new SimpleJComboBox();
@@ -545,15 +501,15 @@ private void setupGUI() {
         __tsJComboBox.add("N");
         __tsJComboBox.add("S");
         __tsJComboBox.select(0);
-        JGUIUtil.addComponent(centerJPanel, __tsJComboBox, 
+        JGUIUtil.addComponent(centerJPanel, __tsJComboBox,
 		2, 1, 1, 1, 0, 0, insetsNLNR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
-        JGUIUtil.addComponent(centerJPanel, new JLabel("Range:"), 
+        JGUIUtil.addComponent(centerJPanel, new JLabel("Range:"),
 		0, 2, 1, 1, 0, 0, insetsNLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
         __rangeJTextField = new JTextField(10);
 	__rangeJTextField.addKeyListener(this);
-        JGUIUtil.addComponent(centerJPanel, __rangeJTextField, 
+        JGUIUtil.addComponent(centerJPanel, __rangeJTextField,
 		1, 2, 1, 1, 0, 0, GridBagConstraints.NONE, GridBagConstraints.WEST);
 
         __rangeJComboBox = new SimpleJComboBox();
@@ -561,24 +517,24 @@ private void setupGUI() {
         __rangeJComboBox.add("E");
         __rangeJComboBox.add("W");
         __rangeJComboBox.select(0);
-        JGUIUtil.addComponent(centerJPanel, __rangeJComboBox, 
+        JGUIUtil.addComponent(centerJPanel, __rangeJComboBox,
 		2, 2, 1, 1, 0, 0, insetsNLNR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
-        JGUIUtil.addComponent(centerJPanel, new JLabel("Section:"), 
+        JGUIUtil.addComponent(centerJPanel, new JLabel("Section:"),
 		0, 3, 1, 1, 0, 0, insetsNLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
         __sectionJTextField = new JTextField(10);
 	__sectionJTextField.addKeyListener(this);
-        JGUIUtil.addComponent(centerJPanel, __sectionJTextField, 
+        JGUIUtil.addComponent(centerJPanel, __sectionJTextField,
 		1, 3, 1, 1, 0, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
       __halfSectionJComboBox = new SimpleJComboBox();
 	__halfSectionJComboBox.add(__wildcard);
 	__halfSectionJComboBox.add("U");
-      JGUIUtil.addComponent(centerJPanel, __halfSectionJComboBox, 
+      JGUIUtil.addComponent(centerJPanel, __halfSectionJComboBox,
 		2, 3, 1, 1, 0, 0, insetsNLNR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
-        JGUIUtil.addComponent(centerJPanel, new JLabel("1/4 Section:"), 
+        JGUIUtil.addComponent(centerJPanel, new JLabel("1/4 Section:"),
 		0, 4, 1, 1, 0, 0, insetsNLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
         __q160JComboBox = new SimpleJComboBox();
@@ -587,10 +543,10 @@ private void setupGUI() {
         __q160JComboBox.add("NW");
         __q160JComboBox.add("SE");
         __q160JComboBox.add("SW");
-        JGUIUtil.addComponent(centerJPanel, __q160JComboBox, 
+        JGUIUtil.addComponent(centerJPanel, __q160JComboBox,
 		1, 4, 1, 1, 0, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
-        JGUIUtil.addComponent(centerJPanel, new JLabel("1/4 1/4 Section:"), 
+        JGUIUtil.addComponent(centerJPanel, new JLabel("1/4 1/4 Section:"),
 		0, 5, 1, 1, 0, 0, insetsNLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
         __q40JComboBox = new SimpleJComboBox();
@@ -599,10 +555,10 @@ private void setupGUI() {
         __q40JComboBox.add("NW");
         __q40JComboBox.add("SE");
         __q40JComboBox.add("SW");
-        JGUIUtil.addComponent(centerJPanel, __q40JComboBox, 
+        JGUIUtil.addComponent(centerJPanel, __q40JComboBox,
 		1, 5, 1, 1, 0, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
-        JGUIUtil.addComponent(centerJPanel, new JLabel("1/4 1/4 1/4 Section:"), 
+        JGUIUtil.addComponent(centerJPanel, new JLabel("1/4 1/4 1/4 Section:"),
 		0, 6, 1, 1, 0, 0, insetsNLNR, GridBagConstraints.NONE, GridBagConstraints.EAST);
 
         __q10JComboBox = new SimpleJComboBox();
@@ -611,14 +567,14 @@ private void setupGUI() {
         __q10JComboBox.add("NW");
         __q10JComboBox.add("SE");
         __q10JComboBox.add("SW");
-        JGUIUtil.addComponent(centerJPanel, __q10JComboBox, 
+        JGUIUtil.addComponent(centerJPanel, __q10JComboBox,
 		1, 6, 1, 1, 0, 0, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
-        // Bottom panel
+        // Bottom panel.
         JPanel bottomJPanel = new JPanel();
         bottomJPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
         getContentPane().add("South", bottomJPanel);
-	
+
 	JButton clearJButton = new JButton(__BUTTON_CLEAR);
 	clearJButton.addActionListener(this);
 	clearJButton.setToolTipText("Clear all text fields and set all choices "
@@ -629,7 +585,7 @@ private void setupGUI() {
 	okJButton.addActionListener(this);
 	okJButton.setToolTipText("Accept PLSS location.");
         bottomJPanel.add(okJButton);
- 
+
         JButton cancelJButton = new JButton(__BUTTON_CANCEL);
 	cancelJButton.addActionListener(this);
 	cancelJButton.setToolTipText("Close this window and discard the "
@@ -641,7 +597,7 @@ private void setupGUI() {
 		app = "";
 	}
 	else {
-		app += " - ";	
+		app += " - ";
 	}
         setTitle(app + "Specify PLSS Location");
         pack();
@@ -650,16 +606,18 @@ private void setupGUI() {
 }
 
 /**
-Responds to window activated events. 
+Responds to window activated events.
 @param evt the window event that happened.
 */
-public void windowActivated(WindowEvent evt) {}
+public void windowActivated(WindowEvent evt) {
+}
 
 /**
 Responds to window closed events.
 @param evt the window event that happened.
 */
-public void windowClosed(WindowEvent evt) {}
+public void windowClosed(WindowEvent evt) {
+}
 
 /**
 Responds to window closing events.
@@ -674,24 +632,28 @@ public void windowClosing(WindowEvent evt) {
 Responds to window deactivated events.
 @param evt the window event that happened.
 */
-public void windowDeactivated(WindowEvent evt) {}
+public void windowDeactivated(WindowEvent evt) {
+}
 
 /**
 Responds to window deiconified events.
 @param evt the window event that happened.
 */
-public void windowDeiconified(WindowEvent evt) {}
+public void windowDeiconified(WindowEvent evt) {
+}
 
 /**
 Responds to window iconified events.
 @param evt the window event that happened.
 */
-public void windowIconified(WindowEvent evt) {}
+public void windowIconified(WindowEvent evt) {
+}
 
 /**
 Responds to window opened events.
 @param evt the window event that happened.
 */
-public void windowOpened(WindowEvent evt) {}
+public void windowOpened(WindowEvent evt) {
+}
 
 }

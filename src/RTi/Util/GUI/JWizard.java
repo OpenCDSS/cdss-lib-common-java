@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,27 +20,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//-----------------------------------------------------------------------------
-// JWizard - JWizard top level GUI class.
-//-----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// History: 
-// 15 Jan 1998 DLG, RTi		Created initial class description.
-// 05 Mar 1998 DLG, RTi		Added the icon image functionality.
-// 11 Mar 1998 DLG, RTi		Changed class to public from public abstract
-//				as this was causing a conflict with IE 4.0.
-//				Functions are no longer abstract in this class.
-// 31 Mar 1998 DLG, RTi		Added Constructor for help key.
-// 07 May 1998 DLG, RTi		Added javadoc comments.
-// 07 Jan 2001 SAM, RTi		Change import * to specific imports, GUI to
-//				GUIUtil, and IO to IOUtil.
-//-----------------------------------------------------------------------------
-// 2003-11-28	J. Thomas Sapienza, RTi	Initial Swing version.
-// 2005-04-26	JTS, RTi		Added finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
 
 package RTi.Util.GUI;
 
@@ -260,24 +239,6 @@ protected boolean cancelClicked() {
 }
 
 /**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__cancelJButton = null;
-	__helpJButton = null;
-	__finishJButton = null;
-	__nextJButton = null;
-	__backJButton = null;
-	__stepJLabel = null;
-	__statusJTextField = null;
-	__centerJPanel = null;
-	__infoJPanel = null;
-	__helpKey = null;
-	super.finalize();
-}
-
-/**
 This function responds to the __finishJButton action performed event.
 */
 protected boolean finishClicked() {
@@ -308,12 +269,10 @@ protected boolean nextClicked() {
 	__wizardStep++;
 
 	if (__wizardStep <= __maxStep) {
-		__stepJLabel.setText("Wizard Step " + __wizardStep 
-			+ " of " + __maxStep);
+		__stepJLabel.setText("Wizard Step " + __wizardStep + " of " + __maxStep);
 	}
 
-	// disable next button and enable finish JButton 
-	// if last panel is encountered 
+	// Disable next button and enable finish JButton if last panel is encountered.
 	if (__wizardStep == __maxStep) {
 		__nextJButton.setEnabled(false);
 		__backJButton.setEnabled(true);

@@ -1,10 +1,10 @@
-// TSGraphJComponent_SaveAsSVG - Basik SVG file writer
+// TSGraphJComponent_SaveAsSVG - Basic SVG file writer
 
 /* NoticeStart
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2024 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,21 +29,24 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import org.apache.batik.dom.GenericDOMImplementation;
-import org.apache.batik.svggen.SVGGeneratorContext;
-import org.apache.batik.svggen.SVGGraphics2D;
+// Java 8.
+//import org.apache.batik.dom.GenericDOMImplementation;
+//import org.apache.batik.svggen.SVGGeneratorContext;
+//import org.apache.batik.svggen.SVGGraphics2D;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 
 /**
  * By keeping this code out of TSGraphJComponent (or other classes) and keeping
- * this classes interface API neutral with respect to batik,
+ * this classes interface API neutral with respect to Batik,
  * can allow Batik functionality to be dynamically enabled/disabled by the presence of those classes in the default classpath.
  */
 class TSGraphJComponent_SaveAsSVG {
 
+	// TODO smalers 2025-03-19 enable if Java 11 issues can be resolved.
     static Graphics createGraphics() {
         // Get a DOMImplementation.
+    	/*
         DOMImplementation domImpl = GenericDOMImplementation.getDOMImplementation();
 
         // Create an instance of org.w3c.dom.Document.
@@ -58,6 +61,8 @@ class TSGraphJComponent_SaveAsSVG {
 
         // Create an instance of the SVG Generator.
         return new SVGGraphics2D(ctx, false);
+        */
+    	return null;
     }
 
     /**
@@ -67,6 +72,7 @@ class TSGraphJComponent_SaveAsSVG {
      * @throws IOException
      */
     static void saveGraphics(Graphics graphics,String path) throws IOException {
+    	/* TODO smalers 2025-03-19 enable if Java 11 issues can be resolved.
         // Finally, stream out SVG to the standard output using UTF-8 encoding.
         boolean useCSS = true; // Want to use CSS style attributes.
         FileOutputStream outf = new FileOutputStream ( path );
@@ -74,5 +80,6 @@ class TSGraphJComponent_SaveAsSVG {
         ((SVGGraphics2D)graphics).stream(out, useCSS);
         outf.flush();
         outf.close();
+        */
     }
 }

@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,73 +20,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// TSLimits - simple class for managing time series data limits
-// ----------------------------------------------------------------------------
-// History:
-//
-// 24 Sep 1997	Steven A. Malers, RTi	Initial version.
-// 05 Jan 1998	SAM, RTi		Update based on C++ port.  Add
-//					_date1 and _date2 so that we can use
-//					TSLimits as a return from routines that
-//					return date limits.  Add
-//					_non_missing_data_count,
-//					getNonMissingDataCount(), and
-//					hasNonMissingData().
-// 19 Mar 1998	SAM, RTi		Add javadoc.
-// 20 Aug 1998	SAM, RTi		Add setMissingDataCount().
-// 02 Jan 1999	SAM, RTi		Add sum and mean to the data that are
-//					tracked to support searches, etc.
-//					Change the return type of set routines
-//					to void and don't return anything (the
-//					methods always returned 0).  Add
-//					constructors and getDataLimits methods
-//					so that this routine actually does the
-//					computations.  This allows independent
-//					use from TSUtil.getDataLimits, which
-//					is desirable but may not perform well
-//					in some cases.
-// 12 Apr 1999	SAM, RTi		Add finalize.
-// 28 Oct 1999	SAM, RTi		Add flag to ignore <= 0 values in
-//					computations (treat as missing).
-// 22 Mar 2001	SAM, RTi		Change toString() to print nicer so
-//					output can be used in reports.
-// 28 Aug 2001	SAM, RTi		Implement clone().  A copy constructor
-//					is already implemented but clone() is
-//					used by TS and might be preferred by
-//					some developers.
-// 2001-11-06	SAM, RTi		Review javadoc.  Verify that variables
-//					are set to null when no longer used.
-// 2003-03-25	SAM, RTi		Add data units as a data member and
-//					add getDataUnits().  This is needed
-//					because TSTool now has a
-//					convertDataUnits() command and the units
-//					for TSLimits need to be set for the
-//					current and original data.
-// 2003-06-02	SAM, RTi		Upgrade to use generic classes.
-//					* Change TSDate to DateTime.
-//					* Change TS.INTERVAL* to TimeInterval.
-// 2004-02-17	SAM, RTi		* Change private data members to start
-//					  with __, as per RTi standards.
-//					* Change the private getDataLimits() to
-//					  calculateDataLimits() to more
-//					  accurately reflect its purpose.
-//					* Fix copy constructor to set the _flags
-//					  and __ts, but do not copy the time
-//					  series.
-// 2004-03-04	J. Thomas Sapienza, RTi	Class is now serializable.
-// 2005-02-04	SAM, RTi		Add getTimeSeries() to return the time
-//					series associated with the limits.
-//					Add setTimeSeries() also.
-//					When limits cannot be calculated in
-//					calculateDataLimits(), only print the
-//					warning message at debug level 2.
-// 2005-05-25	SAM, RTi		Change so "low level" warning messages
-//					are handled and level 3 instead of 2, to
-//					mininimize visibility in the log viewer.
-// ----------------------------------------------------------------------------
-// EndHeader
 
 package RTi.TS;
 
@@ -664,22 +597,6 @@ public Object clone ()
 		// Should not happen because everything is cloneable.
 		throw new InternalError();
 	}
-}
-
-/**
-Finalize before garbage collection.
-@exception Throwable if there is an error.
-*/
-protected void finalize ()
-throws Throwable
-{	__ts = null;
-	__date1 = null;
-	__date2 = null;
-	__max_value_date = null;
-	__min_value_date = null;
-	__non_missing_data_date1 = null;
-	__non_missing_data_date2 = null;
-	super.finalize();
 }
 
 /**

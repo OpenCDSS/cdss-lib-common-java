@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -28,9 +28,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
-
-import RTi.Util.IO.IOUtil;
 
 import RTi.Util.Message.Message;
 
@@ -38,8 +35,8 @@ import RTi.Util.String.StringUtil;
 
 /**
 This DataSet class manages a list of DataSetComponent, typically for use with
-a model where each component corresponds to a file or section of data within
-a file.  This class should be extended to provide specific functionality for a data set.
+a model where each component corresponds to a file or section of data within a file.
+This class should be extended to provide specific functionality for a data set.
 */
 public abstract class DataSet
 {
@@ -50,9 +47,9 @@ Base name for data set, used to provide default file names when creating new fil
 private String __basename = "";
 
 /**
-List of data components in the data set.  Each component is a type that is described in the
-lookup arrays for the data set, and has data for the component.  Components are hierarchical and
-therefore the top level components will contain groups.
+List of data components in the data set.
+Each component is a type that is described in the lookup arrays for the data set, and has data for the component.
+Components are hierarchical and therefore the top level components will contain groups.
 */
 private List<DataSetComponent> __components = null;
 
@@ -92,20 +89,18 @@ Name of the data set file (XML file).
 */
 private String __dataset_filename = "";
 
-// TODO - evaluate switching this to a String - it is not checked as often
-// as the component types are
+// TODO - evaluate switching this to a String - it is not checked as often as the component types are.
 /**
-Data set type.  The derived class can use this to define specific data set
-types.  The value is initialized to -1.
+Data set type.  The derived class can use this to define specific data set types.  The value is initialized to -1.
 */
 private int __type = -1;
 
 /**
-Construct a blank data set.  It is expected that other information will be set
-during further processing.  Component groups are not initialized until a data set type is set.
+Construct a blank data set.  It is expected that other information will be set during further processing.
+Component groups are not initialized until a data set type is set.
 */
-public DataSet ()
-{	__components = new Vector<DataSetComponent>();
+public DataSet () {
+	__components = new ArrayList<>();
 }
 
 /**
@@ -129,7 +124,7 @@ to create the list of objects identifiers in the group.
 */
 public DataSet ( int [] component_types, String [] component_names, int [] component_groups,
 	int [] component_group_assignments, int [] component_group_primaries )
-{	__components = new Vector<DataSetComponent>();
+{	__components = new ArrayList<>();
 	_component_types = component_types;
 	_component_names = component_names;
 	_component_groups = component_groups;
@@ -149,7 +144,7 @@ public DataSet ( int type, String dataset_dir, String basename )
 {	__type = type;
 	__dataset_dir = dataset_dir;
 	__basename = basename;
-	__components = new Vector<DataSetComponent>();
+	__components = new ArrayList<>();
 }
 
 /**
@@ -177,26 +172,6 @@ public boolean componentHasData ( int component_type )
 	else {
 		return false;
 	}
-}
-
-/**
-Finalize before garbage collection.
-@exception Throwable if an error occurs.
-*/
-protected void finalize()
-throws Throwable
-{	__basename = null;
-	__components = null;
-	// TODO SAM 2005-05-21 The following sets static component names to
-	// null!  Subsequent access of the component names do not work.
-	//IOUtil.nullArray(_component_names);
-	_component_types = null;
-	_component_groups = null;
-	_component_group_assignments = null;
-	_component_group_primaries = null;
-	__dataset_dir = null;
-	__dataset_filename = null;
-	super.finalize();
 }
 
 /**
@@ -339,7 +314,7 @@ Return the data components list for components in the specified group.
 @return the data components list for components in the specified group.
 */
 public List<DataSetComponent> getComponentsForGroup ( DataSetComponent groupComp )
-{	List<DataSetComponent> componentsInGroup = new Vector<DataSetComponent>();
+{	List<DataSetComponent> componentsInGroup = new ArrayList<>();
 	if ( (groupComp == null) || !groupComp.isGroup() ) {
 		return componentsInGroup;
 	}
@@ -362,7 +337,7 @@ Return the data components list for component that are groups.
 */
 public List<DataSetComponent> getComponentGroups ()
 {	int size = __components.size();
-	List<DataSetComponent> v = new Vector<DataSetComponent>();
+	List<DataSetComponent> v = new ArrayList<>();
 	DataSetComponent comp = null;
 	for ( int i = 0; i < size; i++ ) {
 		comp = __components.get(i);

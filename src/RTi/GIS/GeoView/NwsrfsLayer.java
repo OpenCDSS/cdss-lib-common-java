@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,30 +21,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
 
 NoticeEnd */
 
-//-----------------------------------------------------------------------------
-// NWSRFSLayer - class to read NWSRFS geo_data files
-//-----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// History:
-//
-// 2001-11-26	Steven A. Malers, RTi	Initial version to read select files.
-// 2001-12-13	SAM, RTi		Add "swe_stations.dat" file, which is
-//					the same format as the PCA stations
-//					list.  Just use the same format rather
-//					than trying to come up with something
-//					new.
-// 2002-10-28	SAM, RTi		Update to support Linux, which is
-//					little endian.  If running on Linux, it
-//					is assumed that the files were created
-//					on Linux or another little endian
-//					machine (maybe have a switch later)?
-//					Fix so that lat/long coordinates in the
-//					forecastpt.dat file are free format
-//					(leading fields are fixed format).
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
-
 package RTi.GIS.GeoView;
 
 import java.io.BufferedReader;
@@ -54,7 +30,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import RTi.GIS.GeoView.GeoLayer;
 import RTi.GR.GRPoint;
 import RTi.GR.GRPolygon;
 import RTi.GR.GRPolyline;
@@ -126,14 +101,6 @@ throws IOException
 		Message.printWarning ( 2, "NwsrfsLayer", e );
 		throw e;
 	}
-}
-
-/**
-Finalize before garbage collection.
-*/
-protected void finalize ()
-throws Throwable
-{	super.finalize();
 }
 
 /**
@@ -346,7 +313,7 @@ throws IOException
 					record.addFieldValue ( tokens.get(0) );
 					if ( filetype == RIVER ) {
 						record.addFieldValue ( tokens.get(1) );
-						record.addFieldValue ( new Double(tokens.get(2)));
+						record.addFieldValue ( Double.valueOf(tokens.get(2)));
 					}
 					else if ( (filetype == STATE) || (filetype == COUNTY) ||
 						(filetype == FG_BASIN) || (filetype == MAP_BASIN) ) {
@@ -506,7 +473,7 @@ throws IOException
 				record.addFieldValue ( id );
 				if ( filetype == RIVER ) {
 					record.addFieldValue ( name );
-					record.addFieldValue(new Double(order));
+					record.addFieldValue(Double.valueOf(order));
 				}
 				else if ( (filetype == STATE) || (filetype == COUNTY) ||
 					(filetype == FG_BASIN) || (filetype == MAP_BASIN) ) {
@@ -713,7 +680,7 @@ throws IOException
 			if ( read_attributes ) {
 				TableRecord record = new TableRecord(3);
 				record.addFieldValue (tokens.get(0).trim() );
-				record.addFieldValue (new Double( StringUtil.atod(elev)) );
+				record.addFieldValue (Double.valueOf( StringUtil.atod(elev)) );
 				record.addFieldValue (tokens.get(4).trim() );
 				record.addFieldValue (tokens.get(5).trim() );
 				try {

@@ -476,7 +476,7 @@ protected void printDebug( int level, String routine, String message ) {
 	// Only do the following if methods are registered.
 	if ( this._method_registered ) {
 		arg_list = new Object[3];
-		arg_list[0]	= new Integer( level );
+		arg_list[0]	= Integer.valueOf( level );
 		arg_list[1]	= routine;
 		arg_list[2]	= message2;
 	}
@@ -666,7 +666,7 @@ protected void printStatus ( int level, String routine, String message ) {
 
 	if ( this._method_registered ) {
 		arg_list = new Object[3];
-		arg_list[0] = new Integer( level );
+		arg_list[0] = Integer.valueOf( level );
 		arg_list[1] = "Status: ";
 		arg_list[2] = message2;
 	}
@@ -789,7 +789,7 @@ protected void printWarning ( int level, String tag, String routine, String mess
 
 	if ( this._method_registered ) {
 		arg_list = new Object[3];
-		arg_list[0] = new Integer( level );
+		arg_list[0] = Integer.valueOf( level );
 		arg_list[1] = routine;
 		arg_list[2] = message2;
 	}

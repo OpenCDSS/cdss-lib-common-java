@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -821,7 +821,7 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 			// TODO sam 2017-04-01 Worksheet should handle case even when object
 			// is a different type than the column, but this is generally not done in tables.
 			if ( canCalcStats[icol]) {
-				rec.setFieldValue((icol+1), new Integer(count[icol]));
+				rec.setFieldValue((icol+1), Integer.valueOf(count[icol]));
 			}
 		}
 		table.addRecord(rec);
@@ -831,22 +831,22 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 			if ( canCalcStats[icol]) {
 				if ( classes[icol] == Double.class) {
 					if ( (count[icol] > 0) && !Double.isNaN(sum[icol]) ) {
-						rec.setFieldValue((icol+1), new Double(sum[icol])/count[icol]);
+						rec.setFieldValue((icol+1), Double.valueOf(sum[icol])/count[icol]);
 					}
 				}
 				else if ( classes[icol] == Float.class) {
 					if ( (count[icol] > 0) && !Double.isNaN(sum[icol]) ) {
-						rec.setFieldValue((icol+1), new Float(sum[icol])/count[icol]);
+						rec.setFieldValue((icol+1), Float.valueOf((float)sum[icol])/count[icol]);
 					}
 				}
 				else if ( classes[icol] == Long.class) {
 					if ( count[icol] > 0 ) {
-						rec.setFieldValue((icol+1), new Long(isum[icol])/count[icol]);
+						rec.setFieldValue((icol+1), Long.valueOf(isum[icol])/count[icol]);
 					}
 				}
 				else if ( classes[icol] == Integer.class) {
 					if ( count[icol] > 0 ) {
-						rec.setFieldValue((icol+1), new Integer((int)isum[icol])/count[icol]);
+						rec.setFieldValue((icol+1), Integer.valueOf((int)isum[icol])/count[icol]);
 					}
 				}
 			}
@@ -858,22 +858,22 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 			if ( canCalcStats[icol]) {
 				if ( classes[icol] == Double.class) {
 					if ( !Double.isNaN(min[icol]) ) {
-						rec.setFieldValue((icol+1), new Double(min[icol]));
+						rec.setFieldValue((icol+1), Double.valueOf(min[icol]));
 					}
 				}
 				else if ( classes[icol] == Float.class) {
 					if ( !Double.isNaN(min[icol]) ) {
-						rec.setFieldValue((icol+1), new Float(min[icol]));
+						rec.setFieldValue((icol+1), Float.valueOf((float)min[icol]));
 					}
 				}
 				else if ( classes[icol] == Long.class) {
 					if ( imin[icol] != Long.MAX_VALUE ) {
-						rec.setFieldValue((icol+1), new Long(imin[icol]));
+						rec.setFieldValue((icol+1), Long.valueOf(imin[icol]));
 					}
 				}
 				else if ( classes[icol] == Integer.class) {
 					if ( imin[icol] != Long.MAX_VALUE ) {
-						rec.setFieldValue((icol+1), new Integer((int)imin[icol]));
+						rec.setFieldValue((icol+1), Integer.valueOf((int)imin[icol]));
 					}
 				}
 			}
@@ -885,22 +885,22 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 			if ( canCalcStats[icol]) {
 				if ( classes[icol] == Double.class) {
 					if ( !Double.isNaN(max[icol]) ) {
-						rec.setFieldValue((icol+1), new Double(max[icol]));
+						rec.setFieldValue((icol+1), Double.valueOf(max[icol]));
 					}
 				}
 				else if ( classes[icol] == Float.class) {
 					if ( !Double.isNaN(max[icol]) ) {
-						rec.setFieldValue((icol+1), new Float(max[icol]));
+						rec.setFieldValue((icol+1), Float.valueOf((float)max[icol]));
 					}
 				}
 				else if ( classes[icol] == Long.class) {
 					if ( imax[icol] != Long.MIN_VALUE ) {
-						rec.setFieldValue((icol+1), new Long(imax[icol]));
+						rec.setFieldValue((icol+1), Long.valueOf(imax[icol]));
 					}
 				}
 				else if ( classes[icol] == Integer.class) {
 					if ( imax[icol] != Long.MIN_VALUE ) {
-						rec.setFieldValue((icol+1), new Long(imax[icol]));
+						rec.setFieldValue((icol+1), Long.valueOf(imax[icol]));
 					}
 				}
 			}
@@ -912,19 +912,19 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 			if ( canCalcStats[icol]) {
 				if ( classes[icol] == Double.class) {
 					if ( !Double.isNaN(sum[icol]) ) {
-						rec.setFieldValue((icol+1), new Double(sum[icol]));
+						rec.setFieldValue((icol+1), Double.valueOf(sum[icol]));
 					}
 				}
 				else if ( classes[icol] == Float.class) {
 					if ( !Double.isNaN(sum[icol]) ) {
-						rec.setFieldValue((icol+1), new Float(sum[icol]));
+						rec.setFieldValue((icol+1), Float.valueOf((float)sum[icol]));
 					}
 				}
 				else if ( classes[icol] == Long.class) {
-					rec.setFieldValue((icol+1), new Long(isum[icol]));
+					rec.setFieldValue((icol+1), Long.valueOf(isum[icol]));
 				}
 				else if ( classes[icol] == Integer.class) {
-					rec.setFieldValue((icol+1), new Integer((int)isum[icol]));
+					rec.setFieldValue((icol+1), Integer.valueOf((int)isum[icol]));
 				}
 			}
 		}
@@ -1532,55 +1532,6 @@ private JWorksheet[] createWorksheets(TSViewTable_TableModel[] models, PropList 
 		worksheet.addPopupMenuActionListener(this);
 	}
 	return worksheets;
-}
-
-/**
-Clean up before garbage collection.
-*/
-protected void finalize()
-throws Throwable {
-	__dayJCheckBox = null;
-	__hourJCheckBox = null;
-	__minuteJCheckBox = null;
-	__monthJCheckBox = null;
-	__yearJCheckBox = null;
-	__mainJPanel = null;
-	__dayJPanel = null;
-	__hourJPanel = null;
-	__minuteJPanel = null;
-	__monthJPanel = null;
-	__yearJPanel = null;
-	IOUtil.nullArray(__dayScrollPanes);
-	IOUtil.nullArray(__hourScrollPanes);
-	IOUtil.nullArray(__minuteScrollPanes);
-	IOUtil.nullArray(__monthScrollPanes);
-	IOUtil.nullArray(__yearScrollPanes);
-	__lastSelectedScrollPane = null;
-	__messageJTextField = null;
-	IOUtil.nullArray(__dayWorksheets);
-	IOUtil.nullArray(__hourWorksheets);
-	IOUtil.nullArray(__minuteWorksheets);
-	IOUtil.nullArray(__monthWorksheets);
-	IOUtil.nullArray(__yearWorksheets);
-	__lastSelectedWorksheet = null;
-	__props = null;
-	__summaryJButton = null;
-	__graphJButton = null;
-	__closeJButton = null;
-	__saveJButton = null;
-	__tsviewJFrame = null;
-	IOUtil.nullArray(__dayModels);
-	IOUtil.nullArray(__hourModels);
-	IOUtil.nullArray(__minuteModels);
-	IOUtil.nullArray(__monthModels);
-	IOUtil.nullArray(__yearModels);
-	__dayTSList = null;
-	__hourTSList = null;
-	__minuteTSList = null;
-	__monthTSList = null;
-	__tslist = null;
-	__yearTSList = null;
-	super.finalize();
 }
 
 /**

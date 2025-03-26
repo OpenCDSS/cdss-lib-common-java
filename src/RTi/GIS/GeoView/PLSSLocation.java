@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,31 +21,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
 
 NoticeEnd */
 
-// -----------------------------------------------------------------------------
-// PLSSLocation - class for storing PLSS (Public Land Survey System) 
-//	location data.
-// -----------------------------------------------------------------------------
-// Copyright: See the COPYRIGHT file
-// -----------------------------------------------------------------------------
-// History:
-//
-// 2005-01-12	J. Thomas Sapienza, RTi	Initial version.
-// 2005-01-14	JTS, RTi		* Removed enumerations.
-//					* Converted some data from ints to 
-//					  Strings.
-// 2005-02-01	JTS, RTi		* Can now parse CDSS PLSS Locations.
-//					* Removed the verbose location.
-//					* Added half-section.
-// 2005-02-04	JTS, RTi		Changed to support the SPFlex location
-//					syntax in StateView.
-// 2005-04-27	JTS, RTi		Added finalize().
-// 2005-07-06	JTS, RTi		Removed spaces from the location string.
-//					They were causing issues with querying
-//					from HydroBase.  This is for new format
-//					CDSS format strings.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// -----------------------------------------------------------------------------
-
 package RTi.GIS.GeoView;
 
 import java.util.List;
@@ -53,14 +28,12 @@ import java.util.List;
 import RTi.Util.String.StringUtil;
 
 /**
-This class represents a PLSS (public land survey system) location.  
-Currently baselines are not fully supported.
+This class represents a PLSS (public land survey system) location.  Currently baselines are not fully supported.
 */
 public class PLSSLocation {
 
 /**
-The value to use when unsetting a range, section, or township value in a 
-location.
+The value to use when unsetting a range, section, or township value in a location.
 */
 public final static int UNSET = -999;
 
@@ -105,8 +78,8 @@ The direction of the grid location.  Must be either EAST or WEST.
 private String __rangeDirection = null;
 
 /**
-The section of the grid location found by the range and township.  The grid
-location is divided into 36 squares, each of which is a section.
+The section of the grid location found by the range and township.
+The grid location is divided into 36 squares, each of which is a section.
 */
 private int __section = UNSET;
 
@@ -127,8 +100,7 @@ public PLSSLocation() {
 }
 
 /**
-Constructor.  Parses the specified location string (see toString(false))
-and fills the values from the string.
+Constructor.  Parses the specified location string (see toString(false)) and fills the values from the string.
 @param locationString the concise location string to parse.
 @throws Exception if an error occurs.
 */
@@ -138,8 +110,7 @@ throws Exception {
 }
 
 /**
-Constructor.  Parses the specified location string and fills the values 
-from the string.
+Constructor.  Parses the specified location string and fills the values from the string.
 @param locationString the concise location string to parse.
 @param cdssFormat whether the location String is in CDSS format (true) or not.
 @throws Exception if an error occurs.
@@ -159,21 +130,6 @@ throws Exception {
 	setQ(location.getQ());
 	setQQ(location.getQQ());
 	setQQQ(location.getQQQ());
-}
-
-/**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__halfSection = null;
-	__pm = null;
-	__q = null;
-	__qq = null;
-	__qqq = null;
-	__rangeDirection = null;
-	__townshipDirection = null;
-	super.finalize();
 }
 
 /**

@@ -4,64 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//-----------------------------------------------------------------------------
-// SimpleFileEditorJDialog 
-//-----------------------------------------------------------------------------
-// History: 
-//
-// 2002-03-05	Morgan Sheedy, RTi	Initial Implementation.
-// 2002-03-18 	AMS, RTi		Allow window to be re-sized.
-//					Prevent line-wrapping.
-//					-Must have the .setPreferredSize( _dim )
-//					for the JEditPanel.
-//					-Make sure to display scroll bars.
-//					-Set bounds to prevent wrapping:
-//					int x = _editor_JEditPane.getBounds().x;
-//					int y = _editor_JEditPane.getBounds().y;
-//					_editor_JEditPane.setBounds( 
-//					x, y, 10000, 10000 );
-//					-To allow window resizing and JScroll
-//					to expand, set weightx and y to 
-//					100 for JScrollPane and 0 for other
-//					components. Set fill to BOTH.
-//
-// 2002-10-14   AML 			Updated package name
-//					(from RTi.App.NWSRFSGUI_APP) to:
-//					RTi.App.NWSRFSGUI.
-//					
-//					Updated name from: SimpleJFileEditor to:
-//					SimpleJFileEditor_JDialog
-// 2002-10-15	Steven A. Malers, RTi	Changed package to RTi.Util.GUI and
-//					name to SimpleFileEditorJDialog.
-//
-// 2002-11-20	AML, RTi		Cleaning and updated class to
-//					use current LanguageTranslator code.
-//
-// 2003-03011	AML, RTi		NOTE:  When creating an instance of
-//					this class, put in a try/catch
-//					statement since it can not handle
-//					certain Look and Feels, such as
-//					Window's Look and Feel.
-// 2005-04-26	J. Thomas Sapienza, RTi	Added finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
 
 package RTi.Util.GUI;
 
@@ -343,34 +301,6 @@ private void create_edit_panel() {
 	}
 
 } //end create_edit_panel
-
-/**
- * Cleans up member variables.
- */
-public void finalize()
-throws Throwable {
-	_class = null;
-	_editor_JEditPane = null;
-	_scrollpane = null;
-	_edit_JPanel = null;
-	_button_JPanel = null;
-	_cancel_JButton = null;
-	_save_JButton = null;
-	_cancel_string = null;
-	_save_string = null;
-	_insets = null;
-	_font = null;
-	_dim = null;
-	_file_name = null;
-	_inputFile = null;
-	_fis = null;
-	_isr = null;
-	_br = null;
-	_outputFile = null;
-	_fos = null;
-	_pw = null;
-	super.finalize();
-}
 
 /**
  * Lays out the GUI panels.

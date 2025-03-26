@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,24 +21,10 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
 
 NoticeEnd */
 
-//-----------------------------------------------------------------------------
-// GeoViewAnimationProcessor - Threaded animation processor for animated
-//	layers.
-//-----------------------------------------------------------------------------
-// Copyright:  See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// History:
-// 2004-08-04	J. Thomas Sapienza, RTi	Initial version.
-// 2004-08-09	JTS, RTi		* Revised GUI.
-//					* Added process listener code.
-// 2005-04-27	JTS, RTi		Added finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
-
 package RTi.GIS.GeoView;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import RTi.Util.IO.ProcessListener;
 
@@ -120,7 +106,7 @@ Adds a process listener to be notified during processing.
 */
 public void addProcessListener(ProcessListener p) {
 	if (__processListeners == null) {
-		__processListeners = new Vector<ProcessListener>();
+		__processListeners = new ArrayList<>();
 	}
 	__processListeners.add(p);
 }
@@ -130,18 +116,6 @@ Cancels the animation.
 */
 public void cancel() {
 	__cancelled = true;
-}
-
-/**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__currentDate = null;
-	__endDate = null;
-	__animationJFrame = null;
-	__viewComponent = null;
-	__processListeners = null;
 }
 
 /**
@@ -173,7 +147,7 @@ public void notifyListenersStatus(int code, String message) {
 	int size = __processListeners.size();
 	ProcessListener p = null;
 	for (int i = 0; i < size; i++) {
-		p = (ProcessListener)__processListeners.get(i);
+		p = __processListeners.get(i);
 		p.processStatus(code, message);
 	}
 }
@@ -194,7 +168,7 @@ public void run() {
 	__cancelled = false;
 
 	String currDateString = null;
-	
+
 	while (true) {
 		__animating = true;
 		currDateString = __currentDate.toString(
@@ -214,32 +188,28 @@ public void run() {
 			return;
 		}
 
-		notifyListenersStatus(1, "Retrieving data for "
-			+ currDateString);
+		notifyListenersStatus(1, "Retrieving data for " + currDateString);
 		__animationJFrame.fillData(__currentDate);
-		notifyListenersStatus(0, __currentDate.toString(
-			DateTime.FORMAT_YYYY_MM));
-		notifyListenersStatus(1, "Drawing map display for "
-			+ currDateString);
+		notifyListenersStatus(0, __currentDate.toString( DateTime.FORMAT_YYYY_MM));
+		notifyListenersStatus(1, "Drawing map display for " + currDateString);
 		try {
 			Thread.sleep(100);
 		}
-		catch (Exception e) {}		
+		catch (Exception e) {
+		}
 		__viewComponent.redraw();
 		__currentDate.addMonth(1);
 		try {
 			Thread.sleep(200);
 		}
-		catch (Exception e) {}		
+		catch (Exception e) {
+		}
 
 		if (((double)__pause / 1000.0) == 1) {
-			notifyListenersStatus(1, "Waiting 1 second at "
-				+ currDateString);
+			notifyListenersStatus(1, "Waiting 1 second at " + currDateString);
 		}
 		else {
-			notifyListenersStatus(1, "Waiting " 
-				+ ((double)__pause / 1000.0)
-				+ " seconds at " + currDateString);
+			notifyListenersStatus(1, "Waiting " + ((double)__pause / 1000.0) + " seconds at " + currDateString);
 		}
 
 		try {

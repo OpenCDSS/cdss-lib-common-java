@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -188,8 +188,8 @@ public static PageFormat getPageFormat(String format) {
 		}
 		String H = size.substring(0, loc);
 		String W = size.substring(loc + 1);
-		int height = (new Integer(H)).intValue() * 72;
-		int width = (new Integer(W)).intValue() * 72;
+		int height = (Integer.valueOf(H)).intValue() * 72;
+		int width = (Integer.valueOf(W)).intValue() * 72;
 		paper.setSize(width, height);
 		paper.setImageableArea(0, 0, width, height);		
 	}
@@ -212,10 +212,8 @@ Return the list of supported media for the print service.  If includeNote=false,
 THIS IS NOT YET IMPLEMENTED.
 */
 public static List<String> getSupportedMediaSizeNames ( PrintService printService,
-    boolean includeNote, boolean includeSize )
-{
-    Media [] supportedMediaArray =
-        (Media [])printService.getSupportedAttributeValues(Media.class, null, null);
+    boolean includeNote, boolean includeSize ) {
+    Media [] supportedMediaArray = (Media [])printService.getSupportedAttributeValues(Media.class, null, null);
     List<String> mediaList = new Vector<String>();
     // The list has page sizes (e.g., "na-letter"), trays, and named sizes (e.g., "letterhead")
     // To find only sizes, look up the string in PaperSizeLookup and return matches

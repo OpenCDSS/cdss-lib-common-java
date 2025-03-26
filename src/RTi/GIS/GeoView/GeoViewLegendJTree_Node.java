@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -45,6 +45,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
+import javax.swing.tree.TreeNode;
 
 import RTi.Util.GUI.JGUIUtil;
 
@@ -153,10 +154,10 @@ private void deselectAllOthers(SimpleJTree_Node node) {
 	if (node instanceof GeoViewLegendJTree_Node) {
 		if (node != this) {
 			((GeoViewLegendJTree_Node)node).deselectField();
-		}		
+		}
 	}
 	if (node.getChildCount() >= 0) {
-		for (Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
+		for ( Enumeration<TreeNode> e = node.children(); e.hasMoreElements(); ) {
 			SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 			deselectAllOthers(n);
 		}
@@ -238,7 +239,7 @@ private void initialize(String text, String name, GeoViewLegendJTree tree, JPopu
 	// Because of the way these two components (the checkbox and the label) are drawn,
 	// sometimes the first letter of the JLabel is slightly (like, 2 pixels) overlapped by the CheckBox.
 	// Adding a single space at the front of the label text seems to avoid this.
-	
+
 	if ( text.startsWith("<") ) {
 		// Assume HTML so just set it.
 		__field.setText(text);
@@ -318,7 +319,6 @@ public void setSelected(boolean sel) {
 		selectField();
 	}
 	else {
-		
 		deselectField();
 	}
 }
@@ -403,7 +403,7 @@ Responds to mouse pressed events.
 */
 public void mousePressed(MouseEvent event) {
 	if (event.getButton() == 1) {
-		if (!event.isControlDown()) {	
+		if (!event.isControlDown()) {
 			deselectAllOthers();
 			selectField();
 		}
@@ -413,12 +413,12 @@ public void mousePressed(MouseEvent event) {
 			}
 			else {
 				selectField();
-			}	
+			}
 		}
 		__tree.repaint();
 	}
 	// A node was either selected or deselected - repaint the buttons in the GeoViewJPanel as appropriate.
-	__tree.updateGeoViewJPanelButtons();	
+	__tree.updateGeoViewJPanelButtons();
 }
 
 /**

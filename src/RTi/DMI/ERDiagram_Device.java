@@ -534,7 +534,7 @@ public void actionPerformed(ActionEvent event) {
 			}
 			scale = scale.trim();
 			try {
-				double dtemp =(new Double(scale)).doubleValue();
+				double dtemp = Double.valueOf(scale).doubleValue();
 				__drawingScale = (dtemp / 100);
 			}
 			catch (Exception e) {

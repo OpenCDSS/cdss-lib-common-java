@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2022 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -147,12 +147,12 @@ Constant used to tell that the last query type was a WRITE.
 */
 public static final int WRITE = 4;
 
-/** 
+/**
 Constant used in dmiWrite() to specify to first do an INSERT, and if that fails, try to do an UPDATE.
 */
 public static final int INSERT_UPDATE = 6;
 
-/** 
+/**
 Constant used in dmiWrite() to specify to first do an UPDATE, and if that fails, try to do an INSERT.
 */
 public static final int UPDATE_INSERT = 7;
@@ -174,7 +174,7 @@ public static final int INSERT = 10;
 
 ///////////////////////////////////////////////////////////
 //  Member variables
-///////////////////////////////////////////////////////////	
+///////////////////////////////////////////////////////////
 
 /**
 Indicate whether database changes are automatically committed once they are done.
@@ -295,8 +295,8 @@ protected DMIDatabaseType _database_engine;
 /**
 Database version.  This should be set by calling determineDatabaseVersion(),
 which is an abstract method to be defined in derived DMI classes.
-The standard for the version number is XXXXXXDDDDDDDD where XXXXXXX is 
-typically a database version (e.g., RiverTrak 020601) and DDDDDDDD is 
+The standard for the version number is XXXXXXDDDDDDDD where XXXXXXX is
+typically a database version (e.g., RiverTrak 020601) and DDDDDDDD is
 usually the build date (e.g., 20020625).
 */
 private long __database_version;
@@ -326,7 +326,7 @@ private DMISelectStatement __lastQuery;
 /**
 The last SELECT query (in string form) that was executed.
 JTS 16/04/02 -- This is in here so that panels that use the DMI without
-the use of statement objects (i.e., the SQL Analyzer-type program) can 
+the use of statement objects (i.e., the SQL Analyzer-type program) can
 re-query after a write or delete.
 */
 //private String __lastQueryString;
@@ -352,7 +352,7 @@ Port number of the database to connect, used by client-server databases.
 private int __port;
 
 /**
-Sets whether in toString and getDatabaseProperties to print out 
+Sets whether in toString and getDatabaseProperties to print out
 information that may be secure (such as login name and password), or not.
 */
 private boolean __secure = false;
@@ -420,7 +420,7 @@ as null to not use.  Generally the login will be defined in a derived class and 
 as null to not use.  Generally the login will be defined in a derived class and is specific to a database.
 @throws Exception thrown if an unknown databaseEngine is specified.
 */
-public DMI(String database_engine, String ODBC_name, String system_login, String system_password) 
+public DMI(String database_engine, String ODBC_name, String system_login, String system_password)
 throws Exception {
 	initialize(database_engine, null, null, 0, system_login, system_password, ODBC_name, false);
 }
@@ -465,7 +465,7 @@ If false, it is an ODBC connection.
 TODO (JTS - 2006-05-22) This boolean seems backwards!!!
 @throws Exception if the database_engine that is passed in is not recognized.
 */
-public void initialize(String database_engine, String database_server, 
+public void initialize(String database_engine, String database_server,
 String database_name, int port, String system_login, String system_password,
 String ODBC_name, boolean jdbc_odbc)
 throws Exception {
@@ -494,7 +494,7 @@ throws Exception {
 
 	__database_version = 0;
 	__port = port;
-	
+
 	__dirty = false;
 	__editable = false;
 	__secure = false;
@@ -642,7 +642,7 @@ throws Exception {
 
 /**
 Close the database connection.  If the database is not connected yet, don't do anything.
-@throws SQLException thrown if the java.sql code has 
+@throws SQLException thrown if the java.sql code has
 any problems doing a Connection.close()
 */
 public void close() throws SQLException {
@@ -691,7 +691,7 @@ Closes a result set from a stored procedure and frees the resources associated w
 @param rs the ResultSet to close.
 @param select the select statement that was set up to execute the stored procedure.
 */
-public static void closeResultSet(ResultSet rs, DMIStatement select) 
+public static void closeResultSet(ResultSet rs, DMIStatement select)
 throws SQLException {
 	if (rs != null) {
        	// Get the statement so that it can be closed after closing the ResultSet.
@@ -734,7 +734,7 @@ private void closeStatements() {
 
 /**
 Commits any database operations that have been made since the beginning of the current transaction.
-@throws SQLException thrown if the java.sql code has any problems 
+@throws SQLException thrown if the java.sql code has any problems
 doing a Connection.commit() or in setAutoCommit(), or if the database
 was not connected when the call was made
 */
@@ -744,7 +744,7 @@ public void commit() throws SQLException {
 	if (!__connected) {
 		throw new SQLException ("Database not connected, cannot call DMI.commit()");
 	}
-	
+
 	__inTransaction = false;
 
 	// Connection.commit() should only be used when autoCommit is turned off, so check that.
@@ -776,20 +776,20 @@ The database version should be set to 0 (zero) if it cannot be determined.
 */
 public abstract void determineDatabaseVersion ();
 
-/** 
+/**
 Execute a count query to find the number of records specified by the query.
 This may be used in conjunction with a select statement to find
 out how many records will be pulled back (for doing a progress bar or the like),
 so the input SQL string can be a properly-formatted <b><code>SELECT </b></code> statement,
 or a normal <b><code>SELECT COUNT</b></code> statement.<p>
-If a normal SELECT statement is passed in, 
+If a normal SELECT statement is passed in,
 this method will chop off any <b><codE>ORDER BY</b></code> clauses and
 will also remove the fields that are being selected and replace them with <b><code>COUNT(*)</b></code>.<p>
 For instance, the SQL:<br>
 <code>
 SELECT field1, field2 FROM tableName where field3 = 123 ORDER BY field4;<p>
 </code> will converted to:<br>
-<code> 
+<code>
 SELECT COUNT(*) FROM tableName where field3 = 123;<p>
 </codE> prior to being run.
 <p>
@@ -804,7 +804,7 @@ not returning an error from the database that the SQL was malformed.
 @param sql a Select statement for which the number of records that will
 be affected is the result wanted
 @return an integer telling how many records were counted
-@throws SQLException thrown if there are problems with a 
+@throws SQLException thrown if there are problems with a
 Connection.createStatement or Statement.executeQuery(), or if the database was not connected
 */
 public int dmiCount(String sql) throws SQLException{
@@ -813,16 +813,16 @@ public int dmiCount(String sql) throws SQLException{
 	if (!__connected) {
 		throw new SQLException ("Database not connected.  Cannot make call to DMI.dmiCount()");
 	}
-	
+
 	String routine = "DMI.dmiCount";
 	int dl = 25;
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "SQL to count (pre): '" + sql + "'");
 	}
-	
+
 	sql = sql.trim();
 	sql = sql.toUpperCase();
-	
+
 	// If the sql statement is already formatted as a SELECT COUNT statement, do nothing with it.
 	if (!sql.startsWith("SELECT COUNT")) {
 		// Otherwise, the sql is formatted as a SELECT statement so the 'SELECT [fields]' part is removed.
@@ -837,11 +837,11 @@ public int dmiCount(String sql) throws SQLException{
 		// Graft on the count statement to the beginning and it is functional SQL again, or should be.
 		sql = "SELECT COUNT(*) " + sql;
 	}
-	
+
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "SQL to count (post): '" + sql + "'");
-	}	
-	
+	}
+
 	Statement s = __connection.createStatement();
 	ResultSet rs = s.executeQuery(sql);
 	rs.next();
@@ -854,7 +854,7 @@ public int dmiCount(String sql) throws SQLException{
 	else {
 		s.close();
 	}
-		
+
 	return count;
 }
 
@@ -862,25 +862,25 @@ public int dmiCount(String sql) throws SQLException{
 Executes a count query from a DMISelectStatement object.
 This creates the SQL string from the DMISelectStatement object and then passes the resulting
 string to the dmiCount(String) function.
-@param s a DMISelectStatement object to run a count by 
+@param s a DMISelectStatement object to run a count by
 @return an integer telling how many records were counted
-@throws SQLException thrown if there are problems with a 
+@throws SQLException thrown if there are problems with a
 Connection.createStatement or Statement.executeQuery()
 */
-public int dmiCount(DMISelectStatement s) 
+public int dmiCount(DMISelectStatement s)
 throws SQLException {
 	// TODO (JTS - 2006-05-22) This code has not been tested or used in nearly 4 years.
 	// Do not rely on this method without testing it first.
 	if (!__connected) {
 		throw new SQLException ("Database not connected, cannot call DMI.dmiCount()");
-	}	
-	
+	}
+
 	if (s.isStoredProcedure()) {
 		ResultSet rs = s.executeStoredProcedureQuery();
 		rs.next();
 		return rs.getInt(1);
 	}
-	
+
 	// Saves the DMISelectStatement as the last statement executed.
 	setLastStatement(s);
 
@@ -891,43 +891,43 @@ throws SQLException {
 Executes a database delete from a DMIDeleteStatement object.
 This method creates the SQL string from the DMIDeleteStatement object and then passes
 the resulting string to the dmiDelete(String) function.<p>
-The code in dmiDelete is surrounded by a check of the private boolean member 
+The code in dmiDelete is surrounded by a check of the private boolean member
 variable __editable (see isEditable() and setEditable(boolean)).
 If __editable is set to true, none of the code is executed and an exception is thrown.
 @param s a DMIStatement object containing a delete statement (should be a DMIDeleteStatement object)
 @return the number of rows deleted
-@throws SQLException thrown if there are problems with a 
+@throws SQLException thrown if there are problems with a
 Connection.createStatement or Statement.executeQuery().  Also thrown if
 the database is in read-only mode
 */
 public int dmiDelete(DMIDeleteStatement s) throws SQLException {
 	if (!__connected) {
 		throw new SQLException ("Database not connected, cannot call DMI.dmiDelete().");
-	}	
-	
+	}
+
 	if (!__editable) {
 		throw new SQLException("Database in read-only mode, cannot execute a dmiDelete.");
 	}
-	
+
 	if (s.isStoredProcedure()) {
 		s.executeStoredProcedure();
 		return s.getIntReturnValue();
 	}
-	else {	
+	else {
 		// Save the DMIDeleteStatement as the last statement executed.
 		setLastStatement(s);
 		return dmiDelete(s.toString());
 	}
 }
 
-/** 
+/**
 Executes a database delete.  This method runs the SQL DELETE statement in its String parameter.<p>
-The code in dmiDelete is surrounded by a check of the private boolean member 
+The code in dmiDelete is surrounded by a check of the private boolean member
 variable __editable (see isEditable() and setEditable(boolean)).
-If __editable is set to true, none of the code is executed and an exception is thrown. 
+If __editable is set to true, none of the code is executed and an exception is thrown.
 @param sql the SQL statement that contains the <b><code>DELETE</b></code> command
 @return the number of rows deleted
-@throws SQLException thrown if there are problems with a 
+@throws SQLException thrown if there are problems with a
 Connection.createStatement or Statement.executeQuery().
 Also thrown if the database is in read-only mode, or if it is not connected
 */
@@ -939,13 +939,13 @@ public int dmiDelete(String sql) throws SQLException {
 	if (__dumpSQLOnExecution) {
 		Message.printStatus(2, "DMI.dmiDelete", sql);
 	}
-	
+
 	String routine = "DMI.dmiDelete";
 	int dl = 25;
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "SQL: '" + sql + "'");
 	}
-	
+
 	if (!__editable) {
 		throw new SQLException("Database in read-only mode, cannot execute a dmiDelete.");
 	}
@@ -954,9 +954,9 @@ public int dmiDelete(String sql) throws SQLException {
 	if (__capitalize) {
 		sql = sql.toUpperCase();
 	}
-	
+
 	int result = 0;
-	try {	
+	try {
 		result = s.executeUpdate(sql);
 	}
 	catch (SQLException ex) {
@@ -965,16 +965,16 @@ public int dmiDelete(String sql) throws SQLException {
 		}
 		throw ex;
 	}
-	
+
 	if (__inTransaction) {
 		__statementsVector.add(s);
 	}
 	else {
 		s.close();
-	}	
+	}
 
 	// Used for knowing when to do a startTransaction(ROLLBACK) versus a startTransaction(COMMIT).
-	// Since a delete statement causes a database change (and if the code has 
+	// Since a delete statement causes a database change (and if the code has
 	// gotten this far the delete was successful and didn't throw an exception),
 	// the database can now be considered changed and the __dirty flag should be set.
 	testAndSetDirty();
@@ -994,11 +994,11 @@ public int dmiExecute(String sql) throws SQLException {
 
 	if (!__editable) {
 		throw new SQLException ("Database is in read-only mode, cannot make call to DMI.dmiExecute.");
-	}	
-	
+	}
+
 	String routine = "DMI.dmiExecute";
 	int dl = 25;
-	
+
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "SQL: '" + sql + "'");
 	}
@@ -1006,7 +1006,7 @@ public int dmiExecute(String sql) throws SQLException {
 	Statement s = __connection.createStatement();
 	if (__capitalize) {
 		sql = sql.toUpperCase();
-	}	
+	}
 
 	int result = s.executeUpdate(sql);
 
@@ -1015,15 +1015,15 @@ public int dmiExecute(String sql) throws SQLException {
 	}
 	else {
 		s.close();
-	}	
+	}
 
 	return result;
 }
 
 /**
-Re-executes the previous SQL statement executed by the database.  
-Every time one of the dmiCount, dmiDelete, dmiWrite or dmiSelect 
-methods that take a DMIDeleteStatement, DMIWriteStatement or 
+Re-executes the previous SQL statement executed by the database.
+Every time one of the dmiCount, dmiDelete, dmiWrite or dmiSelect
+methods that take a DMIDeleteStatement, DMIWriteStatement or
 DMISelectStatement as their parameter is called is called, the DMI stores the DMI*Statement.
 This method re-runs the DMI*Statement executed just previously by the database.
 <p>
@@ -1036,7 +1036,7 @@ It saved for use in the dmiRunLastSelectForTableModel function.
 If using stored procedures, this method WILL NOT WORK.
 It only works with DMI connections that pass String-based SQL statements (either as Strings or DMIStatement objects).
 @return an object, the type of which depends on which kind of query was being executed.
-The problem here is that SELECT queries return 
+The problem here is that SELECT queries return
 Vector objects while all other SQL statements return integers.
 Any method which calls this function should first call <b><code>
 getLastSQLType() </b></code> so that it knows what sort of object will be returned,
@@ -1048,7 +1048,7 @@ if (type == DMI.SELECT) {<br>
 } else { // for all other types<br>
 &nbsp;&nbsp;&nbsp;Integer i = (Integer) dmiRunSQL();<br>
 }<br>
-@throws SQLException thrown if there are problems with a 
+@throws SQLException thrown if there are problems with a
 Connection.createStatement, Statement.executeQuery(),
 Statement.executeDelete() or Statement.executeUpdate()
 @throws Exception thrown by dmiWrite(DMIWriteStatement) when a DELETE_INSERT is attempted
@@ -1060,23 +1060,23 @@ public Object dmiRunLastSQL() throws SQLException, Exception {
 		case SELECT:
 			return dmiSelect((DMISelectStatement)__lastSQL);
 		case WRITE:
-			return new Integer(dmiWrite((DMIWriteStatement)__lastSQL, UPDATE_INSERT));
+			return Integer.valueOf(dmiWrite((DMIWriteStatement)__lastSQL, UPDATE_INSERT));
 		case DELETE:
-			return new Integer(dmiDelete((DMIDeleteStatement)__lastSQL));
+			return Integer.valueOf(dmiDelete((DMIDeleteStatement)__lastSQL));
 		case COUNT:
-			return new Integer(dmiCount((DMISelectStatement)__lastSQL));
+			return Integer.valueOf(dmiCount((DMISelectStatement)__lastSQL));
 		default:
 			return null;
 	}
 }
 
-/** 
+/**
 Re-executes the last SELECT statement executed.
-Used for re-querying a table after a DELETE or INSERT statement is executed.  
+Used for re-querying a table after a DELETE or INSERT statement is executed.
 <code>dmiRunSQL</code> can't be used at that point as the last
 SQL executed will have been the DELETE or INSERT statement
 @return a ResultSet of the values returned from the query
-@throws SQLException thrown if there are problems with a 
+@throws SQLException thrown if there are problems with a
 Connection.createStatement or Statement.executeQuery()
 */
 public ResultSet dmiRunSelect() throws SQLException {
@@ -1088,11 +1088,11 @@ public ResultSet dmiRunSelect() throws SQLException {
 
 // TODO SAM 2012-09-07 Need to set the last query string.
 /**
-Runs an SQL string that contains a <b><code>SELECT</b></code> statement 
+Runs an SQL string that contains a <b><code>SELECT</b></code> statement
 and returns a resultSet of the records returned.
 @param sql an SQL statement that contains the <b><code>SELECT</b></code> statement to be executed
 @return the resultset pulled back from the operation
-@throws SQLException thrown if there are problems with a 
+@throws SQLException thrown if there are problems with a
 Connection.createStatement or Statement.executeQuery(), or if the database is not connected.
 */
 public ResultSet dmiSelect(String sql) throws SQLException {
@@ -1100,11 +1100,11 @@ public ResultSet dmiSelect(String sql) throws SQLException {
 	if (!__connected) {
 		throw new SQLException ("Database not connected.  Cannot make call to DMI.dmiSelect().");
 	}
-	
+
 	if (__dumpSQLOnExecution) {
 		Message.printStatus(2, routine, sql);
 	}
-	
+
 	int dl = 25;
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "SQL: '" + sql + "'");
@@ -1114,8 +1114,8 @@ public ResultSet dmiSelect(String sql) throws SQLException {
 	ResultSet rs = null;
 	if (__capitalize) {
 		sql = sql.toUpperCase();
-	}	
-	
+	}
+
 	// FIXME SAM 2008-04-15 Evaluate if needed.
 	//__lastQueryString = sql;
 
@@ -1129,7 +1129,7 @@ public ResultSet dmiSelect(String sql) throws SQLException {
 		throw ex;
 	}
 	// The statement will automatically be closed so don't do here.
-		
+
 	return rs;
 }
 
@@ -1139,7 +1139,7 @@ The SQL statement is built from the DMISelectStatement object and the resulting 
 The ResultSet must be closed by the calling code.
 @param select an DMISelectStatement instance specifying the query.
 @return the ResultSet from the select.
-@throws SQLException thrown if there are problems with a 
+@throws SQLException thrown if there are problems with a
 Connection.createStatement or Statement.executeQuery()
 */
 public ResultSet dmiSelect ( DMISelectStatement select )
@@ -1151,7 +1151,7 @@ throws SQLException {
 	if (select.isStoredProcedure()) {
 		return select.executeStoredProcedureQuery();
 	}
-	else {	
+	else {
 		// Set the DMISelectStatement as the last statement executed.
 		setLastStatement(select);
 		return dmiSelect(select.toString());
@@ -1163,7 +1163,7 @@ Runs an SQL string that contains a <b><code>SELECT</b></code> statement and retu
 The SELECT statement must return a single value.
 @param sql an SQL statement that contains the <b><code>SELECT</b></code> statement to be executed
 @return the value from a single row single column
-@throws SQLException thrown if there are problems with a 
+@throws SQLException thrown if there are problems with a
 Connection.createStatement or Statement.executeQuery(), or if the database is not connected.
 */
 public Object dmiSelectOneObject ( String sql ) throws SQLException {
@@ -1176,12 +1176,12 @@ public Object dmiSelectOneObject ( String sql ) throws SQLException {
 
 /**
 Runs an SQL statement that contains a <b><code>INSERT</b></code> or <b><code> UPDATE</b></code>.<p>
-The code in dmiWrite is surrounded by a check of the private boolean member 
+The code in dmiWrite is surrounded by a check of the private boolean member
 variable __editable (set isEditable() and setEditable(boolean).
-If __editable is set to true, none of the code is executed and an exception is thrown.  
+If __editable is set to true, none of the code is executed and an exception is thrown.
 @param sql an SQL command that contains the insert or update command to be run
 @return an integer of the rowcount from the insert or update
-@throws SQLException thrown if there are problems with a 
+@throws SQLException thrown if there are problems with a
 Connection.createStatement or Statement.executeUpdate().  Also thrown if
 the database is in read-only mode, or if the database is not connected.
 */
@@ -1192,15 +1192,15 @@ public int dmiWrite(String sql) throws SQLException {
 
 	if (!__editable) {
 		throw new SQLException ("Database is in read-only mode, cannot make call to DMI.dmiWrite.");
-	}	
+	}
 
 	if (__dumpSQLOnExecution) {
 		Message.printStatus(2, "DMI.dmiWrite", sql);
 	}
-	
+
 	String routine = "DMI.dmiWrite";
 	int dl = 25;
-	
+
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "SQL: '" + sql + "'");
 	}
@@ -1208,8 +1208,8 @@ public int dmiWrite(String sql) throws SQLException {
 	Statement s = __connection.createStatement();
 	if (__capitalize) {
 		sql = sql.toUpperCase();
-	}	
-	
+	}
+
 	int result = 0;
 	try {
 		result = s.executeUpdate(sql);
@@ -1220,13 +1220,13 @@ public int dmiWrite(String sql) throws SQLException {
 		}
 		throw ex;
 	}
-	
+
 	if (__inTransaction) {
 		__statementsVector.add(s);
 	}
 	else {
 		s.close();
-	}	
+	}
 
 	return result;
 }
@@ -1235,19 +1235,19 @@ public int dmiWrite(String sql) throws SQLException {
 Executes an insert or update statement from a DMIWriteStatement object.
 The SQL string stored in the DMIWriteStatement object is generated and the
 resulting string passed into a dmiWrite(String) function that does the work.<p>
-The code in dmiWrite is surrounded by a check of the private boolean member 
+The code in dmiWrite is surrounded by a check of the private boolean member
 variable __editable (set isEditable() and setEditable(boolean).
-If __editable is set to true, none of the code is executed and an exception is thrown.  
+If __editable is set to true, none of the code is executed and an exception is thrown.
 @param s a DMIWriteStatement object to be executed
 @param writeFlag not used with stored procedures; for SQL can be INSERT_UPDATE, UPDATE_INSERT, UPDATE,
 INSERT, DELETE_INSERT to indicate order of operations (can impact performance).
 @return an integer of the row count from the insert or update
-@throws SQLException thrown if there are problems with a 
+@throws SQLException thrown if there are problems with a
 Connection.createStatement or Statement.executeQuery().
 Also thrown if the database is in read-only mode, or if the database is not connected
-@throws Exception thrown if a DELETE_INSERT statement is run, as this statement type is not supported yet. 
+@throws Exception thrown if a DELETE_INSERT statement is run, as this statement type is not supported yet
 */
-public int dmiWrite(DMIWriteStatement s, int writeFlag) 
+public int dmiWrite(DMIWriteStatement s, int writeFlag)
 throws SQLException, Exception {
 	// Enable the following to troubleshoot but normally should be false.
 	//__dumpSQLOnExecution = true;
@@ -1265,19 +1265,19 @@ throws SQLException, Exception {
 
 	// Set the DMIWriteStatement as the last statement executed.
 	setLastStatement(s);
-	
+
 	Statement stmt = __connection.createStatement();
 
 	int rowCount = -1; // Number of rows inserted or updated.
 	switch (writeFlag) {
 		case INSERT_UPDATE:
-		// first try to insert the statement in the table.  
-	
+		// first try to insert the statement in the table.
+
 		////////////////////////////////////////////////////////////////
 		// NOTE FOR DEVELOPERS:
 		////////////////////////////////////////////////////////////////
 		// This database write method works by first trying to insert a record,
-		// and if that record already existed in the database, an update is performed.  
+		// and if that record already existed in the database, an update is performed.
 		//
 		// The tricky part is that each database sends different error
 		// codes to tell when a duplicate record is found on an insert.
@@ -1285,7 +1285,7 @@ throws SQLException, Exception {
 		// insert must attempted on the new database type and the SQLState
 		// and ErrorCode from the resulting SQLException must be recorded
 		// and then used below (where, for instance, ODBC has S1000 and 0)
-		///////////////////////////////////////////////////////////////	
+		///////////////////////////////////////////////////////////////
 		try {
 			if (__dumpSQLOnExecution) {
 				Message.printStatus(2, "DMI.dmiWrite", "Trying to execute INSERT: " + s.toInsertString());
@@ -1298,8 +1298,8 @@ throws SQLException, Exception {
 			// Since a delete statement causes a database change (and if the code has gotten this far
 			// the delete was successful and didn't throw an exception), the database can now be
 			// considered changed and the __dirty flag should be set.
-			testAndSetDirty();				
-		} 
+			testAndSetDirty();
+		}
 		catch (SQLException e) {
 			if (_database_engine == DMIDatabaseType.ACCESS ) {
 				if (e.getSQLState() == "S1000" && e.getErrorCode() == 0) {
@@ -1320,13 +1320,13 @@ throws SQLException, Exception {
 						}
 						throw ex;
 					}
-							
+
 					// Used for knowing when to do a startTransaction(ROLLBACK) versus a startTransaction(COMMIT).
-					// Since a delete statement causes a database change (and if 
-					// the code has gotten this far the delete was successful and didn't throw an exception), 
+					// Since a delete statement causes a database change (and if
+					// the code has gotten this far the delete was successful and didn't throw an exception),
 					// the database can now be considered changed and the __dirty flag should be set.
 					testAndSetDirty();
-				} 
+				}
 				else {
 					stmt.close();
 					throw e;
@@ -1352,22 +1352,22 @@ throws SQLException, Exception {
 						}
 						throw ex;
 					}
-										
+
 					// Used for knowing when to do a startTransaction(ROLLBACK) versus a startTransaction(COMMIT).
-					// Since a delete statement causes a database change (and if 
-					// the code has gotten this far the delete was successful and didn't throw an exception), 
+					// Since a delete statement causes a database change (and if
+					// the code has gotten this far the delete was successful and didn't throw an exception),
 					// the database can now be considered changed and the __dirty flag should be set.
 					testAndSetDirty();
-				} 
+				}
 				else {
 					stmt.close();
 					throw(e);
 				}
 			}
 			else {
-				throw new Exception ("INSERT_UPDATE may have encountered an " 
+				throw new Exception ("INSERT_UPDATE may have encountered an "
 				+ "existing record, but since there is no information "
-				+ "on the INSERT error codes for the database type " 
+				+ "on the INSERT error codes for the database type "
 				+ "with which you are working (" + __database_engine_String + ") "
 			 	+ "there is no certainty about this.  The DMI class needs to be enhanced to handle."
 				+ " SQLState=" + e.getSQLState() + " SQLError=" + e.getErrorCode()
@@ -1391,7 +1391,7 @@ throws SQLException, Exception {
 				}
 				throw e;
 			}
-	
+
 			if (rowCount == 0) {
 				// The update failed, so try an insert.
 				if (__dumpSQLOnExecution) {
@@ -1405,20 +1405,20 @@ throws SQLException, Exception {
 						Message.printStatus(2, "DMI.dmiWrite", s.toInsertString());
 					}
 					throw e;
-				}		
+				}
 			}
 			// Used for knowing when to do a startTransaction(ROLLBACK) versus a startTransaction(COMMIT).
 			// Since a delete statement causes a database change (and if the code has gotten this far
 			// the delete was successful and didn't throw an exception),
 			// the database can now be considered changed and the __dirty flag should be set.
-			testAndSetDirty();			
+			testAndSetDirty();
 			break;
 		case UPDATE:
 			try {
 				if (__dumpSQLOnExecution) {
 					Message.printStatus(2, "DMI.dmiWrite", s.toUpdateString());
 				}
-				rowCount = stmt.executeUpdate(s.toUpdateString());	
+				rowCount = stmt.executeUpdate(s.toUpdateString());
 				if (__dumpSQLOnExecution) {
 					Message.printStatus(2, "DMI.dmiWrite", "Updated " + rowCount + " rows.");
 				}
@@ -1429,19 +1429,19 @@ throws SQLException, Exception {
 				}
 				throw e;
 			}
-			
+
 			// Used for knowing when to do a startTransaction(ROLLBACK) versus a startTransaction(COMMIT).
 			// Since a delete statement causes a database change (and if the code has gotten this far
 			// the delete was successful and didn't throw an exception),
 			// the database can now be considered changed and the __dirty flag should be set.
-			testAndSetDirty();			
+			testAndSetDirty();
 			break;
-		case INSERT:		
+		case INSERT:
 			try {
 				if (__dumpSQLOnExecution) {
 					Message.printStatus(2, "DMI.dmiWrite", s.toInsertString());
 				}
-				rowCount = stmt.executeUpdate(s.toInsertString());	
+				rowCount = stmt.executeUpdate(s.toInsertString());
 				if (__dumpSQLOnExecution) {
 					Message.printStatus(2, "DMI.dmiWrite", "Inserted " + rowCount + " rows.");
 				}
@@ -1455,8 +1455,8 @@ throws SQLException, Exception {
 			// Used for knowing when to do a startTransaction(ROLLBACK) versus a startTransaction(COMMIT).
 			// Since a delete statement causes a database change (and if the code has gotten this far
 			// the delete was successful and didn't throw an exception),
-			// the database can now be considered changed and the __dirty flag should be set.	
-			testAndSetDirty();			
+			// the database can now be considered changed and the __dirty flag should be set.
+			testAndSetDirty();
 			break;
 		case DELETE_INSERT:
 			Message.printWarning(25, "DMI.dmiWrite", "DELETE_INSERT not implemented yet");
@@ -1470,7 +1470,7 @@ throws SQLException, Exception {
 	}
 	else {
 		stmt.close();
-	}			
+	}
 
 	// Return the statement return status, which is typically the number of rows processed.
 	return rowCount;
@@ -1488,10 +1488,10 @@ escaping full SQL strings (e.g., to add [] around parameter names that may be re
 */
 public String escape(String str) {
 	String workStr = new String(str);
-	if ( _database_engine == DMIDatabaseType.SQLSERVER ) {	
+	if ( _database_engine == DMIDatabaseType.SQLSERVER ) {
 		if (workStr.indexOf('\'') > -1) {
 			workStr = StringUtil.replaceString(str, "'", "''");
-		}	
+		}
 	}
 
 	// Any other escaping can be done here, too.
@@ -1507,7 +1507,7 @@ public String escape(String str) {
  * The properties that are supported are documented in datastore documentation.
  * Any property that is unrecognized is expanded
  * Currently this is only enabled for PostgreSQL password.
- * @param props datastore properties, used to retrieve the "DatabaseEngine" and other properties 
+ * @param props datastore properties, used to retrieve the "DatabaseEngine" and other properties
  * @param propName name of property that is being expanded
  * @param propValue value of property that is being expanded, can include with ${Property}.
  * This should be passed in as the current value corresponding to 'propName',
@@ -1617,28 +1617,6 @@ public static String expandDatastoreConfigurationProperty ( PropList props, Stri
     }
 	// No additional expansion was found.  Return the original value.
 	return propValue;
-}
-
-/**
-Clean up memory for garbage collection.
-
-@exception Throwable if an error occurs.
-*/
-protected void finalize() 
-throws Throwable {
-	__database_engine_String = null;
-	__database_name = null;
-	__odbc_name = null;
-	__database_server = null;
-	__system_login = null;
-	__system_password = null;
-	__user_login = null;
-	__user_password = null;
-	__lastSQL = null;
-	__lastQuery = null;
-	__connection = null;
-
-	super.finalize();
 }
 
 /**
@@ -1760,7 +1738,7 @@ public List<String> getDatabaseProperties(int level) {
 		v.add( "User login: " + __user_login);
 		v.add( "User password: " + __user_password);
 	}
-	
+
 	return v;
 }
 
@@ -1889,7 +1867,7 @@ public String getLastQueryString() {
 	}
 }
 
-/** 
+/**
 Returns the last SQL string that was executed.
 Returns "" if the DMI connection is using stored procedures.
 @return the last SQL string that was executed.
@@ -1904,7 +1882,7 @@ public String getLastSQLString() {
 		case SELECT:
 		case COUNT:
 			DMISelectStatement s = (DMISelectStatement)__lastSQL;
-			return s.toString();			
+			return s.toString();
 		case DELETE:
 			DMIDeleteStatement d = (DMIDeleteStatement)__lastSQL;
 			return d.toString();
@@ -2070,7 +2048,7 @@ public boolean isOpen() {
 }
 
 /**
-Opens the connection to the DMI with information that was previously set, 
+Opens the connection to the DMI with information that was previously set,
 and sets printStatus to the given value while open() (the other version of the
 method, not this one) is being called, in order to print more debugging information.
 Once this method is done, __printStatus will be set to false.<p>
@@ -2080,7 +2058,7 @@ used internally for debugging DMI connection open()s.
 @throws SQLException if the DMI is already connected.
 @throws Exception if some other error happens while connecting to the database.
 */
-public void open(boolean printStatus) 
+public void open(boolean printStatus)
 throws Exception, SQLException {
 	__printStatus = printStatus;
 	try {
@@ -2102,7 +2080,7 @@ Open a connection to the database with information that was previously specified
 @throws SQLException if the DMI is already connected.
 @throws Exception if some other error happens while connecting to the database.
 */
-public void open () 
+public void open ()
 throws Exception, SQLException {
 	String routine = CLASS + ".open";
 
@@ -2111,13 +2089,13 @@ throws Exception, SQLException {
 
 	if (__connected) {
 		printStatusOrDebug(10, routine, "Already connected!  Throwing exception.");
-		throw new SQLException ("Must close the first DMI connection before opening a new one.");	
+		throw new SQLException ("Must close the first DMI connection before opening a new one.");
 	}
 
 	printStatusOrDebug(10, routine, "         ... no connection found.");
 
 	open (__system_login, __system_password );
-	
+
 	// Determine the database version (the derived class method will be called if defined).
 	printStatusOrDebug(10, routine, "Determining database version ... (abstract method, defined in class derived from DMI)");
 	determineDatabaseVersion();
@@ -2128,7 +2106,7 @@ throws Exception, SQLException {
 	__lastSQL = null;
 	__lastSQLType = NONE;
 	printStatusOrDebug(10, routine, "----------------------- DMI.open()");
-}		  
+}
 
 /**
 Open a connection to the database with the specified system login and password.
@@ -2138,15 +2116,15 @@ All other connection parameters must have been set previously.
 @throws SQLException thrown by DriverManger.getConnection() or Connection.setAutoCommit()
 @throws Exception thrown when attempting to connecting to a database for which no JDBC information is known.
 */
-public void open ( String system_login, String system_password ) 
+public void open ( String system_login, String system_password )
 throws SQLException, Exception {
 	String routine = CLASS + ".open(String, String)";
 	printStatusOrDebug(10, routine, "Checking for existing connection ...");
 	if (__connected) {
 		printStatusOrDebug(10, routine, "Already connected!  Throwing exception.");
-		throw new SQLException ("Must close the first DMI connection before opening a new one.");	
+		throw new SQLException ("Must close the first DMI connection before opening a new one.");
 	}
-	
+
 	printStatusOrDebug(10, routine, "         ... no connection found.");
 
 	String connUrl = "";
@@ -2218,7 +2196,7 @@ throws SQLException, Exception {
             }
             Message.printStatus(2, routine,
                 "Opening ODBC connection for Derby JDBC/ODBC and \"" + connUrl + "\"");
-        } 
+        }
 		else if (_database_engine == DMIDatabaseType.INFORMIX ) {
 			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.INFORMIX'");
 			// Use the free driver that comes from Informix.
@@ -2228,8 +2206,8 @@ throws SQLException, Exception {
 			String server = "ol_hydrobase";
             // Load the database driver class into memory.
 			Class.forName("com.informix.jdbc.IfxDriver");
-			connUrl = "jdbc:informix-sqli://" 
-				+ __database_server + ":" 
+			connUrl = "jdbc:informix-sqli://"
+				+ __database_server + ":"
 				+ __port + "/" + __database_name
 				+ ":INFORMIXSERVER=" + server;
 		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
@@ -2242,8 +2220,8 @@ throws SQLException, Exception {
 		else if (_database_engine == DMIDatabaseType.MYSQL ) {
 			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.MYSQL'");
 			// Use the public domain driver that comes with MySQL.
-			connUrl = "jdbc:mysql://" 
-				+ __database_server + ":" 
+			connUrl = "jdbc:mysql://"
+				+ __database_server + ":"
 				+ __port + "/" + __database_name;
 		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
 			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
@@ -2253,8 +2231,8 @@ throws SQLException, Exception {
 		}
 		else if (_database_engine == DMIDatabaseType.POSTGRESQL ) {
 			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.POSTGRESQL'");
-			connUrl = "jdbc:postgresql://" 
-				+ __database_server + ":" 
+			connUrl = "jdbc:postgresql://"
+				+ __database_server + ":"
 				+ __port + "/" + __database_name;
 		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
 			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
@@ -2334,7 +2312,7 @@ throws SQLException, Exception {
 		    }
 			Message.printStatus(2, routine, "Opening ODBC connection for Oracle using (login not shown): " + connUrl );
         }
-		else {	
+		else {
 			printStatusOrDebug(dl, routine, "Unknown database engine, throwing exception.");
 			throw new Exception("Don't know what JDBC driver to use for database type " + __database_engine_String);
 		}
@@ -2368,11 +2346,11 @@ throws SQLException, Exception {
 		}
 	}
     if ( __secure ) {
-		printStatusOrDebug(dl, routine, "Calling getConnection(" 
+		printStatusOrDebug(dl, routine, "Calling getConnection("
 		+ connUrl + ", " + system_login + ", " + system_password + ") via the Java DriverManager.");
 	}
 	else {
-	    printStatusOrDebug(dl, routine, "Calling getConnection(" 
+	    printStatusOrDebug(dl, routine, "Calling getConnection("
 		+ connUrl + ", " + system_login + ", " + "password-not-shown) via the Java DriverManager.");
 	}
     // Get the login timeout and reset to requested if specified.
@@ -2385,7 +2363,7 @@ throws SQLException, Exception {
         // Now set back to the original timeout.
         DriverManager.setLoginTimeout(loginTimeout);
     }
-    
+
 	/* TODO SAM 2013-10-07 This seems to be old so commenting out.
     if (_database_engine == DMIDatabaseType.ORACLE && __database_name != null ) {
         __connection.createStatement().execute("alter session set current_schema = " + __database_name );
@@ -2393,7 +2371,7 @@ throws SQLException, Exception {
     */
     printStatusOrDebug(dl, routine, "Setting autoCommit to: " + __autoCommit);
 	__connection.setAutoCommit(__autoCommit);
-	
+
 	printStatusOrDebug(dl, routine, "Connected!");
 	__connected = true;
 }
@@ -2432,17 +2410,17 @@ public void rollback() throws SQLException {
 	if (!__connected) {
 		throw new SQLException ("Database not connected.  Cannot make call to DMI.rollback()");
 	}
-	
+
 	String routine = "DMI.rollback";
 	int dl = 25;
-	
+
 	__inTransaction = false;
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "[method called]");
 	}
 
 	__connection.rollback();
-	
+
 	// Since a rollback signifies the end of a transaction, set the autoCommit setting back to being on.
 	setAutoCommit(true);
 	__dirty = false;
@@ -2460,7 +2438,7 @@ public void setAdditionalConnectionProperties ( String additionalConnectionPrope
 }
 
 /**
-Sets the autoCommit setting for the database.  
+Sets the autoCommit setting for the database.
 @param autoCommitSetting the autoCommit setting.
 @throws SQLException thrown by Connection.setAutoCommit(), or if the database is not connected
 */
@@ -2473,10 +2451,10 @@ public void setAutoCommit(boolean autoCommitSetting) throws SQLException {
 	if (!__connected) {
 		throw new SQLException ("Database not connected.  Cannot make call to DMI.setAutoCommit()");
 	}
-	
+
 	String routine = "DMI.setAutoCommit";
 	int dl = 25;
-	
+
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "autoCommit: " + autoCommitSetting);
 	}
@@ -2485,9 +2463,9 @@ public void setAutoCommit(boolean autoCommitSetting) throws SQLException {
 
 	if (__database_engine_String.equalsIgnoreCase("SOMETHING") ) {
 		// TODO handle this differently -- i.e., does MS Access blow up when trying to setAutoCommit?
-	} 
-	else {	
-		__connection.setAutoCommit(autoCommitSetting);	
+	}
+	else {
+		__connection.setAutoCommit(autoCommitSetting);
 	}
 }
 
@@ -2501,7 +2479,7 @@ public void setCapitalize(boolean capitalize) {
 
 /**
 Sets the connection used to interact with the database.
-In this way, the connection established with one DMI can be passed to a different one so 
+In this way, the connection established with one DMI can be passed to a different one so
 that the second doesn't have to go through the connection process again.
 @param c the connection to use for communicating with the database
 */
@@ -2543,7 +2521,7 @@ private void setDefaultPort() {
 	else if ( _database_engine == DMIDatabaseType.SQLSERVER ) {
 		__port = 1433;
 	}
-	else {	
+	else {
 		//
 	}
 }
@@ -2567,7 +2545,7 @@ public void setDatabaseEngine (String database_engine)
 throws Exception {
 	String routine = getClass().getSimpleName() + ".setDatabaseEngine";
 	int dl = 25;
-	
+
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "database_engine: " + database_engine);
 	}
@@ -2629,7 +2607,7 @@ public void setDatabaseName(String database_name) {
 Set the database version.
 This should be called from a derived DMI class determineDatabaseVersion() method.
 @param version Database version.
-The standard for the version number is XXXXXXDDDDDDDD where XXXXXXX is typically a 
+The standard for the version number is XXXXXXDDDDDDDD where XXXXXXX is typically a
 database version (e.g., RiverTrak 020601) and DDDDDDDD is usually the build date (e.g., 20020625).
 */
 public void setDatabaseVersion ( long version ) {
@@ -2652,7 +2630,7 @@ Note that this can be set to "Local" if a local database is used (e.g., for Acce
 */
 public void setDatabaseServer ( String database_server ) {
 	int dl = 25;
-	
+
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, "DMI.setDatabaseServer", "Database server: \"" + database_server + "\"");
 	}
@@ -2724,7 +2702,7 @@ private void setLastStatement(DMIDeleteStatement s) {
 }
 
 /**
-Saves the last select statement executed.  
+Saves the last select statement executed.
 @param s a DMISelectStatement to be saved
 */
 private void setLastStatement(DMISelectStatement s) {
@@ -2784,7 +2762,7 @@ Sets the port of the database to connect to.
 public void setPort(int port) {
 	String routine = "DMI.setPort";
 	int dl = 25;
-	
+
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "Port: " + port);
 	}
@@ -2798,21 +2776,21 @@ Sets the secure flag.
 public void setSecure(boolean secure) {
 	String routine = "DMI.setSecure";
 	int dl = 25;
-	
+
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "Secure: " + secure);
 	}
 	__secure = secure;
 }
 
-/** 
+/**
 Set the system login name for the database connection.
 @param login the system login name.
 */
 public void setSystemLogin(String login) {
 	String routine = "DMI.setSystemLogin";
 	int dl = 25;
-	
+
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "Login: '" + login + "'");
 	}
@@ -2826,14 +2804,14 @@ Set the system password for the database connection.
 public void setSystemPassword(String pw) {
 	String routine = "DMI.setSystemPassword";
 	int dl = 25;
-	
+
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "Password: '" + pw + "'");
 	}
 	__system_password = pw;
 }
 
-/** 
+/**
 Set the user login name for database use.  This information can be used for record-based permissions.
 @param login the user login name.
 */
@@ -2849,8 +2827,8 @@ public void setUserPassword ( String password ) {
 	__user_password = password;
 }
 
-/** 
-Starts a transaction, first rolling back any changes that may have been 
+/**
+Starts a transaction, first rolling back any changes that may have been
 made to the database since the start of the last transaction.
 @throws SQLException thrown in startTransaction()
 */
@@ -2858,7 +2836,7 @@ public void startTransaction() throws SQLException {
 	if (!__connected) {
 		throw new SQLException ("Database not connected.  Cannot make call to DMI.startTransaction().");
 	}
-	
+
 	__dirty = false;
 	startTransaction(ROLLBACK);
 
@@ -2868,10 +2846,10 @@ public void startTransaction() throws SQLException {
 	__inTransaction = true;
 }
 
-/** 
+/**
 Starts a transaction, and either rolls back the current database changes or commits them,
 depending on the argument to this method.
-@param action specifies what to do when the transaction is started.  
+@param action specifies what to do when the transaction is started.
 values that can be passed in are <code>ROLLBACK</code> or <code>COMMIT
 </code>, and they tell what to do before the transaction is started.
 @throws SQLException thrown in setAutoCommit(), commit() or rollback(),
@@ -2881,14 +2859,14 @@ public void startTransaction(int action) throws SQLException {
 	if (!__connected) {
 		throw new SQLException ("Database not connected.  Cannot make call to DMI.startTransaction().");
 	}
-	
+
 	String routine = "DMI.startTransaction";
 	int dl = 25;
 
 	// AutoCommit and transaction do not work together.
 	// Autocommit must be turned off for transactions to function, and so do that.
 	setAutoCommit(false);
-	
+
 	if (action == COMMIT) {
 		if (Message.isDebugOn) {
 			Message.printDebug(dl, routine, "COMMIT");
@@ -2911,8 +2889,8 @@ private void testAndSetDirty() {
 		__dirty = true;
 	}
 }
-	
-/** 
+
+/**
 Returns a string of useful information about the DMI.
 If the connection is secure login information will not be printed.
 @return a string of useful information about the DMI
@@ -2923,9 +2901,9 @@ public String toString() {
 	if (!__secure) {
 		dmiDesc.append(
 			"DMI Information:"
-			+ "\n   System Login: " + __system_login 
+			+ "\n   System Login: " + __system_login
 			+ "\n   System Password: " + __system_password
-			+ "\n   User Login: " + __user_login 
+			+ "\n   User Login: " + __user_login
 			+ "\n   User Password: " + __user_password
 			+ "\n   Connecting to database '" + __database_name + "' of type '" + __database_engine_String + "'"
 			+ "\n   at '" + __database_server + ":" + __port + "'");
@@ -2933,7 +2911,7 @@ public String toString() {
 	else {
 		dmiDesc.append(
 			"DMI Information:"
-			+ "\n   Connected to database '" + __database_name 
+			+ "\n   Connected to database '" + __database_name
 			+ "' of type '" + __database_engine_String + "'" );
 	}
 	dmiDesc.append( "\n   Current status is: ");
@@ -2965,7 +2943,7 @@ public String toString() {
 	} else {
 		dmiDesc.append( "OFF" );
 	}
-		
+
 	if (!__secure) {
 		dmiDesc.append( "\n   The previously executed SQL statement was:\n   [" + getLastSQLString() + "]" );
 	}

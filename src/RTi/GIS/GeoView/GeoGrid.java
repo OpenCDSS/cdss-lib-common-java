@@ -4,39 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// GeoGrid - GRGrid grid that also has data and methods to treat as GIS layer
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2001-09-17	Steven A. Malers,	Initial version.  Add basic features to
-//		Riverside Technology,	support extension to Xmrg and precip
-//		inc.			grid.
-// 2001-10-08	SAM, RTi		Review javadoc.
-// 2001-12-13	SAM, RTi		Add getUnits().
-// 2004-09-09	J. Thomas Sapienza, RTi	Added the resize() method which can be
-//					use to clip the grid to a smaller area
-//					or to enlarge the grid.
-// 2004-11-10	JTS, RTi		Added finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
 
 package RTi.GIS.GeoView;
 
@@ -109,16 +92,6 @@ public void allocateDataSpace ()
 			_double_data[r - _min_row][c - _min_column] = _missing;
 		}
 	}
-}
-
-/**
-Cleans up the member variables.
-*/
-public void finalize()
-throws Throwable {
-	_double_data = null;
-	_units = null;
-	super.finalize();
 }
 
 /**

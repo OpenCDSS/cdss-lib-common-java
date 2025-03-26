@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2024 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,8 +28,6 @@ import java.util.List;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import RTi.Util.IO.IOUtil;
 
 import RTi.Util.Math.MathUtil;
 
@@ -1322,28 +1320,6 @@ public void fillRelativeDateTime(DateTime relDate, DateTime absDate) {
 }
 
 /**
-Cleans up member variables.
-@throws Throwable if an error occurs.
-*/
-public void finalize()
-throws Throwable {
-	// NOTE:
-	// Some data members are cleaned up in cleanup(), so it is unnecessary to finalize them here.
-
-	__datePieces = null;
-	__sortedFormatSpecifierLengths = null;
-	__sortedFormatSpecifierLocations = null;
-	__sortedFormatSpecifierTypes = null;
-	__pattern = null;
-	IOUtil.nullArray(__sortedFormatSpecifierRegExs);
-	IOUtil.nullArray(__formatSpecifierLiteralSurroundingValues);
-	__format = null;
-	__regularExpressionString = null;
-
-	super.finalize();
-}
-
-/**
 Iterates through all the date/time piece format specifiers, and tries to find them within the format String.
 This method, combined with findFormatSpecifierOccurrences(), fills the __formatSpecifiers array.
 */
@@ -1424,7 +1400,7 @@ private void findFormatSpecifierOccurrences(int formatSpecifierType, int formatS
 			// specifier more than once within a format, so that must be accounted for.
 
 			// Add the current location as one where this format specifier can be found.
-			locs.add(new Integer(index));
+			locs.add(Integer.valueOf(index));
 
 			// Increment start so that next time a format specifier
 			// is searched for within the string it will not look

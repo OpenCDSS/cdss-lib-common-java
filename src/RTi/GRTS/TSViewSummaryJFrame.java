@@ -4,70 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//------------------------------------------------------------------------------
-// TSViewSummaryJFrame - Summary (text) view of one or more time series
-//------------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//------------------------------------------------------------------------------
-// Notes:	(1)	This class displays the time series using the property
-//			list.  Mixed time steps are allowed.
-//------------------------------------------------------------------------------
-// History:
-// 
-// 05 Dec 1998	Steven A. Malers,	Initial version.  Copy OpTableDislayGUI
-//		Riverside Technology,	and modify as necessary.
-//		inc.
-// 12 Oct 2000	SAM, RTi		Enable Print and Save As buttons.
-// 19 Feb 2001	SAM, RTi		Change GUI to GUIUtil.
-// 04 May 2001	SAM, RTi		Add TSViewTitleString property to set
-//					the title of the view window.
-//					Enable the search button.
-// 17 May 2001	SAM, RTi		Change Save As button to Save As choice
-//					to save .txt and DateValue file.  Add
-//					finalize().
-// 07 Sep 2001	SAM, RTi		Set TextArea buffer to null after set
-//					to help garbage collection.
-// 2001-11-05	SAM, RTi		Update javadoc.  Make sure variables are
-//					set to null when done.
-// 2001-12-11	SAM, RTi		Change help key to "TSView.Summary".
-// 2002-01-17	SAM, RTi		Change name from TSViewSummaryGUI to
-//					TSViewSummaryFrame to allow support for
-//					Swing.
-// ==================================
-// 2002-11-11	SAM, RTi		Copy AWT version and update to Swing.
-// 2003-06-04	SAM, RTi		* Final update to Swing based on GR and
-//					  TS changes.
-//					* Add a JScrollPane around the
-//					  JTextArea.
-//					* Change the Save As choice to a button.
-// 2003-08-21	SAM, RTi		* Change DateValueTS.writeTimeSeries()
-//					  to DateValueTS.writeTimeSeriesList().
-// 2003-09-30	SAM, RTi		* Use icon/title from the main
-//					  application if available.
-// 2004-01-04	SAM, RTi		* Fix bug where saving the file was not
-//					  using the full path.
-//					* Comment the Help button for now -
-//					  is not typically enabled.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//------------------------------------------------------------------------------
-// EndHeader
 
 package RTi.GRTS;
 
@@ -106,9 +58,9 @@ import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
 /**
-The TSViewSummaryJFrame provides a text report summary for a list of time
-series.  The report is dependent on the time series interval and data type.  The
-TSViewSummaryJFrame is managed by the TSViewJFrame parent.
+The TSViewSummaryJFrame provides a text report summary for a list of time series.
+The report is dependent on the time series interval and data type.
+The TSViewSummaryJFrame is managed by the TSViewJFrame parent.
 */
 @SuppressWarnings("serial")
 public class TSViewSummaryJFrame extends JFrame
@@ -121,10 +73,12 @@ implements ActionListener, WindowListener
 TSViewJFrame parent, which manages all the views collectively.
 */
 private TSViewJFrame __tsview_JFrame;
+
 /**
 List of time series to graph.
 */
 private List<TS> __tslist;
+
 /**
 Property list.
 */
@@ -140,7 +94,7 @@ private SimpleJButton __search_JButton = null;
 
 private JTextArea __summary_JTextArea = null;
 
-private String __summary_font_name = "Courier";// Default for now
+private String __summary_font_name = "Courier"; // Default for now.
 private int __summary_font_style = Font.PLAIN;
 private int __summary_font_size = 11;
 
@@ -152,8 +106,8 @@ Construct a TSViewSummaryJFrame.
 @exception if there is an error displaying the time series.
 */
 public TSViewSummaryJFrame(	TSViewJFrame tsview_gui, List<TS> tslist, PropList props )
-throws Exception
-{	super ( "Time Series - Summary View" );
+throws Exception {
+	super ( "Time Series - Summary View" );
 	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
 	initialize ( tsview_gui, tslist, props );
 }
@@ -162,58 +116,36 @@ throws Exception
 Handle action events (button press, etc.)
 @param e ActionEvent to handle.
 */
-public void actionPerformed ( ActionEvent e )
-{	Object o = e.getSource();
+public void actionPerformed ( ActionEvent e ) {
+	Object o = e.getSource();
 	if ( o == __close_JButton ) {
-		// Close the GUI via the parent...
+		// Close the GUI via the parent.
 		__tsview_JFrame.closeGUI(TSViewType.SUMMARY);
 	}
 	else if ( o == __help_JButton ) {
-		// Show help...
+		// Show help.
 		URLHelp.showHelpForKey ("TSView.Summary");
 	}
 	else if ( o == __graph_JButton ) {
-		// Display a graph...
+		// Display a graph.
 		__tsview_JFrame.openGUI ( TSViewType.GRAPH );
 	}
 	else if ( o == __print_JButton ) {
-		// Print the summary...
+		// Print the summary.
 		PrintJGUI.printJTextAreaObject(this, null, __summary_JTextArea);
 	}
 	else if ( o == __save_JButton ) {
-		// Save the summary report or the data in the report...
+		// Save the summary report or the data in the report.
 		save ();
 	}
 	else if ( o == __search_JButton ) {
-		// Search the text area...
+		// Search the text area.
 		new SearchJDialog ( this, __summary_JTextArea, "Search " + getTitle() );
 	}
 	else if ( o == __table_JButton ) {
-		// Display a table...
+		// Display a table.
 		__tsview_JFrame.openGUI ( TSViewType.TABLE );
 	}
-}
-
-/**
-Clean up for garbage collection.
-*/
-protected void finalize()
-throws Throwable
-{	__tsview_JFrame = null;
-	__tslist = null;
-	__props = null;
-
-	__graph_JButton = null;
-	__table_JButton = null;
-	__save_JButton = null;
-	__close_JButton = null;
-	__help_JButton = null;
-	__print_JButton = null;
-	__search_JButton = null;
-	__summary_JTextArea = null;
-	__summary_font_name = null;
-
-	super.finalize();
 }
 
 /**
@@ -222,8 +154,8 @@ Initialize the data and GUI.
 @param tslist List of time series to display.
 @param props Properties for display (currently same list passed in to TSViewJFrame).
 */
-private void initialize ( TSViewJFrame tsview_gui, List<TS> tslist, PropList props )
-{	__tsview_JFrame = tsview_gui;
+private void initialize ( TSViewJFrame tsview_gui, List<TS> tslist, PropList props ) {
+	__tsview_JFrame = tsview_gui;
 	__tslist = tslist;
 	__props = props;
 	String prop_value = __props.getValue ( "TSViewTitleString" );
@@ -250,30 +182,29 @@ private void initialize ( TSViewJFrame tsview_gui, List<TS> tslist, PropList pro
 Open the GUI and display the time series summary.
 @param mode Indicates whether the GUI should be visible at creation.
 */
-private void openGUI ( boolean mode )
-{	String routine = getClass().getSimpleName() + ".openGUI";
-	// Start a big try block to set up the GUI...
+private void openGUI ( boolean mode ) {
+	String routine = getClass().getSimpleName() + ".openGUI";
+	// Start a big try block to set up the GUI.
 	try {
 
-	// Add a listener to catch window manager events...
+	// Add a listener to catch window manager events.
 
 	addWindowListener ( this );
 
-	// Lay out the main window component by component.  We will start with
-	// the menubar default components.  Then add each requested component
-	// to the menu bar and the interface...
+	// Lay out the main window component by component.  We will start with the menubar default components.
+	// Then add each requested component to the menu bar and the interface.
 
 	GridBagLayout gbl = new GridBagLayout();
 
-	Insets insetsTLBR = new Insets ( 7, 7, 7, 7 );	// space around text area
-	
-	// Add a panel to hold the text area...
+	Insets insetsTLBR = new Insets ( 7, 7, 7, 7 );	// Space around text area.
+
+	// Add a panel to hold the text area.
 
 	JPanel display_JPanel = new JPanel ();
 	display_JPanel.setLayout ( gbl );
 	getContentPane().add ( display_JPanel );
 
-	// Get the formatted string for the time series...
+	// Get the formatted string for the time series.
 
 	StringBuffer buffer = new StringBuffer();
 	String nl = System.getProperty ( "line.separator" );
@@ -301,7 +232,7 @@ private void openGUI ( boolean mode )
 			0, 0, 1, 1, 1, 1,
 			insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.WEST );
 
-	// Put the buttons on the bottom of the window...
+	// Put the buttons on the bottom of the window.
 
 	JPanel button_JPanel = new JPanel ();
 	button_JPanel.setLayout ( new FlowLayout(FlowLayout.CENTER) );
@@ -338,12 +269,12 @@ private void openGUI ( boolean mode )
 
 	getContentPane().add ( "South", button_JPanel );
 
-	// Get properties specific to the view
+	// Get properties specific to the view.
 	prop_value = __props.getValue ( "Summary.TotalWidth" );
 	if ( prop_value == null ) {
 		prop_value = __props.getValue ( "TotalWidth" );
 	}
-	pack ();	// Before setting size
+	pack (); // Before setting size.
 	int total_width = 0, total_height = 0;
 	if ( prop_value != null ) {
 		total_width = StringUtil.atoi(prop_value);
@@ -356,26 +287,26 @@ private void openGUI ( boolean mode )
 		total_height = StringUtil.atoi(prop_value);
 	}
 	if ( (total_width <= 0) || (total_height <= 0) ) {
-		// No property so make a guess...
+		// No property so make a guess.
 		setSize ( 800, 600 );
 	}
 	else {
 		setSize ( total_width, total_height );
 	}
-	// Get the UI component to determine screen to display on - needed for multiple monitors
+	// Get the UI component to determine screen to display on - needed for multiple monitors.
 	Object uiComponentO = __props.getContents( "TSViewParentUIComponent" );
 	Component parentUIComponent = null;
 	if ( (uiComponentO != null) && (uiComponentO instanceof Component) ) {
 		parentUIComponent = (Component)uiComponentO;
 	}
-	// Center on the UI component rather than the graph, because the graph screen seems to get tied screen 0?
+	// Center on the UI component rather than the graph, because the graph screen seems to get tied screen 0?.
 	JGUIUtil.center ( this, parentUIComponent );
 	// Seems to work best here to get the window size right.
 	__summary_JTextArea.setText ( buffer.toString() );
-	// Set the cursor position to the top
+	// Set the cursor position to the top.
 	__summary_JTextArea.setCaretPosition(0);
 	setVisible ( mode );
-	} // end of try
+	} // End of try.
 	catch ( Exception e ) {
 		Message.printWarning(3, routine, e);
 	}
@@ -384,8 +315,8 @@ private void openGUI ( boolean mode )
 /**
 Save the graph in standard formats.
 */
-private void save ()
-{	String routine = "TSViewSummaryFrame.save";
+private void save () {
+	String routine = "TSViewSummaryFrame.save";
 	String last_directory = JGUIUtil.getLastFileDialogDirectory();
 	JFileChooser fc =JFileChooserFactory.createJFileChooser(last_directory);
 	fc.setDialogTitle ( "Save Summary" );
@@ -397,10 +328,10 @@ private void save ()
 	SimpleFileFilter txt_sff = new SimpleFileFilter("txt", "Text Report" );
 	fc.addChoosableFileFilter ( txt_sff );
 	if ( fc.showSaveDialog(this) != JFileChooser.APPROVE_OPTION ) {
-		// Canceled...
+		// Canceled.
 		return;
 	}
-	// Else figure out the file format and location and then do the save...
+	// Else figure out the file format and location and then do the save.
 	last_directory = fc.getSelectedFile().getParent();
 	String path = fc.getSelectedFile().getPath();
 	JGUIUtil.setLastFileDialogDirectory(last_directory);
@@ -412,8 +343,7 @@ private void save ()
 			path = IOUtil.enforceFileExtension ( path, "txt" );
 		}
 		if ( !TSUtil.intervalsMatch(__tslist) ) {
-			Message.printWarning ( 1, routine, "Unable to write " +
-			"DateValue time series of different intervals." );
+			Message.printWarning ( 1, routine, "Unable to write DateValue time series of different intervals." );
 			return;
 		}
 		try {
@@ -451,8 +381,8 @@ public void windowClosing( WindowEvent event ){
 	return;
 }
 
-public void processWindowEvent ( WindowEvent e) 
-{	if (e.getID() == WindowEvent.WINDOW_CLOSING ) {
+public void processWindowEvent ( WindowEvent e) {
+	if (e.getID() == WindowEvent.WINDOW_CLOSING ){
 		super.processWindowEvent(e);
 		__tsview_JFrame.closeGUI(TSViewType.SUMMARY);
 	}
@@ -461,7 +391,7 @@ public void processWindowEvent ( WindowEvent e)
 	}
 }
 
-// WindowListener functions...
+// WindowListener functions.
 
 public void windowActivated( WindowEvent evt ){;}
 public void windowClosed( WindowEvent evt ){;}

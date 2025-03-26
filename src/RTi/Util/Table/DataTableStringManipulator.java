@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2024 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -506,7 +506,7 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             	try {
             		Double outputDouble = Double.parseDouble(input1Val);
             		// intValue may truncate but want to round in the normal way.
-            		outputVal = new Integer((int)Math.round(outputDouble));
+            		outputVal = Integer.valueOf((int)Math.round(outputDouble));
             	}
             	catch ( NumberFormatException e2 ) {
             		outputVal = null;

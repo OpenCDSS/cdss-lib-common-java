@@ -23,7 +23,6 @@ NoticeEnd */
 
 package RTi.GR;
 
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Shape;
 
@@ -450,19 +449,6 @@ Fills a rectangle in the current color.
 @param limits GRLimits denoting the bounds of the rectangle.
 */
 public abstract void fillRectangle ( GRLimits limits );
-
-/**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	_graphics = null;
-	_color = null;
-	_dev = null;
-	_font = null;
-	_name = null;
-	super.finalize();
-}
 
 /**
 Flushes the drawing.

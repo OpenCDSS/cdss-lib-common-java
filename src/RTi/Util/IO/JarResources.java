@@ -4,37 +4,28 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
 
 // ----------------------------------------------------------------------------
-// JarResources.java - class for reading resources out of a .jar file
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
 // Original class file taken from:
 // http://www.javaworld.com/javaworld/javatips/jw-javatip49.html
 // by John D. Mitchell and Arthur Choi
 // Reworked and edited on 15/07/02 by J. Thomas Sapienza, RTi
-// ----------------------------------------------------------------------------
-// History:
-// 2002-07-15	J. Thomas Sapienza, RTi	Initial RTi version
-// 2002-07-22	JTS, RTi		Updated, Javadoc'd
-// 2005-04-26	JTS, RTi		Added finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
 // ----------------------------------------------------------------------------
 
 package RTi.Util.IO;
@@ -58,15 +49,15 @@ The JarResources class that can read and manipulate resources
 in jar files.  It can do this one of two ways.  <p>
 <ol>
 <li>Read resources from the jar file upon demand</b><br>
-To do this, declare the JarResources class as usual and then use the 
+To do this, declare the JarResources class as usual and then use the
 method <b>getResourceFromJar(...)</b> when a resource is needed.</li>
-<li>Read all resources in the jar file into a hash table 
+<li>Read all resources in the jar file into a hash table
 (this providesquicker access)</b><br>
 Working with files like this, the JarResources class is declared as usual,
-but the function <b>buildResourceHashtable()</b> must be called next.  
+but the function <b>buildResourceHashtable()</b> must be called next.
 This sets up all the resources in the hash table.  To retrieve resources
 from the hashtable, use the method <b>getResourceFromHashtable(...)</b></li>
-This example Is a test driver. 
+This example Is a test driver.
 Given a jar file and a resource name, it trys to
 extract the resource and then tells us whether it could or not.
 
@@ -99,12 +90,12 @@ jr.buildResourceHashtable();
 byte[] buff=jr.getResourceFromHashtable(args[1]);
 if (buff == null) {
 	System.out.println("Could not find " + args[1] + ".");
-} 
+}
 else {
 	System.out.println("Found "+
 		args[1]+ " (length=" + buff.length + ").");
 }
-} 
+}
 */
 public final class JarResources {
 
@@ -116,13 +107,13 @@ private Hashtable<String,byte[]> __jarResources_Hashtable = new Hashtable<String
 /**
 Hashtable for holding the sizes of the files in the jar file
 */
-private Hashtable<String,Integer> __sizes_Hashtable = new Hashtable<String,Integer>();  
+private Hashtable<String,Integer> __sizes_Hashtable = new Hashtable<String,Integer>();
 
 /**
 The name of the jar file being worked with
 */
 private String __jarFileName;
-	
+
 /**
 Creates a JarResources, extracting all resources from a Jar
 into an internal hashtable, keyed by resource names.<p>
@@ -155,8 +146,7 @@ public JarResources(String jarFileName) {
 }
 
 /**
-Reads all the resources in the jar file into a hashtable (for quicker 
-access)
+Reads all the resources in the jar file into a hashtable (for quicker access)
 */
 public void buildResourceHashtable() {
 	try {
@@ -170,21 +160,21 @@ public void buildResourceHashtable() {
 			if (ze.isDirectory()) {
 				continue;
 			}
-			
+
 			if (Message.isDebugOn) {
-				Message.printDebug(1, 
+				Message.printDebug(1,
 					"JarResources.buildResourceHashtable",
-					"ze.getName() = " + ze.getName() 
+					"ze.getName() = " + ze.getName()
 					+ ", getSize() = " + ze.getSize());
 			}
-	
+
 			int size = (int) ze.getSize();
-			// -1 means unknown size. 
+			// -1 means unknown size.
 			if (size == -1) {
 				size = ((Integer) __sizes_Hashtable.get(
 					ze.getName())).intValue();
 			}
-			
+
 			byte[] b = new byte[(int) size];
 			int rb = 0;
 			int chunk = 0;
@@ -195,20 +185,20 @@ public void buildResourceHashtable() {
 				}
 				rb += chunk;
 			}
-			
+
 			// add to internal resource hashtable
 			__jarResources_Hashtable.put(ze.getName(), b);
 			if (Message.isDebugOn) {
 				Message.printDebug(1,
 					"JarResources.buildResourceHashtable",
-					ze.getName() + "  rb=" + rb 
-					+ ", size = " + size 
-					+ ", csize = " 
+					ze.getName() + "  rb=" + rb
+					+ ", size = " + size
+					+ ", csize = "
 					+ ze.getCompressedSize());
 			}
 		}
 		zis.close();
-	} 
+	}
 	catch (Exception e) {
 		Message.printWarning(2, "buildResourceHashtable",
 			"An error occured while building the resource "
@@ -219,7 +209,7 @@ public void buildResourceHashtable() {
 
 // TODO SAM 2007-04-09 Evaluate whether needed or should be public
 /**
-Dumps a zip entry into a string for debugging purposes.  The string 
+Dumps a zip entry into a string for debugging purposes.  The string
 is of the form:<p>
 <b>[d|f] [stored|deflated] [name] [size (/ deflated_size)]</b><br>
 where:<br>
@@ -237,40 +227,29 @@ deflated_size: if the file is deflated, the compressed size of the file<br>
 private String dumpZipEntry(ZipEntry ze) {
 	StringBuffer sb = new StringBuffer();
 	if (ze.isDirectory()) {
-		sb.append("d "); 
-	} 
-	else {
-		sb.append("f "); 
+		sb.append("d ");
 	}
-	
+	else {
+		sb.append("f ");
+	}
+
 	if (ze.getMethod() == ZipEntry.STORED) {
-		sb.append("stored   "); 
-	} 
+		sb.append("stored   ");
+	}
 	else {
 		sb.append("deflated ");
 	}
-	
+
 	sb.append(ze.getName());
 	sb.append("\t");
 	sb.append("" + ze.getSize());
-	
+
 	if (ze.getMethod() == ZipEntry.DEFLATED) {
 		sb.append("/" + ze.getCompressedSize());
 	}
 	return sb.toString();
 }
 */
-
-/**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__jarResources_Hashtable = null;
-	__sizes_Hashtable = null;
-	__jarFileName = null;
-	super.finalize();
-}
 
 /**
 Returns a list of all the resources in the jar file in hashtable form.
@@ -282,7 +261,7 @@ public Hashtable<String,Integer> getResourcesHashtable() {
 }
 
 /**
-Returns a String list of the names of all the resources in the jar file 
+Returns a String list of the names of all the resources in the jar file
 @return a String list of the names of all the resources in the jar file
 */
 public List<String> getResourcesList() {
@@ -293,12 +272,12 @@ public List<String> getResourcesList() {
 		v.add(key);
 	}
 
-	return v;					
+	return v;
 }
 
 /**
-Extracts a jar resource as a byte array.  The array can be used in 
-methods that take byte array parameters.  For instance, if an image 
+Extracts a jar resource as a byte array.  The array can be used in
+methods that take byte array parameters.  For instance, if an image
 is read from a jar file, it can be used in ImageIcon(byte[] imageData);<p>
 @param name a resource name.
 @return a resource as a byte array
@@ -322,39 +301,39 @@ public byte[] getResourceFromJar(String resourceName) {
 			new BufferedInputStream(
 			new FileInputStream(__jarFileName)));
 		ZipEntry ze = null;
-		
+
 		while ((ze = zis.getNextEntry()) != null) {
 			if (ze.isDirectory()) {
 				continue;
 			}
-			
+
 			int size=(int)ze.getSize();
-			// -1 means unknown size. 
-			if (size == -1) {			
+			// -1 means unknown size.
+			if (size == -1) {
 				size = __sizes_Hashtable.get(ze.getName()).intValue();
 			}
-	
+
 			if (ze.getName().equalsIgnoreCase(resourceName)) {
 				byte[] b = new byte[(int) size];
 				int rb = 0;
 				int chunk = 0;
-				
+
 			chunk = zis.read(b, rb, size);
 				rb += chunk;
 				while ((size - rb) > 0) {
 					chunk = zis.read(b, rb, (size - rb));
-	
+
 					if (chunk == -1) {
 						break;
 					}
-					
+
 					rb += chunk;
 				}
 				zis.close();
 				return b;
 			}
 		}
-		
+
 		zis.close();
 		return null;
 	}
@@ -383,7 +362,7 @@ Returns the size of the specified resource in the jar file in bytes.
 */
 public int getSize(String resourceName) {
 	return ((Integer) __sizes_Hashtable.get(resourceName)).intValue();
-}   	
+}
 
 /**
 Reads the jar file and creates a hashtable of all the resources in the
@@ -392,7 +371,7 @@ hashtable and their filesizes.
 private void init() {
 	ZipFile zf = null;
 	try {
-		// extracts just sizes only. 
+		// extracts just sizes only.
 		zf = new ZipFile(__jarFileName);
 		Enumeration<? extends ZipEntry> e = zf.entries();
 		while (e.hasMoreElements()) {
@@ -400,7 +379,7 @@ private void init() {
 			if (!ze.isDirectory()) {
 				__sizes_Hashtable.put(
 					  ze.getName(),
-					  new Integer((int) ze.getSize()));
+					  Integer.valueOf((int) ze.getSize()));
 			}
 		}
 	}

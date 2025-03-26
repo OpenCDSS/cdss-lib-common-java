@@ -4,87 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//-----------------------------------------------------------------------------
-// ESRIShapefile
-//-----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// Description: ShapeFile reads and provides info about .shp/.shx files.
-//-----------------------------------------------------------------------------
-// History:
-//
-// 30 Oct 1998	Steven A. Malers, RTi	Re-implement code based on C version
-//					and insight from Jay Fucetola's code.
-// 14 Jun 1999	SAM, RTi		Update with new EndianDataInputStream
-//					class - I/O is now simpler!
-// 25 Jun 1999	SAM, RTi		Start adding generic features to
-//					support specific use on projects,
-//					primarily through PropList options.
-// 01 Sep 1999	SAM, RTi		Fix problem where the record number
-//					from the ESRI shape was being used for
-//					GRShape indexes.  This was problematic
-//					because ESRI records start at 1 and
-//					a zero-reference index is preferred for
-//					programming.  Change to use zero.
-//					If a shapefile writer is developed,
-//					write the record number as 1+ the
-//					GRShape index.
-// 07 Sep 1999	CEN, RTi		Added readDBFHeaderOnly.
-// 19 Feb 2001	SAM, RTi		Change IO to IOUtil.
-// 15 Aug 2001	SAM, RTi		Change so a .shp file can be read
-//					without a .shx or .dbf file.  This is
-//					useful for testing.  Add a few more
-//					debug messages to help figure out how to
-//					write the shapefiles.
-// 17 Sep 2001	SAM, RTi		Deprecate the ESRIShapefile package and
-//					move the single class from that package
-//					to this GeoView code.  Change the file
-//					I/O to use RandomAccessFile for Dbase
-//					and allow writing of shapefiles.  Random
-//					access allows data attributes to be read
-//					asynchronously.  Add isESRIShapefile()
-//					to allow GeoView package to support
-//					multiple file types.
-// 02 Oct 2001	SAM, RTi		Change so reading attributes is false
-//					by default.  The data will be read as
-//					necessary from the attribute file.
-// 2001-10-11	SAM, RTi		Review Javadoc for port to C++.  Remove
-//					features that are no longer needed, like
-//					the "Select...Where" properties.  Now
-//					attributes can be read on-the-fly and
-//					an application can set shapes to
-//					invisibible if necessary.  Remove
-//					readDBFHeadersOnly().
-// 2002-10-30	SAM, RTi		Fix bug in write() where unknown shape
-//					types were causing an error.  Update to
-//					skip unknown shape types.
-// 2003-01-17	SAM, RTi		Handle writing shapefiles when zero
-//					shapes are given.  In this case write
-//					a file with zero length.
-// 2006-01-23	SAM, RTi		If for point data the x coordinate is
-//					very negative, reset the shape type to
-//					UNKNOWN.
-// 2007-02-17	SAM, RTi		Incorporate performance enhancements from Ian.
-//					Clean up code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
-// EndHeader
 
 package RTi.GIS.GeoView;
 
@@ -94,7 +29,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import RTi.GIS.GeoView.GeoLayer;
 import RTi.GR.GRPoint;
 import RTi.GR.GRPointZM;
 import RTi.GR.GRPolygon;
@@ -282,22 +216,6 @@ throws IOException
 	catch ( IOException e ) {
 		throw e;
 	}
-}
-
-/**
-Finalize before garbage collection.
-*/
-protected void finalize ()
-throws Throwable
-{	_dbf_file = null;
-	_shp_file = null;
-	_shp_stream = null;
-	_shx_content_length = null;
-	_shx_file = null;
-	_shx_offset = null;
-	_shx_stream = null;
-	_props = null;
-	super.finalize();
 }
 
 /**

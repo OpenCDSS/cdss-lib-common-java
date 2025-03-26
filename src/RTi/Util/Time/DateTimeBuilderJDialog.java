@@ -4,53 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//-----------------------------------------------------------------------------r
-// DateTimeBuilderJDialog - GUI to assist in building Dates.
-//-----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// History: 
-//
-// 05 May 1998	DLG, RTi		Created initial class description.
-// 07 Jul 1998	Steven A. Malers, RTi	Update so that the check on the date
-//					takes into account the precision.
-// 12 Oct 2000	SAM, RTi		Change dialog title from "Date Builder"
-//					to "Enter Date" or "Enter Date/Time".
-//					Add "Title" property to let calling code
-//					customize title.  Remove import * to
-//					optimize code.  Allow "DateJLabel"
-//					property to override default of "Date:".
-// 07 Jun 2001	SAM, RTi		Add finalize().  Change static data
-//					to non-static to save memory.  Change
-//					GUI to GUIUtil.
-// 2001-11-06	SAM, RTi		Review javadoc.  Verify that variables
-//					are set to null when no longer used.
-//-----------------------------------------------------------------------------
-// 2003-03-31	J. Thomas Sapienza, RTi	Initial Swing version from
-//					TSDateBuilderJDialog.
-// 2003-04-01	JTS, RTi		* Corrected bug in determining the 
-//					  current time.
-//					* Corrected bug that ordered the 
-//					  precisions wrong.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-//-----------------------------------------------------------------------------
 
 package RTi.Util.Time;
 
@@ -81,8 +50,6 @@ import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.Message.Message;
 
 import RTi.Util.String.StringUtil;
-
-import RTi.Util.Time.TimeUtil;
 
 import RTi.Util.IO.PropList;
 
@@ -252,32 +219,6 @@ Closes the GUI.
 private void closeClicked() {
 	setVisible(false);
         dispose();
-}
-
-/**
-Clean up memory before garbage collection.
-@exception Throwable if there is an error.
-*/
-protected void finalize()
-throws Throwable {
-	__tMonthJTextField = null;
-	__fMonthJTextField = null;
-	__TdayJTextField = null;
-	__fDayJTextField = null;
-	__TyearJTextField = null;
-	__fYearJTextField = null;
-	__ThourJTextField = null;
-	__fHourJTextField = null;
-	__tMinuteJTextField = null;
-	__fMinuteJTextField = null;
-	__fromJTextField = null;
-	__toJTextField = null;
-	__fromDateTime = null;
-	__toDateTime = null;
-	__modToDateTime = null;
-	__modFromDateTime = null;
-	__props = null;
-	super.finalize();
 }
 
 /**

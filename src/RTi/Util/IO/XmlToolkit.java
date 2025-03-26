@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -40,7 +40,7 @@ import org.w3c.dom.NodeList;
 /**
  * Useful XML processing methods as a toolkit to avoid static methods. See: -
  * http://www.drdobbs.com/jvm/easy-dom-parsing-in-java/231002580
- * 
+ *
  * Element and Node are generally interchangeable for basic functionality and different nomenclature is used
  * only because of historical reasons.
  */
@@ -51,7 +51,7 @@ public class XmlToolkit {
 	 */
 	public XmlToolkit() {
 	}
-	
+
 	/**
 	Find an element (given a parent element) that matches the given element name.
 	@param parentElement parent element to process
@@ -79,16 +79,16 @@ public class XmlToolkit {
 	    }
 	    else {
 	        if ( (attributeName != null) && !attributeName.equals("") ) {
-	            // Want to search to see if the node has a matching attribute name
+	            // Want to search to see if the node has a matching attribute name.
 	            for ( int i = 0; i < nodes.getLength(); i++ ) {
 	                Node node = nodes.item(i);
 	                NamedNodeMap nodeMap = node.getAttributes();
 	                if ( nodeMap.getNamedItem(attributeName) != null ) {
-	                    // Found the node of interest
+	                    // Found the node of interest.
 	                    return (Element)node;
 	                }
 	            }
-	            // No node had the requested attribute
+	            // No node had the requested attribute.
 	            return null;
 	        }
 	        else {
@@ -108,7 +108,7 @@ public class XmlToolkit {
 	    Element el = findSingleElement(startElement, elementName);
 	    return el == null ? null : el.getTextContent().trim();
 	}
-	
+
 	/**
 	Get all elements matching the given name from a starting element
 	@param startElement Starting element to process
@@ -124,7 +124,7 @@ public class XmlToolkit {
 	    }
 	    return elements;
 	}
-	
+
 	/**
 	Get a list of element text values.
 	Return the list of element text values, using values returned from node getTextContent().
@@ -142,7 +142,7 @@ public class XmlToolkit {
 
 	/**
 	 * Return the node that matches an element tag name, given a list of nodes to search.
-	 * 
+	 *
 	 * @param tagName
 	 *            element tag name
 	 * @param nodes
@@ -159,10 +159,10 @@ public class XmlToolkit {
 
 		return null;
 	}
-	
+
 	/**
 	 * Return the nodes that matches an element tag name, given a list of nodes to search.
-	 * 
+	 *
 	 * @param tagName
 	 *            element tag name
 	 * @param nodes
@@ -182,7 +182,7 @@ public class XmlToolkit {
 
 	/**
 	 * Return the attribute value for a node or "" if not found.
-	 * 
+	 *
 	 * @param attributeName element attribute name, with namespace if present in file
 	 * @param node node to process
 	 * @return string value for attribute name, or "" if not matched
@@ -203,10 +203,10 @@ public class XmlToolkit {
 	    }
 	    return "";
 	}
-	
+
 	/**
 	 * Return the string value of an element or "" if not found.
-	 * 
+	 *
 	 * @param tagName
 	 *            element tag name
 	 * @param nodes
@@ -227,7 +227,7 @@ public class XmlToolkit {
 	    }
 	    return "";
 	}
-	
+
 	/**
 	Return the text value of the single matching element.
 	@param parentElement Starting element to process
@@ -254,7 +254,7 @@ public class XmlToolkit {
 	    }
 	    return (Element) nodes.item(0);
 	}
-	
+
 	/**
 	Get the single element matching the given name moving up in the DOM relative to the starting element.
 	@param startElement Starting element to process
@@ -264,10 +264,10 @@ public class XmlToolkit {
 	public Element getSingleElementPrevious(Element startElement, String elementName) throws IOException {
 		Node node = startElement;
 		while ( true ) {
-			// Get the parent node
+			// Get the parent node.
 			node = node.getParentNode();
 			if ( node == null ) {
-				// Did not find the requested node
+				// Did not find the requested node.
 				break;
 			}
 			if ( node.getNodeName().equalsIgnoreCase(elementName) ) {

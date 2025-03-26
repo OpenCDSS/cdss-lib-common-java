@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -3793,7 +3793,7 @@ public void drawLegend() {
 			height += maxRowHeight;
 
 			// Also store the height of this legend line.
-			rowHeightsV.add(new Double(maxRowHeight));
+			rowHeightsV.add(Double.valueOf(maxRowHeight));
 
 			// Determine the width of the line.
 			// The legend must accommodate the widest text that will appear in it.
@@ -3842,7 +3842,7 @@ public void drawLegend() {
 	height += maxRowHeight;
 
 	// Create a double array that stores the heights of all the rows in the legend, where row 0 is the legend title.
-	rowHeightsV.add(new Double(maxRowHeight));
+	rowHeightsV.add(Double.valueOf(maxRowHeight));
 	int rowHeightsVSize = rowHeightsV.size();
 	double[] rowHeights = new double[rowHeightsVSize];
 	for (int i = 0; i < rowHeightsVSize; i++) {

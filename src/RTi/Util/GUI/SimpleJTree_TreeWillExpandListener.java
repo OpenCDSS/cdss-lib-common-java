@@ -4,39 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-//-----------------------------------------------------------------------------
-// SimpleJTree_TreeWillExpandListener - Class that allows control over
-// whether JTrees can expand or collapse.
-//-----------------------------------------------------------------------------
-// Copyright: See the COPYRIGHT file.
-//-----------------------------------------------------------------------------
-// History: 
-//
-// 2003-05-01	J. Thomas Sapienza, RTi	* Initial version
-//					* Javadoc'd.
-// 2004-07-06	JTS, RTi		* Added setTree().
-//					* Changed expansion code to notify 
-//					  listeners of the node that is 
-//					  expanding.
-// 2005-04-26	JTS, RTi		Added finalize().
-//-----------------------------------------------------------------------------
 
 package RTi.Util.GUI;
 
@@ -48,13 +31,12 @@ import javax.swing.event.TreeWillExpandListener;
 import javax.swing.tree.ExpandVetoException;
 
 /**
-This class is used when it is not desired that the SimpleJTree be able
-to be collapsed.  It overrides the default behavior in the SimpleJTree's
-oroginal TreeWillExpandListener such that collapsing and expansion of the
-tree can be disabled.<p>
+This class is used when it is not desired that the SimpleJTree be able to be collapsed.
+It overrides the default behavior in the SimpleJTree's original TreeWillExpandListener
+such that collapsing and expansion of the tree can be disabled.<p>
 The default behavior is that expansion and collapsing are both allowed.
 */
-public class SimpleJTree_TreeWillExpandListener 
+public class SimpleJTree_TreeWillExpandListener
 implements TreeWillExpandListener {
 
 /**
@@ -71,15 +53,6 @@ private boolean __expandAllowed = true;
 The SimpleJTree this listener is operating on.
 */
 private SimpleJTree __tree = null;
-
-/**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__tree = null;
-	super.finalize();
-}
 
 /**
 Returns true if the tree can be collapsed, false otherwise.
@@ -99,8 +72,7 @@ public boolean isExpandAllowed() {
 
 /**
 Sets whether the tree can be collapsed or not.
-@param collapseAllowed if true, the tree can be collapsed.  If false, it 
-can not.
+@param collapseAllowed if true, the tree can be collapsed.  If false, it can not.
 */
 public void setCollapseAllowed(boolean collapseAllowed) {
 	__collapseAllowed = collapseAllowed;
@@ -123,39 +95,36 @@ public void setTree(SimpleJTree tree) {
 }
 
 /**
-Invoked whenever a node in the tree is about to be collapsed (overridden 
-from TreeWillExpandListener).  Throws an exception if the tree cannot be
-collapsed (this exception doesn't ever show up to the user; it is used by
-the JTree to determine if it can collapse or not).
+Invoked whenever a node in the tree is about to be collapsed (overridden from TreeWillExpandListener).
+Throws an exception if the tree cannot be collapsed (this exception doesn't ever show up to the user;
+it is used by the JTree to determine if it can collapse or not).
 @param event event that happened.
 */
-public void treeWillCollapse(TreeExpansionEvent event) 
+public void treeWillCollapse(TreeExpansionEvent event)
 throws ExpandVetoException {
 	if (!__collapseAllowed) {
-		throw new ExpandVetoException(event, 
-			"Cannot collapse this tree");
-	}	
+		throw new ExpandVetoException(event, "Cannot collapse this tree");
+	}
 }
 
 /**
-Invoked whenever a node in the tree is about to be expanded (overridden 
-from TreeWillExpandListener).  Throws an exception if the tree cannot be
-collapsed (this exception doesn't ever show up to the user; it is used by
-the JTree to determine if it can expand or not).
+Invoked whenever a node in the tree is about to be expanded (overridden from TreeWillExpandListener).
+Throws an exception if the tree cannot be collapsed (this exception doesn't ever show up to the user;
+it is used by the JTree to determine if it can expand or not).
 @param event event that happened.
 */
-public void treeWillExpand(TreeExpansionEvent event) 
+public void treeWillExpand(TreeExpansionEvent event)
 throws ExpandVetoException {
 	if (!__expandAllowed) {
-		throw new ExpandVetoException(event, "Cannot expand this tree");
-	}		
+		throw new ExpandVetoException(event, "Cannot expand this tree.");
+	}
 	List<SimpleJTree_Listener> v = __tree.getListeners();
 	if (v == null) {
 		return;
 	}
 
 	SimpleJTree_Node node = (SimpleJTree_Node)((event.getPath()).getLastPathComponent());
-	
+
 	int size = v.size();
 	for (int i = 0; i < size; i++) {
 		v.get(i).nodeExpanding(node);

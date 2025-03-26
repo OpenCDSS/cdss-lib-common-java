@@ -29,17 +29,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.Icon;
 import javax.swing.JTree;
 
 import javax.swing.plaf.basic.BasicTreeUI;
+import javax.swing.plaf.metal.MetalTreeUI;
 
 import javax.swing.text.Position;
 
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import RTi.Util.Message.Message;
@@ -365,8 +366,8 @@ throws Exception {
 				node = new SimpleJTree_Node(text, icon, name);
 			}
 		}
-		// The node would be null if something other than a String or a 2- or 3-element Vector was in the list.
-		if (node != null) {
+		// The node would be null if something other than a String or a 2- or 3-element list was in the list.
+		if ( node != null ) {
 			addNode(node);
 		}
 	}
@@ -378,7 +379,7 @@ Adds a listener to the list of listeners.
 */
 public void addSimpleJTreeListener(SimpleJTree_Listener listener) {
 	if (__listeners == null) {
-		__listeners = new Vector<>();
+		__listeners = new ArrayList<>();
 	}
 	__listeners.add(listener);
 }
@@ -520,7 +521,7 @@ Will not work if <tt>setCollapse()</tt> has been called and collapsing has been 
 public void collapseAllNodes()
 throws Exception {
 	if (!isCollapsible()) {
-		throw new Exception ("Cannot collapse nodes; table has set un-collapsible");
+		throw new Exception ("Cannot collapse nodes; tree has set un-collapsible");
 	}
 
 	SimpleJTree_Node node = getRoot();
@@ -529,10 +530,9 @@ throws Exception {
 		Message.printStatus(dl, CLASS + ".collapseAllNodes", "Collapsing from root node (" + node + ")");
 	}
 
-	if (node.getChildCount() > 0) {
-		for (@SuppressWarnings("unchecked")
-		Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
-			SimpleJTree_Node n = e.nextElement();
+	if ( node.getChildCount() > 0 ) {
+		for ( Enumeration<TreeNode> e = node.children(); e.hasMoreElements(); ) {
+			SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 			collapseAllNodes(n);
 		}
 	}
@@ -545,9 +545,8 @@ This goes out to the very end leaves of the tree and collapses all the nodes on 
 */
 private void collapseAllNodes(SimpleJTree_Node node) {
 	if (node.getChildCount() > 0) {
-		for (@SuppressWarnings("unchecked")
-		Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
-			SimpleJTree_Node n = e.nextElement();
+		for ( Enumeration<TreeNode> e = node.children(); e.hasMoreElements();) {
+			SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 			collapseAllNodes(n);
 		}
 	}
@@ -586,7 +585,7 @@ Collapses the given node.
 public void collapseNode(SimpleJTree_Node node)
 throws Exception {
 	if (!isCollapsible()) {
-		throw new Exception ("Cannot collapse nodes; table has set un-collapsible");
+		throw new Exception ("Cannot collapse nodes; tree has set un-collapsible");
 	}
 
 	if (Message.isDebugOn) {
@@ -612,9 +611,8 @@ public void dumpTree() {
 		Message.printDebug(1,"",root.getName() );
 	}
 	if (root.getChildCount() > 0) {
-		for (@SuppressWarnings("unchecked")
-		Enumeration<SimpleJTree_Node> e = root.children(); e.hasMoreElements();) {
-			SimpleJTree_Node n = e.nextElement();
+		for ( Enumeration<TreeNode> e = root.children(); e.hasMoreElements();) {
+			SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 			dumpTree(1, n);
 		}
 	}
@@ -641,9 +639,8 @@ public void dumpTree(int indent, SimpleJTree_Node node) {
 		Message.printDebug(1,"",s  + node.getName() );
 	}
 	if (node.getChildCount() > 0) {
-		for (@SuppressWarnings("unchecked")
-		Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
-			SimpleJTree_Node n = e.nextElement();
+		for ( Enumeration<TreeNode> e = node.children(); e.hasMoreElements();) {
+			SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 			dumpTree((indent + 1), n);
 		}
 	}
@@ -660,9 +657,8 @@ public void expandAllNodes() {
 	}
 
 	if (node.getChildCount() > 0) {
-		for (@SuppressWarnings("unchecked")
-		Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
-			SimpleJTree_Node n = e.nextElement();
+		for ( Enumeration<TreeNode> e = node.children(); e.hasMoreElements();) {
+			SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 			expandAllNodes(n);
 		}
 	}
@@ -682,9 +678,8 @@ private void expandAllNodes(SimpleJTree_Node node) {
 	}
 
 	if (node.getChildCount() > 0) {
-		for (@SuppressWarnings("unchecked")
-		Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
-			SimpleJTree_Node n = e.nextElement();
+		for ( Enumeration<TreeNode> e = node.children(); e.hasMoreElements();) {
+			SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 			expandAllNodes(n);
 		}
 	}
@@ -754,9 +749,8 @@ private SimpleJTree_Node findNodeByName(SimpleJTree_Node node,String name) {
 	}
 
 	if (node.getChildCount() > 0) {
-		for (@SuppressWarnings("unchecked")
-		Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
-			SimpleJTree_Node n = e.nextElement();
+		for ( Enumeration<TreeNode> e = node.children(); e.hasMoreElements();) {
+			SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 			SimpleJTree_Node o = findNodeByName(n, name);
 			if (o != null) {
 				return o;
@@ -787,9 +781,8 @@ private SimpleJTree_Node findNodeByName(SimpleJTree_Node node,String name) {
    			return null;
    		}
    		else {
-   			for ( @SuppressWarnings("unchecked")
-   				Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
-   				SimpleJTree_Node n = e.nextElement();
+   			for ( Enumeration<TreeNode> e = node.children(); e.hasMoreElements();) {
+   				SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
    				if ( n.getText().equals(text) ) {
    					return n;
    				}
@@ -834,9 +827,8 @@ private SimpleJTree_Node findNodeWithData(SimpleJTree_Node node, Object data) {
 	}
 
 	if (node.getChildCount() > 0) {
-		for (@SuppressWarnings("unchecked")
-		Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
-			SimpleJTree_Node n = e.nextElement();
+		for ( Enumeration<TreeNode> e = node.children(); e.hasMoreElements();) {
+			SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 			SimpleJTree_Node o = findNodeWithData(n, data);
 			if (o != null) {
 				return o;
@@ -861,31 +853,15 @@ public SimpleJTree_Node findTopLevelNode(String name) {
 		return root;
 	}
 
-	SimpleJTree_Node n = null;
 	if (root.getChildCount() > 0) {
-		for (@SuppressWarnings("unchecked")
-		Enumeration<SimpleJTree_Node> e = root.children(); e.hasMoreElements();) {
-			n = e.nextElement();
+		for ( Enumeration<TreeNode> e = root.children(); e.hasMoreElements();) {
+			SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 			if (n.getName().equals(name)) {
 				return n;
 			}
 		}
 	}
 	return null;
-}
-
-/**
-Cleans up container variables.
-*/
-public void finalize()
-throws Throwable {
-	__closedIcon = null;
-	__collapsedIcon = null;
-	__expandedIcon = null;
-	__leafIcon = null;
-	__openIcon = null;
-	__collapseExpandListener = null;
-	__listeners = null;
 }
 
 /**
@@ -933,12 +909,12 @@ and all the children of their children, so on and so on.
 public List<SimpleJTree_Node> getAllChildrenList(SimpleJTree_Node node) {
 	Enumeration<SimpleJTree_Node> e = getChildren(node);
 	if (e == null) {
-		return new Vector<>();
+		return new ArrayList<>();
 	}
 
 	int size = 0;
 	SimpleJTree_Node tempNode = null;
-	List<SimpleJTree_Node> v = new Vector<>();
+	List<SimpleJTree_Node> v = new ArrayList<>();
 	List<SimpleJTree_Node> temp = null;
 	while (e.hasMoreElements()) {
 		tempNode = (SimpleJTree_Node)e.nextElement();
@@ -966,12 +942,15 @@ Returns an enumeration of all the children nodes of the given node.
 @param node the node to get the children of
 @return an enumeration of all the children nodes of the given node.
 */
-@SuppressWarnings("unchecked")
-public Enumeration<SimpleJTree_Node> getChildren(SimpleJTree_Node node) {
-	if (node == null) {
+public Enumeration<SimpleJTree_Node> getChildren ( SimpleJTree_Node node ) {
+	if ( node == null ) {
 		return null;
 	}
-	return node.children();
+	List<SimpleJTree_Node> list = new ArrayList<>();
+	for ( Enumeration<TreeNode> e = node.children(); e.hasMoreElements();) {
+		list.add ( (SimpleJTree_Node)e.nextElement());
+	}
+	return Collections.enumeration(list);
 }
 
 /**
@@ -1014,7 +993,7 @@ Returns a list of all the children nodes of the given node.
 */
 public List<SimpleJTree_Node> getChildrenList(SimpleJTree_Node node) {
 	Enumeration<SimpleJTree_Node> e = getChildren(node);
-	List<SimpleJTree_Node> v = new Vector<>();
+	List<SimpleJTree_Node> v = new ArrayList<>();
 	while (e.hasMoreElements()) {
 		v.add(e.nextElement());
 	}
@@ -1233,9 +1212,8 @@ Private utility function used by <tt>hasNode()</tt> to recurse through the nodes
 */
 private boolean hasNode(SimpleJTree_Node node, SimpleJTree_Node nodeToFind) {
 	if (node.getChildCount() > 0) {
-		for (@SuppressWarnings("unchecked")
-		Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
-			SimpleJTree_Node n = e.nextElement();
+		for ( Enumeration<TreeNode> e = node.children(); e.hasMoreElements();) {
+			SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 			if (n == nodeToFind) {
 				if (Message.isDebugOn) {
 					Message.printDebug(dl, CLASS + ".hasNode", "  Match: " + n.toString());
@@ -1270,13 +1248,20 @@ This makes the nodes flat against the left side of whatever the tree is resting 
 </ul>
 */
 private void initialize() {
-	if (getUI() instanceof com.sun.java.swing.plaf.windows.WindowsTreeUI) {
+	// Java 8.
+	//if (getUI() instanceof com.sun.java.swing.plaf.windows.WindowsTreeUI) {
+	if ( getUI() instanceof BasicTreeUI ) {
 		__treeType = __WINDOWS;
 		setUI(new SimpleJTree_WindowsUI());
 	}
-	else if (getUI() instanceof com.sun.java.swing.plaf.motif.MotifTreeUI) {
+	// Java 8.
+	// else if (getUI() instanceof com.sun.java.swing.plaf.motif.MotifTreeUI) {
+	else if (getUI() instanceof MetalTreeUI) {
 		// TODO JTS 2003-05-12 need to write Motif UI code for the tree.
-		__treeType = __MOTIF;
+		// Java 8.
+		//__treeType = __MOTIF;
+		// Java 11 - use metal.
+		__treeType = __METAL;
 	}
 	else {
 		// Default to the normal Metal one.
@@ -1366,9 +1351,8 @@ Private utility function used by <tt>markVisibleNodes()</tt> to determine which 
 */
 private void markVisibleNodes(SimpleJTree_Node node) {
 	if (node.getChildCount() > 0) {
-		for (@SuppressWarnings("unchecked")
-		Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
-			SimpleJTree_Node n = e.nextElement();
+		for ( Enumeration<TreeNode> e = node.children(); e.hasMoreElements();) {
+			SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 			if (isVisible(getTreePath(n))) {
 				if (Message.isDebugOn) {
 					Message.printDebug(dl, CLASS + ".markVisibleNodes", "  Node '" + n.getName() + "' marked visible");
@@ -1609,9 +1593,8 @@ private void moveNodesRecurse(SimpleJTree_Node node, SimpleJTree_Node newParent,
 
 	int count = 0;
 	if (node.getChildCount() > 0) {
-		for (@SuppressWarnings("unchecked")
-		Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
-			SimpleJTree_Node n = e.nextElement();
+		for ( Enumeration<TreeNode> e = node.children(); e.hasMoreElements();) {
+			SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 			moveNodesRecurse(n, clonedNode, count);
 			count++;
 		}
@@ -1694,11 +1677,9 @@ throws Exception {
 			Message.printDebug(dl, CLASS + ".removeChildren",
 				"Node '" + node.getName() + "' has " + node.getChildCount() + " children to be deleted.");
 		}
-		@SuppressWarnings("unchecked")
-		Enumeration<SimpleJTree_Node> e = node.children();
-		List<SimpleJTree_Node> v = new Vector<>();
-		for (; e.hasMoreElements();) {
-			v.add(e.nextElement());
+		List<SimpleJTree_Node> v = new ArrayList<>();
+		for ( Enumeration<TreeNode> e = node.children(); e.hasMoreElements();) {
+			v.add((SimpleJTree_Node)e.nextElement());
 		}
 
 		for (int i = 0; i < v.size(); i++) {
@@ -1785,18 +1766,16 @@ throws Exception {
 	}
 
 	// Otherwise, the child nodes are all moved to be nodes of the parent.
-	if (node.getChildCount() > 0) {
+	if ( node.getChildCount() > 0 ) {
 		if (Message.isDebugOn) {
 			Message.printDebug(dl, CLASS + ".removeNode",
 				"Node '" + node.getName() + "' has " + node.getChildCount() + " children to save.");
 		}
-		for (@SuppressWarnings("unchecked")
-		Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
-			SimpleJTree_Node n = e.nextElement();
+		for ( Enumeration<TreeNode> e = node.children(); e.hasMoreElements();) {
+			SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 			if (Message.isDebugOn) {
 				Message.printDebug(dl, CLASS + ".removeNode",
-					"Moving child '" + n.getName() + "' to "
-					+ "node '" + node.getName() + "''s " + "parent.");
+					"Moving child '" + n.getName() + "' to " + "node '" + node.getName() + "''s " + "parent.");
 			}
 			moveNode(n, parent, true);
 		}
@@ -1882,10 +1861,8 @@ throws Exception {
 				"The node to be replaced has "
 				+ nodeToReplace.getChildCount() + " children to be stored under the new node.");
 		}
-		for (@SuppressWarnings("unchecked")
-		Enumeration<SimpleJTree_Node> e = nodeToReplace.children();
-			e.hasMoreElements();) {
-			SimpleJTree_Node n = e.nextElement();
+		for ( Enumeration<TreeNode> e = nodeToReplace.children(); e.hasMoreElements();) {
+			SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 			if (Message.isDebugOn) {
 				Message.printDebug(dl, CLASS + ".replaceNode", "Saving child node '" + n.getName() + "'");
 			}
@@ -1914,9 +1891,8 @@ the visibility of the original node is kept with the moved or replaced node.
 public void resetVisibleNodes() {
 	SimpleJTree_Node root = getRoot();
 	if (root.getChildCount() > 0) {
-		for (@SuppressWarnings("unchecked")
-		Enumeration<SimpleJTree_Node> e = root.children(); e.hasMoreElements();) {
-			SimpleJTree_Node n = e.nextElement();
+		for ( Enumeration<TreeNode> e = root.children(); e.hasMoreElements();) {
+			SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 			resetVisibleNodes(n);
 		}
 	}
@@ -1933,9 +1909,8 @@ private void resetVisibleNodes(SimpleJTree_Node node) {
 			Message.printDebug(dl, CLASS + ".resetVisibleNodes",
 				"Node '" + node.getName() + "' has " + node.getChildCount() + " children.");
 		}
-		for (@SuppressWarnings("unchecked")
-		Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
-			SimpleJTree_Node n = e.nextElement();
+		for ( Enumeration<TreeNode> e = node.children(); e.hasMoreElements();) {
+			SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 			if (n.isVisible()) {
 				if (Message.isDebugOn) {
 					Message.printDebug(dl, CLASS + ".resetVisibleNodes", "  Node '" + n.getName() + "' " + "set visible.");
@@ -1960,9 +1935,8 @@ Private utility function that goes through the tree looking for nodes that have 
 */
 private void trimOldNodes(SimpleJTree_Node node) {
 	if (node.getChildCount() > 0) {
-		for (@SuppressWarnings("unchecked")
-		Enumeration<SimpleJTree_Node> e = node.children(); e.hasMoreElements();) {
-			SimpleJTree_Node n = e.nextElement();
+		for ( Enumeration<TreeNode> e = node.children(); e.hasMoreElements();) {
+			SimpleJTree_Node n = (SimpleJTree_Node)e.nextElement();
 			trimOldNodes(n);
 		}
 	}

@@ -46,8 +46,6 @@ import javax.swing.JTextField;
 
 import RTi.TS.TS;
 
-import RTi.Util.IO.IOUtil;
-
 import RTi.Util.Message.Message;
 
 import RTi.Util.Table.DataTable;
@@ -289,8 +287,7 @@ protected void fillData(DateTime date) {
 			try {
 				__table.setFieldValue(
 					i, __attributeField,
-					new Double(__tsArray[i].getDataValue(
-					date)));
+					Double.valueOf(__tsArray[i].getDataValue( date)));
 			}
 			catch (Exception e) {
 				Message.printWarning(2, 
@@ -320,8 +317,7 @@ protected void fillData(DateTime date) {
 				try {
 				__table.setFieldValue(
 					i, __helperFields[j],
-					new Double(__helpers[j][i].getDataValue(
-					date)));
+					Double.valueOf(__helpers[j][i].getDataValue( date)));
 				}
 				catch (Exception e) {
 //					e.printStackTrace();
@@ -330,26 +326,6 @@ protected void fillData(DateTime date) {
 			}
 		}
 	}
-}
-
-/**
-Cleans up member data.
-*/
-public void finalize()
-throws Throwable {
-	__table = null;
-	__layerData = null;
-	__helperFields = null;
-	__checkBox = null;
-	__radioButton = null;
-	__attributeFieldName = null;
-	__dateFieldName = null;
-	__groupName = null;
-	__guiLabel = null;
-	__helpers = null;
-	IOUtil.nullArray(__tsArray);
-	__layerNameTextField = null;
-	super.finalize();
 }
 
 /**

@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,38 +20,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// BinaryTS - store time series in a binary file
-// ----------------------------------------------------------------------------
-// History:
-//
-// 17 Jul 2000	Steven A. Malers, RTi	Initial version (format version
-//					01.00.00).
-// 12 Dec 2000	SAM, RTi		Change getNumTS() to size().
-// 18 Dec 2000	SAM, RTi		Add readTimeSeries(), indexOf().
-//					Add alias to the time series header.
-//					Alphabetize some methods that were out
-//					of order.
-// 24 Feb 2001	SAM, RTi		Add flag to indexOf() to allow search
-//					in either direction.  Change
-//					getTSIdent() to getIdentifier() to be
-//					consistent with other TS code.
-// 31 Aug 2001	SAM, RTi		Tracking down error.  Get rid of
-//					static data to save memory.  Fix header
-//					size to be 560, not 80 (need to include
-//					alias).  The effect was that the
-//					last time series header to be written
-//					clobbered the first few data values in
-//					the first time series.
-// 2001-11-06	SAM, RTi		Review javadoc.  Verify that variables
-//					are set to null when no longer used.
-// 2003-06-02	SAM, RTi		Upgrade to use generic classes.
-//					* Change TSDate to DateTime.
-//					* Change TS.INTERVAL* to TimeInterval.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
-// EndHeader
 
 package RTi.TS;
 
@@ -100,8 +68,7 @@ DataBlock (currently one block per month with size depending on interval)
         TS3 Month2
         ...
 </pre>
-All the methods in this class that use time series index numbers use 0 for the
-first time series.
+All the methods in this class that use time series index numbers use 0 for the first time series.
 */
 public class BinaryTS
 {
@@ -116,31 +83,23 @@ private final int PARAMETER_TS_ALIAS		= 6;
 private final String _version = "01.01.00 (2000-12-18)";
 						// File format version.
 
-// Data members...
+// Data members.
 
-private RandomAccessFile 	_fp;		// Pointer to random access
-						// file.
-private long			_header_byte;	// Byte position of main header
-						// (currently 0).
+private RandomAccessFile 	_fp;		// Pointer to random access file.
+private long			_header_byte;	// Byte position of main header (currently 0).
 private long			_header_size;	// Size of main header (bytes).
 
-private long			_ts_header_byte;// Byte position of first TS
-						// header (after the main
-						// header).
-private long			_ts_header_size;// Size of one ts header
-						// (bytes).
+private long			_ts_header_byte;// Byte position of first TS header (after the main header).
+private long			_ts_header_size;// Size of one ts header (bytes).
 
-private long			_ts_data_size;	// Size of one block (month) of
-						// data for one time series.
+private long			_ts_data_size;	// Size of one block (month) of data for one time series.
 private double			_missing;	// Missing data value.
 private DateTime		_date1;		// Start of period.
 private DateTime		_date2;		// End of period.
 private int			_interval_base;	// Time series interval base.
-private int			_interval_mult;	// Time series interval
-						// multiplier.
+private int			_interval_mult;	// Time series interval multiplier.
 private String			_tsfile;	// Binary time series file.
-private int			_nts;		// Number of time series in
-						// file.
+private int			_nts;		// Number of time series in file.
 private int			_amon1;	// Absolute months of period.
 
 /**
@@ -259,19 +218,6 @@ throws SecurityException, IOException
 	File fp = new File ( _tsfile );
 	fp.delete();
 	fp = null;
-}
-
-/**
-Finalize before garbage collection.
-*/
-protected void finalize ()
-throws Throwable
-{	_date1 = null;
-	_date2 = null;
-	_fp.close();
-	_fp = null;
-	_tsfile = null;
-	super.finalize();
 }
 
 /**

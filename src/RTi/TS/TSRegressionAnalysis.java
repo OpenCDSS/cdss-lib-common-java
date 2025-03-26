@@ -5,19 +5,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -111,7 +111,7 @@ Data value to substitute for the original when using a log transform and the ori
 Can be any number > 0.
 TODO SAM 2010-12-17 Allow NaN to throw the number away, but this changes counts, etc.
 */
-private Double __leZeroLogValue = new Double(getLEZeroLogValueDefault()); // Default
+private Double __leZeroLogValue = Double.valueOf(getLEZeroLogValueDefault()); // Default.
 
 /**
 The intercept to force, or null if not forcing.  If set, only zero is allowed and it is only used with
@@ -163,7 +163,7 @@ private boolean [] __tsRegressionChecksMaskMonthly = null;
 /**
 Should 0 be excluded from calculations?
 */
-private boolean __ignoreZero = false;
+//private boolean __ignoreZero = false;
 
 /**
 Constructor.  The input parameters are checked and the data are extracted from time series into arrays

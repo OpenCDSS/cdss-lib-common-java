@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,21 +20,6 @@ CDSS Common Java Library is free software:  you can redistribute it and/or modif
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// DMIStoredProcedureData - Class for storing information on the particulars
-//	of a stored procedure.
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-// 2004-06-10	J. Thomas Sapienza, RTi	Initial version.
-// 2005-06-02	JTS, RTi		Moved the stored procedure callable
-//					statement setup from DMIStatement into
-//					here so that stored procedure 
-//					connections can be cached.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
 
 package RTi.DMI;
 
@@ -265,23 +250,6 @@ private void fillProcedureData(List<List<Object>> v) {
 			count++;
 		}
 	}
-}
-
-/**
-Cleans up member variables.
-*/
-protected void finalize() 
-throws Throwable {
-	__parameterNames = null;
-	__parameterNullable = null;
-	__parameterTypes = null;
-	__parameterTypeStrings = null;
-	__procedureName = null;
-	__returnName = null;
-	__returnTypeString = null;
-	__dmi = null;
-	__callableStatement = null;
-	super.finalize();
 }
 
 /**

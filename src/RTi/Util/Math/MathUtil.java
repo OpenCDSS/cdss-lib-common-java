@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Vector;
 
 /**
 Static methods for calculating statistics.
@@ -163,7 +162,7 @@ public static int[] commonDenominators ( int values[], int return_num ) {
 		}
 		if ( divisible ) {
 			// Save the value.
-			common_denominators.add ( new Integer(i) );
+			common_denominators.add ( Integer.valueOf(i) );
 		}
 	}
 	// Now return.

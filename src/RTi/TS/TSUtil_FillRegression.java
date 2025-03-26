@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -55,7 +55,7 @@ private TS __tsToFill = null;
 /**
 Analysis method (regression type).
 */
-private RegressionType __analysisMethod = RegressionType.OLS_REGRESSION; // Default
+private RegressionType __analysisMethod = RegressionType.OLS_REGRESSION; // Default.
 
 /**
 Indicates whether to fill with one equation or monthly equations.
@@ -72,7 +72,7 @@ private int [] __analysisMonths = null;
 Data value to substitute for the original when using a log transform and the original value is <= 0.
 Can be any number > 0.
 */
-private Double __leZeroLogValue = new Double(TSRegressionAnalysis.getLEZeroLogValueDefault()); // Default
+private Double __leZeroLogValue = Double.valueOf(TSRegressionAnalysis.getLEZeroLogValueDefault()); // Default.
 
 /**
 The intercept to force, or null if not forcing.  If set, only zero is allowed and it is only used with
@@ -1422,7 +1422,7 @@ throws Exception
     						r = tsRegressionResults.getMonthlyEquationRegressionResults(iEquation).getCorrelationCoefficient();
     					}
     					if (r != null) {
-    						Double r2 = new Double(r*r);
+    						Double r2 = Double.valueOf(r*r);
     						statisticValueDouble[countStatistic] = r2;
     					}
     					else {
@@ -1439,7 +1439,7 @@ throws Exception
     						r = tsRegressionResultsTransformed.getMonthlyEquationRegressionResults(iEquation).getCorrelationCoefficient();
     					}
     					if (r != null) {
-    						Double r2 = new Double(r*r);
+    						Double r2 = Double.valueOf(r*r);
     						statisticValueDouble[countStatistic] = r2;
     					}
     					else {
@@ -1541,10 +1541,10 @@ throws Exception
                 else if ( statisticName.equals("SX") ) {
                     statisticFieldType[countStatistic] = TableField.DATA_TYPE_DOUBLE;
                     if ( numEquations == 1 ) {
-                        statisticValueDouble[countStatistic] = new Double(regressionResults.getStandardDeviationX());
+                        statisticValueDouble[countStatistic] = Double.valueOf(regressionResults.getStandardDeviationX());
                     }
                     else {
-                        statisticValueDouble[countStatistic] = new Double(regressionResults.getStandardDeviationX(iEquation));
+                        statisticValueDouble[countStatistic] = Double.valueOf(regressionResults.getStandardDeviationX(iEquation));
                     }
                 }*/
     				else if ( statisticName.equals("SkewY") ) {

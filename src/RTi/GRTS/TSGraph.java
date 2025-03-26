@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -2998,7 +2998,8 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 	else if ( this.__rightYAxisGraphType == TSGraphType.PERIOD ) {
 		// Y-labels are whole numbers:
 		// - don't include null time series since they won't be drawn
-		boolean includeLeftYAxis = false;
+		// TODO smalers 2025-03-21 figure out why not used.
+		//boolean includeLeftYAxis = false;
 		boolean includeRightYAxis = true;
 		boolean includeNulls = false;
 		List<TS> enabledTSList = getTSListForAxes ( includeRightYAxis, includeRightYAxis, includeNulls );
@@ -3048,7 +3049,8 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 	}
 	else {
 		if (this.__rightYAxisGraphType == TSGraphType.PERIOD) {
-			boolean includeLeftYAxis = true;
+			// TODO smalers 2025-03-21 figure out why not used.
+			//boolean includeLeftYAxis = true;
 			boolean includeRightYAxis = false;
 			// Do not include null time series since they won't be drawn.
 			boolean includeNulls = false;
@@ -3335,7 +3337,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 		}
 		date = new DateTime ( this._start_date );
 		for ( ; date.lessThanOrEqualTo(this._end_date); ) {
-			x_axis_labels_temp.add ( new Double(date.toDouble() ) );
+			x_axis_labels_temp.add ( Double.valueOf(date.toDouble() ) );
 			date.addYear ( delta );
 		}
 	}
@@ -3355,7 +3357,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 			if ( Message.isDebugOn ) {
 				Message.printDebug ( 1,	routine, this._gtype + "Label is for " + date );
 			}
-			x_axis_labels_temp.add ( new Double(date.toDouble() ) );
+			x_axis_labels_temp.add ( Double.valueOf(date.toDouble() ) );
 			date.addMonth ( delta );
 		}
 	}
@@ -3373,7 +3375,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 		}
 		date = new DateTime ( this._start_date );
 		for ( ; date.lessThanOrEqualTo(this._end_date); ) {
-			x_axis_labels_temp.add ( new Double(date.toDouble() ) );
+			x_axis_labels_temp.add ( Double.valueOf(date.toDouble() ) );
 			date.addDay ( delta );
 		}
 	}
@@ -3436,7 +3438,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 		date = new DateTime(this._start_date);
 
 		for (; date.lessThanOrEqualTo(this._end_date); ) {
-			x_axis_labels_temp.add( new Double(date.toDouble()));
+			x_axis_labels_temp.add( Double.valueOf(date.toDouble()));
 			date.addHour(delta);
 		}
 	}
@@ -3493,7 +3495,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 
 		date = new DateTime(this._start_date);
 		for ( ; date.lessThanOrEqualTo(this._end_date); ) {
-			x_axis_labels_temp.add( new Double(date.toDouble()));
+			x_axis_labels_temp.add( Double.valueOf(date.toDouble()));
 			date.addMinute(delta);
 		}
 	}
@@ -4434,12 +4436,12 @@ private void drawAxesFront ( TSProduct tsproduct,
 
 	// Used to handle raster graphs.
     int dataInterval = TimeInterval.UNKNOWN;
-    int dataMult = -1;
+    //int dataMult = -1;
     if ( this.__tslist.size() == 1 ) {
     	TS ts = this.__tslist.get(0);
     	if ( ts != null ) {
     		dataInterval = ts.getDataIntervalBase();
-    		dataMult = ts.getDataIntervalMult();
+    		//dataMult = ts.getDataIntervalMult();
     	}
     }
 
@@ -5865,6 +5867,7 @@ private void drawLegendRaster ( TSProduct tsproduct ) {
 	}
 
 	// Show the units of the first time series.
+	// TODO smalers 2025-03-21 figure out why not used.
 	String yAxisUnitsProperty = "LeftYAxisUnits"; // Used to look up units for time series.
 	PropList overrideProps = null;
 	// Get the units from the time series:
@@ -10304,7 +10307,7 @@ based on the left or right y-axis graph type.
 @param its time series in the graph, 0+.
 */
 private TSGraphType getTimeSeriesGraphType ( TSGraphType mainGraphType, int its ) {
-	String routine = getClass().getSimpleName() + ".getTimeSeriesGraphType";
+	//String routine = getClass().getSimpleName() + ".getTimeSeriesGraphType";
     // Do not request the layered property here.
 	// Ask for time series property explicitly and then set to the main graph type if no time series graph type property is defined.
     String graphTypeProp = this._tsproduct.getLayeredPropValue ( "GraphType", this.subproduct, its, false );
@@ -11628,11 +11631,11 @@ public void setDrawingLimits ( GRLimits drawlim_page ) {
 
     // Currently if a raster graph the legend position property is associated with the first time series.
 	double rightRasterLegendWidth = 0.0;
-  	double rightRasterLegendHeight = 0.0;  // Not used since the full height of the graph area?
+  	//double rightRasterLegendHeight = 0.0;  // Not used since the full height of the graph area?
     if ( this.__leftYAxisGraphType == TSGraphType.RASTER ) {
     	// Estimate the total text area, used regardless of whether the legend is on the left or right.
  	  	textLimits = GRDrawingAreaUtil.getTextExtents ( this._da_right_raster_legend, "TEST STRING", GRUnits.DEVICE );
- 	  	rightRasterLegendHeight = this.rasterSymbolTable.size()*textLimits.getHeight();
+ 	  	//rightRasterLegendHeight = this.rasterSymbolTable.size()*textLimits.getHeight();
  	  	// The legend width is the maximum width of all strings.
  	  	GRSymbolTableRow row = null;
  	  	for ( int irow = 0; irow < this.rasterSymbolTable.size(); irow++ ) {
@@ -12292,14 +12295,6 @@ Sets the end date.
 */
 protected void setEndDate(DateTime endDate) {
 	this._end_date = endDate;
-}
-
-/**
- * Set the fatal error string.
- */
-private void setErrorMessage ( String error ) {
-	this.__errorMessageList.clear();
-	this.__errorMessageList.add(error);
 }
 
 /**

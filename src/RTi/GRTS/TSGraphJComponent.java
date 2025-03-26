@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ import java.awt.Dimension;
 import java.awt.Graphics; // Needed for some standard methods.
 import java.awt.Graphics2D; // Will be used for most drawing.
 import java.awt.Rectangle;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -1992,7 +1993,7 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 								if ( distNearestList == null ) {
 									// First instance and only 0-index instance will be compared.
 									distNearestList = new ArrayList<>();
-									distNearestList.add(new Double(dist));
+									distNearestList.add(Double.valueOf(dist));
 									tsdataNearestList = new ArrayList<>();
 									tsdataNearestList.add(new TSData(tsdata));
 									tsNearestList = new ArrayList<>();
@@ -2009,13 +2010,13 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 								else if ( dist < distNearestList.get(0) ) {
 									// Don't care which time series or axis - find closest.
 									// Found a closer point so save its data by replacing the previously-added value.
-									distNearestList.set(0,new Double(dist));
+									distNearestList.set(0,Double.valueOf(dist));
 									tsdataNearestList.set(0,new TSData(tsdata));
 									tsNearestList.set(0,ts);
 									dtNearestList.set(0,new DateTime(searchTime));
 									daGraphNearestList.set(0,daGraph);
 									graphNearestList.set(0,tsgraph);
-									itsgraphNearestList.set(0,new Integer(itsgraph));
+									itsgraphNearestList.set(0,Integer.valueOf(itsgraph));
 									//Message.printStatus(2, "", "Found nearest.");
 								}
 							}
@@ -2024,13 +2025,13 @@ protected void drawMouseTracker(TSGraphJComponentGlassPane glassPane, Graphics2D
 								// Nearest point to time for each time series.
 								if ( (distNearestList.get(its) == null) || (dist < (distNearestList.get(its))) ) {
 									// Found a closer point for the specific time series so save its data.
-									distNearestList.set(its,new Double(dist));
+									distNearestList.set(its,Double.valueOf(dist));
 									tsdataNearestList.set(its,new TSData(tsdata));
 									tsNearestList.set(its,ts);
 									dtNearestList.set(its,new DateTime(searchTime));
 									daGraphNearestList.set(its,daGraph);
 									graphNearestList.set(its,tsgraph);
-									itsgraphNearestList.set(its,new Integer(itsgraph));
+									itsgraphNearestList.set(its,Integer.valueOf(itsgraph));
 								}
 							}
 						}
@@ -2271,49 +2272,6 @@ private void drawTitles () {
 Draw the footers for the component.  Nothing is done at this time.
 */
 private void drawFooters () {
-}
-
-/**
-Finalize before garbage collection.
-@exception Throwable if an error occurs.
-*/
-protected void finalize ()
-throws Throwable {
-	_tslist = null;
-	_background_color = null;
-	_external_Image = null;
-	_rubber_band_color = null;
-	_tsproduct = null;
-	_displayProps = null;
-	_da_page = null;
-	_da_maintitle =null;
-	_da_subtitle = null;
-	_da_graphs = null;
-	_da_leftfoot = null;
-	_da_centerfoot=null;
-	_da_rightfoot =null;
-	_datalim_page = null;
-	_drawlim_page = null;
-	_datalim_maintitle = null;
-	_drawlim_maintitle = null;
-	_datalim_subtitle = null;
-	_drawlim_subtitle = null;
-	_datalim_graphs = null;
-	_drawlim_graphs = null;
-	_datalim_leftfoot = null;
-	//_drawlim_leftfoot = null;
-	_datalim_centerfoot = null;
-	//_drawlim_centerfoot = null;
-	_datalim_rightfoot = null;
-	//_drawlim_rightfoot = null;
-	_bounds = null;
-	_printBounds = null;
-	_parent = null;
-	_tsgraphs = new Vector<>();
-	_gtype = null;
-	IOUtil.nullArray(_listeners);
-	_mouse_tsgraph1 = null;
-	super.finalize();
 }
 
 /**
@@ -2619,8 +2577,16 @@ public void mouseDragged ( MouseEvent event ) {
 		return;
 	}
 
+	/* Java 8.
 	int mods = event.getModifiers();
 	if ( (mods & MouseEvent.BUTTON3_MASK) != 0 ) {
+		// Don't want rubber band box.
+		return;
+	}
+	*/
+
+	int mods = event.getModifiersEx();
+	if ( (mods & InputEvent.BUTTON3_DOWN_MASK) != 0 ) {
 		// Don't want rubber band box.
 		return;
 	}
@@ -2830,8 +2796,8 @@ public void mousePressed ( MouseEvent event ) {
 	if ( tsgraphForGraph != null ) {
 		// Click was in a graph drawing area.
 		this._mouse_tsgraph1 = tsgraphForGraph;
-		int mods = event.getModifiers();
-		if ( (mods & MouseEvent.BUTTON3_MASK) != 0 ) {
+		int mods = event.getModifiersEx();
+		if ( (mods & InputEvent.BUTTON3_DOWN_MASK) != 0 ) {
 			// Each graph provides its own right-click popup menu to edit properties and view analysis details.
 			JPopupMenu popup_menu = tsgraphForGraph.getJPopupMenu();
 			if ( popup_menu != null ) {
@@ -2898,8 +2864,8 @@ public void mouseReleased ( MouseEvent event ) {
 		// Currently do not allow zoom, etc.
 		return;
 	}
-	int mods = event.getModifiers();
-	if ( (mods & MouseEvent.BUTTON3_MASK) != 0 ) {
+	int mods = event.getModifiersEx();
+	if ( (mods & InputEvent.BUTTON3_DOWN_MASK) != 0 ) {
 		// Right click so don't do anything.
 		return;
 	}
@@ -3938,6 +3904,8 @@ should generally be specified as absolute and with the *.svg extension.
 public void saveAsSVG ( String path, String driver )
 throws FileNotFoundException, IOException {
     Graphics g = null;
+    // TODO smalers 2025-03-19 disable Batik until Java 11 dependencies can be worked out.
+    driver = "JFreeSVG";
     if ( driver.equalsIgnoreCase("Batik") ) {
     	g = TSGraphJComponent_SaveAsSVG.createGraphics();
     	// Render into the SVG Graphics2D implementation:

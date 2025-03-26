@@ -4,44 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// Cipher.java -- Manages encryption and decryption using various 
-// 	cipher packages.
-// ----------------------------------------------------------------------------
-// Copyright:  See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 2002-08-06	J. Thomas Sapienza, RTi	Initial version
-// 2002-08-07	JTS, RTi		Added javadoc, support for writing
-//					persistent files
-// 2002-11-11	JTS, RTI		Revised some commenting.
-// 2003-01-09	JTS, RTi		Revisions to accomodate work with new
-//					RTi licensing scheme.
-// 2003-01-13	JTS, RTi		Javadoc work
-// 2004-05-27	JTS, RTi		encrypt() now returns "Invalid Cipher"
-//					if the two character cipher code is
-//					not supported.
-// 2005-04-26	JTS, RTi		Added finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
 
 package RTi.Util.IO;
 
@@ -51,17 +29,15 @@ import Blowfish.BlowfishCBC;
 import java.io.UnsupportedEncodingException;
 
 /**
-This class interacts with the actual encryption and decryption code.  RTi
-applications call this code instead of calling the encryption and 
-decryption classes directly.
+This class interacts with the actual encryption and decryption code.
+RTi applications call this code instead of calling the encryption and decryption classes directly.
 <p>
 The most likely reason that an RTi application would directly call Cipher
-code would be for checking the validity of a password.  To do this, use
-code similar to the following:
+code would be for checking the validity of a password.
+To do this, use code similar to the following:
 <pre>
+   // Prefix is the two-character prefix that specifies the cipher package and the encryption seeds to use.
    Cipher c = new Cipher (prefix);
-   // where prefix is the two-character prefix that specifies the
-   // cipher package and the encryption seeds to use
 
    if (c.validateString(unencryptedPassword, encryptedPassword)) {
       // the encrypted password was validated
@@ -76,7 +52,7 @@ The Blowfish cipher package.
 public static final int BLOWFISH = 0;
 
 /**
-the object that does the actual Blowfish encryption/decryption
+The object that does the actual Blowfish encryption/decryption.
 */
 private BlowfishCBC __bfcbc;
 
@@ -86,8 +62,7 @@ The cipher package being used to encrypt and decrypt data.
 private int __cipherPackage;
 
 /**
-The two-character cipher selection prefix being used in this instance
-of Cipher.
+The two-character cipher selection prefix being used in this instance of Cipher.
 */
 private String __prefix;
 
@@ -95,8 +70,7 @@ private String __prefix;
 Constructor.  Sets up a cipher object to encrypt and decrypt using the
 Cipher Package specified with the two-character prefix.
 
-@param prefix two-character code that specifies the cipher package and the
-seeds and passwords to use.
+@param prefix two-character code that specifies the cipher package and the seeds and passwords to use.
 */
 public Cipher(String prefix) {
 	__prefix = prefix;
@@ -324,16 +298,6 @@ throws UnsupportedEncodingException {
 				BinConverter.bytesToBinHex(messBuff));
 	}
 	return "Invalid Cipher";
-}
-
-/**
-Cleans up member variables.
-*/
-public void finalize()
-throws Throwable {
-	__bfcbc = null;
-	__prefix = null;
-	super.finalize();
 }
 
 /**

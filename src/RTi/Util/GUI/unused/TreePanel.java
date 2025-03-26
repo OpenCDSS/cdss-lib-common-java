@@ -100,7 +100,7 @@ advised of the possibility of such damage.
 */
 
 //package ncsa.hdf.util;
-package RTi.Util.GUI;
+package RTi.Util.GUI.unused;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

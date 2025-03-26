@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -272,7 +272,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
     }
 
     if ( tolerance == null ) {
-        tolerance = new Double ( 0.01 ); // Default.
+        tolerance = Double.valueOf ( 0.01 ); // Default.
     }
     // If the given value is less than 0, throw exception.
     if ( (tolerance.doubleValue() < 0.0) || (tolerance.doubleValue() > 1.0) ) {
@@ -332,7 +332,7 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
 
     // Check AllowMissingCount.
     if ( allowMissingCount == null ) {
-        allowMissingCount = new Integer(0); // Default is don't allow missing.
+        allowMissingCount = Integer.valueOf(0); // Default is don't allow missing.
     }
     // If the given value is less than 0, throw exception.
     if ( allowMissingCount.intValue() < 0 ) {
@@ -359,10 +359,10 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
     if ( allowMissingConsecutive == null ) {
         if ( allowMissingCount > 0 ) {
             // Missing allowed, so allow all to be in sequence.
-            allowMissingConsecutive = new Integer(allowMissingCount);
+            allowMissingConsecutive = Integer.valueOf(allowMissingCount);
         }
         else {
-            allowMissingConsecutive = new Integer(0); // Default is don't allow missing.
+            allowMissingConsecutive = Integer.valueOf(0); // Default is don't allow missing.
         }
     }
     // If the given value is less than 0, throw exception.
