@@ -1611,7 +1611,7 @@ throws IOException {
 	try {
 		boolean listFiles = true;
 		boolean listFolders = true;
-		List<File> files = getFiles ( folder, listRecursive, listFiles, listFolders, includePatterns, excludePatterns);
+		List<File> files = getFiles ( folder, listRecursive, listFiles, listFolders, includePatterns, excludePatterns );
 		//Message.printStatus(2, routine, "Have " + files.size() + " files in folder \"" + folder.getAbsolutePath() + "\".");
 		// Loop through the files and evaluate each.
 		for ( File file : files ) {
