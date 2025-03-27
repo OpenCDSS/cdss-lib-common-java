@@ -184,6 +184,7 @@ private String __command = null;
 Command array, which can be used to initialize a process instead of a simple command string.
 */
 private String [] __commandArray = null;
+
 /**
 Operating system interpreter to run the command.
 This is by default determined automatically but can be set.
@@ -211,71 +212,88 @@ private boolean __isCommandInterpreterUsed = true;
 Process that runs __command
 */
 private Process __process = null;
+
 /**
 Collects the standard output from __process.
 */
 private InputStream __out = null;
+
 /**
 Indicates whether output from the process is done.
 */
 private boolean __outDone = false;
+
 /**
 Collects the standard error from __process
 */
 private InputStream __error = null;
+
 /**
 Buffers the __process standard output.
 */
 private BufferedReader __outReader = null;
+
 /**
 Buffers the __process standard error.
 */
 private BufferedReader __errorReader = null;
+
 /**
 If set to true by calling cancel(), the run() method will gracefully shut down.
 */
 private volatile boolean __cancel = false;
+
 /**
 Indicates whether process is complete.
 Use setProcessFinished() for all manipulation of this variable so that the process time can be determined.
 */
 private boolean __processFinished = false;
+
 /**
 Exit status from command (determined from STOP code).
 */
 private int __exitValue = 0;
+
 /**
 Used to handle timeouts.
 */
 private int __timeoutMilliseconds = 0;
+
 /**
 Event timer used if a timeout is specified.
 */
 private EventTimer __eventTimer = null;
+
 /**
 To track the actual time used for the process.
 */
 private StopWatch __stopwatch = null;
+
 /**
 Indicates whether output from the command should be saved, to be retrieved with getOutputList().
 */
 private boolean __saveOutput = false;
+
 /**
 List containing process output, used if __save_output is true.
 */
 private List<String> __outList = null;
+
 /**
 List containing process errors, used if __save_output is true.
 */
 private List<String> __errorList = null;
+
 /**
 Listeners to receive process output.
 */
 private ProcessListener [] __listeners = null;
+
 /**
 If not null, indicate a token that if found at the beginning of the line will indicate the program exit status.
 */
 private String __exitStatusIndicator = null;
+
 /**
 The level at which status output will be printed when a process is running.
 */
