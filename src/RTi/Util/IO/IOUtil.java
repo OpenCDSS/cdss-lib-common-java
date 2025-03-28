@@ -1789,8 +1789,8 @@ public static List<String> getJarFilesManifests() {
 }
 
 /**
- * Return the Java major version (e.g., 7, 8).
- *@return the Java major version (e.g., 7, 8), or -1 if unknown.
+ * Return the Java major version (e.g., 7, 8, 11).
+ *@return the Java major version (e.g., 7, 8, 11), or -1 if unknown.
  */
 public static int getJavaMajorVersion () {
 	String javaVersion = System.getProperty("java.vm.specification.version");
@@ -1800,8 +1800,15 @@ public static int getJavaMajorVersion () {
 		return Integer.parseInt(javaVersion);
 	}
 	else {
-		// Unknown how to process.
-		return -1;
+		// Version is just the major version such as "11" for Java 11:
+		// - check for a period just in case
+		if ( javaVersion.contains(".") ) {
+			int pos = javaVersion.indexOf(".");
+			return Integer.parseInt(javaVersion.substring(0,pos));
+		}
+		else {
+			return Integer.parseInt(javaVersion);
+		}
 	}
 }
 
