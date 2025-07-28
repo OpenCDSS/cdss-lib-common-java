@@ -134,17 +134,24 @@ public class UrlReader {
             int numCharsRead;
             int arraySize = 8192; // 8K optimal.
             byte[] byteArray = new byte[arraySize];
-            while ((numCharsRead = bis.read(byteArray, 0, arraySize)) != -1) {
-                // Also set the content in memory.
-                if ( numCharsRead == byteArray.length ) {
-                	content.append(new String(byteArray));
-                }
-                else {
-                	byte [] byteArray2 = new byte[numCharsRead];
-                	System.arraycopy(byteArray, 0, byteArray2, 0, numCharsRead);
-                	content.append(new String(byteArray2));
-                }
-                bytesRead += numCharsRead;
+            try {
+            	while ((numCharsRead = bis.read(byteArray, 0, arraySize)) != -1) {
+                	// Also set the content in memory.
+                	if ( numCharsRead == byteArray.length ) {
+                		content.append(new String(byteArray));
+                	}
+                	else {
+                		byte [] byteArray2 = new byte[numCharsRead];
+                		System.arraycopy(byteArray, 0, byteArray2, 0, numCharsRead);
+                		content.append(new String(byteArray2));
+                	}
+                	bytesRead += numCharsRead;
+            	}
+            }
+            catch ( Exception e ) {
+            	// Have seen cases where an exception is thrown and the input stream is closed,
+            	// such as with invalid authentication.
+            	// Handle the exception so that the error code is set in the response.
             }
             if ( responseCode < 400 ) {
             	// Success.
