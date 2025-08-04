@@ -1179,8 +1179,8 @@ It is assumed that properties will be added by getting the PropList and adding t
 public TSProduct ()
 throws Exception {
 	// Just read in as a simple PropList.
-	__proplist = new PropList ( "TSProduct" );
-	__override_proplist = new PropList ( "override" );
+	this.__proplist = new PropList ( "TSProduct" );
+	this.__override_proplist = new PropList ( "override" );
 }
 
 /**
@@ -1192,16 +1192,16 @@ Construct a TSProduct from a product file (.tsp).  The product file is read into
 public TSProduct ( String filename, PropList overridePropList )
 throws Exception {
 	// Just read in as a simple PropList.
-	__proplist = new PropList ( "TSProduct" );
-	__proplist.setPersistentName ( filename );
-	__proplist.readPersistent ();
+	this.__proplist = new PropList ( "TSProduct" );
+	this.__proplist.setPersistentName ( filename );
+	this.__proplist.readPersistent ();
 	// Make sure that the file is a time series product file:
 	// - otherwise, the product will be empty and it is difficult to know where the problem occurred
-	String propValue = __proplist.getValue("Product.ProductType");
+	String propValue = this.__proplist.getValue("Product.ProductType");
 	if ( propValue == null ) {
 		throw new Exception ( "Product file \"" + filename + "\" does not look like a time series product file.");
 	}
-	__override_proplist = overridePropList;
+	this.__override_proplist = overridePropList;
 	transferPropList();
 }
 
@@ -1216,8 +1216,8 @@ Specify as null if no override properties are given.
 public TSProduct ( PropList proplist, PropList override_proplist )
 throws Exception {
 	// Just read in as a simple PropList.
-	__proplist = proplist;
-	__override_proplist = override_proplist;
+	this.__proplist = proplist;
+	this.__override_proplist = override_proplist;
 	transferPropList();
 }
 
@@ -1243,13 +1243,13 @@ public void addTSProductAnnotationProvider(TSProductAnnotationProvider provider,
 		}
 	}
 	else {
-		if (__annotationProviders == null) {
-			__annotationProviders = new ArrayList<>();
-			__annotationProviderPropLists = new ArrayList<>();
+		if ( this.__annotationProviders == null) {
+			 this.__annotationProviders = new ArrayList<>();
+			 this.__annotationProviderPropLists = new ArrayList<>();
 		}
 
-		__annotationProviders.add(provider);
-		__annotationProviderPropLists.add(controlProps);
+		this.__annotationProviders.add(provider);
+		this.__annotationProviderPropLists.add(controlProps);
 	}
 }
 
@@ -1260,20 +1260,20 @@ This is called automatically by setTSList().
 private void addAnnotations() {
 	String routine = getClass().getSimpleName() + ".addAnnotations";
 
-	int size = __annotationProviders.size();
+	int size = this.__annotationProviders.size();
 
 	PropList controlProps = null;
 	TSProductAnnotationProvider provider = null;
 
 	for (int i = 0; i < size; i++) {
-		provider = __annotationProviders.get(i);
+		provider = this.__annotationProviders.get(i);
 		if (alreadyUsed(provider)) {
 			continue;
 		}
 		else {
-			__usedProviders.add(provider);
+			this.__usedProviders.add(provider);
 		}
-		controlProps = __annotationProviderPropLists.get(i);
+		controlProps = this.__annotationProviderPropLists.get(i);
 
 		try {
 			provider.addAnnotations(this, controlProps);
@@ -1292,10 +1292,10 @@ so that duplicate annotations are not set on it.
 @return true if the provider was already used to set annotations, false if not.
 */
 private boolean alreadyUsed(TSProductAnnotationProvider provider) {
-	int size = __usedProviders.size();
+	int size = this.__usedProviders.size();
 	TSProductAnnotationProvider p = null;
 	for (int i = 0; i < size; i++) {
-		 p = __usedProviders.get(i);
+		 p = this.__usedProviders.get(i);
 		 if (p == provider) {
 		 	return true;
 		}
@@ -1615,8 +1615,8 @@ public void checkProperties () {
 	//Message.printStatus ( 1, "TSProduct.checkProperties",
 	//"Checking properties for " + nsubs + " subproducts" );
 
-	int how_set_prev = __proplist.getHowSet();
-	__proplist.setHowSet ( Prop.SET_AS_RUNTIME_DEFAULT );
+	int how_set_prev = this.__proplist.getHowSet();
+	this.__proplist.setHowSet ( Prop.SET_AS_RUNTIME_DEFAULT );
 
 	//---------------------------------------------------------------------
 	// Product properties.
@@ -1724,23 +1724,23 @@ public void checkProperties () {
 		checkGraphProperties ( nsubs );
 	}
 
-	__proplist.setHowSet ( how_set_prev );
+	this.__proplist.setHowSet ( how_set_prev );
 }
 
 /**
 Check the graph product type (as opposed to report properties) properties.
-@param nsubs Number of subproducts.
+@param nsubs Number of sub-products.
 */
 public void checkGraphProperties ( int nsubs ) {
 	String routine = getClass().getSimpleName() + ".checkGraphProperties";
 	int nts = 0;
 	TSGraphType graphType = TSGraphType.LINE;
-	__num_zoom_groups = 1;
+	this.__num_zoom_groups = 1;
 	String prop_val;
-	int how_set_prev = __proplist.getHowSet();
-	__proplist.setHowSet ( Prop.SET_AS_RUNTIME_DEFAULT );
+	int how_set_prev = this.__proplist.getHowSet();
+	this.__proplist.setHowSet ( Prop.SET_AS_RUNTIME_DEFAULT );
 	for ( int isub = 0; isub < nsubs; isub++ ) {
-		//Message.printStatus ( 1, "", "Checking subproduct [" + isub + "]" );
+		//Message.printStatus ( 1, "", "Checking sub-product [" + isub + "]" );
 		// Check "GraphType" property because its value is used below to make decisions.
 
 		prop_val = getLayeredPropValue ( "GraphType", isub, -1, false );
@@ -2210,7 +2210,7 @@ public void checkGraphProperties ( int nsubs ) {
 			setPropValue ( "ZoomGroup", prop_val, isub, -1 );
 		}
 		try {
-		    __num_zoom_groups = MathUtil.max ( __num_zoom_groups, StringUtil.atoi(prop_val) );
+		    this.__num_zoom_groups = MathUtil.max ( this.__num_zoom_groups, StringUtil.atoi(prop_val) );
 		}
 		catch ( Exception e ) {
 			// Should not happen.
@@ -2286,7 +2286,7 @@ public void checkGraphProperties ( int nsubs ) {
 		}
 	}
 
-	__proplist.setHowSet ( how_set_prev );
+	this.__proplist.setHowSet ( how_set_prev );
 }
 
 /**
@@ -2379,15 +2379,15 @@ Returns all the properties in the TSProduct (from both the regular and the overr
 public List<Prop> getAllProps() {
 	List<Prop> v = new ArrayList<>();
 
-	int size = __proplist.size();
+	int size = this.__proplist.size();
 	for (int i = 0; i < size; i++) {
-		v.add(__proplist.elementAt(i));
+		v.add(this.__proplist.elementAt(i));
 	}
 
-	if (__override_proplist != null) {
-		size = __override_proplist.size();
+	if (this.__override_proplist != null) {
+		size = this.__override_proplist.size();
 		for (int i = 0; i < size; i++) {
-			v.add(__override_proplist.elementAt(i));
+			v.add(this.__override_proplist.elementAt(i));
 		}
 	}
 
@@ -2402,10 +2402,10 @@ At some point code may be added to get the defaults from a database, etc.
 The graph type is not considered.
 @param param Property to get value for.
 @param subproduct Sub-product number (starting at zero).
-A prefix of "SubProduct X." will be used for the property, where X is the subproduct.
+A prefix of "SubProduct X." will be used for the property, where X is the sub-product.
 If negative, the sub-product property will not be checked.
 @param its Time series number within a sub-product (starting at zero).
-A prefix of "Data X.Y." will be used for the property, where X is (subproduct) and Y is (its).
+A prefix of "Data X.Y." will be used for the property, where X is (sub-product) and Y is (its).
 If negative, the data item property will not be checked.
 @return value of property or null if not found.
 */
@@ -2420,14 +2420,14 @@ At some point code may be added to get the defaults from a database, etc.
 The graph type is not considered.
 @param param Property to get value for.
 @param subproduct Sub-product number (starting at zero).
-A prefix of "SubProduct X." will be used for the property, where X is the subproduct.
+A prefix of "SubProduct X." will be used for the property, where X is the sub-product.
 If negative, the sub-product property will not be checked.
 @param its Time series number within a sub-product (starting at zero).
-A prefix of "Data X.Y." will be used for the property, where X is (subproduct) and Y is (its).
+A prefix of "Data X.Y." will be used for the property, where X is (sub-product) and Y is (its).
 If negative, the data item property will not be checked.
 This is also used for annotations -- see the isAnnotation property.
 @param isAnnotation is true, then its will be treated as the number of an
-annotation under the given subproduct, rather than a time series under the given subproduct.
+annotation under the given sub-product, rather than a time series under the given sub-product.
 @return value of property or null if not found.
 */
 public String getDefaultPropValue ( String param, int subproduct, int its, boolean isAnnotation) {
@@ -2441,14 +2441,14 @@ This can be used to internally assign properties.  Currently the defaults are ha
 At some point code may be added to get the defaults from a database, etc.
 @param param Property to get value for.
 @param subproduct Sub-product number (starting at zero).
-A prefix of "SubProduct X." will be used for the property, where X is the subproduct.
+A prefix of "SubProduct X." will be used for the property, where X is the sub-product.
 If negative, the sub-product property will not be checked.
 @param its Time series number within a sub-product (starting at zero).
-A prefix of "Data X.Y." will be used for the property, where X is (subproduct) and Y is (its).
+A prefix of "Data X.Y." will be used for the property, where X is (sub-product) and Y is (its).
 If negative, the data item property will not be checked.
 This is also used for annotations -- see the isAnnotation property.
-@param isAnnotation is true, then its will be treated as the number of an annotation under the given subproduct,
-rather than a time series under the given subproduct.
+@param isAnnotation is true, then its will be treated as the number of an annotation under the given sub-product,
+rather than a time series under the given sub-product.
 @param graphType the kind of graph for which the default prop is being returned.
 Certain properties have different default values for certain kinds of graphs.
 If null, then the value will be ignored.
@@ -3055,10 +3055,10 @@ The main properties are searched in layered fashion, starting with the product, 
 The last value specified will be used (but will always be override if an override property is specified.
 @param property Property to get value for.
 @param subproduct Sub-product number (starting at zero).
-A prefix of "SubProduct X." will be used for the property, where X is the subproduct.
+A prefix of "SubProduct X." will be used for the property, where X is the sub-product.
 If negative, the sub-product property will not be checked.
 @param its Time series number within a sub-product (starting at zero).
-A prefix of "Data X.Y." will be used for the property, where X is (subproduct) and Y is (its).
+A prefix of "Data X.Y." will be used for the property, where X is (sub-product) and Y is (its).
 If negative, the data item property will not be checked.
 @return value of property or null if not found.
 TODO SAM make sure that override properties can contain annotations.
@@ -3074,10 +3074,10 @@ This first searches the override properties and then the main properties.
 The main properties are searched in layered fashion, starting with the product, then the sub-product, and then the time series.
 The last value specified will be used (but will always be overridden if an override property is specified).
 @param subproduct Sub-product number (starting at zero).
-A prefix of "SubProduct X." will be used for the property, where X is the subproduct.
+A prefix of "SubProduct X." will be used for the property, where X is the sub-product.
 If negative, the sub-product property will not be checked.
 @param its Time series number within a sub-product (starting at zero).
-A prefix of "Data X.Y." will be used for the property, where X is (subproduct) and Y is (its).
+A prefix of "Data X.Y." will be used for the property, where X is (sub-product) and Y is (its).
 If negative, the data item property will not be checked.
 @param property Property to get value for.
 @param allowLayeredProps If true, properties are allowed to be layered,
@@ -3096,10 +3096,10 @@ This first searches the override properties and then the main properties.
 The main properties are searched in layered fashion, starting with the product, then the sub-product, and then the time series.
 The last value specified will be used (but will always be overridden if an override property is specified).
 @param subproduct Sub-product number (starting at zero).
-A prefix of "SubProduct X." will be used for the property, where X is the subproduct.
+A prefix of "SubProduct X." will be used for the property, where X is the sub-product.
 If negative, the sub-product property will not be checked.
 @param its Time series number within a sub-product (starting at zero).
-A prefix of "Data X.Y." will be used for the property, where X is (subproduct) and Y is (its).
+A prefix of "Data X.Y." will be used for the property, where X is (sub-product) and Y is (its).
 If negative, the data item property will not be checked.  This is also used for specifying annotations.
 See the isAnnotation parameter for more info.
 @param property Property to get value for.
@@ -3107,8 +3107,8 @@ See the isAnnotation parameter for more info.
 with the most general scope property applying to the most specific if not overridden.
 If false, only properties at the level of the finest detail are used (no layering).
 An example of a property that may occur in several layers is "Enabled".
-@param isAnnotation if true, then its will be treated as the number of an annotation under the given subproduct,
-rather than the number of a time series under the given subproduct.
+@param isAnnotation if true, then its will be treated as the number of an annotation under the given sub-product,
+rather than the number of a time series under the given sub-product.
 @return value of property or null if not found.
 */
 public String getLayeredPropValue (	String property, int subproduct,
@@ -3117,8 +3117,8 @@ public String getLayeredPropValue (	String property, int subproduct,
 	String value2 = null;
 	//Message.printStatus ( 2, "", "Looking up \"" + property + "\" " + subproduct + " " + its );
 	// First search the override properties.
-	if ( __override_proplist != null ) {
-		value = __override_proplist.getValue ( property );
+	if ( this.__override_proplist != null ) {
+		value = this.__override_proplist.getValue ( property );
 		if ( value != null ) {
 			return value;
 		}
@@ -3128,16 +3128,16 @@ public String getLayeredPropValue (	String property, int subproduct,
 
 	if ( allowLayeredProps ) {
 		// Search to find the most specific property.
-		if ( __proplist != null ) {
+		if ( this.__proplist != null ) {
 			// First search the generic property (not a strict product file format, or pre-formatted to do what is done below).
-			value = __proplist.getValue ( property );
+			value = this.__proplist.getValue ( property );
 			// Next search the main product.
 			if (isAnnotation) {
 				value2 = null;
-				// This is done because both a subproduct and an annotation number must be specified to bring back an annotation.
+				// This is done because both a sub-product and an annotation number must be specified to bring back an annotation.
 			}
 			else {
-				value2 = __proplist.getValue( "Product." + property);
+				value2 = this.__proplist.getValue( "Product." + property);
 			}
 			if ( value2 != null ) {
 				value = value2;
@@ -3146,10 +3146,10 @@ public String getLayeredPropValue (	String property, int subproduct,
 			if ( subproduct >= 0 ) {
 				if (isAnnotation) {
 					value2 = null;
-					// This is done because both a subproduct and an annotation number must be specified to bring back an annotation.
+					// This is done because both a sub-product and an annotation number must be specified to bring back an annotation.
 				}
 				else {
-					value2 = __proplist.getValue("SubProduct " + (subproduct + 1) + "." + property);
+					value2 = this.__proplist.getValue("SubProduct " + (subproduct + 1) + "." + property);
 				}
 
 				if ( value2 != null ) {
@@ -3160,11 +3160,11 @@ public String getLayeredPropValue (	String property, int subproduct,
 			if ( its >= 0 ) {
 			// TODO SAM Math.abs() doesn't make sense, but it's been like that for years now.
 				if (isAnnotation) {
-					value2 = __proplist.getValue( "Annotation " + (Math.abs(subproduct) + 1)
+					value2 = this.__proplist.getValue( "Annotation " + (Math.abs(subproduct) + 1)
 						+ "." + (its + 1) + "." + property);
 				}
 				else {
-					value2 = __proplist.getValue("Data " + (Math.abs(subproduct) + 1) + "." + (its + 1) + "." + property);
+					value2 = this.__proplist.getValue("Data " + (Math.abs(subproduct) + 1) + "." + (its + 1) + "." + property);
 				}
 				if ( value2 != null ) {
 					value = value2;
@@ -3178,32 +3178,30 @@ public String getLayeredPropValue (	String property, int subproduct,
 		if ( subproduct < 0 ) {
 			// Product property.
 			if (isAnnotation) {
-				// This is done because both a subproduct and an annotation number must be specified to bring back an annotation.
+				// This is done because both a sub-product and an annotation number must be specified to bring back an annotation.
 				return null;
 			}
 			else {
-				return __proplist.getValue("Product." + property);
+				return this.__proplist.getValue("Product." + property);
 			}
 		}
 		else if ((subproduct >= 0) && (its < 0)) {
-			// Subproduct property.
+			// Sub-product property.
 			if (isAnnotation) {
-				// This is done because both a subproduct and an annotation number must be specified to bring back an annotation.
+				// This is done because both a sub-product and an annotation number must be specified to bring back an annotation.
 				return null;
 			}
 			else {
-				return __proplist.getValue("SubProduct " + (subproduct + 1) + "." + property);
+				return this.__proplist.getValue("SubProduct " + (subproduct + 1) + "." + property);
 			}
 		}
 		else if ( (subproduct >=0) && (its >= 0) ) {
 			// Data or annotation property.
 			if (isAnnotation) {
-				return __proplist.getValue("Annotation " + (subproduct + 1) + "." + (its + 1)
-					+ "." + property);
+				return this.__proplist.getValue("Annotation " + (subproduct + 1) + "." + (its + 1) + "." + property);
 			}
 			else {
-				return __proplist.getValue("Data "
-					+ (subproduct + 1) + "." + (its + 1) + "." + property);
+				return this.__proplist.getValue("Data " + (subproduct + 1) + "." + (its + 1) + "." + property);
 			}
 		}
 	}
@@ -3212,10 +3210,10 @@ public String getLayeredPropValue (	String property, int subproduct,
 }
 
 /**
-Returns the number of annotations for the given subproduct.
+Returns the number of annotations for the given sub-product.
 This is determined by determining the number of consecutive "ShapeType" definitions starting from 0 that return a valid value.
-@param subproduct the subproduct to check for annotations.
-@return the number of annotations for the given subproduct.
+@param subproduct the sub-product to check for annotations.
+@return the number of annotations for the given sub-product.
 */
 public int getNumAnnotations(int subproduct) {
 	int ndata = -1;
@@ -3237,12 +3235,12 @@ public int getNumAnnotations(int subproduct) {
 }
 
 /**
-Return the number of data items that are defined for a subproduct.
+Return the number of data items that are defined for a sub-product.
 This is determined by checking the properties for "Data S.N.XXXX",
-where S is the subproduct number (minus 1, starting at 0) and XXXX is "TSID", "TS", and "TSAlias".
+where S is the sub-product number (minus 1, starting at 0) and XXXX is "TSID", "TS", and "TSAlias".
 The largest N that returns a value is assumed to be the number of data sets.
-@param subproduct The subproduct to check (zero or greater).
-@return the number of data sets for a subproduct or zero if none are defined.
+@param subproduct The sub-product to check (zero or greater).
+@return the number of data sets for a sub-product or zero if none are defined.
 */
 public int getNumData ( int subproduct ) {
 	int ndata = -1;
@@ -3278,20 +3276,20 @@ public int getNumData ( int subproduct ) {
 }
 
 /**
-Return the total number of subproducts (enabled and disabled) that are defined for the product.
-@return the number of subproducts or zero if none are defined.
+Return the total number of sub-products (enabled and disabled) that are defined for the product.
+@return the number of sub-products or zero if none are defined.
 */
 public int getNumSubProducts () {
 	return getNumSubProducts ( false );
 }
 
 /**
-Return the number of enabled subproducts that are defined.
+Return the number of enabled sub-products that are defined.
 This is determined by checking the properties for "Data N.1.XXXX", where XXXX is "TSID", "TSAlias", "TS",
 "GraphType", "TemplateTSID", and "MainTitleString".
-The largest N that returns a value is assumed to be the number of subproducts.
-@return the number of subproducts or zero if none are defined.
-@param enabled_only If true, only enabled subproducts are counted.
+The largest N that returns a value is assumed to be the number of sub-products.
+@return the number of sub-products or zero if none are defined.
+@param enabled_only If true, only enabled sub-products are counted.
 */
 public int getNumSubProducts ( boolean enabled_only ) {
 	int nsubs = -1;
@@ -3395,7 +3393,7 @@ public int getNumSubProducts ( boolean enabled_only ) {
 			continue;
 		}
 		if ( nsubs != i ) {
-			// Ran out of subproducts.
+			// Ran out of sub-products.
 			break;
 		}
 	}
@@ -3406,7 +3404,7 @@ public int getNumSubProducts ( boolean enabled_only ) {
 Return the number of zoom groups used with graphs.
 */
 public int getNumZoomGroups () {
-	return __num_zoom_groups;
+	return this.__num_zoom_groups;
 }
 
 /**
@@ -3414,7 +3412,7 @@ Return the override PropList for the TSProduct.
 @return the override PropList for the TSProduct.
 */
 public PropList getOverridePropList () {
-	return __override_proplist;
+	return this.__override_proplist;
 }
 
 /**
@@ -3423,8 +3421,8 @@ Return the property value for an override property.
 @return value of property or null if not found.
 */
 public String getOverridePropValue ( String property ) {
-	if ( __override_proplist != null ) {
-		return __override_proplist.getValue ( property );
+	if ( this.__override_proplist != null ) {
+		return this.__override_proplist.getValue ( property );
 	}
 	return null;
 }
@@ -3434,7 +3432,7 @@ Return the PropList for the TSProduct.
 @return the PropList for the TSProduct.
 */
 public PropList getPropList () {
-	return __proplist;
+	return this.__proplist;
 }
 
 /**
@@ -3442,27 +3440,27 @@ Returns how the properties are being set.
 @return how the properties are being set.
 */
 public int getPropsHowSet() {
-	return __proplist.getHowSet();
+	return this.__proplist.getHowSet();
 }
 
 /**
 Return the property value for a requested property.
 This first searches the override properties and then the main properties.
 The fully-expanded property name is used.
-Use getLayeredPropValue() to request a property using product, subproduct, etc.
+Use getLayeredPropValue() to request a property using product, sub-product, etc.
 @param property Property to get value for.
 @return value of property or null if not found.
 */
 public String getPropValue ( String property ) {
 	String value = null;
-	if ( __override_proplist != null ) {
-		value = __override_proplist.getValue ( property );
+	if ( this.__override_proplist != null ) {
+		value = this.__override_proplist.getValue ( property );
 		if ( value != null ) {
 			return value;
 		}
 	}
-	if ( __proplist != null ) {
-		value = __proplist.getValue ( property );
+	if ( this.__proplist != null ) {
+		value = this.__proplist.getValue ( property );
 		return value;
 	}
 	return null;
@@ -3474,13 +3472,15 @@ Return the time series at the requested position.
 @return the time series at the requested position, or null if not available.
 */
 public TS getTS(int pos) {
-    if ( __tslist == null ) {
+    if ( this.__tslist == null ) {
         return null;
     }
-    if ( pos >= __tslist.size() ) {
+    else if ( pos >= this.__tslist.size() ) {
         return null;
     }
-    return __tslist.get(pos);
+    else {
+    	return __tslist.get(pos);
+    }
 }
 
 /**
@@ -3488,7 +3488,7 @@ Return the list of time series associated with the TSProduct.
 @return the list of time series associated with the TSProduct.
 */
 public List<TS> getTSList () {
-	return __tslist;
+	return this.__tslist;
 }
 
 /**
@@ -3496,7 +3496,7 @@ Returns true if the product has any time series in the internal ts list, false o
 @return true if the product has any time series in the internal ts list, false otherwise.
 */
 public boolean hasTimeSeries() {
-	if (__tslist == null || __tslist.size() == 0) {
+	if ( this.__tslist == null || this.__tslist.size() == 0) {
 		return false;
 	}
 	else {
@@ -3513,27 +3513,27 @@ loops through all the properties to see if any have been set at runtime by the u
 */
 public boolean isDirty() {
 //	Message.printStatus(1, "", "isDirty: " + __dirty);
-	if (__dirty) {
+	if ( this.__dirty ) {
 		return true;
 	}
 
 	Prop p = null;
-	int size = __proplist.size();
+	int size = this.__proplist.size();
 	for (int i = 0; i < size; i++) {
-		p = __proplist.elementAt(i);
+		p = this.__proplist.elementAt(i);
 //		Message.printStatus(1, "", " (" + p.getHowSet() + ") " + p.getKey());
 		if (p.getHowSet() == Prop.SET_AT_RUNTIME_BY_USER) {
 			return true;
 		}
 	}
 
-	if (__override_proplist == null) {
+	if (this.__override_proplist == null) {
 		return false;
 	}
 
-	size = __override_proplist.size();
+	size = this.__override_proplist.size();
 	for (int i = 0; i < size; i++) {
-		p = __override_proplist.elementAt(i);
+		p = this.__override_proplist.elementAt(i);
 //		Message.printStatus(1, "", " (" + p.getHowSet() + ") " + p.getKey());
 		if (p.getHowSet() == Prop.SET_AT_RUNTIME_BY_USER) {
 			return true;
@@ -3549,21 +3549,21 @@ it marks all the props that are SET_AT_RUNTIME_BY_USER to be SET_FROM_PERSISTENT
 */
 protected void propsSaved() {
 	Prop p = null;
-	int size = __proplist.size();
+	int size = this.__proplist.size();
 	for (int i = 0; i < size; i++) {
-		p = __proplist.elementAt(i);
+		p = this.__proplist.elementAt(i);
 		if (p.getHowSet() == Prop.SET_AT_RUNTIME_BY_USER) {
 			p.setHowSet(Prop.SET_FROM_PERSISTENT);
 		}
 	}
 
-	if (__override_proplist == null) {
+	if (this.__override_proplist == null) {
 		return;
 	}
 
-	size = __override_proplist.size();
+	size = this.__override_proplist.size();
 	for (int i = 0; i < size; i++) {
-		p = __override_proplist.elementAt(i);
+		p = this.__override_proplist.elementAt(i);
 		if (p.getHowSet() == Prop.SET_AT_RUNTIME_BY_USER) {
 			p.setHowSet(Prop.SET_FROM_PERSISTENT);
 		}
@@ -3571,10 +3571,10 @@ protected void propsSaved() {
 }
 
 /**
-Removes an annotation from a subproduct.
+Removes an annotation from a sub-product.
 If the annotation is not the last one, the other annotation numbers will be renumbered to be consecutive
 (excluding the one to be deleted).
-@param sp the number of the subproduct (0-based) in which the annotation is found.
+@param sp the number of the sub-product (0-based) in which the annotation is found.
 @param iann the number of the annotation (0-based) to remove.
 */
 protected void removeAnnotation(int sp, int iann) {
@@ -3588,7 +3588,7 @@ protected void removeAnnotation(int sp, int iann) {
 		swapAnnotations(sp, (i - 1), sp, i);
 	}
 
-	__dirty = true;
+	this.__dirty = true;
 
 	iann = num;
 	Prop p = null;
@@ -3604,8 +3604,8 @@ protected void removeAnnotation(int sp, int iann) {
 
 	// Next, go through the properties and unset the appropriate annotations.
 //Message.printStatus(1, "", "Size: " + __proplist.size());
-	for (int i = 0; i < __proplist.size(); i++) {
-		p = __proplist.elementAt(i);
+	for (int i = 0; i < this.__proplist.size(); i++) {
+		p = this.__proplist.elementAt(i);
 		key = p.getKey();
 		if (StringUtil.startsWithIgnoreCase(key, "Annotation ")) {
 			indexSpace = key.indexOf(" ");
@@ -3619,7 +3619,7 @@ protected void removeAnnotation(int sp, int iann) {
 //	+ num2 + " / " + dsp + ") [" + indexDot2 + "]");
 				if (num1.equals(delsp) && (indexDot2 > -1) && num2.equals(dsp)) {
 //Message.printStatus(1, "", "Unset: " + key);
-					__proplist.unSet(key);
+					this.__proplist.unSet(key);
 					i--;
 				}
 			}
@@ -3627,11 +3627,11 @@ protected void removeAnnotation(int sp, int iann) {
 	}
 
 	// Check the override proplist and delete from there also.
-	if (__override_proplist == null) {
+	if (this.__override_proplist == null) {
 		return;
 	}
-	for (int i = 0; i < __override_proplist.size(); i++) {
-		p = __override_proplist.elementAt(i);
+	for (int i = 0; i < this.__override_proplist.size(); i++) {
+		p = this.__override_proplist.elementAt(i);
 		key = p.getKey();
 		if (StringUtil.startsWithIgnoreCase(key, "Annotation ")) {
 			indexSpace = key.indexOf(" ");
@@ -3642,7 +3642,7 @@ protected void removeAnnotation(int sp, int iann) {
 				indexDot2 = rest.indexOf(".");
 				num2 = rest.substring(0, indexDot2);
 				if (num1.equals(delsp) && indexDot2 > -1 && num2.equals(dsp)) {
-					__override_proplist.unSet(key);
+					this.__override_proplist.unSet(key);
 					i--;
 				}
 			}
@@ -3651,10 +3651,10 @@ protected void removeAnnotation(int sp, int iann) {
 }
 
 /**
-Removes a subproduct from the product.
-No renumbering will be done for the other subproducts.
+Removes a sub-product from the product.
+No renumbering will be done for the other sub-products.
 This is handled (along with some other special work) in the layout component already, which calls this method.
-@param sp the number of the subproduct (0-based) to remove.
+@param sp the number of the sub-product (0-based) to remove.
 */
 protected void removeSubProduct(int sp) {
 	Prop p = null;
@@ -3663,52 +3663,52 @@ protected void removeSubProduct(int sp) {
 	int indexDot = -1;
 	String num = "";
 	String del = "" + (sp + 1);
-	__dirty = true;
+	this.__dirty = true;
 
-	// Remove the time series that are in this subproduct.
+	// Remove the time series that are in this sub-product.
 	// FIXME SAM 2008-01-29 Evaluate how TSAlias is handled.
 	int numData = getNumData(sp);
 	String id = null;
 	TS ts = null;
 	for (int i = 0; i < numData; i++) {
 		id = getPropValue("Data " + (sp + 1) + "." + (i + 1) + ".TSID");
-		for (int j = 0; j < __tslist.size(); j++) {
-			ts = __tslist.get(j);
+		for (int j = 0; j < this.__tslist.size(); j++) {
+			ts = this.__tslist.get(j);
 			if (ts.getIdentifierString().equals(id)) {
-				__tslist.remove(j);
+				this.__tslist.remove(j);
 				break;
 			}
 		}
 	}
 
 	// Loop through the main proplist and unset all the appropriate properties.
-	for (int i = 0; i < __proplist.size(); i++) {
-		p = __proplist.elementAt(i);
+	for (int i = 0; i < this.__proplist.size(); i++) {
+		p = this.__proplist.elementAt(i);
 		key = p.getKey();
 		indexSpace = key.indexOf(" ");
 		indexDot = key.indexOf(".");
 		if (indexSpace > -1 && indexDot > -1) {
 			num = key.substring(indexSpace + 1, indexDot);
 			if (num.equals(del)) {
-				__proplist.unSet(key);
+				this.__proplist.unSet(key);
 				i--;
 			}
 		}
 	}
 
 	// Check the override proplist and if it contains anything, remove the properties from it as well.
-	if (__override_proplist == null) {
+	if (this.__override_proplist == null) {
 		return;
 	}
-	for (int i = 0; i < __override_proplist.size(); i++) {
-		p = __proplist.elementAt(i);
+	for (int i = 0; i < this.__override_proplist.size(); i++) {
+		p = this.__proplist.elementAt(i);
 		key = p.getKey();
 		indexSpace = key.indexOf(" ");
 		indexDot = key.indexOf(".");
 		if (indexSpace > -1 && indexDot > -1) {
 			num = key.substring(indexSpace + 1, indexDot);
 			if (num.equals(del)) {
-				__override_proplist.unSet(key);
+				this.__override_proplist.unSet(key);
 				i--;
 			}
 		}
@@ -3721,9 +3721,9 @@ In any property named in the style 'Annotation X.Y.VALUE', this method replaces 
 section with the new values passed in as parameters newSub and newAnn, respectively.
 For this reason, the parameters are not 0-based.
 This is used to maintain proper ordered numbering schemes in the proplist when deleting annotations.
-@param origSub the original subproduct number of the annotation properties
+@param origSub the original sub-product number of the annotation properties
 @param origAnn the original annotation number of the properties
-@param newSub the new subproduct number of the annotation properties
+@param newSub the new sub-product number of the annotation properties
 @param newAnn the new annotation number of the properties
 */
 protected void renameAnnotationProps(String origSub, String origAnn, String newSub, String newAnn) {
@@ -3739,8 +3739,8 @@ protected void renameAnnotationProps(String origSub, String origAnn, String newS
 	__dirty = true;
 
 	// Loop through the proplist.
-	for (int i = 0; i < __proplist.size(); i++) {
-		p = __proplist.elementAt(i);
+	for (int i = 0; i < this.__proplist.size(); i++) {
+		p = this.__proplist.elementAt(i);
 		key = p.getKey();
 
 		// Only be concerned with properties starting with 'Annotation '.
@@ -3749,14 +3749,14 @@ protected void renameAnnotationProps(String origSub, String origAnn, String newS
 			indexDot1 = key.indexOf(".");
 
 			if (indexSpace > -1 && indexDot1 > -1) {
-				// Pull out the subproduct and annotation number from the property and compare to origSub and origAnn.
+				// Pull out the sub-product and annotation number from the property and compare to origSub and origAnn.
 				num1 = key.substring(indexSpace + 1, indexDot1);
 				rest = key.substring(indexDot1 + 1);
 				indexDot2 = rest.indexOf(".");
 				num2 = rest.substring(0, indexDot2);
 				if (num1.equals(origSub) && indexDot2 > -1 && num2.equals(origAnn)) {
 					// If they match, replace them with the newSub and newAnn and put the new property in the prop list.
-					__proplist.unSet(key);
+					this.__proplist.unSet(key);
 					i--;
 					p.setKey( key.substring(0, indexSpace) + " " + newSub + "." + newAnn
 						+ rest.substring(indexDot2));
@@ -3768,20 +3768,20 @@ protected void renameAnnotationProps(String origSub, String origAnn, String newS
 	for (int i = 0; i < v.size(); i++) {
 		p = v.get(i);
 		if (p.getHowSet() == Prop.SET_FROM_PERSISTENT) {
-			__proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
+			this.__proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
 		}
 		else {
-			__proplist.setHowSet(p.getHowSet());
+			this.__proplist.setHowSet(p.getHowSet());
 		}
 		__proplist.set(p);
 	}
 
 	v = new Vector<>();
-	if (__override_proplist == null) {
+	if (this.__override_proplist == null) {
 		return;
 	}
-	for (int i = 0; i < __override_proplist.size(); i++) {
-		p = __override_proplist.elementAt(i);
+	for (int i = 0; i < this.__override_proplist.size(); i++) {
+		p = this.__override_proplist.elementAt(i);
 		key = p.getKey();
 		if (StringUtil.startsWithIgnoreCase(key, "Annotation ")) {
 			indexSpace = key.indexOf(" ");
@@ -3792,7 +3792,7 @@ protected void renameAnnotationProps(String origSub, String origAnn, String newS
 				indexDot2 = rest.indexOf(".");
 				num2 = rest.substring(0, indexDot2);
 				if (num1.equals(origSub) && indexDot2 > -1 && num2.equals(origAnn)) {
-					__override_proplist.unSet(key);
+					this.__override_proplist.unSet(key);
 					i--;
 					p.setKey( key.substring(0, indexSpace) + " " + newSub + "." + newAnn
 						+ rest.substring(indexDot2));
@@ -3804,12 +3804,12 @@ protected void renameAnnotationProps(String origSub, String origAnn, String newS
 	for (int i = 0; i < v.size(); i++) {
 		p = v.get(i);
 		if (p.getHowSet() == Prop.SET_FROM_PERSISTENT) {
-			__override_proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
+			this.__override_proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
 		}
 		else {
-			__override_proplist.setHowSet(p.getHowSet());
+			this.__override_proplist.setHowSet(p.getHowSet());
 		}
-		__override_proplist.set(p);
+		this.__override_proplist.set(p);
 	}
 }
 
@@ -3819,9 +3819,9 @@ In any property named in the style 'Data X.Y.VALUE', this method replaces the X.
 section with the new values passed in as parameters newSub and newData, respectively.
 For this reason, the parameters are not 0-based.
 This is used to maintain proper ordered numbering schemes in the proplist when deleting data properties.
-@param origSub the original subproduct number of the data properties
+@param origSub the original sub-product number of the data properties
 @param origD the original data number of the properties
-@param newSub the destination subproduct number of the data properties
+@param newSub the destination sub-product number of the data properties
 @param newData the destination data number of the properties
 */
 protected void renameDataProps(String origSub, String origD, String newSub, String newData) {
@@ -3834,11 +3834,11 @@ protected void renameDataProps(String origSub, String origD, String newSub, Stri
 	String num2 = "";
 	String rest = "";
 	List<Prop> v = new Vector<>();
-	__dirty = true;
+	this.__dirty = true;
 
 	// Loop through the proplist.
-	for (int i = 0; i < __proplist.size(); i++) {
-		p = __proplist.elementAt(i);
+	for (int i = 0; i < this.__proplist.size(); i++) {
+		p = this.__proplist.elementAt(i);
 		key = p.getKey();
 
 		// Only be concerned with data properties.
@@ -3853,7 +3853,7 @@ protected void renameDataProps(String origSub, String origD, String newSub, Stri
 				num2 = rest.substring(0, indexDot2);
 				if (num1.equals(origSub) && indexDot2 > -1 && num2.equals(origD)) {
 					// If they match, replace them with the newSub and newAnn and put the new property in the prop list.
-					__proplist.unSet(key);
+					this.__proplist.unSet(key);
 					i--;
 					p.setKey(key.substring(0, indexSpace) + " " + newSub + "." + newData
 						+ rest.substring(indexDot2));
@@ -3865,20 +3865,20 @@ protected void renameDataProps(String origSub, String origD, String newSub, Stri
 	for (int i = 0; i < v.size(); i++) {
 		p = v.get(i);
 		if (p.getHowSet() == Prop.SET_FROM_PERSISTENT) {
-			__proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
+			this.__proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
 		}
 		else {
-			__proplist.setHowSet(p.getHowSet());
+			this.__proplist.setHowSet(p.getHowSet());
 		}
-		__proplist.set(p);
+		this.__proplist.set(p);
 	}
 
 	v = new Vector<>();
-	if (__override_proplist == null) {
+	if (this.__override_proplist == null) {
 		return;
 	}
-	for (int i = 0; i < __override_proplist.size(); i++) {
-		p = __override_proplist.elementAt(i);
+	for (int i = 0; i < this.__override_proplist.size(); i++) {
+		p = this.__override_proplist.elementAt(i);
 		key = p.getKey();
 		if (StringUtil.startsWithIgnoreCase(key, "Data ")) {
 			indexSpace = key.indexOf(" ");
@@ -3889,7 +3889,7 @@ protected void renameDataProps(String origSub, String origD, String newSub, Stri
 				indexDot2 = rest.indexOf(".");
 				num2 = rest.substring(0, indexDot2);
 				if (num1.equals(origSub) && indexDot2 > -1 && num2.equals(origD)) {
-					__override_proplist.unSet(key);
+					this.__override_proplist.unSet(key);
 					i--;
 					p.setKey( key.substring(0, indexSpace) + " " + newSub + "." + newData + rest.substring(indexDot2));
 					v.add(p);
@@ -3900,12 +3900,12 @@ protected void renameDataProps(String origSub, String origD, String newSub, Stri
 	for (int i = 0; i < v.size(); i++) {
 		p = v.get(i);
 		if (p.getHowSet() == Prop.SET_FROM_PERSISTENT) {
-			__override_proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
+			this.__override_proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
 		}
 		else {
-			__override_proplist.setHowSet(p.getHowSet());
+			this.__override_proplist.setHowSet(p.getHowSet());
 		}
-		__override_proplist.set(p);
+		this.__override_proplist.set(p);
 	}
 }
 
@@ -3914,7 +3914,7 @@ Renames properties from one number to another.
 In any property named in the style 'Name X.Y.VALUE',
 this method replaces the X section with the new value passed in as parameter newSub.
 For this reason, the parameters are not 0-based.
-This is used to maintain proper ordered numbering schemes in the proplist when deleting subproduct properties.
+This is used to maintain proper ordered numbering schemes in the proplist when deleting sub-product properties.
 @param origSub the original number of the properties
 @param destSub the destination number of the properties
 */
@@ -3925,32 +3925,32 @@ private void renameSubProductProps(String origSub, String destSub) {
 	int indexDot = -1;
 	String num = "";
 	// Loop through the proplist.
-	for (int i = 0; i < __proplist.size(); i++) {
-		p = __proplist.elementAt(i);
+	for (int i = 0; i < this.__proplist.size(); i++) {
+		p = this.__proplist.elementAt(i);
 		key = p.getKey();
 		indexSpace = key.indexOf(" ");
 		indexDot = key.indexOf(".");
 		// Only be concerned with data properties.
 		if (indexSpace > -1 && indexDot > -1) {
 			num = key.substring(indexSpace + 1, indexDot);
-			// Pull out the subproduct from the property and compare to origSub.
+			// Pull out the sub-product from the property and compare to origSub.
 			if (num.equals(origSub)) {
 				// If they match, replace it with the newSub and put the new property in the prop list.
 				if (p.getHowSet() == Prop.SET_FROM_PERSISTENT) {
-					__proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
+					this.__proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
 				}
 				else {
-					__proplist.setHowSet(p.getHowSet());
+					this.__proplist.setHowSet(p.getHowSet());
 				}
 				p.setKey(key.substring(0, indexSpace) + " " + destSub + key.substring(indexDot));
 			}
 		}
 	}
-	if (__override_proplist == null) {
+	if (this.__override_proplist == null) {
 		return;
 	}
-	for (int i = 0; i < __override_proplist.size(); i++) {
-		p = __proplist.elementAt(i);
+	for (int i = 0; i < this.__override_proplist.size(); i++) {
+		p = this.__proplist.elementAt(i);
 		key = p.getKey();
 		indexSpace = key.indexOf(" ");
 		indexDot = key.indexOf(".");
@@ -3958,10 +3958,10 @@ private void renameSubProductProps(String origSub, String destSub) {
 			num = key.substring(indexSpace + 1, indexDot);
 			if (num.equals(origSub)) {
 				if (p.getHowSet() == Prop.SET_FROM_PERSISTENT) {
-					__override_proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
+					this.__override_proplist.setHowSet(Prop.SET_AT_RUNTIME_BY_USER);
 				}
 				else {
-					__override_proplist.setHowSet(p.getHowSet());
+					this.__override_proplist.setHowSet(p.getHowSet());
 				}
 				p.setKey(key.substring(0, indexSpace) + " " + destSub + key.substring(indexDot));
 			}
@@ -3971,11 +3971,11 @@ private void renameSubProductProps(String origSub, String destSub) {
 
 /**
 Allows the entire TSProduct to set be dirty (as opposed to individual props).
-This is used when subproducts are moved, removed, or added to the product.
+This is used when sub-products are moved, removed, or added to the product.
 @param dirty whether the TSProduct has been changed in a major way that's not detectable at a prop level (true) or not.
 */
 protected void setDirty(boolean dirty) {
-	__dirty = dirty;
+	this.__dirty = dirty;
 }
 
 /**
@@ -3989,9 +3989,9 @@ in the reference graph but the TSProduct itself will be used for both the full a
 @param value Value of override property.
 */
 public void setOverridePropValue ( String property, String value ) {
-	if ( __override_proplist == null ) {
+	if ( this.__override_proplist == null ) {
 		// Create a new list.
-		__override_proplist = new PropList ( "Override" );
+		this.__override_proplist = new PropList ( "Override" );
 	}
 	__override_proplist.set ( property, value );
 }
@@ -4003,17 +4003,17 @@ TODO (2005-11-01) change name to 'changeAllPropsHowSet'
 @deprecated
 */
 public void setPropsHowSet(int how) {
-	int size = __proplist.size();
+	int size = this.__proplist.size();
 	for (int i = 0; i < size; i++) {
-		__proplist.elementAt(i).setHowSet(how);
+		this.__proplist.elementAt(i).setHowSet(how);
 	}
 
-	if (__override_proplist == null) {
+	if (this.__override_proplist == null) {
 		return;
 	}
-	size = __override_proplist.size();
-	for (int i = 0; i < __override_proplist.size(); i++) {
-		__override_proplist.elementAt(i).setHowSet(how);
+	size = this.__override_proplist.size();
+	for (int i = 0; i < this.__override_proplist.size(); i++) {
+		this.__override_proplist.elementAt(i).setHowSet(how);
 	}
 }
 
@@ -4023,11 +4023,11 @@ Specifies the HOW_SET for new properties that are set in the product.
 TODO (JTS - 2005-11-01) once the other method with the same name is corrected, remove the dummy parameter in this method.
 */
 public void setPropsHowSet(int how, boolean dummy) {
-	__proplist.setHowSet(how);
-	if (__override_proplist == null) {
+	this.__proplist.setHowSet(how);
+	if (this.__override_proplist == null) {
 		return;
 	}
-	__override_proplist.setHowSet(how);
+	this.__override_proplist.setHowSet(how);
 }
 
 /**
@@ -4039,10 +4039,10 @@ The property is set in the main PropList (not the override PropList).
 The leading property, sub-property, or data prefixes will be added based on the other parameter values.
 @param value String value of the property.
 @param subproduct Sub-product number (starting at zero).
-A prefix of "SubProduct X." will be used for the property, where X is the subproduct.
+A prefix of "SubProduct X." will be used for the property, where X is the sub-product.
 If negative, the sub-product property will not be checked (indicating a full product property).
 @param its Time series number within a sub-product (starting at zero).
-A prefix of "Data X.Y." will be used for the property, where X is (subproduct) and Y is (its).
+A prefix of "Data X.Y." will be used for the property, where X is (sub-product) and Y is (its).
 If negative, the data item property will not be checked (indicating a sub-product or product property).
 */
 public void setPropValue (	String property, String value, int subproduct, int its ) {
@@ -4058,14 +4058,14 @@ The property is set in the main PropList (not the override PropList).
 The leading property, sub-property, or data prefixes will be added based on the other parameter values.
 @param value String value of the property.
 @param subproduct Sub-product number (starting at zero).
-A prefix of "SubProduct X." will be used for the property, where X is the subproduct.
+A prefix of "SubProduct X." will be used for the property, where X is the sub-product.
 If negative, the sub-product property will not be checked (indicating a full product property).
 @param its Time series or annotation number within a sub-product (starting at zero).
-A prefix of "Data X.Y." or "Annotation X.Y." will be used for the property, where X is (subproduct) and Y is (its).
+A prefix of "Data X.Y." or "Annotation X.Y." will be used for the property, where X is (sub-product) and Y is (its).
 If negative, the data item property will not be checked (indicating a sub-product or product property).
 See isAnnotation for more information.
-@param isAnnotation is true, then its is treated as the number of an annotation under the given subproduct,
-rather than the number of a time series under the given subproduct.
+@param isAnnotation is true, then its is treated as the number of an annotation under the given sub-product,
+rather than the number of a time series under the given sub-product.
 */
 public void setPropValue ( String property, String value, int subproduct, int its, boolean isAnnotation ) {
 	if (isAnnotation) {
@@ -4075,22 +4075,22 @@ public void setPropValue ( String property, String value, int subproduct, int it
 				+ subproduct + "  Annotation: " + its + ").  Nothing will be set.");
 			return;
 		}
-		__proplist.set("Annotation " + (subproduct + 1) + "." + (its + 1) + "." + property, value);
+		this.__proplist.set("Annotation " + (subproduct + 1) + "." + (its + 1) + "." + property, value);
 		return;
 	}
 
 	// Make these if statements explicit so it is easy to understand.
 	if ( subproduct < 0 ) {
 		// Product property.
-		__proplist.set ( "Product." + property, value );
+		this.__proplist.set ( "Product." + property, value );
 	}
 	else if ( (subproduct >= 0) && (its < 0) ) {
-		// Subproduct property.
-		__proplist.set ( "SubProduct " + (subproduct + 1) + "." + property, value );
+		// Sub-product property.
+		this.__proplist.set ( "SubProduct " + (subproduct + 1) + "." + property, value );
 	}
 	else if ( (subproduct >=0) && (its >= 0) ) {
 		// Data property.
-		__proplist.set ( "Data " + (subproduct + 1) + "." + (its + 1) + "." + property, value );
+		this.__proplist.set ( "Data " + (subproduct + 1) + "." + (its + 1) + "." + property, value );
 	}
 }
 
@@ -4101,9 +4101,9 @@ the annotations from those providers will be set on the graph at this point.
 @param tslist list of TS associated with the TSProduct.
 */
 public void setTSList ( List<TS> tslist ) {
-	__tslist = tslist;
+	this.__tslist = tslist;
 
-	if (__annotationProviders != null) {
+	if (this.__annotationProviders != null) {
 		addAnnotations();
 	}
 }
@@ -4114,19 +4114,19 @@ This is only used for troubleshooting.
 @param statusLevel the status level at which to print the properties.
 */
 public void showProps(int statusLevel) {
-	int size = __proplist.size();
+	int size = this.__proplist.size();
 	Message.printStatus(statusLevel, "", "--------------------------------------");
 	for (int i = 0; i < size; i++) {
-		Message.printStatus(statusLevel, "", "" + i + ": " + __proplist.elementAt(i));
+		Message.printStatus(statusLevel, "", "" + i + ": " + this.__proplist.elementAt(i));
 	}
 
-	if (__override_proplist == null) {
+	if (this.__override_proplist == null) {
 		return;
 	}
-	size = __override_proplist.size();
+	size = this.__override_proplist.size();
 	Message.printStatus(statusLevel, "", "--------------------------------------");
 	for (int i = 0; i < size; i++) {
-		Message.printStatus(statusLevel, "", "" + i + ": " + __override_proplist.elementAt(i));
+		Message.printStatus(statusLevel, "", "" + i + ": " + this.__override_proplist.elementAt(i));
 	}
 }
 
@@ -4139,20 +4139,20 @@ This is only used for troubleshooting.
 public void showPropsStartingWith(int statusLevel, String start) {
 	Prop p = null;
 	Message.printStatus(statusLevel, "", "--------------------------------------");
-	int size = __proplist.size();
+	int size = this.__proplist.size();
 	for (int i = 0; i < size; i++) {
-		p = __proplist.elementAt(i);
+		p = this.__proplist.elementAt(i);
 		if (StringUtil.startsWithIgnoreCase(p.getKey(), start)) {
 			Message.printStatus(statusLevel, "", "" + p);
 		}
 	}
-	if (__override_proplist == null) {
+	if (this.__override_proplist == null) {
 		return;
 	}
 	Message.printStatus(statusLevel, "", "--------------------------------------");
-	size = __override_proplist.size();
+	size = this.__override_proplist.size();
 	for (int i = 0; i < size; i++) {
-		p = __override_proplist.elementAt(i);
+		p = this.__override_proplist.elementAt(i);
 		if (StringUtil.startsWithIgnoreCase(p.getKey(), start)) {
 			Message.printStatus(statusLevel, "", "" + p);
 		}
@@ -4164,11 +4164,11 @@ Sorts the properties in the proplist.
 Used for troubleshooting in order to quickly locate a property when printing it out with the showProps() methods.
 */
 protected void sortProps() {
-	__proplist.sortList();
-	if (__override_proplist == null) {
+	this.__proplist.sortList();
+	if (this.__override_proplist == null) {
 		return;
 	}
-	__override_proplist.sortList();
+	this.__override_proplist.sortList();
 }
 
 /**
@@ -4176,8 +4176,8 @@ This method should be called before hidden properties are to be added to the pro
 Hidden properties are never shown to a user and are never saved to a file.
 */
 public void startAddingHiddenProps() {
-	__howSet = __proplist.getHowSet();
-	__proplist.setHowSet(Prop.SET_HIDDEN);
+	this.__howSet = this.__proplist.getHowSet();
+	this.__proplist.setHowSet(Prop.SET_HIDDEN);
 }
 
 /**
@@ -4187,31 +4187,31 @@ Any future properties added to the TSProduct will be added with the
 same HowSet value that the internal PropList was using prior to the call to startAddingHiddenProps().
 */
 public void stopAddingHiddenProps() {
-	__proplist.setHowSet(__howSet);
-	__howSet = -1;
+	this.__proplist.setHowSet(this.__howSet);
+	this.__howSet = -1;
 }
 
 /**
-Swaps the data section with the given original subproduct and data number with
-the one with the given new subproduct and data number.
-For instance, if swapping data 1.1 and 3.2, all subproducts and subproperties
+Swaps the data section with the given original sub-product and data number with
+the one with the given new sub-product and data number.
+For instance, if swapping data 1.1 and 3.2, all sub-products and sub-product properties
 that were numbered 1.1 will now be numbered 3.2 and vice versa.
-@param origSub the original subproduct (base 0)
+@param origSub the original sub-product (base 0)
 @param origAnn the original annotation (base 0)
-@param newSub the destination subproduct (base 0)
+@param newSub the destination sub-product (base 0)
 @param newAnn the destination annotation (base 0)
 */
 protected void swapAnnotations(int origSub, int origAnn, int newSub, int newAnn) {
 	renameAnnotationProps("" + (origSub + 1), "" + (origAnn + 1), "TEMP", "TEMP");
 	renameAnnotationProps("" + (newSub + 1), "" + (newAnn + 1), "" + (origSub + 1), "" + (origAnn + 1));
 	renameAnnotationProps("TEMP", "TEMP", "" + (newSub + 1), "" + (newAnn + 1));
-	__dirty = true;
+	this.__dirty = true;
 }
 
 /**
-Swaps subproducts with the 'origSub' number and those with the 'newSub' number.
-For instance, if swapping subproducts 1 and 3, all subproducts and
-subproperties that were numbered 1 will now be numbered 3 and vice versa.
+Swaps sub-products with the 'origSub' number and those with the 'newSub' number.
+For instance, if swapping sub-products 1 and 3, all sub-products and
+sub-product properties that were numbered 1 will now be numbered 3 and vice versa.
 */
 protected void swapSubProducts(int origSub, int newSub) {
 	renameSubProductProps("" + (origSub + 1), "TEMP");
@@ -4244,7 +4244,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 
 	String nl = System.getProperty("line.separator");
 	StringBuilder out = new StringBuilder();
-	List<Prop> props = __proplist.getPropsMatchingRegExp ( "Product.*" );
+	List<Prop> props = this.__proplist.getPropsMatchingRegExp ( "Product.*" );
 	Prop prop = null;
 	int howSet = 0;
 	out.append ( "[Product]" + nl );
@@ -4355,7 +4355,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 	String key = null;
 
 	for (int isub = 0; isub < nsubs; isub++) {
-		props = __proplist.getPropsMatchingRegExp("SubProduct " + (isub + 1) + ".*");
+		props = this.__proplist.getPropsMatchingRegExp("SubProduct " + (isub + 1) + ".*");
 		sub_prefix = "[SubProduct " + (isub + 1) + "]";
 		sub_prefix_length = sub_prefix.length();
 		out.append ( nl );
@@ -4437,7 +4437,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 		// Now write the data properties.
 		int ndata = getNumData(isub);
 		for ( int idata = 0; idata < ndata; idata++ ) {
-			vdata = __proplist.getPropsMatchingRegExp ("Data " + (isub + 1) + "." + (idata + 1) +".*");
+			vdata = this.__proplist.getPropsMatchingRegExp ("Data " + (isub + 1) + "." + (idata + 1) +".*");
 			data_prefix = "[Data " + (isub + 1) + "." + (idata + 1) + "]";
 			data_prefix_length = data_prefix.length();
 			out.append ( nl );
@@ -4512,7 +4512,7 @@ public String toString ( boolean outputAll, boolean outputHowSet, TSProductForma
 		// Now write the annotations.
 		int nann = getNumAnnotations(isub);
 		for (int iann = 0; iann < nann; iann++) {
-			vdata = __proplist.getPropsMatchingRegExp("Annotation " + (isub + 1) + "." + (iann + 1) + ".*");
+			vdata = this.__proplist.getPropsMatchingRegExp("Annotation " + (isub + 1) + "." + (iann + 1) + ".*");
 			type = getPropValue("Annotation " + (isub + 1) + "." + (iann + 1) + ".ShapeType");
 			data_prefix = "[Annotation " + (isub + 1) + "." + (iann + 1) + "]";
 			data_prefix_length = data_prefix.length();
@@ -4641,7 +4641,7 @@ public String toStringJson ( boolean outputAll, boolean outputHowSet, boolean so
 
 	Product product = new Product();
 
-	// First write the main product properties, then subproduct, and within each subproduct the data properties.
+	// First write the main product properties, then sub-product, and within each sub-product the data properties.
 	// Unlike the "properties" format, which is a flat list of property strings,
 	// this model is hierarchical, consistent with JSON.
 
@@ -4722,8 +4722,8 @@ public String toStringJson ( boolean outputAll, boolean outputHowSet, boolean so
 		SubProduct subProduct = new SubProduct();
 		product.addSubProduct ( subProduct );
 
-		// Get the properties for the subproduct.
-		subProductProps = __proplist.getPropsMatchingRegExp("SubProduct " + (isub + 1) + ".*");
+		// Get the properties for the sub-product.
+		subProductProps = this.__proplist.getPropsMatchingRegExp("SubProduct " + (isub + 1) + ".*");
 		String sub_prefix = "[SubProduct " + (isub + 1) + "]";
 		sub_prefix_length = sub_prefix.length();
 
@@ -4809,7 +4809,7 @@ public String toStringJson ( boolean outputAll, boolean outputHowSet, boolean so
 			Data data = new Data();
 			subProduct.addData ( data );
 
-			dataProps = __proplist.getPropsMatchingRegExp ("Data " + (isub + 1) + "." + (idata + 1) +".*");
+			dataProps = this.__proplist.getPropsMatchingRegExp ("Data " + (isub + 1) + "." + (idata + 1) +".*");
 			data_prefix = "[Data " + (isub + 1) + "." + (idata + 1) + "]";
 			data_prefix_length = data_prefix.length();
 			dsize = 0;
@@ -4889,7 +4889,7 @@ public String toStringJson ( boolean outputAll, boolean outputHowSet, boolean so
 			Annotation annotation = new Annotation();
 			subProduct.addAnnotation ( annotation );
 
-			annotationProps = __proplist.getPropsMatchingRegExp("Annotation " + (isub + 1) + "." + (iann + 1) + ".*");
+			annotationProps = this.__proplist.getPropsMatchingRegExp("Annotation " + (isub + 1) + "." + (iann + 1) + ".*");
 			type = getPropValue("Annotation " + (isub + 1) + "." + (iann + 1) + ".ShapeType");
 			data_prefix = "[Annotation " + (isub + 1) + "." + (iann + 1) + "]";
 
@@ -5047,7 +5047,7 @@ Unsets a property in the product with the given key.
 @param key the key of the property to unset.
 */
 protected void unSet(String key) {
-	__proplist.unSet(key);
+	this.__proplist.unSet(key);
 }
 
 /**

@@ -169,7 +169,7 @@ throws Exception {
 			// Entire graph is disabled.
 			continue;
 		}
-		// Loop through the time series in the subproduct.
+		// Loop through the time series in the sub-product.
 		String disabledNote = "";
 		for ( int its = 0; ; its++ ) {
 			// Get this TSID and TSAlias first since used in logging.

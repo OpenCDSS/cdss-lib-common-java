@@ -32,7 +32,9 @@ import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -269,6 +271,23 @@ private List<TS> __derivedTSList = new ArrayList<>();
  * - currently must be the same for if multiple time series are specified
  */
 private GRSymbolTable rasterSymbolTable = null;
+
+/**
+ * Whether or not an image map file is output.
+ * This is used by the raster graph.
+ */
+private boolean doImageMap = false;
+
+/**
+ * Whether the image map has output for the legend area.
+ */
+private boolean doImageMapLegend = false;
+
+/**
+ * The PrintWriter used to write an image map file.
+ * A class-level object is needed because different methods write the data and legend parts of the image map.
+ */
+private PrintWriter imageMapWriter = null;
 
 /**
  * List of time series that are selected (by clicking on the legend).
@@ -5179,6 +5198,7 @@ private void drawGraphRaster ( TSProduct tsproduct, List<TS> tslist ) {
   		&& ((this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() != TimeInterval.YEAR)) ) {
 		// Single time series (but not year interval) is being drawn:
 		// - currently only day and month interval are supported
+		// - pass the product override properties, which will include the image map properties
 		TS ts = null;
 		int its = 0;
         ts = tslist.get(its);
@@ -5199,7 +5219,7 @@ private void drawGraphRaster ( TSProduct tsproduct, List<TS> tslist ) {
         	return;
         }
         // Draw the time series, which will fill in the graph are with "pixels".
-        PropList overrideProps = null;
+		PropList overrideProps = tsproduct.getOverridePropList();
         drawTSRenderRasterGraphSingle ( ts, overrideProps );
         // Redraw the surrounding box and Y-axis ticks because the colors may have overdrawn:
         // - having a nice black border makes the graph look cleaner
@@ -5210,9 +5230,12 @@ private void drawGraphRaster ( TSProduct tsproduct, List<TS> tslist ) {
         drawLegendRaster ( tsproduct );
     }
 	else {
-		// Multiple time series (or single year interval time series).
-		PropList overrideProps = null;
-		// Do not call 'drawTS' but instead call the following, which handles multiple time series.
+		// Multiple time series (or single year interval time series):
+		// - each row is a time series
+		// - pass the product override properties, which will include the image map properties
+		PropList overrideProps = tsproduct.getOverridePropList();
+		// Do not call 'drawTS' but instead call the following, which handles multiple time series:
+		// - the following also opens an image map file if that was requested in 'overrideProps'
         drawTSRenderRasterGraphMultiple ( tslist, overrideProps );
         // Redraw the surrounding box:
         // - having a nice black border makes the graph look cleaner
@@ -5230,11 +5253,12 @@ private void drawGraphRaster ( TSProduct tsproduct, List<TS> tslist ) {
 }
 
 /**
-Draw the legend.  The drawing is the same regardless of the legend position
+Draw the legend containing the list of time series. The drawing is the same regardless of the legend position
 (the legend items are draft from top to bottom and first time series to last,
 except for special cases like stacked area plot where the order is reversed).
 This should work well for left, right, and bottom legends.
 Additional logic may need to be implemented when the top legend is supported.
+@param tsproduct the time series product being processed
 @param axis GRAxis.LEFT or GRAxis.RIGHT, indicating which y-axis legend to draw.
 */
 private void drawLegend ( GRAxisEdgeType axis ) {
@@ -5783,16 +5807,50 @@ private void drawLegend ( GRAxisEdgeType axis ) {
 				(xll + textDrawLim.getWidth()), (yll - textDrawLim.getHeight()) );
 			this.__legendTimeSeriesDrawMap.put(ts, legendDrawLimits);
 			//Message.printStatus(2,routine,"Legend \"" + legend + "\" drawing limits are " + legendDrawLimits );
+
+			if ( this.doImageMapLegend && (this.imageMapWriter != null) ) {
+	    		// At least one part of the legend area shape should be output:
+	    		// - create an image map file line for the data rectangle area of the image
+	    		// - the image size will have been set when the product was set up
+	   			// - the hot spot coordinates are calculated above and can be reused below.
+				String ImageMapLegendHref = this._tsproduct.getOverridePropValue("ImageMapLegendHref");
+				String ImageMapLegendTarget = this._tsproduct.getOverridePropValue("ImageMapLegendTarget");
+				String ImageMapLegendTitle = this._tsproduct.getOverridePropValue("ImageMapLegendTitle");
+	    		String imageMapLegendHref = ts.formatExtendedLegend(ImageMapLegendHref);
+	    		// Title is formatted dynamically.
+	    		String title = "";
+	    		if ( (ImageMapLegendTitle != null) && !ImageMapLegendTitle.isEmpty() ) {
+	    			title = " title=\"" + ts.formatExtendedLegend(ImageMapLegendTitle) + "\"";
+	    		}
+	    		String target = "";
+	    		if ( (ImageMapLegendTarget != null) && !ImageMapLegendTarget.isEmpty() ) {
+	    			target = " target=\"_" + ImageMapLegendTarget.toLowerCase() + "\"";
+	    		}
+	    		// Add a shape for the heatmap data row:
+	    		// - these coordinates are in pixels where image left edge is x=0 and image top is y=0 (y goes down)
+	    		double xleft = xll;
+	    		double ybottom = yll;
+	    		double xright = xll + textDrawLim.getWidth();
+	    		double ytop = yll - textDrawLim.getHeight();
+	    		String area = "<area shape=\"rect\" coords=\"" + (int)xleft + "," + (int)ytop + "," + (int)xright + "," + (int)ybottom + "\"";
+	    		String href = "";
+	    		if ( (ImageMapLegendHref != null) && !ImageMapLegendHref.isEmpty() ) {
+	    			href = " href=\"" + imageMapLegendHref + "\"";
+	    		}
+	    		this.imageMapWriter.println("  " + area + href + title + target + ">");
+			}
 		}
 
 		// Decrement the legend for the next iteration, drawing from top to bottom.
 		ylegend -= ydelta;
+
 	}
 }
 
 /**
  * Draw the legend for raster graph, which shows the color scale for the pixel colors.
  * This is drawn the same whether a single or multiple time series graph.
+ * This does not contain the list of time series.
  * @param tsproduct TSProduct describing the graph.
  */
 private void drawLegendRaster ( TSProduct tsproduct ) {
@@ -7680,6 +7738,11 @@ private void drawTSRenderRasterGraphMultiple ( List<TS> tslist, PropList overrid
     // Default color for missing data.
 	GRColor nodataColor = GRColor.white;
 	GRSymbolTable symtable = this.rasterSymbolTable;
+	
+	if ( overrideProps == null ) {
+		// Create a non-null list to simplify error handling.
+		overrideProps = new PropList("temp");
+	}
 
 	// Look up the NoData color to use for missing data.
    	if ( symtable.getNoDataSymbolTableRow() == null ) {
@@ -7703,6 +7766,68 @@ private void drawTSRenderRasterGraphMultiple ( List<TS> tslist, PropList overrid
     double width = this._da_lefty_graph.getPlotLimits(GRCoordinateType.DATA).getWidth();
     double height = this._da_lefty_graph.getPlotLimits(GRCoordinateType.DATA).getHeight();
     GRDrawingAreaUtil.fillRectangle(this._da_lefty_graph, x0Full, y0Full, width, height);
+    
+    // If creating an image map file, open the file.
+    String ImageMapFile = overrideProps.getValue("ImageMapFile");
+    String ImageMapUrl = overrideProps.getValue("ImageMapUrl");
+    String ImageMapName = overrideProps.getValue("ImageMapName");
+    String ImageMapDataArea = overrideProps.getValue("ImageMapDataArea");
+    boolean doImageMapAreaCell = false;
+    boolean doImageMapAreaTimeSeries = false;
+    if ( (ImageMapDataArea == null) || ImageMapDataArea.isEmpty() ) {
+    	ImageMapDataArea = "TimeSeries";
+    }
+    if ( ImageMapDataArea.equalsIgnoreCase("Cell") ) {
+    	doImageMapAreaCell = true;
+    }
+    else if ( ImageMapDataArea.equalsIgnoreCase("TimeSeries") ) {
+    	doImageMapAreaTimeSeries = true;
+    }
+    String ImageMapDataHref = overrideProps.getValue("ImageMapDataHref");
+    String ImageMapDataTarget = overrideProps.getValue("ImageMapDataTarget");
+    String ImageMapDataTitle = overrideProps.getValue("ImageMapDataTitle");
+    String ImageMapLegendHref = overrideProps.getValue("ImageMapLegendHref");
+    String ImageMapLegendTitle = overrideProps.getValue("ImageMapLegendTitle");
+    if ( (ImageMapName == null) || ImageMapName.isEmpty() ) {
+    	// Default.
+    	ImageMapName = "imagemap";
+    }
+    this.doImageMap = false;
+    // Whether or not image map shapes for data area are output.
+    boolean doImageMapData = false;
+    // Whether or not image map shapes for legend area are output.
+    this.doImageMapLegend = false;
+    boolean doImageMapCellDateTime = false;
+    boolean doImageMapCellFlag = false;
+    boolean doImageMapCellValue = false;
+    if ( (ImageMapFile != null) && !ImageMapFile.isEmpty() && (ImageMapUrl != null) && ! ImageMapUrl.isEmpty() ) {
+    	// Properties are defined for the image map.
+    	doImageMap = true;
+    	if ( ((ImageMapDataHref != null) && !ImageMapDataHref.isEmpty()) ||
+    		((ImageMapDataTitle != null) && ! ImageMapDataTitle.isEmpty()) ) {
+    		// Have some data for the data area.
+    		doImageMapData = true;
+    	}
+    	if ( ((ImageMapLegendHref != null) && !ImageMapLegendHref.isEmpty()) ||
+    		((ImageMapLegendTitle != null) && ! ImageMapLegendTitle.isEmpty()) ) {
+    		// Have some data for the legend area.
+    		this.doImageMapLegend = true;
+    	}
+    	if ( (ImageMapDataTitle != null) && !ImageMapDataTitle.isEmpty() ) {
+    		if ( ImageMapDataTitle.contains("${tsdata:datetime}") ) {
+    			doImageMapCellDateTime = true;
+    		}
+    		if ( ImageMapDataTitle.contains("${tsdata:flag}") ) {
+    			doImageMapCellFlag = true;
+    		}
+    		if ( ImageMapDataTitle.contains("${tsdata:value}") ) {
+    			doImageMapCellValue = true;
+    		}
+    	}
+    }
+    if ( this.doImageMap ) {
+    	imageMapOpen ( ImageMapFile, ImageMapName, ImageMapUrl );
+    }
 
     GRColor tscolor = null;
     int its = -1;
@@ -7862,7 +7987,93 @@ private void drawTSRenderRasterGraphMultiple ( List<TS> tslist, PropList overrid
         	}
         	*/
         	GRDrawingAreaUtil.fillRectangle ( this._da_lefty_graph, x0, y0, intervalWidth, 1.0 );
+
+        	if ( doImageMap && doImageMapData && doImageMapAreaCell ) {
+        		// TODO smalers 2025-08-01 this can be optimized so that some property formating is only done for a new time series.
+        		
+    		   	// At least one part of the data area shape should be output:
+    		   	// - create an image map file line for the data rectangle area of the image
+    		   	// - the image size will have been set when the product was set up
+    		   	String imageMapDataHref = ts.formatExtendedLegend(ImageMapDataHref);
+    		   	// Title is formatted dynamically.
+    		   	String title = "";
+    		   	if ( (ImageMapDataTitle != null) && !ImageMapDataTitle.isEmpty() ) {
+    			   	title = " title=\"" + ts.formatExtendedLegend(ImageMapDataTitle) + "\"";
+    			   	// Additional formatting for specific data values:
+    			   	// - handle as booleans to avoid extra overhead.
+    			   	if ( doImageMapCellValue ) {
+    			   		String valueString = null;
+    			   		if ( ts.isDataMissing(value) ) {
+    			   			valueString = "missing";
+    			   		}
+    			   		else {
+    			   			valueString = String.format("%.4f", value);
+    			   		}
+    			   		title = title.replace("${tsdata:value}",valueString);
+    			   	}
+    			   	if ( doImageMapCellFlag ) {
+    			   		String flagString = "";
+    			   		if ( flagString != null ) {
+    			   			flagString = tsdata.getDataFlag();
+    			   		}
+    			   		title = title.replace("${tsdata:flag}",flagString);
+    			   	}
+    			   	if ( doImageMapCellDateTime ) {
+    			   		String dateTimeString = tsdata.getDate().toString();
+    			   		title = title.replace("${tsdata:datetime}",dateTimeString);
+    			   	}
+    		   	}
+    		   	String target = "";
+   			   	if ( (ImageMapDataTarget != null) && !ImageMapDataTarget.isEmpty() ) {
+   				   	target = " target=\"_" + ImageMapDataTarget.toLowerCase() + "\"";
+   			   	}
+    		   	// Add a shape for the heatmap data row:
+    		   	// - these coordinates are in pixels where image left edge is x=0 and image top is y=0 (y goes down)
+   			   	// - use floor and ceiling to make sure that the edges do not step on each other
+    		   	double xleft = this._da_lefty_graph.scaleXData(x0);
+    		   	double xright = this._da_lefty_graph.scaleXData(x0 + intervalWidth);
+    		   	double ytop = Math.ceil(this._da_lefty_graph.scaleYData(y0));
+    		   	double ybottom = Math.floor(this._da_lefty_graph.scaleYData(y0 + 1.0));
+    		   	String area = "<area shape=\"rect\" coords=\"" + (int)xleft + "," + (int)ytop + "," + (int)xright + "," + (int)ybottom + "\"";
+    		   	String href = "";
+    		   	if ( (ImageMapDataHref != null) && !ImageMapDataHref.isEmpty() ) {
+    			   	href = " href=\"" + imageMapDataHref + "\"";
+    		   	}
+    		   	this.imageMapWriter.println("  " + area + href + title + target + ">");
+
+    		   	// The shapes for the legend and closing the file are handled elsewhere.
+    	   	}
     	}
+
+    	if ( doImageMap && doImageMapData && doImageMapAreaTimeSeries ) {
+   			// At least one part of the data area shape should be output:
+   			// - create an image map file line for the data rectangle area of the image
+   			// - the image size will have been set when the product was set up
+   			String imageMapDataHref = ts.formatExtendedLegend(ImageMapDataHref);
+   			// Title is formatted dynamically.
+   			String title = "";
+   			if ( (ImageMapDataTitle != null) && !ImageMapDataTitle.isEmpty() ) {
+   				title = " title=\"" + ts.formatExtendedLegend(ImageMapDataTitle) + "\"";
+   			}
+   			String target = "";
+   			if ( (ImageMapDataTarget != null) && !ImageMapDataTarget.isEmpty() ) {
+   				target = " target=\"_" + ImageMapDataTarget.toLowerCase() + "\"";
+   			}
+   			// Add a shape for the heatmap data row:
+   			// - these coordinates are in pixels where image left edge is x=0 and image top is y=0 (y goes down)
+   			double xleft = this._da_lefty_graph.scaleXData(_da_lefty_graph.getDataLimits().getLeftX());
+   			double xright = this._da_lefty_graph.scaleXData(_da_lefty_graph.getDataLimits().getRightX());
+   			double ytop = Math.ceil(this._da_lefty_graph.scaleYData(y0));
+   			double ybottom = Math.floor(this._da_lefty_graph.scaleYData(y0 + 1.0));
+   			String area = "<area shape=\"rect\" coords=\"" + (int)xleft + "," + (int)ytop + "," + (int)xright + "," + (int)ybottom + "\"";
+   			String href = "";
+   			if ( (ImageMapDataHref != null) && !ImageMapDataHref.isEmpty() ) {
+   				href = " href=\"" + imageMapDataHref + "\"";
+   			}
+   			this.imageMapWriter.println("  " + area + href + title + target + ">");
+   			
+   			// The shapes for the legend and closing the file are handled elsewhere.
+   		}
     }
 
     // Remove the clip around the graph.  This allows other things to be drawn outside the graph bounds.
@@ -7883,6 +8094,68 @@ private void drawTSRenderRasterGraphSingle ( TS ts, PropList overrideProps ) {
     if ( ts == null ) {
         // No data for time series
         return;
+    }
+
+    // If creating an image map file, open the file.
+    String ImageMapFile = overrideProps.getValue("ImageMapFile");
+    String ImageMapUrl = overrideProps.getValue("ImageMapUrl");
+    String ImageMapName = overrideProps.getValue("ImageMapName");
+    String ImageMapDataArea = overrideProps.getValue("ImageMapDataArea");
+    boolean doImageMapAreaCell = false;
+    boolean doImageMapAreaTimeSeries = false;
+    boolean doImageMapCellDateTime = false;
+    boolean doImageMapCellFlag = false;
+    boolean doImageMapCellValue = false;
+    if ( (ImageMapDataArea == null) || ImageMapDataArea.isEmpty() ) {
+    	ImageMapDataArea = "TimeSeries";
+    }
+    if ( ImageMapDataArea.equalsIgnoreCase("Cell") ) {
+    	doImageMapAreaCell = true;
+    }
+    else if ( ImageMapDataArea.equalsIgnoreCase("TimeSeries") ) {
+    	doImageMapAreaTimeSeries = true;
+    }
+    String ImageMapDataHref = overrideProps.getValue("ImageMapDataHref");
+    String ImageMapDataTarget = overrideProps.getValue("ImageMapDataTarget");
+    String ImageMapDataTitle = overrideProps.getValue("ImageMapDataTitle");
+    String ImageMapLegendHref = overrideProps.getValue("ImageMapLegendHref");
+    String ImageMapLegendTitle = overrideProps.getValue("ImageMapLegendTitle");
+    if ( (ImageMapName == null) || ImageMapName.isEmpty() ) {
+    	// Default.
+    	ImageMapName = "imagemap";
+    }
+    this.doImageMap = false;
+    // Whether or not image map shapes for data area are output.
+    boolean doImageMapData = false;
+    // Whether or not image map shapes for legend area are output.
+    this.doImageMapLegend = false;
+    if ( (ImageMapFile != null) && !ImageMapFile.isEmpty() && (ImageMapUrl != null) && ! ImageMapUrl.isEmpty() ) {
+    	// Properties are defined for the image map.
+    	doImageMap = true;
+    	if ( ((ImageMapDataHref != null) && !ImageMapDataHref.isEmpty()) ||
+    		((ImageMapDataTitle != null) && ! ImageMapDataTitle.isEmpty()) ) {
+    		// Have some data for the data area.
+    		doImageMapData = true;
+    	}
+    	if ( ((ImageMapLegendHref != null) && !ImageMapLegendHref.isEmpty()) ||
+    		((ImageMapLegendTitle != null) && ! ImageMapLegendTitle.isEmpty()) ) {
+    		// Have some data for the legend area.
+    		this.doImageMapLegend = true;
+    	}
+    	if ( (ImageMapDataTitle != null) && !ImageMapDataTitle.isEmpty() ) {
+    		if ( ImageMapDataTitle.contains("${tsdata:datetime}") ) {
+    			doImageMapCellDateTime = true;
+    		}
+    		if ( ImageMapDataTitle.contains("${tsdata:flag}") ) {
+    			doImageMapCellFlag = true;
+    		}
+    		if ( ImageMapDataTitle.contains("${tsdata:value}") ) {
+    			doImageMapCellValue = true;
+    		}
+    	}
+    }
+    if ( this.doImageMap ) {
+    	imageMapOpen ( ImageMapFile, ImageMapName, ImageMapUrl );
     }
 
     // Default color for missing data.
@@ -8055,14 +8328,158 @@ private void drawTSRenderRasterGraphSingle ( TS ts, PropList overrideProps ) {
         //            tscolor.getRed() + "," + tscolor.getGreen() + "," + tscolor.getBlue() + ",");
         //}
         GRDrawingAreaUtil.fillRectangle(this._da_lefty_graph, x0, y0, pixelWidth, pixelHeight);
+
+       	if ( doImageMap && doImageMapData && doImageMapAreaCell ) {
+       		// TODO smalers 2025-08-01 this can be optimized so that some property formating is only done for a new time series.
+        		
+   		   	// At least one part of the data area shape should be output:
+   		   	// - create an image map file line for the data rectangle area of the image
+   		   	// - the image size will have been set when the product was set up
+   		   	String imageMapDataHref = ts.formatExtendedLegend(ImageMapDataHref);
+   		   	// Title is formatted dynamically.
+   		   	String title = "";
+   		   	if ( (ImageMapDataTitle != null) && !ImageMapDataTitle.isEmpty() ) {
+   			   	title = " title=\"" + ts.formatExtendedLegend(ImageMapDataTitle) + "\"";
+   			   	// Additional formatting for specific data values:
+   			   	// - handle as booleans to avoid extra overhead.
+   			   	if ( doImageMapCellValue ) {
+   			   		String valueString = null;
+   			   		if ( ts.isDataMissing(value) ) {
+   			   			valueString = "missing";
+   			   		}
+   			   		else {
+   			   			valueString = String.format("%.4f", value);
+   			   		}
+   			   		title = title.replace("${tsdata:value}",valueString);
+   			   	}
+   			   	if ( doImageMapCellFlag ) {
+   			   		String flagString = "";
+   			   		if ( flagString != null ) {
+   			   			flagString = tsdata.getDataFlag();
+   			   		}
+   			   		title = title.replace("${tsdata:flag}",flagString);
+   			   	}
+   			   	if ( doImageMapCellDateTime ) {
+   			   		String dateTimeString = tsdata.getDate().toString();
+   			   		title = title.replace("${tsdata:datetime}",dateTimeString);
+   			   	}
+   		   	}
+   		   	String target = "";
+		   	if ( (ImageMapDataTarget != null) && !ImageMapDataTarget.isEmpty() ) {
+			   	target = " target=\"_" + ImageMapDataTarget.toLowerCase() + "\"";
+		   	}
+  		   	// Add a shape for the heatmap data row:
+  		   	// - these coordinates are in pixels where image left edge is x=0 and image top is y=0 (y goes down)
+		   	// - use floor and ceiling to make sure that the edges do not step on each other
+   		   	double xleft = this._da_lefty_graph.scaleXData(x0);
+   		   	double xright = this._da_lefty_graph.scaleXData(x0 + pixelWidth);
+   		   	double ytop = Math.ceil(this._da_lefty_graph.scaleYData(y0));
+   		   	double ybottom = Math.floor(this._da_lefty_graph.scaleYData(y0 + 1.0));
+   		   	String area = "<area shape=\"rect\" coords=\"" + (int)xleft + "," + (int)ytop + "," + (int)xright + "," + (int)ybottom + "\"";
+   		   	String href = "";
+   		   	if ( (ImageMapDataHref != null) && !ImageMapDataHref.isEmpty() ) {
+   			   	href = " href=\"" + imageMapDataHref + "\"";
+   		   	}
+   		   	this.imageMapWriter.println("  " + area + href + title + target + ">");
+
+   		   	// The shapes for the legend and closing the file are handled elsewhere.
+   	   	}
+
         // Also fill in the February 29 value for non-leap years to the same color as the February 28 value.
         // This ensures that a distracting white line is not shown.
         if ( (intervalBase == TimeInterval.DAY) && (month == 2) && (day == 28) && !isLeapYear ) {
             // Also draw the February 29, which will not otherwise be encountered because the time series is iterating
             // through the actual dates.  Use the same color as February 28.
             GRDrawingAreaUtil.fillRectangle(this._da_lefty_graph, (x0 + pixelWidth), y0, pixelWidth, pixelHeight);
+
+            if ( doImageMap && doImageMapData && doImageMapAreaCell ) {
+       		    // TODO smalers 2025-08-01 this can be optimized so that some property formating is only done for a new time series.
+        		
+   		   	    // At least one part of the data area shape should be output:
+   		   	    // - create an image map file line for the data rectangle area of the image
+   		   	    // - the image size will have been set when the product was set up
+   		   	    String imageMapDataHref = ts.formatExtendedLegend(ImageMapDataHref);
+   		   	    // Title is formatted dynamically.
+   		   	    String title = "";
+   		   	    if ( (ImageMapDataTitle != null) && !ImageMapDataTitle.isEmpty() ) {
+   			   	    title = " title=\"" + ts.formatExtendedLegend(ImageMapDataTitle) + "\"";
+   			   	    // Additional formatting for specific data values:
+   			   	    // - handle as booleans to avoid extra overhead.
+   			   	    if ( doImageMapCellValue ) {
+   			   		    String valueString = null;
+   			   		    if ( ts.isDataMissing(value) ) {
+   			   			    valueString = "missing";
+   			   		    }
+   			   		    else {
+   			   			    valueString = String.format("%.4f", value);
+   			   		    }
+   			   		    title = title.replace("${tsdata:value}",valueString);
+   			   	    }
+   			   	    if ( doImageMapCellFlag ) {
+   			   		    String flagString = "";
+   			   		    if ( flagString != null ) {
+   			   			    flagString = tsdata.getDataFlag();
+   			   		    }
+   			   		    title = title.replace("${tsdata:flag}",flagString);
+   			   	    }
+   			   	    if ( doImageMapCellDateTime ) {
+   			   		    String dateTimeString = tsdata.getDate().toString();
+   			   		    title = title.replace("${tsdata:datetime}",dateTimeString);
+   			   	    }
+   		   	    }
+   		   	    String target = "";
+		   	    if ( (ImageMapDataTarget != null) && !ImageMapDataTarget.isEmpty() ) {
+			   	    target = " target=\"_" + ImageMapDataTarget.toLowerCase() + "\"";
+		   	    }
+  		   	    // Add a shape for the heatmap data row:
+  		   	    // - these coordinates are in pixels where image left edge is x=0 and image top is y=0 (y goes down)
+		   	    // - use floor and ceiling to make sure that the edges do not step on each other
+   		   	    double xleft = this._da_lefty_graph.scaleXData(x0 + pixelWidth);
+   		   	    double xright = this._da_lefty_graph.scaleXData(x0 + pixelWidth + pixelWidth);
+   		   	    double ytop = Math.ceil(this._da_lefty_graph.scaleYData(y0));
+   		   	    double ybottom = Math.floor(this._da_lefty_graph.scaleYData(y0 + 1.0));
+   		   	    String area = "<area shape=\"rect\" coords=\"" + (int)xleft + "," + (int)ytop + "," + (int)xright + "," + (int)ybottom + "\"";
+   		   	    String href = "";
+   		   	    if ( (ImageMapDataHref != null) && !ImageMapDataHref.isEmpty() ) {
+   			   	    href = " href=\"" + imageMapDataHref + "\"";
+   		   	    }
+   		   	    this.imageMapWriter.println("  " + area + href + title + target + ">");
+
+   		   	    // The shapes for the legend and closing the file are handled elsewhere.
+   	   	    }
         }
     }
+
+   	if ( doImageMap && doImageMapData && doImageMapAreaTimeSeries ) {
+		// At least one part of the data area shape should be output:
+		// - create an image map file line for the data rectangle area of the image
+		// - the image size will have been set when the product was set up
+		String imageMapDataHref = ts.formatExtendedLegend(ImageMapDataHref);
+		// Title is formatted dynamically.
+		String title = "";
+		if ( (ImageMapDataTitle != null) && !ImageMapDataTitle.isEmpty() ) {
+			title = " title=\"" + ts.formatExtendedLegend(ImageMapDataTitle) + "\"";
+		}
+		String target = "";
+		if ( (ImageMapDataTarget != null) && !ImageMapDataTarget.isEmpty() ) {
+			target = " target=\"_" + ImageMapDataTarget.toLowerCase() + "\"";
+		}
+		// Add a shape for the heatmap data:
+		// - since a single time series the shape covers the entire graph
+		// - these coordinates are in pixels where image left edge is x=0 and image top is y=0 (y goes down)
+		double xleft = this._da_lefty_graph.scaleXData(_da_lefty_graph.getDataLimits().getLeftX());
+		double xright = this._da_lefty_graph.scaleXData(_da_lefty_graph.getDataLimits().getRightX());
+		double ytop = this._da_lefty_graph.scaleYData(_da_lefty_graph.getDataLimits().getTopY());
+		double ybottom = this._da_lefty_graph.scaleYData(_da_lefty_graph.getDataLimits().getBottomY());
+		String area = "<area shape=\"rect\" coords=\"" + (int)xleft + "," + (int)ytop + "," + (int)xright + "," + (int)ybottom + "\"";
+		String href = "";
+		if ( (ImageMapDataHref != null) && !ImageMapDataHref.isEmpty() ) {
+			href = " href=\"" + imageMapDataHref + "\"";
+		}
+		this.imageMapWriter.println("  " + area + href + title + target + ">");
+   			
+		// The shapes for the legend and closing the file are handled elsewhere.
+	}
 
     // Remove the clip around the graph.  This allows other things to be drawn outside the graph bounds.
     GRDrawingAreaUtil.setClip(this._da_lefty_graph, (Shape)null);
@@ -10497,6 +10914,47 @@ public boolean graphContains ( GRPoint devpt ) {
 }
 
 /**
+ * Close the image map file, if used with a raster graph.
+ */
+private void imageMapClose () {
+    if ( this.doImageMap && (this.imageMapWriter != null) ) {
+    	// Close the image map file if it was opened.
+	    try {
+		    this.imageMapWriter.println("</map>");
+		    this.imageMapWriter.close();
+		    // Set to null so can check elsewhere, although checking 'doImageMap' may be enough.
+		    this.imageMapWriter = null;
+	    }
+	    finally {
+	    }
+    }
+}
+
+/**
+ * Open the image map file, used with a raster graph.
+ * @param imageMapFile the path to the image map file to open
+ * @param imageMapName the 'name' for the image map
+ * @param imageMapUrl the 'src' URL for the image map
+ */
+private void imageMapOpen ( String imageMapFile, String imageMapName, String imageMapUrl ) {
+	String routine = getClass().getSimpleName() + ".imageMapOpen";
+   	try {
+   		FileOutputStream fos = new FileOutputStream ( imageMapFile );
+   		this.imageMapWriter = new PrintWriter ( fos );
+   		this.imageMapWriter.println("<!-- Image map created by TSTool for raster graph -->");
+   		this.imageMapWriter.println("<img src=\"" + imageMapUrl + "\" usemap=\"#" + imageMapName + "\"/>");
+   		this.imageMapWriter.println("<map name=\"" + imageMapName + "\">");
+   	}
+   	catch ( Exception e ) {
+   		// Problem writing the file:
+   		// - write to the log file and continue.
+   		Message.printWarning( 3, routine, "Error opening the image map file \"" + imageMapFile + "\" (" + e + ").");
+   		Message.printWarning( 3, routine, e);
+   		doImageMap = false;
+   	}
+}
+
+/**
 Indicate whether units are being ignored on the left axis.
 */
 public boolean ignoreLeftYAxisUnits () {
@@ -10938,6 +11396,8 @@ public void paint ( Graphics g ) {
 			drawDrawingAreas ();
 		}
 		drawErrors ( this._da_error );
+		// Close the image map if used.
+		imageMapClose ();
 	}
 	catch ( Exception e ) {
 		Message.printWarning ( 2, routine, e ); // Put first because sometimes does not output if after.
