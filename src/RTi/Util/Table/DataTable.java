@@ -4540,6 +4540,10 @@ public void setTableRecordValues ( List<TableRecord> tableRecords, HashMap<Strin
                         // TODO SAM 2013-08-26 Should parse the values once rather than each time set to improve error handling and performance.
                         rec.setFieldValue(columnNumbersToSet[icol], Integer.parseInt(columnValueToSet) );
                     }
+                    else if ( columnTypesToSet[icol] == TableField.DATA_TYPE_DATETIME ) {
+                        // TODO SAM 2013-08-26 Should parse the values once rather than each time set to improve error handling and performance.
+                        rec.setFieldValue(columnNumbersToSet[icol], DateTime.parse(columnValueToSet) );
+                    }
                     else if ( columnTypesToSet[icol] == TableField.DATA_TYPE_DOUBLE ) {
                         // TODO SAM 2013-08-26 Should parse the values once rather than each time set to improve error handling and performance.
                         rec.setFieldValue(columnNumbersToSet[icol], Double.parseDouble(columnValueToSet) );
