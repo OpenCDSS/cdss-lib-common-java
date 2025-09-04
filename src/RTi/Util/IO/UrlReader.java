@@ -124,10 +124,16 @@ public class UrlReader {
     			outputStream.close();
             }
             responseCode = urlConnection.getResponseCode();
+            // Get the stream to read based on the code:
+            // - for 1xx, 204, and 304 or no body, both streams may be null
             if ( responseCode < 400 ) {
+            	// Response body is in the input stream:
+            	// - getErrorStream() will be null
             	bis = new BufferedInputStream(urlConnection.getInputStream());
             }
             else {
+            	// Response body is in the error stream:
+            	// - getInputStream() throws an exception
             	bis = new BufferedInputStream(urlConnection.getErrorStream());
             }
             // Output the characters to the local file.
@@ -150,7 +156,7 @@ public class UrlReader {
             }
             catch ( Exception e ) {
             	// Have seen cases where an exception is thrown and the input stream is closed,
-            	// such as with invalid authentication.
+            	// such as with invalid authentication or specific codes.
             	// Handle the exception so that the error code is set in the response.
             }
             if ( responseCode < 400 ) {

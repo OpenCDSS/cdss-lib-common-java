@@ -39,6 +39,7 @@ public class UrlResponse {
 
 	/**
 	 * Return the number of bytes read.
+	 * @return the number of bytes read.
 	 */
 	public int getBytesRead() {
 		return this.bytesRead;
@@ -46,13 +47,16 @@ public class UrlResponse {
 
 	/**
 	 * Return the response content.
+	 * If an error resulted, use getResponseError().
+	 * @return the response content
 	 */
 	public String getResponse() {
 		return this.response;
 	}
 
 	/**
-	 * Return the response code.
+	 * Return the HTTP response code.
+	 * @return the HTTP response code
 	 */
 	public int getResponseCode() {
 		return this.responseCode;
@@ -60,6 +64,8 @@ public class UrlResponse {
 
 	/**
 	 * Return the response content for an error.
+	 * Using getResponse() in this case may return an empty string.
+	 * @return the response content for an error
 	 */
 	public String getResponseError() {
 		return this.responseError;
@@ -67,6 +73,7 @@ public class UrlResponse {
 
 	/**
 	 * Return whether an error occurred, true if the response code is >= 400.
+	 * @return whether an error occurred
 	 */
 	public boolean hadError () {
 		if ( this.responseCode >= 400 ) {
