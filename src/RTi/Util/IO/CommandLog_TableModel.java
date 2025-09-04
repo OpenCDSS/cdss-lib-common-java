@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -51,7 +51,7 @@ public final static int
 	// COL_DATA;
 
 /**
-Constructor.  
+Constructor.
 @param data the data that will be displayed in the table.
 @throws Exception if an invalid data was passed in.
 */
@@ -112,7 +112,7 @@ public String getColumnName(int columnIndex) {
 			return "Recommendation";
 		default:
 			return " ";
-	}	
+	}
 }
 
 /**
@@ -130,12 +130,10 @@ public String[] getColumnToolTips() {
 }
 
 /**
-Returns an array containing the widths (in number of characters) that the 
-fields in the table should be sized to.
+Returns an array containing the widths (in number of characters) that the fields in the table should be sized to.
 @return an integer array containing the widths for each field.
 */
-public int[] getColumnWidths()
-{
+public int[] getColumnWidths() {
 	int[] widths = new int[__COLUMNS];
 	widths[COL_SEVERITY] = 6;
 	widths[COL_TYPE] = 15;
@@ -146,8 +144,7 @@ public int[] getColumnWidths()
 }
 
 /**
-Returns the format that the specified column should be displayed in when
-the table is being displayed in the given table format. 
+Returns the format that the specified column should be displayed in when the table is being displayed in the given table format.
 @param column column for which to return the format.
 @return the format (as used by StringUtil.formatString() in which to display the column.
 */
@@ -178,9 +175,9 @@ public int getRowCount() {
 
 /**
 Returns the data that should be placed in the JTable at the given row and column.
-@param row the row for which to return data.
-@param col the column for which to return data.
-@return the data that should be placed in the JTable at the given row and col.
+@param row the row (0+) for which to return data.
+@param col the column (0+) for which to return data.
+@return the data that should be placed in the JTable at the given row and column.
 */
 public Object getValueAt(int row, int col) {
 	if (_sortOrder != null) {
@@ -212,8 +209,8 @@ public Object getValueAt(int row, int col) {
 }
 
 /**
-Returns whether the cell at the given position is editable or not.  In this
-table model all columns are not editable.
+Returns whether the cell at the given position is editable or not.
+In this table model all columns are not editable.
 @param rowIndex unused
 @param columnIndex the index of the column to check for whether it is editable.
 @return whether the cell at the given position is editable.
@@ -226,7 +223,7 @@ public boolean isCellEditable(int rowIndex, int columnIndex) {
 Sets the value at the specified position to the specified value.
 @param value the value to set the cell to.
 @param row the row of the cell for which to set the value.
-@param col the col of the cell for which to set the value.
+@param col the column of the cell for which to set the value.
 */
 public void setValueAt(Object value, int row, int col) {
 	if (_sortOrder != null) {
@@ -236,11 +233,11 @@ public void setValueAt(Object value, int row, int col) {
 	CommandLogRecord log = (CommandLogRecord)_data.get(row);
 
 	switch (col) {
-		case COL_SEVERITY:	
+		case COL_SEVERITY:
 			// Not editable and currently no way to set...log.setSeverity((CommandStatusType)value);
 			break;
 		case COL_TYPE:
-			// Not editable and currently no way to set
+			// Not editable and currently no way to set.
 			break;
 		case COL_COMMAND:
 			// Not editable and currently no way to set...log.setCommand((Command)value);
@@ -252,7 +249,7 @@ public void setValueAt(Object value, int row, int col) {
 			log.setRecommendation((String)value);
 			break;
 	}
-	
+
 	super.setValueAt(value, row, col);
 }
 
