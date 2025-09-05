@@ -46,6 +46,7 @@ import java.util.Vector;
 
 import javax.swing.JFrame;
 import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
 
 import org.jfree.graphics2d.svg.SVGGraphics2D;
 import org.jfree.graphics2d.svg.SVGUtils;
@@ -1296,7 +1297,7 @@ private List<TSGraph> createTSGraphsFromTSProduct ( TSProduct tsproduct, PropLis
 						Message.printDebug( 2, routine, "Found time series \"" + tsfound.getIdentifierString() +
 							"\" alias=\"" + tsfound.getAlias() + "\" for graph." );
 					}
-				} 
+				}
 			}
 			// Always add a time series, whether a time series that was read or null because not found or disabled.
 			tslist.add ( tsfound );
@@ -2577,14 +2578,6 @@ public void mouseDragged ( MouseEvent event ) {
 		return;
 	}
 
-	/* Java 8.
-	int mods = event.getModifiers();
-	if ( (mods & MouseEvent.BUTTON3_MASK) != 0 ) {
-		// Don't want rubber band box.
-		return;
-	}
-	*/
-
 	int mods = event.getModifiersEx();
 	if ( (mods & InputEvent.BUTTON3_DOWN_MASK) != 0 ) {
 		// Don't want rubber band box.
@@ -2749,10 +2742,12 @@ Otherwise, start a select or zoom.  The event is completed when the mouse is rel
 @param event MouseEvent to handle.
 */
 public void mousePressed ( MouseEvent event ) {
+	String routine = ""; // Just use during development.
 	//event.consume();
 	requestFocus();
 	if ( Message.isDebugOn ) {
-		Message.printDebug ( 1, this._gtype + "TSGraphJComponent.mousePressed",
+		routine = this._gtype + "TSGraphJComponent.mousePressed";
+		Message.printDebug ( 1, routine,
 			"Mouse pressed at device coordinates " + event.getX() + "," + event.getY() );
 	}
 	// Initialize the coordinates.  If the click is outside any graph,
@@ -2771,34 +2766,34 @@ public void mousePressed ( MouseEvent event ) {
 		TS eventTS = tsgraphForPage.getEventLegendTimeSeries(eventPoint);
 		if ( eventTS != null ) {
 			if ( Message.isDebugOn ) {
-				Message.printStatus(2,"","Mouse click - found legend time series " + eventTS.getIdentifierString());
+				Message.printStatus(2,routine,"Mouse click - found legend time series " + eventTS.getIdentifierString());
 			}
 			// Indicate that the time series is selected for the graph, so special treatment occurs during rendering.
 			// The TSGraph instance should be the same whether graph or page because it contains both.
 			boolean isSelected = tsgraphForPage.toggleTimeSeriesSelection ( eventTS );
 			if ( Message.isDebugOn ) {
-				Message.printStatus(2,"","Mouse click - legend time series selected=" + isSelected + " " + eventTS.getIdentifierString());
+				Message.printStatus(2,routine,"Mouse click - legend time series selected=" + isSelected + " " + eventTS.getIdentifierString());
 			}
 			// Indicate to force a repaint so (un)selected time series will draw with proper style.
 			forceRepaint = true;
 		}
 		else {
 			if ( Message.isDebugOn ) {
-				Message.printStatus(2,"","Mouse click - did not find legend time series");
+				Message.printStatus(2,routine,"Mouse click - did not find legend time series");
 			}
 		}
 	}
 	else {
 		if ( Message.isDebugOn ) {
-			Message.printStatus(2, "", "Click was not on any page drawing area" );
+			Message.printStatus(2, routine, "Click was not on any page drawing area" );
 		}
 	}
 	if ( tsgraphForGraph != null ) {
 		// Click was in a graph drawing area.
 		this._mouse_tsgraph1 = tsgraphForGraph;
-		int mods = event.getModifiersEx();
-		if ( (mods & InputEvent.BUTTON3_DOWN_MASK) != 0 ) {
+		if ( SwingUtilities.isRightMouseButton(event) ) {
 			// Each graph provides its own right-click popup menu to edit properties and view analysis details.
+			Message.printStatus(2, routine, "Mouse press right-click detected - starting popup.");
 			JPopupMenu popup_menu = tsgraphForGraph.getJPopupMenu();
 			if ( popup_menu != null ) {
 				// Add to the component.  It will be removed when the menu event is processed.
@@ -2815,6 +2810,7 @@ public void mousePressed ( MouseEvent event ) {
 			(this._interaction_mode == TSGraphInteractionType.ZOOM) ) {
 			// Save the point that was selected so that the drag and released events will work.
 			// Also save the initial graph so that we can make sure not to drag outside a valid graph.
+			Message.printStatus(2, routine, "Mouse (not right) press detected - starting select or zoom.");
 			this._mouse_x1 = event.getX();
 			this._mouse_y1 = event.getY();
 		}
@@ -2834,6 +2830,7 @@ Only return a region if the mouse has moved at least 5 pixels in one direction.
 */
 public void mouseReleased ( MouseEvent event ) {
 	//event.consume();
+	String routine = ""; // For development and then comment messages.
 
 	// Figure out which graph the event occurred in.
 
@@ -2864,13 +2861,14 @@ public void mouseReleased ( MouseEvent event ) {
 		// Currently do not allow zoom, etc.
 		return;
 	}
-	int mods = event.getModifiersEx();
-	if ( (mods & InputEvent.BUTTON3_DOWN_MASK) != 0 ) {
+	if ( SwingUtilities.isRightMouseButton(event) ) {
 		// Right click so don't do anything.
+		Message.printStatus(2, routine, "Mouse release right-click detected - starting popup.");
 		return;
 	}
 	if ( (this._interaction_mode == TSGraphInteractionType.SELECT) || (this._interaction_mode == TSGraphInteractionType.ZOOM) ) {
 		// Only process if box is "delta" pixels or bigger.
+		Message.printStatus(2, routine, "Mouse release NOT right-click detected - initiating zoom or select.");
 		int deltax = x - this._mouse_x1;
 		int delta_min = 2;
 		if ( deltax < 0 ) {
@@ -3923,7 +3921,7 @@ throws FileNotFoundException, IOException {
     	this.__paintForSVG = true;
     	paint(g);
     	this.__paintForSVG = false;
-    	
+
     	// Write the graphics to the file.
     	SVGUtils.writeToSVG(new File(path), ((SVGGraphics2D)g).getSVGElement());
     }
