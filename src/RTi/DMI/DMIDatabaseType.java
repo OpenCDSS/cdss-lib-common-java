@@ -115,7 +115,7 @@ public enum DMIDatabaseType {
 	*/
 	@Override
 	public String toString() {
-    	return displayName;
+    	return this.displayName;
 	}
 
 	/**
@@ -123,16 +123,17 @@ public enum DMIDatabaseType {
 	@return the enumeration value given a string name (case-independent), or null if not matched.
 	*/
 	public static DMIDatabaseType valueOfIgnoreCase(String name) {
-	   if ( name == null ) {
+	   if ( (name == null) || name.isEmpty() ) {
         	return null;
     	}
-    	DMIDatabaseType [] values = values();
-    	// Currently supported values.
-    	for ( DMIDatabaseType t : values ) {
-        	if ( name.equalsIgnoreCase(t.toString()) ) {
+
+    	// Check built-in array of values.
+    	for ( DMIDatabaseType t : values() ) {
+        	if ( name.equalsIgnoreCase(t.displayName) ) {
             	return t;
         	}
-    	} 
+    	}
+
     	// Special cases for backward compatibility.
        	if ( name.equalsIgnoreCase("SQL_Server") ) {
        		return SQLSERVER;

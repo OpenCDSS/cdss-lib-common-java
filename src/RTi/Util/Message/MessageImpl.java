@@ -399,6 +399,7 @@ throws IOException {
 	catch( IOException e ){
 		message = "Unable to open log file \"" + logfile + "\"";
 		Message.printWarning ( 2, routine, message );
+		Message.printWarning ( 2, routine, e );
 		if ( Message.isDebugOn ) {
 			// Need to get the stack trace because without the log it will be difficult to troubleshoot other issues.
 			e.printStackTrace ( _out_stream[Message.TERM_OUTPUT] );
