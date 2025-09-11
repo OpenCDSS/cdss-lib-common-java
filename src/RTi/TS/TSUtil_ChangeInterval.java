@@ -975,7 +975,12 @@ public TSUtil_ChangeInterval ( TS oldTS, TimeInterval newInterval,
                     }
                     if ( okToCompute ) {
                         // Have enough values to compute the sample.
-                        if ( statistic == TSStatisticType.MAX ) {
+                        if ( statistic == TSStatisticType.COUNT ) {
+                        	// Count of all values, missing and non-missing:
+                        	// - for irregular input the count is typically the measurements
+                            statisticValue = statisticSampleSize;
+                        }
+                        else if ( statistic == TSStatisticType.MAX ) {
                             statisticValue = MathUtil.max(statisticSampleSize, statisticSample);
                         }
                         else if ( statistic == TSStatisticType.MIN ) {

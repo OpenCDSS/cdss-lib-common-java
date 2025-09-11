@@ -941,7 +941,12 @@ public boolean matches ( String idGlobRegexp, boolean check_alias, boolean inclu
  	//      In particular the period is used in TSID, [] is used for ensembles, and \ could be in file path
  	//      The following has generally worked for years.
     // Also replace ${ from property notation with \$\{ because these characters have meaning in regular expressions.
-    java_regexp=java_regexp.replace("${", "\\$\\{").replace("}", "\\}");
+    // Replace ( and ) with escaped values since they are used in special constructs.
+    java_regexp=java_regexp
+    	.replace("${", "\\$\\{")
+    	.replace("}", "\\}")
+    	.replace("(",  "\\(")
+    	.replace(")", "\\)");
     if ( check_alias && (__alias != null) && (__alias.length() > 0) && __alias.toUpperCase().matches(java_regexp) ) {
         return true;
     }
@@ -1068,14 +1073,44 @@ public boolean matches ( String location_regexp, String source_regexp, String da
  	//      In particular the period is used in TSID, [] is used for ensembles, and \ could be in file path.
  	//      The following has generally worked for years.
     // Also replace ${ from property notation with \$\{ because these characters have meaning in regular expressions.
-	String location_regexp_Java = StringUtil.replaceString( location_regexp,"*",".*").replace("${", "\\$\\{").replace("}", "\\}").toUpperCase();
-	String source_regexp_Java = StringUtil.replaceString( source_regexp,"*",".*").replace("${", "\\$\\{").replace("}", "\\}").toUpperCase();
-	String data_type_regexp_Java = StringUtil.replaceString( data_type_regexp,"*",".*").replace("${", "\\$\\{").replace("}", "\\}").toUpperCase();
-	String interval_regexp_Java = StringUtil.replaceString( interval_regexp,"*",".*").replace("${", "\\$\\{").replace("}", "\\}").toUpperCase();
-	String scenario_regexp_Java = StringUtil.replaceString( scenario_regexp,"*",".*").replace("${", "\\$\\{").replace("}", "\\}").toUpperCase();
+	String location_regexp_Java = StringUtil.replaceString( location_regexp,"*",".*")
+		.replace("${", "\\$\\{")
+		.replace("}", "\\}")
+		.replace("(",  "\\(")
+		.replace(")", "\\)")
+		.toUpperCase();
+	String source_regexp_Java = StringUtil.replaceString( source_regexp,"*",".*")
+		.replace("${", "\\$\\{")
+		.replace("}", "\\}")
+		.replace("(",  "\\(")
+		.replace(")", "\\)")
+		.toUpperCase();
+	String data_type_regexp_Java = StringUtil.replaceString( data_type_regexp,"*",".*")
+		.replace("${", "\\$\\{")
+		.replace("}", "\\}")
+		.replace("(",  "\\(")
+		.replace(")", "\\)")
+		.toUpperCase();
+	String interval_regexp_Java = StringUtil.replaceString( interval_regexp,"*",".*")
+		.replace("${", "\\$\\{")
+		.replace("}", "\\}")
+		.replace("(",  "\\(")
+		.replace(")", "\\)")
+		.toUpperCase();
+	String scenario_regexp_Java = StringUtil.replaceString( scenario_regexp,"*",".*")
+		.replace("${", "\\$\\{")
+		.replace("}", "\\}")
+		.replace("(",  "\\(")
+		.replace(")", "\\)")
+		.toUpperCase();
 	String sequenceID_regexp_Java = null;
 	if ( sequenceID_regexp != null ) {
-	    sequenceID_regexp_Java = StringUtil.replaceString( sequenceID_regexp,"*",".*").replace("${", "\\$\\{").replace("}", "\\}").toUpperCase();
+	    sequenceID_regexp_Java = StringUtil.replaceString( sequenceID_regexp,"*",".*")
+	    	.replace("${", "\\$\\{")
+	    	.replace("}", "\\}")
+	    	.replace("(",  "\\(")
+	    	.replace(")", "\\)")
+	    	.toUpperCase();
 	}
 	// Compare the 5-part identifier parts first.
 	if ( !__full_location.toUpperCase().matches(location_regexp_Java) ) {

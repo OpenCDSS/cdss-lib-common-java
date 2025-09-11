@@ -1513,18 +1513,27 @@ public String escape(String str) {
  * This should be passed in as the current value corresponding to 'propName',
  * such as from the configuration file or expanded by another method.
  * If no expansion occurs, the value is returned without modification.
- * @return the expanded property, or the original property value if expansion is not required
+ * @return the expanded property, or the original property value if expansion is not required (return null if propValue is null)
  */
 public static String expandDatastoreConfigurationProperty ( PropList props, String propName, String propValue ) {
 	String routine = DMI.class.getSimpleName() + ".expandDatastoreConfigurationProperty";
-	// Get properties that are used below.
+	if ( propValue == null ) {
+		return null;
+	}
+	// Get properties that are used below:
+	// - databaseType is an enumeration based on the 'DatabaseEngine' and cannot be assumed,
+	//   so the specific database must be specified
 	String databaseEngine = props.getValue("DatabaseEngine");
 	DMIDatabaseType databaseType = DMIDatabaseType.valueOfIgnoreCase(databaseEngine);
+	if ( databaseType == null ) {
+		Message.printWarning ( 3, routine, "Unable to determine database type from 'DatabaseEngine' \"" + databaseEngine + "\".");
+		return propValue;
+	}
 	String databaseServer = props.getValue("DatabaseServer");
 	String databaseName = props.getValue("DatabaseName");
 	String databasePort = props.getValue("DatabasePort");
 	if ( (databasePort == null) || databasePort.isEmpty() ) {
-		// Database port was not specified in the configuration file so get the default for use below.
+		// Database port was not specified in the configuration file so get the default to use below.
 		databasePort = "" + DMI.getDefaultPort(databaseType);
 	}
 	String systemLogin = props.getValue("SystemLogin");
@@ -1790,9 +1799,12 @@ public long getDatabaseVersion () {
 /**
  * Get the default port to use for a database engine.
  * @param databaseType the database type of interest
- * @return the default database port or -1 if not applicable
+ * @return the default database port or -1 if unknown
  */
 public static int getDefaultPort( DMIDatabaseType databaseType ) {
+	if ( databaseType == null ) {
+		return -1;
+	}
 	switch ( databaseType ) {
 		case ACCESS:
 			// Port not used since a file database.
