@@ -945,7 +945,7 @@ public boolean matches ( String idGlobRegexp, boolean check_alias, boolean inclu
     java_regexp=java_regexp
     	.replace("${", "\\$\\{")
     	.replace("}", "\\}")
-    	.replace("(",  "\\(")
+    	.replace("(", "\\(")
     	.replace(")", "\\)");
     if ( check_alias && (__alias != null) && (__alias.length() > 0) && __alias.toUpperCase().matches(java_regexp) ) {
         return true;
