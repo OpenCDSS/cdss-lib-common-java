@@ -3236,7 +3236,7 @@ private JPanel createSubproductJPanel () {
     _graph_lefty_direction_JComboBox = new SimpleJComboBox( leftYAxisDirectionValues, true);
     _graph_lefty_direction_JComboBox.setToolTipText("Normal means minimum value at bottom and maximum at top; Reverse means maximum value at bottom and minimum at top");
     _graph_lefty_direction_JComboBox.select(leftYAxisDirectionValue);
-    _graph_lefty_direction_JComboBox.setEnabled ( false );
+    //_graph_lefty_direction_JComboBox.setEnabled ( false );
     JGUIUtil.addComponent (yAxisLeftType_JPanel,_graph_lefty_direction_JComboBox,
         1, yAxisLeftType, 2, 1, 0, 0,
         _insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
@@ -3476,7 +3476,7 @@ private JPanel createSubproductJPanel () {
     _graph_righty_direction_JComboBox = new SimpleJComboBox( rightYAxisDirectionValues, true);
     _graph_righty_direction_JComboBox.setToolTipText("Normal means minimum value at bottom and maximum at top; Reverse means maximum value at bottom and minimum at top");
     _graph_righty_direction_JComboBox.select(rightYAxisDirectionValue);
-    _graph_righty_direction_JComboBox.setEnabled ( false );
+    //_graph_righty_direction_JComboBox.setEnabled ( false );
     JGUIUtil.addComponent (yAxisRightType_JPanel,_graph_righty_direction_JComboBox,
         1, yAxisRightType, 2, 1, 0, 0,
         _insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );

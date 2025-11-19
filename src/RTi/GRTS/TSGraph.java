@@ -229,7 +229,7 @@ private boolean __drawLeftyLabels = true;
 
 /**
 Whether right y-axis labels should be drawn or not.
-Labels are only NOT drawn if the graph has no data or time series.
+Labels are only NOT drawn if the graph has no data or time series assigned to the right axis.
 */
 private boolean __drawRightyLabels = true;
 
@@ -1711,7 +1711,7 @@ This is normally only called from doAnalysis(), which is called at construction.
 The maximum values and the current data limits are set to the limits,
 which serve as the initial data limits until zooming occurs.
 The x-axis limits (time) for left and right y-axes must be set to the same so that time will be accurate.
-@param subproduct the subproduct being processed.
+@param subproduct the sub-product being processed.
 @param computeFromMaxPeriod whether to compute data limits from the max dates or not.
 Currently, is only called from doAnalysis() when initializing the graphs at creation.
 The method is also called by reinitializeGraphs() when recreating graphs after property edits,
@@ -2660,9 +2660,10 @@ Compute the x-axis and y-axis labels given the current zoomed data.
 Call this after the data limits have initially been set.
 The label values are computed based on the drawing area size and the axis font to make sure that labels do not overlap.
 This resets _datalim_lefty_graph and _datalim_righty_graph to be nicer bounding limits.
-@param limitsLeftYAxis For data that is being used
+@param limitsLeftYAxis For left Y-axis data that is being used
 (generally the max or current limits - whatever the graph is supposed to display).
 <b>This is time series data so for scatter plots, etc., it does not contain all that is needed.</b>
+@param limitsLeftYAxis For right Y-axis data that is being used
 */
 private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis ) {
     String routine = getClass().getSimpleName() + ".computeLabels";
@@ -2685,9 +2686,11 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 		Message.printDebug ( 1, routine, this._gtype + "Computing left y-axis labels using TS limits: " + limitsLeftYAxis );
 	}
 
-	// Right y-axis.
+	// Right y-axis:
+	// - check for limitsLeftYAxis is a general check for startup (don't use limitsRightYAxis)
 
-	if ( (this._da_righty_graph == null) || (limitsLeftYAxis == null) ) {
+	if ( (this._da_righty_graph == null) || (limitsLeftYAxis == null) ) { // }
+	//if ( (this._da_righty_graph == null) || (limitsRightYAxis == null) ) {
 		// Have not initialized the drawing areas yet or bad graph data.
 		// TODO JTS otherwise exceptions thrown when drawing an empty graph.
 		this._ylabels_righty = new double[1];
@@ -2710,7 +2713,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 
 	boolean log_y_lefty = false;
 	boolean log_xy_scatter = false;
-	propValue = this._tsproduct.getLayeredPropValue(	"LeftYAxisType", this.subproduct, -1, false);
+	propValue = this._tsproduct.getLayeredPropValue("LeftYAxisType", this.subproduct, -1, false);
 	if ((propValue != null) && propValue.equalsIgnoreCase("Log")) {
 		log_y_lefty = true;
 	}
@@ -2730,7 +2733,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 
 	String fontname = this._tsproduct.getLayeredPropValue ( "LeftYAxisLabelFontName", this.subproduct, -1, false );
 	String fontsize = this._tsproduct.getLayeredPropValue ( "LeftYAxisLabelFontSize", this.subproduct, -1, false );
-	String fontstyle = this._tsproduct.getLayeredPropValue (	"LeftYAxisLabelFontStyle", this.subproduct, -1, false );
+	String fontstyle = this._tsproduct.getLayeredPropValue ( "LeftYAxisLabelFontStyle", this.subproduct, -1, false );
 	GRDrawingAreaUtil.setFont ( this._da_lefty_label, fontname, fontstyle, StringUtil.atod(fontsize) );
 	GRLimits label_extents = GRDrawingAreaUtil.getTextExtents( this._da_lefty_label, "astring", GRUnits.DEVICE );
 	height = label_extents.getHeight();
@@ -2981,12 +2984,12 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 	if ( this._drawlim_righty_graph != null ) {
 
 	boolean log_y_righty = false;
-	propValue = this._tsproduct.getLayeredPropValue(	"RightYAxisType", this.subproduct, -1, false);
+	propValue = this._tsproduct.getLayeredPropValue("RightYAxisType", this.subproduct, -1, false);
 	if ((propValue != null) && propValue.equalsIgnoreCase("Log")) {
 		log_y_righty = true;
 	}
 
-	// Now get recompute the limits to be nice.  First do the Y axis.
+	// Now recompute the limits to be nice.  First do the Y axis.
 	// The maximum number of labels is based on the font height and the drawing area height.
 	// However, in most cases, want at least a spacing of 3 times the font height, unless this results in less than 3 labels.
 	// Format a label based on the font for the Y axis.
@@ -3121,7 +3124,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 	if ( this.__leftYAxisGraphType == TSGraphType.DURATION ) {
 		// Limits are 0 to 100.0..
 		String maxstring = StringUtil.formatString(	(double)100.0, "%.0f");
-		label_extents = GRDrawingAreaUtil.getTextExtents( this._da_lefty_label, maxstring, GRUnits.DEVICE );
+		label_extents = GRDrawingAreaUtil.getTextExtents ( this._da_lefty_label, maxstring, GRUnits.DEVICE );
 		width = label_extents.getWidth();
 		minlabels = (int)(this._drawlim_lefty_graph.getWidth()/(width*3.0));
 		if ( minlabels < 3 ) {
@@ -3257,7 +3260,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 		// Labels are based on the this._data_limits.
 		// Need to check precision for units but assume .1 for now.
 		String maxstring = StringUtil.formatString(	this._data_lefty_limits.getMaxX(), "%." + this._xaxis_precision + "f");
-		label_extents = GRDrawingAreaUtil.getTextExtents( this._da_lefty_label, maxstring, GRUnits.DEVICE );
+		label_extents = GRDrawingAreaUtil.getTextExtents ( this._da_lefty_label, maxstring, GRUnits.DEVICE );
 		width = label_extents.getWidth();
 		minlabels = (int)(this._drawlim_lefty_graph.getWidth()/(width*3.0));
 		if ( minlabels < 3 ) {
@@ -3291,7 +3294,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 			}
 			else {
 			    // Use the limits of the time series data.
-				this._xlabels = GRAxis.findNLabels (	limitsLeftYAxis.getMinValue(),limitsLeftYAxis.getMaxValue(),
+				this._xlabels = GRAxis.findNLabels ( limitsLeftYAxis.getMinValue(),limitsLeftYAxis.getMaxValue(),
 					false, minlabels, maxlabels );
 			}
 			if ( this._xlabels != null ) {
@@ -4413,6 +4416,9 @@ private void drawAxesFront ( TSProduct tsproduct,
 	if ( this._is_reference_graph ) {
 		return;
 	}
+	
+	// Used for debugging during development.
+	boolean debug = false;
 
 	// Used throughout.
 
@@ -4442,13 +4448,19 @@ private void drawAxesFront ( TSProduct tsproduct,
 
 	// Left Y Axis labels, and ticks.
 
+	if ( debug ) {
+		Message.printStatus(2, "TSGraph.drawAxesFront", "Left y-axis da limits:" + this._da_lefty_label.getDrawingLimits());
+		Message.printStatus(2, "TSGraph.drawAxesFront", "Left y-axis data limits:" + this._da_lefty_label.getDataLimits());
+		Message.printStatus(2, "TSGraph.drawAxesFront", "Left y-axis this._datalim_lefty_label:" + this._datalim_lefty_label);
+	}
+
 	fontname = tsproduct.getLayeredPropValue ( "LeftYAxisLabelFontName", this.subproduct, -1, false );
 	fontsize = tsproduct.getLayeredPropValue ( "LeftYAxisLabelFontSize", this.subproduct, -1, false );
 	fontstyle = tsproduct.getLayeredPropValue ( "LeftYAxisLabelFontStyle", this.subproduct, -1, false );
 	String yaxisDir = tsproduct.getLayeredPropValue ( "LeftYAxisDirection", this.subproduct, -1, false );
-    boolean yaxisDirReverse = false;
+    boolean yaxisDirLeftReverse = false;
     if ( (yaxisDir != null) && yaxisDir.equalsIgnoreCase("" + GRAxisDirectionType.REVERSE) ) {
-        yaxisDirReverse = true;
+        yaxisDirLeftReverse = true;
     }
 	GRDrawingAreaUtil.setFont ( daLeftYAxisLabel, fontname, fontstyle, StringUtil.atod(fontsize) );
 	GRDrawingAreaUtil.setColor ( daLeftYAxisLabel, GRColor.black );
@@ -4545,9 +4557,12 @@ private void drawAxesFront ( TSProduct tsproduct,
 		datalimLeftYAxisTitle.getCenterX(), datalimLeftYAxisTitle.getCenterY(), 0.0, GRText.CENTER_X|GRText.CENTER_Y, rotationDeg );
 
 	// Right Y Axis labels, and ticks.
-	//Message.printStatus(2, "drawAxesFront", "Right y-axis da limits:" + this._da_righty_label.getDrawingLimits());
-	//Message.printStatus(2, "drawAxesFront", "Right y-axis data limits:" + this._da_righty_label.getDataLimits());
-	//Message.printStatus(2, "drawAxesFront", "Right y-axis this._datalim_righty_label:" + this._datalim_righty_label);
+	if ( debug ) {
+		Message.printStatus(2, "TSGraph.drawAxesFront", "drawRightYAxisLabels=" + drawRightYAxisLabels );
+		Message.printStatus(2, "TSGraph.drawAxesFront", "Right y-axis da limits:" + this._da_righty_label.getDrawingLimits());
+		Message.printStatus(2, "TSGraph.drawAxesFront", "Right y-axis data limits:" + this._da_righty_label.getDataLimits());
+		Message.printStatus(2, "TSGraph.drawAxesFront", "Right y-axis this._datalim_righty_label:" + this._datalim_righty_label);
+	}
 
 	if ( drawRightYAxisLabels ) {
 		boolean rightYAxisLogY = false;
@@ -4652,7 +4667,7 @@ private void drawAxesFront ( TSProduct tsproduct,
 		double tick_height = 0.0; // Height of major tick marks.
 		yt[0] = ylabelsLeftYAxis[0];
 		yt2[0] = ylabelsLeftYAxis[0];
-	    if ( yaxisDirReverse ) {
+	    if ( yaxisDirLeftReverse ) {
 	        yt[0] = ylabelsLeftYAxis[ylabelsLeftYAxis.length - 1];
 	        yt2[0] = yt[0];
 	    }
@@ -4665,7 +4680,7 @@ private void drawAxesFront ( TSProduct tsproduct,
 		}
 		else {
 		    tick_height = datalimLeftYAxisGraph.getHeight()*.02;
-		    if ( yaxisDirReverse ) {
+		    if ( yaxisDirLeftReverse ) {
 		        // Reverse Y axis orientation.
                 yt[1] = yt[0] - tick_height;
                 yt2[1] = yt2[0] - tick_height/2.0;
@@ -12676,7 +12691,7 @@ public void setDrawingLimits ( GRLimits drawlim_page ) {
 		this._da_righty_title.setDataLimits ( this._datalim_righty_title );
 	}
 	if ( (this._da_righty_label != null) && (this._drawlim_righty_label != null) ) {
-		this._da_righty_label.setDrawingLimits (	this._drawlim_righty_label, GRUnits.DEVICE, GRLimits.DEVICE );
+		this._da_righty_label.setDrawingLimits ( this._drawlim_righty_label, GRUnits.DEVICE, GRLimits.DEVICE );
 		this._da_righty_label.setDataLimits ( this._datalim_righty_label );
 		if (log_y_lefty || log_xy_scatter_lefty) {
 			GRDrawingAreaUtil.setAxes(this._da_righty_label, GRAxisScaleType.LINEAR, GRAxisScaleType.LOG);
