@@ -46,8 +46,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 
-import RTi.Util.GUI.JGUIUtil;
-import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 
@@ -554,15 +552,17 @@ public class DictionaryJDialog extends JDialog implements ActionListener, ItemLi
 			this.ignoreItemEvents = false;
 		}
 
-		if ( this.allCheckBox.isSelected() || (checkBoxSelectedCount > 0) ) {
-			// Enable action buttons.
-			this.insertButton.setEnabled(true);
-			this.removeButton.setEnabled(true);
-		}
-		else {
+		if ( this.allowResize ) {
+			if ( this.allCheckBox.isSelected() || (checkBoxSelectedCount > 0) ) {
+				// Enable action buttons.
+				this.insertButton.setEnabled(true);
+				this.removeButton.setEnabled(true);
+			}
+			else {
 			// Disable action buttons.
-			this.insertButton.setEnabled(false);
-			this.removeButton.setEnabled(false);
+				this.insertButton.setEnabled(false);
+				this.removeButton.setEnabled(false);
+			}
 		}
 	}
 
