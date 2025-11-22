@@ -9,6 +9,7 @@ import java.net.CookiePolicy;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 import RTi.Util.String.MultiKeyStringDictionary;
 
@@ -144,12 +145,14 @@ public class UrlReader {
             	while ((numCharsRead = bis.read(byteArray, 0, arraySize)) != -1) {
                 	// Also set the content in memory.
                 	if ( numCharsRead == byteArray.length ) {
-                		content.append(new String(byteArray));
+                		//content.append(new String(byteArray));
+                		content.append(new String(byteArray, StandardCharsets.UTF_8));
                 	}
                 	else {
                 		byte [] byteArray2 = new byte[numCharsRead];
                 		System.arraycopy(byteArray, 0, byteArray2, 0, numCharsRead);
-                		content.append(new String(byteArray2));
+                		//content.append(new String(byteArray2));
+                		content.append(new String(byteArray2, StandardCharsets.UTF_8));
                 	}
                 	bytesRead += numCharsRead;
             	}
