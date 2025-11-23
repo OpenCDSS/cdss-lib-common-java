@@ -36,19 +36,16 @@ import RTi.Util.Time.DateTime;
 // TODO SAM 2016-04-16 This is pretty specific to the needs of TSTool so may move it to the TSTool package
 /**
  * Interface for a plugin datastore, which allows integration of plugins with frameworks.
- * @author sam
- *
  */
 public interface PluginDataStore {
-    
+
 	/**
 	 * Create an input filter panel for the datastore, used to query the time series list.
-	 * The providesTimeSeriesInputFilterPanel() method should be called first to determine whether this
-	 * method is supported.
+	 * The providesTimeSeriesInputFilterPanel() method should be called first to determine whether this method is supported.
 	 * @return an InputFilter_Panel instance, or null if the method is not supported.
 	 */
 	public InputFilter_JPanel createTimeSeriesListInputFilterPanel ();
-	
+
 	/**
 	 * Create a time series list table model given the desired data type, time step (interval), and input filter.
 	 * The datastore performs a suitable query and creates objects to manage in the time series list.
@@ -57,8 +54,9 @@ public interface PluginDataStore {
 	 * @param ifp input filter panel that provides additional filter options
 	 * @return a TableModel containing the defined columns and rows.
 	 */
+	@SuppressWarnings("rawtypes")
 	public JWorksheet_AbstractRowTableModel createTimeSeriesListTableModel(String dataType, String timeStep, InputFilter_JPanel ifp );
-	
+
 	/**
 	 * Return the list of plugin properties, used to facilitate integration of plugin with application.
 	 * There is not a standard list of properties, but the following are useful:
@@ -68,17 +66,28 @@ public interface PluginDataStore {
 	 * </ul>
 	 */
 	public Map<String,Object> getPluginProperties();
-	
+
+	// TODO smalers 2025-11-21 it is a problem to change the interface because many plugins won't have.
+	// For now, dynamically check for the method signature in TSTool using reflection.
+	/**
+	 * Return a list of comments for a time series from the table model.
+	 * The comments will each be added as a command before the TSID command in TSTool.
+	 * @param tableModel the table model from which to extract data
+	 * @param row the displayed table row
+	 * @return the list of comments, or null or empty list
+	 */
+	//@SuppressWarnings("rawtypes")
+	//public List<String> getTimeSeriesCommentsFromTableModel(JWorksheet_AbstractRowTableModel tableModel, int row);
+
 	/**
 	 * Return the list of time series data type strings.
-	 * These strings are specific to the datastore and may be simple like
-	 * "DataType1"
+	 * These strings are specific to the datastore and may be simple like * "DataType1"
 	 * or more complex like "DataStore1 - note for data type".
 	 * @param dataInterval data interval from TimeInterval.getName(TimeInterval.HOUR,0) to filter the list of data types.
 	 * If null, blank, or "*" the interval is not considered when determining the list of data types.
 	 */
 	public List<String> getTimeSeriesDataTypeStrings(String dataInterval);
-	
+
 	/**
 	 * Return the list of time series data interval strings.
 	 * This should result from calls like:  TimeInterval.getName(TimeInterval.HOUR, 0)
@@ -86,34 +95,35 @@ public interface PluginDataStore {
 	 * If null, blank, or "*" the data type is not considered when determining the list of data intervals.
 	 */
 	public List<String> getTimeSeriesDataIntervalStrings(String dataType);
-	
+
 	/**
 	 * Return the identifier for a time series in the table model.
 	 * The TSIdent parts will be uses as TSID commands.
 	 * @param tableModel the table model from which to extract data
 	 * @param row the displayed table row
 	 */
+	@SuppressWarnings("rawtypes")
 	public TSIdent getTimeSeriesIdentifierFromTableModel(JWorksheet_AbstractRowTableModel tableModel, int row);
-	
+
     /**
      * Get the CellRenderer used for displaying the time series in a TableModel.
-     * 
      */
-    public JWorksheet_AbstractExcelCellRenderer getTimeSeriesListCellRenderer(JWorksheet_AbstractRowTableModel tableModel);
-	
+    @SuppressWarnings("rawtypes")
+	public JWorksheet_AbstractExcelCellRenderer getTimeSeriesListCellRenderer(JWorksheet_AbstractRowTableModel tableModel);
+
     /**
      * Indicate whether the plugin provides an input filter panel for the time series list.
      * This is a component that provides interactive query filters for user interfaces.
      * @param return true if an input filter is provided.
      */
     public boolean providesTimeSeriesListInputFilterPanel();
-    
+
     /**
      * Get the TableModel used for displaying the time series.
-     * 
      */
-    public JWorksheet_AbstractRowTableModel getTimeSeriesListTableModel(List<? extends Object> data);
-    
+    @SuppressWarnings("rawtypes")
+	public JWorksheet_AbstractRowTableModel getTimeSeriesListTableModel(List<? extends Object> data);
+
     /**
      * Read a time series given its time series identifier.
      * @return the time series or null if not read
