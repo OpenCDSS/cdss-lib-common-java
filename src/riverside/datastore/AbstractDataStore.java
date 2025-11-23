@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -35,44 +35,42 @@ abstract public class AbstractDataStore implements DataStore
 /**
 The description for the datastore (usually a short sentence).
 */
-private String __description = "";
+private String description = "";
 
 /**
 The name for the datastore (usually a single string without spaces, suitable for unique identification).
 */
-private String __name = "";
+private String name = "";
 
 /**
 Property list for data properties read from configuration file.
 */
-private PropList __props = new PropList("");
+private PropList props = new PropList("");
 
 /**
 Status of the datastore (0=Ok, 1=Error).
 */
-private int __status = 0;
+private int status = 0;
 
 /**
 Message corresponding to the status (e.g., error message).
 */
-private String __statusMessage = "";
+private String statusMessage = "";
     
 /**
 Return the description for the datastore.
 @return the description for the datastore.
 */
-public String getDescription()
-{
-    return __description;
+public String getDescription() {
+    return this.description;
 }
 
 /**
 Return the name for the datastore.
 @return the name for the datastore.
 */
-public String getName()
-{
-    return __name;
+public String getName() {
+    return this.name;
 }
 
 /**
@@ -81,9 +79,8 @@ The datastore property list is returned, not a copy.
 @return the string property list for the datastore configuration, guaranteed to be non-null.
 @param propertyName name of the property
 */
-public PropList getProperties ()
-{
-    return __props;
+public PropList getProperties () {
+    return this.props;
 }
 
 /**
@@ -91,73 +88,64 @@ Return the string value for a datastore configuration property.
 @return the string value for a datastore configuration property, or null if not matched.
 @param propertyName name of the property
 */
-public String getProperty ( String propertyName )
-{
-    return __props.getValue(propertyName);
+public String getProperty ( String propertyName ) {
+    return this.props.getValue(propertyName);
 }
 
 /**
 Return the status for the datastore.
 @return the status for the datastore.
 */
-public int getStatus()
-{
-    return __status;
+public int getStatus() {
+    return this.status;
 }
 
 /**
 Return the status message for the datastore.
 @return the status message for the datastore.
 */
-public String getStatusMessage()
-{
-    return __statusMessage;
+public String getStatusMessage() {
+    return this.statusMessage;
 }
-
 
 /**
 Set the identifier for the datastore.
 @param description the identifier for the datastore.
 */
-public void setDescription ( String description )
-{
-    __description = description;
+public void setDescription ( String description ) {
+    this.description = description;
 }
 
 /**
 Set the name for the datastore.
 @param name the name for the datastore.
 */
-public void setName ( String name )
-{
-    __name = name;
+public void setName ( String name ) {
+    this.name = name;
 }
 
 /**
 Set the list of properties for the datastore.
 @param props the list of properties for the datastore
 */
-public void setProperties ( PropList props )
-{
-    __props = props;
+public void setProperties ( PropList props ) {
+    this.props = props;
 }
 
 /**
 Set the status for the datastore.
 @param status the status for the datastore.
 */
-public void setStatus ( int status )
-{
-    __status = status;
+public void setStatus ( int status ) {
+    this.status = status;
 }
 
 /**
 Set the status message for the datastore, for example when the status indicates an error.
 @param statusMessage the status message for the datastore.
 */
-public void setStatusMessage ( String statusMessage )
-{
-    __statusMessage = statusMessage;
+public void setStatusMessage ( String statusMessage ) {
+    this.statusMessage = statusMessage;
 }
 
 }

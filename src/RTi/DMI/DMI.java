@@ -2278,7 +2278,7 @@ throws SQLException, Exception {
             // http://msdn.microsoft.com/en-us/library/ms378428%28SQL.90%29.aspx
             connUrl = "jdbc:sqlserver://" + __database_server;
 		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
-			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties, propertyMap);
 		    }
             // If connecting to a named instance, DO NOT USE PORT.
             // It is generally recommended to use the port for speed.

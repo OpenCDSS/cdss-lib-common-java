@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2024 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,11 +32,11 @@ abstract public class AbstractWebServiceDataStore extends AbstractDataStore impl
 {
 
 /**
-The root web service URI, to which more specific resource addresses will be appended (e.g.,
-"https://data.rcc-acis.org" or "https://some.server/api/vi/".
+The root web service URI, to which more specific resource addresses will be appended
+(e.g., "https://data.rcc-acis.org" or "https://some.server/api/vi/").
 The trailing / is optional and should be handled in any case by datastore code.
 */
-private URI __serviceRootURI = null;
+private URI serviceRootURI = null;
 
 /**
 Return the service root URI for the data store.
@@ -44,7 +44,7 @@ Calling code should handle whether the returned value ends with / or not.
 @return the service root URI for the data store.
 */
 public URI getServiceRootURI() {
-    return __serviceRootURI;
+    return this.serviceRootURI;
 }
 
 /**
@@ -52,7 +52,7 @@ Set the service root URI for the data store.
 @param serviceRootURI the service root URI for the data store.
 */
 public void setServiceRootURI ( URI serviceRootURI ) {
-    __serviceRootURI = serviceRootURI;
+    this.serviceRootURI = serviceRootURI;
 }
 
 }
