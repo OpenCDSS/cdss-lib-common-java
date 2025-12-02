@@ -988,6 +988,7 @@ Wild-cards are allowed in the identifier.
 comparison.  If false, only the 5-part TSID are checked.
 @deprecated Use the overloaded method that takes an option for the alias.
 */
+@Deprecated
 public boolean matches ( String id_regexp, boolean include_input ) {
 	try {
         TSIdent tsident = new TSIdent ( id_regexp );

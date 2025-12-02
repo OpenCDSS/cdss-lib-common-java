@@ -402,6 +402,7 @@ public void actionPerformed ( ActionEvent event ) {
 /**
 @deprecated use the other method that takes a proplist
 */
+@Deprecated
 public void addTSProductAnnotationProvider(TSProductAnnotationProvider provider) {
 	__tsProductAnnotationProviders.add(provider);
 	if (_tsproduct != null) {
@@ -919,6 +920,7 @@ Set a property, which will be available to all the view components.
 @param value Property value string.
 @deprecated Set the property in the TSProduct.
 */
+@Deprecated
 public void setPropValue ( String key, String value ) {
 	_props.set ( key, value );
 }

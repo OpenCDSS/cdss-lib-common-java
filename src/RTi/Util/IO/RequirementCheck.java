@@ -4,19 +4,19 @@
 
 CDSS Time Series Processor Java Library
 CDSS Time Series Processor Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2021 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Time Series Processor Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Time Series Processor Java Library is distributed in the hope that it will be useful,
+CDSS Time Series Processor Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Time Series Processor Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -27,44 +27,43 @@ package RTi.Util.IO;
  * This class holds input and output from requirements checks.
  * For example, this is used with TSTool #@require and #@enabledif comment annotations.
  * See also the RequirementCheckList class, which manages a list of multiple checks.
- * @author sam
  * @see RequirementCheckList
  *
  */
 public class RequirementCheck {
-	
+
 	/**
 	 * The original requirement string, for example an annotation in TSTool.
 	 */
 	private String requirementText = "";
-	
+
 	/**
 	 * Whether the requirement is met.
 	 * Default is false until check occurs and passes.
 	 */
 	private boolean isRequirementMet = false;
-	
+
 	/**
 	 * The reason a requirement failed.
 	 */
 	private String failReason = "";
-	
+
 	/**
 	 * Whether processing should exit if the requirement is not met.
 	 */
 	private boolean shouldExitIfRequirementNotMet = false;
-	
+
 	/**
 	 * Name of the object that performed the check, useful for troubleshooting when multiple checkers are involved
 	 * for application, datastore, etc.
 	 */
 	private String checkerName = "Unknown";
-	
+
 	/**
 	 * Annotation "@require" or "@enabledif" associated with the check, first part of 'requirementText'.
 	 */
 	private String annotation = "@??????";
-	
+
 	/**
 	 * Constructor.
 	 * @param requirementText the full requirement starting with "@"
@@ -138,6 +137,7 @@ public class RequirementCheck {
 	 * @param requirementIsMet whether or not the requirement is met
 	 * @deprecated use the version with checkerName
 	 */
+	@Deprecated
 	public void setIsRequirementMet ( boolean isRequirementMet ) {
 		this.setIsRequirementMet ( isRequirementMet, "" );
 	}
@@ -157,6 +157,7 @@ public class RequirementCheck {
 	 * @param failReason the reason the requirement was not met, not required if requirement was met
 	 * @deprecated use the version with checkerName
 	 */
+	@Deprecated
 	public void setIsRequirementMet ( boolean isRequirementMet, String failReason ) {
 		this.isRequirementMet = isRequirementMet;
 		this.failReason = failReason;
@@ -188,7 +189,7 @@ public class RequirementCheck {
     public boolean shouldExitIfRequirementNotMet() {
     	return this.shouldExitIfRequirementNotMet;
     }
-    
+
     /**
      * Return a formatted version of the requirement check, suitable for command status.
      */
@@ -200,5 +201,5 @@ public class RequirementCheck {
     		return this.checkerName + ": " + this.annotation + " condition is NOT met\nReason: " + this.failReason;
     	}
     }
-	
+
 }

@@ -4,32 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// XMRGViewerJFrame - a JFrame for displaying XMRG files.
-// ----------------------------------------------------------------------------
-// Copyright:   See the COPYRIGHT file
-// ----------------------------------------------------------------------------
-// History:
-// 2004-10-14	J. Thomas Sapienza, RTi	Initial version.
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
 
 package RTi.GIS.GeoView;
 
@@ -51,7 +41,7 @@ A JFrame that contains a panel that can be used to display XMRG file contents.
 */
 @SuppressWarnings("serial")
 public class XMRGViewerJFrame
-extends JFrame 
+extends JFrame
 implements ActionListener {
 
 /**
@@ -81,15 +71,15 @@ private XMRGViewerJPanel __xmrgPanel = null;
 Constructor.
 */
 public XMRGViewerJFrame() {
-	super(JGUIUtil.getAppNameForWindows() 
-		+ " - XMRG File Viewer - [No file opened]");
-	
+	super(JGUIUtil.getAppNameForWindows() + " - XMRG File Viewer - [No file opened]");
+
 	setupGUI();
 }
 
 /**
 @deprecated use XMRGViewJFrame(String, boolean).
 */
+@Deprecated
 public XMRGViewerJFrame(String xmrgDir) {
 	this(xmrgDir, false);
 }
@@ -100,9 +90,8 @@ Constructor.
 @param xmrgFilename the file to open and display.
 */
 public XMRGViewerJFrame(String xmrgDir, String xmrgFilename) {
-	super(JGUIUtil.getAppNameForWindows() 
-		+ " - XMRG File Viewer - [No file opened]");
-	
+	super(JGUIUtil.getAppNameForWindows() + " - XMRG File Viewer - [No file opened]");
+
 	__xmrgDir = xmrgDir;
 	JGUIUtil.setLastFileDialogDirectory(__xmrgDir);
 	__xmrgFilename = xmrgFilename;
@@ -114,14 +103,11 @@ public XMRGViewerJFrame(String xmrgDir, String xmrgFilename) {
 /**
 Constructor.
 @param xmrgStr if the 'dir' param is true, this is the directory in which
-to browse for XMRG files.  If 'dir' is false, this is the file to open and 
-display.
-@param dir whether the first parameter is a directory (true) or a filename 
-(false).
+to browse for XMRG files.  If 'dir' is false, this is the file to open and display.
+@param dir whether the first parameter is a directory (true) or a filename (false).
 */
 public XMRGViewerJFrame(String xmrgStr, boolean dir) {
-	super(JGUIUtil.getAppNameForWindows() 
-		+ " - XMRG File Viewer - [No file opened]");
+	super(JGUIUtil.getAppNameForWindows() + " - XMRG File Viewer - [No file opened]");
 
 	if (dir) {
 		__xmrgDir = xmrgStr;
@@ -155,22 +141,20 @@ Opens an XMRG file and displays its contents.
 */
 private void openFile() {
 	JGUIUtil.setWaitCursor(this, true);
-	String lastDirectorySelected = 
-		JGUIUtil.getLastFileDialogDirectory();
-	
-	JFileChooser fc = JFileChooserFactory.createJFileChooser(
-		lastDirectorySelected);
+	String lastDirectorySelected = JGUIUtil.getLastFileDialogDirectory();
+
+	JFileChooser fc = JFileChooserFactory.createJFileChooser( lastDirectorySelected);
 
 	fc.setDialogTitle("Create Data Dictionary");
 	fc.setAcceptAllFileFilterUsed(true);
-	fc.setDialogType(JFileChooser.OPEN_DIALOG);	
+	fc.setDialogType(JFileChooser.OPEN_DIALOG);
 
 	JGUIUtil.setWaitCursor(this, false);
 	int retVal = fc.showOpenDialog(this);
 	if (retVal != JFileChooser.APPROVE_OPTION) {
 		return;
 	}
-	
+
 	String currDir = (fc.getCurrentDirectory()).toString();
 
 	if (!currDir.equalsIgnoreCase(lastDirectorySelected)) {
@@ -182,8 +166,7 @@ private void openFile() {
 
 	__xmrgPanel.openFile(path);
 
-	setTitle(JGUIUtil.getAppNameForWindows() 
-		+ " - XMRG File Viewer - [" + path + "]");
+	setTitle(JGUIUtil.getAppNameForWindows() + " - XMRG File Viewer - [" + path + "]");
 
 	JGUIUtil.setWaitCursor(this, false);
 }
@@ -195,9 +178,9 @@ private void setupGUI() {
 	if (JGUIUtil.getIconImage() != null) {
 		JGUIUtil.setIcon(this, JGUIUtil.getIconImage());
 	}
-	
+
 	JGUIUtil.setSystemLookAndFeel(true);
-	
+
 	JMenuBar menuBar = new JMenuBar();
 	JMenu fileMenu = new JMenu(__MENU_FILE);
 	JMenuItem mi = new JMenuItem(__MENU_FILE_OPEN);

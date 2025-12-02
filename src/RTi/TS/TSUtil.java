@@ -1682,6 +1682,7 @@ Copy one time series header to another.  This simply calls the TS.copyHeader() m
 @see TS#copyHeader
 @deprecated Use TS.copyHeader.
 */
+@Deprecated
 public static void copyHeader ( TS ts1, TS ts2 ) {
 	ts1.copyHeader ( ts2 );
 }
@@ -3477,6 +3478,7 @@ Fill missing data in the time series with a constant value.
 @deprecated Use the version that takes a PropList.
 @exception if there is an error performing the fill.
 */
+@Deprecated
 public static void fillConstant ( TS ts, double value )
 throws Exception {
 	String routine = TSUtil.class.getSimpleName() + ".fillConstant";
@@ -3500,6 +3502,7 @@ Fill missing data in the time series with a constant value.
 @deprecated Use the version that takes a PropList.
 @exception if there is an error performing the fill.
 */
+@Deprecated
 public static void fillConstant ( TS ts, DateTime start_date, DateTime end_date, double value )
 throws Exception {
 	fillConstant ( ts, ts.getDate1(), ts.getDate2(), value, null );
@@ -4331,6 +4334,7 @@ For example, values[0] is used for any date in January.
 @param values Data values to fill time series (the first value is for January, the last is for December).
 @deprecated Use TSUtil.fillConstant or TSUtil.setConstant.
 */
+@Deprecated
 public static void fillMonthly( TS ts, double values[] ) {
 	String routine = TSUtil.class.getSimpleName() + ".fillMonthly";
 
@@ -4353,6 +4357,7 @@ For example, values[0] is used for any date in January.
 @param values Data values to fill time series (the first value is for January, the last is for December).
 @deprecated Use TSUtil.fillConstant or TSUtil.setConstant.
 */
+@Deprecated
 public static void fillMonthly(	TS ts, DateTime start_date, DateTime end_date, double values[] ) {
 	// Get valid dates because the ones passed in may have been null.
 
@@ -4735,6 +4740,7 @@ See the overloaded method for possible values.
 @exception RTi.TS.Exception if there is a problem filling data.
 @deprecated Use the PropList version of this method.
 */
+@Deprecated
 public static void fillProrate(	TS ts, TS independent_ts, DateTime start_date, DateTime end_date,
 				int direction, double initial_value )
 throws Exception {

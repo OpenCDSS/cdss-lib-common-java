@@ -206,6 +206,7 @@ percentage of data available is always computed).
 @exception TSException if there is an error analyzing the time series.
 @deprecated Use createStatisticMonthTS.
 */
+@Deprecated
 public static MonthTS createStatisticsMonthTS ( TS ts, PropList props )
 throws TSException
 {	// Call the overloaded version...
@@ -382,6 +383,7 @@ percentage of data available is always computed).
 @deprecated Use createStatisticMonthTS
 @exception TSException if there is an error analyzing the time series.
 */
+@Deprecated
 public static MonthTS createStatisticsMonthTS ( TS ts, DateTime start_date, DateTime end_date, PropList props )
 throws TSException
 {	TSAnalyst tsa = new TSAnalyst();
@@ -427,6 +429,7 @@ If null, the entire period will be analyzed.
 @exception Exception if there is an error analyzing the time series.
 @deprecated use the TSUtil_NewStatisticTimeSeries and TSUtil_NewStatisticTimeSeriesFromEnsemble classes.
 */
+@Deprecated
 public TS createStatisticTimeSeries ( Object tsobject,
 					DateTime AnalysisStart_DateTime,
 					DateTime AnalysisEnd_DateTime,
@@ -556,6 +559,7 @@ February 29 data to be computed as a statistic, although it may not be used in t
 @return The statistics in a single-year time series.
 @deprecated use the TSUtil_NewStatisticTimeSeries class.
 */
+@Deprecated
 private TS createStatisticTimeSeries_ComputeStatistic ( TS ts, DateTime analysis_start, DateTime analysis_end,
     TSStatisticType statisticType )
 throws Exception
@@ -670,6 +674,7 @@ series having the interval of the input data.
 @return The statistics in a single-year time series.
 @deprecated use the TSUtil_NewTimeSeriesFromEnsemble class.
 */
+@Deprecated
 private TS createStatisticTimeSeries_ComputeStatisticFromEnsemble ( TSEnsemble tsensemble, TS stat_ts,
         DateTime analysis_start, DateTime analysis_end, TSStatisticType statisticType )
 {   // Initialize statistic integer to speed processing
@@ -749,6 +754,7 @@ Fill the output repeating time series with the statistic values.
 @param output_end Output period end.
 @deprecated use the TSUtil_NewStatisticTimeSeries class.
 */
+@Deprecated
 private void createStatisticTimeSeries_FillOuput ( TS stat_ts, TS output_ts, DateTime output_start,
     DateTime output_end )
 throws Exception
@@ -792,6 +798,7 @@ If null, the entire period will be analyzed.
 @deprecated use the TSUtil_NewStatisticYearTS class.
 @exception TSException if there is an error analyzing the time series.
 */
+@Deprecated
 public YearTS createStatisticYearTS ( TS ts,
                     DateTime AnalysisStart_DateTime,
                     DateTime AnalysisEnd_DateTime,
@@ -852,6 +859,7 @@ when no data are found.
 @deprecated use the TSUtil_NewStatisticYearTS class.
 @exception TSException if there is an error analyzing the time series.
 */
+@Deprecated
 public YearTS createStatisticYearTS (	TS ts,
 					DateTime AnalysisStart_DateTime,
 					DateTime AnalysisEnd_DateTime,
@@ -1326,6 +1334,7 @@ the year for data, for example to specify a season.
 Currently only Month... to precision are evaluated (not day... etc.).
 @deprecated use the TSUtil_newStatisticYearTS class.
 */
+@Deprecated
 private void processStatistic (	TS ts, YearTS yearts,
 				PropList props,
 				DateTime start, DateTime end,

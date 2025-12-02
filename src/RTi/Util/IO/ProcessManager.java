@@ -459,9 +459,9 @@ its exit status does not seem to be getting passed back through the operating sy
 Currently, only one token can be specified and spaces are used as a delimiter to evaluate the output.
 @deprecated use the version that specifies the exitStatusIndicator as a string.
 */
+@Deprecated
 public ProcessManager ( String [] command_array, int timeout_milliseconds, PropList props ) {
-    this ( command_array, timeout_milliseconds, props == null ? (String)null : props.getValue( "ExitStatusTokens" ),
-        true, (File)null );
+    this ( command_array, timeout_milliseconds, props == null ? (String)null : props.getValue( "ExitStatusTokens" ), true, (File)null );
 }
 
 /**
