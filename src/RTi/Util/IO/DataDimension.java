@@ -135,6 +135,7 @@ Lookup a DataDimension given the dimension string abbreviation.
 @exception Exception If the data dimension cannot be determined from the string.
 @deprecated Use lookupDimension
 */
+@Deprecated
 public static DataDimension lookup ( String dimension_string )
 throws Exception {
 	return lookupDimension ( dimension_string );

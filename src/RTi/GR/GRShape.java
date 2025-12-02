@@ -239,6 +239,7 @@ Return the attribute lookup index.
 @deprecated Use the public data directly to increase performance.
 @return The attribute lookup index.  Use the public data directly to increase performance.
 */
+@Deprecated
 public long getIndex () {
 	return index;
 }

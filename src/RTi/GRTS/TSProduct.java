@@ -4002,6 +4002,7 @@ For every property in the TSProduct, changes its setHowSet value to the specifie
 TODO (2005-11-01) change name to 'changeAllPropsHowSet'
 @deprecated
 */
+@Deprecated
 public void setPropsHowSet(int how) {
 	int size = this.__proplist.size();
 	for (int i = 0; i < size; i++) {

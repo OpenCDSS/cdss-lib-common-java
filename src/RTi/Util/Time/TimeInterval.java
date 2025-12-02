@@ -239,6 +239,7 @@ Note that the string is upper-case.  Call the version with the format if other f
 @param interval Time series interval to look up).
 @deprecated the version that specifies format should be used.
 */
+@Deprecated
 public static String getName ( int interval ) {
 	return getName ( interval, 1 ); // Historical default.
 }

@@ -466,6 +466,7 @@ public enum TSStatisticType {
      * Rank (depends on sort order imposed by other code).
      * @deprecated confusing because sort order is not tied to statistic.  Use RANK_ASCENDING or RANK_DESCENDING.
      */
+    @Deprecated
     RANK ( "Rank", "Rank", "Rank (depends on sort order imposed by other code)." ),
 
     /**

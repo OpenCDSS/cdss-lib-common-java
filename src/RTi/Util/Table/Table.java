@@ -4,42 +4,22 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
-
-// ----------------------------------------------------------------------------
-// DataTable - coordinating class for the Table utility
-// ----------------------------------------------------------------------------
-// Copyright:	See the COPYRIGHT file.
-// ----------------------------------------------------------------------------
-// History:
-//
-// 23 Jun 1999	Catherine E.
-//		Nutting-Lane, RTi	Initial version
-// 2001-09-17	Steven A. Malers, RTi	Change the name of the class from Table
-//					to DataTable to avoid conflict with the
-//					C++ Table class.  Review code but don't
-//					do much cleanup since the new DataTable
-//					class should now be getting used.  Do
-//					change to not use deprecated methods in
-//					other table related classes.
-// 2005-04-26	J. Thomas Sapienza, RTi	Added finalize().
-// 2007-05-08	SAM, RTi		Cleanup code based on Eclipse feedback.
-// ----------------------------------------------------------------------------
 
 package RTi.Util.Table;
 
@@ -56,22 +36,19 @@ import RTi.Util.String.StringUtil;
 
 
 /**
-This class manages the table group functionality. 
+This class manages the table group functionality.
 Tables can be used to store record-based data.
 An example of its is as follows:
 <p>
 
 <pre>
 try {
-	// first, create table definition by assembling vector of 
+	// first, create table definition by assembling vector of
 	// TableField objects
 	Vector myTableFields = new Vector(3);
-	TableField firstTableField = new TableField ( 
-		TableField.DATA_TYPE_STRING, "id_label_6" );
-	TableField secondTableField = new TableField ( 
-		TableField.DATA_TYPE_INT, "labelLength" );
-	TableField thirdTableField = new TableField ( 
-		TableField.DATA_TYPE_STRING, "aka" );
+	TableField firstTableField = new TableField ( TableField.DATA_TYPE_STRING, "id_label_6" );
+	TableField secondTableField = new TableField ( TableField.DATA_TYPE_INT, "labelLength" );
+	TableField thirdTableField = new TableField ( TableField.DATA_TYPE_STRING, "aka" );
 	myTableFields.addElement ( firstTableField );
 	myTableFields.addElement ( secondTableField );
 	myTableFields.addElement ( thirdTableField );
@@ -97,6 +74,7 @@ try {
 @see RTi.Util.Table.TableRecord
 @deprecated Use DataTable.
 */
+@Deprecated
 public class Table {
 
 private List<TableField> _table_fields;	// List of data types - DATA_TYPE_*.
@@ -128,9 +106,7 @@ throws Exception {
 		_table_records.add ( new_record );
 	}
 	else {
-		throw new Exception ( "Number of records in the new record (" +
-		num_new_record_fields + ") does not match current " +
-		"description of the table fields." );
+		throw new Exception ( "Number of records in the new record (" + num_new_record_fields + ") does not match current description of the table fields." );
 	}
 }
 
@@ -154,10 +130,10 @@ public void addField ( TableField tableField ) {
 		}
 		else if ( data_type == TableField.DATA_TYPE_INT ) {
 			tableRecord.addFieldValue( Integer.valueOf ( 0 ));
-		}	
+		}
 		else if ( data_type == TableField.DATA_TYPE_DOUBLE ) {
 			tableRecord.addFieldValue( Double.valueOf ( 0 ));
-		}	
+		}
 		else if ( data_type == TableField.DATA_TYPE_SHORT ) {
 			tableRecord.addFieldValue( Short.valueOf ( "0" ));
 		}
@@ -234,20 +210,15 @@ throws Exception {
 	int num_fields = _table_fields.size();
 
 	if ( num_recs <= record_index ) {
-		throw new Exception ( "Requested record index " + record_index +
-		" is not available (only " + num_recs + 
-		" have been established." );
+		throw new Exception ( "Requested record index " + record_index + " is not available (only " + num_recs + " have been established." );
 	}
 
 	if ( num_fields <= field_index ) {
-		throw new Exception ( "Requested field index " + field_index +
-		" is not available (only " + num_fields +
-		" have been established." );
+		throw new Exception ( "Requested field index " + field_index + " is not available (only " + num_fields + " have been established." );
 	}
 
 	/* break this up ...
-	return (((TableRecord)_table_records.elementAt(record_index)).
-		getFieldValue(field_index));
+	return (((TableRecord)_table_records.elementAt(record_index)).getFieldValue(field_index));
 	*/
 	Message.printStatus ( 10, rtn, "Getting table record " + record_index + " from " + num_recs + " available records." );
 	TableRecord tableRecord = (TableRecord)_table_records.get(record_index);
@@ -328,17 +299,17 @@ throws Exception {
 }
 
 /**
-Given a clear definition of what data to expect, reads and stores data in table
-@return new table containing data 
+Given a clear definition of what data to expect, reads and stores data in table.
+@return new table containing data
 @param filename name of file containing delimited data
-@param delimiter string representing delimiter in data file 
+@param delimiter string representing delimiter in data file
 @param tableFields vector of TableField objects defining data expectations
 @param num_lines_header number of lines in header (typically 1)
 */
 public static Table parseDelimitedFile ( String filename, String delimiter,
 	List<TableField> tableFields, int num_lines_header )
 throws Exception {
-	String rtn = "Table.parseDelimitedFile";	
+	String rtn = "Table.parseDelimitedFile";
 	String iline;
 	boolean processed_header = false;
 	List<String> columns;
@@ -354,29 +325,27 @@ throws Exception {
 
 	while (( iline = in.readLine ()) != null ) {
 
-		// check if read comment or empty line
+		// Check if read comment or empty line.
 		if ( iline.startsWith("#") || iline.trim().length()==0) {
 			continue;
 		}
 
 		columns = StringUtil.breakStringList ( iline, delimiter, StringUtil.DELIM_SKIP_BLANKS );
 
-		// line is part of header ... 
+		// Line is part of header.
 		if ( !processed_header ) {
 			num_fields = columns.size();
 			if ( num_fields < tableFields.size() ) {
-				throw new IOException ( 
-				"table fields specifications do not " +
-				"match data found in file." );
+				throw new IOException ( "table fields specifications do not match data found in file." );
 			}
-			
+
 			num_lines_header_read++;
 			if ( num_lines_header_read == num_lines_header ) {
 				processed_header = true;
 			}
 		}
 		else {
-			// line contains data - store in table as record
+			// Line contains data - store in table as record.
 			TableRecord contents = new TableRecord(num_fields);
 			try {
 			for ( int i=0; i<num_fields; i++ ) {
@@ -384,11 +353,9 @@ throws Exception {
 				if ( type == TableField.DATA_TYPE_STRING ) {
 					contents.addFieldValue ( columns.get(i) );
 					/*
-					currentString = 
-						(String)columns.elementAt(i);
-					// strip any double quotes
-					modifiedString = currentString.replace
-						('\"', ' ' );
+					currentString = (String)columns.elementAt(i);
+					// Strip any double quotes.
+					modifiedString = currentString.replace ('\"', ' ' );
 					contents.addField ( modifiedString );
 					*/
 				}
@@ -411,7 +378,7 @@ throws Exception {
 			}
 		}
 	}
-	
+
 	}
 	finally {
 		if ( in != null ) {
@@ -432,12 +399,12 @@ throws Exception {
 }
 
 /**
-Reads header of delimited file and return vector of TableField objects.  The
-heading titles will be correctly returned.  The data type, however, will be set
-to TableField.DATA_TYPE_STRING.  This should be changed if not appropriate.
+Reads header of delimited file and return vector of TableField objects.
+The heading titles will be correctly returned.  The data type, however, will be set to TableField.DATA_TYPE_STRING.
+This should be changed if not appropriate.
 @return vector of TableField objects (heading titles will be correctly set but data type will be string)
 @param filename name of file containing delimited data
-@param delimiter string representing delimiter in data file 
+@param delimiter string representing delimiter in data file
 */
 public static List<TableField> parseDelimitedFileHeader ( String filename, String delimiter )
 throws Exception {
@@ -460,7 +427,7 @@ throws Exception {
 		columns = StringUtil.breakStringList ( iline, delimiter, StringUtil.DELIM_SKIP_BLANKS );
 
 		num_fields = columns.size();
-		tableFields = new Vector<TableField>( num_fields, 1 );
+		tableFields = new Vector<>( num_fields, 1 );
 		for ( int i=0; i<num_fields; i++ ) {
 			newTableField = new TableField ( );
 			newTableField.setName((String)columns.get(i));

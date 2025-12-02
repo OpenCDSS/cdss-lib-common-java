@@ -35,6 +35,7 @@ and should only be used when debugging or in cases where the performance issues 
 For example, put start/stop calls outside of loops, or, if in loops, consider only using if wrapped in Message.isDebugOn() checks.
 @deprecated Use StopWatch class.
 */
+@Deprecated
 public class Timer {
 
 // Data members.
@@ -48,6 +49,7 @@ private Date	_stop_date;		// Stop date for a timer session.
 Constructor and initialize the timer count to zero milliseconds.
 @deprecated Use StopWatch class.
 */
+@Deprecated
 public Timer () {
 	initialize ( 0 );
 }
@@ -58,6 +60,7 @@ Construct given an initial time count
 @param total Total time to initialize timer to, milliseconds.
 @deprecated Use StopWatch class.
 */
+@Deprecated
 public Timer ( long total ) {
 	initialize ( total );
 }

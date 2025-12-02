@@ -27,15 +27,15 @@ import javax.swing.JComboBox;
 
 /**
 SimpleJChoice copies the behavior of the AWT Choice object, using a JComboBox as its underlying class.
-It is designed to make things easier for developers moving between AWT Choices and Swing JComboBoxes.  
+It is designed to make things easier for developers moving between AWT Choices and Swing JComboBoxes.
 The value for the SimpleJChoice's editable setting is always 'false' and cannot be changed.
 If a JComboBox that can be edited is needed, see SimpleJComboBox.<p>
 Notes on use:
 <ol>
 <li>	This class does not support handling multiple items with the same String value very well.
-	
+
 	Suppose a SimpleJChoice has two Strings "XYZ" in the 0th and 10th spots.
-	These strings are not equivalent via '==', but are equivalent with .equals(). 
+	These strings are not equivalent via '==', but are equivalent with .equals().
 	If the user selects the second one, getSelectedIndex() will return 0 (for the first one), instead.<p>
 	It's not intuitive behavior, and it may be a bug in the underlying
 	JComboBox class, but that's how the class will perform.</li>
@@ -46,7 +46,8 @@ Notes on use:
 REVISIT (JTS - 2006-05-23) Remove this class!
 */
 @SuppressWarnings("serial")
-public class SimpleJChoice 
+@Deprecated
+public class SimpleJChoice
 extends JComboBox<String> {
 
 /**
@@ -54,6 +55,7 @@ Constructor.
 The Constructor initializes the SimpleJChoice's editable setting to 'false', and that cannot be changed.
 @deprecated Use SimpleJComboBox.
 */
+@Deprecated
 public SimpleJChoice() {
 	super();
 	setEditable(false);
@@ -68,7 +70,7 @@ public void add(String str) {
 }
 
 /**
-Returns the String location at the given position in the list.  
+Returns the String location at the given position in the list.
 Mimics Choice's getItem(int) method.
 @param location the index in the SimpleJChoice of the String to return
 @return the String at the given location.
@@ -114,7 +116,7 @@ public void remove(int location) {
 }
 
 /**
-Removes the first occurrence of the given String from the SimpleJChoice.  
+Removes the first occurrence of the given String from the SimpleJChoice.
 Mimics Choice's remove(String) method.
 @param str the String to remove from the list.
 */
@@ -156,9 +158,8 @@ Note: The comparison of String str and the Strings in the List is case-sensitive
 @param str the String to make the currently-selected String.
 */
 public void select(String str) {
-	// Cannot simply call setSelectedItem(str) because we need to compare
-	// String contents, not memory locations for objects.  Therefore check
-	// each string in the Choice and select the first one that matches.
+	// Cannot simply call setSelectedItem(str) because we need to compare String contents, not memory locations for objects.
+	// Therefore check each string in the Choice and select the first one that matches.
 	int size = getItemCount();
 	String item;
 	for ( int i = 0; i < size; i++ ) {
@@ -171,13 +172,12 @@ public void select(String str) {
 }
 
 /**
-Overrides JComboBox's setEditable() method.  setEditable is set to false
-in the SimpleJChoice constructor, and is not allowed to be changed.  This 
-setEditable() method is empty, and returns instantly upon being called.
+Overrides JComboBox's setEditable() method.
+setEditable is set to false in the SimpleJChoice constructor, and is not allowed to be changed.
+This setEditable() method is empty, and returns instantly upon being called.
 */
 public void setEditable(boolean b) {
-	// capture and ignore.  Editable is always false, as set 
-	// in the constructor.
+	// Capture and ignore.  Editable is always false, as set in the constructor.
 }
 
 }

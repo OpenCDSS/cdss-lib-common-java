@@ -1933,6 +1933,7 @@ Returns the name of the connection.
 @return the name of the connection.
 @deprecated (2005-04-07)
 */
+@Deprecated
 public String getName() {
 	return __name;
 }
@@ -2749,6 +2750,7 @@ Sets the name of the connection.
 @param name the name of the connection.
 @deprecated (2005-04-07)
 */
+@Deprecated
 public void setName(String name) {
 	__name = name;
 }

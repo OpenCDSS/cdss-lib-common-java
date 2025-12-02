@@ -2238,6 +2238,7 @@ Get the data type for the field.
 @exception If the index is out of range.
 @deprecated use getFieldDataType
 */
+@Deprecated
 public int getTableFieldType ( int index ) {
 	if ( _table_fields.size() <= index ) {
 		throw new ArrayIndexOutOfBoundsException( "Index " + index + " is not valid." );

@@ -41,29 +41,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
-A class to print out a report from a text.  Use by calling one of the
-static printText() methods.  Do not instantiate this class.
+A class to print out a report from a text.  Use by calling one of the static printText() methods.  Do not instantiate this class.
 <p>Note: <br>
-It is commonly thought that there are two orientations in which a page can
-be printed.  Landscape and Portrait.  However, in Java there is a third one:
-ReverseLandscape.  This is the Macintosh's default mode of Landscape printing
-and is different from normal in that the origin starts at the upper-right,
-not the upper-left corner.  The printing code in this class probably won't
-work for Macintosh Landscape.  Not a big deal, perhaps, but it might come
-up in the future.
+It is commonly thought that there are two orientations in which a page can be printed.  Landscape and Portrait.
+However, in Java there is a third one: ReverseLandscape.
+This is the Macintosh's default mode of Landscape printing and is different from normal in that the origin starts at the upper-right,
+not the upper-left corner.  The printing code in this class probably won't work for Macintosh Landscape.
+Not a big deal, perhaps, but it might come up in the future.
 */
-public class ReportPrinter 
+public class ReportPrinter
 implements Printable {
 
 /**
-Whether this printjob is being done in batch mode (no dialog pops up to ask
-the user about the number of copies to print, etc.) or not.
+Whether this printjob is being done in batch mode
+(no dialog pops up to ask the user about the number of copies to print, etc.) or not.
 */
 private boolean __batch = false;
 
 /**
-Whether the font size needed to fit X lines per page has been calculated yet
-or not.
+Whether the font size needed to fit X lines per page has been calculated yet or not.
 */
 private boolean __fontSizeCalculated = false;
 
@@ -73,8 +69,7 @@ Whether to print a test page or not.
 private boolean __printTestPage = false;
 
 /**
-The total vertical space between lines including the height of a line of 
-text and the height of the spacing between each line.
+The total vertical space between lines including the height of a line of text and the height of the spacing between each line.
 */
 private double __slope = 0;
 
@@ -96,7 +91,7 @@ private int __fontSize = 0;
 /**
 The number of lines of text to be printed.
 */
-private int 
+private int
 	__linesPerPage = 0,
 	__linesPerPageL = 0,
 	__linesPerPageP = 0;
@@ -137,23 +132,18 @@ The list of text to be printed out.
 private List<String> __linesVector;
 
 /**
-Constructor.  Creates a ReportPrinter that will print the text in the
-given JTextArea with the given number of lines per page.
+Constructor.  Creates a ReportPrinter that will print the text in the given JTextArea with the given number of lines per page.
 @param ta the JTextArea with the text to be printed.
 @param linesPerPageP the number of lines to print on a single page in Portrait orientation.
 @param linesPerPageL the number of lines to print on a single page in Landscape orientation.
 @param header the text that will appear at the top of each page as a header.
 If null, no header will be shown.
-@param testPage whether this is just printing a testPage or will actually
-print whatever is in ta.  If testPage is set to true, only the testPage
-data will be printed, even if there is data in ta.
-@param batch whether a dialog will pop up asking the user to confirm
-the print, the printer to which the job will go to, and other print job
-information.  If false, the print job will just be sent to the default
-printer, whatever that is.
+@param testPage whether this is just printing a testPage or will actually print whatever is in ta.
+If testPage is set to true, only the testPage data will be printed, even if there is data in ta.
+@param batch whether a dialog will pop up asking the user to confirm the print, the printer to which the job will go to, and other print job
+information.  If false, the print job will just be sent to the default printer, whatever that is.
 */
-private ReportPrinter (JTextArea ta, int linesPerPageP, int linesPerPageL, 
-String header, boolean testPage, boolean batch) {
+private ReportPrinter (JTextArea ta, int linesPerPageP, int linesPerPageL, String header, boolean testPage, boolean batch) {
 	__linesVector = taToStringList(ta);
 	__printTestPage = testPage;
 	__batch = batch;
@@ -171,20 +161,16 @@ String header, boolean testPage, boolean batch) {
 }
 
 /**
-Constructor.  Creates a ReportPrinter that will print the text in the
-given list with the given number of lines per page.
+Constructor.  Creates a ReportPrinter that will print the text in the given list with the given number of lines per page.
 @param text the list of text to print.
 @param linesPerPageP the number of lines to print on a single page in Portrait orientation.
 @param linesPerPageL the number of lines to print on a single page in Landscape orientation.
-@param header the text that will appear at the top of each page as a header.
-If null, no header will be shown.
+@param header the text that will appear at the top of each page as a header. If null, no header will be shown.
 @param testPage whether this is just printing a testPage or will actually
-print whatever is in ta.  If testPage is set to true, only the testPage
-data will be printed, even if there is data in ta.
-@param batch whether a dialog will pop up asking the user to confirm
-the print, the printer to which the job will go to, and other print job
-information.  If false, the print job will just be sent to the default
-printer, whatever that is.
+print whatever is in ta.  If testPage is set to true, only the testPage data will be printed, even if there is data in ta.
+@param batch whether a dialog will pop up asking the user to confirm the print,
+the printer to which the job will go to, and other print job information.
+If false, the print job will just be sent to the default printer, whatever that is.
 */
 private ReportPrinter (List<String> text, int linesPerPageP, int linesPerPageL,
 String header, boolean testPage, boolean batch) {
@@ -211,24 +197,21 @@ Calculates the font size necessary to fit X lines on a single page.
 @param g2 the Graphics2D context being used to print the page.
 */
 private void calculateFontSize(Graphics2D g2) {
-	// get the printable height of the paper
+	// Get the printable height of the paper.
 	int paperHeight = (int)__pageFormat.getImageableHeight();
 
-	// adds room at the bottom and top for header and footer in 8 point
-	// font
+	// Adds room at the bottom and top for header and footer in 8 point // font.
 	paperHeight -= 30;
 
-	// Start with a reasonably-size, though large, font size and work
-	// down until one is found that will fit on the page.
+	// Start with a reasonably-size, though large, font size and work down until one is found that will fit on the page.
 	int fontSize = 50;
 	boolean done = false;
 	int as, ds;
 	do {
-		// create a font, and get its relevant metrics from the
-		// graphics object
+		// Create a font, and get its relevant metrics from the graphics object.
 
 		Font f = new Font("Monospaced", Font.PLAIN, fontSize);
-		g2.setFont(f);		
+		g2.setFont(f);
 		FontMetrics fm = g2.getFontMetrics();
 		as = fm.getAscent();
 		ds = fm.getDescent();
@@ -236,23 +219,18 @@ private void calculateFontSize(Graphics2D g2) {
 		if (((as + ds) * __linesPerPage) <= paperHeight) {
 			done = true;
 			fontSize++;
-		} 
-		else if ((((as + ds) * __linesPerPage) - 
-			__linesPerPage) <= paperHeight) {
-			// because this if checks to see whether the current
-			// font size could fit on the paper if the descent 
-			// was reduced by one, if it was successful then reduce
-			// the descent by one and use the font.
-			// For an explanation of Descent, see the FontMetrics
-			// javadocs
+		}
+		else if ((((as + ds) * __linesPerPage) - __linesPerPage) <= paperHeight) {
+			// Because this if checks to see whether the current font size could fit on the paper if the descent was reduced by one,
+			// if it was successful then reduce the descent by one and use the font.
+			// For an explanation of Descent, see the FontMetrics javadocs.
 			ds--;
-			done = true;				
+			done = true;
 		}
 
-		// if the current font size didn't fit, try with the next
-		// smaller one
+		// if the current font size didn't fit, try with the next smaller one.
 		if (done != true) {
-			fontSize--;				
+			fontSize--;
 		}
 	} while (fontSize > 0 && !done);
 
@@ -263,7 +241,7 @@ private void calculateFontSize(Graphics2D g2) {
 
 	int space = paperHeight - ((__as + __ds) * __linesPerPage);
 
-	if (__linesPerPage < space) {	
+	if (__linesPerPage < space) {
 		__loc = -1;
 		__slope = space / __linesPerPage;
 	}
@@ -274,8 +252,7 @@ private void calculateFontSize(Graphics2D g2) {
 }
 
 /**
-Creates a test page for demonstrating printer output.  The test page 
-prints at least 5 lines of text.  The 5 lines are:
+Creates a test page for demonstrating printer output.  The test page prints at least 5 lines of text.  The 5 lines are:
 <ol>
 <li>A line describing the font and font size being used.</li>
 <li>A line with the page width and height.</li>
@@ -283,30 +260,25 @@ prints at least 5 lines of text.  The 5 lines are:
 <li>A line with the imageable X and Y.</li>
 <li>A line with the paper orientation.</li>
 </ol>
-After these lines, the rest of the lines to be printed are filled with
-"A quick brown fox ...", "Ipsem lorum", and all the numbers and characters
-that can be printed.
+After these lines, the rest of the lines to be printed are filled with "A quick brown fox ...",
+"Ipsem lorum", and all the numbers and characters that can be printed.
 @param g2 the Graphics object that will be used to draw the text.
 */
 private void createTestPage(Graphics2D g2) {
 	Font f =new Font("Monospaced", Font.PLAIN, __fontSize);
-	g2.setFont(f);		
+	g2.setFont(f);
 
 	String line;
-	line = "  1 (of " + __linesPerPage + " lines): Font: " + __fontSize 
-		+ "-point Monospaced, Plain";
+	line = "  1 (of " + __linesPerPage + " lines): Font: " + __fontSize + "-point Monospaced, Plain";
 	g2.drawString(line, 0, __as);
 
-	line = "  2: Page Width: " + __pageFormat.getWidth() 
-		+ "  Page Height: " + __pageFormat.getHeight();
+	line = "  2: Page Width: " + __pageFormat.getWidth() + "  Page Height: " + __pageFormat.getHeight();
 	g2.drawString(line, 0, __as + (1 * (__as + __ds)));
 
-	line = "  3: Imageable Width: " + __pageFormat.getImageableWidth()
-		+ "  Imageable Height: " + __pageFormat.getImageableHeight();
+	line = "  3: Imageable Width: " + __pageFormat.getImageableWidth() + "  Imageable Height: " + __pageFormat.getImageableHeight();
 	g2.drawString(line, 0, __as + (2 * (__as + __ds)));
 
-	line = "  4: Imageable X: " + __pageFormat.getImageableX()
-		+ "  Imageable Y: " + __pageFormat.getImageableY();
+	line = "  4: Imageable X: " + __pageFormat.getImageableX() + "  Imageable Y: " + __pageFormat.getImageableY();
 	g2.drawString(line, 0, __as + (3 * (__as + __ds)));
 
 	if (__pageFormat.getOrientation() == PageFormat.LANDSCAPE) {
@@ -315,31 +287,26 @@ private void createTestPage(Graphics2D g2) {
 		line = "  5: Paper Orientation: Portrait";
 	}
 	g2.drawString(line, 0, __as + (4 * (__as + __ds)));
-		
-	// check a few test boundary cases to be sure to print out the
-	// right number of lines.  If there are to be 5 or less lines per
-	// page printed, ignore anything less than 5 and print those 5.
+
+	// check a few test boundary cases to be sure to print out the right number of lines.
+	// If there are to be 5 or less lines per page printed, ignore anything less than 5 and print those 5.
 	if (__linesPerPage <= 5) {
 		if (__pagesPrinted == 1) {
 			__printTestPage = false;
 		}
 		return;
 	}
-	// If 6 lines are to be printed, print a single line more and then
-	// return.
+	// If 6 lines are to be printed, print a single line more and then return.
 	else if (__linesPerPage == 6) {
-		line = "  6: the quick brown fox jumps over a lazy "
-			+ "dog THE QUICK BROWN FOX JUMPS OVER A "
-			+ "LAZY DOG";
+		line = "  6: the quick brown fox jumps over a lazy dog THE QUICK BROWN FOX JUMPS OVER A LAZY DOG";
 		g2.drawString(line, 0, __as + (5 * (__as + __ds)));
 		if (__pagesPrinted == 1) {
 			__printTestPage = false;
 		}
 		return;
-	}		
-		
-	// otherwise, calculate how many lines of character text and how many
-	// lines of numbers and symbols need to be printed.
+	}
+
+	// Otherwise, calculate how many lines of character text and how many lines of numbers and symbols need to be printed.
 	int half = (__linesPerPage - 5)/ 2;
 	if (half < 5) {
 		half = half + 5;
@@ -375,17 +342,13 @@ private void createTestPage(Graphics2D g2) {
 			line = " " + (i + 1);
 		} else {
 			line = "" + (i + 1);
-		}	
-		line += ": 1234567890 `~!@#$%^&*()-_"
-			+ "=+[{]}\\|;:'\",<.>/?";
+		}
+		line += ": 1234567890 `~!@#$%^&*()-_=+[{]}\\|;:'\",<.>/?";
 		g2.drawString(line, 0, __as + (i * (__as + __ds)));
 	}
 
-	// __pagesPrnted will be == 1 after the page has first been
-	// prepped and then print() has been called again to print it, 
-	// so setting __printTestPage to false will break out of the loop
-	// in the top of the print(....) method.  See that method for more
-	// info.
+	// __pagesPrnted will be == 1 after the page has first been prepped and then print() has been called again to print it,
+	// so setting __printTestPage to false will break out of the loop in the top of the print(....) method.  See that method for more info.
 	if (__pagesPrinted == 1) {
 		__printTestPage = false;
 	}
@@ -400,49 +363,44 @@ public PageFormat getPageFormat() {
 }
 
 /**
-Method called by the static print methods to gather and set up page
-and print job information before the printing starts.
+Method called by the static print methods to gather and set up page and print job information before the printing starts.
 */
 private void print() {
 	PrinterJob printJob = PrinterJob.getPrinterJob();
 
-	// get the desired formatting for the page (margins, etc)
+	// Get the desired formatting for the page (margins, etc).
 	if (__pageFormat == null) {
-		__pageFormat = 
-			printJob.pageDialog(printJob.defaultPage());
+		__pageFormat = printJob.pageDialog(printJob.defaultPage());
 	}
 
 	int orientation = __pageFormat.getOrientation();
 
 	Paper p = new Paper();
-	// If the paper orientation (as gathered from the PageFormat) is in
-	// PageFormat.LANDSCAPE mode, then switch around the X and Y and 
-	// Height and Width attributes.  If this is not done, the page
-	// will not be printed correctly.
+	// If the paper orientation (as gathered from the PageFormat) is in PageFormat.LANDSCAPE mode,
+	// then switch around the X and Y and Height and Width attributes.
+	// If this is not done, the page will not be printed correctly.
 	if (orientation == PageFormat.LANDSCAPE) {
 		__linesPerPage = __linesPerPageL;
 		p.setImageableArea(	__pageFormat.getImageableY(),
 					__pageFormat.getImageableX(),
-					__pageFormat.getImageableHeight(), 
+					__pageFormat.getImageableHeight(),
 					__pageFormat.getImageableWidth());
 	} else {
 		__linesPerPage = __linesPerPageP;
 		p.setImageableArea(	__pageFormat.getImageableX(),
 					__pageFormat.getImageableY(),
-					__pageFormat.getImageableWidth(), 
+					__pageFormat.getImageableWidth(),
 					__pageFormat.getImageableHeight());
 	}
 
 
 	if (__linesVector.size() > 0) {
-		// calculates the number of pages necessary to 
-		// print all the text.  Changes the starting 
-		// number from 0-b_ased to 1-b_ased.
+		// Calculates the number of pages necessary to print all the text.  Changes the starting number from 0-b_ased to 1-b_ased.
 		__numPages = (__linesVector.size() / (__linesPerPage + 1)) + 1;
 	} else {
 		__numPages = 0;
 	}
-	
+
 	String plural = "s";
 	if (__numPages == 1) {
 		plural = "";
@@ -450,49 +408,42 @@ private void print() {
 	printJob.setJobName("ReportPrinter (" + __numPages + ") page" + plural);
 
 	// This next section of code may appear odd, but without it the
-	// user-specified margins do not get into the PageFormat object, 
+	// user-specified margins do not get into the PageFormat object,
 	// and the default margins of 1-inch on all sides are applied.
 	__pageFormat.setPaper(p);
 	__pageFormat.setOrientation(orientation);
 	printJob.setPrintable(this, __pageFormat);
 
-	// If in batch mode, don't bother opening the dialog box asking the
-	// user to which printer they wish to print.  Force it to the 
-	// default system printer (whatever that may be).
+	// If in batch mode, don't bother opening the dialog box asking the user to which printer they wish to print.
+	// Force it to the default system printer (whatever that may be).
 	if (__batch) {
 		try {
 			printJob.print();
 		}
 		catch (PrinterException e) {
-			// REVISIT
-			// Error printing.			
+			// REVISIT Error printing.
 		}
 	}
 	else {
-		// Open a dialog box asking the User to which printer they 
-		// wish to print, how many copies they wish to print, etc.
-		// Dialog box varies from system to system, so not all options
-		// may be available.
+		// Open a dialog box asking the User to which printer they wish to print, how many copies they wish to print, etc.
+		// Dialog box varies from system to system, so not all options may be available.
 		if (printJob.printDialog()) {
 			try {
 				printJob.print();
 			}
 			catch (PrinterException e) {
-				// REVISIT
-				// Error printing.			
+				// REVISIT Error printing.
 			}
 		}
 	}
 }
 
-/** 
-Method that actually gets called for doing the printing.  This method
-calculates the font size necessary to fit the given number of lines on the
-page.  This method is called once for every page to be printed, and is
-called by the object controlling the print job.  Users need never
-worry about this.<p>
-<b>Do not call this method.  It is public because this class uses the 
-Printable interface.  Call one of the static printText() methods.</b>
+/**
+Method that actually gets called for doing the printing.
+This method calculates the font size necessary to fit the given number of lines on the page.
+This method is called once for every page to be printed, and is called by the object controlling the print job.
+Users need never worry about this.<p>
+<b>Do not call this method.  It is public because this class uses the Printable interface.  Call one of the static printText() methods.</b>
 @param g the graphics context for what is being printed.
 @param pageFormat the format the page will be printed in
 @param pageIndex the number of the page being printed (0, 1, 2 ...)
@@ -503,15 +454,12 @@ public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
 		return NO_SUCH_PAGE;
 	}
 	else {
-		// this method gets called twice for every page that gets
-		// printed.  The first time it appears to just do prep
-		// work and see how the page will be rendered.  The second
-		// time the page actually gets printed.  In order to keep
-		// track of where the print job is at (especially for use
-		// in printing the test page), a count is kept of every 
-		// time a page is prepped (this method is called for the first
-		// time) and when the page is printed (this method gets called
-		// again for the same page)
+		// This method gets called twice for every page that gets printed.
+		// The first time it appears to just do prep work and see how the page will be rendered.
+		// The second time the page actually gets printed.
+		// In order to keep track of where the print job is at (especially for use in printing the test page),
+		// a count is kept of every time a page is prepped (this method is called for the first time)
+		// and when the page is printed (this method gets called again for the same page).
 		if (__pagesPrinted == __pagesPrepped) {
 			__pagesPrepped++;
 		}
@@ -519,31 +467,27 @@ public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
 			__pagesPrinted++;
 		}
 
-		// Get the Graphics object which will draw the text
-		// that gets printed, and then translate its drawing origin
-		// to the paper's printable area.  That way (0,0) is ALWAYS
-		// the upper-lefthand-most point on the paper.
+		// Get the Graphics object which will draw the text that gets printed,
+		// and then translate its drawing origin to the paper's printable area.
+		// That way (0,0) is ALWAYS the upper-lefthand-most point on the paper.
 		Graphics2D g2 = (Graphics2D)g;
-		g2.translate(pageFormat.getImageableX(),
-			pageFormat.getImageableY());
-		// apply clipping to enforce the right and bottom margins
+		g2.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
+		// Apply clipping to enforce the right and bottom margins.
 		Rectangle r = new Rectangle(0, 0,
 			(int)pageFormat.getImageableWidth(),
 			(int)pageFormat.getImageableHeight());
 		g2.clip(r);
 
-		// calculate the font size necessary to fit X lines on a single
-		// page, if it has not been done yet.
+		// Calculate the font size necessary to fit X lines on a single page, if it has not been done yet.
 		if (__fontSizeCalculated == false) {
 			calculateFontSize(g2);
 		}
 
-		// if the ReportWriter is to print a test page, do that 
-		// instead of printing the values in the ta
+		// If the ReportWriter is to print a test page, do that instead of printing the values in the ta.
 		if (__printTestPage == true) {
 			createTestPage(g2);
 			return PAGE_EXISTS;
-		}		
+		}
 
 		int slop = 0;
 		double slop2 = 0;
@@ -558,14 +502,14 @@ public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
 				- (fm.stringWidth(__header) / 2), 11);
 		}
 
-		// set up the font
+		// Set up the font.
 		f = new Font("Monospaced", Font.PLAIN, __fontSize);
-		g2.setFont(f);		
-		// print the text for the current page
+		g2.setFont(f);
+		// Print the text for the current page.
 		for (int i = 0; i < __linesPerPage; i++) {
-			if (((pageIndex * __linesPerPage) + i) >= 
+			if (((pageIndex * __linesPerPage) + i) >=
 				__linesVector.size()) {
-				// break out of this loop
+				// Break out of this loop.
 				i = __linesPerPage + 1;
 			} else {
 				g2.drawString(
@@ -577,13 +521,13 @@ public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
 			if (__loc < 0) {
 				slop += __slope;
 			}
-			else if (__loc > 0) {				
+			else if (__loc > 0) {
 				slop2 += __slope;
 				slop = (int)slop2;
 			}
 		}
-	
-		// print the "Page" thing at the bottom of the page
+
+		// Print the "Page" thing at the bottom of the page.
 		f = new Font("Monospaced", Font.PLAIN, 8);
 		g2.setFont(f);
 		FontMetrics fm = g2.getFontMetrics();
@@ -592,7 +536,7 @@ public int print(Graphics g, PageFormat pageFormat, int pageIndex) {
 			(int)(pageFormat.getImageableWidth() / 2)
 			- (fm.stringWidth(s) / 2),
 			(int)(pageFormat.getImageableHeight() - 3));
-		
+
 		return PAGE_EXISTS;
 	}
 }
@@ -622,22 +566,19 @@ public static PageFormat printTestPage(int linesPerPage) {
 */
 
 /**
-Print a test page with the given number of lines per page, possibly in 
-batch mode, and use the given Page Format.
+Print a test page with the given number of lines per page, possibly in batch mode, and use the given Page Format.
 @param linesPerPage the number of lines to print per page.
-@param batch if true, no dialog is brought up to ask the user about
-printing options.
+@param batch if true, no dialog is brought up to ask the user about printing options.
 @param pf the PageFormat to use with this printjob.
 @return the PageFormat set up or used for this print job.
 */
 /*
-public static PageFormat printTestPage(int linesPerPage, boolean batch, 
+public static PageFormat printTestPage(int linesPerPage, boolean batch,
 PageFormat pf) {
 	if (linesPerPage < 5) {
 		linesPerPage = 5;
 	}
-	ReportPrinter r = new ReportPrinter((Vector)null, linesPerPage, 
-		true, batch);
+	ReportPrinter r = new ReportPrinter((Vector)null, linesPerPage, true, batch);
 	if (pf != null) {
 		r.setPageFormat(pf);
 	}
@@ -650,19 +591,15 @@ PageFormat pf) {
 Print the text in the text area with the given number of lines per page,
 possibly in batch mode, and use the given PageFormat.
 @param ta the JTextArea to print out the text for.
-@param linesPerPageP the number of lines of text per printed page in portrait
-orientation.
-@param linesPerPageL the number of lines of text per printed page in landscape
-orientation.
-@param batch if true, no dialog will pop up asking the user for print 
-job information like page range and number of copies.
+@param linesPerPageP the number of lines of text per printed page in portrait orientation.
+@param linesPerPageL the number of lines of text per printed page in landscape orientation.
+@param batch if true, no dialog will pop up asking the user for print job information like page range and number of copies.
 @param pf the PageFormat to use for this print job.
 @return the PageFormat set up or used for this print job.
 */
-public static PageFormat printText(JTextArea ta, int linesPerPageP, 
+public static PageFormat printText(JTextArea ta, int linesPerPageP,
 int linesPerPageL, String header, boolean batch, PageFormat pf) {
-	ReportPrinter r = new ReportPrinter(ta, linesPerPageP, linesPerPageL,
-		header, false, batch);
+	ReportPrinter r = new ReportPrinter(ta, linesPerPageP, linesPerPageL, header, false, batch);
 	if (pf != null) {
 		r.setPageFormat(pf);
 	}
@@ -673,18 +610,16 @@ int linesPerPageL, String header, boolean batch, PageFormat pf) {
 /**
 Print the text in the Vector with the given number of lines per page,
 possibly in batch mode, and use the given PageFormat.
-@param v a Vector of text to print.
+@param v a list of text to print.
 @param linesPerPageP the number of lines of text per printed page in portrait orientation.
 @param linesPerPageL the number of lines of text per printed page in landscape orientation.
-@param batch if true, no dialog will pop up asking the user for print 
-job information like page range and number of copies.
+@param batch if true, no dialog will pop up asking the user for print job information like page range and number of copies.
 @param pf the PageFormat to use for this print job.
 @return the PageFormat set up or used for this print job.
 */
-public static PageFormat printText(List<String> v, int linesPerPageP, 
+public static PageFormat printText(List<String> v, int linesPerPageP,
 int linesPerPageL, String header, boolean batch, PageFormat pf) {
-	ReportPrinter r = new ReportPrinter(v, linesPerPageP, linesPerPageL,
-		header, false, batch);
+	ReportPrinter r = new ReportPrinter(v, linesPerPageP, linesPerPageL, header, false, batch);
 	if (pf != null) {
 		r.setPageFormat(pf);
 	}
@@ -722,7 +657,7 @@ private List<String> taToStringList(JTextArea ta, int tabStop) {
 		return null;
 	}
 	char[] arr = ta.getText().toCharArray();
-	List<String> v = new ArrayList<String>();
+	List<String> v = new ArrayList<>();
 
 	String s = "";
 	boolean working = false;
@@ -742,39 +677,12 @@ private List<String> taToStringList(JTextArea ta, int tabStop) {
 		else {
 			working = true;
 			s += c;
-		}		
+		}
 	}
 	if (working) {
 		v.add(s);
 	}
 	return v;
-}
-
-/**
-@deprecated
-REVISIT (JTS - 2005-03-23)
-added today -- remove in a few months when surely any code that might have
-used this has been compiled and folks notice the deprecation.
-*/
-public static PageFormat printText(JTextArea ta, int linesPerPage) {
-	return printText(ta, linesPerPage, false, null);
-}
-
-/**
-@deprecated
-REVISIT (JTS - 2005-03-23)
-added today -- remove in a few months when surely any code that might have
-used this has been compiled and folks notice the deprecation.
-*/
-public static PageFormat printText(JTextArea ta, int linesPerPage, 
-boolean batch, PageFormat pf) {
-	ReportPrinter r = new ReportPrinter(ta, linesPerPage, linesPerPage,
-		null, false, batch);
-	if (pf != null) {
-		r.setPageFormat(pf);
-	}
-	r.print();
-	return r.getPageFormat();
 }
 
 }

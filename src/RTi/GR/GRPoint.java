@@ -134,6 +134,7 @@ Set the X-coordinate.
 @deprecated Use the version that sets both coordinates because setting one
 makes it difficult to know if limits have been completely set.
 */
+@Deprecated
 public void setX ( double xset ) {
 	x = xmin = xmax = xset;
 }
@@ -144,6 +145,7 @@ Set the Y-coordinate.
 @deprecated Use the version that sets both coordinates because setting one
 makes it difficult to know if limits have been completely set.
 */
+@Deprecated
 public void setY ( double yset ) {
 	y = ymin = ymax = yset;
 }

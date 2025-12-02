@@ -57,87 +57,102 @@ public class InputFilter implements Cloneable {
 	Input filter type, for use with strings that exactly match a pattern.
 	@deprecated use InputFilterCriterionType
 	*/
+	@Deprecated
 	public final static String INPUT_MATCHES = "Matches";
 
 	/**
 	Input filter type, for use with strings and numbers that match a case in a list.
 	@deprecated use InputFilterCriterionType
 	*/
+	@Deprecated
 	public final static String INPUT_ONE_OF = "One of";
 
 	/**
 	Input filter type, for use with strings starting with a pattern.
 	@deprecated use InputFilterCriterionType
 	*/
+	@Deprecated
 	public final static String INPUT_STARTS_WITH = "Starts with";
 
 	/**
 	Input filter type, for use with strings ending with a pattern.
 	@deprecated use InputFilterCriterionType
 	*/
+	@Deprecated
 	public final static String INPUT_ENDS_WITH = "Ends with";
 
 	/**
 	Input filter type, for use with strings containing a pattern.
 	@deprecated use InputFilterCriterionType
 	*/
+	@Deprecated
 	public final static String INPUT_CONTAINS = "Contains";
 
 	/**
 	Input filter type, for use with numbers that exactly match.
 	@deprecated use InputFilterCriterionType
 	*/
+	@Deprecated
 	public final static String INPUT_EQUALS = "=";
 	/**
 	Legacy INPUT_EQUALS, phasing out.
 	@deprecated use InputFilterCriterionType
 	*/
+	@Deprecated
 	public final static String INPUT_EQUALS_LEGACY = "Equals";
 
 	/**
 	Input filter type, for use with numbers that are between two values.
 	@deprecated use InputFilterCriterionType
 	*/
+	@Deprecated
 	public final static String INPUT_BETWEEN = "Is between";
 
 	/**
 	Input filter type, for use with strings that are null or empty.
 	@deprecated use InputFilterCriterionType
 	*/
+	@Deprecated
 	public final static String INPUT_IS_EMPTY = "Is empty";
 
 	/**
 	Input filter type, for use with numbers that are less than a value.
 	@deprecated use InputFilterCriterionType
 	*/
+	@Deprecated
 	public final static String INPUT_LESS_THAN = "<";
 	/**
 	Legacy INPUT_LESS_THAN, phasing out.
 	@deprecated use InputFilterCriterionType
 	*/
+	@Deprecated
 	public final static String INPUT_LESS_THAN_LEGACY = "Less than";
 
 	/**
 	Input filter type, for use with numbers that are less than or equal to a value.
 	@deprecated use InputFilterCriterionType
 	*/
+	@Deprecated
 	public final static String INPUT_LESS_THAN_OR_EQUAL_TO = "<=";
 
 	/**
 	Input filter type, for use with numbers that are greater than a value.
 	@deprecated use InputFilterCriterionType
 	*/
+	@Deprecated
 	public final static String INPUT_GREATER_THAN = ">";
 	/**
 	Legacy INPUT_GREATER_THAN, phasing out.
 	@deprecated use InputFilterCriterionType
 	*/
+	@Deprecated
 	public final static String INPUT_GREATER_THAN_LEGACY = "Greater than";
 
 	/**
 	Input filter type, for use with numbers that are greater than or equal to a value.
 	@deprecated use InputFilterCriterionType
 	*/
+	@Deprecated
 	public final static String INPUT_GREATER_THAN_OR_EQUAL_TO = ">=";
 
 /**

@@ -2656,6 +2656,7 @@ false, strings will be compared literally.
 @param regexp_string Java regular expression string to match.
 @deprecated Use the standard String.matches() method or StringUtil.matchesIgnoreCase().
 */
+@Deprecated
 public static boolean matchesRegExp ( boolean ignore_case, String candidate_string, String regexp_string ) {
 	String okchars = "", routine = "StringUtil.mtchesRegExp";
 	int	dl = 50, nokchars = 0;
@@ -2897,6 +2898,7 @@ Check to see if a String matches a regular expression, considering case explicit
 @return true if the candidate string matches the regular expression.
 @deprecated Use the standard String.matches() method or StringUtil.matchesIgnoreCase().
 */
+@Deprecated
 public static boolean matchesRegExp ( String candidate_string, String regexp_string ) {
 	return matchesRegExp ( false, candidate_string, regexp_string );
 }

@@ -44,12 +44,16 @@ zones are the standard character zones used in the United States.
 the time zone data needs to be searched.  Code should be optimized to re-use
 time zone shift data as much as possible while detecting the need to use the shifts.</b>
 */
+@Deprecated
 public class TZ
 {
 
-// Time zone data for common time zones.  If anything more than basic
-// information is needed, will need to add code to read from some type of time
-// zone database.  Use a Vector so that new time zones can be added on the fly.
+/**
+ * Time zone data for common time zones.
+ * If anything more than basic information is needed,
+ * will need to add code to read from some type of time zone database.
+ * Use a Vector so that new time zones can be added on the fly.
+ */
 private static List<TZ> TZData = new ArrayList<TZ>(66);
 static {
 	TZData.add ( new TZ( "", "", 0, 0, 0 ) );
@@ -131,11 +135,11 @@ static {
 	TZData.add ( new TZ( "Z-12", "Z-12", -720, 0, 0 ));
 }
 
-// Data to check a local time zone to see whether it is daylight savings or
-// standard time.  These values apply only to the USA in general but do not
-// cover special locations in the USA.  A more rigorous method of checking for
-// time zone changes needs to be implemented, but there will be a performance
-// penalty.
+/**
+ * Data to check a local time zone to see whether it is daylight savings or standard time.
+ * These values apply only to the USA in general but do not cover special locations in the USA.
+ * A more rigorous method of checking for time zone changes needs to be implemented, but there will be a performance penalty.
+ */
 private static TZChange[] TimeChangeData = new TZChange[65];
 static {TimeChangeData[0] = new TZChange ( 1976,	26,	31 );
 	TimeChangeData[1] = new TZChange ( 1977,	24,	30 );
@@ -215,10 +219,8 @@ Time zone description (e.g., "Eastern Standard Time").
 protected String _description;
 
 /**
-Daylight savings flag (0 is standard [e.g., specify for "EST"], 1 if daylight
-savings [e.g., specify for "EDT"], -1 if local time and daylight
-savings offset from standard time should be determined at run time from the
-date [e.g., specify for "E"]).
+Daylight savings flag (0 is standard [e.g., specify for "EST"], 1 if daylight savings [e.g., specify for "EDT"], -1 if local time and daylight
+savings offset from standard time should be determined at run time from the date [e.g., specify for "E"]).
 */
 protected int _dsflag;
 
@@ -235,26 +237,24 @@ protected int _zulu_offset_minutes;
 
 /**
 Constructor to initialize offsets to 0, no daylight savings, and empty strings
-(basically an unknown time zone), suitable for general use when time zone is
-not important.
+(basically an unknown time zone), suitable for general use when time zone is not important.
 */
-public TZ ()
-{	init();
+public TZ () {
+	init();
 }
 
 /**
-Construct given a time zone abbreviation.  The abbreviation is used to look up
-known information for the time zone.
+Construct given a time zone abbreviation.
+The abbreviation is used to look up known information for the time zone.
 @exception Exception if the time zone data cannot be determined.
 */
 public TZ ( String abbreviation )
-throws Exception
-{	init ();
+throws Exception {
+	init ();
 	_abbreviation = abbreviation;
 	int pos = getDefinedDataPosition ( abbreviation );
 	if ( pos < 0 ) {
-		throw new Exception ( "Data for time zone \"" + abbreviation +
-		"could not be found" );
+		throw new Exception ( "Data for time zone \"" + abbreviation + "could not be found" );
 	}
 	TZ tz = (TZ)TZData.get(pos);
 	_zulu_offset_minutes = tz._zulu_offset_minutes;
@@ -265,17 +265,15 @@ throws Exception
 }
 
 /**
-Construct using the individual data items.  This can be used, for example, when
-a new time zone is defined.
+Construct using the individual data items.  This can be used, for example, when a new time zone is defined.
 @param abbreviation Time zone abbreviation.
 @param description Description.
 @param zulu_offset_minutes offset from Zulu in minutes.
 @param dsflag Daylight savings.
 @param ds_offset_minutes Offset for daylight savings.
 */
-public TZ (	String abbreviation, String description,
-		int zulu_offset_minutes, int dsflag, int ds_offset_minutes )
-{	_abbreviation = abbreviation;
+public TZ (	String abbreviation, String description, int zulu_offset_minutes, int dsflag, int ds_offset_minutes ) {
+	_abbreviation = abbreviation;
 	_description = description;
 	_zulu_offset_minutes = zulu_offset_minutes;
 	_dsflag = dsflag;
@@ -283,30 +281,28 @@ public TZ (	String abbreviation, String description,
 }
 
 /**
-Add a time zone to the defined time zones.  The time zone is added to the end
-of the list.  If there is a conflict in the abbreviation (another time zone with
-the same abbreviation), the second time zone will not be found.
+Add a time zone to the defined time zones.  The time zone is added to the end of the list.
+If there is a conflict in the abbreviation (another time zone with the same abbreviation), the second time zone will not be found.
 @param tz Fully-defined TZ to add to the list of defined time zones.
 REVISIT JAVADOC: see RTi.Util.Time.TZ.insertTimeZoneAt
 */
-public static void addTimeZone ( TZ tz )
-{	TZData.add ( tz );
+public static void addTimeZone ( TZ tz ) {
+	TZData.add ( tz );
 }
 
 /**
 Determine the daylight savings offset for time zones that can be either
-standard or daylight savings time (e.g., "A" for Atlantic Local Time).  This
-method is called internally.
-@return the daylight savings flag given date information.  It is assumed that
-the time zone corresponding to the date can have daylight savings as described
-in the TZChange data.
+standard or daylight savings time (e.g., "A" for Atlantic Local Time).
+This method is called internally.
+@return the daylight savings flag given date information.
+It is assumed that the time zone corresponding to the date can have daylight savings as described in the TZChange data.
 @param tz Time zone data.
 @param date Date of interest.
 @exception Exception if there is an error computing the offset.
 */
 private static int calculateDSOffsetMinutes ( TZ tz, DateTime date )
-throws Exception
-{	// Look up using the static data
+throws Exception {
+	// Look up using the static data.
     int year = date.getYear();
     int month = date.getMonth();
     int day = date.getDay();
@@ -315,9 +311,9 @@ throws Exception
 		throw new Exception ( "Year " + date.getYear() + " is outside known time zone data." );
 	}
 	int yearpos = year - TimeChangeData[0].year;
-	// Else have data...
+	// Else have data.
 	if ( (month < 4) || (month > 10) ) {
-		// Standard time (no offset)...
+		// Standard time (no offset).
 		return 0;
 	}
 	else if ( month == 4 ) {
@@ -349,31 +345,26 @@ throws Exception
 
 /**
 Calculate the offset in minutes between two time zones.
-@return Offset in minutes.  If either time zone is null or an empty string, 0
-will be returned.
+@return Offset in minutes.  If either time zone is null or an empty string, 0 will be returned.
 @param from_tz_abbr The original time zone abbreviation.
 @param to_tz_abbr New time zone abbreviation.
 @param from_date This argument is required if the time zone is a "local" time,
-with daylight savings only being known from a date.  For time zones that
-do not need the date, it will be ignored.  If the date is required but is
-specified as null, then no adjustment for daylight savings time will occur.
-<b>It is assumed that this method is typically used to convert observation
-dates to a fixed time zone.  Consequently, the "from" values are measured and
-the "to" time zone is fixed.  In order to completely account for daylight
-savings, a "to_date" would also be required with "local" time zones.  However,
-this would result in a performance hit in many cases and the calculation at
+with daylight savings only being known from a date.
+For time zones that do not need the date, it will be ignored.
+If the date is required but is specified as null, then no adjustment for daylight savings time will occur.
+<b>It is assumed that this method is typically used to convert observation dates to a fixed time zone.
+Consequently, the "from" values are measured and the "to" time zone is fixed.  In order to completely account for daylight savings,
+a "to_date" would also be required with "local" time zones.
+However, this would result in a performance hit in many cases and the calculation at
 a switch between daylight savings and standard time would be iterative.
 Therefore, from_date is used to check local time for both from_tz and to_tz,
-resulting in an offset being incorrect by the daylight savings offset for
-only roughly 2 hours per year.  If standard time is used for the "to" data,
-the issue is minimized.</b>
+resulting in an offset being incorrect by the daylight savings offset for only roughly 2 hours per year.
+If standard time is used for the "to" data, the issue is minimized.</b>
 @exception Exception if there is an error getting time zone offset information.
 */
-public static int calculateOffsetMinutes (	String from_tz_abbr,
-						String to_tz_abbr,
-						DateTime from_date )
-throws Exception
-{	if ( from_tz_abbr == null || to_tz_abbr == null ){
+public static int calculateOffsetMinutes ( String from_tz_abbr, String to_tz_abbr, DateTime from_date )
+throws Exception {
+	if ( from_tz_abbr == null || to_tz_abbr == null ){
 		return 0;
 	}
 	if ( from_tz_abbr.equals("") ) {
@@ -385,28 +376,26 @@ throws Exception
 
 	int from_pos = getDefinedDataPosition ( from_tz_abbr );
 	if ( from_pos == -1 ) {
-		throw new Exception ( "Unable to get time zone data for \"" +
-		from_tz_abbr + "\"" );
+		throw new Exception ( "Unable to get time zone data for \"" + from_tz_abbr + "\"" );
 	}
 
 	int to_pos = getDefinedDataPosition ( to_tz_abbr );
 	if ( to_pos == -1 ) {
-		throw new Exception ( "Unable to get time zone data for \"" +
-		to_tz_abbr + "\"" );
+		throw new Exception ( "Unable to get time zone data for \"" + to_tz_abbr + "\"" );
 	}
 
-	// Now work with the raw data...
+	// Now work with the raw data.
 
 	TZ from_tz = (TZ)TZData.get(from_pos);
 	TZ to_tz = (TZ)TZData.get(to_pos);
 	int from_offset = from_tz._zulu_offset_minutes;
 	int to_offset = to_tz._zulu_offset_minutes;
 
-	// Adjust the offsets by daylight savings...
+	// Adjust the offsets by daylight savings.
 
 	int dsflag = from_tz._dsflag;
 	if ( (dsflag == -1) && (from_date != null) ) {
-		// Need to use the date to determine the DS flag on the fly...
+		// Need to use the date to determine the DS flag on the fly.
 		dsflag = calculateDSOffsetMinutes ( from_tz, from_date );
 	}
 	if ( dsflag == 1 ) {
@@ -415,7 +404,7 @@ throws Exception
 
 	dsflag = to_tz._dsflag;
 	if ( (dsflag == -1) && (from_date != null) ) {
-		// Need to use the date to determine the DS flag on the fly...
+		// Need to use the date to determine the DS flag on the fly.
 		dsflag = calculateDSOffsetMinutes ( to_tz, from_date );
 	}
 	if ( dsflag == 1 ) {
@@ -428,8 +417,7 @@ throws Exception
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 100, "TZ.calculateDSOffsetMinutes",
-		"Offset from " + from_tz_abbr + " -> " + to_tz_abbr + " is " +
-		diff + " minutes." );
+		"Offset from " + from_tz_abbr + " -> " + to_tz_abbr + " is " + diff + " minutes." );
 	}
 
 	return diff;
@@ -440,8 +428,8 @@ Clone the time series.  All primitive data are copied by the base class clone().
 A deep copy is returned.
 @return a copy of the TZ.
 */
-public Object clone()
-{	try {	TZ time_zone = (TZ)super.clone();
+public Object clone() {
+	try {	TZ time_zone = (TZ)super.clone();
 		return time_zone;
 	}
 	catch ( CloneNotSupportedException e ) {
@@ -451,15 +439,15 @@ public Object clone()
 }
 
 /**
-Determine whether time zone instances are equal.  The zulu offset, daylight
-savings flag, and daylight savings offset are checked (it is possible that a
+Determine whether time zone instances are equal.
+The zulu offset, daylight savings flag, and daylight savings offset are checked (it is possible that a
 time zone has more than one abbreviation, but if the numerical data are equal,
 the time zones are equivalent.  The abbreviation is not checked.
 @return true if the time zone object equals the instance.
 @param tz Instance of another time zone.
 */
-public boolean equals ( TZ tz )
-{	if ( 	(_zulu_offset_minutes == tz._zulu_offset_minutes) && 
+public boolean equals ( TZ tz ) {
+	if ( 	(_zulu_offset_minutes == tz._zulu_offset_minutes) &&
 		(_dsflag == tz._dsflag) &&
 		(_ds_offset_minutes == tz._ds_offset_minutes) ){
 		return true;
@@ -471,19 +459,19 @@ public boolean equals ( TZ tz )
 Return the time zone abbreviation.
 @return Time zone abbreviation.
 */
-public String getAbbreviation()
-{	return _abbreviation;
+public String getAbbreviation() {
+	return _abbreviation;
 }
 
 /**
-Return the internal TZData Vector position given an abbreviation.  A null
-string abbreviation is treated like an empty string (Zulu time).
+Return the internal TZData Vector position given an abbreviation.
+A null string abbreviation is treated like an empty string (Zulu time).
 @return The array position, or -1 if the abbreviation is not found.
 @param abbr Time zone abbreviation.
 */
-private static int getDefinedDataPosition ( String abbr )
-{	if ( abbr == null ) {
-		// Treat like no time zone...
+private static int getDefinedDataPosition ( String abbr ) {
+	if ( abbr == null ) {
+		// Treat like no time zone.
 		abbr = "";
 	}
 
@@ -507,25 +495,18 @@ Return the time zone description given an abbreviation.
 @exception Exception if the time zone cannot be determined.
 */
 public static String getDefinedDescription ( String abbr )
-throws Exception
-{	if ( abbr == null ){
-		Message.printWarning( 20, "TZ.getDefinedDescription",
-		"Incoming abbreviation is null, cannot continue." );
-		throw new Exception (
-		"Unable to look up time zone description for \"" +
-		abbr + "\"" );
+throws Exception {
+	if ( abbr == null ){
+		Message.printWarning( 20, "TZ.getDefinedDescription", "Incoming abbreviation is null, cannot continue." );
+		throw new Exception ( "Unable to look up time zone description for \"" + abbr + "\"" );
 	}
 
 	int pos = getDefinedDataPosition(abbr);
 	if ( pos < 0 ) {
 		if ( Message.isDebugOn ) {
-			Message.printWarning( 20,
-			"TZ.getDefinedDescription",
-			"Zone \"" + abbr + 
-			"\" is not found in look-up list" );
+			Message.printWarning( 20, "TZ.getDefinedDescription", "Zone \"" + abbr + "\" is not found in look-up list" );
 		}
-		throw new Exception (
-		"Unable to look up time zone description for \"" +
+		throw new Exception ( "Unable to look up time zone description for \"" +
 		abbr + "\"" );
 	}
 	return ((TZ)TZData.get(pos))._description;
@@ -538,25 +519,18 @@ Return the daylight savings flag for a time zone abbreviation.
 @exception Exception if the time zone cannot be determined.
 */
 public static int getDefinedDSFlag ( String abbr )
-throws Exception
-{	if( abbr == null ){
-		Message.printWarning( 20, "TZ.getDefinedDSFlag",
-		"Incoming abbreviation is null, cannot continue." );
-		throw new Exception (
-		"Unable to look up daylight savings flag for \"" +
-		abbr + "\"" );
+throws Exception {
+	if( abbr == null ){
+		Message.printWarning( 20, "TZ.getDefinedDSFlag", "Incoming abbreviation is null, cannot continue." );
+		throw new Exception ( "Unable to look up daylight savings flag for \"" + abbr + "\"" );
 	}
 
 	int pos = getDefinedDataPosition(abbr);
 	if ( pos < 0 ) {
 		if ( Message.isDebugOn ) {
-			Message.printWarning( 20, "TZ.getDefinedDSFlag",
-			"Zone \"" + abbr +
-			"\" is not found in look-up list.");
+			Message.printWarning( 20, "TZ.getDefinedDSFlag", "Zone \"" + abbr + "\" is not found in look-up list.");
 		}
-		throw new Exception (
-		"Unable to look up daylight savings flag for \"" +
-		abbr + "\"" );
+		throw new Exception ( "Unable to look up daylight savings flag for \"" + abbr + "\"" );
 	}
 	return ((TZ)TZData.get(pos))._dsflag;
 }
@@ -568,25 +542,18 @@ Return the daylight savings offset for a time zone abbreviation.
 @exception Exception if the time zone cannot be determined.
 */
 public static int getDefinedDSOffsetMinutes ( String abbr )
-throws Exception
-{	if( abbr == null ){
-		Message.printWarning( 20, "TZ.getDefinedDSOffsetMinutes",
-		"Incoming abbreviation is null, cannot continue." );
-		throw new Exception (
-		"Unable to look up daylight savings flag for \"" +
-		abbr + "\"" );
+throws Exception {
+	if( abbr == null ){
+		Message.printWarning( 20, "TZ.getDefinedDSOffsetMinutes", "Incoming abbreviation is null, cannot continue." );
+		throw new Exception ( "Unable to look up daylight savings flag for \"" + abbr + "\"" );
 	}
 
 	int pos = getDefinedDataPosition(abbr);
 	if ( pos < 0 ) {
 		if ( Message.isDebugOn ) {
-			Message.printWarning( 20,
-			"TZ.getDefinedDSOffsetMinutes", "Zone \"" + abbr +
-			"\" is not found in look-up list");
+			Message.printWarning( 20, "TZ.getDefinedDSOffsetMinutes", "Zone \"" + abbr + "\" is not found in look-up list");
 		}
-		throw new Exception (
-		"Unable to look up daylight savings offset for \"" +
-		abbr + "\"" );
+		throw new Exception ( "Unable to look up daylight savings offset for \"" + abbr + "\"" );
 	}
 	return ((TZ)TZData.get(pos))._ds_offset_minutes;
 }
@@ -595,8 +562,8 @@ throws Exception
 Return the list of defined time zones as TZ.
 @return The list of defined time zone data.
 */
-public static List<TZ> getDefinedTimeZones()
-{	return TZData;
+public static List<TZ> getDefinedTimeZones() {
+	return TZData;
 }
 
 /**
@@ -606,24 +573,18 @@ Return the defined time zone given an abbreviation.
 @exception Exception if the time zone cannot be determined.
 */
 public static TZ getDefinedTZ ( String abbr )
-throws Exception
-{	if( abbr == null ){
-		Message.printWarning( 20, "TZ.getDefinedTZ ",
-		"Incoming abbreviation is null, cannot continue." );
-		throw new Exception (
-		"Unable to look up time zone number for \"" +
-		abbr + "\"" );
+throws Exception {
+	if( abbr == null ){
+		Message.printWarning( 20, "TZ.getDefinedTZ ", "Incoming abbreviation is null, cannot continue." );
+		throw new Exception ( "Unable to look up time zone number for \"" + abbr + "\"" );
 	}
 
 	int pos = getDefinedDataPosition(abbr);
 	if ( pos < 0 ) {
 		if ( Message.isDebugOn ) {
-			Message.printWarning( 20,
-			"TZ.getDefinedTZ", "Zone \"" + abbr + 
-			"\" is not found in look-up list." );
+			Message.printWarning( 20, "TZ.getDefinedTZ", "Zone \"" + abbr + "\" is not found in look-up list." );
 		}
-		throw new Exception (
-		"Unable to look up time zone for \"" + abbr + "\"" );
+		throw new Exception ( "Unable to look up time zone for \"" + abbr + "\"" );
 	}
 	return (TZ)TZData.get(pos);
 }
@@ -635,26 +596,18 @@ Return the time zone offset given an abbreviation.
 @exception Exception if the time zone cannot be determined.
 */
 public static int getDefinedZuluOffsetMinutes ( String abbr )
-throws Exception
-{	if( abbr == null ){
-		Message.printWarning( 20, "TZ.getDefinedZuluOffsetMinutes ",
-		"Incoming abbreviation is null, cannot continue." );
-		throw new Exception (
-		"Unable to look up time zone number for \"" +
-		abbr + "\"" );
+throws Exception {
+	if( abbr == null ) {
+		Message.printWarning( 20, "TZ.getDefinedZuluOffsetMinutes ", "Incoming abbreviation is null, cannot continue." );
+		throw new Exception ( "Unable to look up time zone number for \"" + abbr + "\"" );
 	}
 
 	int pos = getDefinedDataPosition(abbr);
 	if ( pos < 0 ) {
 		if ( Message.isDebugOn ) {
-			Message.printWarning( 20,
-			"TZ.getDefinedZuluOffsetMinutes ",
-			"Zone \"" + abbr + 
-			"\" is not found in look-up list." );
+			Message.printWarning( 20, "TZ.getDefinedZuluOffsetMinutes ", "Zone \"" + abbr + "\" is not found in look-up list." );
 		}
-		throw new Exception (
-		"Unable to look up time zone number for \"" +
-		abbr + "\"" );
+		throw new Exception ( "Unable to look up time zone number for \"" + abbr + "\"" );
 	}
 	return ((TZ)TZData.get(pos))._zulu_offset_minutes;
 }
@@ -663,52 +616,47 @@ throws Exception
 Return the time zone description.
 @return Time zone description.
 */
-public String getDescription()
-{	return _description;	
+public String getDescription() {
+	return _description;
 }
 
 /**
 Return the daylight savings flag.
 @return Daylight savings flag.
 */
-public int getDSFlag()
-{	return _dsflag;
+public int getDSFlag() {
+	return _dsflag;
 }
 
 /**
 Return the daylight savings offset from standard time, in minutes.
 @return Daylight savings offset.
 */
-public int getDSOffsetMinutes()
-{	return _ds_offset_minutes;
+public int getDSOffsetMinutes() {
+	return _ds_offset_minutes;
 }
 
 /**
-Return a list of defined time zone data that match the time zone for
-the specified offset and daylight savings flag.
+Return a list of defined time zone data that match the time zone for the specified offset and daylight savings flag.
 @return Matching time zones, or null if none are found.
-@param zulu_offset_minutes Offset in minutes between zulu time and the standard
-time zone of interest.
-@param dsflag If 1, search for time zones where daylight savings is in
-effect.  For example, if searching for MDT (Mountain Daylight Time), pass true
-and pass -7 for zulu_offset_minutes (the offset for MST).
+@param zulu_offset_minutes Offset in minutes between zulu time and the standard time zone of interest.
+@param dsflag If 1, search for time zones where daylight savings is in effect.
+For example, if searching for MDT (Mountain Daylight Time), pass true and pass -7 for zulu_offset_minutes (the offset for MST).
 If 0, search for time zones where daylight savings is not in effect.
 If -1, search for the generic time zone that can be used to represent daylight
-savings or standard time, depending on the time of the year (it is not
-recommended to use this value unless specifically looking for generic
-time zones, for example to display as a list of choices).
+savings or standard time, depending on the time of the year
+(it is not recommended to use this value unless specifically looking for generic time zones, for example to display as a list of choices).
 @exception Exception if the time zone cannot be determined.
 */
 public static List<TZ> getMatchingDefinedTZ ( int zulu_offset_minutes, int dsflag )
-throws Exception
-{	List<TZ> matches = new ArrayList<TZ>();
+throws Exception {
+	List<TZ> matches = new ArrayList<TZ>();
 	int size = TZData.size();
 	TZ tz2 = null;
 	for ( int i = 0; i < size; i++ ) {
 		tz2 = (TZ)TZData.get(i);
-		if (	(tz2._zulu_offset_minutes == zulu_offset_minutes) &&
-			(tz2._dsflag == dsflag) ) {
-			// Time zones match...
+		if ( (tz2._zulu_offset_minutes == zulu_offset_minutes) && (tz2._dsflag == dsflag) ) {
+			// Time zones match.
 			matches.add ( tz2 );
 		}
 	}
@@ -719,23 +667,22 @@ throws Exception
 }
 
 /**
-Return a list of defined time zone data that match the time zone for
-the specified abbreviation.  The comparison is done on the data for the given
-time zone, not just the string.
+Return a list of defined time zone data that match the time zone for the specified abbreviation.
+The comparison is done on the data for the given time zone, not just the string.
 @return Matching time zones, or null if none are found.
 @param abbr Time zone abbreviation.
 @param include_self If true, include the original time zone.  If false, do not include.
 @exception Exception if the time zone cannot be determined.
 */
 public static List<TZ> getMatchingDefinedTZ ( String abbr, boolean include_self )
-throws Exception
-{	TZ tz = getDefinedTZ ( abbr );
-	List<TZ> matches = new ArrayList<TZ>();
+throws Exception {
+	TZ tz = getDefinedTZ ( abbr );
+	List<TZ> matches = new ArrayList<>();
 	int size = TZData.size();
 	TZ tz2 = null;
 	for ( int i = 0; i < size; i++ ) {
 		tz2 = (TZ)TZData.get(i);
-		// Comparison is done on data, not the abbreviation...
+		// Comparison is done on data, not the abbreviation.
 		if ( tz2.equals(tz) ) {
 			if ( include_self || !tz.getAbbreviation().equalsIgnoreCase(tz2.getAbbreviation()) ) {
 				matches.add ( tz2 );
@@ -752,15 +699,15 @@ throws Exception
 Return the offset of standard time from zulu time, in minutes.
 @return the offset of standard time from zulu time, in minutes.
 */
-public int getZuluOffsetMinutes()
-{	return _zulu_offset_minutes;
+public int getZuluOffsetMinutes() {
+	return _zulu_offset_minutes;
 }
 
 /**
 Initialize instance data.
 */
-private void init()
-{	_zulu_offset_minutes = 0;
+private void init() {
+	_zulu_offset_minutes = 0;
 	_dsflag	= 0;
 	_ds_offset_minutes = 0;
 	_abbreviation = "";
@@ -768,14 +715,13 @@ private void init()
 }
 
 /**
-Add a time zone to the defined time zones, at the specific position.  This is
-typically used to add a time zone at position 0.
-If there is a conflict in the abbreviation (another time zone with
-the same abbreviation), the first time zone found will be used.
+Add a time zone to the defined time zones, at the specific position.
+This is typically used to add a time zone at position 0.
+If there is a conflict in the abbreviation (another time zone with the same abbreviation), the first time zone found will be used.
 @param tz Fully-defined TZ to add to the list of defined time zones.
 */
-public static void insertTimeZoneAt ( TZ tz, int index )
-{	TZData.add ( index, tz );
+public static void insertTimeZoneAt ( TZ tz, int index ) {
+	TZData.add ( index, tz );
 }
 
 /**
@@ -783,9 +729,8 @@ Return a string representation of the time zone which is
 "abbreviation,description,zulu_offset_minutes,dsflag,ds_offset_minutes)".
 @return A string representation of the time zone.
 */
-public String toString()
-{	return _abbreviation + "," + _description + "," + _zulu_offset_minutes +
-		"," + _dsflag + "," + _ds_offset_minutes;
+public String toString() {
+	return _abbreviation + "," + _description + "," + _zulu_offset_minutes + "," + _dsflag + "," + _ds_offset_minutes;
 }
 
-} // End TZ
+}

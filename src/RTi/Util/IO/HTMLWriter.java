@@ -1543,6 +1543,7 @@ throws Exception {
 /**
 @deprecated use closeFile() instead
 */
+@Deprecated
 public void endHTML()
 throws Exception {
 	closeFile();

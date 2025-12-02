@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -959,6 +959,7 @@ Return the drive letter for a path.
 no drive is found it the start of the path.
 @deprecated come back to this to resolve UNC issues.  TODO JTS - 2006-02-16
 */
+@Deprecated
 public static String getDrive ( String path ) {
 	if ( isUNIXMachine() ) {
 		return "";
@@ -1052,6 +1053,7 @@ public static String getFileExtension ( String file ) {
 /**
 @deprecated Use version that operates on lists.
 */
+@Deprecated
 public static FileHeader getFileHeader ( String filename, String[] commentIndicators,
 		String[] ignoredCommentIndicators, int flags ) {
 	List<String> commentIndicatorList = null;
@@ -2457,6 +2459,7 @@ initialize() is called automatically from this method.
 @deprecated Use setApplet()
 @see #setApplet
 */
+@Deprecated
 public static void isApplet ( boolean is_applet ) {
 	int dl = 1;
 
@@ -2707,6 +2710,7 @@ On UNIX/Linux, a web browser is always used.
 @param url URL to open.
 @deprecated use the java.awt.Desktop class
 */
+@Deprecated
 public static void openURL(String url) {
     try {
         Desktop desktop = Desktop.getDesktop();
@@ -2848,6 +2852,7 @@ throws IOException {
 @param flags
 @return PrintWriter to allow additional writing to the file.
 */
+@Deprecated
 public static PrintWriter processFileHeaders ( String oldFile, String newFile,
 		String [] newComments, String [] commentIndicators, String [] ignoredCommentIndicators, int flags ) {
 	List<String> newCommentList = null;
@@ -3006,6 +3011,7 @@ See the UrlReader class as a more robust option.
 @param urlString the URL to read from.
 @deprecated use the UrlReader class.
 */
+@Deprecated
 public static String readFromURL ( String urlString )
 throws MalformedURLException, IOException {
     URL url = new URL ( urlString );
@@ -3184,6 +3190,7 @@ command parsing code (e.g. RTi.HydroSolutions.DSSApp.parseCommands()).
 @see #getProgramCommandFile
 @deprecated utilize command processors to get comments suitable for files
 */
+@Deprecated
 public static void setProgramCommandFile ( String command_file ) {
 	if ( !_initialized ) {
 		initialize ();

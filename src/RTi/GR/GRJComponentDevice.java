@@ -326,6 +326,7 @@ Unsure of just what this is meant to do.
 If so, evaluate what they're doing, javadoc, and remove the deprecation.
 Alternately, REVISIT (JTS - 2006-05-23) in a few months and if it's still here, remove.
 */
+@Deprecated
 public void forceGraphics(Graphics g) {
 	_graphics = (Graphics2D)g;
 }

@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2025 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -68,14 +68,13 @@ for ( data = tsi.next(); data != null; data = tsi.next() ) {
 	value = data.getData();
 }
 </pre>
-The previous() method can be substituted for next() if iteration is to occur
-backwards (in this case the date/times in the constructor are still specified with the earliest date/time first).
+The previous() method can be substituted for next() if iteration is to occur backwards
+(in this case the date/times in the constructor are still specified with the earliest date/time first).
 
 Calls to next() and previous() can be mixed to a degree, for example to navigate over leap years.
 However, the iterator is intended to traverse primarily in one direction until the end is reached,
 at which point the end of iteration is reached and missing data will be returned in subsequent calls to next() and previous().
-Use the hasNext() and hasPrevious() methods can be used to determine if more data are available before
-calling next() and previous().
+Use the hasNext() and hasPrevious() methods can be used to determine if more data are available before calling next() and previous().
 
 Because irregular time series do not have data allocated outside the period,
 repeated calls to next() when at the end of data will return missing data and the corresponding date/time will be null.
@@ -691,6 +690,7 @@ If true, then the iterator has processed the last value in the requested period.
 the current data pointer is pass either end of the iteration period
 @return the current state of isLastDateProcessed flag for the iterator.
 */
+@Deprecated
 public boolean isIterationComplete() {
     //return _lastDateProcessed;
     return this._isIterationComplete;
