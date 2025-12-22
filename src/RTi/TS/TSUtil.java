@@ -61,6 +61,12 @@ Putting the code here is almost as efficient.  Most of these classes accept a TS
 public abstract class TSUtil
 {
 
+	/**
+	 * Used with 'DescriptionSuffix' to modify the time series description,
+	 * for example when filling with a constant.
+	 */
+	public final static String AUTO = "Auto";
+	
 /**
 Used with getPeriodFromTS, and getPeriodFromLimits and others.  Find the maximum period.
 */
@@ -3523,9 +3529,9 @@ Fill missing data in the time series with a constant value.
 <tr>
 <td><b>DescriptionSuffix</b></td>
 <td>
-A string to append to the description (specify as a null string to append ", fill constant").
+A string to append to the description (specify as TSUtil.AUTO to append ", fill constant").
 </td>
-<td>null will cause the default to be used: ", fill w/ X", where X is the constant used for the fill.
+<td>null will cause the default to be used: ", fill w/X", where X is the constant used for the fill.
 </td>
 </tr>
 
@@ -3563,10 +3569,11 @@ throws Exception {
 	// Get the properties.
 
 	if ( props == null ) {
+		// Create an empty list to simplfiy the logic below.
 		props = new PropList ( "fillConstant" );
 	}
-	// TODO SAM 2007-03-01 Evaluate use.
-	//String DescriptionSuffix = props.getValue ( "DescriptionSuffix" );
+	// The description suffix is allowed to be null or empty.
+	String descriptionSuffix = props.getValue ( "DescriptionSuffix" );
 
 	String FillFlag = props.getValue ( "FillFlag" );
 	boolean FillFlag_boolean = false;	// Indicate whether to use flag.
@@ -3640,7 +3647,18 @@ throws Exception {
 	// Fill in the genesis information.
 
 	if ( nfilled > 0 ) {
-		ts.setDescription ( ts.getDescription() + ", fill w/ " + StringUtil.formatString(value,"%.3f") );
+		if ( (descriptionSuffix == null) || descriptionSuffix.isEmpty() ) {
+			// Don't modify the description:
+			// - prior to TSTool 15.2.0, this behaved like AUTO
+		}
+		else if ( descriptionSuffix.equalsIgnoreCase(TSUtil.AUTO) ) {
+			// Append to the description using the automatic suffix.
+			ts.setDescription ( ts.getDescription() + ", fill w/ " + StringUtil.formatString(value,"%.3f") );
+		}
+		else {
+			// Append the supplied suffix.
+			ts.setDescription ( ts.getDescription() + descriptionSuffix );
+		}
 		if ( FillFlag_boolean ) {
 			ts.addToGenesis ( "Filled missing data " + start + " to " +
 				end + " using constant " + value + ", flag \"" + FillFlag + "\" (" + nfilled + " values filled)." );
@@ -3668,9 +3686,9 @@ This can be used, for example, to fill an entire period with a repetitive monthl
 @param start_date Date to start assignment.
 @param end_date Date to stop assignment.
 @param values Data values to fill time series (the first value is for January, the last is for December).
-@param descriptionSuffix a string to append to the description (specify as a null string to append default ", fill w/ mon avg").
+@param descriptionSuffix a string to append to the description (specify as TSUtil.AUTO to append the default ", fill w/ mon avg").
 @param fillFlag a string to use as the data flag when a value is filled.  Null will result in no flag being used.
-Specify as "auto" to use the month abbreviation and "Avg".
+Specify as TSUtil.AUTO to use the month abbreviation and "Avg".
 @param fillFlagDesc the description of the fill flag.  If specified, append to the month abbreviation.
 @exception if there is an error performing the fill.
 */
@@ -3694,7 +3712,7 @@ throws Exception {
 		// Define the fill flags to use for each month.
 		fillFlagByMonth = new String[12];
 		for ( int i = 0; i < 12; i++ ) {
-		    if ( fillFlag.equalsIgnoreCase("auto") ) {
+		    if ( fillFlag.equalsIgnoreCase(TSUtil.AUTO) ) {
 		        fillFlagByMonth[i] = TimeUtil.monthAbbreviation(i + 1) + "Avg";
 		    }
 		    else {
@@ -3801,8 +3819,8 @@ throws Exception {
 		    }
 		}
 	}
-    if ( (fillFlagByMonth != null) && !fillFlag.equalsIgnoreCase("auto") ) {
-        // One flag for entire time series since not "auto".
+    if ( (fillFlagByMonth != null) && !fillFlag.equalsIgnoreCase(TSUtil.AUTO) ) {
+        // One flag for entire time series since not AUTO.
         if ( (fillFlagDescription != null) && (fillFlagDescription.length() > 0) ) {
             ts.addDataFlagMetadata(new TSDataFlagMetadata( fillFlagByMonth[0], fillFlagDescription ) );
         }
@@ -3811,13 +3829,19 @@ throws Exception {
             " missing value" + StringUtil.pluralS(nfilledTotal) + " using historical monthly average values."));
         }
     }
-	if ( descriptionSuffix == null ) {
-		if ( nfilledTotal > 0 ) {
+	if ( nfilledTotal > 0 ) {
+		if ( (descriptionSuffix == null) || descriptionSuffix.isEmpty() ) {
+			// Don't modify the description:
+			// - prior to TSTool 15.2.0, this behaved like AUTO
+		}
+		else if ( descriptionSuffix.equalsIgnoreCase(TSUtil.AUTO) ) {
+			// Append to the description using the automatic suffix.
 			ts.setDescription ( ts.getDescription() + ", fill w/ mon avg" );
 		}
-	}
-	else {
-		ts.setDescription ( ts.getDescription() + descriptionSuffix );
+		else {
+			// Append the supplied suffix.
+			ts.setDescription ( ts.getDescription() + descriptionSuffix );
+		}
 	}
 	return nfilledTotal;
 }
