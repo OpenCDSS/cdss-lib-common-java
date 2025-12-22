@@ -43,6 +43,7 @@ Data table on which to perform math.
 private DataTable __table = null;
 
 /**
+ * 
 Filter to include rows.
 */
 private StringDictionary __columnIncludeFilters = null;
@@ -71,6 +72,7 @@ Get the list of operators that can be used.
 public static List<DataTableStringOperatorType> getOperatorChoices() {
     List<DataTableStringOperatorType> choices = new ArrayList<>();
     choices.add ( DataTableStringOperatorType.APPEND );
+    choices.add ( DataTableStringOperatorType.COPY );
     // TODO smalers 2022-11-30 would be nice to extract using a wildcard rather than substring with positions.
     // choices.add ( DataTableStringOperatorType.EXTRACT );
     choices.add ( DataTableStringOperatorType.PREPEND );
@@ -79,11 +81,12 @@ public static List<DataTableStringOperatorType> getOperatorChoices() {
     choices.add ( DataTableStringOperatorType.SPLIT );
     choices.add ( DataTableStringOperatorType.SUBSTRING );
     // TODO SAM 2015-04-29 Need to enable boolean
-    //choices.add ( DataTableStringOperatorType.TO_BOOLEAN );
+    choices.add ( DataTableStringOperatorType.TO_BOOLEAN );
     choices.add ( DataTableStringOperatorType.TO_DATE );
     choices.add ( DataTableStringOperatorType.TO_DATE_TIME );
     choices.add ( DataTableStringOperatorType.TO_DOUBLE );
     choices.add ( DataTableStringOperatorType.TO_INTEGER );
+    choices.add ( DataTableStringOperatorType.TO_LONG );
     choices.add ( DataTableStringOperatorType.TO_LOWERCASE );
     choices.add ( DataTableStringOperatorType.TO_MIXEDCASE );
     choices.add ( DataTableStringOperatorType.TO_UPPERCASE );
@@ -110,11 +113,16 @@ Perform a string manipulation.
 @param inputColumn2 the name of the second column to use as input (if input2 is not specified), or null if not used
 @param inputValue2 the constant input to use as input (if inputColumn2 is not specified), or null if not used
 @param inputValue3 additional constant input to use as input, or null if not used
+@param useEmptyStringForNullInput whether to use an empty string if the table input is null
 @param outputColumn the name of the output column
 @param problems a list of strings indicating problems during processing
 */
-public void manipulate ( String inputColumn1, DataTableStringOperatorType operator,
-    String inputColumn2, String inputValue2, String inputValue3, String outputColumn, List<String> problems ) {
+public void manipulate (
+	String inputColumn1,
+	DataTableStringOperatorType operator,
+    String inputColumn2, String inputValue2, String inputValue3,
+    boolean useEmptyStringForNullInput, String outputColumn,
+    List<String> problems ) {
     String routine = getClass().getSimpleName() + ".manipulate" ;
 	// Construct the filter.
 	DataTableFilter filter = null;
@@ -150,12 +158,14 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
         Message.printStatus(2, routine, "Output column \"" + outputColumn + "\" not found in table \"" +
             __table.getTableID() + "\" - automatically adding." );
         // Automatically add to the table, initialize with null.
-        // TODO SAM 2015-04-29 Need to enable Boolean.
-        //if ( operator == DataTableStringOperatorType.TO_BOOLEAN ) {
-        //    __table.addField(new TableField(TableField.DATA_TYPE_BOOLEAN,outputColumn,-1,-1), null );
-        //}
-        if ( operator == DataTableStringOperatorType.TO_INTEGER ) {
+        if ( operator == DataTableStringOperatorType.TO_BOOLEAN ) {
+            __table.addField(new TableField(TableField.DATA_TYPE_BOOLEAN,outputColumn,-1,-1), null );
+        }
+        else if ( operator == DataTableStringOperatorType.TO_INTEGER ) {
             __table.addField(new TableField(TableField.DATA_TYPE_INT,outputColumn,-1,-1), null );
+        }
+        else if ( operator == DataTableStringOperatorType.TO_LONG ) {
+            __table.addField(new TableField(TableField.DATA_TYPE_LONG,outputColumn,-1,-1), null );
         }
         else if ( (operator == DataTableStringOperatorType.TO_DATE) ||
             (operator == DataTableStringOperatorType.TO_DATE_TIME) ) {
@@ -171,6 +181,7 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
         }
         try {
             outputColumnNum = __table.getFieldIndex(outputColumn);
+            Message.printStatus ( 2, routine, "Output column \"" + outputColumn + "\" added in position [" + outputColumnNum + "]." );
         }
         catch ( Exception e2 ) {
             // Should not happen.
@@ -249,6 +260,9 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
         // Get the input values.
         try {
             val = __table.getFieldValue(irec, input1ColumnNum);
+            if ( (val == null) && useEmptyStringForNullInput ) {
+            	val = "";
+            }
             if ( val == null ) {
             	input1Val = null;
             }
@@ -267,6 +281,9 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             else if ( input2ColumnNum >= 0 ) {
             	// Constant value was not given so get from column.
                 val = __table.getFieldValue(irec, input2ColumnNum);
+                if ( (val == null) && useEmptyStringForNullInput ) {
+                	val = "";
+                }
                 if ( val == null ) {
                 	input2Val = null;
                 }
@@ -294,7 +311,12 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             }
             else {
                 outputVal = input1Val + input2Val;
+                Message.printStatus(2, routine, "Output value is \"" + outputVal + "\".");
             }
+        }
+        else if ( operator == DataTableStringOperatorType.COPY ) {
+        	// Output is the same as input.
+            outputVal = input1Val;
         }
         else if ( operator == DataTableStringOperatorType.PREPEND ) {
             if ( input2Val == null ) {
@@ -320,6 +342,9 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
         		// Get the value of the output column before manipulation.
         		try {
         			Object o = __table.getFieldValue(irec, outputColumnNum);
+        			if ( (o == null) && useEmptyStringForNullInput ) {
+        				o = "";
+        			}
         			if ( o == null ) {
         				outputVal = null;
         			}
@@ -475,6 +500,24 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             	}
             }
         }
+        else if ( operator == DataTableStringOperatorType.TO_BOOLEAN ) {
+        	// First try to convert the string to a Boolean:
+        	// - don't use built-in Boolean.parseBoolean() because it does not handle 0 or 1
+           	if ( input1Val == null ) {
+           		// Why is this dead code?
+           		outputVal = null;
+           	}
+           	else if ( input1Val.equalsIgnoreCase("true") || input1Val.equals("1") ) {
+           		outputVal = Boolean.TRUE;
+           	}
+           	else if ( input1Val.equalsIgnoreCase("false") || input1Val.equals("0") ) {
+           		outputVal = Boolean.FALSE;
+           	}
+           	else {
+           		// Not a recognized boolean.
+           		outputVal = null;
+            }
+        }
         else if ( (operator == DataTableStringOperatorType.TO_DATE) ||
             (operator == DataTableStringOperatorType.TO_DATE_TIME)) {
             try {
@@ -497,16 +540,33 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             }
         }
         else if ( operator == DataTableStringOperatorType.TO_INTEGER ) {
-        	// First try to convert the string to an integer.
+        	// First try to convert the string to an Integer.
             try {
                 outputVal = Integer.parseInt(input1Val);
             }
             catch ( NumberFormatException e ) {
-            	// If the above fails, try converting to a Double.
+            	// If the above fails, try converting to a Double and then rounding to an Integer.
             	try {
             		Double outputDouble = Double.parseDouble(input1Val);
             		// intValue may truncate but want to round in the normal way.
             		outputVal = Integer.valueOf((int)Math.round(outputDouble));
+            	}
+            	catch ( NumberFormatException e2 ) {
+            		outputVal = null;
+            	}
+            }
+        }
+        else if ( operator == DataTableStringOperatorType.TO_LONG ) {
+        	// First try to convert the string to a Long.
+            try {
+                outputVal = Long.parseLong(input1Val);
+            }
+            catch ( NumberFormatException e ) {
+            	// If the above fails, try converting to a Double and then rounding to a Long.
+            	try {
+            		Double outputDouble = Double.parseDouble(input1Val);
+            		// intValue may truncate but want to round in the normal way.
+            		outputVal = Long.valueOf((int)Math.round(outputDouble));
             	}
             	catch ( NumberFormatException e2 ) {
             		outputVal = null;
@@ -544,7 +604,15 @@ public void manipulate ( String inputColumn1, DataTableStringOperatorType operat
             __table.setFieldValue(irec, outputColumnNum, outputVal );
         }
         catch ( Exception e ) {
-            problems.add ( "Error setting value (" + e + ")." );
+            String message = "Error setting value in row [" + irec + "], column [" + outputColumnNum + "] (" + e + ").";
+            problems.add ( message );
+            if ( problems.size() <= 10 ) {
+            	Message.printWarning(3, routine, message);
+            	Message.printWarning(3, routine, e);
+            }
+            if ( problems.size() == 10 ) {
+            	Message.printWarning(3, routine, "Only printing 10 exceptions.");
+            }
         }
         // Set the column width.
         if ( input1ColumnNum == outputColumnNum ) {

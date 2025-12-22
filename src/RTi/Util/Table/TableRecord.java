@@ -75,10 +75,10 @@ Arrays take less memory but require more memory manipulation if the array is res
 private boolean __useArray = true;
 
 /**
-Indicate how many values have been set in the record, needed because array may be sized but not populated.
-A value of -1 indicates that no columns have been populated.
+The maximum column index (0+) that has been set in the record, needed because array may be sized but not populated.
+A value of -1 indicates that the record array has not been created.
 */
-private int __colMax = -1;
+private int __colIndexMax = -1;
 
 /**
 Construct a new record (with no contents).
@@ -106,7 +106,7 @@ public TableRecord ( TableRecord rec ) {
 	// Copy primitives.
 	this.__dirty = rec.__dirty;
 	this.__useArray = rec.__useArray;
-	this.__colMax = rec.__colMax;
+	this.__colIndexMax = rec.__colIndexMax;
 	// Now clone the record array including the objects in the record.
 	if ( rec.__recordArray == null ) {
 		this.__recordArray = null;
@@ -141,10 +141,10 @@ Initialize the record.
 @param num Number of fields in the record (for memory purposes).
 */
 private void initialize(int num) {
-	__dirty = false;
-	if ( __useArray ) {
-	    __recordArray = new Object[num];
-	    __colMax = -1;
+	this.__dirty = false;
+	if ( this.__useArray ) {
+	    this.__recordArray = new Object[num];
+	    this.__colIndexMax = -1;
 	}
 	else {
 	    //__recordList = new ArrayList<Object>(num);
@@ -165,40 +165,40 @@ Add a field data value to the record.
 @param newElement Data object to add to record.
 */
 public void addFieldValue(int insertPos, Object newElement) {
-    if ( __useArray ) {
-        if ( (insertPos < 0) || (insertPos >= __recordArray.length) ) {
+    if ( this.__useArray ) {
+        if ( (insertPos < 0) || (insertPos >= this.__recordArray.length) ) {
             // Add at the end.
-            if ( __colMax == -1 ) {
+            if ( this.__colIndexMax == -1 ) {
                 // No array has been assigned.
-                __recordArray = new Object[1];
+                this.__recordArray = new Object[1];
             }
-            else if ( __colMax == (__recordArray.length - 1) ) {
+            else if ( this.__colIndexMax == (this.__recordArray.length - 1) ) {
                 // Have at least one column and need to increment the array size.
-                Object [] temp = __recordArray;
-                __recordArray = new Object[__recordArray.length + 1];
-                System.arraycopy(temp, 0, __recordArray, 0, temp.length);
+                Object [] temp = this.__recordArray;
+                __recordArray = new Object[this.__recordArray.length + 1];
+                System.arraycopy(temp, 0, this.__recordArray, 0, temp.length);
             }
-            ++__colMax;
-            __recordArray[__colMax] = newElement;
+            ++this.__colIndexMax;
+            __recordArray[this.__colIndexMax] = newElement;
         }
         else {
             // Insert at the desired position, have to do two array copies on either side.
-            Object [] temp = __recordArray;
-            __recordArray = new Object[__recordArray.length + 1];
+            Object [] temp = this.__recordArray;
+            __recordArray = new Object[this.__recordArray.length + 1];
             if ( insertPos > 0 ) {
                 // Copy the first part.
-                System.arraycopy(temp, 0, __recordArray, 0, insertPos );
+                System.arraycopy(temp, 0, this.__recordArray, 0, insertPos );
             }
             // Set the new value.
-            __recordArray[insertPos] = newElement;
+            this.__recordArray[insertPos] = newElement;
             // Copy the second part.
-            System.arraycopy(temp, insertPos, __recordArray, (insertPos + 1), (temp.length - insertPos) );
-            if ( insertPos > __colMax ) {
+            System.arraycopy(temp, insertPos, this.__recordArray, (insertPos + 1), (temp.length - insertPos) );
+            if ( insertPos > this.__colIndexMax ) {
                 // Assume inserted column has data.
-                __colMax = insertPos;
+                this.__colIndexMax = insertPos;
             }
             else {
-                ++__colMax;
+                ++this.__colIndexMax;
             }
         }
     }
@@ -209,24 +209,25 @@ public void addFieldValue(int insertPos, Object newElement) {
 
 /**
 Deletes a field's data value from the record, shifting all other values "left".
-@param fieldNum the number of the field to delete (0+).
+@param fieldIndex the number of the field to delete (0+).
 */
-public void deleteField(int fieldNum)
+public void deleteField(int fieldIndex)
 throws Exception {
-    if ( __useArray ) {
-        if (fieldNum < 0 || fieldNum > (__colMax) ) {
-            throw new Exception ("Field num " + fieldNum + " out of bounds.");
+    if ( this.__useArray ) {
+        if ( (fieldIndex < 0) || (fieldIndex > this.__colIndexMax) ) {
+            throw new Exception ("Column index [" + fieldIndex + "] is invalid (record has " +
+            	(this.__colIndexMax + 1) + " columns ([0] to [" + this.__colIndexMax + "])).");
         }
         // Set the internal object to null just to make sure the value does not mistakenly get used.
-        __recordArray[fieldNum] = null;
-        if ( fieldNum == (__recordArray.length - 1) ) {
+        this.__recordArray[fieldIndex] = null;
+        if ( fieldIndex == (this.__recordArray.length - 1) ) {
             // Removing the last value so don't need to do a shift.
         }
         else {
             // Copy the right-most objects one to the left.
-            System.arraycopy(__recordArray, (fieldNum + 1), __recordArray, fieldNum, (__recordArray.length - 1 - fieldNum) );
+            System.arraycopy(this.__recordArray, (fieldIndex + 1), this.__recordArray, fieldIndex, (this.__recordArray.length - 1 - fieldIndex) );
         }
-        --__colMax;
+        --this.__colIndexMax;
     }
     else {
         /*
@@ -251,12 +252,18 @@ throws Exception {
 	}
 	//if ( __useArray ) {
         if ( index < 0 ) {
-            throw new Exception ("Column index [" + index + "] is invalid.");
+            throw new Exception ("Column index [" + index + "] is invalid (record has " +
+            	(this.__colIndexMax + 1) + " columns ([0] to [" + this.__colIndexMax + "])).");
         }
-        if ( __colMax < index ) {
-            throw new Exception ("Column index [" + index + "] is invalid (record has " + __colMax + " columns)");
+        else if ( index > this.__colIndexMax ) {
+        	// Requested index is larger than the maximum column index.
+            throw new Exception ("Column index [" + index + "] is invalid (record has " +
+            	(this.__colIndexMax + 1) + " columns ([0] to [" + this.__colIndexMax + "])).");
         }
-        return __recordArray[index];
+        else {
+        	// Index is OK.
+        	return this.__recordArray[index];
+        }
 	//}
     /*
 	else {
@@ -279,11 +286,15 @@ throws Exception {
         Message.printDebug(20, "TableRecord.getFieldValue", "Getting index " + index);
     }
     Object o = null;
-    if ( __useArray ) {
-        if (__colMax < index) {
-            throw new Exception ("Column index [" + index + "] invalid (record has " + __colMax + " columns)");
+    if ( this.__useArray ) {
+        if ( index > this.__colIndexMax ) {
+            throw new Exception ("Column index [" + index + "] is invalid (record has " +
+            	(this.__colIndexMax + 1) + " columns ([0] to [" + this.__colIndexMax + "])).");
         }
-        o = __recordArray[index];
+        else {
+        	// Index is OK.
+        	o = this.__recordArray[index];
+        }
     }
     /*
     else {
@@ -307,7 +318,7 @@ Returns whether the record is dirty or not.
 @return whether the record is dirty or not.
 */
 public boolean getIsSelected() {
-	return __isSelected;
+	return this.__isSelected;
 }
 
 /**
@@ -316,7 +327,7 @@ Return the number of fields in the record.
 */
 public int getNumberOfFields() {
     //if ( __useArray ) {
-        return (__colMax + 1);
+        return (this.__colIndexMax + 1);
     //}
     //else {
         //return __recordList.size();
@@ -328,7 +339,7 @@ Returns whether the record is dirty or not.
 @return whether the record is dirty or not.
 */
 public boolean isDirty() {
-	return __dirty;
+	return this.__dirty;
 }
 
 /**
@@ -341,12 +352,15 @@ The number of available fields should be set in the constructor or use setNumber
 */
 public TableRecord setFieldValue(int col, Object contents)
 throws Exception {
-    if ( __useArray ) {
-        if ( col <= __colMax ) {
-            __recordArray[col] = contents;
+    if ( this.__useArray ) {
+        if ( col <= this.__colIndexMax ) {
+        	// Requested column index is within the array size.
+            this.__recordArray[col] = contents;
         }
         else {
-            throw new Exception("Column index [" + col + "] invalid (record has " + (__colMax + 1) + " columns)");
+        	// Requested column index is outside the array size.
+            throw new Exception ("Column index [" + col + "] is invalid (record has " +
+            	(this.__colIndexMax + 1) + " columns ([0] to [" + this.__colIndexMax + "])).");
         }
     }
     else {
@@ -367,7 +381,7 @@ Sets whether the table record is dirty or not.
 @param dirty whether the table record is dirty or not.
 */
 public void setDirty(boolean dirty) {
-	__dirty = dirty;
+	this.__dirty = dirty;
 }
 
 /**
@@ -375,7 +389,7 @@ Sets whether the table record is selected.
 @param isSelected whether the table record is selected.
 */
 public void setIsSelected(boolean isSelected) {
-	__isSelected = isSelected;
+	this.__isSelected = isSelected;
 }
 
 }
