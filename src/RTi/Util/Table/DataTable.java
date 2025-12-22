@@ -253,7 +253,7 @@ public int addField ( int insertPos, TableField tableField, Object initValue, Da
     if ( (insertPos < 0) || (insertPos >= _table_fields.size()) ) {
         // Add at the end.
     	if ( Message.isDebugOn ) {
-    		Message.printDebug(1, routine, "Adding table field \"" + tableField.getName() + "\" at end index=" + getNumberOfFields());
+    		Message.printDebug(1, routine, "Adding table field \"" + tableField.getName() + "\" after existing columns, index=" + getNumberOfFields());
     	}
         _table_fields.add ( tableField );
         addAtEnd = true;
@@ -261,9 +261,9 @@ public int addField ( int insertPos, TableField tableField, Object initValue, Da
     else {
         // Insert at the specified column location.
     	if ( Message.isDebugOn ) {
-    		Message.printDebug(1, routine, "Adding table field \"" + tableField.getName() + "\" at index=" + insertPos);
+    		Message.printDebug(1, routine, "Adding (inserting) table field \"" + tableField.getName() + "\" at index=" + insertPos);
     	}
-        _table_fields.add(insertPos,tableField);
+        _table_fields.add ( insertPos, tableField );
     }
     // Add value to each record in the table to be consistent with the field data.
 	int num = _table_records.size();
@@ -275,7 +275,16 @@ public int addField ( int insertPos, TableField tableField, Object initValue, Da
 		// These are ordered in the most likely types to optimize.
 		// TODO SAM 2014-05-04 Why are these broken out separately?
 		int dataType = tableField.getDataType();
-		if ( dataType == TableField.DATA_TYPE_STRING ) {
+		if ( dataType == TableField.DATA_TYPE_BOOLEAN ) {
+			// Initial function is not applicable.
+		    if ( addAtEnd ) {
+		        tableRecord.addFieldValue( initValue );
+		    }
+		    else {
+		        tableRecord.addFieldValue( insertPos, initValue );
+		    }
+		}
+		else if ( dataType == TableField.DATA_TYPE_STRING ) {
 			if ( initFunction != null ) {
 				if ( initFunction == DataTableFunctionType.ROW ) {
 					initValue = "" + (i + 1);
@@ -382,6 +391,16 @@ public int addField ( int insertPos, TableField tableField, Object initValue, Da
         }
         else if ( dataType == TableField.DATA_TYPE_DATETIME ) {
         	// Function not relevant.
+            if ( addAtEnd ) {
+                tableRecord.addFieldValue( initValue );
+            }
+            else {
+                tableRecord.addFieldValue( insertPos, initValue );
+            }
+        }
+        else {
+        	// No initial function, may be OK if the data type does not handle.
+        	Message.printWarning(3, routine, "Don't know how to add table filed type " + dataType + ". Setting to initial value.");
             if ( addAtEnd ) {
                 tableRecord.addFieldValue( initValue );
             }
@@ -1014,9 +1033,9 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
             }
         }
     }
-    
+
     // Get the distinct column numbers.
-    
+
     int [] distinctColumnNumbers = null;
     if ( (distinctColumns != null) && (distinctColumns.length > 0) ) {
         distinctColumnNumbers = new int[distinctColumns.length];
@@ -1102,7 +1121,7 @@ public DataTable createCopy ( DataTable table, String newTableID, String [] reqI
         // - default to true and set to false if filters don't match
         // - default of true works if no filters are used
         filterMatches = true;
-        
+
         // Check the include filters.
 
         if ( columnNumbersToFilter.length > 0 ) {
