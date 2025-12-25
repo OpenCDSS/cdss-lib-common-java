@@ -875,10 +875,23 @@ private int _interval_min = TimeInterval.YEAR;
 private boolean _showDrawingAreaOutline = false;
 
 /**
-Precision for x-axis date data.
-This is not private because TSViewGraphJFrame uses the precision for the mouse tracker.
+Precision for x-axis date data:
+<ul>
+  <li>this is used to determine labels for the x axis but not the mouse tracker</li>
+  <li>the value is set in computeXAxisDateTimePrecision()</li>
+</ul>
 */
-protected int _xaxis_date_precision;
+private int _xaxis_date_precision;
+
+/**
+Precision for x-axis tracker date data:
+<ul>
+  <li>this is used for the mouse tracker</li>
+  <li>the precision may be finer than _xaxis_date_precision, for example seconds or sub-second if axis is minutes</li>
+  <li>the value is set in computeXAxisDateTimePrecision()</li>
+</ul>
+*/
+private int xaxisDateTimePrecisionForTracker;
 
 /**
 DateTime format to use for bottom x-axis date data.
@@ -1166,12 +1179,13 @@ public TSGraph ( TSGraphJComponent dev, GRLimits drawlim_page, TSProduct tsprodu
 		this.rasterSymbolTable = createRasterSymbolTable ( this.__tslist );
 	}
 
+	// Determine the precision that will be used for the X axis.
 	if ( !this._is_reference_graph ) {
 		if ( Message.isDebugOn ) {
-			Message.printStatus(2, routine, this._gtype + "Calling computeXAxisDatePrecision()..." );
+			Message.printStatus(2, routine, this._gtype + "Calling computeXAxisDateTimePrecision()..." );
 		}
 	}
-	computeXAxisDatePrecision ();
+	computeXAxisDateTimePrecision ();
 }
 
 /**
@@ -3535,23 +3549,33 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 }
 
 /**
-Determine and set the precision for the X axis.
+Determine and set the precision for the X axis,
+which controls how axis labels are determined and formatted later.
+Also set the precision for the mouse tracking, which may be finer than the x-axis date/time precision.
 The precision is set to the most detailed time series data interval.
 Call this in the constructor so the precision can be used in setDrawingLimits().
 This information is not used for scatter plots or other plots that don't use date axes.
 */
-private void computeXAxisDatePrecision ( ) {
+private void computeXAxisDateTimePrecision ( ) {
+	String routine = getClass().getSimpleName() + ".computeXAxisDateTimePrecision";
 	// Initialize to largest value.
 	this._xaxis_date_precision = TimeInterval.YEAR;
+	this.xaxisDateTimePrecisionForTracker = TimeInterval.YEAR;
 	if ( this.__tslist == null ) {
 		return;
 	}
+	
+	// TODO smalers, 2025-12-24 the following could be simplified since DateTime precision and TimeInterval are consistent,
+	// but use verbose code for now.
 
-	// Loop through and find the smallest time unit from the time series intervals.
+	// Loop through and find the smallest time unit from the time series intervals:
+	// - the initial checks are based on time series interval
+	// = then convert the result to DateTime precision
 
 	int size = this.__tslist.size();
 	TS ts = null;
-	int interval = 0;
+	int intervalForAxis = 0;
+	int intervalForTracker = 0;
 	DateTime date = null;
 	for (int i = 0; i < size; i++) {
 		ts = this.__tslist.get(i);
@@ -3561,77 +3585,181 @@ private void computeXAxisDatePrecision ( ) {
 
 		try {
 		    // Set the axis precision to the smallest time interval of any data time series.
-			interval = ts.getDataIntervalBase();
-			if ( interval == TimeInterval.IRREGULAR ) {
-				// Use the precision from the first date in the data.
+			intervalForAxis = ts.getDataIntervalBase();
+			intervalForTracker = ts.getDataIntervalBase();
+			if ( intervalForAxis == TimeInterval.IRREGULAR ) {
+				// Use the precision from the first date in the data:
+				// - use this rather than the time series interval
+				// - TODO smalers 2025-12-24 might be able to use irregular interval's precision but sometimes IRREGULAR_SECOND is used
+				//   generically and the DateTime instances have more granular precision
 				date = ts.getDate1();
 				if ( date == null ) {
 					continue;
 				}
-				if ( date.getPrecision() == DateTime.PRECISION_MINUTE ) {
-					interval = TimeInterval.MINUTE;
+				// In the following, do not allow the X axis precision to be finer than MINUTE.
+				int datePrecision = date.getPrecision();
+				if ( datePrecision == DateTime.PRECISION_NANOSECOND ) {
+					intervalForAxis = TimeInterval.MINUTE;
+					intervalForTracker = TimeInterval.NANOSECOND;
 				}
-				else if ( date.getPrecision() == DateTime.PRECISION_HOUR ) {
-					interval = TimeInterval.HOUR;
+				else if ( datePrecision == DateTime.PRECISION_MICROSECOND ) {
+					intervalForAxis = TimeInterval.MINUTE;
+					intervalForTracker = TimeInterval.MICROSECOND;
 				}
-				else if ( date.getPrecision() == DateTime.PRECISION_DAY ) {
-					interval = TimeInterval.DAY;
+				else if ( datePrecision == DateTime.PRECISION_MILLISECOND ) {
+					intervalForAxis = TimeInterval.MINUTE;
+					intervalForTracker = TimeInterval.MILLISECOND;
 				}
-				else if ( date.getPrecision() == DateTime.PRECISION_MONTH ) {
-					interval = TimeInterval.MONTH;
+				else if ( datePrecision == DateTime.PRECISION_HSECOND ) {
+					intervalForAxis = TimeInterval.MINUTE;
+					intervalForTracker = TimeInterval.HSECOND;
 				}
-				else if ( date.getPrecision() == DateTime.PRECISION_YEAR ) {
-					interval = TimeInterval.YEAR;
+				else if ( datePrecision == DateTime.PRECISION_SECOND ) {
+					intervalForAxis = TimeInterval.MINUTE;
+					intervalForTracker = TimeInterval.SECOND;
+				}
+				else if ( datePrecision == DateTime.PRECISION_MINUTE ) {
+					intervalForAxis = TimeInterval.MINUTE;
+					intervalForTracker = TimeInterval.MINUTE;
+				}
+				else if ( datePrecision == DateTime.PRECISION_HOUR ) {
+					intervalForAxis = TimeInterval.HOUR;
+					intervalForTracker = TimeInterval.HOUR;
+				}
+				else if ( datePrecision == DateTime.PRECISION_DAY ) {
+					intervalForAxis = TimeInterval.DAY;
+					intervalForTracker = TimeInterval.DAY;
+				}
+				else if ( datePrecision == DateTime.PRECISION_MONTH ) {
+					intervalForAxis = TimeInterval.MONTH;
+					intervalForTracker = TimeInterval.MONTH;
+				}
+				else if ( datePrecision == DateTime.PRECISION_YEAR ) {
+					intervalForAxis = TimeInterval.YEAR;
+					intervalForTracker = TimeInterval.YEAR;
 				}
 				else {
-				    interval = TimeInterval.MINUTE;
+					// Default.
+				    intervalForAxis = TimeInterval.MINUTE;
+					intervalForTracker = TimeInterval.MINUTE;
 				}
 			}
-			if ( interval < this._xaxis_date_precision ) {
-				this._xaxis_date_precision = interval;
+			// Use the smallest time interval for the axis and tracker:
+			// - axis only allows down to minute
+			// - tracker does allow sub-second intervals
+			if ( intervalForAxis < this._xaxis_date_precision ) {
+				this._xaxis_date_precision = intervalForAxis;
+			}
+			if ( intervalForTracker < this.xaxisDateTimePrecisionForTracker ) {
+				this.xaxisDateTimePrecisionForTracker = intervalForTracker;
 			}
 		}
 		catch ( Exception e ) {
 			// Do nothing for now.
-			;
+			Message.printWarning(3,routine,"Error checking time series date/time precision.");
+			Message.printWarning(3,routine,e);
 		}
 	}
-	// Now convert the precision to a real DateTime precision.
+
+	// Now convert the time interval to a DateTime precision.
+
 	if ( this._xaxis_date_precision == TimeInterval.YEAR ) {
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, "TSGraph.setXAxisDatePrecision", this._gtype + "X axis date precision is year." );
-		}
 		this._xaxis_date_precision = DateTime.PRECISION_YEAR;
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( 1, routine, this._gtype + "X axis date precision is year." );
+		}
 	}
 	else if ( this._xaxis_date_precision == TimeInterval.MONTH ) {
 		this._xaxis_date_precision = DateTime.PRECISION_MONTH;
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, "TSGraph.setXAxisDatePrecision", this._gtype + "X axis date precision is month." );
+			Message.printDebug ( 1, routine, this._gtype + "X axis date precision is month." );
 		}
 	}
 	else if ( this._xaxis_date_precision == TimeInterval.DAY ) {
 		this._xaxis_date_precision = DateTime.PRECISION_DAY;
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, "TSGraph.setXAxisDatePrecision", this._gtype + "X axis date precision is day." );
+			Message.printDebug ( 1, routine, this._gtype + "X axis date precision is day." );
 		}
 	}
 	else if ( this._xaxis_date_precision == TimeInterval.HOUR ) {
 		this._xaxis_date_precision = DateTime.PRECISION_HOUR;
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, "TSGraph.setXAxisDatePrecision", this._gtype + "X axis date precision is hour." );
+			Message.printDebug ( 1, routine, this._gtype + "X axis date precision is hour." );
 		}
 	}
 	else if ( this._xaxis_date_precision == TimeInterval.MINUTE ) {
 		this._xaxis_date_precision = DateTime.PRECISION_MINUTE;
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, "TSGraph.setXAxisDatePrecision", this._gtype + "X axis date precision is minute." );
+			Message.printDebug ( 1, routine, this._gtype + "X axis date precision is minute." );
 		}
 	}
 	else {
-	    // Default to day.
+	    // Default to day:
+		// - only set for the x-axis because the tracker is set below
 		this._xaxis_date_precision = DateTime.PRECISION_DAY;
 		if ( Message.isDebugOn ) {
-			Message.printDebug ( 1, "TSGraph.setXAxisDatePrecision", this._gtype + "X axis date precision is day." );
+			Message.printDebug ( 1, routine, this._gtype + "X axis date precision is day." );
+		}
+	}
+	
+	// Additionally, process the tracker for finer intervals:
+	// - for now allow the most granular precision
+	// - for ALERT/ALERT2 real-time data milliseconds are probably the smallest interval
+	if ( this.xaxisDateTimePrecisionForTracker == TimeInterval.YEAR ) {
+		this.xaxisDateTimePrecisionForTracker = DateTime.PRECISION_YEAR;
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( 1, routine, this._gtype + "X axis date precision is year." );
+		}
+	}
+	else if ( this.xaxisDateTimePrecisionForTracker == TimeInterval.MONTH ) {
+		this.xaxisDateTimePrecisionForTracker = DateTime.PRECISION_MONTH;
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( 1, routine, this._gtype + "X axis date precision is month." );
+		}
+	}
+	else if ( this.xaxisDateTimePrecisionForTracker == TimeInterval.DAY ) {
+		this.xaxisDateTimePrecisionForTracker = DateTime.PRECISION_DAY;
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( 1, routine, this._gtype + "X axis date precision is day." );
+		}
+	}
+	else if ( this.xaxisDateTimePrecisionForTracker == TimeInterval.HOUR ) {
+		this.xaxisDateTimePrecisionForTracker = DateTime.PRECISION_HOUR;
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( 1, routine, this._gtype + "X axis date precision is hour." );
+		}
+	}
+	else if ( this.xaxisDateTimePrecisionForTracker == TimeInterval.MINUTE ) {
+		this.xaxisDateTimePrecisionForTracker = DateTime.PRECISION_MINUTE;
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( 1, routine, this._gtype + "X axis date precision is minute." );
+		}
+	}
+	else if ( this.xaxisDateTimePrecisionForTracker == TimeInterval.SECOND ) {
+		this.xaxisDateTimePrecisionForTracker = DateTime.PRECISION_SECOND;
+		Message.printDebug ( 1, routine, this._gtype + "X axis tracker date precision is second." );
+	}
+	else if ( this.xaxisDateTimePrecisionForTracker == TimeInterval.HSECOND ) {
+		this.xaxisDateTimePrecisionForTracker = DateTime.PRECISION_HSECOND;
+		Message.printDebug ( 1, routine, this._gtype + "X axis tracker date precision is hsecond." );
+	}
+	else if ( this.xaxisDateTimePrecisionForTracker == TimeInterval.MILLISECOND ) {
+		this.xaxisDateTimePrecisionForTracker = DateTime.PRECISION_MILLISECOND;
+		Message.printDebug ( 1, routine, this._gtype + "X axis tracker date precision is millisecond." );
+	}
+	else if ( this.xaxisDateTimePrecisionForTracker == TimeInterval.MICROSECOND ) {
+		this.xaxisDateTimePrecisionForTracker = DateTime.PRECISION_MICROSECOND;
+		Message.printDebug ( 1, routine, this._gtype + "X axis tracker date precision is microsecond." );
+	}
+	else if ( this.xaxisDateTimePrecisionForTracker == TimeInterval.NANOSECOND ) {
+		this.xaxisDateTimePrecisionForTracker = DateTime.PRECISION_NANOSECOND;
+		Message.printDebug ( 1, routine, this._gtype + "X axis tracker date precision is nanosecond." );
+	}
+	else {
+		// Default similar to the above.
+		this.xaxisDateTimePrecisionForTracker = DateTime.PRECISION_DAY;
+		if ( Message.isDebugOn ) {
+			Message.printDebug ( 1, routine, this._gtype + "X axis tracker date precision is day." );
 		}
 	}
 }
@@ -10204,8 +10332,9 @@ public String formatMouseTrackerDataPoint ( GRPoint devpt, GRPoint datapt ) {
 			}
 		}
 		else {
-			// Else the format was not determined so use the x-axis precision for the date/time.
-			mouseDate.setPrecision ( this._xaxis_date_precision );
+			// Else the format was not determined so use the x-axis tracker precision for the date/time:
+			// - this is set in computeXAxisDateTimePrecision
+			mouseDate.setPrecision ( this.xaxisDateTimePrecisionForTracker );
 		    String leftYString = "X:  " + mouseDate.toString() + ",  Y:  "
 		    	+ StringUtil.formatString(datapt.y,"%." + this._lefty_precision + "f");
 			if ( (this.__rightYAxisGraphType != TSGraphType.NONE) && (dataptRightYAxis != null) ) {
@@ -10912,9 +11041,11 @@ private List<TS> getTSListToRender ( boolean enabledOnly, boolean includeLeftYAx
  * Get the x-axis date precision.
  * @return x-axis date precision, useful for formatting mouse-tracker, etc.
  */
+/*
 protected int getXAxisDateTimePrecision () {
 	return this._xaxis_date_precision;
 }
+*/
 
 /**
 Indicate whether the left y-axis graph drawing area for this TSGraph contains the device point that is specified.
