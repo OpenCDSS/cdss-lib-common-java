@@ -43,7 +43,6 @@ import java.io.PrintWriter;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
@@ -59,6 +58,7 @@ import RTi.TS.DateValueTS;
 import RTi.TS.TS;
 import RTi.TS.TSLimits;
 import RTi.TS.TSUtil;
+import RTi.TS.UnequalTimeIntervalException;
 import RTi.Util.GUI.JFileChooserFactory;
 import RTi.Util.GUI.JGUIUtil;
 import RTi.Util.GUI.JWorksheet;
@@ -114,15 +114,17 @@ The number of characters in the table double values:
 JButton and JPopupMenu Strings.
 */
 private final String
-	__BUTTON_CLOSE = "Close",
-	__BUTTON_GRAPH = "Graph",
-	__BUTTON_HELP = "Help",
-	__BUTTON_SAVE = "Save",
-	__BUTTON_SUMMARY = "Summary",
+	BUTTON_CLOSE = "Close",
+	BUTTON_GRAPH = "Graph",
+	BUTTON_HELP = "Help",
+	BUTTON_PROBLEMS = "Problems...",
+	BUTTON_SAVE = "Save",
+	BUTTON_SUMMARY = "Summary",
+
 	// Below are popup menu events delegated to here from main JWorksheet.
-	__MENU_CALCULATE_STATISTICS = "Calculate Statistics",
-	__MENU_COPY = "Copy",
-	__MENU_PASTE = "Paste";
+	MENU_CALCULATE_STATISTICS = "Calculate Statistics",
+	MENU_COPY = "Copy",
+	MENU_PASTE = "Paste";
 
 /**
 Boolean to keep track of whether the main JPanel has been removed from the
@@ -130,181 +132,205 @@ Center position of the content pane and placed in the North position, or not.
 The main panel will be moved to the north panel when the user has deselected
 all the checkboxes on the form and has no TS interval types visible.
 */
-private boolean __mainJPanelNorth = false;
+private boolean mainJPanelNorth = false;
 
 /**
 Whether worksheets should be built in displayed in the opposite of the normal order,
 from minute to year instead of year to minute.
 */
-private boolean __reverseNormalOrder = false;
+private boolean reverseNormalOrder = false;
 
 /**
 Boolean to keep track of whether the save button should always be enabled, no matter what.
 This is only true if there is a single worksheet displayed on the GUI.
 */
-private boolean __saveAlwaysEnabled = false;
+private boolean saveAlwaysEnabled = false;
 
 /**
 The original border set up for a JScrollPane,
 before the border is changed because the scrollpane's worksheet was selected.
 */
-private Border __originalScrollPaneBorder = null;
+private Border originalScrollPaneBorder = null;
 
 /**
 A counter that tracks how many panels and checkboxes have been added to the main panel,
 so that the Y placement in the grid bag can be done correctly.
 */
-private int __panelCount = 0;
+private int panelCount = 0;
 
 /**
 Checkboxes corresponding to each TS data interval for turning on and off the table displays.
 */
 private JCheckBox
-	__dayJCheckBox,
-	__hourJCheckBox,
-	__irregularMinuteJCheckBox,
-	__irregularHourJCheckBox,
-	__irregularDayJCheckBox,
-	__irregularMonthJCheckBox,
-	__irregularYearJCheckBox,
-	__minuteJCheckBox,
-	__monthJCheckBox,
-	__yearJCheckBox;
+	minuteJCheckBox,
+	hourJCheckBox,
+	dayJCheckBox,
+	monthJCheckBox,
+	yearJCheckBox,
+	irregularSecondJCheckBox,
+	irregularMinuteJCheckBox,
+	irregularHourJCheckBox,
+	irregularDayJCheckBox,
+	irregularMonthJCheckBox,
+	irregularYearJCheckBox;
 
 /**
 The main panel into which the form components are added.
 */
-private JPanel __mainJPanel;
+private JPanel mainJPanel;
 
 /**
 JPanels for holding JCheckBoxes and JWorksheets for each TS data interval.
 */
 private JPanel
-	__dayJPanel,
-	__hourJPanel,
-	__irregularMinuteJPanel,
-	__irregularHourJPanel,
-	__irregularDayJPanel,
-	__irregularMonthJPanel,
-	__irregularYearJPanel,
-	__minuteJPanel,
-	__monthJPanel,
-	__yearJPanel;
+	minuteJPanel,
+	hourJPanel,
+	dayJPanel,
+	monthJPanel,
+	yearJPanel,
+	irregularSecondJPanel,
+	irregularMinuteJPanel,
+	irregularHourJPanel,
+	irregularDayJPanel,
+	irregularMonthJPanel,
+	irregularYearJPanel;
 
 /**
 JScrollPanes for each of the associated ts worksheets,
 in order to highlight the proper JScrollPane border after a worksheet is clicked on and selected.
 */
-private JScrollPane[]
-	__dayScrollPanes,
-	__hourScrollPanes,
-	__minuteScrollPanes,
-	__monthScrollPanes,
-	__yearScrollPanes,
-	__irregularMinuteScrollPanes,
-	__irregularHourScrollPanes,
-	__irregularDayScrollPanes,
-	__irregularMonthScrollPanes,
-	__irregularYearScrollPanes;
+private List<JScrollPane> minuteScrollPanes = null;
+private List<JScrollPane> hourScrollPanes = null;
+private List<JScrollPane> dayScrollPanes = null;
+private List<JScrollPane> monthScrollPanes = null;
+private List<JScrollPane> yearScrollPanes = null;
+private List<JScrollPane> irregularSecondScrollPanes = null;
+private List<JScrollPane> irregularMinuteScrollPanes = null;
+private List<JScrollPane> irregularHourScrollPanes = null;
+private List<JScrollPane> irregularDayScrollPanes = null;
+private List<JScrollPane> irregularMonthScrollPanes = null;
+private List<JScrollPane> irregularYearScrollPanes = null;
 
 /**
 The scroll pane of the last worksheet that was clicked on and selected.
 */
-private JScrollPane __lastSelectedScrollPane = null;
+private JScrollPane lastSelectedScrollPane = null;
 
 /**
 The status bar message text field.
 */
-private JTextField __messageJTextField;
+private JTextField messageJTextField = null;
 
 /**
 Arrays containing all the different JWorksheets (one for each interval type) for each different TS.
 */
-private JWorksheet[]
-	__dayWorksheets,
-	__hourWorksheets,
-	__minuteWorksheets,
-	__monthWorksheets,
-	__yearWorksheets,
-	__irregularMinuteWorksheets,
-	__irregularHourWorksheets,
-	__irregularDayWorksheets,
-	__irregularMonthWorksheets,
-	__irregularYearWorksheets;
+private List<JWorksheet> minuteWorksheets = null;
+private List<JWorksheet> hourWorksheets = null;
+private List<JWorksheet> dayWorksheets = null;
+private List<JWorksheet> monthWorksheets = null;
+private List<JWorksheet> yearWorksheets = null;
+private List<JWorksheet> irregularSecondWorksheets = null;
+private List<JWorksheet> irregularMinuteWorksheets = null;
+private List<JWorksheet> irregularHourWorksheets = null;
+private List<JWorksheet> irregularDayWorksheets = null;
+private List<JWorksheet> irregularMonthWorksheets = null;
+private List<JWorksheet> irregularYearWorksheets = null;
 
 /**
 The last worksheet that was clicked on and selected.
 */
-private JWorksheet __lastSelectedWorksheet = null;
+private JWorksheet lastSelectedWorksheet = null;
 
 /**
-Properties for the table display gui.
+Properties for the table display UI.
 */
-private PropList __props;
+private PropList props;
 
 /**
 Buttons that appear at the bottom of the GUI, for doing special operations.
 */
 private SimpleJButton
-	__summaryJButton,
-	__graphJButton,
-	__closeJButton,
-	__saveJButton;
+	closeJButton,
+	graphJButton,
+	problemsJButton,
+	saveJButton,
+	summaryJButton;
 
-private SimpleJComboBox __flagJComboBox = null;
+/**
+ * Choice for whether to show the data flag as a subscript showing the flags.
+ */
+private SimpleJComboBox flagJComboBox = null;
+
+/**
+ * Choice for the number of digits shown.
+ */
+private SimpleJComboBox digitsJComboBox = null;
 
 /**
 TSViewJFrame parent that displays this gui.
 */
-private TSViewJFrame __tsviewJFrame;
+private TSViewJFrame tsviewJFrame;
+
+/**
+ * Metadata for keeping track of worksheets.
+ * This is updated by the calculateVisibleWorksheetsByPanel() method.
+ */
+private TSViewTableJFrameMeta meta = new TSViewTableJFrameMeta();
 
 /**
 Table models for each of the different worksheets (one for each interval type) for each different TS.
 */
-private TSViewTable_TableModel[]
-	__dayModels = new TSViewTable_TableModel[0],
-	__hourModels = new TSViewTable_TableModel[0],
-	__minuteModels = new TSViewTable_TableModel[0],
-	__monthModels = new TSViewTable_TableModel[0],
-	__yearModels = new TSViewTable_TableModel[0],
-	__irregularMinuteModels = new TSViewTable_TableModel[0],
-	__irregularHourModels = new TSViewTable_TableModel[0],
-	__irregularDayModels = new TSViewTable_TableModel[0],
-	__irregularMonthModels = new TSViewTable_TableModel[0],
-	__irregularYearModels = new TSViewTable_TableModel[0];
+private List<TSViewTable_TableModel> minuteModels = new ArrayList<>();
+private List<TSViewTable_TableModel> hourModels = new ArrayList<>();
+private List<TSViewTable_TableModel> dayModels = new ArrayList<>();
+private List<TSViewTable_TableModel> monthModels = new ArrayList<>();
+private List<TSViewTable_TableModel> yearModels = new ArrayList<>();
+private List<TSViewTable_TableModel> irregularSecondModels = new ArrayList<>();
+private List<TSViewTable_TableModel> irregularMinuteModels = new ArrayList<>();
+private List<TSViewTable_TableModel> irregularHourModels = new ArrayList<>();
+private List<TSViewTable_TableModel> irregularDayModels = new ArrayList<>();
+private List<TSViewTable_TableModel> irregularMonthModels = new ArrayList<>();
+private List<TSViewTable_TableModel> irregularYearModels = new ArrayList<>();
 
 /**
 Lists of the mouse listeners that have been set up for all of the different kinds of worksheets.
 These are used in order to find which worksheet was clicked on after a mouse press on the JScrollPane associated with a worksheet.
 */
 private List<List<MouseListener>>
-	__dayMouseListeners,
-	__hourMouseListeners,
-	__minuteMouseListeners,
-	__monthMouseListeners,
-	__yearMouseListeners,
-	__irregularMinuteMouseListeners,
-	__irregularHourMouseListeners,
-	__irregularDayMouseListeners,
-	__irregularMonthMouseListeners,
-	__irregularYearMouseListeners;
+	minuteMouseListeners,
+	hourMouseListeners,
+	dayMouseListeners,
+	monthMouseListeners,
+	yearMouseListeners,
+	irregularSecondMouseListeners,
+	irregularMinuteMouseListeners,
+	irregularHourMouseListeners,
+	irregularDayMouseListeners,
+	irregularMonthMouseListeners,
+	irregularYearMouseListeners;
 
 /**
 List of Time Series to be displayed in the GUI.
-__tslist is set from a list passed in to this GUI at construction,
+'tslist' is set from a list passed in to this GUI at construction,
 and then the other lists are formed from the TS split out of __tslist.
 */
-private List<TS> __tslist; // All time series.
-private List<TS> __dayTSList;
-private List<TS> __hourTSList;
-private List<TS> __minuteTSList;
-private List<TS> __monthTSList;
-private List<TS> __irregularMinuteTSList;
-private List<TS> __irregularHourTSList;
-private List<TS> __irregularDayTSList;
-private List<TS> __irregularMonthTSList;
-private List<TS> __irregularYearTSList;
-private List<TS> __yearTSList;
+private List<TS> tslist; // All time series.
+private List<TS> minuteTSList;
+private List<TS> hourTSList;
+private List<TS> dayTSList;
+private List<TS> monthTSList;
+private List<TS> yearTSList;
+private List<TS> irregularSecondTSList; // All irregular interval time series with date/time precision <= second precision.
+private List<TS> irregularMinuteTSList;
+private List<TS> irregularHourTSList;
+private List<TS> irregularDayTSList;
+private List<TS> irregularMonthTSList;
+private List<TS> irregularYearTSList;
+
+/**
+List of problems from creating table models.
+*/
+private List<String> tableModelProblems = null;
 
 /**
 Constructor.
@@ -315,11 +341,11 @@ Constructor.
 public TSViewTableJFrame(TSViewJFrame tsviewJFrame, List<TS> tslist, PropList props) {
 	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
 
-	__tsviewJFrame = tsviewJFrame;
-	__tslist = tslist;
-	__props = props;
+	this.tsviewJFrame = tsviewJFrame;
+	this.tslist = tslist;
+	this.props = props;
 
-	String propValue = __props.getValue("TSViewTitleString");
+	String propValue = this.props.getValue("TSViewTitleString");
 
 	if ( propValue == null ) {
 		if ( (JGUIUtil.getAppNameForWindows() == null) || JGUIUtil.getAppNameForWindows().equals("") ) {
@@ -338,10 +364,10 @@ public TSViewTableJFrame(TSViewJFrame tsviewJFrame, List<TS> tslist, PropList pr
 		}
 	}
 
-	propValue = __props.getValue("TSViewTableOrder");
+	propValue = this.props.getValue("TSViewTableOrder");
 	if (propValue != null) {
 		if (propValue.equalsIgnoreCase("FineToCoarse")) {
-			__reverseNormalOrder = true;
+			this.reverseNormalOrder = true;
 		}
 	}
 	setupGUI(true);
@@ -354,55 +380,58 @@ Handle action events from ActionListener.
 public void actionPerformed(ActionEvent event) {
 	String command = event.getActionCommand();
 
-	if (command.equals(__BUTTON_CLOSE)) {
-		__tsviewJFrame.closeGUI(TSViewType.TABLE);
+	if (command.equals(this.BUTTON_CLOSE)) {
+		this.tsviewJFrame.closeGUI(TSViewType.TABLE);
 	}
-	else if (command.equals(__BUTTON_GRAPH)) {
-		__tsviewJFrame.openGUI(TSViewType.GRAPH);
+	else if (command.equals(this.BUTTON_GRAPH)) {
+		this.tsviewJFrame.openGUI(TSViewType.GRAPH);
 	}
-	else if (command.equals(__BUTTON_HELP)) {
+	else if (command.equals(this.BUTTON_HELP)) {
 		URLHelp.showHelpForKey("TSView.Table");
 	}
-	else if (command.equals(__BUTTON_SUMMARY)) {
-		__tsviewJFrame.openGUI(TSViewType.SUMMARY);
+	else if (command.equals(this.BUTTON_PROBLEMS)) {
+		showProblems();
 	}
-	else if (command.equals(__BUTTON_SAVE)) {
+	else if (command.equals(this.BUTTON_SUMMARY)) {
+		this.tsviewJFrame.openGUI(TSViewType.SUMMARY);
+	}
+	else if (command.equals(this.BUTTON_SAVE)) {
 		saveClicked();
 	}
-	else if (command.equals(__MENU_CALCULATE_STATISTICS) ) {
+	else if (command.equals(this.MENU_CALCULATE_STATISTICS) ) {
 		// An event was generated in a JWorksheet requesting that statistics be calculated:
 		// - assume that the event originated from the last selected worksheet
 		//   (not sure otherwise how to get the worksheet)
 		try {
-			calculateAndDisplayStatistics(__lastSelectedWorksheet);
+			calculateAndDisplayStatistics(this.lastSelectedWorksheet);
 		}
 		catch ( Exception e ) {
 			Message.printWarning(1,"","Error calculating statistics (" + e + ").");
 			Message.printWarning(2, "", e);
 		}
 	}
-	else if (command.equals(__MENU_COPY)) {
+	else if (command.equals(this.MENU_COPY)) {
 		// TODO sam 2017-04-01 why is this event handled here?
 		// - a Copy popup menu is provided in the JWorksheet by default
 		// - does this ever get called?
 		// - maybe this was in place for much earlier code when Copy/Paste were buttons like the above
 		// - comment out for now since worksheet will handle the event
 		Message.printStatus(2, "", "Copy action event disabled in TSViewTableJFrame");
-		//__lastSelectedWorksheet.copyToClipboard();
+		//this.lastSelectedWorksheet.copyToClipboard();
 	}
-	else if (command.equals(__MENU_PASTE)) {
+	else if (command.equals(this.MENU_PASTE)) {
 		// TODO sam 2017-04-01 why is this event handled here?
 		// - a Paste popup menu is provided in the JWorksheet by default
 		// - does this ever get called?
 		Message.printStatus(2, "", "Paste action event disabled in TSViewTableJFrame");
-		//__lastSelectedWorksheet.pasteFromClipboard();
+		//this.lastSelectedWorksheet.pasteFromClipboard();
 	}
 }
 
 /**
 Adds worksheets of the same interval base to their panel and also adds the appropriate check box,
 as long as more than one kid of interval base will be displayed on the GUI.
-@param panel the main panel to which to add the panels (__mainJPanel).
+@param panel the main panel to which to add the panels (this.mainJPanel).
 @param subPanel the panel to which to add the checkbox and worksheets.
 @param intervalDescription a text string that concisely names the kind of interval being dealt with
 @param checkBox the check box to (possibly) add to the panel.
@@ -411,21 +440,27 @@ as long as more than one kid of interval base will be displayed on the GUI.
 @param mouseListeners a list of lists used to store mouse listeners for the
 worksheets' scrollpanes so that the last selected worksheet can be tracked.
 */
-private void addWorksheetsToPanel(JPanel panel, String intervalDescription,
-JPanel subPanel, JCheckBox checkBox, JWorksheet[] worksheets,
-JWorksheet[] headers, JScrollPane[] scrollPanes, List<List<MouseListener>> mouseListeners) {
+private void addWorksheetsToPanel (
+	JPanel panel,
+	String intervalDescription,
+	JPanel subPanel,
+	JCheckBox checkBox,
+	List<JWorksheet> worksheets,
+	List<JWorksheet> headers,
+	List<JScrollPane> scrollPanes,
+	List<List<MouseListener>> mouseListeners) {
     if ( Message.isDebugOn ) {
         Message.printDebug(1,"TSViewTableJFrame.addWorksheetsToPanel","panel="+panel+" intervalDescription="+intervalDescription+
             " subPanel=" + subPanel + " checkBox=" + checkBox + " worksheets=" + worksheets + " headers=" + headers +
             " scrollPanes=" + scrollPanes + " mouseListeners=" + mouseListeners );
     }
-	if (worksheets == null || worksheets.length == 0) {
+	if ( (worksheets == null) || worksheets.isEmpty() ) {
 		// There are no worksheets for the current interval type.
 		checkBox.setSelected(false);
 		return;
 	}
 
-	int numWorksheets = worksheets.length;
+	int numWorksheets = worksheets.size();
 
 	// Create the panel into which these worksheets will be placed, and give it a GridBagLayout.
 	GridBagLayout gbl = new GridBagLayout();
@@ -436,54 +471,56 @@ JWorksheet[] headers, JScrollPane[] scrollPanes, List<List<MouseListener>> mouse
 	// scrollbars so that it can be determined after a mouse click which
 	// worksheet (or worksheet's scrollpane components) was clicked on.
 	// Put the registered mouse listeners into a list for this purpose.
-	for (int i = 0; i < numWorksheets; i++) {
-		scrollPanes[i] = new JScrollPane(worksheets[i]);
+	for ( int i = 0; i < numWorksheets; i++ ) {
+		JScrollPane scrollPane = new JScrollPane(worksheets.get(i));
+		scrollPanes.add(scrollPane);
 
 		if (IOUtil.isUNIXMachine()) {
 			// For the reason why this is done, see JWorksheet.adjustmentValueChanged().
-			scrollPanes[i].getVerticalScrollBar().addAdjustmentListener(worksheets[i]);
-			scrollPanes[i].getHorizontalScrollBar().addAdjustmentListener(worksheets[i]);
+			scrollPane.getVerticalScrollBar().addAdjustmentListener(worksheets.get(i));
+			scrollPane.getHorizontalScrollBar().addAdjustmentListener(worksheets.get(i));
 		}
 
 		// Add lots of mouse listeners, so that (hopefully) anywhere a user clicks it will count as a click on the worksheet.
 
-		worksheets[i].addMouseListener(this);
+		JWorksheet worksheet = worksheets.get(i);
+		worksheet.addMouseListener(this);
 
 		// The header worksheet will be used to control selection
 		// events on the other worksheets for which the header worksheet is the row header.
-		headers[i].setRowSelectionModelPartner(worksheets[i].getRowSelectionModel());
+		headers.get(i).setRowSelectionModelPartner(worksheet.getRowSelectionModel());
 
-		worksheets[i].addHeaderMouseListener(this);
+		worksheet.addHeaderMouseListener(this);
 
-		List<MouseListener> worksheetMouseListeners = new ArrayList<MouseListener>();
-		if ( scrollPanes[i] instanceof MouseListener ) {
+		List<MouseListener> worksheetMouseListeners = new ArrayList<>();
+		if ( scrollPane instanceof MouseListener ) {
 			// TODO sam 2017-04-01 The following will throw a ClassCastException if now wrapped in the "if".
 			// Similar checks below for the scrollbars behave the same.
 			// Maybe this is old code that is ineffective and can be removed.
 			// The underlying UI components check for whether the object implements MouseListener
 			// and apparently these objects do not... so no listener code would be called anyway.
-			worksheetMouseListeners.add((MouseListener)scrollPanes[i]);
+			worksheetMouseListeners.add((MouseListener)scrollPane);
 		}
 
-		scrollPanes[i].addMouseListener(worksheets[i]);
-		if (scrollPanes[i].getVerticalScrollBar() instanceof MouseListener ) {
-			worksheetMouseListeners.add((MouseListener)scrollPanes[i].getVerticalScrollBar());
+		scrollPane.addMouseListener(worksheet);
+		if (scrollPane.getVerticalScrollBar() instanceof MouseListener ) {
+			worksheetMouseListeners.add((MouseListener)scrollPane.getVerticalScrollBar());
 		}
 
-		scrollPanes[i].getVerticalScrollBar().addMouseListener(worksheets[i]);
-		if (scrollPanes[i].getHorizontalScrollBar() instanceof MouseListener ) {
-			worksheetMouseListeners.add((MouseListener)scrollPanes[i].getHorizontalScrollBar());
+		scrollPane.getVerticalScrollBar().addMouseListener(worksheet);
+		if (scrollPane.getHorizontalScrollBar() instanceof MouseListener ) {
+			worksheetMouseListeners.add((MouseListener)scrollPane.getHorizontalScrollBar());
 		}
 
-		scrollPanes[i].getHorizontalScrollBar().addMouseListener(worksheets[i]);
-        JGUIUtil.addComponent(subPanel, scrollPanes[i],
+		scrollPane.getHorizontalScrollBar().addMouseListener(worksheet);
+        JGUIUtil.addComponent(subPanel, scrollPane,
 			i, 0, 1, 1, 1, 1,
 			GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST);
 
 		// The next line looks weird, but is done because somewhere
 		// the pointer to the worksheet that the models have is getting mis-pointed.
         // This makes sure the models know their worksheet.
-		((TSViewTable_TableModel)worksheets[i].getModel()).setWorksheet(worksheets[i]);
+		((TSViewTable_TableModel)worksheet.getModel()).setWorksheet(worksheet);
 		mouseListeners.set(i, worksheetMouseListeners);
 	}
 
@@ -492,13 +529,13 @@ JWorksheet[] headers, JScrollPane[] scrollPanes, List<List<MouseListener>> mouse
 	// then it's not necessary to include the checkbox for selecting and deselecting specific interval bases.
 	if (calculateNumberOfPanels() > 1) {
 		JGUIUtil.addComponent(panel, checkBox,
-			0,__panelCount++, 1, 1, 1, 0,
+			0,this.panelCount++, 1, 1, 1, 0,
 			GridBagConstraints.NONE, GridBagConstraints.NORTHWEST);
 	}
 
 	subPanel.setBorder(BorderFactory.createTitledBorder(intervalDescription + " Interval"));
       	JGUIUtil.addComponent(panel, subPanel,
-		0, __panelCount++, 1, 1, 1, 1,
+		0, this.panelCount++, 1, 1, 1, 1,
 		GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST);
 }
 
@@ -507,13 +544,13 @@ Builds the mouse listener list for the given worksheet array.  The list data is 
 @param worksheets the array for which to build the mouse listener array
 @return the mouse listener list.
 */
-private List<List<MouseListener>> buildMouseListeners(JWorksheet[] worksheets) {
+private List<List<MouseListener>> buildMouseListeners(List<JWorksheet> worksheets) {
 	if (worksheets == null) {
 		return null;
 	}
 
-	int numWorksheets = worksheets.length;
-	List<List<MouseListener>> mouseListenerList = new ArrayList<List<MouseListener>>(numWorksheets);
+	int numWorksheets = worksheets.size();
+	List<List<MouseListener>> mouseListenerList = new ArrayList<>(numWorksheets);
 	// Fill in the listeners with null so there is at least a slot:
 	// - this was the behavior in legacy code that used an array of List
 	for ( int i = 0; i < numWorksheets; i++ ) {
@@ -607,7 +644,7 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 		TS[] ts = new TS[numColumns];
 		int [] tsPrec = new int[numColumns];
 		List<TS> tslist = (List<TS>)((TSViewTable_TableModel)worksheet.getTableModel()).getData();
-		String precisionProp = __props.getValue("OutputPrecision");
+		String precisionProp = this.props.getValue("OutputPrecision");
 		for (int icol = 0; icol < numSelectedCols; icol++) {
 			classes[icol] = worksheet.getColumnClass(worksheet.getAbsoluteColumn(selectedCols[icol]));
 			canCalcStats[icol] = false;
@@ -647,7 +684,7 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 		}
 
 		// Initialize the list of table fields that contains a leftmost column "Statistic".
-		List<TableField> tableFieldList = new Vector<TableField>();
+		List<TableField> tableFieldList = new ArrayList<>();
 		tableFieldList.add(new TableField(TableField.DATA_TYPE_STRING, "Statistic", -1, -1));
 		// Add columns for the selected columns.
 		boolean copyHeader = true;
@@ -955,39 +992,42 @@ private void calculateAndDisplayStatistics ( JWorksheet worksheet ) throws Excep
 
 /**
 Calculates the number of panels with worksheets that will be added in total
-to the __mainJPanel depending on the number of base intervals with time series.
-@return the number of panels with worksheets added to __mainJPanel.
+to the this.mainJPanel depending on the number of base intervals with time series.
+@return the number of panels with worksheets added to this.mainJPanel.
 */
 private int calculateNumberOfPanels() {
 	int size = 0;
-	if (__minuteWorksheets != null && __minuteWorksheets.length > 0) {
+	if ( (this.minuteWorksheets != null) && (this.minuteWorksheets.size() > 0) ) {
 		size++;
 	}
-	if (__hourWorksheets != null && __hourWorksheets.length > 0) {
+	if ( (this.hourWorksheets != null) && (this.hourWorksheets.size() > 0) ) {
 		size++;
 	}
-	if (__dayWorksheets != null && __dayWorksheets.length > 0) {
+	if ( (this.dayWorksheets != null) && (this.dayWorksheets.size() > 0) ) {
 		size++;
 	}
-	if (__monthWorksheets != null && __monthWorksheets.length > 0) {
+	if ( (this.monthWorksheets != null) && (this.monthWorksheets.size() > 0) ) {
 		size++;
 	}
-	if (__yearWorksheets != null && __yearWorksheets.length > 0) {
+	if ( (this.yearWorksheets != null) && (this.yearWorksheets.size() > 0) ) {
 		size++;
 	}
-	if (__irregularMinuteTSList != null && __irregularMinuteWorksheets.length > 0) {
+	if ( (this.irregularSecondTSList != null) && (this.irregularSecondWorksheets.size() > 0) ) {
 		size++;
 	}
-    if (__irregularHourTSList != null && __irregularHourWorksheets.length > 0) {
+	if ( (this.irregularMinuteTSList != null) && (this.irregularMinuteWorksheets.size() > 0) ) {
+		size++;
+	}
+    if ( (this.irregularHourTSList != null) && (this.irregularHourWorksheets.size() > 0) ) {
         size++;
     }
-    if (__irregularDayTSList != null && __irregularDayWorksheets.length > 0) {
+    if ( (this.irregularDayTSList != null) && (this.irregularDayWorksheets.size() > 0) ) {
         size++;
     }
-    if (__irregularMonthTSList != null && __irregularMonthWorksheets.length > 0) {
+    if ( (this.irregularMonthTSList != null) && (this.irregularMonthWorksheets.size() > 0) ) {
         size++;
     }
-    if (__irregularYearTSList != null && __irregularYearWorksheets.length > 0) {
+    if ( (this.irregularYearTSList != null) && (this.irregularYearWorksheets.size() > 0) ) {
         size++;
     }
 	return size;
@@ -996,121 +1036,144 @@ private int calculateNumberOfPanels() {
 /**
 Calculates the number of worksheets in each panel and return an integer array
 that can tell exactly how many worksheets are in each panel.
-@return an integer array where:<br>
-[0] - the number of worksheets in the minute panel<br>
-[1] - the number of worksheets in the hour panel<br>
-[2] - the number of worksheets in the day panel<br>
-[3] - the number of worksheets in the month panel<br>
-[4] - the number of worksheets in the year panel<br>
-[5] - the number of worksheets in the irregular minute panel<br>
-[6] - the number of worksheets in the irregular hour panel<br>
-[7] - the number of worksheets in the irregular day panel<br>
-[8] - the number of worksheets in the irregular month panel<br>
-[9] - the number of worksheets in the irregular year panel<br>
-[10] - the total number of worksheets visible<br>
-[11] - the total number of panels with visible worksheets
+The results are saved in an instance of TSViewTableJFrameMeta.
 */
-private int[] calculateVisibleWorksheetsByPanel() {
-	int[] array = new int[12];
-	// Regular interval.
-	if (__minuteWorksheets == null || !__minuteJCheckBox.isSelected()) {
-		array[0] = 0;
+private void calculateVisibleWorksheetsByPanel() {
+	// Regular minute interval.
+	if ( (this.minuteWorksheets == null) || !this.minuteJCheckBox.isSelected() ) {
+		this.meta.numWorksheetsInMinutePanel = 0;
 	}
 	else {
-		array[0] = __minuteWorksheets.length;
+		this.meta.numWorksheetsInMinutePanel = this.minuteWorksheets.size();
 	}
-	if (__hourWorksheets == null || !__hourJCheckBox.isSelected()) {
-		array[1] = 0;
-	}
-	else {
-		array[1] = __hourWorksheets.length;
-	}
-	if (__dayWorksheets == null || !__dayJCheckBox.isSelected()) {
-		array[2] = 0;
+
+	// Regular hour interval.
+	if ( (this.hourWorksheets == null) || !this.hourJCheckBox.isSelected() ) {
+		this.meta.numWorksheetsInHourPanel = 0;
 	}
 	else {
-		array[2] = __dayWorksheets.length;
+		this.meta.numWorksheetsInHourPanel = this.hourWorksheets.size();
 	}
-	if (__monthWorksheets == null || !__monthJCheckBox.isSelected()) {
-		array[3] = 0;
-	}
-	else {
-		array[3] = __monthWorksheets.length;
-	}
-	if (__yearWorksheets == null || !__yearJCheckBox.isSelected()) {
-		array[4] = 0;
+
+	// Regular day interval.
+	if ( (this.dayWorksheets == null) || !this.dayJCheckBox.isSelected()) {
+		this.meta.numWorksheetsInDayPanel = 0;
 	}
 	else {
-		array[4] = __yearWorksheets.length;
+		this.meta.numWorksheetsInDayPanel = this.dayWorksheets.size();
 	}
-	// Irregular interval.
-    if (__irregularMinuteWorksheets == null || !__irregularMinuteJCheckBox.isSelected()) {
-        array[5] = 0;
+
+	// Regular month interval.
+	if ( (this.monthWorksheets == null) || !this.monthJCheckBox.isSelected()) {
+		this.meta.numWorksheetsInMonthPanel = 0;
+	}
+	else {
+		this.meta.numWorksheetsInMonthPanel = this.monthWorksheets.size();
+	}
+
+	// Regular year interval.
+	if ( (this.yearWorksheets == null) || !this.yearJCheckBox.isSelected()) {
+		this.meta.numWorksheetsInYearPanel = 0;
+	}
+	else {
+		this.meta.numWorksheetsInYearPanel = this.yearWorksheets.size();
+	}
+
+	// Irregular second interval.
+    if ( (this.irregularSecondWorksheets == null) || !this.irregularSecondJCheckBox.isSelected()) {
+		this.meta.numWorksheetsInIrregularSecondPanel = 0;
     }
     else {
-        array[5] = __irregularMinuteWorksheets.length;
-    }
-    if (__irregularHourWorksheets == null || !__irregularHourJCheckBox.isSelected()) {
-        array[6] = 0;
-    }
-    else {
-        array[6] = __irregularHourWorksheets.length;
-    }
-    if (__irregularDayWorksheets == null || !__irregularDayJCheckBox.isSelected()) {
-        array[7] = 0;
-    }
-    else {
-        array[7] = __irregularDayWorksheets.length;
-    }
-    if (__irregularMonthWorksheets == null || !__irregularMonthJCheckBox.isSelected()) {
-        array[8] = 0;
-    }
-    else {
-        array[8] = __irregularMonthWorksheets.length;
-    }
-    if (__irregularYearWorksheets == null || !__irregularYearJCheckBox.isSelected()) {
-        array[9] = 0;
-    }
-    else {
-        array[9] = __irregularYearWorksheets.length;
+		this.meta.numWorksheetsInIrregularSecondPanel = this.irregularSecondWorksheets.size();
     }
 
-	array[10] = array[9] + array[8] + array[7] + array[6] + array[5] +
-	    array[4] + array[3] + array[2] + array[1] + array[0];
-
-	array[11] = 0;
-	if (array[0] > 0) {
-		array[11]++;
-	}
-	if (array[1] > 0) {
-		array[11]++;
-	}
-	if (array[2] > 0) {
-		array[11]++;
-	}
-	if (array[3] > 0) {
-		array[11]++;
-	}
-	if (array[4] > 0) {
-		array[11]++;
-	}
-    if (array[5] > 0) {
-        array[11]++;
+	// Irregular minute interval.
+    if ( (this.irregularMinuteWorksheets == null) || !this.irregularMinuteJCheckBox.isSelected()) {
+		this.meta.numWorksheetsInIrregularMinutePanel = 0;
     }
-    if (array[6] > 0) {
-        array[11]++;
-    }
-    if (array[7] > 0) {
-        array[11]++;
-    }
-    if (array[8] > 0) {
-        array[11]++;
-    }
-    if (array[9] > 0) {
-        array[11]++;
+    else {
+		this.meta.numWorksheetsInIrregularMinutePanel = this.irregularMinuteWorksheets.size();
     }
 
-	return array;
+	// Irregular hour interval.
+    if ( (this.irregularHourWorksheets == null) || !this.irregularHourJCheckBox.isSelected()) {
+		this.meta.numWorksheetsInIrregularHourPanel = 0;
+    }
+    else {
+		this.meta.numWorksheetsInIrregularHourPanel = this.irregularHourWorksheets.size();
+    }
+
+	// Irregular day interval.
+    if ( (this.irregularDayWorksheets == null) || !this.irregularDayJCheckBox.isSelected()) {
+		this.meta.numWorksheetsInIrregularDayPanel = 0;
+    }
+    else {
+		this.meta.numWorksheetsInIrregularDayPanel = this.irregularDayWorksheets.size();
+    }
+
+	// Irregular month interval.
+    if ( (this.irregularMonthWorksheets == null) || !this.irregularMonthJCheckBox.isSelected()) {
+		this.meta.numWorksheetsInIrregularMonthPanel = 0;
+    }
+    else {
+		this.meta.numWorksheetsInIrregularMonthPanel = this.irregularMonthWorksheets.size();
+    }
+
+	// Irregular year interval.
+    if ( (this.irregularYearWorksheets == null) || !this.irregularYearJCheckBox.isSelected()) {
+		this.meta.numWorksheetsInIrregularYearPanel = 0;
+    }
+    else {
+		this.meta.numWorksheetsInIrregularYearPanel = this.irregularYearWorksheets.size();
+    }
+
+    this.meta.numWorksheetsTotalVisible =
+    	this.meta.numWorksheetsInMinutePanel +
+    	this.meta.numWorksheetsInHourPanel +
+    	this.meta.numWorksheetsInDayPanel +
+    	this.meta.numWorksheetsInMonthPanel +
+    	this.meta.numWorksheetsInYearPanel +
+    	this.meta.numWorksheetsInIrregularSecondPanel +
+    	this.meta.numWorksheetsInIrregularMinutePanel +
+    	this.meta.numWorksheetsInIrregularHourPanel +
+    	this.meta.numWorksheetsInIrregularDayPanel +
+    	this.meta.numWorksheetsInIrregularMonthPanel +
+    	this.meta.numWorksheetsInIrregularYearPanel;
+
+	this.meta.numPanelsWithVisibleWorksheets = 0;
+	if ( this.meta.numWorksheetsInMinutePanel > 0) {
+		++this.meta.numPanelsWithVisibleWorksheets;
+	}
+	if ( this.meta.numWorksheetsInHourPanel > 0) {
+		++this.meta.numPanelsWithVisibleWorksheets;
+	}
+	if ( this.meta.numWorksheetsInDayPanel > 0) {
+		++this.meta.numPanelsWithVisibleWorksheets;
+	}
+	if ( this.meta.numWorksheetsInMonthPanel > 0) {
+		++this.meta.numPanelsWithVisibleWorksheets;
+	}
+	if ( this.meta.numWorksheetsInYearPanel > 0) {
+		++this.meta.numPanelsWithVisibleWorksheets;
+	}
+    if ( this.meta.numWorksheetsInIrregularSecondPanel > 0) {
+		++this.meta.numPanelsWithVisibleWorksheets;
+    }
+    if ( this.meta.numWorksheetsInIrregularMinutePanel > 0) {
+		++this.meta.numPanelsWithVisibleWorksheets;
+    }
+    if ( this.meta.numWorksheetsInIrregularHourPanel > 0) {
+		++this.meta.numPanelsWithVisibleWorksheets;
+    }
+    if ( this.meta.numWorksheetsInIrregularDayPanel > 0) {
+		++this.meta.numPanelsWithVisibleWorksheets;
+    }
+    if ( this.meta.numWorksheetsInIrregularMonthPanel > 0) {
+		++this.meta.numPanelsWithVisibleWorksheets;
+    }
+    if ( this.meta.numWorksheetsInIrregularYearPanel > 0) {
+		++this.meta.numPanelsWithVisibleWorksheets;
+    }
 }
 
 /**
@@ -1122,64 +1185,70 @@ private void checkForSingleWorksheet() {
 
 	int count = 0;
 
-	if (__dayWorksheets != null) {
-		for (int i = 0; i < __dayWorksheets.length; i++) {
+	if (this.dayWorksheets != null) {
+		for (int i = 0; i < this.dayWorksheets.size(); i++) {
 			count++;
-			worksheet = __dayWorksheets[i];
+			worksheet = this.dayWorksheets.get(i);
 		}
 	}
-	if (__minuteWorksheets != null) {
-		for (int i = 0; i < __minuteWorksheets.length; i++) {
+	if (this.minuteWorksheets != null) {
+		for (int i = 0; i < this.minuteWorksheets.size(); i++) {
 			count++;
-			worksheet = __minuteWorksheets[i];
+			worksheet = this.minuteWorksheets.get(i);
 		}
 	}
-	if (__hourWorksheets != null) {
-		for (int i = 0; i < __hourWorksheets.length; i++) {
+	if (this.hourWorksheets != null) {
+		for (int i = 0; i < this.hourWorksheets.size(); i++) {
 			count++;
-			worksheet = __hourWorksheets[i];
+			worksheet = this.hourWorksheets.get(i);
 		}
 	}
-	if (__monthWorksheets != null) {
-		for (int i = 0; i < __monthWorksheets.length; i++) {
+	if (this.monthWorksheets != null) {
+		for (int i = 0; i < this.monthWorksheets.size(); i++) {
 			count++;
-			worksheet = __monthWorksheets[i];
+			worksheet = this.monthWorksheets.get(i);
 		}
 	}
-	if (__yearWorksheets != null) {
-		for (int i = 0; i < __yearWorksheets.length; i++) {
+	if (this.yearWorksheets != null) {
+		for (int i = 0; i < this.yearWorksheets.size(); i++) {
 			count++;
-			worksheet = __yearWorksheets[i];
+			worksheet = this.yearWorksheets.get(i);
 		}
 	}
-    if (__irregularMinuteWorksheets != null) {
-        for (int i = 0; i < __irregularMinuteWorksheets.length; i++) {
+    if (this.irregularSecondWorksheets != null) {
+        for (int i = 0; i < this.irregularSecondWorksheets.size(); i++) {
             count++;
-            worksheet = __irregularMinuteWorksheets[i];
+            worksheet = this.irregularSecondWorksheets.get(i);
         }
     }
-    if (__irregularHourWorksheets != null) {
-        for (int i = 0; i < __irregularHourWorksheets.length; i++) {
+    if (this.irregularMinuteWorksheets != null) {
+        for (int i = 0; i < this.irregularMinuteWorksheets.size(); i++) {
             count++;
-            worksheet = __irregularHourWorksheets[i];
+            worksheet = this.irregularMinuteWorksheets.get(i);
         }
     }
-    if (__irregularDayWorksheets != null) {
-        for (int i = 0; i < __irregularDayWorksheets.length; i++) {
+    if (this.irregularHourWorksheets != null) {
+        for (int i = 0; i < this.irregularHourWorksheets.size(); i++) {
             count++;
-            worksheet = __irregularDayWorksheets[i];
+            worksheet = this.irregularHourWorksheets.get(i);
         }
     }
-    if (__irregularMonthWorksheets != null) {
-        for (int i = 0; i < __irregularMonthWorksheets.length; i++) {
+    if (this.irregularDayWorksheets != null) {
+        for (int i = 0; i < this.irregularDayWorksheets.size(); i++) {
             count++;
-            worksheet = __irregularMonthWorksheets[i];
+            worksheet = this.irregularDayWorksheets.get(i);
         }
     }
-    if (__irregularYearWorksheets != null) {
-        for (int i = 0; i < __irregularYearWorksheets.length; i++) {
+    if (this.irregularMonthWorksheets != null) {
+        for (int i = 0; i < this.irregularMonthWorksheets.size(); i++) {
             count++;
-            worksheet = __irregularYearWorksheets[i];
+            worksheet = this.irregularMonthWorksheets.get(i);
+        }
+    }
+    if (this.irregularYearWorksheets != null) {
+        for (int i = 0; i < this.irregularYearWorksheets.size(); i++) {
+            count++;
+            worksheet = this.irregularYearWorksheets.get(i);
         }
     }
 
@@ -1188,51 +1257,52 @@ private void checkForSingleWorksheet() {
 	}
 
 	selectWorksheet(worksheet, null);
-	__saveAlwaysEnabled = true;
-	__saveJButton.setEnabled(true);
+	this.saveAlwaysEnabled = true;
+	this.saveJButton.setEnabled(true);
 }
 
 /**
-Takes the Time Series from the __tslist list and puts each one into a list
-specific to its data interval (e.g., Day time series go into __day,
-minute time series go into __minute, etc).
+Takes the Time Series from the this.tslist list and puts each one into a list
+specific to its data interval (e.g., Day time series go into this.day,
+minute time series go into this.minute, etc).
 Different multipliers are all lumped together, as long as they have the same data interval.
-Irregular time series are split out by the interval of the starting date/time.
+Irregular interval time series are split out by the interval of the starting date/time.
 */
 private void createSeparateTimeSeriesLists() {
     String routine = getClass().getSimpleName() + ".createSeparateTimeSeriesLists";
 	int interval;
-	__minuteTSList = new ArrayList<>();
-	__hourTSList = new ArrayList<>();
-	__dayTSList = new ArrayList<>();
-	__monthTSList = new ArrayList<>();
-	__yearTSList = new ArrayList<>();
-	__irregularMinuteTSList = new ArrayList<>();
-	__irregularHourTSList = new ArrayList<>();
-	__irregularDayTSList = new ArrayList<>();
-	__irregularMonthTSList = new ArrayList<>();
-	__irregularYearTSList = new ArrayList<>();
+	this.minuteTSList = new ArrayList<>();
+	this.hourTSList = new ArrayList<>();
+	this.dayTSList = new ArrayList<>();
+	this.monthTSList = new ArrayList<>();
+	this.yearTSList = new ArrayList<>();
+	this.irregularSecondTSList = new ArrayList<>();
+	this.irregularMinuteTSList = new ArrayList<>();
+	this.irregularHourTSList = new ArrayList<>();
+	this.irregularDayTSList = new ArrayList<>();
+	this.irregularMonthTSList = new ArrayList<>();
+	this.irregularYearTSList = new ArrayList<>();
 
-	for ( TS ts : __tslist ) {
+	for ( TS ts : this.tslist ) {
 		if (ts == null) {
 			continue;
 		}
 		interval = ts.getDataIntervalBase();
 
 		if (interval == TimeInterval.MINUTE) {
-			__minuteTSList.add(ts);
+			this.minuteTSList.add(ts);
 		}
 		else if (interval == TimeInterval.HOUR) {
-			__hourTSList.add(ts);
+			this.hourTSList.add(ts);
 		}
 		else if (interval == TimeInterval.DAY) {
-			__dayTSList.add(ts);
+			this.dayTSList.add(ts);
 		}
 		else if (interval == TimeInterval.MONTH) {
-			__monthTSList.add(ts);
+			this.monthTSList.add(ts);
 		}
 		else if (interval == TimeInterval.YEAR) {
-			__yearTSList.add(ts);
+			this.yearTSList.add(ts);
 		}
         else if (interval == TimeInterval.IRREGULAR) {
             // Put in the appropriate list based on the date/time of the period start.
@@ -1244,24 +1314,24 @@ private void createSeparateTimeSeriesLists() {
                 int precision = d.getPrecision();
                 if ( (precision >= DateTime.PRECISION_NANOSECOND) && (precision <= DateTime.PRECISION_SECOND) ) {
                     // Include (sub)second precision here because most likely it is minute precision with seconds = 0.
-                    __irregularMinuteTSList.add(ts);
-                    Message.printStatus(2,routine,"Date/time precision is second, but treating as minute for table \"" +
+                    this.irregularSecondTSList.add(ts);
+                    Message.printStatus(2,routine,"Date/time precision is <= second, using smallest precision for the SECOND table \"" +
                         ts.getIdentifierString() + "\"");
                 }
                 else if ( precision == DateTime.PRECISION_MINUTE ) {
-                    __irregularMinuteTSList.add(ts);
+                    this.irregularMinuteTSList.add(ts);
                 }
                 else if ( precision == DateTime.PRECISION_HOUR ) {
-                    __irregularHourTSList.add(ts);
+                    this.irregularHourTSList.add(ts);
                 }
                 else if ( precision == DateTime.PRECISION_DAY ) {
-                    __irregularDayTSList.add(ts);
+                    this.irregularDayTSList.add(ts);
                 }
                 else if ( precision == DateTime.PRECISION_MONTH ) {
-                    __irregularMonthTSList.add(ts);
+                    this.irregularMonthTSList.add(ts);
                 }
                 else if ( precision == DateTime.PRECISION_YEAR ) {
-                    __irregularYearTSList.add(ts);
+                    this.irregularYearTSList.add(ts);
                 }
                 else {
                     // Don't handle the precision.
@@ -1281,13 +1351,13 @@ If irregular, the time series will have been grouped by the precision of the per
 @return an array of TSViewTable_TableModel object, one for each worksheet
 that needs to be created, or a zero-element array if no worksheets need be created for the ts type.
 */
-private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
+private List<TSViewTable_TableModel> createTableModels(List<TS> tslist) {
 	String routine = getClass().getSimpleName() + ".createTableModels";
 
 	// If there is no data in the tslist list, there is no need to create the table models.
-	// Return an empty array.
+	// Return an empty list.
 	if ( (tslist == null) || (tslist.size() == 0) ) {
-		return new TSViewTable_TableModel[0];
+		return new ArrayList<>();
 	}
 
 	int numts = tslist.size();
@@ -1369,7 +1439,7 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
 
 	try {
 		int tsPrecision = 2; // Default.
-		String propValue = __props.getValue("OutputPrecision");
+		String propValue = this.props.getValue("OutputPrecision");
 		int multi = 0;
 
 		// Go through the time series and see how many of them have different intervals.
@@ -1417,24 +1487,27 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
 				// Get the precision from the time series.
 				tsPrecision = ts.getDataPrecision((short)2);
 			}
-			//tsFormatString[i] = "%" + __OUTPUT_WIDTH + "." + tsPrecision + "f";
+			//tsFormatString[i] = "%" + this.OUTPUT_WIDTH + "." + tsPrecision + "f";
 			tsFormatString[i] = "%." + tsPrecision + "f";
 
 		}
 
 		// Create an array of table models big enough to hold one table
 		// model for every different interval multiplier that is needed.
-		TSViewTable_TableModel[] models = new TSViewTable_TableModel[count];
+		List<TSViewTable_TableModel> models = new ArrayList<>();
 
 		boolean useExtendedLegend = false;
-		propValue = __props.getValue("Table.UseExtendedLegend");
+		propValue = this.props.getValue("Table.UseExtendedLegend");
 		if ((propValue != null) && (propValue.equalsIgnoreCase("true"))) {
 			useExtendedLegend = true;
 		}
 
 		TS tempTS = null;
 
-		// Loop through all of the different interval multipliers.
+		// Create the table models for the time series:
+		// - loop through all of the different interval multipliers
+		// - catch exceptions for each table model
+   		this.tableModelProblems = new ArrayList<>();
 		for (int i = 0; i < count; i++) {
 			List<TS> tslistForIntervalMult = new ArrayList<>();
 			if ( interval == TimeInterval.IRREGULAR ) {
@@ -1473,12 +1546,17 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
         	if ( interval == TimeInterval.IRREGULAR ) {
             	// In this case multi is the precision.
             	int datePrecision = ts.getDate1().getPrecision();
-            	models[i] = new TSViewTable_TableModel(tslistForIntervalMult, start, interval, datePrecision, dateFormat,
-                	formats, useExtendedLegend);
+            	try {
+            		models.add(new TSViewTable_TableModel(tslistForIntervalMult, start, interval, datePrecision, dateFormat, formats, useExtendedLegend));
+            	}
+            	catch ( UnequalTimeIntervalException e ) {
+            		this.tableModelProblems.add(e.getMessage());
+            		//models[i] = null;
+            	}
         	}
         	else {
             	// Regular interval.
-    			if (tslistForIntervalMult == null || tslistForIntervalMult.size() == 0) {
+    			if ( (tslistForIntervalMult == null) || (tslistForIntervalMult.size() == 0) ) {
     				// In this case, use a representative TS.
     				tempTS = tslist.get(i);
     				multi = tempTS.getDataIntervalMult();
@@ -1489,8 +1567,13 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
     			}
     			// ... and create the table model to display all the time
             	// series with the same interval base and interval multiplier.
-            	models[i] = new TSViewTable_TableModel(tslistForIntervalMult, start, interval, multi, dateFormat,
-                	formats, useExtendedLegend);
+            	try {
+            		models.add( new TSViewTable_TableModel(tslistForIntervalMult, start, interval, multi, dateFormat, formats, useExtendedLegend));
+            	}
+            	catch ( UnequalTimeIntervalException e ) {
+            		this.tableModelProblems.add(e.getMessage());
+            		//models[i] = null;
+            	}
         	}
 		}
 
@@ -1507,27 +1590,30 @@ private TSViewTable_TableModel[] createTableModels(List<TS> tslist) {
 Creates worksheets for all of the table models that were previously-generated.
 @param models table models for each of the worksheets that need to be made.
 @param p PropList defining JWorksheet characteristics.  See the JWorksheet constructors.
-@return an array of JWorksheets, one for each model, or an empty array if no models.
+@return a list of JWorksheets, one for each model, or an empty list if no models.
 */
-private JWorksheet[] createWorksheets(TSViewTable_TableModel[] models, PropList p) {
-	if ( (models == null) || (models.length == 0)) {
-		return new JWorksheet[0];
+private List<JWorksheet> createWorksheets(List<TSViewTable_TableModel> models, PropList p) {
+	if ( (models == null) || models.isEmpty() ) {
+		return new ArrayList<>();
 	}
-	int numWorksheets = models.length;
+	int numWorksheets = models.size();
 
-	JWorksheet[] worksheets = new JWorksheet[numWorksheets];
+	List<JWorksheet> worksheets = new ArrayList<>();
 	JWorksheet worksheet = null;
 	TSViewTable_TableModel model = null;
 	for (int i = 0; i < numWorksheets; i++) {
-		model = models[i];
+		model = models.get(i);
+		if ( model == null ) {
+			// There could have been an exception setting up the table model.
+			continue;
+		}
 		TSViewTable_CellRenderer cr = new TSViewTable_CellRenderer(model);
 		worksheet = new JWorksheet(cr, model, p);
 		worksheet.setPreferredScrollableViewportSize(null);
 		worksheet.setHourglassJFrame(this);
-		worksheets[i] = worksheet;
-		model.setWorksheet(worksheets[i]);
-		// Add this class as an action listener on the worksheet so that
-		// "Calculate Statistics" can be handled here.
+		worksheets.add(worksheet);
+		model.setWorksheet(worksheet);
+		// Add this class as an action listener on the worksheet so that "Calculate Statistics" can be handled here.
 		// Otherwise the generic handling won't be able to handle the time series missing value.
 		worksheet.addPopupMenuActionListener(this);
 	}
@@ -1548,62 +1634,68 @@ private JWorksheet findClickedOnJWorksheet(MouseEvent e) {
 		return (JWorksheet)((JWorksheet_Header)source).getTable();
 	}
 	else {
-		if (__dayWorksheets != null) {
-			JWorksheet worksheet = searchListeners(__dayWorksheets, __dayMouseListeners, source);
+		if (this.dayWorksheets != null) {
+			JWorksheet worksheet = searchListeners(this.dayWorksheets, this.dayMouseListeners, source);
 			if (worksheet != null) {
 				return worksheet;
 			}
 		}
-		if (__hourWorksheets != null) {
-			JWorksheet worksheet = searchListeners(__hourWorksheets, __hourMouseListeners, source);
+		if (this.hourWorksheets != null) {
+			JWorksheet worksheet = searchListeners(this.hourWorksheets, this.hourMouseListeners, source);
 			if (worksheet != null) {
 				return worksheet;
 			}
 		}
-		if (__minuteWorksheets != null) {
-			JWorksheet worksheet = searchListeners( __minuteWorksheets, __minuteMouseListeners, source);
+		if (this.minuteWorksheets != null) {
+			JWorksheet worksheet = searchListeners( this.minuteWorksheets, this.minuteMouseListeners, source);
 			if (worksheet != null) {
 				return worksheet;
 			}
 		}
-		if (__monthWorksheets != null) {
-			JWorksheet worksheet = searchListeners( __monthWorksheets, __monthMouseListeners, source);
+		if (this.monthWorksheets != null) {
+			JWorksheet worksheet = searchListeners( this.monthWorksheets, this.monthMouseListeners, source);
 			if (worksheet != null) {
 				return worksheet;
 			}
 		}
-		if (__yearWorksheets != null) {
-			JWorksheet worksheet = searchListeners(__yearWorksheets, __yearMouseListeners, source);
+		if (this.yearWorksheets != null) {
+			JWorksheet worksheet = searchListeners(this.yearWorksheets, this.yearMouseListeners, source);
 			if (worksheet != null) {
 				return worksheet;
 			}
 		}
-        if (__irregularMinuteWorksheets != null) {
-            JWorksheet worksheet = searchListeners(__irregularMinuteWorksheets, __irregularMinuteMouseListeners, source);
+        if (this.irregularSecondWorksheets != null) {
+            JWorksheet worksheet = searchListeners(this.irregularSecondWorksheets, this.irregularSecondMouseListeners, source);
             if (worksheet != null) {
                 return worksheet;
             }
         }
-        if (__irregularHourWorksheets != null) {
-            JWorksheet worksheet = searchListeners(__irregularHourWorksheets, __irregularHourMouseListeners, source);
+        if (this.irregularMinuteWorksheets != null) {
+            JWorksheet worksheet = searchListeners(this.irregularMinuteWorksheets, this.irregularMinuteMouseListeners, source);
             if (worksheet != null) {
                 return worksheet;
             }
         }
-        if (__irregularDayWorksheets != null) {
-            JWorksheet worksheet = searchListeners(__irregularDayWorksheets, __irregularDayMouseListeners, source);
+        if (this.irregularHourWorksheets != null) {
+            JWorksheet worksheet = searchListeners(this.irregularHourWorksheets, this.irregularHourMouseListeners, source);
             if (worksheet != null) {
                 return worksheet;
             }
         }
-        if (__irregularMonthWorksheets != null) {
-            JWorksheet worksheet = searchListeners(__irregularMonthWorksheets, __irregularMonthMouseListeners, source);
+        if (this.irregularDayWorksheets != null) {
+            JWorksheet worksheet = searchListeners(this.irregularDayWorksheets, this.irregularDayMouseListeners, source);
             if (worksheet != null) {
                 return worksheet;
             }
         }
-        if (__irregularYearWorksheets != null) {
-            JWorksheet worksheet = searchListeners(__irregularYearWorksheets, __irregularYearMouseListeners, source);
+        if (this.irregularMonthWorksheets != null) {
+            JWorksheet worksheet = searchListeners(this.irregularMonthWorksheets, this.irregularMonthMouseListeners, source);
+            if (worksheet != null) {
+                return worksheet;
+            }
+        }
+        if (this.irregularYearWorksheets != null) {
+            JWorksheet worksheet = searchListeners(this.irregularYearWorksheets, this.irregularYearMouseListeners, source);
             if (worksheet != null) {
                 return worksheet;
             }
@@ -1621,73 +1713,80 @@ public JPanel findWorksheetsJPanel(JWorksheet worksheet) {
 	if (worksheet == null) {
 		return null;
 	}
-	if (__dayWorksheets != null) {
-		for (int i = 0; i < __dayWorksheets.length; i++) {
-			if (__dayWorksheets[i] == worksheet) {
-				return __dayJPanel;
+	if (this.dayWorksheets != null) {
+		for (int i = 0; i < this.dayWorksheets.size(); i++) {
+			if (this.dayWorksheets.get(i) == worksheet) {
+				return this.dayJPanel;
 			}
 		}
 	}
-	if (__minuteWorksheets != null) {
-		for (int i = 0; i < __minuteWorksheets.length; i++) {
-			if (__minuteWorksheets[i] == worksheet) {
-				return __minuteJPanel;
+	if (this.minuteWorksheets != null) {
+		for (int i = 0; i < this.minuteWorksheets.size(); i++) {
+			if (this.minuteWorksheets.get(i) == worksheet) {
+				return this.minuteJPanel;
 			}
 		}
 	}
-	if (__hourWorksheets != null) {
-		for (int i = 0; i < __hourWorksheets.length; i++) {
-			if (__hourWorksheets[i] == worksheet) {
-				return __hourJPanel;
+	if (this.hourWorksheets != null) {
+		for (int i = 0; i < this.hourWorksheets.size(); i++) {
+			if (this.hourWorksheets.get(i) == worksheet) {
+				return this.hourJPanel;
 			}
 		}
 	}
-	if (__monthWorksheets != null) {
-		for (int i = 0; i < __monthWorksheets.length; i++) {
-			if (__monthWorksheets[i] == worksheet) {
-				return __monthJPanel;
+	if (this.monthWorksheets != null) {
+		for (int i = 0; i < this.monthWorksheets.size(); i++) {
+			if (this.monthWorksheets.get(i) == worksheet) {
+				return this.monthJPanel;
 			}
 		}
 	}
-	if (__yearWorksheets != null) {
-		for (int i = 0; i < __yearWorksheets.length; i++) {
-			if (__yearWorksheets[i] == worksheet) {
-				return __yearJPanel;
+	if (this.yearWorksheets != null) {
+		for (int i = 0; i < this.yearWorksheets.size(); i++) {
+			if (this.yearWorksheets.get(i) == worksheet) {
+				return this.yearJPanel;
 			}
 		}
 	}
-    if (__irregularMinuteWorksheets != null) {
-        for (int i = 0; i < __irregularMinuteWorksheets.length; i++) {
-            if (__irregularMinuteWorksheets[i] == worksheet) {
-                return __irregularMinuteJPanel;
+    if (this.irregularSecondWorksheets != null) {
+        for (int i = 0; i < this.irregularSecondWorksheets.size(); i++) {
+            if (this.irregularSecondWorksheets.get(i) == worksheet) {
+                return this.irregularSecondJPanel;
             }
         }
     }
-    if (__irregularHourWorksheets != null) {
-        for (int i = 0; i < __irregularHourWorksheets.length; i++) {
-            if (__irregularHourWorksheets[i] == worksheet) {
-                return __irregularHourJPanel;
+    if (this.irregularMinuteWorksheets != null) {
+        for (int i = 0; i < this.irregularMinuteWorksheets.size(); i++) {
+            if (this.irregularMinuteWorksheets.get(i) == worksheet) {
+                return this.irregularMinuteJPanel;
             }
         }
     }
-    if (__irregularDayWorksheets != null) {
-        for (int i = 0; i < __irregularDayWorksheets.length; i++) {
-            if (__irregularDayWorksheets[i] == worksheet) {
-                return __irregularDayJPanel;
+    if (this.irregularHourWorksheets != null) {
+        for (int i = 0; i < this.irregularHourWorksheets.size(); i++) {
+            if (this.irregularHourWorksheets.get(i) == worksheet) {
+                return this.irregularHourJPanel;
             }
         }
     }
-    if (__irregularMonthWorksheets != null) {
-        for (int i = 0; i < __irregularMonthWorksheets.length; i++) {
-            if (__irregularMonthWorksheets[i] == worksheet) {
-                return __irregularMonthJPanel;
+    if (this.irregularDayWorksheets != null) {
+        for (int i = 0; i < this.irregularDayWorksheets.size(); i++) {
+            if (this.irregularDayWorksheets.get(i) == worksheet) {
+                return this.irregularDayJPanel;
             }
         }
     }
-    if (__irregularYearWorksheets != null) {
-        for (int i = 0; i < __irregularYearWorksheets.length; i++) {
-            if (__irregularYearWorksheets[i] == worksheet) {
-                return __irregularYearJPanel;
+    if (this.irregularMonthWorksheets != null) {
+        for (int i = 0; i < this.irregularMonthWorksheets.size(); i++) {
+            if (this.irregularMonthWorksheets.get(i) == worksheet) {
+                return this.irregularMonthJPanel;
+            }
+        }
+    }
+    if (this.irregularYearWorksheets != null) {
+        for (int i = 0; i < this.irregularYearWorksheets.size(); i++) {
+            if (this.irregularYearWorksheets.get(i) == worksheet) {
+                return this.irregularYearJPanel;
             }
         }
     }
@@ -1703,73 +1802,80 @@ public JScrollPane findWorksheetsScrollPane(JWorksheet worksheet) {
 	if (worksheet == null) {
 		return null;
 	}
-	if (__dayWorksheets != null) {
-		for (int i = 0; i < __dayWorksheets.length; i++) {
-			if (__dayWorksheets[i] == worksheet) {
-				return __dayScrollPanes[i];
+	if (this.dayWorksheets != null) {
+		for (int i = 0; i < this.dayWorksheets.size(); i++) {
+			if (this.dayWorksheets.get(i) == worksheet) {
+				return this.dayScrollPanes.get(i);
 			}
 		}
 	}
-	if (__minuteWorksheets != null) {
-		for (int i = 0; i < __minuteWorksheets.length; i++) {
-			if (__minuteWorksheets[i] == worksheet) {
-				return __minuteScrollPanes[i];
+	if (this.minuteWorksheets != null) {
+		for (int i = 0; i < this.minuteWorksheets.size(); i++) {
+			if (this.minuteWorksheets.get(i) == worksheet) {
+				return this.minuteScrollPanes.get(i);
 			}
 		}
 	}
-	if (__hourWorksheets != null) {
-		for (int i = 0; i < __hourWorksheets.length; i++) {
-			if (__hourWorksheets[i] == worksheet) {
-				return __hourScrollPanes[i];
+	if (this.hourWorksheets != null) {
+		for (int i = 0; i < this.hourWorksheets.size(); i++) {
+			if (this.hourWorksheets.get(i) == worksheet) {
+				return this.hourScrollPanes.get(i);
 			}
 		}
 	}
-	if (__monthWorksheets != null) {
-		for (int i = 0; i < __monthWorksheets.length; i++) {
-			if (__monthWorksheets[i] == worksheet) {
-				return __monthScrollPanes[i];
+	if (this.monthWorksheets != null) {
+		for (int i = 0; i < this.monthWorksheets.size(); i++) {
+			if (this.monthWorksheets.get(i) == worksheet) {
+				return this.monthScrollPanes.get(i);
 			}
 		}
 	}
-	if (__yearWorksheets != null) {
-		for (int i = 0; i < __yearWorksheets.length; i++) {
-			if (__yearWorksheets[i] == worksheet) {
-				return __yearScrollPanes[i];
+	if (this.yearWorksheets != null) {
+		for (int i = 0; i < this.yearWorksheets.size(); i++) {
+			if (this.yearWorksheets.get(i) == worksheet) {
+				return this.yearScrollPanes.get(i);
 			}
 		}
 	}
-    if (__irregularMinuteWorksheets != null) {
-        for (int i = 0; i < __irregularMinuteWorksheets.length; i++) {
-            if (__irregularMinuteWorksheets[i] == worksheet) {
-                return __irregularMinuteScrollPanes[i];
+    if (this.irregularSecondWorksheets != null) {
+        for (int i = 0; i < this.irregularSecondWorksheets.size(); i++) {
+            if (this.irregularSecondWorksheets.get(i) == worksheet) {
+                return this.irregularSecondScrollPanes.get(i);
             }
         }
     }
-    if (__irregularHourWorksheets != null) {
-        for (int i = 0; i < __irregularHourWorksheets.length; i++) {
-            if (__irregularHourWorksheets[i] == worksheet) {
-                return __irregularHourScrollPanes[i];
+    if (this.irregularMinuteWorksheets != null) {
+        for (int i = 0; i < this.irregularMinuteWorksheets.size(); i++) {
+            if (this.irregularMinuteWorksheets.get(i) == worksheet) {
+                return this.irregularMinuteScrollPanes.get(i);
             }
         }
     }
-    if (__irregularDayWorksheets != null) {
-        for (int i = 0; i < __irregularDayWorksheets.length; i++) {
-            if (__irregularDayWorksheets[i] == worksheet) {
-                return __irregularDayScrollPanes[i];
+    if (this.irregularHourWorksheets != null) {
+        for (int i = 0; i < this.irregularHourWorksheets.size(); i++) {
+            if (this.irregularHourWorksheets.get(i) == worksheet) {
+                return this.irregularHourScrollPanes.get(i);
             }
         }
     }
-    if (__irregularMonthWorksheets != null) {
-        for (int i = 0; i < __irregularMonthWorksheets.length; i++) {
-            if (__irregularMonthWorksheets[i] == worksheet) {
-                return __irregularMonthScrollPanes[i];
+    if (this.irregularDayWorksheets != null) {
+        for (int i = 0; i < this.irregularDayWorksheets.size(); i++) {
+            if (this.irregularDayWorksheets.get(i) == worksheet) {
+                return this.irregularDayScrollPanes.get(i);
             }
         }
     }
-    if (__irregularYearWorksheets != null) {
-        for (int i = 0; i < __irregularYearWorksheets.length; i++) {
-            if (__irregularYearWorksheets[i] == worksheet) {
-                return __irregularYearScrollPanes[i];
+    if (this.irregularMonthWorksheets != null) {
+        for (int i = 0; i < this.irregularMonthWorksheets.size(); i++) {
+            if (this.irregularMonthWorksheets.get(i) == worksheet) {
+                return this.irregularMonthScrollPanes.get(i);
+            }
+        }
+    }
+    if (this.irregularYearWorksheets != null) {
+        for (int i = 0; i < this.irregularYearWorksheets.size(); i++) {
+            if (this.irregularYearWorksheets.get(i) == worksheet) {
+                return this.irregularYearScrollPanes.get(i);
             }
         }
     }
@@ -1777,149 +1883,213 @@ public JScrollPane findWorksheetsScrollPane(JWorksheet worksheet) {
 }
 
 /**
-Handle events from the checkboxes, indicating which time series intervals should be shown.
+Handle events from the checkboxes and choices, indicating which time series intervals should be shown.
 @param evt ItemEvent to handle.
 */
 public void itemStateChanged(ItemEvent evt) {
 	Object source = evt.getSource();
 	int state = evt.getStateChange();
 
-    if (source == __flagJComboBox) {
+    if ( source == this.flagJComboBox ) {
         // Change the data flag visualization for all the table models.
-        TSDataFlagVisualizationType vizType =
-            TSDataFlagVisualizationType.valueOfIgnoreCase(__flagJComboBox.getSelected());
+        TSDataFlagVisualizationType vizType = TSDataFlagVisualizationType.valueOfIgnoreCase(this.flagJComboBox.getSelected());
         if ( vizType != null ) {
-            for ( int i = 0; i < __minuteModels.length; i++ ) {
-                __minuteModels[i].setDataFlagVisualizationType(vizType);
-                __minuteModels[i].fireTableDataChanged();
+            for ( int i = 0; i < this.minuteModels.size(); i++ ) {
+                this.minuteModels.get(i).setDataFlagVisualizationType(vizType);
+                this.minuteModels.get(i).fireTableDataChanged();
             }
-            for ( int i = 0; i < __hourModels.length; i++ ) {
-                __hourModels[i].setDataFlagVisualizationType(vizType);
-                __hourModels[i].fireTableDataChanged();
+            for ( int i = 0; i < this.hourModels.size(); i++ ) {
+                this.hourModels.get(i).setDataFlagVisualizationType(vizType);
+                this.hourModels.get(i).fireTableDataChanged();
             }
-            for ( int i = 0; i < __dayModels.length; i++ ) {
-                __dayModels[i].setDataFlagVisualizationType(vizType);
-                __dayModels[i].fireTableDataChanged();
+            for ( int i = 0; i < this.dayModels.size(); i++ ) {
+                this.dayModels.get(i).setDataFlagVisualizationType(vizType);
+                this.dayModels.get(i).fireTableDataChanged();
             }
-            for ( int i = 0; i < __monthModels.length; i++ ) {
-                __monthModels[i].setDataFlagVisualizationType(vizType);
-                __monthModels[i].fireTableDataChanged();
+            for ( int i = 0; i < this.monthModels.size(); i++ ) {
+                this.monthModels.get(i).setDataFlagVisualizationType(vizType);
+                this.monthModels.get(i).fireTableDataChanged();
             }
-            for ( int i = 0; i < __yearModels.length; i++ ) {
-                __yearModels[i].setDataFlagVisualizationType(vizType);
-                __yearModels[i].fireTableDataChanged();
+            for ( int i = 0; i < this.yearModels.size(); i++ ) {
+                this.yearModels.get(i).setDataFlagVisualizationType(vizType);
+                this.yearModels.get(i).fireTableDataChanged();
             }
-            for ( int i = 0; i < __irregularMinuteModels.length; i++ ) {
-                __irregularMinuteModels[i].setDataFlagVisualizationType(vizType);
-                __irregularMinuteModels[i].fireTableDataChanged();
+            for ( int i = 0; i < this.irregularSecondModels.size(); i++ ) {
+                this.irregularSecondModels.get(i).setDataFlagVisualizationType(vizType);
+                this.irregularSecondModels.get(i).fireTableDataChanged();
             }
-            for ( int i = 0; i < __irregularHourModels.length; i++ ) {
-                __irregularHourModels[i].setDataFlagVisualizationType(vizType);
-                __irregularHourModels[i].fireTableDataChanged();
+            for ( int i = 0; i < this.irregularMinuteModels.size(); i++ ) {
+                this.irregularMinuteModels.get(i).setDataFlagVisualizationType(vizType);
+                this.irregularMinuteModels.get(i).fireTableDataChanged();
             }
-            for ( int i = 0; i < __irregularDayModels.length; i++ ) {
-                __irregularDayModels[i].setDataFlagVisualizationType(vizType);
-                __irregularDayModels[i].fireTableDataChanged();
+            for ( int i = 0; i < this.irregularHourModels.size(); i++ ) {
+                this.irregularHourModels.get(i).setDataFlagVisualizationType(vizType);
+                this.irregularHourModels.get(i).fireTableDataChanged();
             }
-            for ( int i = 0; i < __irregularMonthModels.length; i++ ) {
-                __irregularMonthModels[i].setDataFlagVisualizationType(vizType);
-                __irregularMonthModels[i].fireTableDataChanged();
+            for ( int i = 0; i < this.irregularDayModels.size(); i++ ) {
+                this.irregularDayModels.get(i).setDataFlagVisualizationType(vizType);
+                this.irregularDayModels.get(i).fireTableDataChanged();
             }
-            for ( int i = 0; i < __irregularYearModels.length; i++ ) {
-                __irregularYearModels[i].setDataFlagVisualizationType(vizType);
-                __irregularYearModels[i].fireTableDataChanged();
+            for ( int i = 0; i < this.irregularMonthModels.size(); i++ ) {
+                this.irregularMonthModels.get(i).setDataFlagVisualizationType(vizType);
+                this.irregularMonthModels.get(i).fireTableDataChanged();
+            }
+            for ( int i = 0; i < this.irregularYearModels.size(); i++ ) {
+                this.irregularYearModels.get(i).setDataFlagVisualizationType(vizType);
+                this.irregularYearModels.get(i).fireTableDataChanged();
             }
         }
+        // No need to anything else.
         return;
     }
 
+    if ( source == this.digitsJComboBox ) {
+        // Change the data flag visualization for all the table models.
+        String digits = this.digitsJComboBox.getSelected();
+        if ( (digits == null) || digits.isEmpty() ) {
+        	digits = "Auto";
+        }
+        for ( int i = 0; i < this.minuteModels.size(); i++ ) {
+            this.minuteModels.get(i).setValueDigits(digits);
+            this.minuteModels.get(i).fireTableDataChanged();
+        }
+        for ( int i = 0; i < this.hourModels.size(); i++ ) {
+            this.hourModels.get(i).setValueDigits(digits);
+            this.hourModels.get(i).fireTableDataChanged();
+        }
+        for ( int i = 0; i < this.dayModels.size(); i++ ) {
+            this.dayModels.get(i).setValueDigits(digits);
+            this.dayModels.get(i).fireTableDataChanged();
+        }
+        for ( int i = 0; i < this.monthModels.size(); i++ ) {
+            this.monthModels.get(i).setValueDigits(digits);
+            this.monthModels.get(i).fireTableDataChanged();
+        }
+        for ( int i = 0; i < this.yearModels.size(); i++ ) {
+            this.yearModels.get(i).setValueDigits(digits);
+            this.yearModels.get(i).fireTableDataChanged();
+        }
+        for ( int i = 0; i < this.irregularSecondModels.size(); i++ ) {
+            this.irregularSecondModels.get(i).setValueDigits(digits);
+            this.irregularSecondModels.get(i).fireTableDataChanged();
+        }
+        for ( int i = 0; i < this.irregularMinuteModels.size(); i++ ) {
+            this.irregularMinuteModels.get(i).setValueDigits(digits);
+            this.irregularMinuteModels.get(i).fireTableDataChanged();
+        }
+        for ( int i = 0; i < this.irregularHourModels.size(); i++ ) {
+            this.irregularHourModels.get(i).setValueDigits(digits);
+            this.irregularHourModels.get(i).fireTableDataChanged();
+        }
+        for ( int i = 0; i < this.irregularDayModels.size(); i++ ) {
+            this.irregularDayModels.get(i).setValueDigits(digits);
+            this.irregularDayModels.get(i).fireTableDataChanged();
+        }
+        for ( int i = 0; i < this.irregularMonthModels.size(); i++ ) {
+            this.irregularMonthModels.get(i).setValueDigits(digits);
+            this.irregularMonthModels.get(i).fireTableDataChanged();
+        }
+        for ( int i = 0; i < this.irregularYearModels.size(); i++ ) {
+            this.irregularYearModels.get(i).setValueDigits(digits);
+            this.irregularYearModels.get(i).fireTableDataChanged();
+        }
+        // No need to anything else.
+        return;
+    }
+
+    // Check other settings.
 	boolean visible = false;
-	if (state == ItemEvent.SELECTED) {
+	if ( state == ItemEvent.SELECTED ) {
 		visible = true;
 	}
 	else {
 		visible = false;
 	}
 
-	if (source == __minuteJCheckBox) {
-		__minuteJPanel.setVisible(visible);
+	if (source == this.minuteJCheckBox) {
+		this.minuteJPanel.setVisible(visible);
 	}
-	else if (source == __hourJCheckBox) {
-		__hourJPanel.setVisible(visible);
+	else if (source == this.hourJCheckBox) {
+		this.hourJPanel.setVisible(visible);
 	}
-	else if (source == __dayJCheckBox) {
-		__dayJPanel.setVisible(visible);
+	else if (source == this.dayJCheckBox) {
+		this.dayJPanel.setVisible(visible);
 	}
-	else if (source == __monthJCheckBox) {
-		__monthJPanel.setVisible(visible);
+	else if (source == this.monthJCheckBox) {
+		this.monthJPanel.setVisible(visible);
 	}
-	else if (source == __yearJCheckBox) {
-		__yearJPanel.setVisible(visible);
+	else if (source == this.yearJCheckBox) {
+		this.yearJPanel.setVisible(visible);
 	}
-    else if (source == __irregularMinuteJCheckBox) {
-        __irregularMinuteJPanel.setVisible(visible);
+    else if (source == this.irregularSecondJCheckBox) {
+        this.irregularSecondJPanel.setVisible(visible);
     }
-    else if (source == __irregularHourJCheckBox) {
-        __irregularHourJPanel.setVisible(visible);
+    else if (source == this.irregularMinuteJCheckBox) {
+        this.irregularMinuteJPanel.setVisible(visible);
     }
-    else if (source == __irregularDayJCheckBox) {
-        __irregularDayJPanel.setVisible(visible);
+    else if (source == this.irregularHourJCheckBox) {
+        this.irregularHourJPanel.setVisible(visible);
     }
-    else if (source == __irregularMonthJCheckBox) {
-        __irregularMonthJPanel.setVisible(visible);
+    else if (source == this.irregularDayJCheckBox) {
+        this.irregularDayJPanel.setVisible(visible);
     }
-    else if (source == __irregularYearJCheckBox) {
-        __irregularYearJPanel.setVisible(visible);
+    else if (source == this.irregularMonthJCheckBox) {
+        this.irregularMonthJPanel.setVisible(visible);
+    }
+    else if (source == this.irregularYearJCheckBox) {
+        this.irregularYearJPanel.setVisible(visible);
     }
 
-	JPanel panel = findWorksheetsJPanel(__lastSelectedWorksheet);
+	JPanel panel = findWorksheetsJPanel(this.lastSelectedWorksheet);
 	if (panel != null && !panel.isVisible()) {
-		if (__lastSelectedScrollPane != null) {
+		if (this.lastSelectedScrollPane != null) {
 			// Reset the border to its original state.
-			__lastSelectedScrollPane.setBorder(__originalScrollPaneBorder);
+			this.lastSelectedScrollPane.setBorder(this.originalScrollPaneBorder);
 		}
 
-		if (!__lastSelectedWorksheet.stopEditing()) {
-			__lastSelectedWorksheet.cancelEditing();
+		if (!this.lastSelectedWorksheet.stopEditing()) {
+			this.lastSelectedWorksheet.cancelEditing();
 		}
 
-		__lastSelectedWorksheet = null;
-		__lastSelectedScrollPane = null;
-		__originalScrollPaneBorder = null;
-		__messageJTextField.setText("Currently-selected worksheet: (none)");
-		if (!__saveAlwaysEnabled) {
-			__saveJButton.setEnabled(false);
+		this.lastSelectedWorksheet = null;
+		this.lastSelectedScrollPane = null;
+		this.originalScrollPaneBorder = null;
+		this.messageJTextField.setText("Currently-selected worksheet: (none)");
+		if (!this.saveAlwaysEnabled) {
+			this.saveJButton.setEnabled(false);
 		}
 	}
 
-	int[] arr = calculateVisibleWorksheetsByPanel();
+	// Calculate the worksheet/panel tracking information.
+	calculateVisibleWorksheetsByPanel();
 
-	if (arr[11] == 0) {
-		__mainJPanelNorth = true;
-		getContentPane().remove(__mainJPanel);
-		getContentPane().add(__mainJPanel, "North");
+	if ( this.meta.numPanelsWithVisibleWorksheets == 0 ) {
+		this.mainJPanelNorth = true;
+		getContentPane().remove(this.mainJPanel);
+		getContentPane().add(this.mainJPanel, "North");
 	}
 	else {
-		if (__mainJPanelNorth) {
-			getContentPane().remove(__mainJPanel);
-			getContentPane().add(__mainJPanel, "Center");
-			__mainJPanelNorth = false;
+		if (this.mainJPanelNorth) {
+			getContentPane().remove(this.mainJPanel);
+			getContentPane().add(this.mainJPanel, "Center");
+			this.mainJPanelNorth = false;
 		}
 	}
 
-	if (arr[10] == 1) {
-		if (__lastSelectedScrollPane != null) {
+	if ( this.meta.numWorksheetsTotalVisible == 1 ) {
+		if (this.lastSelectedScrollPane != null) {
 			// Reset the border to its original state.
-			__lastSelectedScrollPane.setBorder((new JScrollPane()).getBorder());
+			this.lastSelectedScrollPane.setBorder((new JScrollPane()).getBorder());
 		}
 
 		setPanelsBorder(false);
 	}
-	else if (arr[11] > 1 && panel != null && panel.isVisible()) {
-		__lastSelectedScrollPane.setBorder(BorderFactory.createLineBorder(Color.blue, 2));
+
+	if ( (this.meta.numPanelsWithVisibleWorksheets > 1) && (panel != null) && panel.isVisible() ) {
+		this.lastSelectedScrollPane.setBorder(BorderFactory.createLineBorder(Color.blue, 2));
 		setPanelsBorder(true);
 	}
-	else if (arr[11] > 1) {
+	else if ( this.meta.numPanelsWithVisibleWorksheets > 1 ) {
 		setPanelsBorder(true);
 	}
 }
@@ -1951,14 +2121,14 @@ which allows other behavior to be focused on the proper worksheet.
 @param e the MouseEvent that happened.
 */
 public void mousePressed(MouseEvent e) {
-	__saveJButton.setEnabled(true);
+	this.saveJButton.setEnabled(true);
 
-	if (__lastSelectedScrollPane != null) {
+	if (this.lastSelectedScrollPane != null) {
 		// Reset the border to its original state.
-		__lastSelectedScrollPane.setBorder(__originalScrollPaneBorder);
+		this.lastSelectedScrollPane.setBorder(this.originalScrollPaneBorder);
 	}
 
-	JWorksheet last = __lastSelectedWorksheet;
+	JWorksheet last = this.lastSelectedWorksheet;
 	// Find the worksheet that was clicked on.
 
 	selectWorksheet(findClickedOnJWorksheet(e), last);
@@ -1980,8 +2150,8 @@ How to write the file is determined by the extension of the file selected by the
 */
 private void saveClicked() {
 	String routine = "saveClicked";
-	if (__lastSelectedWorksheet == null) {
-		__messageJTextField.setText("No worksheets currently selected.  Select one and press 'Save' again.");
+	if (this.lastSelectedWorksheet == null) {
+		this.messageJTextField.setText("No worksheets currently selected.  Select one and press 'Save' again.");
 		return;
 	}
 
@@ -2009,7 +2179,7 @@ private void saveClicked() {
 	}
 	String filename = directory + File.separator + fc.getName(fc.getSelectedFile());
 
-	List<TS> tslist = ((TSViewTable_TableModel)__lastSelectedWorksheet.getModel()).getTSList();
+	List<TS> tslist = ((TSViewTable_TableModel)this.lastSelectedWorksheet.getModel()).getTSList();
 
 	if (fc.getFileFilter() == dff) {
 		try {
@@ -2021,10 +2191,10 @@ private void saveClicked() {
 		}
 	}
 	else if (fc.getFileFilter() == tff) {
-		writeTextFile(__lastSelectedWorksheet, '\t', filename);
+		writeTextFile(this.lastSelectedWorksheet, '\t', filename);
 	}
 	else if (fc.getFileFilter() == cff) {
-		writeTextFile(__lastSelectedWorksheet, ',', filename);
+		writeTextFile(this.lastSelectedWorksheet, ',', filename);
 	}
 	JGUIUtil.setWaitCursor(this, false);
 }
@@ -2038,19 +2208,19 @@ scrollbars (as MouseListeners) used to scroll around the worksheets in the above
 @param source the object on which a MouseEvent was triggered.
 @return the JWorksheet that was clicked on, or null if it could not be found
 */
-private JWorksheet searchListeners(JWorksheet[] worksheets, List<List<MouseListener>> mouseListeners, Object source) {
-	if (mouseListeners == null || source == null) {
+private JWorksheet searchListeners(List<JWorksheet> worksheets, List<List<MouseListener>> mouseListeners, Object source) {
+	if ( mouseListeners == null || (source == null) ) {
 		return null;
 	}
 
 	int size = mouseListeners.size();
 
-	for (int i = 0; i < size; i++) {
+	for ( int i = 0; i < size; i++ ) {
 		List<MouseListener> v = mouseListeners.get(i);
 
-		for (int j = 0; j < v.size(); j++) {
+		for ( int j = 0; j < v.size(); j++ ) {
 			if (v.get(j) == source) {
-				return worksheets[i];
+				return worksheets.get(i);
 			}
 		}
 	}
@@ -2064,8 +2234,8 @@ text at the bottom of the GUI to reflect which worksheet is selected.
 @param lastWorksheet the worksheet that was previously selected.
 */
 private void selectWorksheet(JWorksheet selectWorksheet, JWorksheet lastWorksheet) {
-	int[] arr = calculateVisibleWorksheetsByPanel();
-	__lastSelectedWorksheet = selectWorksheet;
+	calculateVisibleWorksheetsByPanel();
+	this.lastSelectedWorksheet = selectWorksheet;
 
 	if (lastWorksheet != null && lastWorksheet != selectWorksheet) {
 		if (!lastWorksheet.stopEditing()) {
@@ -2073,18 +2243,18 @@ private void selectWorksheet(JWorksheet selectWorksheet, JWorksheet lastWorkshee
 		}
 	}
 	// Scroll pane for the worksheet.
-	__lastSelectedScrollPane = findWorksheetsScrollPane(selectWorksheet);
+	this.lastSelectedScrollPane = findWorksheetsScrollPane(selectWorksheet);
 
 	// Back up the scroll pane's current border.
-	__originalScrollPaneBorder = __lastSelectedScrollPane.getBorder();
+	this.originalScrollPaneBorder = this.lastSelectedScrollPane.getBorder();
 	// ... and change the scroll pane's border to represent that its worksheet is selected.
-	if (arr[10] > 1) {
-		__lastSelectedScrollPane.setBorder(BorderFactory.createLineBorder(Color.blue, 2));
+	if ( this.meta.numWorksheetsTotalVisible > 1 ) {
+		this.lastSelectedScrollPane.setBorder(BorderFactory.createLineBorder(Color.blue, 2));
 	}
 
 	TSViewTable_TableModel model = (TSViewTable_TableModel)selectWorksheet.getModel();
 	String base = null;
-	switch (model.getIntervalBase()) {
+	switch ( model.getIntervalBase() ) {
 		case TimeInterval.MINUTE:
 		    base = "Minute";
 		    break;
@@ -2123,15 +2293,15 @@ private void selectWorksheet(JWorksheet selectWorksheet, JWorksheet lastWorkshee
     	}
 	}
 
-	__messageJTextField.setText("Currently-selected worksheet interval: " + s + ", " + model.getRowCount() + " data points.");
+	this.messageJTextField.setText("Currently-selected worksheet interval: " + s + ", " + model.getRowCount() + " data points.");
 }
 
 /**
 Sets the column widths for the specified group of worksheets.
 @param worksheets the worksheets for which to set the column widths.
 */
-private void setColumnWidths(JWorksheet[] worksheets, int precision) {
-	if (worksheets == null || worksheets.length == 0) {
+private void setColumnWidths(List<JWorksheet> worksheets, int precision) {
+	if ( (worksheets == null) || worksheets.isEmpty() ) {
 		return;
 	}
 
@@ -2140,29 +2310,37 @@ private void setColumnWidths(JWorksheet[] worksheets, int precision) {
 
 	int dateWidth = 16;
 
-	// Get the proper date format.
-	if (precision == DateTime.PRECISION_HOUR) {
-		dateWidth = 13;
-	}
-	else if (precision == DateTime.PRECISION_DAY) {
-		dateWidth = 10;
+	// Get the proper date format:
+	// - increasing width with precisions
+	if (precision == DateTime.PRECISION_YEAR) {
+		dateWidth = 4;
 	}
 	else if (precision == DateTime.PRECISION_MONTH) {
 		dateWidth = 7;
 	}
-	else if (precision == DateTime.PRECISION_YEAR) {
-		dateWidth = 4;
+	else if (precision == DateTime.PRECISION_DAY) {
+		dateWidth = 10;
+	}
+	else if (precision == DateTime.PRECISION_HOUR) {
+		dateWidth = 13;
 	}
 	else if (precision == DateTime.PRECISION_MINUTE) {
 		dateWidth = 16;
 	}
+	else if (precision == DateTime.PRECISION_SECOND) {
+		dateWidth = 20;
+	}
+	else {
+		// Just in case.
+		dateWidth = 25;
+	}
 
-	for (int i = 0; i < worksheets.length; i++) {
-		TSViewTable_TableModel model = (TSViewTable_TableModel)worksheets[i].getModel();
+	for ( int i = 0; i < worksheets.size(); i++ ) {
+		TSViewTable_TableModel model = (TSViewTable_TableModel)worksheets.get(i).getModel();
 		widths = model.getColumnWidths();
 		widths[0] = dateWidth;
-		worksheets[i].setColumnWidths(widths);
-		worksheets[i].calculateColumnWidths(100, 1000, skipCols, getGraphics());
+		worksheets.get(i).setColumnWidths(widths);
+		worksheets.get(i).calculateColumnWidths(100, 1000, skipCols, getGraphics());
 	}
 }
 
@@ -2172,28 +2350,30 @@ Turns on or off the borders for all the panels at once.
 */
 public void setPanelsBorder(boolean on) {
 	if (on) {
-		__minuteJPanel.setBorder(BorderFactory.createTitledBorder("Minute Interval"));
-		__hourJPanel.setBorder(BorderFactory.createTitledBorder("Hour Interval"));
-		__dayJPanel.setBorder(BorderFactory.createTitledBorder("Day Interval"));
-		__monthJPanel.setBorder(BorderFactory.createTitledBorder("Month Interval"));
-		__yearJPanel.setBorder(BorderFactory.createTitledBorder("Year Interval"));
-		__irregularMinuteJPanel.setBorder(BorderFactory.createTitledBorder("Irregular Interval (Minute)"));
-		__irregularMinuteJPanel.setBorder(BorderFactory.createTitledBorder("Irregular Interval (Hour)"));
-		__irregularMinuteJPanel.setBorder(BorderFactory.createTitledBorder("Irregular Interval (Day)"));
-		__irregularMinuteJPanel.setBorder(BorderFactory.createTitledBorder("Irregular Interval (Month)"));
-		__irregularMinuteJPanel.setBorder(BorderFactory.createTitledBorder("Irregular Interval (Year)"));
+		this.minuteJPanel.setBorder(BorderFactory.createTitledBorder("Minute Interval"));
+		this.hourJPanel.setBorder(BorderFactory.createTitledBorder("Hour Interval"));
+		this.dayJPanel.setBorder(BorderFactory.createTitledBorder("Day Interval"));
+		this.monthJPanel.setBorder(BorderFactory.createTitledBorder("Month Interval"));
+		this.yearJPanel.setBorder(BorderFactory.createTitledBorder("Year Interval"));
+		this.irregularSecondJPanel.setBorder(BorderFactory.createTitledBorder("Irregular Interval (<= Second)"));
+		this.irregularMinuteJPanel.setBorder(BorderFactory.createTitledBorder("Irregular Interval (Minute)"));
+		this.irregularMinuteJPanel.setBorder(BorderFactory.createTitledBorder("Irregular Interval (Hour)"));
+		this.irregularMinuteJPanel.setBorder(BorderFactory.createTitledBorder("Irregular Interval (Day)"));
+		this.irregularMinuteJPanel.setBorder(BorderFactory.createTitledBorder("Irregular Interval (Month)"));
+		this.irregularMinuteJPanel.setBorder(BorderFactory.createTitledBorder("Irregular Interval (Year)"));
 	}
 	else {
-		__minuteJPanel.setBorder(null);
-		__hourJPanel.setBorder(null);
-		__dayJPanel.setBorder(null);
-		__monthJPanel.setBorder(null);
-		__yearJPanel.setBorder(null);
-	    __irregularMinuteJPanel.setBorder(null);
-	    __irregularHourJPanel.setBorder(null);
-	    __irregularDayJPanel.setBorder(null);
-	    __irregularMonthJPanel.setBorder(null);
-	    __irregularYearJPanel.setBorder(null);
+		this.minuteJPanel.setBorder(null);
+		this.hourJPanel.setBorder(null);
+		this.dayJPanel.setBorder(null);
+		this.monthJPanel.setBorder(null);
+		this.yearJPanel.setBorder(null);
+	    this.irregularSecondJPanel.setBorder(null);
+	    this.irregularMinuteJPanel.setBorder(null);
+	    this.irregularHourJPanel.setBorder(null);
+	    this.irregularDayJPanel.setBorder(null);
+	    this.irregularMonthJPanel.setBorder(null);
+	    this.irregularYearJPanel.setBorder(null);
 	}
 }
 
@@ -2216,31 +2396,33 @@ private void setupGUI(boolean mode) {
 	GridBagLayout gbl = new GridBagLayout();
 
 	// Add a panel to hold the tables.
-	__mainJPanel = new JPanel();
-	__mainJPanel.setLayout(gbl);
-	getContentPane().add(__mainJPanel);
+	this.mainJPanel = new JPanel();
+	this.mainJPanel.setLayout(gbl);
+	getContentPane().add(this.mainJPanel);
 
 	// Create all the JCheckboxes.
-	__minuteJCheckBox = new JCheckBox("Minute Time Series", true);
-	__minuteJCheckBox.addItemListener(this);
-	__hourJCheckBox = new JCheckBox("Hour Time Series", true);
-	__hourJCheckBox.addItemListener(this);
-	__dayJCheckBox = new JCheckBox("Day Time Series", true);
-	__dayJCheckBox.addItemListener(this);
-	__monthJCheckBox = new JCheckBox("Month Time Series", true);
-	__monthJCheckBox.addItemListener(this);
-	__yearJCheckBox = new JCheckBox("Year Time Series", true);
-	__yearJCheckBox.addItemListener(this);
-    __irregularMinuteJCheckBox = new JCheckBox("Irregular Time Series (Minute)", true);
-    __irregularMinuteJCheckBox.addItemListener(this);
-    __irregularHourJCheckBox = new JCheckBox("Irregular Time Series (Hour)", true);
-    __irregularHourJCheckBox.addItemListener(this);
-    __irregularDayJCheckBox = new JCheckBox("Irregular Time Series (Day)", true);
-    __irregularDayJCheckBox.addItemListener(this);
-    __irregularMonthJCheckBox = new JCheckBox("Irregular Time Series (Month)", true);
-    __irregularMonthJCheckBox.addItemListener(this);
-    __irregularYearJCheckBox = new JCheckBox("Irregular Time Series (Year)", true);
-    __irregularYearJCheckBox.addItemListener(this);
+	this.minuteJCheckBox = new JCheckBox("Minute Time Series", true);
+	this.minuteJCheckBox.addItemListener(this);
+	this.hourJCheckBox = new JCheckBox("Hour Time Series", true);
+	this.hourJCheckBox.addItemListener(this);
+	this.dayJCheckBox = new JCheckBox("Day Time Series", true);
+	this.dayJCheckBox.addItemListener(this);
+	this.monthJCheckBox = new JCheckBox("Month Time Series", true);
+	this.monthJCheckBox.addItemListener(this);
+	this.yearJCheckBox = new JCheckBox("Year Time Series", true);
+	this.yearJCheckBox.addItemListener(this);
+    this.irregularSecondJCheckBox = new JCheckBox("Irregular Interval Time Series (<= Second)", true);
+    this.irregularSecondJCheckBox.addItemListener(this);
+    this.irregularMinuteJCheckBox = new JCheckBox("Irregular Interval Time Series (Minute)", true);
+    this.irregularMinuteJCheckBox.addItemListener(this);
+    this.irregularHourJCheckBox = new JCheckBox("Irregular Interval Time Series (Hour)", true);
+    this.irregularHourJCheckBox.addItemListener(this);
+    this.irregularDayJCheckBox = new JCheckBox("Irregular Interval Time Series (Day)", true);
+    this.irregularDayJCheckBox.addItemListener(this);
+    this.irregularMonthJCheckBox = new JCheckBox("Irregular Interval Time Series (Month)", true);
+    this.irregularMonthJCheckBox.addItemListener(this);
+    this.irregularYearJCheckBox = new JCheckBox("Irregular Interval Time Series (Year)", true);
+    this.irregularYearJCheckBox.addItemListener(this);
 
 	// Create the PropList for the JWorksheets.
 	PropList p = new PropList("TSViewTableJFrame.JWorksheet");
@@ -2264,146 +2446,154 @@ private void setupGUI(boolean mode) {
 	createSeparateTimeSeriesLists();
 
 	// Create all the table models and worksheets.
-	__dayModels = createTableModels(__dayTSList);
-	__dayWorksheets = createWorksheets(__dayModels, p);
-	JWorksheet[] dayHeaders = createWorksheets(__dayModels, p2);
+	this.dayModels = createTableModels(this.dayTSList);
+	this.dayWorksheets = createWorksheets(this.dayModels, p);
+	List<JWorksheet> dayHeaders = createWorksheets(this.dayModels, p2);
 
-	__minuteModels = createTableModels(__minuteTSList);
-	__minuteWorksheets = createWorksheets(__minuteModels, p);
-	JWorksheet[] minuteHeaders = createWorksheets(__minuteModels, p2);
+	this.minuteModels = createTableModels(this.minuteTSList);
+	this.minuteWorksheets = createWorksheets(this.minuteModels, p);
+	List<JWorksheet> minuteHeaders = createWorksheets(this.minuteModels, p2);
 
-	__hourModels = createTableModels(__hourTSList);
-	__hourWorksheets = createWorksheets(__hourModels, p);
-	JWorksheet[] hourHeaders = createWorksheets(__hourModels, p2);
+	this.hourModels = createTableModels(this.hourTSList);
+	this.hourWorksheets = createWorksheets(this.hourModels, p);
+	List<JWorksheet> hourHeaders = createWorksheets(this.hourModels, p2);
 
-	__monthModels = createTableModels(__monthTSList);
-	__monthWorksheets = createWorksheets(__monthModels, p);
-	JWorksheet[] monthHeaders = createWorksheets(__monthModels, p2);
+	this.monthModels = createTableModels(this.monthTSList);
+	this.monthWorksheets = createWorksheets(this.monthModels, p);
+	List<JWorksheet> monthHeaders = createWorksheets(this.monthModels, p2);
 
-	__yearModels = createTableModels(__yearTSList);
-	__yearWorksheets = createWorksheets(__yearModels, p);
-	JWorksheet[] yearHeaders = createWorksheets(__yearModels, p2);
+	this.yearModels = createTableModels(this.yearTSList);
+	this.yearWorksheets = createWorksheets(this.yearModels, p);
+	List<JWorksheet> yearHeaders = createWorksheets(this.yearModels, p2);
 
-    __irregularMinuteModels = createTableModels(__irregularMinuteTSList);
-    __irregularMinuteWorksheets = createWorksheets(__irregularMinuteModels, p);
-    JWorksheet[] irregularMinuteHeaders = createWorksheets(__irregularMinuteModels, p2);
+    this.irregularSecondModels = createTableModels(this.irregularSecondTSList);
+    this.irregularSecondWorksheets = createWorksheets(this.irregularSecondModels, p);
+    List<JWorksheet> irregularSecondHeaders = createWorksheets(this.irregularSecondModels, p2);
 
-    __irregularHourModels = createTableModels(__irregularHourTSList);
-    __irregularHourWorksheets = createWorksheets(__irregularHourModels, p);
-    JWorksheet[] irregularHourHeaders = createWorksheets(__irregularHourModels, p2);
+    this.irregularMinuteModels = createTableModels(this.irregularMinuteTSList);
+    this.irregularMinuteWorksheets = createWorksheets(this.irregularMinuteModels, p);
+    List<JWorksheet> irregularMinuteHeaders = createWorksheets(this.irregularMinuteModels, p2);
 
-    __irregularDayModels = createTableModels(__irregularDayTSList);
-    __irregularDayWorksheets = createWorksheets(__irregularDayModels, p);
-    JWorksheet[] irregularDayHeaders = createWorksheets(__irregularDayModels, p2);
+    this.irregularHourModels = createTableModels(this.irregularHourTSList);
+    this.irregularHourWorksheets = createWorksheets(this.irregularHourModels, p);
+    List<JWorksheet> irregularHourHeaders = createWorksheets(this.irregularHourModels, p2);
 
-    __irregularMonthModels = createTableModels(__irregularMonthTSList);
-    __irregularMonthWorksheets = createWorksheets(__irregularMonthModels, p);
-    JWorksheet[] irregularMonthHeaders = createWorksheets(__irregularMonthModels, p2);
+    this.irregularDayModels = createTableModels(this.irregularDayTSList);
+    this.irregularDayWorksheets = createWorksheets(this.irregularDayModels, p);
+    List<JWorksheet> irregularDayHeaders = createWorksheets(this.irregularDayModels, p2);
 
-    __irregularYearModels = createTableModels(__irregularYearTSList);
-    __irregularYearWorksheets = createWorksheets(__irregularYearModels, p);
-    JWorksheet[] irregularYearHeaders = createWorksheets(__irregularYearModels, p2);
+    this.irregularMonthModels = createTableModels(this.irregularMonthTSList);
+    this.irregularMonthWorksheets = createWorksheets(this.irregularMonthModels, p);
+    List<JWorksheet> irregularMonthHeaders = createWorksheets(this.irregularMonthModels, p2);
+
+    this.irregularYearModels = createTableModels(this.irregularYearTSList);
+    this.irregularYearWorksheets = createWorksheets(this.irregularYearModels, p);
+    List<JWorksheet> irregularYearHeaders = createWorksheets(this.irregularYearModels, p2);
 
 	// Create the panels for the interval bases.
-	__minuteJPanel = new JPanel();
-	__hourJPanel = new JPanel();
-	__dayJPanel = new JPanel();
-	__monthJPanel = new JPanel();
-	__yearJPanel = new JPanel();
-	__irregularMinuteJPanel = new JPanel();
-    __irregularHourJPanel = new JPanel();
-    __irregularDayJPanel = new JPanel();
-    __irregularMonthJPanel = new JPanel();
-    __irregularYearJPanel = new JPanel();
+	this.minuteJPanel = new JPanel();
+	this.hourJPanel = new JPanel();
+	this.dayJPanel = new JPanel();
+	this.monthJPanel = new JPanel();
+	this.yearJPanel = new JPanel();
+	this.irregularSecondJPanel = new JPanel();
+	this.irregularMinuteJPanel = new JPanel();
+    this.irregularHourJPanel = new JPanel();
+    this.irregularDayJPanel = new JPanel();
+    this.irregularMonthJPanel = new JPanel();
+    this.irregularYearJPanel = new JPanel();
 
 	// Create the arrays of scroll panes.
-	if (__dayWorksheets.length > 0) {
-		__dayScrollPanes = new JScrollPane[__dayWorksheets.length];
+	if (this.minuteWorksheets.size() > 0) {
+		this.minuteScrollPanes = new ArrayList<>();
 	}
-	if (__minuteWorksheets.length > 0) {
-		__minuteScrollPanes = new JScrollPane[__minuteWorksheets.length];
+	if (this.hourWorksheets.size() > 0) {
+		this.hourScrollPanes = new ArrayList<>();
 	}
-	if (__hourWorksheets.length > 0) {
-		__hourScrollPanes = new JScrollPane[__hourWorksheets.length];
+	if (this.dayWorksheets.size() > 0) {
+		this.dayScrollPanes = new ArrayList<>();
 	}
-	if (__monthWorksheets.length > 0) {
-		__monthScrollPanes = new JScrollPane[__monthWorksheets.length];
+	if (this.monthWorksheets.size() > 0) {
+		this.monthScrollPanes = new ArrayList<>();
 	}
-	if (__yearWorksheets.length > 0) {
-		__yearScrollPanes = new JScrollPane[__yearWorksheets.length];
+	if (this.yearWorksheets.size() > 0) {
+		this.yearScrollPanes = new ArrayList<>();
 	}
-    if (__irregularMinuteWorksheets.length > 0) {
-        __irregularMinuteScrollPanes = new JScrollPane[__irregularMinuteWorksheets.length];
+    if (this.irregularSecondWorksheets.size() > 0) {
+        this.irregularSecondScrollPanes = new ArrayList<>();
     }
-    if (__irregularHourWorksheets.length > 0) {
-        __irregularHourScrollPanes = new JScrollPane[__irregularHourWorksheets.length];
+    if (this.irregularMinuteWorksheets.size() > 0) {
+        this.irregularMinuteScrollPanes = new ArrayList<>();
     }
-    if (__irregularDayWorksheets.length > 0) {
-        __irregularDayScrollPanes = new JScrollPane[__irregularDayWorksheets.length];
+    if (this.irregularHourWorksheets.size() > 0) {
+        this.irregularHourScrollPanes = new ArrayList<>();
     }
-    if (__irregularMonthWorksheets.length > 0) {
-        __irregularMonthScrollPanes = new JScrollPane[__irregularMonthWorksheets.length];
+    if (this.irregularDayWorksheets.size() > 0) {
+        this.irregularDayScrollPanes = new ArrayList<>();
     }
-    if (__irregularYearWorksheets.length > 0) {
-        __irregularYearScrollPanes = new JScrollPane[__irregularYearWorksheets.length];
+    if (this.irregularMonthWorksheets.size() > 0) {
+        this.irregularMonthScrollPanes = new ArrayList<>();
+    }
+    if (this.irregularYearWorksheets.size() > 0) {
+        this.irregularYearScrollPanes = new ArrayList<>();
     }
 
 	// Add the worksheets to the panels and add the panels to the main panel.
 
-	if (__reverseNormalOrder) {
-		__minuteMouseListeners = buildMouseListeners(__minuteWorksheets);
-		addWorksheetsToPanel(__mainJPanel, "Minute", __minuteJPanel, __minuteJCheckBox, __minuteWorksheets,
-			minuteHeaders, __minuteScrollPanes, __minuteMouseListeners);
+	if (this.reverseNormalOrder) {
+		this.minuteMouseListeners = buildMouseListeners(this.minuteWorksheets);
+		addWorksheetsToPanel(this.mainJPanel, "Minute", this.minuteJPanel, this.minuteJCheckBox, this.minuteWorksheets,
+			minuteHeaders, this.minuteScrollPanes, this.minuteMouseListeners);
 
-		__hourMouseListeners = buildMouseListeners(__hourWorksheets);
-		addWorksheetsToPanel(__mainJPanel, "Hour", __hourJPanel, __hourJCheckBox, __hourWorksheets,
-			hourHeaders, __hourScrollPanes, __hourMouseListeners);
+		this.hourMouseListeners = buildMouseListeners(this.hourWorksheets);
+		addWorksheetsToPanel(this.mainJPanel, "Hour", this.hourJPanel, this.hourJCheckBox, this.hourWorksheets,
+			hourHeaders, this.hourScrollPanes, this.hourMouseListeners);
 
-		__dayMouseListeners = buildMouseListeners(__dayWorksheets);
-		addWorksheetsToPanel(__mainJPanel, "Day", __dayJPanel, __dayJCheckBox, __dayWorksheets,
-			dayHeaders, __dayScrollPanes, __dayMouseListeners);
+		this.dayMouseListeners = buildMouseListeners(this.dayWorksheets);
+		addWorksheetsToPanel(this.mainJPanel, "Day", this.dayJPanel, this.dayJCheckBox, this.dayWorksheets,
+			dayHeaders, this.dayScrollPanes, this.dayMouseListeners);
 
-		__monthMouseListeners = buildMouseListeners(__monthWorksheets);
-		addWorksheetsToPanel(__mainJPanel, "Month", __monthJPanel, __monthJCheckBox, __monthWorksheets,
-			monthHeaders, __monthScrollPanes, __monthMouseListeners);
+		this.monthMouseListeners = buildMouseListeners(this.monthWorksheets);
+		addWorksheetsToPanel(this.mainJPanel, "Month", this.monthJPanel, this.monthJCheckBox, this.monthWorksheets,
+			monthHeaders, this.monthScrollPanes, this.monthMouseListeners);
 
-		__yearMouseListeners = buildMouseListeners(__yearWorksheets);
-		addWorksheetsToPanel(__mainJPanel, "Year", __yearJPanel, __yearJCheckBox, __yearWorksheets,
-			yearHeaders, __yearScrollPanes, __yearMouseListeners);
+		this.yearMouseListeners = buildMouseListeners(this.yearWorksheets);
+		addWorksheetsToPanel(this.mainJPanel, "Year", this.yearJPanel, this.yearJCheckBox, this.yearWorksheets,
+			yearHeaders, this.yearScrollPanes, this.yearMouseListeners);
 
 		/*
-		if (__irregularMinute != null && __irregularMinute.size() > 0) {
-		    __irregularMinuteJPanel.setLayout(new GridBagLayout());
-		    JGUIUtil.addComponent(__irregularMinuteJPanel,
+		if (this.irregularMinute != null && this.irregularMinute.size() > 0) {
+		    this.irregularMinuteJPanel.setLayout(new GridBagLayout());
+		    JGUIUtil.addComponent(this.irregularMinuteJPanel,
     			new JLabel("Table view for irregular data is not currently enabled.  Use the summary view."),
     			0, 0, 1, 1, 1, 1,
     			GridBagConstraints.NONE, GridBagConstraints.WEST);
-	      	JGUIUtil.addComponent(__mainJPanel, __irregularMinuteJPanel,
-    			0, __panelCount++, 1, 1, 1, 1,
+	      	JGUIUtil.addComponent(this.mainJPanel, this.irregularMinuteJPanel,
+    			0, this.panelCount++, 1, 1, 1, 1,
     			GridBagConstraints.BOTH, GridBagConstraints.NORTHWEST);
 		}
 		*/
 	}
 	else {
-		__yearMouseListeners = buildMouseListeners(__yearWorksheets);
-		addWorksheetsToPanel(__mainJPanel, "Year", __yearJPanel, __yearJCheckBox, __yearWorksheets,
-			yearHeaders, __yearScrollPanes, __yearMouseListeners);
+		this.yearMouseListeners = buildMouseListeners(this.yearWorksheets);
+		addWorksheetsToPanel(this.mainJPanel, "Year", this.yearJPanel, this.yearJCheckBox, this.yearWorksheets,
+			yearHeaders, this.yearScrollPanes, this.yearMouseListeners);
 
-		__monthMouseListeners = buildMouseListeners(__monthWorksheets);
-		addWorksheetsToPanel(__mainJPanel, "Month", __monthJPanel, __monthJCheckBox, __monthWorksheets,
-			monthHeaders, __monthScrollPanes, __monthMouseListeners);
+		this.monthMouseListeners = buildMouseListeners(this.monthWorksheets);
+		addWorksheetsToPanel(this.mainJPanel, "Month", this.monthJPanel, this.monthJCheckBox, this.monthWorksheets,
+			monthHeaders, this.monthScrollPanes, this.monthMouseListeners);
 
-		__dayMouseListeners = buildMouseListeners(__dayWorksheets);
-		addWorksheetsToPanel(__mainJPanel, "Day", __dayJPanel, __dayJCheckBox, __dayWorksheets,
-			dayHeaders, __dayScrollPanes, __dayMouseListeners);
+		this.dayMouseListeners = buildMouseListeners(this.dayWorksheets);
+		addWorksheetsToPanel(this.mainJPanel, "Day", this.dayJPanel, this.dayJCheckBox, this.dayWorksheets,
+			dayHeaders, this.dayScrollPanes, this.dayMouseListeners);
 
-		__hourMouseListeners = buildMouseListeners(__hourWorksheets);
-		addWorksheetsToPanel(__mainJPanel, "Hour", __hourJPanel, __hourJCheckBox, __hourWorksheets,
-			hourHeaders, __hourScrollPanes, __hourMouseListeners);
+		this.hourMouseListeners = buildMouseListeners(this.hourWorksheets);
+		addWorksheetsToPanel(this.mainJPanel, "Hour", this.hourJPanel, this.hourJCheckBox, this.hourWorksheets,
+			hourHeaders, this.hourScrollPanes, this.hourMouseListeners);
 
-		__minuteMouseListeners = buildMouseListeners(__minuteWorksheets);
-		addWorksheetsToPanel(__mainJPanel, "Minute", __minuteJPanel, __minuteJCheckBox, __minuteWorksheets,
-			minuteHeaders, __minuteScrollPanes, __minuteMouseListeners);
+		this.minuteMouseListeners = buildMouseListeners(this.minuteWorksheets);
+		addWorksheetsToPanel(this.mainJPanel, "Minute", this.minuteJPanel, this.minuteJCheckBox, this.minuteWorksheets,
+			minuteHeaders, this.minuteScrollPanes, this.minuteMouseListeners);
 
 		/*
 		if (__irregular != null && __irregular.size() > 0) {
@@ -2420,36 +2610,41 @@ private void setupGUI(boolean mode) {
 	}
 
 	// Irregular is always last.
-    __irregularMinuteMouseListeners = buildMouseListeners(__irregularMinuteWorksheets);
-    addWorksheetsToPanel(__mainJPanel, "Irregular (Minute)", __irregularMinuteJPanel, __irregularMinuteJCheckBox,
-        __irregularMinuteWorksheets, irregularMinuteHeaders, __irregularMinuteScrollPanes,
-        __irregularMinuteMouseListeners);
+    this.irregularSecondMouseListeners = buildMouseListeners(this.irregularSecondWorksheets);
+    addWorksheetsToPanel(this.mainJPanel, "Irregular (<= Second)", this.irregularSecondJPanel, this.irregularSecondJCheckBox,
+        this.irregularSecondWorksheets, irregularSecondHeaders, this.irregularSecondScrollPanes,
+        this.irregularSecondMouseListeners);
 
-    __irregularHourMouseListeners = buildMouseListeners(__irregularHourWorksheets);
-    addWorksheetsToPanel(__mainJPanel, "Irregular (Hour)", __irregularHourJPanel, __irregularHourJCheckBox,
-        __irregularHourWorksheets, irregularHourHeaders, __irregularHourScrollPanes,
-        __irregularHourMouseListeners);
+    this.irregularMinuteMouseListeners = buildMouseListeners(this.irregularMinuteWorksheets);
+    addWorksheetsToPanel(this.mainJPanel, "Irregular (Minute)", this.irregularMinuteJPanel, this.irregularMinuteJCheckBox,
+        this.irregularMinuteWorksheets, irregularMinuteHeaders, this.irregularMinuteScrollPanes,
+        this.irregularMinuteMouseListeners);
 
-    __irregularDayMouseListeners = buildMouseListeners(__irregularDayWorksheets);
-    addWorksheetsToPanel(__mainJPanel, "Irregular (Day)", __irregularDayJPanel, __irregularDayJCheckBox,
-        __irregularDayWorksheets, irregularDayHeaders, __irregularDayScrollPanes,
-        __irregularDayMouseListeners);
+    this.irregularHourMouseListeners = buildMouseListeners(this.irregularHourWorksheets);
+    addWorksheetsToPanel(this.mainJPanel, "Irregular (Hour)", this.irregularHourJPanel, this.irregularHourJCheckBox,
+        this.irregularHourWorksheets, irregularHourHeaders, this.irregularHourScrollPanes,
+        this.irregularHourMouseListeners);
 
-    __irregularMonthMouseListeners = buildMouseListeners(__irregularMonthWorksheets);
-    addWorksheetsToPanel(__mainJPanel, "Irregular (Month)", __irregularMonthJPanel, __irregularMonthJCheckBox,
-        __irregularMonthWorksheets, irregularMonthHeaders, __irregularMonthScrollPanes,
-        __irregularMonthMouseListeners);
+    this.irregularDayMouseListeners = buildMouseListeners(this.irregularDayWorksheets);
+    addWorksheetsToPanel(this.mainJPanel, "Irregular (Day)", this.irregularDayJPanel, this.irregularDayJCheckBox,
+        this.irregularDayWorksheets, irregularDayHeaders, this.irregularDayScrollPanes,
+        this.irregularDayMouseListeners);
 
-    __irregularYearMouseListeners = buildMouseListeners(__irregularYearWorksheets);
-    addWorksheetsToPanel(__mainJPanel, "Irregular (Year)", __irregularYearJPanel, __irregularYearJCheckBox,
-        __irregularYearWorksheets, irregularYearHeaders, __irregularYearScrollPanes,
-        __irregularYearMouseListeners);
+    this.irregularMonthMouseListeners = buildMouseListeners(this.irregularMonthWorksheets);
+    addWorksheetsToPanel(this.mainJPanel, "Irregular (Month)", this.irregularMonthJPanel, this.irregularMonthJCheckBox,
+        this.irregularMonthWorksheets, irregularMonthHeaders, this.irregularMonthScrollPanes,
+        this.irregularMonthMouseListeners);
+
+    this.irregularYearMouseListeners = buildMouseListeners(this.irregularYearWorksheets);
+    addWorksheetsToPanel(this.mainJPanel, "Irregular (Year)", this.irregularYearJPanel, this.irregularYearJCheckBox,
+        this.irregularYearWorksheets, irregularYearHeaders, this.irregularYearScrollPanes,
+        this.irregularYearMouseListeners);
 
 	JPanel bottomJPanel = new JPanel();
 	bottomJPanel.setLayout (gbl);
-	__messageJTextField = new JTextField();
-	__messageJTextField.setEditable(false);
-	JGUIUtil.addComponent(bottomJPanel, __messageJTextField,
+	this.messageJTextField = new JTextField();
+	this.messageJTextField.setEditable(false);
+	JGUIUtil.addComponent(bottomJPanel, this.messageJTextField,
 		0, 1, 7, 1, 1.0, 0.0,
 		GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
@@ -2457,50 +2652,84 @@ private void setupGUI(boolean mode) {
 	JPanel button_JPanel = new JPanel();
 	button_JPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
 
-	__flagJComboBox = new SimpleJComboBox(false);
-	List<String> flagChoices = new Vector<String>();
+	// Add a choice to control whether flags are shown with data values.
+	this.flagJComboBox = new SimpleJComboBox(false);
+	List<String> flagChoices = new ArrayList<>();
 	flagChoices.add("" + TSDataFlagVisualizationType.NOT_SHOWN);
 	flagChoices.add("" + TSDataFlagVisualizationType.SUPERSCRIPT);
 	//flagChoices.add("" + TSDataFlagVisualizationType.SEPARATE_COLUMN);
-	__flagJComboBox.setData(flagChoices);
-	__flagJComboBox.addItemListener(this);
-	__flagJComboBox.setToolTipText("Indicate how data flags should be visualized.");
-
-	__graphJButton = new SimpleJButton(__BUTTON_GRAPH, this);
-	String propValue=__props.getValue("EnableGraph");
-	if ((propValue != null) && propValue.equalsIgnoreCase("false")) {
-		__graphJButton.setEnabled(false);
-	}
-
-	__summaryJButton = new SimpleJButton(__BUTTON_SUMMARY, this);
-	propValue=__props.getValue("EnableSummary");
-	if ((propValue != null) && propValue.equalsIgnoreCase("false")) {
-		__summaryJButton.setEnabled(false);
-	}
-
-	__closeJButton = new SimpleJButton(__BUTTON_CLOSE,this);
-
-	__saveJButton = new SimpleJButton(__BUTTON_SAVE, this);
-	__saveJButton.setEnabled(false);
-
+	this.flagJComboBox.setData(flagChoices);
+	this.flagJComboBox.addItemListener(this);
+	this.flagJComboBox.setToolTipText("Indicate how data flags should be visualized.");
 	JLabel flagJLabel = new JLabel("Flags:");
 	button_JPanel.add(flagJLabel);
-	button_JPanel.add(__flagJComboBox);
+	button_JPanel.add(this.flagJComboBox);
 	// Only enable flags display if at least one displayed time series has flags.
 	if ( timeSeriesHaveFlags() ) {
 	    flagJLabel.setEnabled(true);
-	    __flagJComboBox.setEnabled(true);
-	    __flagJComboBox.select(""+TSDataFlagVisualizationType.NOT_SHOWN);
+	    this.flagJComboBox.setEnabled(true);
+	    this.flagJComboBox.select(""+TSDataFlagVisualizationType.NOT_SHOWN);
 	}
 	else {
 	    flagJLabel.setEnabled(false);
-	    __flagJComboBox.setEnabled(false);
+	    this.flagJComboBox.setEnabled(false);
 	}
-	button_JPanel.add(__graphJButton);
-	button_JPanel.add(__summaryJButton);
-	button_JPanel.add(__saveJButton);
-//	button_JPanel.add(__printJButton);
-	button_JPanel.add(__closeJButton);
+
+	// Add a choice to control the number of digits shown for values in the table.
+	this.digitsJComboBox = new SimpleJComboBox(false);
+	List<String> digitsChoices = new ArrayList<>();
+	digitsChoices.add("Auto");
+	digitsChoices.add("0");
+	digitsChoices.add("1");
+	digitsChoices.add("2");
+	digitsChoices.add("3");
+	digitsChoices.add("4");
+	digitsChoices.add("5");
+	digitsChoices.add("6");
+	this.digitsJComboBox.setData(digitsChoices);
+	this.digitsJComboBox.addItemListener(this);
+	this.digitsJComboBox.setToolTipText("The number of digits after the decimal point or Auto to set based on units.");
+	JLabel digitsJLabel = new JLabel("Digits:");
+	button_JPanel.add(digitsJLabel);
+	button_JPanel.add(this.digitsJComboBox);
+	this.digitsJComboBox.select("Auto");
+
+	// Graph button.
+	this.graphJButton = new SimpleJButton(this.BUTTON_GRAPH, this);
+	this.graphJButton.setToolTipText("Display the time series graph view.");
+	String propValue=this.props.getValue("EnableGraph");
+	if ((propValue != null) && propValue.equalsIgnoreCase("false")) {
+		this.graphJButton.setEnabled(false);
+	}
+	button_JPanel.add(this.graphJButton);
+
+	// Summary button.
+	this.summaryJButton = new SimpleJButton(this.BUTTON_SUMMARY, this);
+	this.summaryJButton.setToolTipText("Display the time series summary view.");
+	propValue = this.props.getValue("EnableSummary");
+	if ( (propValue != null) && propValue.equalsIgnoreCase("false") ) {
+		this.summaryJButton.setEnabled(false);
+	}
+	button_JPanel.add(this.summaryJButton);
+
+	this.saveJButton = new SimpleJButton(this.BUTTON_SAVE, this);
+	this.saveJButton.setEnabled(false);
+	this.saveJButton.setToolTipText("Save the time series to a file.");
+	button_JPanel.add(this.saveJButton);
+
+	// The problems button will be set visible if any problems exist after adding the tables worksheets.
+	this.problemsJButton = new SimpleJButton(this.BUTTON_PROBLEMS,this);
+	this.problemsJButton.setBackground(Color.RED);
+	this.problemsJButton.setToolTipText("Display the problems encountered displaying the table.");
+	if ( this.tableModelProblems.size() == 0 ) {
+		this.problemsJButton.setVisible(false);
+	}
+	button_JPanel.add(this.problemsJButton);
+
+	this.closeJButton = new SimpleJButton(this.BUTTON_CLOSE,this);
+	this.closeJButton.setToolTipText("Close the table view.");
+	button_JPanel.add(this.closeJButton);
+
 	// TODO - add later
 	//button_JPanel.add(__helpJButton);
 
@@ -2510,13 +2739,13 @@ private void setupGUI(boolean mode) {
 
 	getContentPane().add("South", bottomJPanel);
 
-	__messageJTextField.setText("Currently-selected worksheet: (none)");
+	this.messageJTextField.setText("Currently-selected worksheet: (none)");
 
 	pack();
 	// TODO SAM 2012-04-16 Need to default size based on number of time series.
-	setSize(555,500);
+	setSize(600,500);
 	// Get the UI component to determine screen to display on - needed for multiple monitors.
-	Object uiComponentO = __props.getContents( "TSViewParentUIComponent" );
+	Object uiComponentO = this.props.getContents( "TSViewParentUIComponent" );
 	Component parentUIComponent = null;
 	if ( (uiComponentO != null) && (uiComponentO instanceof Component) ) {
 		parentUIComponent = (Component)uiComponentO;
@@ -2532,18 +2761,32 @@ private void setupGUI(boolean mode) {
 
 	// These calls are here because they require a valid graphics
 	// context to work properly (i.e., setVisible(true) must have already been called).
-	setColumnWidths(__minuteWorksheets, DateTime.PRECISION_MINUTE);
-	setColumnWidths(__hourWorksheets, DateTime.PRECISION_HOUR);
-	setColumnWidths(__dayWorksheets, DateTime.PRECISION_DAY);
-	setColumnWidths(__monthWorksheets, DateTime.PRECISION_MONTH);
-	setColumnWidths(__yearWorksheets, DateTime.PRECISION_YEAR);
-	setColumnWidths(__irregularMinuteWorksheets, DateTime.PRECISION_MINUTE);
-	setColumnWidths(__irregularHourWorksheets, DateTime.PRECISION_HOUR);
-	setColumnWidths(__irregularDayWorksheets, DateTime.PRECISION_DAY);
-	setColumnWidths(__irregularMonthWorksheets, DateTime.PRECISION_MONTH);
-	setColumnWidths(__irregularYearWorksheets, DateTime.PRECISION_YEAR);
+	setColumnWidths(this.minuteWorksheets, DateTime.PRECISION_MINUTE);
+	setColumnWidths(this.hourWorksheets, DateTime.PRECISION_HOUR);
+	setColumnWidths(this.dayWorksheets, DateTime.PRECISION_DAY);
+	setColumnWidths(this.monthWorksheets, DateTime.PRECISION_MONTH);
+	setColumnWidths(this.yearWorksheets, DateTime.PRECISION_YEAR);
+	setColumnWidths(this.irregularSecondWorksheets, DateTime.PRECISION_SECOND);
+	setColumnWidths(this.irregularMinuteWorksheets, DateTime.PRECISION_MINUTE);
+	setColumnWidths(this.irregularHourWorksheets, DateTime.PRECISION_HOUR);
+	setColumnWidths(this.irregularDayWorksheets, DateTime.PRECISION_DAY);
+	setColumnWidths(this.irregularMonthWorksheets, DateTime.PRECISION_MONTH);
+	setColumnWidths(this.irregularYearWorksheets, DateTime.PRECISION_YEAR);
 
 	checkForSingleWorksheet();
+}
+
+/**
+ * Show the problems dialog.
+ * This is only enabled if the 'tableModelProblems" list is not empty.
+ */
+private void showProblems () {
+	StringBuilder textBuilder = new StringBuilder();
+	textBuilder.append("The table data resulted in the following problems:\n\n");
+	for ( String problem : this.tableModelProblems ) {
+		textBuilder.append(problem + "\n");
+	}
+	new ResponseJDialog ( this, IOUtil.getProgramName() + " - Table Problems", textBuilder.toString(), ResponseJDialog.OK ).response();
 }
 
 /**
@@ -2551,7 +2794,7 @@ Determine if any of the time series has flags.
 @return true if any of the time series has flags
 */
 private boolean timeSeriesHaveFlags () {
-    for ( TS ts : __tslist ) {
+    for ( TS ts : this.tslist ) {
     	if ( ts == null ) {
     		continue;
     	}
@@ -2581,7 +2824,7 @@ Responds to window closing events; does nothing.
 @param evt the WindowEvent that happened.
 */
 public void windowClosing(WindowEvent evt) {
-	__tsviewJFrame.closeGUI(TSViewType.TABLE);
+	this.tsviewJFrame.closeGUI(TSViewType.TABLE);
 }
 
 /**
@@ -2633,8 +2876,8 @@ private void writeTextFile(JWorksheet worksheet, char delimiter, String filename
 		sw.start();
 		PrintWriter out = new PrintWriter(new FileOutputStream(filename));
 
-		__messageJTextField.setText("Saving file \"" + filename + "\"");
-		JGUIUtil.forceRepaint(__messageJTextField);
+		this.messageJTextField.setText("Saving file \"" + filename + "\"");
+		JGUIUtil.forceRepaint(this.messageJTextField);
 		int rows = worksheet.getRowCount();
 		int columns = worksheet.getColumnCount();
 
@@ -2649,8 +2892,8 @@ private void writeTextFile(JWorksheet worksheet, char delimiter, String filename
 			pct = ((int)(((double)i / (double)rows) * 100));
 			if (pct != lastPct) {
 				lastPct = pct;
-				__messageJTextField.setText("Saving file \"" + filename + "\" (" + pct +  "% done)");
-				JGUIUtil.forceRepaint(__messageJTextField);
+				this.messageJTextField.setText("Saving file \"" + filename + "\" (" + pct +  "% done)");
+				JGUIUtil.forceRepaint(this.messageJTextField);
 			}
 
 			buff = new StringBuffer();
@@ -2673,10 +2916,10 @@ private void writeTextFile(JWorksheet worksheet, char delimiter, String filename
 		if (seconds == 1.000) {
 			plural = "";
 		}
-		__messageJTextField.setText("File saved (took " + sw.getSeconds() + " second" + plural + ")");
+		this.messageJTextField.setText("File saved (took " + sw.getSeconds() + " second" + plural + ")");
 	}
 	catch (Exception e) {
-		__messageJTextField.setText("Error saving file \"" + filename + "\"");
+		this.messageJTextField.setText("Error saving file \"" + filename + "\"");
 		Message.printWarning(2, routine, "Error saving file \"" + filename + "\"");
 		Message.printWarning(2, routine, e);
 	}
@@ -2693,6 +2936,7 @@ public void propertyChange(PropertyChangeEvent e) {
         model.fireTableDataChanged();
     }
 }
+
 /**
  * Returns the first model encountered that contains the specified TS.
  *
@@ -2704,34 +2948,37 @@ private TSViewTable_TableModel findModel(TS ts) {
 
     TSViewTable_TableModel target = null;
 
-    if ((target = findModel(__dayModels,ts)) != null) {
+    if ((target = findModel(this.dayModels,ts)) != null) {
         return target;
     }
-    else if ((target = findModel(__hourModels,ts)) != null) {
+    else if ((target = findModel(this.hourModels,ts)) != null) {
         return target;
     }
-    else  if ((target = findModel(__minuteModels,ts)) != null) {
+    else if ((target = findModel(this.minuteModels,ts)) != null) {
         return target;
     }
-    else  if ((target = findModel(__monthModels,ts)) != null) {
+    else if ((target = findModel(this.monthModels,ts)) != null) {
         return target;
     }
-    else if ((target = findModel(__yearModels,ts)) != null) {
+    else if ((target = findModel(this.yearModels,ts)) != null) {
         return target;
     }
-    else if ((target = findModel(__irregularMinuteModels,ts)) != null) {
+    else if ((target = findModel(this.irregularSecondModels,ts)) != null) {
         return target;
     }
-    else if ((target = findModel(__irregularHourModels,ts)) != null) {
+    else if ((target = findModel(this.irregularMinuteModels,ts)) != null) {
         return target;
     }
-    else if ((target = findModel(__irregularDayModels,ts)) != null) {
+    else if ((target = findModel(this.irregularHourModels,ts)) != null) {
         return target;
     }
-    else if ((target = findModel(__irregularMonthModels,ts)) != null) {
+    else if ((target = findModel(this.irregularDayModels,ts)) != null) {
         return target;
     }
-    else if ((target = findModel(__irregularYearModels,ts)) != null) {
+    else if ((target = findModel(this.irregularMonthModels,ts)) != null) {
+        return target;
+    }
+    else if ((target = findModel(this.irregularYearModels,ts)) != null) {
         return target;
     }
     return target;
@@ -2739,15 +2986,15 @@ private TSViewTable_TableModel findModel(TS ts) {
 
 /**
  * Returns the first model encountered that contains the specified TS.
- * @param models
- * @param ts
+ * @param models list of models to search
+ * @param ts time series to match
  * @return model containing specified TS, or null
  */
-private TSViewTable_TableModel findModel(TSViewTable_TableModel[] models, TS ts) {
+private TSViewTable_TableModel findModel ( List<TSViewTable_TableModel> models, TS ts ) {
     if ( models != null) {
-        int nModels = models.length;
-        for( int iModel = 0; iModel < nModels; iModel++) {
-            TSViewTable_TableModel m = models[iModel];
+        int nModels = models.size();
+        for ( int iModel = 0; iModel < nModels; iModel++ ) {
+            TSViewTable_TableModel m = models.get(iModel);
             List<TS> tslist = m.getTSList();
             int nVec = tslist.size();
             for (int iVec = 0; iVec < nVec; iVec++) {
