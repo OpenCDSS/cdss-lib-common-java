@@ -42,7 +42,6 @@ import RTi.Util.IO.Prop;
 import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 
-import RTi.Util.Time.TimeUtil;
 import RTi.Util.String.StringUtil;
 
 /**
@@ -1267,19 +1266,19 @@ public void addHSecond ( int add ) {
 
 /**
 Add a time series interval to the DateTime (see TimeInterval).  This is useful when iterating a date.
-An irregular interval is ignored (the date is not changed).
+An interval of TimeInterval.IRREGULAR and other unrecognized intervals will result in an exception.
 @param interval time series base interval
 @param add multiple of the base interval, can be negative
+@exception InvalidTimeIntervalException if the requested interval cannot be handled
 */
 public void addInterval ( int interval, int add ) {
 	if ( add == 0 ) {
+		// No change so skip checks below.
 		return;
 	}
-	// Based on the interval, call lower-level routines.
-	if( interval == TimeInterval.SECOND ) {
-		addSecond( add );
-	}
-	else if( interval == TimeInterval.MINUTE ) {
+	// Based on the interval, call lower-level routines:
+	// - order in general case of likelihood, to improve performance
+	if( interval == TimeInterval.MINUTE ) {
 		addMinute( add );
 	}
 	else if( interval == TimeInterval.HOUR ) {
@@ -1297,17 +1296,29 @@ public void addInterval ( int interval, int add ) {
     else if ( interval == TimeInterval.YEAR ) {
 		addYear( add);
     }
-    else if ( interval == TimeInterval.IRREGULAR ) {
-		return;
-    }
+	else if ( interval == TimeInterval.SECOND ) {
+		addSecond( add );
+	}
+	else if ( interval == TimeInterval.HSECOND ) {
+		addNanosecond( add*10000000 );
+	}
+	else if ( interval == TimeInterval.MILLISECOND ) {
+		addNanosecond( add*1000000 );
+	}
+	else if ( interval == TimeInterval.MICROSECOND ) {
+		addNanosecond( add*1000 );
+	}
+    else if ( interval == TimeInterval.NANOSECOND ) {
+		addNanosecond( add );
+	}
     else {
-        // Unsupported interval.
-        // TODO SAM 2007-12-20 Evaluate throwing InvalidTimeIntervalException.
-        String message = "Interval " + interval + " is unsupported";
-		Message.printWarning ( 2, "DateTime.addInterval", message );
-		return;
+        // Unsupported interval:
+    	// - this includes TimeInterval.IRREGULAR
+        String message = "Interval " + interval + " is unsupported (may result in infinite loop during iteration).";
+		Message.printWarning ( 3, "DateTime.addInterval", message );
+		throw new InvalidTimeIntervalException(message);
     }
-	__iszero = false;
+	this.__iszero = false;
 }
 
 /**
@@ -2880,7 +2891,7 @@ public static DateTime parse ( String dateTimeString ) {
 	// Determine if a timezone is included in the string.  The following forms are handled below:
 	//   2010-07-01T03:16:11-06:00   - ISO 8601 format, see: https://en.wikipedia.org/wiki/ISO_8601
 	//   2000-01-01 00 GMT-8.0       - used in TSTool build-in formats
-	String timeZone = null;
+	//String timeZone = null;
 	//String dateStringNoTimeZone = dateTimeString; // Assume no time zone and reset below if time zone is found.
 	//int lengthNoTimeZone = length;
 

@@ -48,7 +48,7 @@ Flags above >= 256 are reserved for DateTime constructor flags.
 These values are set as the DateTime.PRECISION* values to maintain consistency.
 */
 public static final int UNKNOWN = -1; // Unknown, e.g., for initialization.
-public static final int IRREGULAR = 0;    // Value is important as 0 to allow checks for regular interval.
+public static final int IRREGULAR = 0;    // Value is important as 0 because regular interval is > 0.
 public static final int NANOSECOND = 2;   // 0 - 999999999
 public static final int MICROSECOND = 3;  // 0 - 999999
 public static final int MILLISECOND = 4;  // 0 - 999
@@ -60,6 +60,7 @@ public static final int DAY = 40;
 public static final int WEEK = 50;
 public static final int MONTH = 60;
 public static final int YEAR = 70;
+// Do not set anything higher than 255 because DateTime flags use 256 as the first behavior flag value.
 
 /**
 The string associated with the base interval:
@@ -92,7 +93,11 @@ private int	__intervalMult;
 
 /**
  * Precision used with irregular interval:
- * - for example SECOND for "IrregSecond", MONTH for "IrregMonth"
+ * <ul>
+ * <li> for example SECOND for "IrregSecond", MONTH for "IrregMonth"</li>
+ * <li> the value matches similarly-named DateTime.PRECISION_* values</li>
+ * <li> use getIrregularIntervalPrecision() to return the value</li>
+ * </ul> 
  */
 private int irregularPrecision = UNKNOWN;
 

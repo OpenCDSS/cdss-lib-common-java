@@ -352,7 +352,11 @@ private void openGUI ( boolean mode ) {
 		interval_JLabel = new JLabel( "Time series has regular interval spacing." );
 	}
 	else {
-		interval_JLabel = new JLabel( "Time series has irregular interval spacing." );
+		String label = "Time series has irregular interval spacing.";
+		if ( this.__ts.getDate1() != null ) {
+			label += "  Date/time precision from period start = " + TimeInterval.getName(this.__ts.getDate1().getPrecision(), 0);
+		}
+		interval_JLabel = new JLabel( label );
 	}
 	JGUIUtil.addComponent ( general_JPanel, interval_JLabel,
 			1, ++y, 6, 1, 1.0, 0.0,
