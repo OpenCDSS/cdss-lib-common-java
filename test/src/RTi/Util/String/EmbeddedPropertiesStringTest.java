@@ -22,7 +22,7 @@ public class EmbeddedPropertiesStringTest {
 		String s = "Property1=Value1";
 		// Parse the string to extract the property map.
 		EmbeddedPropertiesString eps = new EmbeddedPropertiesString(s);
-		HashMap<String,String> propertyMap = eps.getPropertyMap();
+		HashMap<String,String> propertyMap = eps.getPropertiesBeforeDelimiterMap();
 		
 		// Confirm that the property was correctly parsed.
 		assertThat(propertyMap.size(), equalTo(1));
@@ -38,7 +38,7 @@ public class EmbeddedPropertiesStringTest {
 		String s = " Property1=Value1 ";
 		// Parse the string to extract the property map.
 		EmbeddedPropertiesString eps = new EmbeddedPropertiesString(s);
-		HashMap<String,String> propertyMap = eps.getPropertyMap();
+		HashMap<String,String> propertyMap = eps.getPropertiesBeforeDelimiterMap();
 		
 		// Confirm that the property was correctly parsed.
 		assertThat(propertyMap.size(), equalTo(1));
@@ -54,7 +54,7 @@ public class EmbeddedPropertiesStringTest {
 		String s = "Property1 = Value1";
 		// Parse the string to extract the property map.
 		EmbeddedPropertiesString eps = new EmbeddedPropertiesString(s);
-		HashMap<String,String> propertyMap = eps.getPropertyMap();
+		HashMap<String,String> propertyMap = eps.getPropertiesBeforeDelimiterMap();
 		
 		// Confirm that the property was correctly parsed.
 		assertThat(propertyMap.size(), equalTo(1));
@@ -70,7 +70,7 @@ public class EmbeddedPropertiesStringTest {
 		String s = "Property1=Value1 Property2=Value2";
 		// Parse the string to extract the property map.
 		EmbeddedPropertiesString eps = new EmbeddedPropertiesString(s);
-		HashMap<String,String> propertyMap = eps.getPropertyMap();
+		HashMap<String,String> propertyMap = eps.getPropertiesBeforeDelimiterMap();
 		
 		// Confirm that the properties were correctly parsed.
 		assertThat(propertyMap.size(), equalTo(2));
@@ -87,7 +87,7 @@ public class EmbeddedPropertiesStringTest {
 		String s = "Property1=Value1\nProperty2=Value2";
 		// Parse the string to extract the property map.
 		EmbeddedPropertiesString eps = new EmbeddedPropertiesString(s);
-		HashMap<String,String> propertyMap = eps.getPropertyMap();
+		HashMap<String,String> propertyMap = eps.getPropertiesBeforeDelimiterMap();
 		
 		// Confirm that the properties were correctly parsed.
 		assertThat(propertyMap.size(), equalTo(2));
@@ -107,7 +107,7 @@ public class EmbeddedPropertiesStringTest {
 		String s = "Property1=Value1 // Property2=Value2";
 		// Parse the string to extract the property map.
 		EmbeddedPropertiesString eps = new EmbeddedPropertiesString(s);
-		HashMap<String,String> propertyMap = eps.getPropertyMap();
+		HashMap<String,String> propertyMap = eps.getPropertiesBeforeDelimiterMap();
 		
 		// Confirm that the properties were correctly parsed.
 		assertThat(propertyMap.size(), equalTo(2));
@@ -126,8 +126,8 @@ public class EmbeddedPropertiesStringTest {
 		// Define string with only a property.
 		String s = "Property1=Value1 // Property2=Value2";
 		// Parse the string to extract the property map.
-		EmbeddedPropertiesString eps = new EmbeddedPropertiesString(s, "//");
-		HashMap<String,String> propertyMap = eps.getPropertyMap();
+		EmbeddedPropertiesString eps = new EmbeddedPropertiesString(s);
+		HashMap<String,String> propertyMap = eps.getPropertiesBeforeDelimiterMap();
 		
 		// Confirm that the properties were correctly parsed.
 		assertThat(propertyMap.size(), equalTo(1));
