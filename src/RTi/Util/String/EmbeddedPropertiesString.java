@@ -322,10 +322,13 @@ public class EmbeddedPropertiesString {
 						if ( debug ) {
 							Message.printStatus(2, routine, "    Did not find property delimiter.");
 						}
+						// Line before the delimiter is the entire line.
+						lineBeforeDelim = line;
+						lineAfterDelim = "";
 						break;
 					}
 					else if ( (pos2 > 0) && (line.charAt(pos2 - 1) == ':') ) {
-						// Probably be a URL like "https://...":
+						// Probably is a URL like "https://...":
 						// - don't consider it to be the properties delimiter
 						// - advance and keep searching
 						if ( debug ) {
