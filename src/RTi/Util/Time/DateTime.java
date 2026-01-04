@@ -1311,10 +1311,17 @@ public void addInterval ( int interval, int add ) {
     else if ( interval == TimeInterval.NANOSECOND ) {
 		addNanosecond( add );
 	}
+    else if ( interval == TimeInterval.IRREGULAR ) {
+    	// Do nothing:
+    	// - TODO smalers 2026-01-02 this causes exceptions in TSTool ChangeInterval command so need to study more.
+    	// - log a warning to deal with specific cases.
+        String message = "Irregular interval " + interval + " is not supported (add interval does nothing).";
+		Message.printWarning ( 3, "DateTime.addInterval", message );
+	}
     else {
         // Unsupported interval:
     	// - this includes TimeInterval.IRREGULAR
-        String message = "Interval " + interval + " is unsupported (may result in infinite loop during iteration).";
+        String message = "Interval " + interval + " is not supported (may result in infinite loop during iteration).";
 		Message.printWarning ( 3, "DateTime.addInterval", message );
 		throw new InvalidTimeIntervalException(message);
     }

@@ -3661,7 +3661,7 @@ throws Exception {
 		}
 		if ( FillFlag_boolean ) {
 			ts.addToGenesis ( "Filled missing data " + start + " to " +
-				end + " using constant " + value + ", flag \"" + FillFlag + "\" (" + nfilled + " values filled)." );
+				end + " using constant " + StringUtil.formatString(value,"%.6f") + ", flag \"" + FillFlag + "\" (" + nfilled + " values filled)." );
 			if ( (fillFlagDescription != null) && !fillFlagDescription.isEmpty() ) {
 	            ts.addDataFlagMetadata(new TSDataFlagMetadata(FillFlag, fillFlagDescription));
 	        }
@@ -3671,7 +3671,7 @@ throws Exception {
 		}
 		else {
 			ts.addToGenesis ( "Filled missing data " + start + " to " +
-				end + " using constant " + value + " (" + nfilled + " values filled)." );
+				end + " using constant " + StringUtil.formatString(value,"%.6f") + " (" + nfilled + " values filled)." );
 		}
 	}
 	return nfilled;
