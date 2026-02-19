@@ -41,7 +41,7 @@ public class EmbeddedPropertiesString {
 	 * The delimiter used with DOUBLE_SLASH format.
 	 */
 	private static final String DOUBLE_SLASH_DELIMITER = "//";
-	
+
 	/**
 	 * Format for embedded properties (currently only DOUBLE_SLASH is supported.
 	 */
@@ -51,7 +51,7 @@ public class EmbeddedPropertiesString {
 	 * Original string, which may or may not include properties and embedded newlines for a multiple-line string.
 	 */
 	private String stringOrig = "";
-	
+
 	/**
 	 * Number of line in the string, based on parts after splitting using the newline character.
 	 */
@@ -61,7 +61,7 @@ public class EmbeddedPropertiesString {
 	 * String without properties.
 	 */
 	private String stringWithoutProperties = "";
-	
+
 	/**
 	 * String that delimits properties from the main part of the string, for example "//".
 	 * If a delimiter is specified, then the string can be evaluated to check that properties are ONLY after the delimiter.
@@ -83,11 +83,23 @@ public class EmbeddedPropertiesString {
 	private HashMap<String,String> propertiesBeforeDelimiterMap = new LinkedHashMap<>();
 
 	/**
-	 * Constructor.  Properties can occur anywhere except inside quoted strings.
+	 * Constructor.
 	 * The format type defaults to DOUBLE_SLASH.
 	 * @param s string that may or may not contain Property=Value strings.
 	 */
 	public EmbeddedPropertiesString ( String s ) {
+		// Call the overloaded version.
+		this ( EmbeddedPropertyFormatType.DOUBLE_SLASH, s );
+	}
+
+	/**
+	 * Constructor.
+	 * The format type defaults to DOUBLE_SLASH.
+	 * @param s string that may or may not contain Property=Value strings.
+	 * @param delimiter the delimiter to use (currently ignored, defaults to "//").
+	 * @deprecated use the other constructor versions
+	 */
+	public EmbeddedPropertiesString ( String s, String delimiter ) {
 		// Call the overloaded version.
 		this ( EmbeddedPropertyFormatType.DOUBLE_SLASH, s );
 	}
@@ -114,11 +126,11 @@ public class EmbeddedPropertiesString {
 		else {
 			throw new RuntimeException ( "Unsupported format type: " + embeddedPropertyFormatType );
 		}
-		
+
 		// Parse the original string into properties.
 		parse();
 	}
-	
+
 	/**
 	 * Check the string and generate problems if any of the following exist:
 	 * <ul>
@@ -162,7 +174,7 @@ public class EmbeddedPropertiesString {
 	public String getStringOrig () {
 		return this.stringOrig;
 	}
-	
+
 	/**
 	 * Return the property value, or null if not defined.
 	 * Only properties defined after the delimiter are returned,
@@ -238,7 +250,7 @@ public class EmbeddedPropertiesString {
 	 *
 	 * <pre>
 	 * If no delimiter string:
-	 * 
+	 *
 	 *   Some description. Property1=Value1
 	 *   Some description. Property1=Value1 Property2=Value2
 	 *   Some description. Property1=Value1 Property2="Value2 with spaces and double quotes"
@@ -246,9 +258,9 @@ public class EmbeddedPropertiesString {
 	 *   Some multi-line description.\n
 	 *       Property1=Value1\n
 	 *       Property2=Value2
-	 *   
+	 *
 	 * If delimiter string:
-	 * 
+	 *
 	 *   Some description. // Property1=Value1 Property2=Value2
 	 *   Some description. // Property1=Value1 Property2="Value2 with spaces and double quotes"
 	 *   Some description. // Property1=Value1 Property2='Value2 with spaces and single quotes'
@@ -266,7 +278,7 @@ public class EmbeddedPropertiesString {
 
 		// Set the following to true for development.
 		boolean debug = false;
-		
+
 		if ( debug ) {
 			Message.printStatus(2, routine, "Parsing: \"" + this.stringOrig + "\"");
 		}
@@ -305,11 +317,11 @@ public class EmbeddedPropertiesString {
 			String lineBeforeDelim = "";
 			// Line after the delimiter.
 			String lineAfterDelim = "";
-			
+
 			if ( debug ) {
 				Message.printStatus(2, routine, "  Parsing line[" + iline + "]: \"" + line + "\"");
 			}
-			
+
 			// Reposition the start of the string if 'propertyIndicator' is used.
 			if ( (this.propertyDelimiter != null) && !this.propertyDelimiter.isEmpty() ) {
 				// Position to start looking for the delimiter:
@@ -368,12 +380,12 @@ public class EmbeddedPropertiesString {
 				lineBeforeDelim = line;
 				lineAfterDelim = "";
 			}
-			
+
 			if ( (iline == 0) && (this.embeddedPropertyFormatType == EmbeddedPropertyFormatType.DOUBLE_SLASH) ) {
 				// Set the string without the trailing properties.
 				this.stringWithoutProperties = lineBeforeDelim.trim();
 			}
-			
+
 			if ( debug ) {
 				Message.printStatus(2, routine, "    lineBeforeDelim=\"" + lineBeforeDelim + "\"" );
 				Message.printStatus(2, routine, "    lineAfterDelim=\"" + lineAfterDelim + "\"" );
@@ -384,7 +396,7 @@ public class EmbeddedPropertiesString {
 			if ( ! lineBeforeDelim.isEmpty() ) {
 				parseString ( debug, this.propertiesBeforeDelimiterMap, lineBeforeDelim );
 			}
-			
+
 			// Parse the properties after the delimiter.
 			// - the map must not be null and will be updated
 			if ( ! lineAfterDelim.isEmpty() ) {
@@ -396,7 +408,7 @@ public class EmbeddedPropertiesString {
 		// - trim to remove any trailing newlines and whitespace
 		//this.stringNoProperties = descriptionBuilder.toString().trim();
 	}
-	
+
 	/**
 	 * Parse a string to determine properties.
 	 * The string should be parsed out of the source based on the EmbeddedStringFormatType (this.formatType).
@@ -415,7 +427,7 @@ public class EmbeddedPropertiesString {
 		// Loop through the line character by character:
 		// - this assumes that quoted strings are well-behaved (matching)
 		// - could use a regular expression or tokenizer, but can be complex and confusing
-		
+
 		boolean inQuotedString = false;
 		char quoteChar = '\0';
 		boolean inWord = false;
@@ -426,7 +438,7 @@ public class EmbeddedPropertiesString {
 		char c;
 		// Count of properties that are set.
 		int propertyCount = 0;
-		
+
 		// Don't use "continue" in the following loop so that debug messages will be complete.
 		for ( int ichar = 0; ichar < string.length(); ichar++ ) {
 			c = string.charAt(ichar);
@@ -534,12 +546,12 @@ public class EmbeddedPropertiesString {
 					}
 				}
 			}
-			
+
 			// If here:
 			// - a single character has been processed above
 			// - quoted string or word may have been appended to
 			// - if checkProperty was set to true, then the code below will set a property and reseet to look for another property
-			
+
 			if ( debug ) {
 				Message.printStatus ( 2, routine, "checkProperty=" + checkProperty
 					+ " propertyName=\"" + propertyName
