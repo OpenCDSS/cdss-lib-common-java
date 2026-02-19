@@ -123,6 +123,9 @@ private boolean inputIsIntegers (
 
 /**
 Perform a math calculation.
+If the output is for Double or Float, double precision numbers are used for calculations
+and the appropriate output type is set at the end.
+Integer and Long output are handled specifically.
 @param input1 the name of the first column to use as input
 @param operator the operator to execute for processing data
 @param input2 the name of the second column to use as input, or a constant
@@ -169,7 +172,7 @@ public void math (
     			}
     		}
     		else if ( StringUtil.isDouble(input1) ) {
-    			// First input supplied as a double.
+    			// First input supplied as a double (math uses Double rather than Float and conversion is done at the end).
             	input1ConstantDouble = Double.parseDouble(input1);
             	input1FieldType = TableField.DATA_TYPE_DOUBLE;
             	if ( Message.isDebugOn ) {
@@ -243,6 +246,7 @@ public void math (
     int outputFieldType = -1;
     try {
         outputField = this.table.getFieldIndex(output);
+        // If FLOAT, it is handled similar to DOUBLE in calculations and set to Float at the end.
         outputFieldType = this.table.getFieldDataType(outputField);
 
         // Check that the existing output column data type is compatible with the operator:
@@ -289,6 +293,7 @@ public void math (
         	// One or both output fields are floating point so default output to double.
         	// This is consistent with most common programming languages and handles mixed case
         	// Also use this for division so that fractions are not truncated.
+        	// TODO smalers 2026-02-13 does this need to handle FLOAT?
             outputFieldType = TableField.DATA_TYPE_DOUBLE;
         }
         // Create the table output field of the correct type.
@@ -303,6 +308,7 @@ public void math (
             outputField = this.table.addField(new TableField(outputFieldType,output,-1,-1), null );
         }
         else if ( outputFieldType == TableField.DATA_TYPE_DOUBLE ) {
+        	// This is also used if input is FLOAT.
         	Message.printWarning(3, routine, "Output column \"" + output + "\" not found in table \"" +
             	this.table.getTableID() + "\" - automatically adding double column." );
         	// Use the maximum width and precision of the input columns.
@@ -341,20 +347,23 @@ public void math (
             outputField = this.table.addField(new TableField(outputFieldType,output,width,precision),null);
         }
     }
+
     if ( (input1FieldType != TableField.DATA_TYPE_INT) &&
     	(input1FieldType != TableField.DATA_TYPE_LONG) &&
-    	(input1FieldType != TableField.DATA_TYPE_DOUBLE) ) {
+    	(input1FieldType != TableField.DATA_TYPE_DOUBLE) &&
+    	(input1FieldType != TableField.DATA_TYPE_FLOAT) ) {
        	// Incompatible column types.
     	problems.add("Input1 column (" + input1 + ") type (" + TableField.getDataTypeAsString(input1FieldType)
-    		+ ") is not integer, long, or double - cannot do math.");
+    		+ ") is not integer, long, double, or float - cannot do math.");
     }
     if ( (input2Field >= 0) &&
     	(input2FieldType != TableField.DATA_TYPE_INT) &&
     	(input2FieldType != TableField.DATA_TYPE_LONG) &&
-    	(input2FieldType != TableField.DATA_TYPE_DOUBLE) ) {
+    	(input2FieldType != TableField.DATA_TYPE_DOUBLE) &&
+    	(input2FieldType != TableField.DATA_TYPE_FLOAT) ) {
        	// Incompatible column types.
     	problems.add("Input2 column (" + input2 + ") type (" + TableField.getDataTypeAsString(input2FieldType)
-    		+ ") is not integer, long, or double - cannot do math.");
+    		+ ") is not integer, long, double, or float - cannot do math.");
     }
 
     if ( problems.size() > 0 ) {
@@ -412,6 +421,18 @@ public void math (
         		if ( input1FieldType == TableField.DATA_TYPE_DOUBLE ) {
         			input1ValDouble = (Double)val;
         		}
+        		else if ( input1FieldType == TableField.DATA_TYPE_FLOAT ) {
+        			Float input1ValFloat = (Float)val;
+        			if ( input1ValFloat == null ) {
+        				input1ValDouble = null;
+        			}
+        			else if ( input1ValFloat.isNaN() ) {
+        				input1ValDouble = Double.NaN;
+        			}
+        			else {
+        				input1ValDouble = input1ValFloat.doubleValue();
+        			}
+        		}
         		else if ( input1FieldType == TableField.DATA_TYPE_INT ) {
         			input1ValInteger = (Integer)val;
         		}
@@ -427,6 +448,10 @@ public void math (
         		// Use the constant value.
         		if ( input1FieldType == TableField.DATA_TYPE_DOUBLE ) {
         			input1ValDouble = input1ConstantDouble;
+        		}
+        		else if ( input1FieldType == TableField.DATA_TYPE_FLOAT ) {
+        			// Value was previously converted to a double when parsed:
+        			// - this may not be needed but include for explanation
         		}
         		else if ( input1FieldType == TableField.DATA_TYPE_INT ) {
         			input1ValInteger = input1ConstantInteger;
@@ -453,7 +478,8 @@ public void math (
         	// Second value is the previous row value for the input column.
         	if ( irec == 0 ) {
       			// First record - assume that the initial value was zero.
-        		if ( input1FieldType == TableField.DATA_TYPE_DOUBLE ) {
+        		if ( (input1FieldType == TableField.DATA_TYPE_DOUBLE) ||
+        			(input1FieldType == TableField.DATA_TYPE_FLOAT) ) {
         			input2ValDouble = Double.valueOf(0.0);
         		}
         		else if ( input1FieldType == TableField.DATA_TYPE_INT ) {
@@ -474,6 +500,18 @@ public void math (
             		val = this.table.getFieldValue((irec - 1), input1Field);
             		if ( input1FieldType == TableField.DATA_TYPE_DOUBLE ) {
         		   		input2ValDouble = (Double)val;
+        	   		}
+            		else if ( input1FieldType == TableField.DATA_TYPE_FLOAT ) {
+        		   		Float input2ValFloat = (Float)val;
+        		   		if ( input2ValFloat == null ) {
+       				  		input2ValDouble = null;
+       			  		}
+       			  		else if ( input2ValFloat.isNaN() ) {
+       				  		input2ValDouble = Double.NaN;
+       			  		}
+       			  		else {
+       				  		input2ValDouble = input2ValFloat.doubleValue();
+       			  		}
         	   		}
             		else if ( input1FieldType == TableField.DATA_TYPE_INT ) {
         		   		input2ValInteger = (Integer)val;
@@ -497,7 +535,8 @@ public void math (
         	// Second value is the previous row value for the output column.
         	if ( irec == 0 ) {
       			// First record - assume initial value was zero.
-        		if ( input1FieldType == TableField.DATA_TYPE_DOUBLE ) {
+        		if ( (input1FieldType == TableField.DATA_TYPE_DOUBLE) ||
+        			(input1FieldType == TableField.DATA_TYPE_FLOAT) ) {
         			input2ValDouble = Double.valueOf(0.0);
         		}
         		else if ( input1FieldType == TableField.DATA_TYPE_INT ) {
@@ -521,6 +560,18 @@ public void math (
         	   		}
             		else if ( input1FieldType == TableField.DATA_TYPE_DOUBLE ) {
         		   		input2ValDouble = (Double)val;
+        	   		}
+            		else if ( input1FieldType == TableField.DATA_TYPE_FLOAT ) {
+        		   		Float input2ValFloat = (Float)val;
+        		   		if ( input2ValFloat == null ) {
+       				  		input2ValDouble = null;
+       			  		}
+       			  		else if ( input2ValFloat.isNaN() ) {
+       				  		input2ValDouble = Double.NaN;
+       			  		}
+       			  		else {
+       				  		input2ValDouble = input2ValFloat.doubleValue();
+       			  		}
         	   		}
             		else if ( input1FieldType == TableField.DATA_TYPE_LONG ) {
         		   		input2ValLong = (Long)val;
@@ -548,12 +599,24 @@ public void math (
                 else if ( input2FieldType == TableField.DATA_TYPE_DOUBLE ) {
                 	input2ValDouble = (Double)val;
                 }
+            	else if ( input1FieldType == TableField.DATA_TYPE_FLOAT ) {
+        	   		Float input2ValFloat = (Float)val;
+        	   		if ( input2ValFloat == null ) {
+       			  		input2ValDouble = null;
+       		  		}
+       		  		else if ( input2ValFloat.isNaN() ) {
+       			  		input2ValDouble = Double.NaN;
+       		  		}
+       		  		else {
+       			  		input2ValDouble = input2ValFloat.doubleValue();
+       		  		}
+        		}
                 else if ( input2FieldType == TableField.DATA_TYPE_LONG ) {
                 	input2ValLong = (Long)val;
                 }
                 else {
         	   		// Leave as null.  Warnings will result.
-        			problems.add("Don't understand how to get initial row + " + (irec + 1) + " input value 2 if column is not integer, long, or double.");
+        			problems.add("Don't understand how to get initial row + " + (irec + 1) + " input value 2 if column is not integer, long, double, or float.");
                 }
             }
             catch ( Exception e ) {
@@ -573,11 +636,13 @@ public void math (
 	            input2ValLong = input2ConstantLong;
 	        }
         }
-        // Check for missing values and determine the output type.
+        // Compute the output value based on the operator:
+        // - check for missing values and determine the output type
         if ( operator == DataTableMathOperatorType.CUMULATE ) {
         	// Handle calculation explicitly since different than other operators:
             // - use cumulative rather than any row value
-	    	if ( outputFieldType == TableField.DATA_TYPE_DOUBLE) {
+	    	if ( (outputFieldType == TableField.DATA_TYPE_DOUBLE) ||
+	    		(outputFieldType == TableField.DATA_TYPE_FLOAT) ) {
 	    		// If input is still missing, set the output to missing.
                 if ( (input1ValDouble == null) || input1ValDouble.isNaN() ) {
                 	// Unable to compute so set to the non-value.
@@ -616,7 +681,8 @@ public void math (
         else if ( operator == DataTableMathOperatorType.DELTA ) {
         	// Handle calculation explicitly since different than other operators:
             // - second input is the previous row value
-	    	if ( outputFieldType == TableField.DATA_TYPE_DOUBLE) {
+	    	if ( (outputFieldType == TableField.DATA_TYPE_DOUBLE) ||
+	    		(outputFieldType == TableField.DATA_TYPE_FLOAT) ) {
 	    		// If input is still missing, set the output to missing.
                 if ( (input1ValDouble == null) || input1ValDouble.isNaN() || (input2ValDouble == null) || (input2ValDouble.isNaN())) {
                 	// Unable to compute so set to the non-value.
@@ -655,7 +721,8 @@ public void math (
             //outputFieldType = TableField.DATA_TYPE_INT;
 			// Only need the first input:
 			// - set integer and double in case output table column is not configured properly as integer
-        	if ( input1FieldType == TableField.DATA_TYPE_DOUBLE ) {
+        	if ( (input1FieldType == TableField.DATA_TYPE_DOUBLE) ||
+        		(input1FieldType == TableField.DATA_TYPE_FLOAT) ) {
 	            if ( (input1ValDouble == null) || input1ValDouble.isNaN() ) {
 	                outputValInteger = null;
 	            }
@@ -685,7 +752,8 @@ public void math (
 		}
         else if ( !requireInput2 ) {
         	// Only Input1 is required, such as for ASSIGN.
-	    	if ( outputFieldType == TableField.DATA_TYPE_DOUBLE) {
+	    	if ( (outputFieldType == TableField.DATA_TYPE_DOUBLE) ||
+	    		(outputFieldType == TableField.DATA_TYPE_FLOAT) ) {
 	    		// Do math as doubles.
 	    		// If mixed input types, use integer values if double is missing.
                 if ( (input1ValDouble == null) || input1ValDouble.isNaN() ) {
@@ -768,7 +836,8 @@ public void math (
         	// The following operators need two input values to compute.
 	    	//if ( (input1FieldType == TableField.DATA_TYPE_DOUBLE) || (input2FieldType == TableField.DATA_TYPE_DOUBLE) ||
 	    	//	(input1FieldType != input2FieldType) ) { // }
-	    	if ( outputFieldType == TableField.DATA_TYPE_DOUBLE) {
+	    	if ( (outputFieldType == TableField.DATA_TYPE_DOUBLE) ||
+	    		(outputFieldType == TableField.DATA_TYPE_FLOAT) ) {
 	    		// Do math as doubles.
 	    		// Double input and double output (or mixed in which case double values were set above).
 	    		// TODO smalers 2021-09-20 output field was determined above.
@@ -823,7 +892,12 @@ public void math (
                 	outputValDouble = Math.min(input1ValDouble, input2ValDouble);
                 }
                 else {
-        		    problems.add("Don't understand how to calculate row " + (irec + 1) + " double output.");
+                	if ( outputFieldType == TableField.DATA_TYPE_DOUBLE ) {
+                		problems.add("Don't understand how to calculate row " + (irec + 1) + " double output.");
+                	}
+                	else if ( outputFieldType == TableField.DATA_TYPE_FLOAT ) {
+                		problems.add("Don't understand how to calculate row " + (irec + 1) + " float output.");
+                	}
         	    }
             }
 	    	//else if ( (input1FieldType == TableField.DATA_TYPE_INT) && (input2FieldType == TableField.DATA_TYPE_INT) ) { // }
@@ -974,6 +1048,16 @@ public void math (
             else if ( outputFieldType == TableField.DATA_TYPE_DOUBLE ) {
                 this.table.setFieldValue(irec, outputField, outputValDouble );
             }
+            else if ( outputFieldType == TableField.DATA_TYPE_FLOAT ) {
+            	Float outputValFloat = null;
+            	if ( outputValDouble.isNaN() ) {
+            		outputValFloat = Float.NaN;
+            	}
+            	else if ( outputValDouble != null ) {
+            		outputValFloat = outputValDouble.floatValue();
+            	}
+                this.table.setFieldValue(irec, outputField, outputValFloat );
+            }
             else {
             	// TODO SAM 2016-08-02 may need to support other output columns like strings.
                 problems.add ( "Error setting value in row " + (irec + 1) + " - don't know how to handle table column type " +
@@ -987,7 +1071,8 @@ public void math (
             else if ( outputFieldType == TableField.DATA_TYPE_LONG ) {
                 problems.add ( "Error setting value in row " + (irec + 1) + " to " + outputValLong + " (" + e + ")." );
             }
-            else if ( outputFieldType == TableField.DATA_TYPE_DOUBLE ) {
+            else if ( (outputFieldType == TableField.DATA_TYPE_DOUBLE) || (outputFieldType == TableField.DATA_TYPE_FLOAT) ) {
+            	// Double and Float use double for calculations.
                 problems.add ( "Error setting value in row " + (irec + 1) + " to " + outputValDouble + " (" + e + ")." );
             }
             else {
