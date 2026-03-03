@@ -164,7 +164,7 @@ public void createHTMLDataDictionary ( DMI dmi, String filename, String newline,
 		html.addText("Generated at: " + now);
 		html.paragraph();
 
-		if (dmi.getJDBCODBC()) {
+		if (dmi.getIsJdbc()) {
 			html.addText("Database engine: " + dmi.getDatabaseEngine());
 			html.breakLine();
 			html.addText("Database server: " + dmi.getDatabaseServer());

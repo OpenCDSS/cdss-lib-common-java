@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2025 Colorado Department of Natural Resources
+Copyright (C) 1994-2026 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,37 +41,41 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.Vector;
 
 /**
 The DMI class serves as a base class to allow interaction with ODBC/JDBC compliant database servers.
 Derived classes should define specific code to implement a connection with the database.
 In particular, a derived class should:
+
 <ol>
 <li>	Call the appropriate constructor in this base class when constructing an instance.</li>
-<li>	Implement a determineDatabaseVersion() method, which is called from
-	the open() method in this base DMI class.  The
-	determineDatabaseVersion() method should call the setDatabaseVersion()
-	method of this DMI base class.</li>
-<li>	Implement a readGlobalData() method to read global data that will be
-	kept in memory in the derived DMI class (e.g., for commonly used data like units).
-<li>	Implement a getDatabaseProperties() method that can be used by an
-	application (e.g., to show database properties to a user.</li>
+<li>	Implement a determineDatabaseVersion() method,
+		which is called from the open() method in this base DMI class.
+		The determineDatabaseVersion() method should call the setDatabaseVersion() method of this DMI base class.</li>
+<li>	Implement a readGlobalData() method to read global data that will be kept in memory in the derived DMI class
+		(e.g., for commonly used data like units).
+<li>	Implement a getDatabaseProperties() method that can be used by an application
+		(e.g., to show database properties to a user.</li>
 <li>	Use the DMI*Statement objects to create SQL statements.  Execute the statements using dmi*() methods.</li>
 <li>	Implement constructors that follow the guidelines described below.
 </ol>
+
 To create a connection to a database, a DMI instance should be created using one of the two constructors.
 The constructors are provided for the two main ways to connect to a database:
+
 <ol>
 <li>	Using an ODBC DSN that is defined on the machine.
-	In this case only the ODBC name is required from the derived class.</li>
+		In this case only the ODBC name is required from the derived class.</li>
 <li>	Using a database server name and database name on the server.
-	<b>This method is preferred with Java because it allows individual
-	manufacture JDBC drivers to be used.</b>  In this case the constructor
-	in the derived class should pass the system login and password used to
-	make the connection, as well as other information that may be required
-	for the specific database.</li>
+		<b>This method is preferred with Java because it allows individual
+		JDBC drivers to be used.</b>  In this case the constructor
+		in the derived class should pass the system login and password used to make the connection,
+		as well as other information that may be required for the specific database.</li>
 </ol>
+
 The open() method in this base class will make a database connection using only one of the above methods,
 depending on whether the ODBC name or the database name and server have been defined.
 
@@ -81,9 +85,10 @@ Application code should include code similar to the following:
 <pre>
 someDMI dmi = null;
 ...
-// Doing a database login/connection...
+// Doing a database login/connection.
 if ( dmi != null ) {
-	try {	dmi.close();
+	try {
+		dmi.close();
 		dmi = null;
 	}
 	catch ( Exception e ) {
@@ -91,13 +96,14 @@ if ( dmi != null ) {
 	}
 }
 
-try {	dmi = new someDMI ( ... );
-	// If necessary...
+try {
+	dmi = new someDMI ( ... );
+	// If necessary.
 	dmi.setXXX();
 	dmi.open();
 }
 catch ( Exception e ) {
-	// Error message/dialog...
+	// Error message/dialog.
 }
 </pre>
 */
@@ -201,10 +207,10 @@ This should only be used for debugging and testing, and should not be enabled in
 private boolean __dumpSQLOnExecution = false;
 
 /**
-Indicate whether an JDBC ODBC connection is automatically set up (true) or
+Indicate whether an JDBC connection is automatically set up (true) or
 whether the ODBC is defined on the machine (false).
 */
-private boolean __jdbc_odbc;
+private boolean isJdbc;
 
 /**
 Whether the program is currently connected to the database or not.
@@ -229,6 +235,13 @@ Connection that is used for the database interaction.
 private Connection __connection;
 
 /**
+ * Additional connection properties provided in the constructor:
+ * - this are granular properties for the connection string that the engine must handle
+ * - the older 'additionalConnectionProperties' string is now deprecated
+ */
+private Map<String,Object> connectionPropertiesMap = new HashMap<>();
+
+/**
 Name of the database in the server if __jdbc_odbc is true.
 */
 private String __database_name;
@@ -240,10 +253,14 @@ private String __odbc_name;
 
 /**
 Additional connection properties, which will be added at the end of the connection URL.
-If a leading delimiter is needed such as ?, semi-colon or &, include in the string.
+If a leading delimiter is needed such as ?, semi-colon or &, include in the string,
+but it should be adjusted.
 These are typically passed in for datastores that require special properties.
 Set with setAdditionalConnectionProperties() before calling open().
 Login and password are handled separately from the connection URL.
+
+Alternatively, use the connection properties map in the constructor, for example with ConnectionUrlAppend.
+@deprecated
 */
 private String __additionalConnectionProperties = "";
 
@@ -282,7 +299,7 @@ The delimiter for strings, such as single quotes.
 private String __stringDelim = "";
 
 /**
-The character for statement end, such as semi-colon for SQLite.
+The character for statement end, such as semicolon for SQLite.
 This is used in auto-generated internal SQL.
 */
 private String __statementEnd = "";
@@ -295,9 +312,8 @@ protected DMIDatabaseType _database_engine;
 /**
 Database version.  This should be set by calling determineDatabaseVersion(),
 which is an abstract method to be defined in derived DMI classes.
-The standard for the version number is XXXXXXDDDDDDDD where XXXXXXX is
-typically a database version (e.g., RiverTrak 020601) and DDDDDDDD is
-usually the build date (e.g., 20020625).
+The standard for the version number is XXXXXXDDDDDDDD where XXXXXXX is typically a database version
+(e.g., RiverTrak 020601) and DDDDDDDD is usually the build date (e.g., 20020625).
 */
 private long __database_version;
 
@@ -307,8 +323,8 @@ True if any writes have been done to the database (uncommitted).
 private boolean __dirty = false;
 
 /**
-Whether the DMI should treat the database as being in read-only mode (false,
-all calls to DMI.delete() or DMI.write() are ignored) or not.
+Whether the DMI should treat the database as being in read-only mode
+(false, all calls to DMI.delete() or DMI.write() are ignored) or not.
 */
 private boolean __editable;
 
@@ -321,15 +337,6 @@ private String __database_server;
 The last SELECT query SQL string that was executed.
 */
 private DMISelectStatement __lastQuery;
-
-// TODO SAM 2007-05-08 Need to evaluate if used in troubleshooting, etc.
-/**
-The last SELECT query (in string form) that was executed.
-JTS 16/04/02 -- This is in here so that panels that use the DMI without
-the use of statement objects (i.e., the SQL Analyzer-type program) can
-re-query after a write or delete.
-*/
-//private String __lastQueryString;
 
 /**
 The last SQL statement that was executed.
@@ -352,8 +359,8 @@ Port number of the database to connect, used by client-server databases.
 private int __port;
 
 /**
-Sets whether in toString and getDatabaseProperties to print out
-information that may be secure (such as login name and password), or not.
+Sets whether in toString and getDatabaseProperties to print out information that may be secure
+(such as login name and password), or not.
 */
 private boolean __secure = false;
 
@@ -366,13 +373,6 @@ private String __id;
 Name string to identify the DMI connection.
 */
 private String __inputName = "";
-
-/**
-Name string to identify the DMI connection.
-TODO (JTS - 2005-04-07) probably rendered obsolete by the new InputName stuff.  Deprecated -- anything
-uses and I won't remove.  If nothing has popped up in 4 months, eliminate.
-*/
-private String __name;
 
 /**
 Login name to connect to the database (often used in database connection URL).
@@ -406,238 +406,370 @@ private List<Statement> __statementsVector;
 An empty constructor.
 If this constructor is used, initialize() must be called with the proper values to initialize the DMI settings.
 */
-public DMI() {}
+public DMI() {
+}
 
 /**
 Constructor for this DMI base class for cases when a connection to an ODBC DSN defined on the machine.
 The generic JDBC/ODBC driver is used.  To use a manufacturer's driver,
 use the overloaded constructor that takes as a parameter the database name.
-@param database_engine Database engine type (see setDatabaseEngine()).
-@param ODBC_name ODBC DSN to use.  The ODBC DSN must be defined on the machine.
-@param system_login System login to use for the database connection.  Specify
-as null to not use.  Generally the login will be defined in a derived class and is specific to a database.
-@param system_password System login to use for the database connection.  Specify
-as null to not use.  Generally the login will be defined in a derived class and is specific to a database.
+@param databaseEngine Database engine type (see setDatabaseEngine()).
+@param odbcName ODBC DSN to use.  The ODBC DSN must be defined on the machine.
+@param systemLogin System login to use for the database connection.
+Specify as null to not use.
+Generally the login will be defined in a derived class and is specific to a database.
+@param systemPassword System login to use for the database connection.
+Specify as null to not use.  Generally the login will be defined in a derived class and is specific to a database.
 @throws Exception thrown if an unknown databaseEngine is specified.
 */
-public DMI(String database_engine, String ODBC_name, String system_login, String system_password)
+public DMI ( String databaseEngine, String odbcName, String systemLogin, String systemPassword )
 throws Exception {
-	initialize(database_engine, null, null, 0, system_login, system_password, ODBC_name, false);
+	Map<String,Object> connectionPropertiesMap = new HashMap<>();
+	initialize (
+		databaseEngine,
+		null, // Database server, not used with ODBC name.
+		null, // Database name, not used with ODBC name.
+		0, // Port, not used with ODBC name.
+		systemLogin,
+		systemPassword,
+		odbcName,
+		false, // True if using JDBC (false here since using ODBC).
+		connectionPropertiesMap );
 }
 
 /**
-Constructor for this DMI base class for cases when a connection to a server
-database will be defined automatically, not using a predefined ODBC DSN.
+Constructor for this DMI base class for cases when a connection to a server database will be defined automatically,
+not using a predefined ODBC DSN.
 The specified JDBC/ODBC driver for the database engine is used.
-To use the generic JDBC/ODBC driver with an ODBC DSN, use the overloaded constructor
-that takes as a parameter the ODBC name.
-@param database_engine Database engine type (see setDatabaseEngine()).
-@param database_server Database server name (IP address or DNS-resolvable name).
-@param database_name Database name on the server.
+To use the generic JDBC/ODBC driver with an ODBC DSN, use the overloaded constructor that takes as a parameter the ODBC name.
+@param databaseEngine Database engine type (see setDatabaseEngine()).
+@param databaseServer Database server name (IP address or DNS-resolvable name).
+@param databaseName Database name on the server.
 @param port Port to use for the database communications.
 Specify as a negative number to use the default.
 Generally the default value determined from the database engine is correct.
-@param system_login System login to use for the database connection.
+@param systemLogin System login to use for the database connection.
 Specify as null to not use.  Generally the login will be defined in a derived class and is specific to a database.
-@param system_password System login to use for the database connection.
+@param systemPassword System login to use for the database connection.
 Specify as null to not use.  Generally the login will be defined in a derived class and is specific to a database.
 @throws Exception thrown if an unknown databaseEngine is specified.
 */
-public DMI(String database_engine, String database_server, String database_name,
-int port, String system_login, String system_password)
-throws Exception {
-	initialize(database_engine, database_server, database_name, port,
-		system_login, system_password, null, true);
+public DMI (
+	String databaseEngine,
+	String databaseServer,
+	String databaseName,
+	int port,
+	String systemLogin,
+	String systemPassword )
+	throws Exception {
+	// No additional properties.
+	Map<String,Object> connectionPropertiesMap = new HashMap<>();
+	initialize (
+		databaseEngine,
+		databaseServer,
+		databaseName,
+		port,
+		systemLogin,
+		systemPassword,
+		null, // No ODBC name is used.
+		true, // Using JDBC.
+		connectionPropertiesMap );
+}
+
+/**
+Constructor for this DMI base class for cases when a connection to a server database will be defined automatically,
+not using a predefined ODBC DSN.
+The specified JDBC/ODBC driver for the database engine is used.
+To use the generic JDBC/ODBC driver with an ODBC DSN, use the overloaded constructor that takes as a parameter the ODBC name.
+@param databaseEngine Database engine type (see setDatabaseEngine()).
+@param databaseServer Database server name (IP address or DNS-resolvable name).
+@param databaseName Database name on the server.
+@param port Port to use for the database communications.
+Specify as a negative number to use the default.
+Generally the default value determined from the database engine is correct.
+@param systemLogin System login to use for the database connection.
+Specify as null to not use.  Generally the login will be defined in a derived class and is specific to a database.
+@param systemPassword System login to use for the database connection.
+Specify as null to not use.  Generally the login will be defined in a derived class and is specific to a database.
+@param connectionPropertiesMap map of properties specific to a database engine.  The following are supported:
+@throws Exception thrown if an unknown databaseEngine is specified.
+*/
+public DMI (
+	String databaseEngine,
+	String databaseServer,
+	String databaseName,
+	int port,
+	String systemLogin,
+	String systemPassword,
+	Map<String,Object> connectionPropertiesMap )
+	throws Exception {
+	// No additional properties.
+	initialize (
+		databaseEngine,
+		databaseServer,
+		databaseName,
+		port,
+		systemLogin,
+		systemPassword,
+		null, // No ODBC name is used.
+		true, // Using JDBC.
+		connectionPropertiesMap );
 }
 
 /**
 Initialization routine that sets up the internal DMI settings.
-@param database_engine the type of database engine to which the DMI is connecting.
-See the __database_engine_string private javadocs.
-@param database_server the name or IP of the server to which the DMI will connect.
-@param database_name the name of the database on the server that the DMI will connect to.
+@param databaseEngine the type of database engine to which the DMI is connecting.
+@param databaseServer the name or IP of the server to which the DMI will connect.
+@param databaseName the name of the database on the server that the DMI will connect to.
 @param port the port on the database_server where the database listens for connections.
-@param system_login the login value to use to connect to the database server or ODBC connection.
-@param ssytem_password the login password to use to connect to the database server or ODBC connection.
-@param ODBC_name the name of the ODBC data source to connect to.
-@param jdbc_odbc if true then the connection is a IP or server-name -based connection.
-If false, it is an ODBC connection.
-TODO (JTS - 2006-05-22) This boolean seems backwards!!!
-@throws Exception if the database_engine that is passed in is not recognized.
+@param systemLogin the login value to use to connect to the database server or ODBC connection.
+@param ssytemPassword the login password to use to connect to the database server or ODBC connection.
+@param odbcName the name of the ODBC data source to connect to.
+@param isJdbc if true then the connection is a JDBC IP or server-name connection,
+and if false, it is an ODBC name connection
+@param connectionPropertiesMap map of properties specific to a database engine.  The following are supported:
+<pre>
+Engine     Property Name              Type        Description
+=========  =========================  ==========  ================================================================
+All        ConnectionStringAppend     String      Text to append to the connection URL.
+Oracle     OracleWallet               String      Full path to the Oracle Wallet folder
+                                                  (will set as TNS_ADMIN=OracleWallet in the connection string).
+</pre>
+@throws Exception if the databaseEngine that is passed in is not recognized.
 */
-public void initialize(String database_engine, String database_server,
-String database_name, int port, String system_login, String system_password,
-String ODBC_name, boolean jdbc_odbc)
-throws Exception {
+public void initialize (
+	String databaseEngine,
+	String databaseServer,
+	String databaseName,
+	int port,
+	String systemLogin,
+	String systemPassword,
+	String odbcName,
+	boolean isJdbc,
+	Map<String,Object> connectionPropertiesMap )
+	throws Exception {
 	String routine = getClass().getSimpleName() + ".initialize";
 	int dl = 25;
 
-	if (Message.isDebugOn) {
-		Message.printDebug(dl, routine, "DMI created for database engine: " + database_engine);
+	if ( Message.isDebugOn ) {
+		Message.printDebug(dl, routine, "DMI created for database engine: " + databaseEngine);
 	}
-	Message.printStatus(2, routine, "Initializing DMI for database engine: " + database_engine);
+	Message.printStatus(2, routine, "Initializing DMI for database engine: " + databaseEngine);
 
 	// Initialize member variables.
-	__database_engine_String= database_engine;
+	this.__database_engine_String = databaseEngine;
 
-	__jdbc_odbc = jdbc_odbc;
-	__database_name = database_name;
-	__odbc_name = ODBC_name;
-	__database_server = database_server;
-	__system_login = system_login;
-	__system_password = system_password;
-	__user_login = null;
-	__user_password = null;
-	__lastSQL = null;
-	__lastQuery = null;
-	__connection = null;
+	this.isJdbc = isJdbc;
+	this.__database_name = databaseName;
+	this.__odbc_name = odbcName;
+	this.__database_server = databaseServer;
+	this.__system_login = systemLogin;
+	this.__system_password = systemPassword;
+	this.__user_login = null;
+	this.__user_password = null;
+	this.__lastSQL = null;
+	this.__lastQuery = null;
+	this.__connection = null;
+	if ( connectionPropertiesMap == null ) {
+		this.connectionPropertiesMap = new HashMap();
+	}
+	else {
+		this.connectionPropertiesMap = connectionPropertiesMap;
+	}
 
-	__database_version = 0;
-	__port = port;
+	this.__database_version = 0;
+	this.__port = port;
 
-	__dirty = false;
-	__editable = false;
-	__secure = false;
-	__autoCommit = true;
-	__connected = false;
+	this.__dirty = false;
+	this.__editable = false;
+	this.__secure = false;
+	this.__autoCommit = true;
+	this.__connected = false;
 
-	__lastSQLType = NONE;
+	this.__lastSQLType = NONE;
 
 	// Check the database engine type and set appropriate defaults.
-	if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("Access")) {
-		__fieldLeftEscape = "[";
-		__fieldRightEscape = "]";
-		__stringDelim = "'";
-		__statementEnd = "";
-		__database_server = "Local";
-		_database_engine = DMIDatabaseType.ACCESS;
+	if ( (this.__database_engine_String != null) && this.__database_engine_String.equalsIgnoreCase("Access")) {
+		this.__fieldLeftEscape = "[";
+		this.__fieldRightEscape = "]";
+		this.__stringDelim = "'";
+		this.__statementEnd = "";
+		this.__database_server = "Local";
+		this._database_engine = DMIDatabaseType.ACCESS;
 	}
-	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("Derby")) {
-        __fieldLeftEscape = "";
-        __fieldRightEscape = "";
-        __stringDelim = "'";
-		__statementEnd = "";
-        if ( __database_server.equalsIgnoreCase("memory") ) {
-            __database_server = "localhost";
+	else if ( (this.__database_engine_String != null) && this.__database_engine_String.equalsIgnoreCase("Derby")) {
+        this.__fieldLeftEscape = "";
+        this.__fieldRightEscape = "";
+        this.__stringDelim = "'";
+		this.__statementEnd = "";
+        if ( this.__database_server.equalsIgnoreCase("memory") ) {
+            this.__database_server = "localhost";
         }
-        _database_engine = DMIDatabaseType.DERBY;
+        this._database_engine = DMIDatabaseType.DERBY;
     }
-	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("Excel")) {
+	else if ( (this.__database_engine_String != null) && this.__database_engine_String.equalsIgnoreCase("Excel")) {
 	    // TODO SAM 2012-11-09 Need to confirm how Excel queries behave, for now use Access settings.
-        __fieldLeftEscape = "[";
-        __fieldRightEscape = "]";
-        __stringDelim = "'";
-		__statementEnd = "";
-        __database_server = "Local";
-        _database_engine = DMIDatabaseType.EXCEL;
+        this.__fieldLeftEscape = "[";
+        this.__fieldRightEscape = "]";
+        this.__stringDelim = "'";
+		this.__statementEnd = "";
+        this.__database_server = "Local";
+        this._database_engine = DMIDatabaseType.EXCEL;
     }
-	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("Informix")) {
-		__fieldLeftEscape = "\"";
-		__fieldRightEscape = "\"";
-		__stringDelim = "'";
-		__statementEnd = "";
-		_database_engine = DMIDatabaseType.INFORMIX;
+	else if ( (this.__database_engine_String != null) && this.__database_engine_String.equalsIgnoreCase("Informix")) {
+		this.__fieldLeftEscape = "\"";
+		this.__fieldRightEscape = "\"";
+		this.__stringDelim = "'";
+		this.__statementEnd = "";
+		this._database_engine = DMIDatabaseType.INFORMIX;
 		if ( port <= 0 ) {
 			setDefaultPort ();
 		}
 	}
-	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("MySQL")) {
-		__fieldLeftEscape = "";
-		__fieldRightEscape = "";
-		__stringDelim = "'";
-		__statementEnd = "";
-		_database_engine = DMIDatabaseType.MYSQL;
+	else if ( (this.__database_engine_String != null) && this.__database_engine_String.equalsIgnoreCase("MySQL")) {
+		this.__fieldLeftEscape = "";
+		this.__fieldRightEscape = "";
+		this.__stringDelim = "'";
+		this.__statementEnd = "";
+		this._database_engine = DMIDatabaseType.MYSQL;
 		if ( port <= 0 ) {
 			setDefaultPort ();
 		}
 	}
-	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("Oracle")) {
-		__fieldLeftEscape = "\"";
-		__fieldRightEscape = "\"";
-		__stringDelim = "'";
-		__statementEnd = "";
-		_database_engine = DMIDatabaseType.ORACLE;
+	else if ( (this.__database_engine_String != null) && this.__database_engine_String.equalsIgnoreCase("Oracle")) {
+		this.__fieldLeftEscape = "\"";
+		this.__fieldRightEscape = "\"";
+		this.__stringDelim = "'";
+		this.__statementEnd = "";
+		this._database_engine = DMIDatabaseType.ORACLE;
 		if ( port <= 0 ) {
 			setDefaultPort ();
 		}
 	}
-	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("PostgreSQL")) {
+	else if ( (this.__database_engine_String != null) && this.__database_engine_String.equalsIgnoreCase("PostgreSQL")) {
 		// Escape for keywords.
 		// See:  https://www.postgresql.org/docs/9.6/sql-keywords-appendix.html
 		// The following caused issues:
 		// - TODO smalers 2020-10-12 why is this an issue?
 		//__fieldLeftEscape = "\"";
 		//__fieldRightEscape = "\"";
-		__fieldLeftEscape = "";
-		__fieldRightEscape = "";
-		__stringDelim = "'";
-		__statementEnd = "";
-		_database_engine = DMIDatabaseType.POSTGRESQL;
+		this.__fieldLeftEscape = "";
+		this.__fieldRightEscape = "";
+		this.__stringDelim = "'";
+		this.__statementEnd = "";
+		this._database_engine = DMIDatabaseType.POSTGRESQL;
 		if ( port <= 0 ) {
 			setDefaultPort ();
 		}
 	}
-	else if ( (__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("SQLite")) {
+	else if ( (this.__database_engine_String != null) && this.__database_engine_String.equalsIgnoreCase("SQLite")) {
 		// Escape the fields to make sure that reserved keywords, etc., are not an issue.
 		// See:  https://sqlite.org/lang_keywords.html
-		__fieldLeftEscape = "\"";
-		__fieldRightEscape = "\"";
-		__stringDelim = "'";
-		__statementEnd = ";";
-		_database_engine = DMIDatabaseType.SQLITE;
+		this.__fieldLeftEscape = "\"";
+		this.__fieldRightEscape = "\"";
+		this.__stringDelim = "'";
+		this.__statementEnd = ";";
+		this._database_engine = DMIDatabaseType.SQLITE;
 		if ( port <= 0 ) {
 			setDefaultPort ();
 		}
 	}
-	else if ((__database_engine_String != null) &&
-		(StringUtil.startsWithIgnoreCase(__database_engine_String,"SQL_Server") || // Older.
-		StringUtil.startsWithIgnoreCase(__database_engine_String,"SQLServer")) ) { // Current configuration file.
-		__fieldLeftEscape = "[";
-		__fieldRightEscape = "]";
-		__stringDelim = "'";
-		__statementEnd = "";
-		_database_engine = DMIDatabaseType.SQLSERVER;
+	else if ((this.__database_engine_String != null) &&
+		(StringUtil.startsWithIgnoreCase(this.__database_engine_String,"SQL_Server") || // Older.
+		StringUtil.startsWithIgnoreCase(this.__database_engine_String,"SQLServer")) ) { // Current configuration file.
+		this.__fieldLeftEscape = "[";
+		this.__fieldRightEscape = "]";
+		this.__stringDelim = "'";
+		this.__statementEnd = "";
+		this._database_engine = DMIDatabaseType.SQLSERVER;
 		if ( port <= 0 ) {
 			setDefaultPort ();
 		}
 		else {
             // Warn if the configuration has provided a port AND a named instance (e.g. localhost\SQLEXPRESS).
-            if (__database_server.indexOf('\\') >= 0) {
-                Message.printWarning(3, "initialize", "SQLServer connection should either " +
-                        "provide a named instance OR a port, but not both.");
+            if (this.__database_server.indexOf('\\') >= 0) {
+                Message.printWarning(3, "initialize",
+                	"SQLServer connection should either provide a named instance OR a port, but not both.");
             }
         }
 	}
-    else if ((__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("H2")) {
-        __fieldLeftEscape = "";
-		__fieldRightEscape = "";
-		__stringDelim = "'";
-		__statementEnd = "";
-		_database_engine = DMIDatabaseType.H2;
+    else if ((this.__database_engine_String != null) && this.__database_engine_String.equalsIgnoreCase("H2")) {
+        this.__fieldLeftEscape = "";
+		this.__fieldRightEscape = "";
+		this.__stringDelim = "'";
+		this.__statementEnd = "";
+		this._database_engine = DMIDatabaseType.H2;
     }
-    else if ((__database_engine_String != null) && __database_engine_String.equalsIgnoreCase("HSQLDB")) {
-        __fieldLeftEscape = "";
-		__fieldRightEscape = "";
-		__stringDelim = "'";
-		__statementEnd = "";
-		_database_engine = DMIDatabaseType.HSQLDB;
+    else if ((this.__database_engine_String != null) && this.__database_engine_String.equalsIgnoreCase("HSQLDB")) {
+        this.__fieldLeftEscape = "";
+		this.__fieldRightEscape = "";
+		this.__stringDelim = "'";
+		this.__statementEnd = "";
+		this._database_engine = DMIDatabaseType.HSQLDB;
     }
 	else {
-	    if ( (__odbc_name != null) && !__odbc_name.equals("") ) {
+	    if ( (this.__odbc_name != null) && !this.__odbc_name.equals("") ) {
 	        // Using a generic ODBC DSN connection so assume some basic defaults.
-	        __fieldLeftEscape = "";
-	        __fieldRightEscape = "";
-	        __stringDelim = "'";
-	        __statementEnd = "";
-	        _database_engine = DMIDatabaseType.ODBC;
+	        this.__fieldLeftEscape = "";
+	        this.__fieldRightEscape = "";
+	        this.__stringDelim = "'";
+	        this.__statementEnd = "";
+	        this._database_engine = DMIDatabaseType.ODBC;
 	    }
 	    else {
 	        // Using a specific driver but don't know which one, which is problematic for internals.
-	        throw new Exception("Trying to use unknown database engine: " + __database_engine_String + " in DMI()");
+	        throw new Exception("Trying to use unknown database engine: " + this.__database_engine_String + " in DMI()");
 	    }
 	}
 
-	__statementsVector = new Vector<>();
+	this.__statementsVector = new Vector<>();
+}
+
+/**
+ * Append a connection URL parameter.
+ * If the parameter starts with a delimiter, the delimiter is removed and then re-added based on the 'paramCount' value
+ * @param connUrlBuilder the connection string to modify
+ * @param delim1 the delimiter for the first parameter (e.g., "?")
+ * @param delim2 the delimiter for the second and later parameters (e.g., "&")
+ * @param paramCount the count of parameters that have previously been appended
+ * @param param the parameter to add (if null, don't append)
+ * @return the count of parameters that have been appended (paramCount + 1)
+ */
+private int appendConnectionUrlParameter ( StringBuilder connUrlBuilder, String delim1, String delim2, int paramCount, String param ) {
+	if ( param == null ) {
+		// Don't append.
+		return paramCount;
+	}
+	if ( paramCount == 0 ) {
+		// Append the first delimiter.
+		connUrlBuilder.append ( delim1 );
+	}
+	else {
+		// Append the second delimiter.
+		connUrlBuilder.append ( delim2 );
+	}
+	// Append the parameter:
+	// - if it starts with either of the delimiters, remove because it is redundant and may not be correct
+	if ( param.startsWith(delim1) ) {
+		if ( param.length() == 1 ) {
+			param = "";
+		}
+		else {
+			param = param.substring(1);
+		}
+	}
+	if ( param.startsWith(delim2) ) {
+		if ( param.length() == 1 ) {
+			param = "";
+		}
+		else {
+			param = param.substring(1);
+		}
+	}
+	// Append the parameter:
+	// - if the length is zero, it is OK
+	connUrlBuilder.append ( param );
+	return (paramCount + 1);
 }
 
 /**
@@ -648,12 +780,12 @@ any problems doing a Connection.close()
 public void close() throws SQLException {
 	String routine = getClass().getSimpleName() + ".close";
 	// Let the JDBC handle the close.
-	if (__connected) {
+	if (this.__connected) {
 		if ( Message.isDebugOn ) {
 			Message.printDebug(1, routine, "DMI database " + getDatabaseName() + " is connected.  Closing the connection.");
 		}
-		__connection.close();
-		__connected = false;
+		this.__connection.close();
+		this.__connected = false;
 	}
 	else {
 		if ( Message.isDebugOn ) {
@@ -718,10 +850,10 @@ Called automatically by commit() and rollback().
 */
 private void closeStatements() {
 	String routine = "DMI.closeStatements()";
-	int size = __statementsVector.size();
+	int size = this.__statementsVector.size();
 	Statement s = null;
 	for (int i = 0; i < size; i++) {
-		s = __statementsVector.get(i);
+		s = this.__statementsVector.get(i);
 		try {
 			s.close();
 		}
@@ -735,27 +867,27 @@ private void closeStatements() {
 /**
 Commits any database operations that have been made since the beginning of the current transaction.
 @throws SQLException thrown if the java.sql code has any problems
-doing a Connection.commit() or in setAutoCommit(), or if the database
-was not connected when the call was made
+doing a Connection.commit() or in setAutoCommit(),
+or if the database was not connected when the call was made
 */
 public void commit() throws SQLException {
 	// TODO (JTS - 2006-05-22)This code has not been tested or used in nearly 4 years.
 	// Do not rely on this method without testing it first.
-	if (!__connected) {
-		throw new SQLException ("Database not connected, cannot call DMI.commit()");
+	if (!this.__connected) {
+		throw new SQLException ("Database not connected, cannot call DMI.commit().");
 	}
 
-	__inTransaction = false;
+	this.__inTransaction = false;
 
 	// Connection.commit() should only be used when autoCommit is turned off, so check that.
-	if (__autoCommit == false) {
-		__connection.commit();
+	if (this.__autoCommit == false) {
+		this.__connection.commit();
 	}
 
 	// Since commit() marks the end of a transaction,
 	// turn autoCommit back on and mark the database as not dirty (clean).
 	setAutoCommit(true);
-	__dirty = false;
+	this.__dirty = false;
 
 	closeStatements();
 }
@@ -765,7 +897,7 @@ Indicate whether the database is connected.
 @return true if the database connection is made, false otherwise.
 */
 public boolean connected() {
-	return __connected;
+	return this.__connected;
 }
 
 /**
@@ -778,8 +910,8 @@ public abstract void determineDatabaseVersion ();
 
 /**
 Execute a count query to find the number of records specified by the query.
-This may be used in conjunction with a select statement to find
-out how many records will be pulled back (for doing a progress bar or the like),
+This may be used in conjunction with a select statement to find out how many records will be pulled back
+(for doing a progress bar or the like),
 so the input SQL string can be a properly-formatted <b><code>SELECT </b></code> statement,
 or a normal <b><code>SELECT COUNT</b></code> statement.<p>
 If a normal SELECT statement is passed in,
@@ -810,8 +942,8 @@ Connection.createStatement or Statement.executeQuery(), or if the database was n
 public int dmiCount(String sql) throws SQLException{
 	// TODO (JTS - 2006-05-22) This code has not been tested or used in nearly 4 years.
 	// Do not rely on this method without testing it first.
-	if (!__connected) {
-		throw new SQLException ("Database not connected.  Cannot make call to DMI.dmiCount()");
+	if (!this.__connected) {
+		throw new SQLException ("Database not connected.  Cannot make call to DMI.dmiCount().");
 	}
 
 	String routine = "DMI.dmiCount";
@@ -842,14 +974,14 @@ public int dmiCount(String sql) throws SQLException{
 		Message.printDebug(dl, routine, "SQL to count (post): '" + sql + "'");
 	}
 
-	Statement s = __connection.createStatement();
+	Statement s = this.__connection.createStatement();
 	ResultSet rs = s.executeQuery(sql);
 	rs.next();
 	int count = rs.getInt(1);
 
 	closeResultSet(rs);
-	if (__inTransaction) {
-		__statementsVector.add(s);
+	if (this.__inTransaction) {
+		this.__statementsVector.add(s);
 	}
 	else {
 		s.close();
@@ -860,8 +992,7 @@ public int dmiCount(String sql) throws SQLException{
 
 /**
 Executes a count query from a DMISelectStatement object.
-This creates the SQL string from the DMISelectStatement object and then passes the resulting
-string to the dmiCount(String) function.
+This creates the SQL string from the DMISelectStatement object and then passes the resulting string to the dmiCount(String) function.
 @param s a DMISelectStatement object to run a count by
 @return an integer telling how many records were counted
 @throws SQLException thrown if there are problems with a
@@ -871,8 +1002,8 @@ public int dmiCount(DMISelectStatement s)
 throws SQLException {
 	// TODO (JTS - 2006-05-22) This code has not been tested or used in nearly 4 years.
 	// Do not rely on this method without testing it first.
-	if (!__connected) {
-		throw new SQLException ("Database not connected, cannot call DMI.dmiCount()");
+	if (!this.__connected) {
+		throw new SQLException ("Database not connected, cannot call DMI.dmiCount().");
 	}
 
 	if (s.isStoredProcedure()) {
@@ -901,11 +1032,11 @@ Connection.createStatement or Statement.executeQuery().  Also thrown if
 the database is in read-only mode
 */
 public int dmiDelete(DMIDeleteStatement s) throws SQLException {
-	if (!__connected) {
+	if (!this.__connected) {
 		throw new SQLException ("Database not connected, cannot call DMI.dmiDelete().");
 	}
 
-	if (!__editable) {
+	if (!this.__editable) {
 		throw new SQLException("Database in read-only mode, cannot execute a dmiDelete.");
 	}
 
@@ -932,11 +1063,11 @@ Connection.createStatement or Statement.executeQuery().
 Also thrown if the database is in read-only mode, or if it is not connected
 */
 public int dmiDelete(String sql) throws SQLException {
-	if (!__connected) {
-		throw new SQLException ("Database not connected. Cannot make call to DMI.dmiDelete()");
+	if (!this.__connected) {
+		throw new SQLException ("Database not connected. Cannot make call to DMI.dmiDelete().");
 	}
 
-	if (__dumpSQLOnExecution) {
+	if (this.__dumpSQLOnExecution) {
 		Message.printStatus(2, "DMI.dmiDelete", sql);
 	}
 
@@ -946,12 +1077,12 @@ public int dmiDelete(String sql) throws SQLException {
 		Message.printDebug(dl, routine, "SQL: '" + sql + "'");
 	}
 
-	if (!__editable) {
+	if (!this.__editable) {
 		throw new SQLException("Database in read-only mode, cannot execute a dmiDelete.");
 	}
 
-	Statement s = __connection.createStatement();
-	if (__capitalize) {
+	Statement s = this.__connection.createStatement();
+	if (this.__capitalize) {
 		sql = sql.toUpperCase();
 	}
 
@@ -960,14 +1091,14 @@ public int dmiDelete(String sql) throws SQLException {
 		result = s.executeUpdate(sql);
 	}
 	catch (SQLException ex) {
-		if (__dumpSQLOnError) {
+		if (this.__dumpSQLOnError) {
 			Message.printStatus(2, "DMI.dmiDelete", sql);
 		}
 		throw ex;
 	}
 
-	if (__inTransaction) {
-		__statementsVector.add(s);
+	if (this.__inTransaction) {
+		this.__statementsVector.add(s);
 	}
 	else {
 		s.close();
@@ -988,11 +1119,11 @@ Executes a String of SQL code.  Used for doing create and drop table commands.
 @throws Exception if an error occurs
 */
 public int dmiExecute(String sql) throws SQLException {
-	if (!__connected) {
+	if (!this.__connected) {
 		throw new SQLException ("Database not connected.  Cannot make call to DMI.dmiExecute.");
 	}
 
-	if (!__editable) {
+	if (!this.__editable) {
 		throw new SQLException ("Database is in read-only mode, cannot make call to DMI.dmiExecute.");
 	}
 
@@ -1003,15 +1134,15 @@ public int dmiExecute(String sql) throws SQLException {
 		Message.printDebug(dl, routine, "SQL: '" + sql + "'");
 	}
 
-	Statement s = __connection.createStatement();
-	if (__capitalize) {
+	Statement s = this.__connection.createStatement();
+	if (this.__capitalize) {
 		sql = sql.toUpperCase();
 	}
 
 	int result = s.executeUpdate(sql);
 
-	if (__inTransaction) {
-		__statementsVector.add(s);
+	if (this.__inTransaction) {
+		this.__statementsVector.add(s);
 	}
 	else {
 		s.close();
@@ -1022,8 +1153,7 @@ public int dmiExecute(String sql) throws SQLException {
 
 /**
 Re-executes the previous SQL statement executed by the database.
-Every time one of the dmiCount, dmiDelete, dmiWrite or dmiSelect
-methods that take a DMIDeleteStatement, DMIWriteStatement or
+Every time one of the dmiCount, dmiDelete, dmiWrite or dmiSelect methods that take a DMIDeleteStatement, DMIWriteStatement or
 DMISelectStatement as their parameter is called is called, the DMI stores the DMI*Statement.
 This method re-runs the DMI*Statement executed just previously by the database.
 <p>
@@ -1054,17 +1184,17 @@ Statement.executeDelete() or Statement.executeUpdate()
 @throws Exception thrown by dmiWrite(DMIWriteStatement) when a DELETE_INSERT is attempted
 */
 public Object dmiRunLastSQL() throws SQLException, Exception {
-	switch(__lastSQLType) {
+	switch(this.__lastSQLType) {
 		case NONE:
 			return null;
 		case SELECT:
-			return dmiSelect((DMISelectStatement)__lastSQL);
+			return dmiSelect((DMISelectStatement)this.__lastSQL);
 		case WRITE:
-			return Integer.valueOf(dmiWrite((DMIWriteStatement)__lastSQL, UPDATE_INSERT));
+			return Integer.valueOf(dmiWrite((DMIWriteStatement)this.__lastSQL, UPDATE_INSERT));
 		case DELETE:
-			return Integer.valueOf(dmiDelete((DMIDeleteStatement)__lastSQL));
+			return Integer.valueOf(dmiDelete((DMIDeleteStatement)this.__lastSQL));
 		case COUNT:
-			return Integer.valueOf(dmiCount((DMISelectStatement)__lastSQL));
+			return Integer.valueOf(dmiCount((DMISelectStatement)this.__lastSQL));
 		default:
 			return null;
 	}
@@ -1073,23 +1203,20 @@ public Object dmiRunLastSQL() throws SQLException, Exception {
 /**
 Re-executes the last SELECT statement executed.
 Used for re-querying a table after a DELETE or INSERT statement is executed.
-<code>dmiRunSQL</code> can't be used at that point as the last
-SQL executed will have been the DELETE or INSERT statement
+<code>dmiRunSQL</code> can't be used at that point as the last SQL executed will have been the DELETE or INSERT statement
 @return a ResultSet of the values returned from the query
-@throws SQLException thrown if there are problems with a
-Connection.createStatement or Statement.executeQuery()
+@throws SQLException thrown if there are problems with a Connection.createStatement or Statement.executeQuery()
 */
 public ResultSet dmiRunSelect() throws SQLException {
-	if (!__connected) {
+	if (!this.__connected) {
 		throw new SQLException ("Database not connected.  Cannot make call to DMI.dmiRunSelect().");
 	}
-	return dmiSelect((DMISelectStatement)__lastQuery);
+	return dmiSelect((DMISelectStatement)this.__lastQuery);
 }
 
 // TODO SAM 2012-09-07 Need to set the last query string.
 /**
-Runs an SQL string that contains a <b><code>SELECT</b></code> statement
-and returns a resultSet of the records returned.
+Runs an SQL string that contains a <b><code>SELECT</b></code> statement and returns a resultSet of the records returned.
 @param sql an SQL statement that contains the <b><code>SELECT</b></code> statement to be executed
 @return the resultset pulled back from the operation
 @throws SQLException thrown if there are problems with a
@@ -1097,11 +1224,11 @@ Connection.createStatement or Statement.executeQuery(), or if the database is no
 */
 public ResultSet dmiSelect(String sql) throws SQLException {
 	String routine = getClass().getSimpleName() + ".dmiSelect";
-	if (!__connected) {
+	if (!this.__connected) {
 		throw new SQLException ("Database not connected.  Cannot make call to DMI.dmiSelect().");
 	}
 
-	if (__dumpSQLOnExecution) {
+	if (this.__dumpSQLOnExecution) {
 		Message.printStatus(2, routine, sql);
 	}
 
@@ -1110,9 +1237,9 @@ public ResultSet dmiSelect(String sql) throws SQLException {
 		Message.printDebug(dl, routine, "SQL: '" + sql + "'");
 	}
 
-	Statement s = __connection.createStatement();
+	Statement s = this.__connection.createStatement();
 	ResultSet rs = null;
-	if (__capitalize) {
+	if (this.__capitalize) {
 		sql = sql.toUpperCase();
 	}
 
@@ -1123,7 +1250,7 @@ public ResultSet dmiSelect(String sql) throws SQLException {
 		rs = s.executeQuery(sql);
 	}
 	catch (SQLException ex) {
-		if (__dumpSQLOnError) {
+		if (this.__dumpSQLOnError) {
 			Message.printStatus(2, routine, sql);
 		}
 		throw ex;
@@ -1144,7 +1271,7 @@ Connection.createStatement or Statement.executeQuery()
 */
 public ResultSet dmiSelect ( DMISelectStatement select )
 throws SQLException {
-	if (!__connected) {
+	if (!this.__connected) {
 		throw new SQLException ("Database not connected.  Cannot make call to DMI.dmiSelect().");
 	}
 
@@ -1180,21 +1307,20 @@ The code in dmiWrite is surrounded by a check of the private boolean member
 variable __editable (set isEditable() and setEditable(boolean).
 If __editable is set to true, none of the code is executed and an exception is thrown.
 @param sql an SQL command that contains the insert or update command to be run
-@return an integer of the rowcount from the insert or update
-@throws SQLException thrown if there are problems with a
-Connection.createStatement or Statement.executeUpdate().  Also thrown if
-the database is in read-only mode, or if the database is not connected.
+@return an integer of the row count from the insert or update
+@throws SQLException thrown if there are problems with a Connection.createStatement or Statement.executeUpdate().
+Also thrown if the database is in read-only mode, or if the database is not connected.
 */
 public int dmiWrite(String sql) throws SQLException {
-	if (!__connected) {
+	if (!this.__connected) {
 		throw new SQLException ("Database not connected.  Cannot make call to DMI.dmiWrite.");
 	}
 
-	if (!__editable) {
+	if (!this.__editable) {
 		throw new SQLException ("Database is in read-only mode, cannot make call to DMI.dmiWrite.");
 	}
 
-	if (__dumpSQLOnExecution) {
+	if (this.__dumpSQLOnExecution) {
 		Message.printStatus(2, "DMI.dmiWrite", sql);
 	}
 
@@ -1205,8 +1331,8 @@ public int dmiWrite(String sql) throws SQLException {
 		Message.printDebug(dl, routine, "SQL: '" + sql + "'");
 	}
 
-	Statement s = __connection.createStatement();
-	if (__capitalize) {
+	Statement s = this.__connection.createStatement();
+	if (this.__capitalize) {
 		sql = sql.toUpperCase();
 	}
 
@@ -1215,14 +1341,14 @@ public int dmiWrite(String sql) throws SQLException {
 		result = s.executeUpdate(sql);
 	}
 	catch (SQLException ex) {
-		if (__dumpSQLOnError) {
+		if (this.__dumpSQLOnError) {
 			Message.printStatus(2, "DMI.dmiWrite", sql);
 		}
 		throw ex;
 	}
 
-	if (__inTransaction) {
-		__statementsVector.add(s);
+	if (this.__inTransaction) {
+		this.__statementsVector.add(s);
 	}
 	else {
 		s.close();
@@ -1251,11 +1377,11 @@ public int dmiWrite(DMIWriteStatement s, int writeFlag)
 throws SQLException, Exception {
 	// Enable the following to troubleshoot but normally should be false.
 	//__dumpSQLOnExecution = true;
-	if (!__connected) {
-		throw new SQLException ("Database not connected.  Cannot make call to DMI.dmiWrite()");
+	if (!this.__connected) {
+		throw new SQLException ("Database not connected.  Cannot make call to DMI.dmiWrite().");
 	}
-	if (!__editable) {
-		throw new SQLException("Database is in read-only mode");
+	if (!this.__editable) {
+		throw new SQLException("Database is in read-only mode.");
 	}
 
 	if (s.isStoredProcedure()) {
@@ -1266,7 +1392,7 @@ throws SQLException, Exception {
 	// Set the DMIWriteStatement as the last statement executed.
 	setLastStatement(s);
 
-	Statement stmt = __connection.createStatement();
+	Statement stmt = this.__connection.createStatement();
 
 	int rowCount = -1; // Number of rows inserted or updated.
 	switch (writeFlag) {
@@ -1287,11 +1413,11 @@ throws SQLException, Exception {
 		// and then used below (where, for instance, ODBC has S1000 and 0)
 		///////////////////////////////////////////////////////////////
 		try {
-			if (__dumpSQLOnExecution) {
+			if (this.__dumpSQLOnExecution) {
 				Message.printStatus(2, "DMI.dmiWrite", "Trying to execute INSERT: " + s.toInsertString());
 			}
 			rowCount = stmt.executeUpdate(s.toInsertString());
-			if (__dumpSQLOnExecution) {
+			if (this.__dumpSQLOnExecution) {
 				Message.printStatus(2, "DMI.dmiWrite", "Inserted " + rowCount + " rows.");
 			}
 			// Used for knowing when to do a startTransaction(ROLLBACK) versus a startTransaction(COMMIT).
@@ -1301,29 +1427,29 @@ throws SQLException, Exception {
 			testAndSetDirty();
 		}
 		catch (SQLException e) {
-			if (_database_engine == DMIDatabaseType.ACCESS ) {
+			if (this._database_engine == DMIDatabaseType.ACCESS ) {
 				if (e.getSQLState() == "S1000" && e.getErrorCode() == 0) {
 				    // The Insert failed because a record with the existing key data already exists.
 					// That record will be updated, instead.
 					try {
-						if (__dumpSQLOnExecution) {
+						if (this.__dumpSQLOnExecution) {
 							Message.printStatus(2, "DMI.dmiWrite", s.toUpdateString());
 						}
 						rowCount = stmt.executeUpdate(s.toUpdateString());
-						if (__dumpSQLOnExecution) {
+						if (this.__dumpSQLOnExecution) {
 							Message.printStatus(2, "DMI.dmiWrite", "Inserted " + rowCount + " rows.");
 						}
 					}
 					catch (Exception ex) {
-						if (__dumpSQLOnError) {
+						if (this.__dumpSQLOnError) {
 							Message.printStatus(2, "DMI.dmiWrite", s.toUpdateString());
 						}
 						throw ex;
 					}
 
 					// Used for knowing when to do a startTransaction(ROLLBACK) versus a startTransaction(COMMIT).
-					// Since a delete statement causes a database change (and if
-					// the code has gotten this far the delete was successful and didn't throw an exception),
+					// Since a delete statement causes a database change
+					// (and if the code has gotten this far the delete was successful and didn't throw an exception),
 					// the database can now be considered changed and the __dirty flag should be set.
 					testAndSetDirty();
 				}
@@ -1333,21 +1459,21 @@ throws SQLException, Exception {
 				}
 			}
 			// TODO SAM 2009-05-14 Evaluate whether this code is needed/fragile/etc.
-			else if ( (_database_engine == DMIDatabaseType.SQLSERVER) ){
+			else if ( (this._database_engine == DMIDatabaseType.SQLSERVER) ){
 				if (e.getSQLState() == "23000" && e.getErrorCode() == 2627) {
 				    // The Insert failed because a record with the existing key data already exists.
 					// That record will be updated, instead.
 					try {
-						if (__dumpSQLOnExecution) {
+						if (this.__dumpSQLOnExecution) {
 							Message.printStatus(2, "DMI.dmiWrite", s.toUpdateString());
 						}
 						rowCount = stmt.executeUpdate(s.toUpdateString());
-						if (__dumpSQLOnExecution) {
+						if (this.__dumpSQLOnExecution) {
 							Message.printStatus(2, "DMI.dmiWrite", "Inserted " + rowCount + " rows.");
 						}
 					}
 					catch (Exception ex) {
-						if (__dumpSQLOnError) {
+						if (this.__dumpSQLOnError) {
 							Message.printStatus(2, "DMI.dmiWrite", s.toUpdateString());
 						}
 						throw ex;
@@ -1368,7 +1494,7 @@ throws SQLException, Exception {
 				throw new Exception ("INSERT_UPDATE may have encountered an "
 				+ "existing record, but since there is no information "
 				+ "on the INSERT error codes for the database type "
-				+ "with which you are working (" + __database_engine_String + ") "
+				+ "with which you are working (" + this.__database_engine_String + ") "
 			 	+ "there is no certainty about this.  The DMI class needs to be enhanced to handle."
 				+ " SQLState=" + e.getSQLState() + " SQLError=" + e.getErrorCode()
 				+ " SQLErrorMessage=" + e.getMessage());
@@ -1377,16 +1503,16 @@ throws SQLException, Exception {
 		break;
 		case UPDATE_INSERT:
 			try {
-				if (__dumpSQLOnExecution) {
+				if (this.__dumpSQLOnExecution) {
 					Message.printStatus(2, "DMI.dmiWrite", s.toUpdateString(true));
 				}
 				rowCount = stmt.executeUpdate(s.toUpdateString(true));
-				if (__dumpSQLOnExecution) {
+				if (this.__dumpSQLOnExecution) {
 					Message.printStatus(2, "DMI.dmiWrite", "Updated " + rowCount + " rows.");
 				}
 			}
 			catch (Exception e) {
-				if (__dumpSQLOnError) {
+				if (this.__dumpSQLOnError) {
 					Message.printStatus(2, "DMI.dmiWrite", s.toUpdateString());
 				}
 				throw e;
@@ -1394,14 +1520,14 @@ throws SQLException, Exception {
 
 			if (rowCount == 0) {
 				// The update failed, so try an insert.
-				if (__dumpSQLOnExecution) {
+				if (this.__dumpSQLOnExecution) {
 					Message.printStatus(2, "DMI.dmiWrite", s.toInsertString());
 				}
 				try {
 					rowCount = stmt.executeUpdate(s.toInsertString());
 				}
 				catch (Exception e) {
-					if (__dumpSQLOnError) {
+					if (this.__dumpSQLOnError) {
 						Message.printStatus(2, "DMI.dmiWrite", s.toInsertString());
 					}
 					throw e;
@@ -1415,16 +1541,16 @@ throws SQLException, Exception {
 			break;
 		case UPDATE:
 			try {
-				if (__dumpSQLOnExecution) {
+				if (this.__dumpSQLOnExecution) {
 					Message.printStatus(2, "DMI.dmiWrite", s.toUpdateString());
 				}
 				rowCount = stmt.executeUpdate(s.toUpdateString());
-				if (__dumpSQLOnExecution) {
+				if (this.__dumpSQLOnExecution) {
 					Message.printStatus(2, "DMI.dmiWrite", "Updated " + rowCount + " rows.");
 				}
 			}
 			catch (Exception e) {
-				if (__dumpSQLOnError) {
+				if (this.__dumpSQLOnError) {
 					Message.printStatus(2, "DMI.dmiWrite", s.toUpdateString());
 				}
 				throw e;
@@ -1438,16 +1564,16 @@ throws SQLException, Exception {
 			break;
 		case INSERT:
 			try {
-				if (__dumpSQLOnExecution) {
+				if (this.__dumpSQLOnExecution) {
 					Message.printStatus(2, "DMI.dmiWrite", s.toInsertString());
 				}
 				rowCount = stmt.executeUpdate(s.toInsertString());
-				if (__dumpSQLOnExecution) {
+				if (this.__dumpSQLOnExecution) {
 					Message.printStatus(2, "DMI.dmiWrite", "Inserted " + rowCount + " rows.");
 				}
 			}
 			catch (Exception e) {
-				if (__dumpSQLOnError) {
+				if (this.__dumpSQLOnError) {
 					Message.printStatus(2, "DMI.dmiWrite", s.toInsertString());
 				}
 				throw e;
@@ -1465,8 +1591,8 @@ throws SQLException, Exception {
 			throw new Exception ("Unspecified WRITE type in DMI.dmiWrite:" + writeFlag);
 	}
 
-	if (__inTransaction) {
-		__statementsVector.add(stmt);
+	if (this.__inTransaction) {
+		this.__statementsVector.add(stmt);
 	}
 	else {
 		stmt.close();
@@ -1488,7 +1614,7 @@ escaping full SQL strings (e.g., to add [] around parameter names that may be re
 */
 public String escape(String str) {
 	String workStr = new String(str);
-	if ( _database_engine == DMIDatabaseType.SQLSERVER ) {
+	if ( this._database_engine == DMIDatabaseType.SQLSERVER ) {
 		if (workStr.indexOf('\'') > -1) {
 			workStr = StringUtil.replaceString(str, "'", "''");
 		}
@@ -1632,9 +1758,10 @@ public static String expandDatastoreConfigurationProperty ( PropList props, Stri
 Return the additional database connection properties.
 These are used to customize a connection based on the JDBC driver connection string options.
 @return the additional database connection properties.
+@deprecated use the connection properties in the constructor, as of TSTool 15.2.0
 */
 public String getAdditionalConnectionProperties() {
-	return __additionalConnectionProperties;
+	return this.__additionalConnectionProperties;
 }
 
 /**
@@ -1642,18 +1769,18 @@ Returns all the kinds of databases a DMI can connect to.
 @return a list of all the kinds of databases a DMI can connect to.
 */
 protected static List<String> getAllDatabaseTypes() {
-	List<String> v = new ArrayList<>(10);
-	v.add("Access");
-	v.add("Derby");
-	v.add("Excel");
-	v.add("H2");
-	v.add("HSQLDB");
-	v.add("Informix");
-	v.add("MySQL");
-	v.add("Oracle");
-	v.add("PostgreSQL");
-	v.add("SQLServer");
-	return v;
+	List<String> types = new ArrayList<>(10);
+	types.add("Access");
+	types.add("Derby");
+	types.add("Excel");
+	types.add("H2");
+	types.add("HSQLDB");
+	types.add("Informix");
+	types.add("MySQL");
+	types.add("Oracle");
+	types.add("PostgreSQL");
+	types.add("SQLServer");
+	return types;
 }
 
 /**
@@ -1661,7 +1788,7 @@ Returns the current value of the autoCommit setting.
 @return the value of the autoCommit setting
 */
 public boolean getAutoCommit() {
-	return __autoCommit;
+	return this.__autoCommit;
 }
 
 /**
@@ -1669,7 +1796,7 @@ Returns whether the SQL is being capitalized or not.
 @return whether the SQL is being capitalized or not.
 */
 public boolean getCapitalize() {
-	return __capitalize;
+	return this.__capitalize;
 }
 
 /**
@@ -1677,7 +1804,22 @@ Returns the connection being used to interact with the database.
 @return the connection being used to interact with the database
 */
 public Connection getConnection() {
-	return __connection;
+	return this.__connection;
+}
+
+/**
+ * Get a connection property from this.connectionPropertiesMap as a string.
+ * @param propertyName the name of the property
+ * @return the property value corresponding to the property name by casting to a string, or null if not defined
+ */
+private String getConnectionPropertyAsString ( String propertyName ) {
+	Object o = this.connectionPropertiesMap.get ( propertyName );
+	if ( o == null ) {
+		return null;
+	}
+	else {
+		return "" + o;
+	}
 }
 
 /**
@@ -1687,9 +1829,9 @@ or null if there is no open connection.
 or null if there is no open connection.
 */
 public DatabaseMetaData getDatabaseMetaData() {
-	if (__connected) {
+	if (this.__connected) {
 		try {
-			return __connection.getMetaData();
+			return this.__connection.getMetaData();
 		}
 		catch (SQLException e) {
 			return null;
@@ -1705,7 +1847,7 @@ completed automatically and a predefined ODBC DSN is not used.
 @return the name of the database.
 */
 public String getDatabaseName() {
-	return __database_name;
+	return this.__database_name;
 }
 
 /**
@@ -1716,39 +1858,38 @@ only that it provide the user with useful information about the database connect
 The contents returned here depend on whether the connection is secure
 (if not, login and password information are not printed).
 @return a list containing database properties as Strings.
-@param level A numerical value that can be used to control the amount
-of output, to be defined by specific DMI instances.
+@param level A numerical value that can be used to control the amount of output, to be defined by specific DMI instances.
 A general guideline is to use 3 for full output, including database version, history of changes,
-server information (e.g., for use in a properties dialog); 2 for a concise output
-including server name (e.g., for use in the header of an output file; 1 for
-very concise output (e.g., the database name and version, for use in a product footer).
+server information (e.g., for use in a properties dialog);
+2 for a concise output including server name (e.g., for use in the header of an output file);
+1 for very concise output (e.g., the database name and version, for use in a product footer).
 This arguments defaults to 3 if this base class method is called.
 */
-public List<String> getDatabaseProperties(int level) {
-	List<String> v = new ArrayList<>();
-	if ( __jdbc_odbc ) {
+public List<String> getDatabaseProperties ( int level ) {
+	List<String> properties = new ArrayList<>();
+	if ( this.isJdbc ) {
 		// Need the server name, database name, etc.
-		v.add( "Database engine: " + __database_engine_String );
-		v.add( "Database server: " + __database_server);
-		v.add( "Database name: " + __database_name);
-		v.add( "Database port: " + __port);
+		properties.add( "Database engine: " + this.__database_engine_String );
+		properties.add( "Database server: " + this.__database_server);
+		properties.add( "Database name: " + this.__database_name);
+		properties.add( "Database port: " + this.__port);
 	}
 	else {
-		v.add( "ODBC DSN: " + __odbc_name );
+		properties.add( "ODBC DSN: " + this.__odbc_name );
 	}
 	// Always have this.
-	v.add( "Database version: " + __database_version );
+	properties.add( "Database version: " + this.__database_version );
 
 	// Secure information.
 
 	if ( __secure ) {
-		v.add( "System login: " + __system_login);
-		v.add( "System password: " + __system_password);
-		v.add( "User login: " + __user_login);
-		v.add( "User password: " + __user_password);
+		properties.add( "System login: " + this.__system_login);
+		properties.add( "System password: " + this.__system_password);
+		properties.add( "User login: " + this.__user_login);
+		properties.add( "User password: " + this.__user_password);
 	}
 
-	return v;
+	return properties;
 }
 
 /**
@@ -1766,7 +1907,7 @@ Return the database engine type.  One of:<br>
 @return the database engine type as a string.
 */
 public String getDatabaseEngine() {
-	return __database_engine_String;
+	return this.__database_engine_String;
 }
 
 /**
@@ -1774,7 +1915,7 @@ Return the database engine type.
 @return the database engine type.
 */
 public DMIDatabaseType getDatabaseEngineType() {
-	return _database_engine;
+	return this._database_engine;
 }
 
 /**
@@ -1785,7 +1926,7 @@ which can be retrieved using getODBCName().
 @return the database server name (IP address or DNS-resolvable machine name).
 */
 public String getDatabaseServer() {
-	return __database_server;
+	return this.__database_server;
 }
 
 /**
@@ -1793,7 +1934,7 @@ Return the database version number.
 @return the database version number.
 */
 public long getDatabaseVersion () {
-	return __database_version;
+	return this.__database_version;
 }
 
 /**
@@ -1838,7 +1979,7 @@ Return the status of the dirty flag.
 @return the status of the dirty flag
 */
 public boolean getDirty() {
-	return __dirty;
+	return this.__dirty;
 }
 
 /**
@@ -1846,7 +1987,7 @@ Returns the ID string that identifies the connection.
 @return the ID string that identifies the connection.
 */
 public String getID() {
-	return __id;
+	return this.__id;
 }
 
 /**
@@ -1854,17 +1995,17 @@ Returns the name of the connection.
 @return the name of the connection.
 */
 public String getInputName() {
-	return __inputName;
+	return this.__inputName;
 }
 
 /**
-Indicate whether this is a jdbc_odbc connection or not.
-@return true if the database connection uses JDBC/ODBC
+Indicate whether this is a JDBC connection or not (ODBC).
+@return true if the database connection uses JDBC
 (meaning that the connection is created with a database server and database name.
 Return false if the connection is made by specifying an ODBC DSN.
 */
-public boolean getJDBCODBC() {
-	return __jdbc_odbc;
+public boolean getIsJdbc () {
+	return this.isJdbc;
 }
 
 /**
@@ -1872,10 +2013,11 @@ Returns the last query string that was executed.
 @return the last query string that was executed
 */
 public String getLastQueryString() {
-	if (__lastQuery == null) {
+	if ( this.__lastQuery == null ) {
 		return "";
-	} else {
-		return __lastQuery.toString();
+	}
+	else {
+		return this.__lastQuery.toString();
 	}
 }
 
@@ -1885,18 +2027,18 @@ Returns "" if the DMI connection is using stored procedures.
 @return the last SQL string that was executed.
 */
 public String getLastSQLString() {
-	switch(__lastSQLType) {
+	switch(this.__lastSQLType) {
 		case NONE:
 			return "";
 		case WRITE:
-			DMIWriteStatement w = (DMIWriteStatement)__lastSQL;
+			DMIWriteStatement w = (DMIWriteStatement)this.__lastSQL;
 			return w.toUpdateString() + " / " + w.toInsertString();
 		case SELECT:
 		case COUNT:
-			DMISelectStatement s = (DMISelectStatement)__lastSQL;
+			DMISelectStatement s = (DMISelectStatement)this.__lastSQL;
 			return s.toString();
 		case DELETE:
-			DMIDeleteStatement d = (DMIDeleteStatement)__lastSQL;
+			DMIDeleteStatement d = (DMIDeleteStatement)this.__lastSQL;
 			return d.toString();
 		default:
 			return "";
@@ -1908,7 +2050,7 @@ Returns the type of the last SQL string that was executed.
 @return the type of the last SQL string that was executed
 */
 public int getLastSQLType() {
-	return __lastSQLType;
+	return this.__lastSQLType;
 }
 
 /**
@@ -1916,7 +2058,7 @@ Returns the field left escape string.
 @return the field left escape string
 */
 public String getFieldLeftEscape() {
-	return __fieldLeftEscape;
+	return this.__fieldLeftEscape;
 }
 
 /**
@@ -1924,18 +2066,7 @@ Returns the field right escape string.
 @return the field right escape string
 */
 public String getFieldRightEscape() {
-    return __fieldRightEscape;
-}
-
-/**
-TODO SAM 2009-05-20 Maybe name should be allowed as the longer display name, as opposed to the shorter ID.
-Returns the name of the connection.
-@return the name of the connection.
-@deprecated (2005-04-07)
-*/
-@Deprecated
-public String getName() {
-	return __name;
+    return this.__fieldRightEscape;
 }
 
 /**
@@ -1944,7 +2075,7 @@ This is used with a predefined ODBC DSN on the machine.
 @return the ODBC DSN for the database connection.
 */
 public String getODBCName() {
-	return __odbc_name;
+	return this.__odbc_name;
 }
 
 /**
@@ -1952,7 +2083,7 @@ Returns the port of the database connection.
 @return the port of the database connection.
 */
 public int getPort() {
-	return __port;
+	return this.__port;
 }
 
 /**
@@ -1960,7 +2091,7 @@ Returns the setting of the secure variable.
 @return the setting of the secure variable
 */
 public boolean getSecure() {
-	return __secure;
+	return this.__secure;
 }
 
 /**
@@ -1969,16 +2100,16 @@ Returns the database types a DMI can connect to that are done via direct server 
 @return a list of the database types a DMI can connect to that are done via direct server connection.
 */
 protected static List<String> getServerDatabaseTypes() {
-	List<String> v = new ArrayList<>();
+	List<String> types = new ArrayList<>();
 	// Do not include Access since this requires that an ODBC connection be defined.
-	v.add("H2");
-	v.add("HSQLDB");
-	v.add("Informix");
-	v.add("MySQL");
-	v.add("Oracle");
-	v.add("PostgreSQL");
-	v.add("SQLServer");
-	return v;
+	types.add("H2");
+	types.add("HSQLDB");
+	types.add("Informix");
+	types.add("MySQL");
+	types.add("Oracle");
+	types.add("PostgreSQL");
+	types.add("SQLServer");
+	return types;
 }
 
 /**
@@ -1986,7 +2117,7 @@ Returns the statement end string, for example semicolon needed by some databases
 @return the statement end string.
 */
 public String getStatementEnd() {
-    return __statementEnd;
+    return this.__statementEnd;
 }
 
 /**
@@ -1994,7 +2125,7 @@ Returns the string delimiter.
 @return the string delimiter
 */
 public String getStringIdDelim() {
-	return __stringDelim;
+	return this.__stringDelim;
 }
 
 /**
@@ -2002,7 +2133,7 @@ Return the system login name for the database connection.
 @return the login name for the database connection.
 */
 public String getSystemLogin() {
-	return __system_login;
+	return this.__system_login;
 }
 
 /**
@@ -2010,7 +2141,7 @@ Return the password for the database connection.
 @return the password for the database connection.
 */
 public String getSystemPassword() {
-	return __system_password;
+	return this.__system_password;
 }
 
 /**
@@ -2026,7 +2157,7 @@ Return the user password.
 @return the user password.
 */
 public String getUserPassword() {
-	return __user_password;
+	return this.__user_password;
 }
 
 /**
@@ -2035,7 +2166,7 @@ Indicate whether the database version is at least the indicated version.
 */
 public boolean isDatabaseVersionAtLeast ( long version ) {
 	// The database versions are just numbers so can check arithmetically.
-	if ( __database_version >= version ) {
+	if ( this.__database_version >= version ) {
 		return true;
 	}
 	else {
@@ -2049,7 +2180,7 @@ If isEditable() returns true, then no calls to dmiWrite or dmiDelete will be exe
 @return true if the database is in read-only mode, false if not
 */
 public boolean isEditable() {
-	return __editable;
+	return this.__editable;
 }
 
 /**
@@ -2057,13 +2188,13 @@ Indicate whether the DMI is connected to a database.
 @return true if the database connection has been established.
 */
 public boolean isOpen() {
-	return __connected;
+	return this.__connected;
 }
 
 /**
 Opens the connection to the DMI with information that was previously set,
-and sets printStatus to the given value while open() (the other version of the
-method, not this one) is being called, in order to print more debugging information.
+and sets printStatus to the given value while open() (the other version of the method,
+not this one) is being called, in order to print more debugging information.
 Once this method is done, __printStatus will be set to false.<p>
 __printStatus is primarily used in printStatusOrDebug(),
 used internally for debugging DMI connection open()s.
@@ -2073,19 +2204,19 @@ used internally for debugging DMI connection open()s.
 */
 public void open(boolean printStatus)
 throws Exception, SQLException {
-	__printStatus = printStatus;
+	this.__printStatus = printStatus;
 	try {
 		open();
 	}
 	catch (SQLException se) {
-		__printStatus = false;
+		this.__printStatus = false;
 		throw se;
 	}
 	catch (Exception e) {
-		__printStatus = false;
+		this.__printStatus = false;
 		throw e;
 	}
-	__printStatus = false;
+	this.__printStatus = false;
 }
 
 /**
@@ -2100,14 +2231,14 @@ throws Exception, SQLException {
 	printStatusOrDebug(10, routine, "DMI.open() -----------------------");
 	printStatusOrDebug(10, routine, "Checking for existing connection ...");
 
-	if (__connected) {
+	if (this.__connected) {
 		printStatusOrDebug(10, routine, "Already connected!  Throwing exception.");
 		throw new SQLException ("Must close the first DMI connection before opening a new one.");
 	}
 
 	printStatusOrDebug(10, routine, "         ... no connection found.");
 
-	open (__system_login, __system_password );
+	open (this.__system_login, this.__system_password );
 
 	// Determine the database version (the derived class method will be called if defined).
 	printStatusOrDebug(10, routine, "Determining database version ... (abstract method, defined in class derived from DMI)");
@@ -2115,25 +2246,25 @@ throws Exception, SQLException {
 
 	printStatusOrDebug(10, routine, "Reading global data ... (abstract method, defined in class derived from DMI)");
 	readGlobalData();
-	__lastQuery = null;
-	__lastSQL = null;
-	__lastSQLType = NONE;
+	this.__lastQuery = null;
+	this.__lastSQL = null;
+	this.__lastSQLType = NONE;
 	printStatusOrDebug(10, routine, "----------------------- DMI.open()");
 }
 
 /**
 Open a connection to the database with the specified system login and password.
 All other connection parameters must have been set previously.
-@param system_login System login.
-@param system_password System password.
+@param systemLogin System login.
+@param systemPassword System password.
 @throws SQLException thrown by DriverManger.getConnection() or Connection.setAutoCommit()
 @throws Exception thrown when attempting to connecting to a database for which no JDBC information is known.
 */
-public void open ( String system_login, String system_password )
+public void open ( String systemLogin, String systemPassword )
 throws SQLException, Exception {
 	String routine = CLASS + ".open(String, String)";
 	printStatusOrDebug(10, routine, "Checking for existing connection ...");
-	if (__connected) {
+	if (this.__connected) {
 		printStatusOrDebug(10, routine, "Already connected!  Throwing exception.");
 		throw new SQLException ("Must close the first DMI connection before opening a new one.");
 	}
@@ -2143,19 +2274,32 @@ throws SQLException, Exception {
 	String connUrl = "";
 	int dl = 10;
 
-	if ( __secure && (Message.isDebugOn || __printStatus)) {
-		printStatusOrDebug(dl, routine, "SystemLogin: "
-			+ system_login + "," + "SystemPassword: " + system_password + ")");
+	if ( (this.__secure) && (Message.isDebugOn || this.__printStatus)) {
+		printStatusOrDebug(dl, routine, "SystemLogin: " + systemLogin + "," + "SystemPassword: " + systemPassword + ")");
 	}
 
 	// Set up the database-specific connection strings.
 
+	// The propertyMap is required for the StringUtil.expandForProperties utility method:
+	// - currently it provides minimal environment data
+	// - the expansion below is in addition to any expansion that occurred when reading the datastore configuration file
 	HashMap<String,Object> propertyMap = new HashMap<>();
 	propertyMap.put("ProcessId", "" + IOUtil.getProcessId());
-	if ( __jdbc_odbc ) {
-		printStatusOrDebug(dl, routine, "Using JDBC ODBC connection.");
+
+	// Whether the connection should be opened by passing the login and password:
+	// - this is usually the case but some things like Google Wallet may use authentication in the wallet
+	boolean useLoginAndPassword = true;
+	
+	// Connection properties that are not set in the connection URL:
+	// - these are Java system properties, not to be confused with this.connectionPropertiesMap
+	// - for example, this is used with Google wallet to set the wallet folder location
+	// - the list can be empty
+	Properties connectionProps = new Properties();
+	
+	if ( this.isJdbc ) {
+		printStatusOrDebug(dl, routine, "Using JDBC connection.");
 		// The URL is formed using several pieces of information.
-		if (_database_engine == DMIDatabaseType.ACCESS ) {
+		if ( this._database_engine == DMIDatabaseType.ACCESS ) {
 			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.ACCESS'");
 			// Always require an ODBC DSN (although this may be
 			// a problem with some configuration files and software where
@@ -2164,9 +2308,9 @@ throws SQLException, Exception {
 			if ( IOUtil.getJavaMajorVersion() <= 7 ) {
 				// Use the built-in Microsoft Access driver.
 				Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
-				connUrl = "jdbc:odbc:" + __database_name;
-		    	if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
-			    	connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,propertyMap);
+				connUrl = "jdbc:odbc:" +  this.__database_name;
+		    	if ( ( this.__additionalConnectionProperties != null) && ! this.__additionalConnectionProperties.isEmpty() ) {
+			    	connUrl = connUrl + StringUtil.expandForProperties( this.__additionalConnectionProperties, propertyMap);
 		    	}
 				Message.printStatus(2, routine,
 					"Java version is <= 7. Opening database connection for Microsoft Access built-in JDBC/ODBC driver and \"" + connUrl + "\"");
@@ -2183,14 +2327,14 @@ throws SQLException, Exception {
 					dbPath = "//" + dbPath;
 				}
 				connUrl = "jdbc:ucanaccess:" + dbPath;
-		    	if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
-			    	connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,propertyMap);
+		    	if ( ( this.__additionalConnectionProperties != null) && ! this.__additionalConnectionProperties.isEmpty() ) {
+			    	connUrl = connUrl + StringUtil.expandForProperties( this.__additionalConnectionProperties, propertyMap);
 		    	}
 				Message.printStatus(2, routine,
 					"Java version is not <= 7.  Opening database connection for Microsoft Access using UCanAccess JDBC driver and \"" + connUrl + "\"");
 			}
 		}
-		else if (_database_engine == DMIDatabaseType.DERBY ) {
+		else if ( this._database_engine == DMIDatabaseType.DERBY ) {
             printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.DERBY'");
             // If the server name is "memory" then the in-memory URL is used.
             // TODO SAM 2014-04-22 Figure out how to handle better.
@@ -2198,19 +2342,18 @@ throws SQLException, Exception {
             System.setProperty("derby.system.home", "C:\\derby");
             // Load the database driver class into memory.
             Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-            if ( __database_server.equalsIgnoreCase("memory") ) {
+            if (  this.__database_server.equalsIgnoreCase("memory") ) {
                 connUrl = "jdbc:derby:memory:db;create=true";
-		        if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
-			        connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+		        if ( ( this.__additionalConnectionProperties != null) && ! this.__additionalConnectionProperties.isEmpty() ) {
+			        connUrl = connUrl + StringUtil.expandForProperties( this.__additionalConnectionProperties, propertyMap);
 		        }
             }
             else {
                 throw new SQLException ( "For Derby currenty only support in-memory databases." );
             }
-            Message.printStatus(2, routine,
-                "Opening ODBC connection for Derby JDBC/ODBC and \"" + connUrl + "\"");
+            Message.printStatus(2, routine, "Opening ODBC connection for Derby JDBC/ODBC and \"" + connUrl + "\"");
         }
-		else if (_database_engine == DMIDatabaseType.INFORMIX ) {
+		else if (this._database_engine == DMIDatabaseType.INFORMIX ) {
 			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.INFORMIX'");
 			// Use the free driver that comes from Informix.
 			// If Informix is ever enabled, also need to add a
@@ -2220,127 +2363,273 @@ throws SQLException, Exception {
             // Load the database driver class into memory.
 			Class.forName("com.informix.jdbc.IfxDriver");
 			connUrl = "jdbc:informix-sqli://"
-				+ __database_server + ":"
-				+ __port + "/" + __database_name
+				+ this.__database_server + ":"
+				+ this.__port + "/" + this.__database_name
 				+ ":INFORMIXSERVER=" + server;
-		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
-			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+		    if ( (this.__additionalConnectionProperties != null) && !this.__additionalConnectionProperties.isEmpty() ) {
+			    connUrl = connUrl + StringUtil.expandForProperties(this.__additionalConnectionProperties, propertyMap);
 		    }
 			// Login and password specified below.
 			// +";user=" + login + ";password=" + password;
 			Message.printStatus(2, routine, "Opening ODBC connection for Informix using (login not shown): " + connUrl);
 		}
-		else if (_database_engine == DMIDatabaseType.MYSQL ) {
+		else if ( this._database_engine == DMIDatabaseType.MYSQL ) {
 			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.MYSQL'");
 			// Use the public domain driver that comes with MySQL.
 			connUrl = "jdbc:mysql://"
-				+ __database_server + ":"
-				+ __port + "/" + __database_name;
-		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
-			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+				+ this.__database_server + ":"
+				+ this.__port + "/" + this.__database_name;
+		    if ( (this.__additionalConnectionProperties != null) && !this.__additionalConnectionProperties.isEmpty() ) {
+			    connUrl = connUrl + StringUtil.expandForProperties(this.__additionalConnectionProperties, propertyMap);
 		    }
-			Message.printStatus(2, routine,
-				"Opening ODBC connection for MySQL using \"" + connUrl + "\"" );
+			Message.printStatus(2, routine, "Opening ODBC connection for MySQL using \"" + connUrl + "\"" );
 		}
-		else if (_database_engine == DMIDatabaseType.POSTGRESQL ) {
+		else if ( this._database_engine == DMIDatabaseType.POSTGRESQL ) {
 			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.POSTGRESQL'");
 			connUrl = "jdbc:postgresql://"
-				+ __database_server + ":"
-				+ __port + "/" + __database_name;
-		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
-			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+				+ this.__database_server + ":"
+				+ this.__port + "/" + __database_name;
+		    if ( (this.__additionalConnectionProperties != null) && !this.__additionalConnectionProperties.isEmpty() ) {
+			    connUrl = connUrl + StringUtil.expandForProperties(this.__additionalConnectionProperties, propertyMap);
 		    }
-			Message.printStatus(2, routine, "Opening ODBC connection for PostgreSQL using (login not shown): " + connUrl );
+			Message.printStatus ( 2, routine, "Opening ODBC connection for PostgreSQL using (login not shown): " + connUrl );
 		}
-		else if (_database_engine == DMIDatabaseType.SQLITE ) {
+		else if ( this._database_engine == DMIDatabaseType.SQLITE ) {
 			// Database is a file, not via port connection:
 			// -see:  https://www.sqlitetutorial.net/sqlite-java/sqlite-jdbc-driver/
 			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.SQLITE'");
-			if ( __database_server.equalsIgnoreCase("memory") ) {
+			if ( this.__database_server.equalsIgnoreCase("memory") ) {
 				// Open an in-memory database.
 				connUrl = "jdbc:sqlite::memory:";
-		    	if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
-			    	connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+		    	if ( (this.__additionalConnectionProperties != null) && !this.__additionalConnectionProperties.isEmpty() ) {
+			    	connUrl = connUrl + StringUtil.expandForProperties(this.__additionalConnectionProperties, propertyMap);
 		    	}
 			}
 			else {
 				// Path on windows needs to be forward slashes, therefore convert:
 				//   C:\a\b\c   to   C:/a/b/c
 				connUrl = "jdbc:sqlite:" + __database_server.replace('\\', '/');
-		    	if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
-			    	connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+		    	if ( (this.__additionalConnectionProperties != null) && !this.__additionalConnectionProperties.isEmpty() ) {
+			    	connUrl = connUrl + StringUtil.expandForProperties(this.__additionalConnectionProperties, propertyMap);
 		    	}
 			}
-			Message.printStatus(2, routine, "Opening ODBC connection for SQLite using (login not shown): " + connUrl );
+			Message.printStatus ( 2, routine, "Opening ODBC connection for SQLite using (login not shown): " + connUrl );
 		}
 		// All the SQL Server connections are now concentrated into one code block since using the SQL Server
 		// 2008 JDBC (jdbc4) driver.
-		else if ( _database_engine == DMIDatabaseType.SQLSERVER ) {
+		else if ( this._database_engine == DMIDatabaseType.SQLSERVER ) {
             // http://msdn.microsoft.com/en-us/library/ms378428%28SQL.90%29.aspx
             connUrl = "jdbc:sqlserver://" + __database_server;
-		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
-			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties, propertyMap);
+		    if ( (this.__additionalConnectionProperties != null) && !this.__additionalConnectionProperties.isEmpty() ) {
+			    connUrl = connUrl + StringUtil.expandForProperties(this.__additionalConnectionProperties, propertyMap);
 		    }
             // If connecting to a named instance, DO NOT USE PORT.
             // It is generally recommended to use the port for speed.
-            if (__database_server.indexOf('\\') < 0) {
+            if (this.__database_server.indexOf('\\') < 0) {
                 // Database instance is NOT specified, for example the server name would be something like:
                 //     "localhost\CDSS" (and database name would be "HydroBase_CO_YYYYMMDD")
                 // Consequently, use the port number.
-                connUrl += ":" + __port;
+                connUrl += ":" + this.__port;
             }
-            connUrl += ";databaseName=" + __database_name;
-			Message.printStatus(2, routine,
-				"Opening ODBC connection for SQLServer using (login not shown): " + connUrl );
+            connUrl += ";databaseName=" + this.__database_name;
+			Message.printStatus ( 2, routine, "Opening ODBC connection for SQLServer using (login not shown): " + connUrl );
 		}
-        else if (_database_engine == DMIDatabaseType.H2 ) {
+        else if ( this._database_engine == DMIDatabaseType.H2 ) {
 			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.H2'");
             // Load the database driver class into memory.
 			Class.forName( "org.h2.Driver");
             java.io.File f = new java.io.File(__database_server);
 			connUrl = "jdbc:h2:file:" + f.getAbsolutePath() + ";IFEXISTS=TRUE";
-		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
-			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+		    if ( ( this.__additionalConnectionProperties != null) && !this.__additionalConnectionProperties.isEmpty() ) {
+			    connUrl = connUrl + StringUtil.expandForProperties(this.__additionalConnectionProperties, propertyMap);
 		    }
 			Message.printStatus(2, routine, "Opening JDBC connection for H2 using (login not shown): " + connUrl );
 		}
-        else if (_database_engine == DMIDatabaseType.HSQLDB ) {
+        else if ( this._database_engine == DMIDatabaseType.HSQLDB ) {
 			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.HSQLDB'");
             // Load the database driver class into memory.
 			Class.forName( "org.h2.Driver");
-            java.io.File f = new java.io.File(__database_server);
+            java.io.File f = new java.io.File(this.__database_server);
 			connUrl = "jdbc:hsqldb:file:" + f.getAbsolutePath();
-		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
-			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+		    if ( (this.__additionalConnectionProperties != null) && !this.__additionalConnectionProperties.isEmpty() ) {
+			    connUrl = connUrl + StringUtil.expandForProperties(this.__additionalConnectionProperties, propertyMap);
 		    }
 			Message.printStatus(2, routine, "Opening JDBC connection for HSQLDB using (login not shown): " + connUrl );
 		}
-        else if (_database_engine == DMIDatabaseType.ORACLE ) {
+        else if ( this._database_engine == DMIDatabaseType.ORACLE ) {
+        	// Oracle database:
+        	// - use mixed case for specific configuration properties
+
 			printStatusOrDebug(dl, routine, "Database engine is type 'ORACLE'");
             // Load the database driver class into memory.
 			Class.forName( "oracle.jdbc.driver.OracleDriver");
-            connUrl = "jdbc:oracle:thin:@" + __database_server + ":" + __port + ":" + __database_name;
-		    if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
-			    connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
-		    }
-			Message.printStatus(2, routine, "Opening ODBC connection for Oracle using (login not shown): " + connUrl );
+
+			// Create a builder string:
+			// - convert to the 'connUrl' string at the end before opening the connection
+			StringBuilder connUrlBuilder = new StringBuilder ();
+
+            // Delimiters for connection string, similar to a URL, used with thin client.
+            String delim1 = "?";
+            String delim2 = "&";
+            int paramCount = 0;
+			
+			// Determine whether the thin driver is being used.
+			boolean doThinDriver = true;
+			String OracleDriverType = getConnectionPropertyAsString("OracleDriverType");
+			if ( (OracleDriverType != null) && !OracleDriverType.equalsIgnoreCase("Thin") ) {
+				// Request is for something other than thin driver.
+				Message.printWarning(3, routine, "Currntly, only the Oracle thin driver is supported.  Will try to connect using the thin driver." );
+			}
+
+			// Determine whether the connection URL has been fully specified.
+			boolean doBuildUrl = true;
+			String ConnectionUrl = getConnectionPropertyAsString("ConnectionUrl");
+			if ( (ConnectionUrl != null) && !ConnectionUrl.isEmpty() ) {
+				// The full connection URL is specified so just use it without forming from the parts.
+				doBuildUrl = false; 
+				connUrlBuilder.append ( ConnectionUrl );
+			}
+			
+			// Do a basic check to see if Google Wallet is being used:
+			// - if either OracleNetworkFolder or OracleWalletFolder is specified, then wallet is being used
+			boolean doOracleWallet = false;
+			String OracleNetworkFolder = getConnectionPropertyAsString("OracleNetworkFolder");
+			String OracleWalletFolder = getConnectionPropertyAsString("OracleWalletFolder");
+			if ( ((OracleNetworkFolder != null) && !OracleNetworkFolder.isEmpty())
+				|| ((OracleWalletFolder!= null) && !OracleWalletFolder.isEmpty()) ) {
+				// Oracle wallet is being used.
+				doOracleWallet = true;
+			}
+			
+			// Set the initial part of the connection string.
+			
+			if ( doBuildUrl && doThinDriver ) {
+				connUrlBuilder.append("jdbc:oracle:thin:");
+			}
+			if ( doBuildUrl ) {
+				if ( doOracleWallet ) {
+					// Using Google Wallet:
+					// - the database name is an alias that should be found in the 'tnsnames.ora' file
+					//connUrlBuilder.append ( "@" + this.__database_name );
+					connUrlBuilder.append ( "@" + this.__database_name );
+				}
+				else {
+					// Old and simpler configuration.
+					connUrlBuilder.append ( "@" + this.__database_server + ":" + this.__port + ":" + this.__database_name );
+				}
+			}
+
+            if ( doOracleWallet ) {
+            	// Using an Oracle Wallet.
+            	//
+            	// Example files for for HDB:
+            	//   TLS = Transport Layer Security
+            	//   Files in the TNS_NAMES folder:
+            	//     sqlnet.ora - text, standard name, contains DIRECORY that must match the actual wallet folder
+            	//     tnsnames.ora - text, standard name, maps NTA name in the connection string to the actual database, and Wallet folder
+            	//   Files in the Oracle wallet folder:
+            	//     cwallet.sso - binary, standard name, auto-login, does not contain a password, contains TLS certificate
+            	//     cwallet.sso.lck - standard name, empty file, lock file, why is it here?
+            	//     testdb.cer - standard name, CA certificate
+            	
+            	// First specify the TNS_ADMIN in the connection URL:
+            	// - this can only be done with a datastore 'OracleNetworkFolder' property
+       			// - some experimentation shows that forward slashes may work better than backslashes
+            	if ( doBuildUrl && (OracleNetworkFolder != null) && !OracleNetworkFolder.isEmpty() ) {
+            		paramCount = appendConnectionUrlParameter ( connUrlBuilder, delim1, delim2, paramCount, "TNS_ADMIN="
+            			+ OracleNetworkFolder.replace("\\", "/") );
+            		// Also check whether the folder and files exist for troubleshooting.
+            		File f = new File(OracleNetworkFolder);
+            		if ( !f.exists() ) {
+            			Message.printWarning(3,routine,"Oracle network folder does not exist: \"" + OracleNetworkFolder + "\"");
+            		}
+            		f = new File(OracleNetworkFolder + File.separator + "sqlnet.ora");
+            		if ( f.exists() ) {
+            			Message.printWarning(3,routine,"Oracle network file sqlnet.ora exists: \"" + f.getAbsolutePath() + "\"");
+            		}
+            		else {
+            			Message.printWarning(3,routine,"Oracle network file sqlnet.ora does not exist: \"" + f.getAbsolutePath() + "\"");
+            		}
+            		f = new File(OracleNetworkFolder + File.separator + "tnsnames.ora");
+            		if ( f.exists() ) {
+            			Message.printWarning(3,routine,"Oracle network file tnsnames.ora file exists: \"" + f.getAbsolutePath() + "\"");
+            		}
+            		else {
+            			Message.printWarning(3,routine,"Oracle network file tnsnames.ora does not exist: \"" + f.getAbsolutePath() + "\"");
+            		}
+            	}
+            	
+            	// Set the Oracle wallet folder:
+            	// - this uses the 'OracleWalletFolder' datastore property
+            	// - this is not added to the URL so do regardless of the value of 'doBuildUrl'
+            	if ( (OracleWalletFolder != null) && !OracleWalletFolder.isEmpty() ) {
+            		// Set the property needed to specify the wallet:
+            		// - 'walletFolder' needs to use double backslash if on Windows
+            		String walletFolder = OracleWalletFolder;
+            		boolean doWalletProperty = false;
+            		if ( doWalletProperty ) {
+            			// Set the Google Wallet folder using a system property.
+            			walletFolder.replace("\\", "\\\\");
+            			connectionProps.setProperty("oracle.net.wallet_location",
+           			    	"(SOURCE=(METHOD=FILE)(METHOD_DATA=(DIRECTORY=" + walletFolder + ")))");
+            		}
+            		else {
+            			// This should work for driver version 21+, which is what ojdbc11.jar uses:
+            			// - some experimentation shows that forward slashes may work better than backslashes
+            			paramCount = appendConnectionUrlParameter ( connUrlBuilder, delim1, delim2, paramCount, "oracle.net.wallet_location="
+            				+ OracleWalletFolder.replace("\\", "/") );
+            		}
+
+            		// Check for the existence of other files.
+            		File f = new File(OracleWalletFolder + File.separator + "cwallet.sso");
+            		if ( f.exists() ) {
+            			Message.printWarning(3,routine,"Oracle Wallet file cwallet.sso exists: \"" + f.getAbsolutePath() + "\"");
+            		}
+            		else {
+            			Message.printWarning(3,routine,"Oracle Wallet file cwallet.sso does not exist: \"" + f.getAbsolutePath() + "\"");
+            		}
+            		// There may also be a *.cer file, but the name matches the "CN" in the "tsnames.ora" file for a specific alias:
+            		// - for now don't try to parse
+            	}
+            }
+
+            // Add additional connection properties using the current approach:
+            // - the delimiter at the start of the string must have been included
+            if ( doBuildUrl ) {
+            	String connectionUrlAppend = getConnectionPropertyAsString("ConnectionUrlAppend");
+       			paramCount = appendConnectionUrlParameter ( connUrlBuilder, delim1, delim2, paramCount, connectionUrlAppend );
+
+       			// Add additional connection properties using the legacy approach:
+       			// - the delimiter at the start of the string must hvae been included
+
+       			if ( (this.__additionalConnectionProperties != null) && !this.__additionalConnectionProperties.isEmpty() ) {
+		    	 	String additions = this.__additionalConnectionProperties;
+		    	 	paramCount = appendConnectionUrlParameter ( connUrlBuilder, delim1, delim2, paramCount,
+		    		StringUtil.expandForProperties(additions, propertyMap) );
+		     	}
+            }
+		    
+		    // Convert the StringBuilder to a String.
+		    connUrl = connUrlBuilder.toString();
+			Message.printStatus ( 2, routine, "Opening ODBC connection for Oracle using (login not shown): " + connUrl );
         }
 		else {
+			// The database engine is not understood.
 			printStatusOrDebug(dl, routine, "Unknown database engine, throwing exception.");
-			throw new Exception("Don't know what JDBC driver to use for database type " + __database_engine_String);
+			throw new Exception("Don't know what JDBC driver to use for database type " + this.__database_engine_String);
 		}
 	}
 	else {
-		// The URL uses a standard JDBC ODBC connections,
+		// The URL uses a standard JDBC ODBC (with ODBC name) connections,
 		// regardless of the database engine (this should not normally be used for Java applications,
 		// or need to figure out how to use the ODBC protocol URL knowing only the ODBC DSN for each engine).
 		printStatusOrDebug(dl, routine, "Using default Java connection method.");
 		if ( IOUtil.getJavaMajorVersion() <= 7 ) {
 			// Use the built-in Microsoft Access driver.
 			Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
-			connUrl = "jdbc:odbc:" + __odbc_name;
-			if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
-				connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,  propertyMap);
+			connUrl = "jdbc:odbc:" + this.__odbc_name;
+			if ( (this.__additionalConnectionProperties != null) && !this.__additionalConnectionProperties.isEmpty() ) {
+				connUrl = connUrl + StringUtil.expandForProperties(this.__additionalConnectionProperties, propertyMap);
 			}
 			Message.printStatus(2, routine,
 				"Java version is <= 7. Opening ODBC connection for Microsoft Access built-in JDBC/ODBC driver and \"" + connUrl + "\"");
@@ -2351,28 +2640,39 @@ throws SQLException, Exception {
 			// - example:  jdbc:ucanaccess://C:/db/main.mdb;remap=c:\db\linkee1.mdb|C:\pluto\linkee1.mdb&c:\db\linkee2.mdb|C:\pluto\linkee2.mdb
 			Class.forName("net.ucanaccess.jdbc.UcanaccessDriver");
 			connUrl = "jdbc:ucanaccess:" + __database_name;
-		   	if ( (__additionalConnectionProperties != null) && !__additionalConnectionProperties.isEmpty() ) {
-		    	connUrl = connUrl + StringUtil.expandForProperties(__additionalConnectionProperties,propertyMap);
+		   	if ( (this.__additionalConnectionProperties != null) && !this.__additionalConnectionProperties.isEmpty() ) {
+		    	connUrl = connUrl + StringUtil.expandForProperties(this.__additionalConnectionProperties, propertyMap);
 		   	}
 			Message.printStatus(2, routine,
 				"Java version is not <= 7.  Opening ODBC connection for Microsoft Access using UCanAccess driver and \"" + connUrl + "\"");
 		}
 	}
-    if ( __secure ) {
+    if ( this.__secure ) {
 		printStatusOrDebug(dl, routine, "Calling getConnection("
-		+ connUrl + ", " + system_login + ", " + system_password + ") via the Java DriverManager.");
+		+ connUrl + ", " + systemLogin + ", " + systemPassword + ") via the Java DriverManager.");
 	}
 	else {
 	    printStatusOrDebug(dl, routine, "Calling getConnection("
-		+ connUrl + ", " + system_login + ", " + "password-not-shown) via the Java DriverManager.");
+		+ connUrl + ", " + systemLogin + ", " + "(password-not-shown) via the Java DriverManager.");
 	}
     // Get the login timeout and reset to requested if specified.
     int loginTimeout = DriverManager.getLoginTimeout();
-    if ( __loginTimeout >= 0 ) {
-        DriverManager.setLoginTimeout(__loginTimeout);
+    if ( this.__loginTimeout >= 0 ) {
+        DriverManager.setLoginTimeout(this.__loginTimeout);
     }
-	__connection = DriverManager.getConnection(connUrl, system_login, system_password );
-    if ( __loginTimeout >= 0 ) {
+    if ( useLoginAndPassword ) {
+    	// Login and password are used:
+    	// - set in the connection properties
+    	connectionProps.setProperty("user", systemLogin );
+    	connectionProps.setProperty("password", systemPassword );
+    }
+    
+    // Open the connection:
+    // - properties may contain the user and password from above
+    // - properties may also contain other properties that cannot be passed in the connection URL
+   	this.__connection = DriverManager.getConnection ( connUrl, connectionProps );
+
+    if ( this.__loginTimeout >= 0 ) {
         // Now set back to the original timeout.
         DriverManager.setLoginTimeout(loginTimeout);
     }
@@ -2382,23 +2682,23 @@ throws SQLException, Exception {
         __connection.createStatement().execute("alter session set current_schema = " + __database_name );
     }
     */
-    printStatusOrDebug(dl, routine, "Setting autoCommit to: " + __autoCommit);
-	__connection.setAutoCommit(__autoCommit);
+    printStatusOrDebug(dl, routine, "Setting autoCommit to: " + this.__autoCommit);
+	this.__connection.setAutoCommit(this.__autoCommit);
 
 	printStatusOrDebug(dl, routine, "Connected!");
-	__connected = true;
+	this.__connected = true;
 }
 
 /**
-A helper method called by the open() methods that determines whether output
-needs to go to debug as normal, or should be forced to status level 2.
+A helper method called by the open() methods that determines whether output needs to go to debug as normal,
+or should be forced to status level 2.
 See open(boolean), which sets __printStatus. If __printStatus is true, debug will go to status level 2.
 @param dl the level at which the message should be printed (for debug messages).
 @param routine the routine that is printing the message.
 @param message the message to be printed.
 */
 private void printStatusOrDebug(int dl, String routine, String message) {
-	if (__printStatus) {
+	if (this.__printStatus) {
 		Message.printStatus(2, routine, message);
 	}
 	else {
@@ -2420,14 +2720,14 @@ or when the database is not connected
 public void rollback() throws SQLException {
 	// TODO (JTS - 2006-05-22) This code has not been tested or used in nearly 4 years.
 	// Do not rely on this method without testing it first.
-	if (!__connected) {
+	if (!this.__connected) {
 		throw new SQLException ("Database not connected.  Cannot make call to DMI.rollback()");
 	}
 
 	String routine = "DMI.rollback";
 	int dl = 25;
 
-	__inTransaction = false;
+	this.__inTransaction = false;
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "[method called]");
 	}
@@ -2436,7 +2736,7 @@ public void rollback() throws SQLException {
 
 	// Since a rollback signifies the end of a transaction, set the autoCommit setting back to being on.
 	setAutoCommit(true);
-	__dirty = false;
+	this.__dirty = false;
 	closeStatements();
 }
 
@@ -2445,6 +2745,7 @@ Set additional connection URL properties to be appended to the connection string
 @param additionalConnectionProperties a string of form ";prop1=value1;prop2=value2",
 where the semicolon represents a delimiter.
 Use the appropriate delimiter character for the database technology being used.
+@deprecated set the connection properties in the constructor, as of TSTool 15.2.0.
 */
 public void setAdditionalConnectionProperties ( String additionalConnectionProperties ) {
 	this.__additionalConnectionProperties = additionalConnectionProperties;
@@ -2458,10 +2759,9 @@ Sets the autoCommit setting for the database.
 public void setAutoCommit(boolean autoCommitSetting) throws SQLException {
 	// TODO (JTS - 2006-05-22) This code has not been tested or used in nearly 4 years.
 	// Do not rely on this method without testing it first.
-	// There's the likelihood that the setting of autoCommit will have
-	// to be handled differently for certain database types.
+	// There's the likelihood that the setting of autoCommit will have to be handled differently for certain database types.
 	// This isn't the case right now.
-	if (!__connected) {
+	if (!this.__connected) {
 		throw new SQLException ("Database not connected.  Cannot make call to DMI.setAutoCommit()");
 	}
 
@@ -2472,13 +2772,13 @@ public void setAutoCommit(boolean autoCommitSetting) throws SQLException {
 		Message.printDebug(dl, routine, "autoCommit: " + autoCommitSetting);
 	}
 
-	__autoCommit = autoCommitSetting;
+	this.__autoCommit = autoCommitSetting;
 
-	if (__database_engine_String.equalsIgnoreCase("SOMETHING") ) {
+	if (this.__database_engine_String.equalsIgnoreCase("SOMETHING") ) {
 		// TODO handle this differently -- i.e., does MS Access blow up when trying to setAutoCommit?
 	}
 	else {
-		__connection.setAutoCommit(autoCommitSetting);
+		this.__connection.setAutoCommit(autoCommitSetting);
 	}
 }
 
@@ -2487,7 +2787,7 @@ Sets whether SQL should be capitalized before being passed to the database.
 @param capitalize whether SQL should be capitalized.
 */
 public void setCapitalize(boolean capitalize) {
-	__capitalize = capitalize;
+	this.__capitalize = capitalize;
 }
 
 /**
@@ -2497,9 +2797,9 @@ that the second doesn't have to go through the connection process again.
 @param c the connection to use for communicating with the database
 */
 public void setConnection(Connection c) {
-	__connection = c;
+	this.__connection = c;
 	if (c != null) {
-		__connected = true;
+		this.__connected = true;
 	}
 }
 
@@ -2508,31 +2808,31 @@ Sets the DMI to use the default port for the database engine.
 Only works currently for true client-server type databases.
 */
 private void setDefaultPort() {
-	if ( _database_engine == DMIDatabaseType.ACCESS ) {
+	if ( this._database_engine == DMIDatabaseType.ACCESS ) {
 	}
-	else if ( _database_engine == DMIDatabaseType.H2 ) {
+	else if ( this._database_engine == DMIDatabaseType.H2 ) {
 	}
-	else if ( _database_engine == DMIDatabaseType.HSQLDB ) {
+	else if ( this._database_engine == DMIDatabaseType.HSQLDB ) {
 		// TODO smalers 2022-07-07 should port configuration be supported?
 	}
-	else if ( _database_engine == DMIDatabaseType.INFORMIX ) {
-		__port = 1526;
+	else if ( this._database_engine == DMIDatabaseType.INFORMIX ) {
+		this.__port = 1526;
 	}
-	else if ( _database_engine == DMIDatabaseType.MYSQL ) {
-		__port = 3306;
+	else if ( this._database_engine == DMIDatabaseType.MYSQL ) {
+		this.__port = 3306;
 	}
-	else if ( _database_engine == DMIDatabaseType.ORACLE ) {
-		__port = 1521;
+	else if ( this._database_engine == DMIDatabaseType.ORACLE ) {
+		this.__port = 1521;
 	}
-	else if ( _database_engine == DMIDatabaseType.POSTGRESQL ) {
-		__port = 5432;
+	else if ( this._database_engine == DMIDatabaseType.POSTGRESQL ) {
+		this.__port = 5432;
 	}
-	else if ( _database_engine == DMIDatabaseType.SQLITE ) {
+	else if ( this._database_engine == DMIDatabaseType.SQLITE ) {
 		// Not used since a file database.
-		__port = -1;
+		this.__port = -1;
 	}
-	else if ( _database_engine == DMIDatabaseType.SQLSERVER ) {
-		__port = 1433;
+	else if ( this._database_engine == DMIDatabaseType.SQLSERVER ) {
+		this.__port = 1433;
 	}
 	else {
 		//
@@ -2562,69 +2862,68 @@ throws Exception {
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "database_engine: " + database_engine);
 	}
-	__database_engine_String = database_engine;
-	if (__database_engine_String.equalsIgnoreCase("Access")) {
-		__database_server = "Local";
-		_database_engine = DMIDatabaseType.ACCESS;
+	this.__database_engine_String = database_engine;
+	if (this.__database_engine_String.equalsIgnoreCase("Access")) {
+		this.__database_server = "Local";
+		this._database_engine = DMIDatabaseType.ACCESS;
 	}
-	else if (__database_engine_String.equalsIgnoreCase("Derby")) {
-        __database_server = "myhost";
-        _database_engine = DMIDatabaseType.DERBY;
+	else if (this.__database_engine_String.equalsIgnoreCase("Derby")) {
+        this.__database_server = "myhost";
+        this._database_engine = DMIDatabaseType.DERBY;
     }
-	else if (__database_engine_String.equalsIgnoreCase("Informix")) {
-		_database_engine = DMIDatabaseType.INFORMIX;
+	else if (this.__database_engine_String.equalsIgnoreCase("Informix")) {
+		this._database_engine = DMIDatabaseType.INFORMIX;
 	}
-	else if (__database_engine_String.equalsIgnoreCase("MySQL")) {
-		_database_engine = DMIDatabaseType.MYSQL;
+	else if (this.__database_engine_String.equalsIgnoreCase("MySQL")) {
+		this._database_engine = DMIDatabaseType.MYSQL;
 	}
-	else if (__database_engine_String.equalsIgnoreCase("Oracle")) {
-		_database_engine = DMIDatabaseType.ORACLE;
+	else if (this.__database_engine_String.equalsIgnoreCase("Oracle")) {
+		this._database_engine = DMIDatabaseType.ORACLE;
 	}
-	else if (__database_engine_String.equalsIgnoreCase("PostgreSQL")) {
-		_database_engine = DMIDatabaseType.POSTGRESQL;
+	else if (this.__database_engine_String.equalsIgnoreCase("PostgreSQL")) {
+		this._database_engine = DMIDatabaseType.POSTGRESQL;
 	}
-	else if (__database_engine_String.equalsIgnoreCase("SQLite")) {
-		_database_engine = DMIDatabaseType.SQLITE;
+	else if (this.__database_engine_String.equalsIgnoreCase("SQLite")) {
+		this._database_engine = DMIDatabaseType.SQLITE;
 	}
-	else if (StringUtil.startsWithIgnoreCase(__database_engine_String,"SQL_Server") ||
-		StringUtil.startsWithIgnoreCase(__database_engine_String,"SQLServer")) {
-		_database_engine = DMIDatabaseType.SQLSERVER;
+	else if (StringUtil.startsWithIgnoreCase(this.__database_engine_String,"SQL_Server") ||
+		StringUtil.startsWithIgnoreCase(this.__database_engine_String,"SQLServer")) {
+		this._database_engine = DMIDatabaseType.SQLSERVER;
 	}
-    else if (__database_engine_String.equalsIgnoreCase("H2")) {
-		_database_engine = DMIDatabaseType.H2;
+    else if (this.__database_engine_String.equalsIgnoreCase("H2")) {
+		this._database_engine = DMIDatabaseType.H2;
 	}
-    else if (__database_engine_String.equalsIgnoreCase("HSQLDB")) {
-		_database_engine = DMIDatabaseType.HSQLDB;
+    else if (this.__database_engine_String.equalsIgnoreCase("HSQLDB")) {
+		this._database_engine = DMIDatabaseType.HSQLDB;
 	}
 	else {
-		throw new Exception("Trying to use unknown database engine: " + __database_engine_String + " in DMI()");
+		throw new Exception("Trying to use unknown database engine: " + this.__database_engine_String + " in DMI()");
 	}
 }
 
 /**
-Set the name of the database, which is used when a connection URL is
-automatically defined and a predefined ODBC DSN is not used.
-If an ODBC DSN is used, then the database connection uses the ODBC Data Source
-Name (DSN) set with setODBCName().
-@param database_name the name of the database
+Set the name of the database,
+which is used when a connection URL is automatically defined and a predefined ODBC DSN is not used.
+If an ODBC DSN is used, then the database connection uses the ODBC Data Source Name (DSN) set with setODBCName().
+@param databaseName the name of the database
 */
-public void setDatabaseName(String database_name) {
-	if (Message.isDebugOn) {
-		Message.printDebug(25, "DMI.setDatabaseName", "database_name: " + database_name);
+public void setDatabaseName ( String databaseName ) {
+	if ( Message.isDebugOn ) {
+		Message.printDebug ( 25, "DMI.setDatabaseName", "database_name: " + databaseName );
 	}
-	__database_name = database_name;
-	__jdbc_odbc = true;
+	this.__database_name = databaseName;
+	this.isJdbc = true;
 }
 
 /**
 Set the database version.
 This should be called from a derived DMI class determineDatabaseVersion() method.
 @param version Database version.
-The standard for the version number is XXXXXXDDDDDDDD where XXXXXXX is typically a
-database version (e.g., RiverTrak 020601) and DDDDDDDD is usually the build date (e.g., 20020625).
+The standard for the version number is XXXXXXDDDDDDDD where XXXXXXX is typically a database version
+(e.g., RiverTrak 020601) and DDDDDDDD is usually the build date (e.g., 20020625).
 */
 public void setDatabaseVersion ( long version ) {
-	__database_version = version;
+	this.__database_version = version;
 }
 
 /**
@@ -2633,7 +2932,7 @@ If __editable is true, no calls to dmiWrite or dmiDelete will be executed.
 @param editable value to set __editable to
 */
 public void setEditable(boolean editable) {
-	__editable = editable;
+	this.__editable = editable;
 }
 
 /**
@@ -2647,7 +2946,7 @@ public void setDatabaseServer ( String database_server ) {
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, "DMI.setDatabaseServer", "Database server: \"" + database_server + "\"");
 	}
-	__database_server = database_server;
+	this.__database_server = database_server;
 }
 
 /**
@@ -2657,7 +2956,7 @@ Defaults to false.  For use in debugging.
 @param dumpSQL whether to dump the SQL after there is an error.
 */
 public void setDumpSQLOnError(boolean dumpSQL) {
-	__dumpSQLOnError = dumpSQL;
+	this.__dumpSQLOnError = dumpSQL;
 }
 
 /**
@@ -2676,7 +2975,7 @@ If true, the string will be printed at Message.printStatus(2).  Defaults to fals
 @param dumpSQL whether to dump the SQL prior to running it.
 */
 public void setDumpSQLOnExecution(boolean dumpSQL) {
-	__dumpSQLOnExecution = dumpSQL;
+	this.__dumpSQLOnExecution = dumpSQL;
 }
 
 /**
@@ -2694,7 +2993,7 @@ Sets the ID string that identifies the connection.
 @param id the id string that identifies the connection.
 */
 public void setID(String id) {
-	__id = id;
+	this.__id = id;
 }
 
 /**
@@ -2702,7 +3001,7 @@ Sets the name of the connection.
 @param inputName the name of the connection.
 */
 public void setInputName(String inputName) {
-	__inputName = inputName;
+	this.__inputName = inputName;
 }
 
 /**
@@ -2710,8 +3009,8 @@ Saves the last delete statement executed.
 @param s a DMIDeleteStatement to be saved
 */
 private void setLastStatement(DMIDeleteStatement s) {
-	__lastSQL = (DMIStatement) s;
-	__lastSQLType = DELETE;
+	this.__lastSQL = (DMIStatement) s;
+	this.__lastSQLType = DELETE;
 }
 
 /**
@@ -2719,9 +3018,9 @@ Saves the last select statement executed.
 @param s a DMISelectStatement to be saved
 */
 private void setLastStatement(DMISelectStatement s) {
-	__lastSQL = (DMIStatement) s;
-	__lastSQLType = SELECT;
-	__lastQuery = s;
+	this.__lastSQL = (DMIStatement) s;
+	this.__lastSQLType = SELECT;
+	this.__lastQuery = s;
 }
 
 /**
@@ -2729,8 +3028,8 @@ Saves the last write statement executed.
 @param s a DMIWriteStatement to be saved
 */
 private void setLastStatement(DMIWriteStatement s) {
-	__lastSQL = (DMIStatement) s;
-	__lastSQLType = WRITE;
+	this.__lastSQL = (DMIStatement) s;
+	this.__lastSQLType = WRITE;
 }
 
 /**
@@ -2741,18 +3040,7 @@ This ensures that the value is not interpreted globally.
 @param loginTimeout connection login timeout in seconds.
 */
 public void setLoginTimeout ( int loginTimeout ) {
-    __loginTimeout = loginTimeout;
-}
-
-/**
-TODO SAM 2009-05-20 Evaluate whether the name should be allowed as a longer name compared to the short ID.
-Sets the name of the connection.
-@param name the name of the connection.
-@deprecated (2005-04-07)
-*/
-@Deprecated
-public void setName(String name) {
-	__name = name;
+    this.__loginTimeout = loginTimeout;
 }
 
 /**
@@ -2761,12 +3049,12 @@ If an ODBC DSN is not used, then the database connection uses the database serve
 set with setDatabaseServer() and database name set with setDatabaseName().
 @param odbc_name the ODBC DSN for the database (must be defined on the machine).
 */
-public void setODBCName(String odbc_name) {
-	if (Message.isDebugOn) {
-		Message.printDebug(25, "DMI.setODBCName", "odbc_name: " + odbc_name);
+public void setODBCName ( String odbcName ) {
+	if ( Message.isDebugOn ) {
+		Message.printDebug ( 25, "DMI.setODBCName", "odbc_name: " + odbcName );
 	}
-	__odbc_name = odbc_name;
-	__jdbc_odbc = false;
+	this.__odbc_name = odbcName;
+	this.isJdbc = false;
 }
 
 /**
@@ -2780,7 +3068,7 @@ public void setPort(int port) {
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "Port: " + port);
 	}
-	__port = port;
+	this.__port = port;
 }
 
 /**
@@ -2794,7 +3082,7 @@ public void setSecure(boolean secure) {
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "Secure: " + secure);
 	}
-	__secure = secure;
+	this.__secure = secure;
 }
 
 /**
@@ -2808,7 +3096,7 @@ public void setSystemLogin(String login) {
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "Login: '" + login + "'");
 	}
-	__system_login = login;
+	this.__system_login = login;
 }
 
 /**
@@ -2822,7 +3110,7 @@ public void setSystemPassword(String pw) {
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "Password: '" + pw + "'");
 	}
-	__system_password = pw;
+	this.__system_password = pw;
 }
 
 /**
@@ -2830,7 +3118,7 @@ Set the user login name for database use.  This information can be used for reco
 @param login the user login name.
 */
 public void setUserLogin ( String login) {
-	__user_login = login;
+	this.__user_login = login;
 }
 
 /**
@@ -2838,7 +3126,7 @@ Set the user password for database use.  This information can be used for record
 @param password the user password.
 */
 public void setUserPassword ( String password ) {
-	__user_password = password;
+	this.__user_password = password;
 }
 
 /**
@@ -2847,30 +3135,30 @@ made to the database since the start of the last transaction.
 @throws SQLException thrown in startTransaction()
 */
 public void startTransaction() throws SQLException {
-	if (!__connected) {
+	if (!this.__connected) {
 		throw new SQLException ("Database not connected.  Cannot make call to DMI.startTransaction().");
 	}
 
-	__dirty = false;
+	this.__dirty = false;
 	startTransaction(ROLLBACK);
 
 	// TODO (JTS - 2004-07-20) nothing in here to actually START a transaction.
 	// Other transactions are either committed or rolled back, but where is one started?
 
-	__inTransaction = true;
+	this.__inTransaction = true;
 }
 
 /**
 Starts a transaction, and either rolls back the current database changes or commits them,
 depending on the argument to this method.
 @param action specifies what to do when the transaction is started.
-values that can be passed in are <code>ROLLBACK</code> or <code>COMMIT
-</code>, and they tell what to do before the transaction is started.
+values that can be passed in are <code>ROLLBACK</code> or <code>COMMIT</code>,
+and they tell what to do before the transaction is started.
 @throws SQLException thrown in setAutoCommit(), commit() or rollback(),
 or when the database is not connected
 */
 public void startTransaction(int action) throws SQLException {
-	if (!__connected) {
+	if (!this.__connected) {
 		throw new SQLException ("Database not connected.  Cannot make call to DMI.startTransaction().");
 	}
 
@@ -2899,8 +3187,8 @@ public void startTransaction(int action) throws SQLException {
 Sets the dirty flag if autocommit is set to off.  otherwise, does nothing.
 */
 private void testAndSetDirty() {
-	if (__autoCommit == false) {
-		__dirty = true;
+	if (this.__autoCommit == false) {
+		this.__dirty = true;
 	}
 }
 
@@ -2912,26 +3200,27 @@ If the connection is secure login information will not be printed.
 public String toString() {
 	StringBuilder dmiDesc = new StringBuilder();
 
-	if (!__secure) {
+	if (!this.__secure) {
 		dmiDesc.append(
 			"DMI Information:"
-			+ "\n   System Login: " + __system_login
-			+ "\n   System Password: " + __system_password
-			+ "\n   User Login: " + __user_login
-			+ "\n   User Password: " + __user_password
-			+ "\n   Connecting to database '" + __database_name + "' of type '" + __database_engine_String + "'"
-			+ "\n   at '" + __database_server + ":" + __port + "'");
+			+ "\n   System Login: " + this.__system_login
+			+ "\n   System Password: " + this.__system_password
+			+ "\n   User Login: " + this.__user_login
+			+ "\n   User Password: " + this.__user_password
+			+ "\n   Connecting to database '" + this.__database_name + "' of type '" + this.__database_engine_String + "'"
+			+ "\n   at '" + this.__database_server + ":" + this.__port + "'");
 	}
 	else {
 		dmiDesc.append(
 			"DMI Information:"
-			+ "\n   Connected to database '" + __database_name
-			+ "' of type '" + __database_engine_String + "'" );
+			+ "\n   Connected to database '" + this.__database_name
+			+ "' of type '" + this.__database_engine_String + "'" );
 	}
 	dmiDesc.append( "\n   Current status is: ");
-	if (__connected == true) {
+	if (this.__connected == true) {
 		dmiDesc.append( "CONNECTED" );
-	} else {
+	}
+	else {
 		dmiDesc.append( "NOT CONNECTED" );
 	}
 	if ( this.__connection == null ) {
@@ -2952,13 +3241,14 @@ public String toString() {
 		}
 	}
 	dmiDesc.append( "\n   autoCommit is currently: ");
-	if (__autoCommit == true) {
+	if (this.__autoCommit == true) {
 		dmiDesc.append( "ON" );
-	} else {
+	}
+	else {
 		dmiDesc.append( "OFF" );
 	}
 
-	if (!__secure) {
+	if (!this.__secure) {
 		dmiDesc.append( "\n   The previously executed SQL statement was:\n   [" + getLastSQLString() + "]" );
 	}
 
