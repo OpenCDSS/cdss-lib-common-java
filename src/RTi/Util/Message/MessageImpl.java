@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2025 Colorado Department of Natural Resources
+Copyright (C) 1994-2026 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -844,21 +844,14 @@ protected void printWarning ( int level, String routine, Throwable e ) {
 	}
     e.printStackTrace();
 
-	if (IOUtil.isRunningApplet()) {
-		System.err.println("Exception stack trace follows...");
-		e.printStackTrace();
-		System.err.println("... end of exception stack trace.");
-	}
-	else {
-		printWarning ( level, routine, "Exception stack trace follows (see log file)..." );
-		if ( e != null ) {
-			printWarning ( level, routine, e.getMessage() );
-			if ( this._out_stream[Message.LOG_OUTPUT] != null ) {
-				e.printStackTrace ( this._out_stream[Message.LOG_OUTPUT] );
-			}
+	printWarning ( level, routine, "Exception stack trace follows (see log file)..." );
+	if ( e != null ) {
+		printWarning ( level, routine, e.getMessage() );
+		if ( this._out_stream[Message.LOG_OUTPUT] != null ) {
+			e.printStackTrace ( this._out_stream[Message.LOG_OUTPUT] );
 		}
-		printWarning ( level, routine, "... end of exception stack trace." );
 	}
+	printWarning ( level, routine, "... end of exception stack trace." );
 }
 
 /**

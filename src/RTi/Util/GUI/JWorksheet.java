@@ -5603,8 +5603,6 @@ public void saveToFile(String filename, String delimiter) {
 		PrintWriter oStream = new PrintWriter( new FileWriter(filename));
 
 		// Write each element of the lines list to a file.
-		// For some reason, when just using println in an
-		// applet, the cr-nl pair is not output like it should be on Windows95.  Java Bug???
 		String linesep = System.getProperty("line.separator");
 		for (int i = 0; i < lines.size(); i++) {
 			oStream.print(lines.get(i).toString() + linesep);
@@ -6270,7 +6268,6 @@ Sets whether copying and pasting is enabled in the JWorksheet.
 @param pasteSetting whether users can paste to the worksheet.
 */
 protected void setCopyPasteEnabled(boolean copySetting, boolean pasteSetting) {
-	//	if (!IOUtil.isRunningApplet()) {
 	if (__copyPasteAdapter == null) {
 		__copyPasteAdapter = new JWorksheet_CopyPasteAdapter(this);
 	}
@@ -6279,13 +6276,6 @@ protected void setCopyPasteEnabled(boolean copySetting, boolean pasteSetting) {
 	__copyPasteAdapter.setPasteEnabled(pasteSetting);
 	__copyEnabled = copySetting;
 	__pasteEnabled = pasteSetting;
-	/*
-	}
-	else {
-		__copyEnabled = false;
-		__pasteEnabled = false;
-	}
-	 */
 }
 
 /**

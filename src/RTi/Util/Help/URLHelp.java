@@ -23,13 +23,11 @@ NoticeEnd */
 
 package RTi.Util.Help;
 
-import  java.applet.AppletContext;
 import  java.io.BufferedReader;
 import java.io.IOException;
 import  java.io.InputStream;
 import  java.io.InputStreamReader;
 import  java.lang.String;
-import  java.net.URL;
 import  java.util.List;
 import  java.util.Vector;
 
@@ -46,17 +44,13 @@ This class provides an interface to display on-line help using an index file.
 
 To implement the on-line help interface,
 first create a text index file and specify its name to the class using the <i>setIndexURL()</i> method.
-This function can be called by the code that parses the program's command line options,
-properties (or parameters if an applet).
+This function can be called by the code that parses the program's command line options, properties.
 In this case, the index file is read when the first request for help is made (to increase startup performance).
 The <tt>-helpindex</tt> option is the standard for specifying the help index file.
 For example, call the index file <i>FloodWatch_help_index.txt</i>.
 If running stand-alone, the file can be a normal text file (use a file: URL protocol).
 If running through a browser, specify a http protocol URL.
 In either case, the index file should have a <i>.txt</i> extension.
-This class uses the <i>RTi.Util.IO.IOUtil.isApplet()</i> method to
-determine whether the code is running as an applet so make sure to call
-<i>RTi.Util.IO.IOUtil.setApplet()</i> in the applet's <i>init()</i> function.
 <p>
 Another alternative (using a more recent approach) to setting up the help system is to do something similar to
 the following (in this case the HBParse.getHome() call returns the top level install point for the software):
@@ -112,8 +106,6 @@ Keys should not contain spaces and should be as specific as possible to cross-re
 URLs can be specified using variables.  Topics should be enclosed in double quotes to protect whitespace.
 Finally, code the event handlers for GUIs to call the <i>showHelpForKey()</i> function with keys that match the entries in the index file.
 If running stand-alone, the browser set with <i>setBrowser()</i> will be called.
-This function is normally called by the code that parses the command line arguments for the program (or the parameters if an applet).
-The <tt>-browser</tt> option is the standard notation.  If running as an applet, the help will be shown in a new (blank) browser window.
 
 @see URLHelpGUI
 @see URLHelpData
@@ -145,7 +137,7 @@ A list of URLHelpData containing help index data.
 protected static List<URLHelpData> _data = null;
 
 /**
-The path to the browser executable to run when running stand-alone (not as an applet).  Will be an empty string if not set.
+The path to the browser executable to run).  Will be an empty string if not set.
 */
 private static String _browser = "";
 
@@ -224,7 +216,7 @@ private static int findIndexForTopic ( String topic ) {
 
 /**
 The path to the browser to execute when displaying help.
-@return The path to the browser to execute when displaying help stand-alone (not an applet).
+@return The path to the browser to execute when displaying help
 */
 public static synchronized String getBrowser ( ) {
 	return _browser;
@@ -284,7 +276,6 @@ public static synchronized void initialize ( String browser, List<String> index_
 				output = null;
 			}
 			catch ( Exception e ) {
-				// Won't work if running as an Applet.
 			}
 		}
 	}
@@ -558,7 +549,6 @@ public static synchronized void setIndexURL ( String indexURL ) {
 /**
 Display the on-line help for the given index in the data vector (0 is first entry).
 If running stand-alone, a new browser will be spawned, which requires that the browser path is set.
-If an applet, a clone of the original browser window will be started and will display the page.
 This routine should be called by all other show* functions like showHelpForKey, showHelpForTopic, etc.
 @param index Index number for help topic.
 */
@@ -654,7 +644,6 @@ public static void showHelpForTopic ( String topic ) {
 /**
 Display the requested URLAdrress in the selected browser.
 If running stand-alone, a new browser will be spawned, which requires that the browser path is set.
-If an applet, a clone of the original browser window will be started and will display the page.
 @param URLAddress Specify the full URL address to the file.
 @deprecated Use showURL (since that is a more specific name for the method).
 */
@@ -666,74 +655,49 @@ public static void showTopic( String URLAddress ) {
 /**
 Display the requested URLAdrress in the selected browser.
 If running stand-alone, a new browser will be spawned, which requires that the browser path is set.
-If an applet, a clone of the original browser window will be started and will display the page.
 @param URLAddress Specify the full URL address to the file.
 */
 public static void showURL ( String URLAddress ) {
 	String routine = "URLHelp.showURL";
 
-	// Send on-line help to the parent window if running an applet.
+	// Open on-line help using the _browser path, when running stand alone.
+	// This will start a new browser for each on-line document requested.
+	// Default to the Internet Explorer path if no browser is specified.
+	String command;	// Entire path (i.e., browser executable help file).
 
-	if ( IOUtil.isApplet() ) {
-		if( Message.isDebugOn ){
-			Message.printDebug( 10, routine, "Attempting to show help page \"" + URLAddress + "\" to a new browser." );
-		}
-		try {	URL url = new URL (IOUtil.getDocumentBase(),URLAddress);
-			AppletContext ac = IOUtil.getAppletContext();
-			// Display the URL in a new window.
-			// Although the documentation says that the document can be displayed in the originating window,
-			// it seems that if this is done, then the applet loses contact with the browser.
-			if ( ac != null ) {
-				ac.showDocument(url, "_blank");
-			}
-			url = null;
-			ac = null;
-		}
-		catch (Exception e) {
-			Message.printWarning(2, routine, "Malformed URL: \"" + URLAddress + "\"" );
-		}
+	if( Message.isDebugOn ){
+		Message.printDebug( 10, routine, "Displaying help using browser: \"" + _browser + "\"" );
 	}
-	else {
-		// Open on-line help using the _browser path, when running stand alone.
-		// This will start a new browser for each on-line document requested.
-		// Default to the Internet Explorer path if no browser is specified.
-		String command;	// Entire path (i.e., browser executable help file).
 
-		if( Message.isDebugOn ){
-			Message.printDebug( 10, routine, "Displaying help using browser: \"" + _browser + "\"" );
-		}
+	// Construct the full system command using the _browser path and the URLAddress.
 
-		// Construct the full system command using the _browser path and the URLAddress.
+	if ( _browser.length() <= 0 ) {
+		Message.printWarning ( 1, routine, "The browser has not been specified.  Cannot display help." );
+		return;
+	}
+	String [] command_array = new String[2];
+	command_array[0] = _browser;
+	command_array[1] = URLAddress;
+	command = _browser + " " + URLAddress;
 
-		if ( _browser.length() <= 0 ) {
-			Message.printWarning ( 1, routine, "The browser has not been specified.  Cannot display help." );
-			return;
-		}
-		String [] command_array = new String[2];
-		command_array[0] = _browser;
-		command_array[1] = URLAddress;
-		command = _browser + " " + URLAddress;
+	Message.printStatus ( 1, routine, "Launching browser with command: \"" + command + "\"" );
 
-		Message.printStatus ( 1, routine, "Launching browser with command: \"" + command + "\"" );
+	// Since using a thread, there might be some way to communicate with the thread later.
 
-		// Since using a thread, there might be some way to communicate with the thread later.
-
-		try {
-			ProcessManager pm = new ProcessManager (command_array );
-			Thread thread = new Thread ( pm );
-			// This will cause the browser to run until it is exited, at which time the thread will close down.
-			thread.start ();
-		}
-		catch ( Exception e ) {
-			Message.printWarning( 1, routine, "Error executing: \"" + command + "\"" );
-			Message.printWarning( 2, routine, e );
-			return;
-		}
-		if ( Message.isDebugOn ) {
-			Message.printDebug ( 2, routine, "Successfuly spawned browser." );
+	try {
+		ProcessManager pm = new ProcessManager (command_array );
+		Thread thread = new Thread ( pm );
+		// This will cause the browser to run until it is exited, at which time the thread will close down.
+		thread.start ();
+	}
+	catch ( Exception e ) {
+		Message.printWarning( 1, routine, "Error executing: \"" + command + "\"" );
+		Message.printWarning( 2, routine, e );
+		return;
+	}
+	if ( Message.isDebugOn ) {
+		Message.printDebug ( 2, routine, "Successfuly spawned browser." );
 		}
 		command = null;
 	}
-}
-
 }
