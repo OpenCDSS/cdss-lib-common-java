@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2025 Colorado Department of Natural Resources
+Copyright (C) 1994-2026 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,7 +41,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Vector;
 
 /**
 The DMIUtil class provides static methods to facilitate database interaction.
@@ -59,30 +58,26 @@ Constant that represents a missing date (DateTime).
 */
 public static final Date MISSING_DATE = null;
 
-/** 
+/**
 Constant that represents a missing boolean value.
 Booleans must be handled internally as an object, not primitive, so that a null state can be set.
 */
 public static final Double MISSING_BOOLEAN = null;
 
-/** 
+/**
 Constant that represents a missing double value.
 */
 public static final double MISSING_DOUBLE = Double.NaN;
 
 /**
-Constant that represents the low end of a missing double value, when performing
-comparisons where roundoff may have occurred.
+Constant that represents the low end of a missing double value,
+when performing comparisons where roundoff may have occurred.
 */
-// TODO SAM 2015-08-06 Evaluate whether this can be permanently removed.
-//public static final double MISSING_DOUBLE_FLOOR = -999.1;
 
 /**
-Constant that represents the high end of a missing double value, when performing
-comparisons where roundoff may have occurred.
+Constant that represents the high end of a missing double value,
+when performing comparisons where roundoff may have occurred.
 */
-//TODO SAM 2015-08-06 Evaluate whether this can be permanently removed.
-//public static final double MISSING_DOUBLE_CEILING = -998.9;
 
 /**
 Constant that represents a missing float value.
@@ -125,18 +120,17 @@ public static boolean checkSingleQuotes(String s) {
 /**
 Creates a data dictionary.
 @param dmi DMI instance for an opened database connection.
-@param filename Complete name of the data dictionary HTML file (a file extension
-is not added) to write.
+@param filename Complete name of the data dictionary HTML file (a file extension is not added) to write.
 @param referenceTables If not null, the contents of these tables will be listed
-in a section of the data dictionary to illustrate possible values for lookup
-fields.  Need to work on this to know what field to list first.
-TODO (JTS - 2004-11-19) this method is VERY out of date, compared to the HTML data dictionary.  The
-two methods should either be reconciled, or this one should be removed.
+in a section of the data dictionary to illustrate possible values for lookup fields.
+Need to work on this to know what field to list first.
+TODO (JTS - 2004-11-19) this method is VERY out of date, compared to the HTML data dictionary.
+The two methods should either be reconciled, or this one should be removed.
 */
-public static void createDataDictionary ( DMI dmi, String filename, String [] referenceTables )
-{	String routine = DMIUtil.class.getSimpleName() + ".createDataDictionary";
+public static void createDataDictionary ( DMI dmi, String filename, String [] referenceTables ) {
+	String routine = DMIUtil.class.getSimpleName() + ".createDataDictionary";
 	// Convert the messages to HTML code after getting the logic to work.
-	// First get a list of tables and print out their information...
+	// First get a list of tables and print out their information.
 
 	Message.printStatus (2, routine, "Tables" );
 	ResultSet rs = null;
@@ -146,14 +140,14 @@ public static void createDataDictionary ( DMI dmi, String filename, String [] re
 		rs = metadata.getTables ( null, null, null, null );
 		if ( rs == null ) {
 			Message.printWarning ( 2, routine, "Error getting list of tables." );
-		} 
-	} 
+		}
+	}
 	catch ( Exception e ) {
 		Message.printWarning ( 2, routine, "Error getting list of tables." );
 		rs = null;
-	} 
+	}
 
-	// Now get all the table names by looping through result set...
+	// Now get all the table names by looping through result set.
 
 	boolean more = false;
 	try {
@@ -164,49 +158,49 @@ public static void createDataDictionary ( DMI dmi, String filename, String [] re
 	}
 
 	String	s;
-	List<String> table_names = new ArrayList<String>();
-	List<String> table_remarks = new ArrayList<String>();
+	List<String> table_names = new ArrayList<>();
+	List<String> table_remarks = new ArrayList<>();
 	while ( more ) {
 
 		try {
-			// Table name...
+			// Table name.
 			s = rs.getString(3);
 			if ( !rs.wasNull() ) {
 				table_names.add ( s.trim() );
-				// Remarks...
+				// Remarks.
 				s = rs.getString(5);
 				if ( !rs.wasNull() ) {
 					table_remarks.add ( s.trim() );
-					// Remarks...
+					// Remarks.
 				}
-				else {	
+				else {
 					table_remarks.add ( "" );
 				}
 			}
-			// Get the next item in the list...
+			// Get the next item in the list.
 			more = rs.next ();
 		}
 		catch ( Exception e ) {
-			// Ignore for now...
+			// Ignore for now.
 			Message.printWarning ( 2, routine, e );
 		}
-	} 
-	try {	
+	}
+	try {
 		DMI.closeResultSet(rs);
 	}
 	catch ( Exception e ) {
 	}
 
-	// Sort (need to add)...
+	// Sort (need to add).
 
-	// Output tables...
+	// Output tables.
 
 	int size = table_names.size();
 	for ( int i = 0; i < size; i++ ) {
 		Message.printStatus ( 2, routine, table_names.get(i) + "," + table_remarks.get(i) );
 	}
 
-	// Next list the table contents...
+	// Next list the table contents.
 
 	String table_name;
 	String column_name;
@@ -217,14 +211,14 @@ public static void createDataDictionary ( DMI dmi, String filename, String [] re
 	for ( int i = 0; i < size; i++ ) {
 		Message.printStatus ( 2, routine, "Table details" );
 
-		table_name = (String)table_names.get(i);
+		table_name = table_names.get(i);
 		try {
 			rs = metadata.getColumns (null, null, table_name, null);
 			if ( rs == null ) {
 				Message.printWarning ( 2, routine, "Error getting columns for \"" + table_name+"\" table." );
 				DMI.closeResultSet(rs);
 				continue;
-			} 
+			}
 
 			// Print the column information...
 
@@ -250,7 +244,7 @@ public static void createDataDictionary ( DMI dmi, String filename, String [] re
 				column_num_digits = rs.getInt(9);
 				column_nullable = rs.getString(18);
 				if ( !rs.wasNull() ) {
-					column_nullable =column_nullable.trim();
+					column_nullable = column_nullable.trim();
 				}
 				else {
 					column_nullable = "Unknown";
@@ -261,33 +255,32 @@ public static void createDataDictionary ( DMI dmi, String filename, String [] re
 				column_size + " " +
 				column_num_digits + " " +
 				column_nullable );
-	
+
 				more = rs.next ();
 			}
 		}
 		catch ( Exception e ) {
 			Message.printWarning ( 2, routine, "Error getting columns for \"" + table_name+"\" table." );
 		}
-		try {	
+		try {
 			DMI.closeResultSet(rs);
 		}
 		catch ( Exception e ) {
 		}
 	}
 
-	// List stored procedures...
+	// List stored procedures.
 	Message.printStatus ( 2, routine, "Stored procedures" );
 
-	// Next list the contents of reference tables...
+	// Next list the contents of reference tables.
 	Message.printStatus ( 2, routine, "Reference tables" );
 }
 
 /**
 Creates a list of ERDiagram_Relationship objects to be used in an ER Diagram.
 @param dmi an open and connected dmi object.  Must not be null.
-@param notIncluded a list of the names of the tables for which to not make
-relationships.  May be null.
-@return a list of ERDiagram_Relationship objects for use in an ER Diagram.  
+@param notIncluded a list of the names of the tables for which to not make relationships.  May be null.
+@return a list of ERDiagram_Relationship objects for use in an ER Diagram.
 null is returned if there was an error creating the objects or reading from the database.
 */
 public static List<ERDiagram_Relationship> createERDiagramRelationships(DMI dmi, List<String> notIncluded) {
@@ -305,19 +298,19 @@ public static List<ERDiagram_Relationship> createERDiagramRelationships(DMI dmi,
 		String endTable = null;
 		String startField = null;
 		String endField = null;
-	
+
 		int size = tableNames.size();
-		List<ERDiagram_Relationship> rels = new ArrayList<ERDiagram_Relationship>();
-	
+		List<ERDiagram_Relationship> rels = new ArrayList<>();
+
 		for (int i = 0; i < size; i++) {
 			rs = metadata.getExportedKeys(null, null, tableNames.get(i));
-	
-			while (rs.next()) {		
+
+			while (rs.next()) {
 				startTable = rs.getString(3);
 				startField = rs.getString(4);
 				endTable = rs.getString(7);
 				endField = rs.getString(8);
-				
+
 				ERDiagram_Relationship rel = new ERDiagram_Relationship( startTable, startField, endTable, endField);
 				rels.add(rel);
 			}
@@ -328,7 +321,7 @@ public static List<ERDiagram_Relationship> createERDiagramRelationships(DMI dmi,
 	catch (Exception e) {
 		e.printStackTrace();
 		return null;
-	}	
+	}
 }
 
 /**
@@ -340,8 +333,8 @@ list of table names and ER Diagram information.  If null the coordinates for the
 @param erdXField the name of the column in the tables table that contains the X positions of the ERDiagram Tables.
 @param erdYField the name of the column in the tables table that contains the Y positions of the ERDIagram Tables.
 @param notIncluded a list of the names of the tables to not include in the ERDiagram.  May be null.
-@return a list of ERDiagram_Table objects that can be used to build an 
-ER Diagram.  null is returned if there was an error creating the tables or reading from the database.
+@return a list of ERDiagram_Table objects that can be used to build an ER Diagram.
+null is returned if there was an error creating the tables or reading from the database.
 */
 public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 	String tablesTableName, String tableField, String erdXField, String erdYField,
@@ -360,8 +353,8 @@ public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 	int size = tableNames.size();
 	String tableName = null;
 	Message.printStatus(2, routine, "Determining table details for ER Diagram");
-	
-	List<ERDiagram_Table> tables = new ArrayList<ERDiagram_Table>();
+
+	List<ERDiagram_Table> tables = new ArrayList<>();
 	ERDiagram_Table table = null;
 
 	try {
@@ -371,35 +364,35 @@ public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 		Message.printWarning(3,routine,e);
 		return null;
 	}
-	
+
 	for (int i = 0; i < size; i++) {
 		tableName = tableNames.get(i);
 		table = new ERDiagram_Table(tableName);
-	
-		try {	
+
+		try {
 			// First get a list of all the table columns that are in the Primary key.
 			ResultSet primaryKeyRS = null;
 			List<String> primaryKeyList = null;
 			int primaryKeyListSize = 0;
 			try {
 				primaryKeyRS = metadata.getPrimaryKeys( null, null, tableName);
-				primaryKeyList = new ArrayList<String>();
+				primaryKeyList = new ArrayList<>();
 				while (primaryKeyRS.next()) {
-					primaryKeyList.add(primaryKeyRS.getString(4));	
+					primaryKeyList.add(primaryKeyRS.getString(4));
 				}
 				primaryKeyListSize = primaryKeyList.size();
 				DMI.closeResultSet(primaryKeyRS);
 			}
 			catch (Exception e) {
 				// If an exception is thrown here, it is probably because the JDBC driver does not
-				// support the "getPrimaryKeys" method.  
+				// support the "getPrimaryKeys" method.
 				// No problem, it will be treated as if there were no primary keys.
 			}
 			Message.printStatus(2,routine,"Table \"" + tableName + "\" has " + primaryKeyListSize + " primary keys");
-			
+
 			boolean key = false;
 			List<List<String>> columns = new ArrayList<List<String>>();
-			List<String> columnNames = new ArrayList<String>();
+			List<String> columnNames = new ArrayList<>();
 
 			// Next, get the actual column data for the current table.
 			rs = metadata.getColumns(null, null, tableName, null);
@@ -407,16 +400,16 @@ public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 				Message.printWarning(2, routine, "Error getting columns for \"" + tableName + "\" table.");
 				DMI.closeResultSet(rs);
 				continue;
-			} 
+			}
 
-			// Loop through each column and move all its important data into a list of list.  This data will
-			// be run through at least twice, and to do that with a ResultSet would require several expensive opens and closes.
+			// Loop through each column and move all its important data into a list of list.
+			// This data will be run through at least twice, and to do that with a ResultSet would require several expensive opens and closes.
 			String columnName = null;
 			while (rs.next()) {
 				key = false;
-				List<String> columnNameList = new ArrayList<String>();
-			
-				// Get the 'column name' and store it in list position 0
+				List<String> columnNameList = new ArrayList<>();
+
+				// Get the 'column name' and store it in list position 0.
 				columnName = rs.getString(4);
 				if (columnName == null) {
 					columnName = " ";
@@ -427,13 +420,12 @@ public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 				columnNameList.add(columnName);
 				columnNames.add(columnName);
 
-				// Get whether this is a primary key or not and store either "TRUE" (for it being a 
-				// primary key) or "FALSE" in list position 1
+				// Get whether this is a primary key or not and store either "TRUE" (for it being a primary key) or "FALSE" in list position 1.
 				for (int j = 0; j < primaryKeyListSize; j++) {
 					if (columnName.equals(primaryKeyList.get(j).trim())) {
-						key = true;		
+						key = true;
 					}
-				}				
+				}
 
 				if (key) {
 					columnNameList.add("TRUE");
@@ -442,25 +434,25 @@ public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 					columnNameList.add("FALSE");
 				}
 
-				// Get the 'column type' and store it in list position 2
+				// Get the 'column type' and store it in list position 2.
 				temp = rs.getString(6);
 				if (temp == null) {
 					temp = "Unknown";
-				} 
+				}
 				else {
 					temp = temp.trim();
 				}
 				columnNameList.add(temp);
 
-				// Get the 'column size' and store it in list position 3
+				// Get the 'column size' and store it in list position 3.
 				temp = rs.getString(7);
 				columnNameList.add(temp);
-				
-				// Get the 'column num digits' and store it in list position 4
+
+				// Get the 'column num digits' and store it in list position 4.
 				temp = rs.getString(9);
 				columnNameList.add(temp);
 
-				// Get whether the column is nullable and store it in list position 5
+				// Get whether the column is nullable and store it in list position 5.
 				temp = rs.getString(18);
 				if (temp == null) {
 					temp = "Unknown";
@@ -469,8 +461,8 @@ public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 					temp = temp.trim();
 				}
 				columnNameList.add(temp);
-				
-				columns.add(columnNameList);			
+
+				columns.add(columnNameList);
 			}
 
 			// Next, an alphabetized list of the column names in the table will be compiled.
@@ -482,11 +474,11 @@ public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 			for (int j = 0; j < numColumns; j++) {
 				sortedLists[j] = columns.get(order[j]);
 			}
-		
+
 			String[] keyFields = new String[primaryKeyListSize];
-			// Now that the sorted order of the column names (and the lists of data) is known, loop through
-			// the data lists looking for columns that are in the Primary key.  They will be displayed in bold
-			// face font with a yellow background.
+			// Now that the sorted order of the column names (and the lists of data) is known,
+			// loop through the data lists looking for columns that are in the Primary key.
+			// They will be displayed in bold face font with a yellow background.
 			String field;
 			String[] nonKeyFields = new String[(numColumns - primaryKeyListSize)];
 			int count = 0;
@@ -497,11 +489,11 @@ public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 				temp = column.get(1);
 
 				if (temp.equals("TRUE")) {
-					// display the column name
+					// Display the column name.
 					temp = column.get(0);
 					field = temp + ": ";
 
-					// display the column type
+					// Display the column type.
 					temp = column.get(2);
 					if (temp.equalsIgnoreCase("real")) {
 						temp = temp + "(" + column.get(3) + ", " + column.get(4);
@@ -516,13 +508,13 @@ public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 					}
 					else {
 						temp = temp + "(" + column.get(3) + ")";
-					}					
+					}
 					field += temp;
 					keyFields[count++] = field;
 				}
 			}
 
-			// Now do the same thing for the other fields, the non-primary key fields.  
+			// Now do the same thing for the other fields, the non-primary key fields.
 			count = 0;
 			for (int j = 0; j < numColumns; j++) {
 				List<String> column = sortedLists[j];
@@ -531,11 +523,11 @@ public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 				temp = column.get(1);
 
 				if (temp.equals("FALSE")) {
-					// display the column name
+					// Display the column name.
 					temp = column.get(0);
 					field = temp + ": ";
 
-					// display the column type
+					// Display the column type.
 					temp = column.get(2);
 					if (temp.equalsIgnoreCase("real")) {
 						temp = temp + "(" + column.get(3) + ", " + column.get(4);
@@ -550,11 +542,11 @@ public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 					}
 					else {
 						temp = temp + "(" + column.get(3) + ")";
-					}					
+					}
 					field += temp;
 					nonKeyFields[count++] = field;
 				}
-			}			
+			}
 			table.setKeyFields(keyFields);
 			table.setNonKeyFields(nonKeyFields);
 			table.setVisible(true);
@@ -568,14 +560,14 @@ public static List<ERDiagram_Table> createERDiagramTables(DMI dmi,
 			Message.printWarning(2, routine, e);
 		}
 
-		try {	
+		try {
 			DMI.closeResultSet(rs);
 		}
 		catch (Exception e) {
 			Message.printWarning(2, routine, e);
 		}
 	}
-	return tables;	
+	return tables;
 }
 
 /**
@@ -583,11 +575,11 @@ Given a result set, prints the name and type of each column to log file status l
 @param rs the ResultSet to dump information for.
 @throws SQLException if there is an error dumping information.
 */
-public static void dumpResultSetTypes(ResultSet rs) 
+public static void dumpResultSetTypes(ResultSet rs)
 throws SQLException {
 
-	// set up the types vector 
-	ResultSetMetaData rsmd = rs.getMetaData();	
+	// Set up the types list.
+	ResultSetMetaData rsmd = rs.getMetaData();
 	int columnCount = rsmd.getColumnCount();
 	int colType = 0;
 	String type = null;
@@ -611,7 +603,7 @@ throws SQLException {
 			case java.sql.Types.DECIMAL:
 				type = "decimal";
 				break;
-			case java.sql.Types.DOUBLE:			
+			case java.sql.Types.DOUBLE:
 				type = "double";
 				break;
 			case java.sql.Types.FLOAT:
@@ -655,8 +647,8 @@ throws SQLException {
 				break;
 			case java.sql.Types.VARCHAR:
 				type = "varchar";
-				break;	
-		}		
+				break;
+		}
 
 		Message.printStatus(2, "", "Column " + (i + 1) + " \"" + colName + "\" " + ": " + type);
 	}
@@ -667,29 +659,25 @@ Duplicates a table, its columns and primary key, and possibly the data (see the 
 @param dmi an open DMI connection.
 @param origTableName the name of the table to duplicate
 @param newTableName the name of the table to create
-@param copyData if set to true, the data from the original table will also
-be copied into the new table.  <br>
-<b> Note:</b> If copyData is set to true, a 
-"SELECT * INTO newTable FROM origTable" query is run.  If set to false, the
-column information is queried from the original table and a CREATE TABLE
-SQL command is built.
+@param copyData if set to true, the data from the original table will also be copied into the new table.<br>
+<b> Note:</b> If copyData is set to true, a "SELECT * INTO newTable FROM origTable" query is run.
+If set to false, the column information is queried from the original table and a CREATE TABLE SQL command is built.
 @throws Exception if an error occurs
 */
-public static void duplicateTable(DMI dmi, String origTableName, String newTableName, boolean copyData) 
+public static void duplicateTable(DMI dmi, String origTableName, String newTableName, boolean copyData)
 throws Exception {
 	String routine = DMIUtil.class.getSimpleName() + ".duplicateTable";
 	StringBuffer SQL = new StringBuffer();
 
-	// Make sure not trying to create a table name that already 
-	// exists in the database.  This check is done because this 
-	// might not necessarily throw an Exception from the database.
+	// Make sure not trying to create a table name that already exists in the database.
+	// This check is done because this might not necessarily throw an Exception from the database.
 	//
 	// Example with SQL Server 2000:
 	//
 	// If the database owner has created a table called "Scenario",
-	// it will be in the database catalog under the full name of
-	// "dbo.Scenario".  If the user "guest" creates tries to duplicate
-	// "Scenario", the new table will be placed in the database catalog as "guest.Scenario".
+	// it will be in the database catalog under the full name of "dbo.Scenario".
+	// If the user "guest" creates tries to duplicate "Scenario",
+	// the new table will be placed in the database catalog as "guest.Scenario".
 	//
 	// Queries that don't reference the full table name, like:
 	// "SELECT * FROM SCENARIO"
@@ -711,7 +699,7 @@ throws Exception {
 		dmi.dmiExecute(SQL.toString());
 		if (caps) {
 			dmi.setCapitalize(true);
-		}		
+		}
 		return;
 	}
 
@@ -719,25 +707,25 @@ throws Exception {
 	DatabaseMetaData metadata = null;
 	metadata = dmi.getConnection().getMetaData();
 
-	// get the column data for the original table
+	// Get the column data for the original table.
 	rs = metadata.getColumns(null, null, origTableName, null);
 	if (rs == null) {
 		throw new Exception ("Error getting columns for \"" + origTableName + "\" table.");
-	} 
+	}
 
 	boolean more = rs.next();
 	if (more == false) {
 		throw new Exception ("Unable to retrieve column information for table '" + origTableName + "'");
 	}
 
-	// get a list of all the table columns that are in the Primary key.
+	// Get a list of all the table columns that are in the Primary key.
 	ResultSet primaryKeysRS = null;
 	List<String> primaryKeysV = null;
 	int primaryKeysSize = 0;
 	primaryKeysRS = metadata.getPrimaryKeys(null, null, origTableName);
-	primaryKeysV = new ArrayList<String>();
+	primaryKeysV = new ArrayList<>();
 	while (primaryKeysRS.next()) {
-		primaryKeysV.add(primaryKeysRS.getString(4));	
+		primaryKeysV.add(primaryKeysRS.getString(4));
 	}
 	primaryKeysSize = primaryKeysV.size();
 	DMI.closeResultSet(primaryKeysRS);
@@ -745,14 +733,14 @@ throws Exception {
 	boolean key = false;
 	String temp = null;
 	List<List<String>> columns = new ArrayList<List<String>>();
-	// Loop through each column and move all its important data into a list of list.  This data will
-	// be run through at least twice, and to do that with a ResultSet would require several expensive
-	// opens and closes.
+	// Loop through each column and move all its important data into a list of list.
+	// This data will be run through at least twice,
+	// and to do that with a ResultSet would require several expensive opens and closes.
 	while (more) {
 		key = false;
-		List<String> column = new ArrayList<String>();
-		
-		// Get the 'column name' and store it in Vector position 0
+		List<String> column = new ArrayList<>();
+
+		// Get the 'column name' and store it in list position 0.
 		temp = rs.getString(4);
 		if (temp == null) {
 			temp = " ";
@@ -762,13 +750,12 @@ throws Exception {
 		}
 		column.add(temp);
 
-		// Get whether this is a primary key or not and store either "TRUE" (for it being a 
-		// primary key) or "FALSE" in list position 1
+		// Get whether this is a primary key or not and store either "TRUE" (for it being a primary key) or "FALSE" in list position 1.
 		for (int j = 0; j < primaryKeysSize; j++) {
 			if (temp.trim().equals( primaryKeysV.get(j).trim())) {
-				key = true;		
+				key = true;
 			}
-		}				
+		}
 		if (key) {
 			column.add("TRUE");
 		}
@@ -776,25 +763,25 @@ throws Exception {
 			column.add("FALSE");
 		}
 
-		// Get the 'column type' and store it in list position 2
+		// Get the 'column type' and store it in list position 2.
 		temp = rs.getString(6);
 		if (temp == null) {
 		temp = "Unknown";
-		} 
+		}
 		else {
 			temp = temp.trim();
 		}
 		column.add(temp);
 
-		// Get the 'column size' and store it in list position 3
+		// Get the 'column size' and store it in list position 3.
 		temp = rs.getString(7);
 		column.add(temp);
-		
-		// Get the 'column num digits' and store it in list position 4
+
+		// Get the 'column num digits' and store it in list position 4.
 		temp = rs.getString(9);
 		column.add(temp);
 
-		// Get whether the column is nullable and store it in list position 5
+		// Get whether the column is nullable and store it in list position 5.
 		temp = rs.getString(18);
 		if (temp == null) {
 			temp = "Unknown";
@@ -803,19 +790,19 @@ throws Exception {
 			temp = temp.trim();
 		}
 		column.add(temp);
-		
-		// Get the column remarks and store them in list position 6
+
+		// Get the column remarks and store them in list position 6.
 		temp = rs.getString(12);
 		if (temp == null) {
 			temp = "   ";
-		} 
+		}
 		else {
 			temp = temp.trim();
 		}
 		column.add(temp);
-			
+
 		columns.add(column);
-		more = rs.next();			
+		more = rs.next();
 	}
 
 	DMI.closeResultSet(rs);
@@ -824,7 +811,7 @@ throws Exception {
 	SQL.append("CREATE TABLE " + newTableName + "(\n");
 
 	int numFields = columns.size();
-	String comma = null; 
+	String comma = null;
 	for (int i = 0; i < numFields; i++) {
 		comma = ",\n";
 		if (i == (numFields - 1) && primaryKeysSize == 0) {
@@ -855,8 +842,8 @@ throws Exception {
 			SQL.append(primaryKeysV.get(i));
 		}
 		SQL.append("))");
-	
-	} 
+
+	}
 	Message.printDebug(25, routine, "SQL: '" + SQL.toString() + "'");
 
 	// Turn off capitalization before executing the query so that
@@ -872,25 +859,25 @@ throws Exception {
 }
 
 /**
-Determine whether a database has a given stored procedure.  This can be used
-to determine a database version or as a basic check for a stored procedure before executing it.
+Determine whether a database has a given stored procedure.
+This can be used to determine a database version or as a basic check for a stored procedure before executing it.
 @return true if the procedure is in the database, false if not.
 @param dmi DMI instance for an opened database connection.
 @param procedureName the name of the procedure to test for.
 @exception Exception if an error occurs
 */
-public static boolean databaseHasStoredProcedure ( DMI dmi, String procedureName) 
+public static boolean databaseHasStoredProcedure ( DMI dmi, String procedureName)
 throws Exception, SQLException {
 	if (!dmi.connected() ) {
 		throw new SQLException ("Database not connected, cannot call DMIUtil.databaseHasStoredProcedure()");
 	}
-	
+
 	return databaseHasStoredProcedure ( dmi, dmi.getConnection().getMetaData(), procedureName);
 }
 
 /**
-Determine whether a database has a given stored procedure.  This can be used
-to determine a database version or as a basic check for a stored procedure before executing it.
+Determine whether a database has a given stored procedure.
+This can be used to determine a database version or as a basic check for a stored procedure before executing it.
 @return true if the procedure is in the database, false if not
 @param dmi DMI instance for a database.
 @param metaData meta data to search for the procedure name
@@ -900,17 +887,16 @@ to determine a database version or as a basic check for a stored procedure befor
 public static boolean databaseHasStoredProcedure ( DMI dmi, DatabaseMetaData metaData, String procedureName)
 throws Exception, SQLException {
 	if (!dmi.connected()) {
-		throw new SQLException ("Database not connected, cannot call DMIUtil.databaseHasStoredProcedure()");
-	}	
+		throw new SQLException ("Database not connected, cannot call DMIUtil.databaseHasStoredProcedure().");
+	}
 
 	String message;
 	String routine = DMIUtil.class.getSimpleName() + ".databaseHasStoredProcedure";
 	int dl = 25;
-	
+
 	String dbName = dmi.getDatabaseName();
 	if ( Message.isDebugOn ) {
-		Message.printDebug(dl, routine, "Checking if database \"" + dbName + "\" has stored procedure \"" +
-		procedureName + "\"" );
+		Message.printDebug(dl, routine, "Checking if database \"" + dbName + "\" has stored procedure \"" + procedureName + "\"." );
 	}
 	ResultSet rs = null;
 	try {
@@ -920,48 +906,44 @@ throws Exception, SQLException {
 		message = "Exception getting list of stored procedures from database \"" + dbName + "\" (" + e + ")";
         Message.printWarning(3, routine, message);
         Message.printWarning(3, routine, e);
-        throw new Exception (message);	
+        throw new Exception (message);
 	}
 	if (rs == null) {
-		message = "Null result set getting procedure names";
+		message = "Null result set getting procedure names.";
         Message.printWarning(3, routine, message);
         throw new Exception (message);
 	}
-	
+
 	while (rs.next()) {
 		String proc = rs.getString("PROCEDURE_NAME");
 		if ( Message.isDebugOn ) {
-			Message.printDebug(dl, routine, "Procedure name to check = \"" + proc + "\"" );
+			Message.printDebug(dl, routine, "Procedure name to check = \"" + proc + "\"." );
 		}
-		// The SQL Server driver may return the procedure name with ";" and a number at the end.  If so
-		// strip it off for further processing.
+		// The SQL Server driver may return the procedure name with ";" and a number at the end.
+		// If so strip it off for further processing.
 		int pos = proc.indexOf(";");
 		if ( pos > 0 ) {
 			proc = proc.substring(0,pos);
 		}
 		if (proc.equalsIgnoreCase(procedureName)) {
-			// Using the following will close the related statement, which causes a problem on the 2nd call
-			// to this method.
+			// Using the following will close the related statement, which causes a problem on the 2nd call to this method.
 			//DMI.closeResultSet(rs);
 			rs.close();
 			if ( Message.isDebugOn ) {
-				Message.printDebug(dl, routine, "Database \"" + dbName + "\" DOES have stored procedure \"" +
-				procedureName + "\"" );
+				Message.printDebug(dl, routine, "Database \"" + dbName + "\" DOES have stored procedure \"" + procedureName + "\"." );
 			}
 			return true;
 		}
 	}
-	// Using the following will close the related statement, which causes a problem on the 2nd call
-	// to this method.
+	// Using the following will close the related statement, which causes a problem on the 2nd call to this method.
 	//DMI.closeResultSet(rs);
 	rs.close();
 	if ( Message.isDebugOn ) {
-		Message.printDebug(dl, routine, "Database \"" + dbName + "\" DOES NOT have stored procedure \"" +
-		procedureName + "\"" );
+		Message.printDebug(dl, routine, "Database \"" + dbName + "\" DOES NOT have stored procedure \"" + procedureName + "\"." );
 	}
 	return false;
 }
-	
+
 /**
 Determine whether a database has a table.
 @return true if the specified table is in the database, false if not.
@@ -970,11 +952,11 @@ Determine whether a database has a table.
 @exception Exception if there is an error getting database information.
 */
 public static boolean databaseHasTable ( DMI dmi, String tableName )
-throws Exception, SQLException	{	
+throws Exception, SQLException	{
 	if (!dmi.connected()) {
 		throw new SQLException ("Database not connected, cannot call DMIUtil.databaseHasTable()");
-	}	
-	
+	}
+
 	return databaseHasTable(dmi.getConnection().getMetaData(), tableName );
 }
 
@@ -986,36 +968,36 @@ Determine whether a database has a table.
 @exception if there is an error getting database information.
 */
 public static boolean databaseHasTable ( DatabaseMetaData metadata, String tableName )
-throws Exception {	
+throws Exception {
 	String message, routine = DMIUtil.class.getSimpleName() + ".databaseHasTable";
 	ResultSet rs = null;
 	int dl = 5;
 
-	// The following can be used to get a full list of columns...
+	// The following can be used to get a full list of columns.
 	try {
 	    rs = metadata.getTables ( null, null, null, null );
 		if ( rs == null ) {
 			message = "Error getting list of tables to find table \"" + tableName + "\".";
 			Message.printWarning ( 2, routine, message );
 			throw new Exception ( message );
-		} 
+		}
 		if ( Message.isDebugOn ) {
 			Message.printDebug ( dl, routine, "Database returned non-null table list." );
-		} 
-	} 
+		}
+	}
 	catch ( Exception e ) {
 		message = "Error getting list of tables to find table \"" + tableName + "\".";
 		Message.printWarning ( 2, routine, message );
 		throw new Exception ( message );
-	} 
+	}
 
-	// Now check for the table by looping through result set...
+	// Now check for the table by looping through result set.
 
 	boolean more = rs.next();
 
 	String s;
 	while ( more ) {
-		// The table name is field 3...
+		// The table name is field 3.
 
 		//if ( Message.isDebugOn ) {
 		//	Message.printDebug ( dl, routine, "Checking table " + count );
@@ -1024,23 +1006,23 @@ throws Exception {
 		if ( !rs.wasNull() ) {
 			s = s.trim();
 			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine, "Database has table \"" + s + "\"" );
-			} 
+				Message.printDebug ( dl, routine, "Database has table \"" + s + "\"." );
+			}
 			if ( s.equalsIgnoreCase(tableName) ) {
 				rs.close();
 				return true;
-			} 
-		}  
+			}
+		}
 		else {
 		    if ( Message.isDebugOn ) {
 				Message.printDebug ( dl, routine, "Database has null table." );
-			}  
-		} 
+			}
+		}
 
-		// Get the next item in the list...
+		// Get the next item in the list.
 
 		more = rs.next ();
-	} 
+	}
 	DMI.closeResultSet(rs);
 	return false;
 }
@@ -1054,11 +1036,11 @@ Determine whether a table in the database has a column.
 @exception if there is an error getting database information.
 */
 public static boolean databaseTableHasColumn ( DMI dmi, String tableName, String columnName )
-throws SQLException, Exception {	
+throws SQLException, Exception {
 	if (!dmi.connected()) {
 		throw new SQLException ("Database not connected, cannot call DMIUtil.databaseTableHasColumn()");
-	}	
-    boolean columnExists = databaseTableHasColumn ( dmi.getConnection().getMetaData(), tableName, columnName);	
+	}
+    boolean columnExists = databaseTableHasColumn ( dmi.getConnection().getMetaData(), tableName, columnName);
     if (!columnExists) {
         columnExists = databaseTableHasColumn( dmi.getConnection().getMetaData(),
                 tableName.toUpperCase(), columnName.toUpperCase());
@@ -1075,12 +1057,12 @@ Determine whether a table in the database has a column.
 @exception if there is an error getting database information.
 */
 public static boolean databaseTableHasColumn ( DatabaseMetaData metadata, String tableName, String columnName )
-throws Exception, SQLException {	
+throws Exception, SQLException {
 	String message, routine = DMIUtil.class.getSimpleName() + ".databaseTableHasColumn";
 	ResultSet rs = null;
 	int dl = 5;
 
-	// The following can be used to get a full list of columns...
+	// The following can be used to get a full list of columns.
 	//try {	rs = metadata.getColumns ( null, null, table_name, null );}
 	try {
 	    rs = metadata.getColumns ( null, null, tableName, columnName);
@@ -1088,22 +1070,22 @@ throws Exception, SQLException {
 			message = "Error getting columns for \"" + tableName+"\" table.";
 			Message.printWarning ( 2, routine, message );
 			throw new Exception ( message );
-		} 
-	} 
+		}
+	}
 	catch ( Exception e ) {
 		message = "Error getting database information for table \"" + tableName + "\".";
 		Message.printWarning ( 2, routine, message );
 		throw new Exception ( message );
-	} 
+	}
 
-	// Now check for the columns by looping through result set...
+	// Now check for the columns by looping through result set.
 
 	boolean more = rs.next();
 
 	String	s;
-	//Vector	column_names = new Vector ( 5, 5 );
+	//List	column_names = new List ( 5, 5 );
 	while ( more ) {
-		// The column name is field 4...
+		// The column name is field 4.
 
 		s = rs.getString(4);
 		if ( !rs.wasNull() ) {
@@ -1116,14 +1098,14 @@ throws Exception, SQLException {
 				return true;
 			}
 			//column_names.add ( s );
-		} 
+		}
 		else {
 		    if ( Message.isDebugOn ) {
 				Message.printDebug ( dl, routine, "Table \"" + tableName + "\" has null column" );
 			}
 		}
 
-		// Get the next item in the list...
+		// Get the next item in the list.
 
 		more = rs.next ();
 	}
@@ -1138,30 +1120,28 @@ throws Exception, SQLException {
 Escape an SQL field (column, table, or table with database and/or schema).
 This is necessary to ensure that fields that are reserved names do not get interpreted as such.
 For example, in SQL Server, [brackets] can be used around fields.
-If the input string contains a "(", then it is assumed that the field is specified using a function
-and no action is taken.
-If the input string contains a ".", then it is assumed that the database, schema, and/or table name precedes the
-field name and the string is split so that only the field name is escaped.
+If the input string contains a "(", then it is assumed that the field is specified using a function and no action is taken.
+If the input string contains a ".", then it is assumed that the database, schema,
+and/or table name precedes the field name and the string is split so that only the field name is escaped.
 @param dmi the DMI being used
-@param field the field being escaped, can be "Column", "Table.Column", "Schema.Table.Column" or "Database.Schema.Table.Column"
-(or omit the column).
+@param field the field being escaped, can be "Column", "Table.Column",
+"Schema.Table.Column" or "Database.Schema.Table.Column" (or omit the column).
 @return the escaped field
 */
-public static String escapeField ( DMI dmi, String field )
-{
+public static String escapeField ( DMI dmi, String field ) {
     if ( (field.indexOf('(') >= 0) ||
         (!"".equals(dmi.getFieldLeftEscape())) && (field.indexOf(dmi.getFieldLeftEscape()) >= 0) ) {
-        // Function or already escaped so probably too complicated to figure out here
+        // Function or already escaped so probably too complicated to figure out here.
         return field;
     }
     else {
-        // Escape the fields
-        String [] parts = field.split("\\."); // This is a regex; have to escape the '.'
+        // Escape the fields.
+        String [] parts = field.split("\\."); // This is a regex; have to escape the '.'.
         StringBuilder b = new StringBuilder();
         String le, re;
         for ( String part : parts ) {
             if ( part.startsWith(dmi.getFieldLeftEscape()) ) {
-                // Already escaped so no need to do so again
+                // Already escaped so no need to do so again.
                 le = "";
                 re = "";
             }
@@ -1183,10 +1163,10 @@ public static String escapeField ( DMI dmi, String field )
 /**
 Format a date/time string based on the database engine so that it can be used in an SQL statement.
 @param dmi DMI instance form which to format date.
-@param datetime a DateTime object containing a date.  The precision of this
-DateTime object controls the formatting of the string.
-@return a String representation of the DateTime, in the proper
-form for use with the specified database engine.
+@param datetime a DateTime object containing a date.
+The precision of this DateTime object controls the formatting of the string.
+@return a String representation of the DateTime,
+in the proper form for use with the specified database engine.
 */
 public static String formatDateTime ( DMI dmi, DateTime datetime )
 throws Exception {
@@ -1196,30 +1176,24 @@ throws Exception {
 /**
 Format a date/time string based on the database engine so that it can be used in an SQL statement.
 @param dmi DMI instance form which to format date.
-@param datetime a DateTime object containing a date.  The precision of this
-DateTime object controls the formatting of the string.
-@param escapeChar if true, the date will be wrapped with an escape character
-appropriate for the database engine.  
-@return a String representation of the DateTime, in the proper
-form for use with the specified database engine.
+@param datetime a DateTime object containing a date.
+The precision of this DateTime object controls the formatting of the string.
+@param escapeChar if true, the date will be wrapped with an escape character appropriate for the database engine.
+@return a String representation of the DateTime, in the proper form for use with the specified database engine.
 */
 public static String formatDateTime ( DMI dmi, DateTime datetime, boolean escapeChar )
-throws Exception
-{
+throws Exception {
     return formatDateTime ( dmi, datetime, escapeChar, -1 );
 }
 
 /**
 Format a date/time string based on the database engine so that it can be used in an SQL statement.
 @param dmi DMI instance form which to format date.
-@param datetime a DateTime object containing a date.  The precision of this
-DateTime object controls the formatting of the string.
-@param escapeChar if true, the date will be wrapped with an escape character
-appropriate for the database engine
-@param DateTime.PRECISION_* indicating the format of the output - if specified as -1, use the precision
-from the date/time
-@return a String representation of the DateTime, in the proper
-form for use with the specified database engine.
+@param datetime a DateTime object containing a date.
+The precision of this DateTime object controls the formatting of the string.
+@param escapeChar if true, the date will be wrapped with an escape character appropriate for the database engine
+@param DateTime.PRECISION_* indicating the format of the output - if specified as -1, use the precision from the date/time
+@return a String representation of the DateTime, in the proper form for use with the specified database engine.
 */
 public static String formatDateTime ( DMI dmi, DateTime datetime, boolean escapeChar, int precision )
 throws Exception {
@@ -1234,7 +1208,7 @@ throws Exception {
 	StringBuffer formatted = new StringBuffer();
 
 	if ( precision == -1 ) {
-	    // Default is to use precision from date/time
+	    // Default is to use precision from date/time.
 	    precision = datetime.getPrecision();
 	}
 	if ( precision <= DateTime.PRECISION_HOUR ) {
@@ -1247,8 +1221,7 @@ throws Exception {
 		second = StringUtil.formatString( datetime.getSecond(),"%02d");
 	}
 
-	// There are just enough differences between database engines to make
-	// reusing code difficult.  Just handle separately for each engine.
+	// There are just enough differences between database engines to make reusing code difficult.  Just handle separately for each engine.
 
 	if ( databaseEngineType == DMIDatabaseType.ACCESS ) {
 		// TODO How to handle month or year precision?
@@ -1275,7 +1248,7 @@ throws Exception {
 		return formatted.toString();
 	}
 	else if ( databaseEngineType == DMIDatabaseType.INFORMIX ) {
-		// TODO Need to check the INFORMIX documentation for all the variations on this...
+		// TODO Need to check the INFORMIX documentation for all the variations on this.
 		if (escapeChar) {
 			formatted.append ( "DATETIME (");
 		}
@@ -1329,7 +1302,7 @@ throws Exception {
 	}
 	else if ( (databaseEngineType == DMIDatabaseType.MYSQL) ||
 		(databaseEngineType == DMIDatabaseType.POSTGRESQL) ) {
-		// PostgreSQL datetimes must have at least year-month-day
+		// PostgreSQL datetimes must have at least year-month-day.
 		if (escapeChar) {
 			formatted.append("'");
 		}
@@ -1369,7 +1342,7 @@ throws Exception {
  * "IN (item1, item2) OR item1 IS NULL)"
  */
 public static String formatIn (DMI dmi, String table, String column, Object [] items ) {
-	StringBuilder b = new StringBuilder(); // Blank unless items are added below
+	StringBuilder b = new StringBuilder(); // Blank unless items are added below.
 	int itemCount = 0;
 	boolean nullFound = false;
 	// Process if the list is non-empty.
@@ -1393,15 +1366,15 @@ public static String formatIn (DMI dmi, String table, String column, Object [] i
 			}
 		}
 	}
-	// Form the SQL
+	// Form the SQL.
 	if ( itemCount > 0 ) {
 		// Have some non-null items.
 		if ( nullFound ) {
-			// Wrap entire clause in extra ()
+			// Wrap entire clause in extra ().
 			b.insert(0, "(");
 		}
 		b.insert(0, table + "." + column + " IN (");
-		b.append(")"); // closing ) for IN ()
+		b.append(")"); // Closing ) for IN ().
 	}
 	if ( nullFound ) {
 		// Add additional clause because null was found in the list.
@@ -1410,7 +1383,7 @@ public static String formatIn (DMI dmi, String table, String column, Object [] i
 		}
 		b.append(table + "." + column + " IS NULL");
 		if ( itemCount > 0 ) {
-			b.append(")");  // Trailing parenthesis for full IN clause
+			b.append(")");  // Trailing parenthesis for full IN clause.
 		}
 	}
 	if ( (itemCount > 0) || nullFound ) {
@@ -1422,37 +1395,37 @@ public static String formatIn (DMI dmi, String table, String column, Object [] i
 }
 
 /**
-Formats a where clause given the field side (in the whereString) and the 
-is side (in the isString), and the kind of value that should be stored in the isString(type).
+Formats a where clause given the field side (in the whereString) and the is side (in the isString),
+and the kind of value that should be stored in the isString(type).
 @param whereString field name (checks are not performed on this)
 @param isString user-specified search criteria (checks are performed on this)
 @param type the expected isString type (e.g., STRING, INT, ... etc)
-@return a formatted where String if checks are satisfied, or null if an
-exception is thrown or 'NONE' if the format is not to be added as a where clause.
+@return a formatted where String if checks are satisfied,
+or null if an exception is thrown or 'NONE' if the format is not to be added as a where clause.
 @throws Exception if an error occurs farther down the stack
 */
-public static String formatWhere(String whereString, String isString, int type) 
+public static String formatWhere(String whereString, String isString, int type)
 throws Exception {
-	// initialize variables
+	// initialize variables.
 	String formatString = null;
 
-	// trim where and is Strings
+	// Trim where and is Strings.
 	whereString = whereString.trim();
 	isString = isString.trim();
-	
-	// check first for "is null" and "is not null" as the isString
+
+	// Check first for "is null" and "is not null" as the isString.
 	if ( isString.equalsIgnoreCase("is null") || isString.equalsIgnoreCase("is not null")) {
 		return whereString + " " + isString;
 	}
 
-	// check the isString and format an Integer type where clause
+	// Check the isString and format an Integer type where clause.
 	if ( type == StringUtil.TYPE_INTEGER || type == StringUtil.TYPE_DOUBLE ||
 		type == StringUtil.TYPE_FLOAT) {
 		formatString = formatWhereNumber(whereString, isString, type);
-	} 
+	}
 	else if (type == StringUtil.TYPE_STRING) {
 		formatString = formatWhereString(whereString, isString);
-	} 
+	}
 
 	return formatString;
 }
@@ -1460,20 +1433,20 @@ throws Exception {
 /**
 Determines if the numString is the expected type.
 @param type the type that numString should be
-@param numString the string to check 
-@return formatte where string 
+@param numString the string to check
+@return formatted where string
 */
 private static String formatWhereCheckNumber(int type, String numString) {
 	String formatString = null;
-	
+
 	// Determine if the numString is of the expected type. IF not, throw an Exception.
 	if (type == StringUtil.TYPE_INTEGER) {
 		Integer isInteger = Integer.valueOf(numString);
-		formatString = isInteger.toString();		
+		formatString = isInteger.toString();
 	}
 	else if (type == StringUtil.TYPE_DOUBLE || type == StringUtil.TYPE_FLOAT) {
 		Double isDouble = Double.valueOf(numString);
-		formatString = isDouble.toString();		
+		formatString = isDouble.toString();
 	}
 	return formatString;
 }
@@ -1483,8 +1456,8 @@ Formats the integer, double and float type where clauses.
 @param whereString field name (checks are not performed on this)
 @param isString user-specified search criteria (checks are performed on this)
 @param type one of INT, DOUBLE or FLOAT (static values defined in this class)
-@return a formatted where string if the checks are satisfied, null if an 
-exception is thrown, or 'NONE' if the format is not to be added as a where clause.
+@return a formatted where string if the checks are satisfied, null if an exception is thrown,
+or 'NONE' if the format is not to be added as a where clause.
 TODO (JTS 2003-03-04) Maybe rework so instead of returning null, returns an exception?
 */
 private static String formatWhereNumber(String whereString, String isString, int type)
@@ -1493,17 +1466,17 @@ throws Exception {
 		return "NONE";
 	}
 
-	// first check if this field is being queried for everything ('*' is
-	// treated, for RTi's purposes, as a valid numeric query).  If so,
-	// just return "NONE" so that this isn't added as a where clause.
+	// first check if this field is being queried for everything ('*' is treated,
+	// for RTi's purposes, as a valid numeric query).
+	// If so, just return "NONE" so that this isn't added as a where clause.
 	if (isString.trim().equals("*")) {
 		return "NONE";
 	}
 
 	String function = "DMIUtil.formatWhereNumber";
 	String formatString = null;
-	String firstOperator = null;		
-	String secondOperator = null;	
+	String firstOperator = null;
+	String secondOperator = null;
 	String isNumber = null;
 	String numberString = "";
 	String message = "";
@@ -1516,13 +1489,12 @@ throws Exception {
 				+ "\n= 550"
 				+ "\n<= 550"
 				+ "\nis null"
-				+ "\nis not null"		
+				+ "\nis not null"
 				+ "\n* (returns all records)";
 		message = message + exampleMessage;
 		betweenForNumber = "BETWEEN 12 AND 56";
 	}
-	else if (type == StringUtil.TYPE_DOUBLE ||
-		 type == StringUtil.TYPE_FLOAT) {
+	else if (type == StringUtil.TYPE_DOUBLE || type == StringUtil.TYPE_FLOAT) {
 		message = " is not a valid search criteria. Examples are";
 		exampleMessage = "\nBETWEEN 12.34 AND 56.78"
 				+ "\n= 1234.56"
@@ -1536,26 +1508,23 @@ throws Exception {
 
 	// isString cannot be empty. The user must supply a search criteria.
 	if (isString.length() == 0) {
-		Message.printWarning(2, function, "You must select an \"Is\""
-			+ " query criteria. Examples are:" + exampleMessage);
+		Message.printWarning(2, function, "You must select an \"Is\" query criteria. Examples are:" + exampleMessage);
 		return null;
 	}
-	
-	// check for BETWEEN searches
+
+	// Check for BETWEEN searches.
 	if (isString.startsWith("BETWEEN")) {
 		List<String> v = StringUtil.breakStringList(isString, " ", 0);
 
 		if (((String)v.get(0)).equalsIgnoreCase("BETWEEN")) {
-			// If the query is using BETWEEN searches, then it MUST
-			// adhere to the following format:
+			// If the query is using BETWEEN searches, then it MUST adhere to the following format:
 			// elementAt(0) = "BETWEEN"
 			// elementAt(1) = Integer or Double
 			// elementAt(2) = "AND"
 			// elementAt(3) = Integer or Double
-			// any other BETWEEN format is NOT accepted
-			// try will catch Vector out of bounds
-			try {	
-				// try will catch number format for the first value
+			// Any other BETWEEN format is NOT accepted try will catch List out of bounds.
+			try {
+				// Try will catch number format for the first value.
 				try {
 					formatWhereCheckNumber(type,(String)v.get(1));
 				}
@@ -1564,7 +1533,7 @@ throws Exception {
 					return null;
 				}
 
-				// determine if AND is present
+				// Determine if AND is present.
 				try {
 					String andString = (String)v.get(2);
 					if (!andString.equalsIgnoreCase("AND")) {
@@ -1575,27 +1544,27 @@ throws Exception {
 					}
 				}
 				catch(IndexOutOfBoundsException e) {
-					Message.printWarning(2, function, 
+					Message.printWarning(2, function,
 						"Missing 'AND' in the search criteria.\nBETWEEN searches "
 						+ "must be specified as follows:\n" + betweenForNumber);
 					return null;
 				}
 
-				// try will catch number format for the second value
+				// Try will catch number format for the second value.
 				try {
 					formatWhereCheckNumber(type, (String)v.get(3));
 				}
 				catch(Exception e6) {
 					Message.printWarning(2, function, (String)v.get(3)+message);
 					return null;
-				}		
-				
-				// Make sure that no more than 4 elements are present in the list
+				}
+
+				// Make sure that no more than 4 elements are present in the list.
 				if (v.size() > 4) {
-					Message.printWarning(2, function, 
+					Message.printWarning(2, function,
 						"Too many terms specified in the search criteria."
 						+ "\nBETWEEN searches must be specified as follows:"
-						+ "\n" + betweenForNumber);	
+						+ "\n" + betweenForNumber);
 				}
 
 				formatString = " " + (String)v.get(0)
@@ -1606,39 +1575,34 @@ throws Exception {
 				return whereString + formatString;
 			}
 			catch(IndexOutOfBoundsException e4) {
-				Message.printWarning(2, function, 
-					"BETWEEN searches must be specified as follows:" 
+				Message.printWarning(2, function,
+					"BETWEEN searches must be specified as follows:"
 					+ "\n" + betweenForNumber);
 				return null;
 			}
 		}
-	} 
-
-	// if the isString can successfully be decoded into a number
-	// then no operators where provided. Default to placing an '=' 
-	// in front of the number.
-	try  {
-		isNumber = formatWhereCheckNumber(type, isString);
-		formatString = " = " + isNumber.toString();		
 	}
 
-	// could not successfully decode the isString into the 
-	// expected number type. check to see if an operator(s)or 
-	// other characters prevented this.
+	// If the isString can successfully be decoded into a number then no operators where provided.
+	// Default to placing an '=' in front of the number.
+	try  {
+		isNumber = formatWhereCheckNumber(type, isString);
+		formatString = " = " + isNumber.toString();
+	}
+
+	// Could not successfully decode the isString into the expected number type.
+	// Check to see if an operator(s) or other characters prevented this.
 	catch(Exception e1) {
-		// this loop will build a numberString without the 
-		// operators so that we can decode the remaining 
-		// characters to ensure that a valid number type exist. 
-		// The operator(s)are concatenated with the numberString 
-		// if all the checks are passed.
+		// This loop will build a numberString without the operators so that we can decode the remaining.
+		// characters to ensure that a valid number type exist.
+		// The operator(s)are concatenated with the numberString if all the checks are passed.
 		int isLength = isString.length();
 		for (int currIndex = 0; currIndex < isLength; currIndex++) {
 			String currChar = String.valueOf(isString.charAt(currIndex)).trim();
 
 			// Check the first character which MUST be an operator. If not, throw an exception.
 			if (currIndex == 0) {
-				// if the first character is not '=', 
-				// '<', or '>' then throw an exception
+				// If the first character is not '=', '<', or '>' then throw an exception.
 				if ( !(currChar.equals("=")) && !(currChar.equals("<")) && !(currChar.equals(">"))) {
 					try  {
 						formatWhereCheckNumber(type, isString);
@@ -1652,42 +1616,41 @@ throws Exception {
 					firstOperator = currChar;
 				}
 			}
-			// Check the second character which CAN be an operator if the first operator was '<' or '>'
+			// Check the second character which CAN be an operator if the first operator was '<' or '>'.
 			else if (currIndex == 1) {
-				// determine if a second operator exist
+				// Determine if a second operator exist.
 				if ( firstOperator.equals("<") || firstOperator.equals(">")) {
 					if (currChar.equals("=")) {
 						secondOperator = currChar;
-					}					
-					// build the number String
+					}
+					// Build the number String.
 					else {
 						numberString = currChar;
 					}
-				} 
-				// build the number String
+				}
+				// Build the number String.
 				else {
 					numberString = currChar;
 				}
 			}
-			// build the number String
+			// Build the number String.
 			else {
 				numberString += currChar;
 			}
-		} 
+		}
 
-		// decode the numberString to determine if it is the expected number type
+		// Decode the numberString to determine if it is the expected number type.
 		try  {
 			isNumber = formatWhereCheckNumber(type, numberString);
-			// numberString was successfully decoded.  Build the concatenated formatString
-			if (secondOperator != null) {			
-				formatString = " " + firstOperator + secondOperator + " " + isNumber.toString();		
+			// numberString was successfully decoded.  Build the concatenated formatString.
+			if (secondOperator != null) {
+				formatString = " " + firstOperator + secondOperator + " " + isNumber.toString();
 			}
 			else {
-				formatString = " " + firstOperator + " " + isNumber.toString();		
+				formatString = " " + firstOperator + " " + isNumber.toString();
 			}
 		}
-		// Could not successfully decode the numberString.
-		// issue a warning.
+		// Could not successfully decode the numberString so issue a warning.
 		catch(Exception e3) {
 			Message.printWarning(2, function, isString + message);
 			return null;
@@ -1705,7 +1668,7 @@ Formats the String type where clauses.
 TODO (JTS 2003-03-04)  Maybe throw an exception if the checks aren't satisfied?
 */
 private static String formatWhereString(String whereString, String isString) {
-	// initialize variables
+	// Initialize variables.
 	String function = "DMIUtil.formatWhereString()";
 	String formatString = null;
 	String likeString = null;
@@ -1715,7 +1678,7 @@ private static String formatWhereString(String whereString, String isString) {
 	String exampleMessage = "\nLike COLORADO"
 		+ "\n= COLORADO"
 		+ "\nis null"
-		+ "\nis not null"		
+		+ "\nis not null"
 		+ "\n*(returns all records)"
 		+ "\n\nNote:  Strings are converted to uppercase "
 		+ "for queries.";
@@ -1726,35 +1689,34 @@ private static String formatWhereString(String whereString, String isString) {
 			+ " query criteria. Examples are:" + exampleMessage);
 		return null;
 	}
-		
+
 	// Replace wild cards using * with the database's wildcard character.
 	String replacedString = isString;
-	try {		
+	try {
 		// char c = DMI._wildcard.charAt(0);
 		replacedString = replacedString.replace('*', '%');
 	}
 	catch (Exception e) {
-		// do nothing, _wildcard's length was < 1
+		// Do nothing, _wildcard's length was < 1.
 		e.printStackTrace();
 	}
 
-	// check for single quotes. if present issue warning and return null.
+	// Check for single quotes. if present issue warning and return null.
 	int isLength = isString.length();
 	if (checkSingleQuotes(isString)) {
 		Message.printWarning(2, function, "Single quotes are not permitted in queries. ");
 		return null;
 	}
 
-	// If the isString is a '*' or '%' then return a NONE so that this will
-	// not be added as a where clause. Issue a warning that ALL records will
-	// be returned.
+	// If the isString is a '*' or '%' then return a NONE so that this will not be added as a where clause.
+	// Issue a warning that ALL records will be returned.
         //if (isString.equals("*") || isString.equals(DMI._wildcard)) {
 //        if (isString.equals("*") || isString.equals("%")) {
 //		return "NONE";
 //	}
-	
+
 	// Determine if the replacedString begins with an '=' or 'Like' if not,
-	// we will supply the 'Like' syntax. recall that the replacedString
+	// will supply the 'Like' syntax. recall that the replacedString
 	// has been trimmed so it should begin with one of the following.
 	isLength = isString.length();
 	if (replacedString.substring(0, 1).equalsIgnoreCase("=")) {
@@ -1769,24 +1731,23 @@ private static String formatWhereString(String whereString, String isString) {
 			foundLike = true;
 		}
 	}
-	// user did not supply 'Like' or '=' therefore default to 'Like'
+	// User did not supply 'Like' or '=' therefore default to 'Like'.
 	if (!(foundLike)) {
 		likeString = "LIKE";
 		remainingString = replacedString.substring(0).trim();
 	}
-	
+
 	// Check to ensure that the remaining String begins and ends with '
-	// add the missing ' at the beginning of remainingString
+	// add the missing ' at the beginning of remainingString.
 	if (!(remainingString.startsWith("'"))) {
 		remainingString = "'" + remainingString;
 	}
-	// add the missing ' at the end of remainingString
+	// Add the missing ' at the end of remainingString.
 	if (!(remainingString.endsWith("'"))) {
 		remainingString = remainingString + "'";
 	}
 
-	// Loop over the remainingString to provide internal checks within the
-	// quotes
+	// Loop over the remainingString to provide internal checks within the quotes.
 	isLength = remainingString.length();
 
 	formatString = " " + likeString + " " + remainingString;
@@ -1795,26 +1756,26 @@ private static String formatWhereString(String whereString, String isString) {
 
 /**
 Constructs a concatenated String with AND inserted at the appropriate locations.
-@param and Vector of Strings in which to construct an AND clause
+@param and list of Strings in which to construct an AND clause
 @return returns a String with AND inserted at the appropriate locations, null if "and" is null
 */
 public static String getAndClause(List<String> and) {
-        if (and == null) {
-                return null;
-        }
+    if (and == null) {
+            return null;
+    }
 
-        int size = and.size();
-        String andString = "";
+    int size = and.size();
+    String andString = "";
 
-        for (int i = 0; i < size; i++) {
-            if ((i != (size - 1)) && (size != 1)) {
-                andString += and.get(i)+ " AND " ;
-            }
-            else {
-                andString += and.get(i);
-            }
+    for (int i = 0; i < size; i++) {
+        if ((i != (size - 1)) && (size != 1)) {
+            andString += and.get(i)+ " AND " ;
         }
-        return "(" + andString + ")";         
+        else {
+            andString += and.get(i);
+        }
+    }
+    return "(" + andString + ")";
 }
 
 /**
@@ -1833,8 +1794,7 @@ Return the list of columns for a table.
 @exception if there is an error getting database information.
 */
 public static List<String> getTableColumns ( DMI dmi, String tableName )
-throws Exception, SQLException
-{
+throws Exception, SQLException {
     return getTableColumns ( dmi.getDatabaseMetaData(), tableName );
 }
 
@@ -1846,29 +1806,29 @@ Return the list of column names for a table.
 @exception if there is an error getting database information.
 */
 public static List<String> getTableColumns ( DatabaseMetaData metadata, String tableName )
-throws Exception, SQLException {    
+throws Exception, SQLException {
 	String message, routine = DMIUtil.class.getSimpleName() + ".getTableColumns";
     ResultSet rs = null;
 
-    // The following can be used to get a full list of columns...
+    // The following can be used to get a full list of columns.
     try {
         rs = metadata.getColumns ( null, null, tableName, null );
         if ( rs == null ) {
             message = "Error getting columns for \"" + tableName+"\" table.";
             Message.printWarning ( 2, routine, message );
             throw new Exception ( message );
-        } 
-    } 
+        }
+    }
     catch ( Exception e ) {
         message = "Error getting database information for table \"" + tableName + "\".";
         Message.printWarning ( 2, routine, message );
         throw new Exception ( message );
     }
-    
+
     String columnName;
-    List<String> columnNames = new ArrayList<String>();
+    List<String> columnNames = new ArrayList<>();
     while ( rs.next() ) {
-        try {   
+        try {
             // Column name...
             columnName = rs.getString(4);
             if (!rs.wasNull()) {
@@ -1876,11 +1836,11 @@ throws Exception, SQLException {
             }
         }
         catch (Exception e) {
-            // continue getting the list of table names, but report the error.
+            // Continue getting the list of table names, but report the error.
             Message.printWarning(3, routine, e);
         }
-    } 
-    try {   
+    }
+    try {
         DMI.closeResultSet(rs);
     }
     catch (Exception e) {
@@ -1897,8 +1857,7 @@ Return the foreign table and column name corresponding to table and column that 
 @exception if there is an error getting database information.
 */
 public static String [] getTableForeignKeyTableAndColumn ( DMI dmi, String tableName, String columnName )
-throws Exception, SQLException
-{
+throws Exception, SQLException {
     return getTableForeignKeyTableAndColumn ( dmi.getDatabaseMetaData(), tableName, columnName );
 }
 
@@ -1912,7 +1871,7 @@ Return the list of columns that are a primary key for a table.
 */
 public static String [] getTableForeignKeyTableAndColumn ( DatabaseMetaData metadata,
     String tableName, String columnName )
-throws Exception, SQLException {    
+throws Exception, SQLException {
 	String message, routine = DMIUtil.class.getSimpleName() + ".getTableForeignKeyTableAndColumn";
     ResultSet rs = null;
 
@@ -1923,14 +1882,14 @@ throws Exception, SQLException {
             message = "Error getting foreign keys for \"" + tableName + "\" table.";
             Message.printWarning ( 2, routine, message );
             throw new Exception ( message );
-        } 
-    } 
+        }
+    }
     catch ( Exception e ) {
         message = "Error getting foreign keys for table \"" + tableName + "\".";
         Message.printWarning ( 2, routine, message );
         throw new Exception ( message );
     }
-    
+
     String mainColumn = null;
     //String mainTable = null;
     String foreignTable = null;
@@ -1938,14 +1897,14 @@ throws Exception, SQLException {
     String [] data = null;
     while ( rs.next() ) {
         try {
-            // Foreign table...
+            // Foreign table.
             foreignTable = rs.getString(3);
             foreignColumn = rs.getString(4);
-            // The table initiating the request (the ones that has keys pointing to the foreign table)...
+            // The table initiating the request (the ones that has keys pointing to the foreign table).
             //mainTable = rs.getString(7);
             mainColumn = rs.getString(8);
             if ( columnName.equalsIgnoreCase(mainColumn) ) {
-                // Found the matching requested column
+                // Found the matching requested column.
                 data = new String[2];
                 data[0] = foreignTable;
                 data[1] = foreignColumn;
@@ -1955,11 +1914,11 @@ throws Exception, SQLException {
             //    "\", foreignTable=\"" + foreignTable + "\" foreignColumn=\"" + foreignColumn + "\"");
         }
         catch (Exception e) {
-            // continue getting the list of table names, but report the error.
+            // Continue getting the list of table names, but report the error.
             Message.printWarning(3, routine, e);
         }
-    } 
-    try {   
+    }
+    try {
         DMI.closeResultSet(rs);
     }
     catch (Exception e) {
@@ -1976,8 +1935,7 @@ Return the table column names that are for primary keys.
 @exception if there is an error getting database information.
 */
 public static List<String> getTablePrimaryKeyColumns ( DMI dmi, String tableName )
-throws Exception, SQLException
-{
+throws Exception, SQLException {
     return getTablePrimaryKeyColumns ( dmi.getDatabaseMetaData(), tableName );
 }
 
@@ -1989,7 +1947,7 @@ Return the list of columns that are a primary key for a table.
 @exception if there is an error getting database information.
 */
 public static List<String> getTablePrimaryKeyColumns ( DatabaseMetaData metadata, String tableName )
-throws Exception, SQLException {    
+throws Exception, SQLException {
 	String message, routine = DMIUtil.class.getSimpleName() + ".getTablePrimaryKeyColumns";
     ResultSet rs = null;
 
@@ -1999,30 +1957,30 @@ throws Exception, SQLException {
             message = "Error getting primary keys for \"" + tableName + "\" table.";
             Message.printWarning ( 2, routine, message );
             throw new Exception ( message );
-        } 
-    } 
+        }
+    }
     catch ( Exception e ) {
         message = "Error getting primary keys for table \"" + tableName + "\".";
         Message.printWarning ( 2, routine, message );
         throw new Exception ( message );
     }
-    
+
     String columnName;
-    List<String> columnNames = new ArrayList<String>();
+    List<String> columnNames = new ArrayList<>();
     while ( rs.next() ) {
-        try {   
-            // Column name...
+        try {
+            // Column name.
             columnName = rs.getString(4);
             if (!rs.wasNull()) {
                 columnNames.add(columnName.trim());
             }
         }
         catch (Exception e) {
-            // continue getting the list of table names, but report the error.
+            // Continue getting the list of table names, but report the error.
             Message.printWarning(3, routine, e);
         }
-    } 
-    try {   
+    }
+    try {
         DMI.closeResultSet(rs);
     }
     catch (Exception e) {
@@ -2033,49 +1991,46 @@ throws Exception, SQLException {
 
 /**
 Returns the catalog of database names in the connection, excluding known system databases.
-For example, if the JDBC connection is with a SQL Server "master" database, this will return the databases
-under that instance.
+For example, if the JDBC connection is with a SQL Server "master" database, this will return the databases under that instance.
 @param dmi an open, connected and not-null DMI connection to a database.
 @param removeSystemDatabases if true, remove the known system databases (this may take some work to keep up to date).
-@param notIncluded a list of all the database names that should not be included
-in the final list of database names.
-@return the list of databases names in the dmi's database instance.  null
-is returned if there was an error reading from the database.
+@param notIncluded a list of all the database names that should not be included in the final list of database names.
+@return the list of databases names in the dmi's database instance.
+null is returned if there was an error reading from the database.
 */
-public static List<String> getDatabaseCatalogNames(DMI dmi, boolean removeSystemDatabases, List<String> notIncluded)
-{
+public static List<String> getDatabaseCatalogNames(DMI dmi, boolean removeSystemDatabases, List<String> notIncluded) {
 	String routine = DMIUtil.class.getSimpleName() + ".getDatabaseCatalogNames";
-    // Get the name of the data.  If the name is null, it's most likely
-    // because the connection is going through ODBC, in which case the 
-    // name of the ODBC source will be used.
+    // Get the name of the data.
+	// If the name is null, it's most likely because the connection is going through ODBC,
+	// in which case the name of the ODBC source will be used.
     String dbName = dmi.getDatabaseName();
     if (dbName == null) {
         dbName = dmi.getODBCName();
     }
 
-    Message.printStatus(2, routine, "Getting catalog of databases");
+    Message.printStatus(2, routine, "Getting catalog of databases.");
     ResultSet rs = null;
     DatabaseMetaData metadata = null;
-    try {   
+    try {
         metadata = dmi.getConnection().getMetaData();
         rs = metadata.getCatalogs();
         if (rs == null) {
             Message.printWarning(2, routine, "Error getting catalog of databases.");
             return null;
-        } 
-    } 
+        }
+    }
     catch (Exception e) {
         Message.printWarning(2, routine, "Error getting catalog of databases.");
         Message.printWarning(2, routine, e);
         return null;
-    } 
+    }
 
     String catName;
-    List<String> dbNames = new Vector<String>();
+    List<String> dbNames = new ArrayList<>();
     try {
         while ( rs.next() ) {
-            try {   
-                // Table name...
+            try {
+                // Table name.
                 catName = rs.getString(1);
                 if (rs.wasNull()) {
                     catName = null;
@@ -2085,15 +2040,15 @@ public static List<String> getDatabaseCatalogNames(DMI dmi, boolean removeSystem
                 }
             }
             catch (Exception e) {
-                // continue getting the list of table names, but report the error.
+                // Continue getting the list of table names, but report the error.
                 Message.printWarning(2, routine, e);
             }
         }
     }
     catch ( Exception e ) {
-        // TODO SAM 2012-01-31 probably should not catch this but has been done historically
+        // TODO SAM 2012-01-31 probably should not catch this but has been done historically.
     }
-    try {   
+    try {
         DMI.closeResultSet(rs);
     }
     catch (Exception e) {
@@ -2102,7 +2057,7 @@ public static List<String> getDatabaseCatalogNames(DMI dmi, boolean removeSystem
 
     // Sort the list of database names in ascending order, ignoring case.
     dbNames = StringUtil.sortStringList(dbNames, StringUtil.SORT_ASCENDING, null, false, true);
-   
+
     // Additionally remove all the databases that were in the notIncluded parameter passed in to this method.
     if (notIncluded != null) {
         Message.printStatus(2, routine, "Removing requested databases from database list");
@@ -2123,9 +2078,9 @@ public static ResultSet getDatabaseFunctions(DMI dmi)
 throws SQLException {
 	String routine = DMIUtil.class.getSimpleName() + ".getDatabaseFunctions";
 
-    // Get the database name.  If the name is null, it's most likely
-    // because the connection is going through ODBC, in which case the 
-    // name of the ODBC source will be used.
+    // Get the database name.
+	// If the name is null, it's most likely because the connection is going through ODBC,
+	// in which case the name of the ODBC source will be used.
     String dbName = dmi.getDatabaseName();
     if (dbName == null) {
         dbName = dmi.getODBCName();
@@ -2138,7 +2093,7 @@ throws SQLException {
         //rs = metadata.getFunctions( dbName, dmi.getConnection().getSchema(), null);
         rs = metadata.getFunctions( dbName, null, null);
         return rs;
-    } 
+    }
     catch (Throwable e) {
         Message.printWarning(2, routine, "Error getting list of functions for database \"" + dbName + " (" + e + ").");
         Message.printWarning(2, routine, e);
@@ -2153,13 +2108,11 @@ The list of PROCEDURE_NAME is returned, which may not be unique if overloaded (s
 @param dmi an open, connected and not-null DMI connection to a database.
 @param removeSystemProcedures if true, remove the known system procedures
 (this may take some work to keep up to date).
-@param notIncluded a list of all the procedure names that should not be included
-in the final list of procedure names.
-@return the list of procedure names in the dmi's database.  null
-is returned if there was an error reading from the database.
+@param notIncluded a list of all the procedure names that should not be included in the final list of procedure names.
+@return the list of procedure names in the dmi's database.'
+null is returned if there was an error reading from the database.
 */
-public static List<String> getDatabaseProcedureNames(DMI dmi, boolean removeSystemProcedures,
-    List<String> notIncluded )
+public static List<String> getDatabaseProcedureNames(DMI dmi, boolean removeSystemProcedures, List<String> notIncluded )
 throws SQLException {
 	return getDatabaseProcedureNames(dmi, removeSystemProcedures, notIncluded, false);
 }
@@ -2174,8 +2127,8 @@ The list of PROCEDURE_NAME is returned unless returnSpecificName=true, in which 
 in the final list of procedure names.
 @boolean returnNameWithArgs return the PROCEDURE_NAME with argument list types,
 required when procedure names are overloaded
-@return the list of procedure names in the dmi's database.  null
-is returned if there was an error reading from the database.
+@return the list of procedure names in the dmi's database.
+null is returned if there was an error reading from the database.
 */
 public static List<String> getDatabaseProcedureNames(DMI dmi,
 	boolean removeSystemProcedures,
@@ -2184,9 +2137,9 @@ public static List<String> getDatabaseProcedureNames(DMI dmi,
 throws SQLException {
 	String routine = DMIUtil.class.getSimpleName() + ".getDatabaseProcedureNames";
     int dl = 25;
-    // Get the database name.  If the name is null, it's most likely
-    // because the connection is going through ODBC, in which case the 
-    // name of the ODBC source will be used.
+    // Get the database name.
+    // If the name is null, it's most likely because the connection is going through ODBC,
+    // in which case the name of the ODBC source will be used.
     String dbName = dmi.getDatabaseName();
     if (dbName == null) {
         dbName = dmi.getODBCName();
@@ -2202,12 +2155,12 @@ throws SQLException {
         Message.printStatus(2,routine,"Database " + dbName + " supports catalogs in procedure calls:" +
             metadata.supportsCatalogsInProcedureCalls());
         if ( !metadata.supportsStoredProcedures() ) {
-        	// Return empty list
+        	// Return empty list.
         	Message.printStatus(2, routine, "Database " + dbName + " driver does not support procedures");
         	return procNames;
         }
     	if ( databaseEngineType == DMIDatabaseType.SQLSERVER ) {
-    		// TODO SAM 2016-03-25 Seems like this does not work the same but cannot get it to work
+    		// TODO SAM 2016-03-25 Seems like this does not work the same but cannot get it to work.
     		rs = metadata.getProcedures( dbName, null, null);
     	}
     	else {
@@ -2216,14 +2169,14 @@ throws SQLException {
         if (rs == null) {
             Message.printWarning(2, routine, "Null result set getting procedure names.");
             return null;
-        } 
-    } 
+        }
+    }
     catch (Exception e) {
         Message.printWarning(2, routine, "Error getting list of procedures.  Aborting. (" + e + ").");
         Message.printWarning(2, routine, e);
         return null;
     }
-    
+
     while (rs.next()) {
         String proc = null;
         if ( returnNameWithArgs ) {
@@ -2236,8 +2189,8 @@ throws SQLException {
         if ( Message.isDebugOn ) {
             Message.printDebug(dl, routine, "Procedure name to check = \"" + proc + "\"" );
         }
-        // The SQL Server driver may return the procedure name with ";" and a number at the end.  If so
-        // strip it off for further processing.
+        // The SQL Server driver may return the procedure name with ";" and a number at the end.
+        // If so, strip it off for further processing.
         int pos = proc.indexOf(";");
         if ( pos > 0 ) {
             proc = proc.substring(0,pos);
@@ -2270,8 +2223,7 @@ throws SQLException {
             StringUtil.removeMatching(procNames,s,true);
         }
     }
-    // Using the following will close the related statement, which causes a problem on the 2nd call
-    // to this method.
+    // Using the following will close the related statement, which causes a problem on the 2nd call to this method.
     //DMI.closeResultSet(rs);
     rs.close();
     return procNames;
@@ -2280,16 +2232,16 @@ throws SQLException {
 /**
 Returns the ResultSet for procedures.  The ResultSet must be closed in calling code.
 @param dmi an open, connected and not-null DMI connection to a database.
-@return the ResultSet of procedures in the dmi's database.  null
-is returned if there was an error reading from the database.
+@return the ResultSet of procedures in the dmi's database.
+null is returned if there was an error reading from the database.
 */
 public static ResultSet getDatabaseProcedures(DMI dmi)
 throws SQLException {
 	String routine = DMIUtil.class.getSimpleName() + ".getDatabaseProcedures";
 
-    // Get the database name.  If the name is null, it's most likely
-    // because the connection is going through ODBC, in which case the 
-    // name of the ODBC source will be used.
+    // Get the database name.
+	// If the name is null, it's most likely because the connection is going through ODBC,
+	// in which case the name of the ODBC source will be used.
     String dbName = dmi.getDatabaseName();
     if (dbName == null) {
         dbName = dmi.getODBCName();
@@ -2301,13 +2253,13 @@ throws SQLException {
         Message.printStatus(2,routine,"Database " + dbName + " supports catalogs in procedure calls:" +
             metadata.supportsCatalogsInProcedureCalls());
         if ( !metadata.supportsStoredProcedures() ) {
-        	// Return empty list
+        	// Return empty list.
         	Message.printStatus(2, routine, "Database " + dbName + " driver does not support procedures");
         	return null;
         }
         rs = metadata.getProcedures( dbName, null, null);
         return rs;
-    } 
+    }
     catch (Throwable e) {
         Message.printWarning(2, routine, "Error getting list of procedures.  Aborting. (" + e + ").");
         Message.printWarning(2, routine, e);
@@ -2318,22 +2270,19 @@ throws SQLException {
 
 /**
 Returns the catalog of schema names for the connection, excluding known system schemas.
-For example, if the JDBC connection is with a SQL Server "master" database, this will return the databases
-under that instance.
+For example, if the JDBC connection is with a SQL Server "master" database, this will return the databases under that instance.
 @param dmi an open, connected and not-null DMI connection to a database.
 @param catalog the catalog
 @param removeSystemSchemas if true, remove the known system databases (this may take some work to keep up to date).
-@param notIncluded a list of all the database names that should not be included
-in the final list of database names.
-@return the list of databases names in the dmi's database instance.  null
-is returned if there was an error reading from the database.
+@param notIncluded a list of all the database names that should not be included in the final list of database names.
+@return the list of databases names in the dmi's database instance.
+null is returned if there was an error reading from the database.
 */
-public static List<String> getDatabaseSchemaNames(DMI dmi, String catalog, boolean removeSystemSchemas, List<String> notIncluded)
-{
+public static List<String> getDatabaseSchemaNames(DMI dmi, String catalog, boolean removeSystemSchemas, List<String> notIncluded) {
 	String routine = DMIUtil.class.getSimpleName() + ".getDatabaseSchemaNames";
-    // Get the name of the data.  If the name is null, it's most likely
-    // because the connection is going through ODBC, in which case the 
-    // name of the ODBC source will be used.
+    // Get the name of the data.  If the name is null,
+	// it's most likely because the connection is going through ODBC,
+	// in which case the name of the ODBC source will be used.
     String dbName = dmi.getDatabaseName();
     if (dbName == null) {
         dbName = dmi.getODBCName();
@@ -2344,11 +2293,11 @@ public static List<String> getDatabaseSchemaNames(DMI dmi, String catalog, boole
     DatabaseMetaData metadata = null;
     try {
         metadata = dmi.getConnection().getMetaData();
-        // TODO SAM 2013-07-22 SQL Server does not implement completely so just brute force below
+        // TODO SAM 2013-07-22 SQL Server does not implement completely so just brute force below.
         //if ( dmi.getDatabaseEngineType() == DMIDatabaseType.SQLSERVER ) {
         //    // Have to make the call without the catalog...
         if ( metadata.supportsSchemasInTableDefinitions() ) {
-        	// Schemas are not supported by all databases
+        	// Schemas are not supported by all databases:
         	// - empty list is processed below
             rs = metadata.getSchemas();
         //}
@@ -2358,33 +2307,33 @@ public static List<String> getDatabaseSchemaNames(DMI dmi, String catalog, boole
             if (rs == null) {
                 Message.printWarning(3, routine, "Error getting schemas.");
                 return null;
-            } 
+            }
         }
-    } 
+    }
     catch (Exception e) {
         Message.printWarning(3, routine, "Error getting schemas.");
         Message.printWarning(3, routine, e);
         return null;
-    } 
+    }
 
     String schema, cat;
-    List<String> schemas = new Vector<>();
+    List<String> schemas = new ArrayList<>();
     try {
         while ( rs.next() ) {
-            try {   
-                // Schema name...
+            try {
+                // Schema name.
                 schema = rs.getString(1);
                 if ( !rs.wasNull()) {
                     if ( (catalog == null) || (dmi.getDatabaseEngineType() == DMIDatabaseType.SQLSERVER) ) {
                         schemas.add(schema.trim());
                     }
                     else {
-                        // Check the catalog before adding
+                        // Check the catalog before adding.
                         // TODO SAM 2013-07-22 SQL Server does not seem to return catalog
                         cat = rs.getString(2);
                         Message.printStatus(2,routine,"schema=" + schema + " cat=" + cat );
                         if ( !rs.wasNull()) {
-                            // Have catalog
+                            // Have catalog.
                             if ( catalog.equalsIgnoreCase(cat) ) {
                                 schemas.add(schema.trim());
                             }
@@ -2393,16 +2342,16 @@ public static List<String> getDatabaseSchemaNames(DMI dmi, String catalog, boole
                 }
             }
             catch (Exception e) {
-                // continue getting the list of schemas, but report the error.
+                // Continue getting the list of schemas, but report the error.
                 Message.printWarning(3, routine, "Error getting schema information (" + e + ").");
                 Message.printWarning(3, routine, e);
             }
         }
     }
     catch ( Exception e ) {
-        // TODO SAM 2012-01-31 probably should not catch this but has been done historically
+        // TODO SAM 2012-01-31 probably should not catch this but has been done historically.
     }
-    try {   
+    try {
         DMI.closeResultSet(rs);
     }
     catch (Exception e) {
@@ -2411,10 +2360,10 @@ public static List<String> getDatabaseSchemaNames(DMI dmi, String catalog, boole
 
     // Sort the list of schemas in ascending order, ignoring case.
     schemas = StringUtil.sortStringList(schemas, StringUtil.SORT_ASCENDING, null, false, true);
-   
+
     // Additionally remove all the schemas that were in the notIncluded parameter passed in to this method.
     if (notIncluded != null) {
-        Message.printStatus(2, routine, "Removing requested schemas from schema list");
+        Message.printStatus(2, routine, "Removing requested schemas from schema list.");
         for ( String s : notIncluded ) {
             StringUtil.removeMatching(schemas,s,true);
         }
@@ -2425,21 +2374,20 @@ public static List<String> getDatabaseSchemaNames(DMI dmi, String catalog, boole
 /**
 Returns the list of table names in the database, excluding known system tables.
 @param dmi an open, connected and not-null DMI connection to a database.
-@param catalog if not null, a database name under a main database (such as database under SQL Server master
-database that corresponds to the connection).
+@param catalog if not null, a database name under a main database
+(such as database under SQL Server master database that corresponds to the connection).
 @param schema if not null, the schema for a database (such as used by Oracle)
 @param removeSystemTables if true, remove the known system tables (this may take some work to keep up to date).
-@param notIncluded a list of all the table names that should not be included
-in the final list of table names.
+@param notIncluded a list of all the table names that should not be included in the final list of table names.
 @return the list of table names in the dmi's database.  null
 is returned if there was an error reading from the database.
 */
 public static List<String> getDatabaseTableNames(DMI dmi, String catalog, String schema,
     boolean removeSystemTables, List<String> notIncluded) {
 	String routine = DMIUtil.class.getSimpleName() + ".getDatabaseTableNames";
-	// Get the name of the data.  If the name is null, it's most likely
-	// because the connection is going through ODBC, in which case the 
-	// name of the ODBC source will be used.
+	// Get the name of the data.
+	// If the name is null, it's most likely because the connection is going through ODBC,
+	// in which case the name of the ODBC source will be used.
 	String dbName = dmi.getDatabaseName();
 	if (dbName == null) {
 		dbName = dmi.getODBCName();
@@ -2449,35 +2397,34 @@ public static List<String> getDatabaseTableNames(DMI dmi, String catalog, String
 	ResultSet rs = null;
 	DatabaseMetaData metadata = null;
 	DMIDatabaseType databaseEngineType = dmi.getDatabaseEngineType();
-	try {	
+	try {
 		metadata = dmi.getConnection().getMetaData();
 		String [] typeArray = { "TABLE", "VIEW" };
 		if ( databaseEngineType == DMIDatabaseType.SQLSERVER ) {
-		    // SQL Server does not seem to recognize the type array so get all and then filter below
+		    // SQL Server does not seem to recognize the type array so get all and then filter below.
 		    typeArray = null;
 		}
 		rs = metadata.getTables(catalog, schema, null, typeArray);
 		if (rs == null) {
 			Message.printWarning(2, routine, "Error getting list of tables.  Aborting.");
 			return null;
-		} 
-	} 
+		}
+	}
 	catch (Exception e) {
 		Message.printWarning(2, routine, "Error getting list of tables.  Aborting.");
 		Message.printWarning(2, routine, e);
 		return null;
-	} 
+	}
 
-	// Loop through the result set and pull out the list of
-	// all the table names and the table remarks.  
-	Message.printStatus(2, routine, "Building table name list.");	
+	// Loop through the result set and pull out the list of all the table names and the table remarks.
+	Message.printStatus(2, routine, "Building table name list.");
 	String tableName;
 	String tableType;
-	List<String> tableNames = new ArrayList<String>();
+	List<String> tableNames = new ArrayList<>();
 	try {
     	while ( rs.next() ) {
-    		try {	
-    			// Table name...
+    		try {
+    			// Table name.
     		    tableName = rs.getString(3);
     			if (rs.wasNull()) {
     				tableName = null;
@@ -2485,12 +2432,12 @@ public static List<String> getDatabaseTableNames(DMI dmi, String catalog, String
     			else {
     			    if ( databaseEngineType == DMIDatabaseType.ORACLE ) {
     			        if ( tableName.startsWith("/") ) {
-    			            // See large number of tables with names like "/f1892dbb_LogicalBasicNetwork", type is "SYNONYM"
+    			            // See large number of tables with names like "/f1892dbb_LogicalBasicNetwork", type is "SYNONYM".
     			            continue;
     			        }
     			    }
     			}
-    	        // Table type...
+    	        // Table type.
                 tableType = rs.getString(4);
                 if (rs.wasNull()) {
                     tableType = null;
@@ -2499,8 +2446,8 @@ public static List<String> getDatabaseTableNames(DMI dmi, String catalog, String
                     Message.printDebug(10, routine, "Table \"" + tableName + "\" type is \"" + tableType + "\"" );
                 }
                 if ( removeSystemTables ) {
-                    // TODO SAM 2012-01-31 Should perhaps be able to check for system tables here but SQL
-                    // Server seems to call everything "TABLE" or "VIEW"
+                    // TODO SAM 2012-01-31 Should perhaps be able to check for system tables here,
+                	// but SQL Server seems to call everything "TABLE" or "VIEW".
                     if ( !tableType.equalsIgnoreCase("TABLE") && !tableType.equalsIgnoreCase("VIEW") ) {
                         tableName = null;
                     }
@@ -2510,15 +2457,15 @@ public static List<String> getDatabaseTableNames(DMI dmi, String catalog, String
                 }
     		}
     		catch (Exception e) {
-    			// continue getting the list of table names, but report the error.
+    			// Continue getting the list of table names, but report the error.
     			Message.printWarning(2, routine, e);
     		}
     	}
 	}
 	catch ( Exception e ) {
-	    // TODO SAM 2012-01-31 probably should not catch this but has been done historically
+	    // TODO SAM 2012-01-31 probably should not catch this but has been done historically.
 	}
-	try {	
+	try {
 		DMI.closeResultSet(rs);
 	}
 	catch (Exception e) {
@@ -2528,18 +2475,18 @@ public static List<String> getDatabaseTableNames(DMI dmi, String catalog, String
 	// Sort the list of table names in ascending order, ignoring case.
 	tableNames = StringUtil.sortStringList(tableNames, StringUtil.SORT_ASCENDING, null, false, true);
 
-	// Remove the list of system tables for each kind of database 
-	// (all database types have certain system tables)
+	// Remove the list of system tables for each kind of database
+	// (all database types have certain system tables).
 	// TODO SAM 2012-01-31 Should be able to do from metadata but SQL Server does not indicate system tables.
 	String [] systemTablePatternsToRemove = getSystemTablePatternsToRemove (dmi.getDatabaseEngineType() );
-	
+
 	if ( removeSystemTables ) {
 	    Message.printStatus(2, routine, "Removing system tables from table list.");
         for ( int i = 0; i < systemTablePatternsToRemove.length; i++ ) {
             StringUtil.removeMatching(tableNames,systemTablePatternsToRemove[i],true);
         }
 	}
-	
+
 	// Additionally remove all the tables that were in the notIncluded parameter passed in to this method.
 	if (notIncluded != null) {
 	    Message.printStatus(2, routine, "Removing requested tables from table list.");
@@ -2552,15 +2499,14 @@ public static List<String> getDatabaseTableNames(DMI dmi, String catalog, String
 
 /**
 Return a list of String containing defined ODBC Data Source Names.
-This method is only applicable on Windows operating systems.  The windows
-registry for "HKEY_CURRENT_USER: Software\ODBC\ODBC.INI\ODBC Data Sources" is
-read using the external shellcon.exe program.  This program must therefore be in the path.
-@return a list of String containing defined ODBC Data Source Names.  The
-list may be empty.
+This method is only applicable on Windows operating systems.
+The windows registry for "HKEY_CURRENT_USER: Software\ODBC\ODBC.INI\ODBC Data Sources" is read using the external shellcon.exe program.
+This program must therefore be in the path.
+@return a list of String containing defined ODBC Data Source Names.  The list may be empty.
 @param strip_general If true, strip general ODBC DSNs from the list (e.g., "Excel Files").
 */
-public static List<String> getDefinedOdbcDsn ( boolean strip_general )
-{	List<String> output = null;
+public static List<String> getDefinedOdbcDsn ( boolean strip_general ) {
+	List<String> output = null;
 	if (!IOUtil.isUNIXMachine()) {
 		try {
 			String [] command_array = new String[2];
@@ -2570,26 +2516,23 @@ public static List<String> getDefinedOdbcDsn ( boolean strip_general )
 			pm.saveOutput(true);
 			pm.run ();
 			output = pm.getOutputList();
-			//Message.printStatus ( 2, routine,
-			//"Exit status from shellcon for ODBC is: " +
-			//pm.getExitStatus() );
-			// Finish the process...
+			//Message.printStatus ( 2, routine, Exit status from shellcon for ODBC is: " + pm.getExitStatus() );
+			// Finish the process.
 			pm = null;
 		}
 		catch (Exception e) {
-			// Won't work if running as an Applet!
 			Message.printWarning (2, "DMIUtil.getDefinedOdbcDsn",e);
 			output = null;
 		}
 	}
 
-	List<String> available_OdbcDsn = new ArrayList<String>();
+	List<String> available_OdbcDsn = new ArrayList<>();
 	if ((output != null) && (output.size() > 0)) {
 		output = StringUtil.sortStringList (output, StringUtil.SORT_ASCENDING, null, false, true);
 		int size = output.size();
 		String odbc = "";
 		for (int i = 0; i < size; i++) {
-			odbc = ((String)output.get(i)).trim();
+			odbc = output.get(i).trim();
 			if ( strip_general &&
 				(odbc.regionMatches(true,0,"dBASE Files",0,11) ||
 				odbc.regionMatches(true,0,"Excel Files",0,11) ||
@@ -2606,8 +2549,7 @@ public static List<String> getDefinedOdbcDsn ( boolean strip_general )
 }
 
 /**
-This function determines the extreme integer value of the specified field 
-from the requested table via using max(field) or min(field).
+This function determines the extreme integer value of the specified field from the requested table via using max(field) or min(field).
 @param dmi the DMI to use.
 @param table table name.
 @param field table field to determine the max value of.
@@ -2618,7 +2560,7 @@ private static int getExtremeRecord(DMI dmi, String table, String field, String 
 	try {
 		String query = "select " + flag + "(" + field.trim() + ") from " + table.trim();
 		ResultSet rs = dmi.dmiSelect(query);
-	
+
 		int extreme = DMIUtil.MISSING_INT;
 		if (rs.next()) {
 			extreme = rs.getInt(1);
@@ -2638,7 +2580,7 @@ private static int getExtremeRecord(DMI dmi, String table, String field, String 
 }
 
 /**
-This function determines the max value of the specified integer field from the 
+This function determines the max value of the specified integer field from the
 requested table via using max(field) and the the specified DMI connection.
 @param dmi the DMI to use.
 @param table table name
@@ -2650,7 +2592,7 @@ public static int getMaxRecord(DMI dmi, String table, String field) {
 }
 
 /**
-This function determines the minimum value of the specified integer field from the 
+This function determines the minimum value of the specified integer field from the
 requested table via using min(field) and the the specified DMI connection.
 @param dmi the DMI to use.
 @param table table name
@@ -2667,22 +2609,22 @@ Constructs a concatenated String with OR inserted at the appropriate locations.
 @return returns a String with OR inserted at the appropriate locations, null if "or" is null
 */
 public static String getOrClause(List<String> or) {
-        if (or == null) {
-            return null;
-        }
+    if (or == null) {
+        return null;
+    }
 
-        int size = or.size();
-        String orString = "";
+    int size = or.size();
+    String orString = "";
 
-        for (int i = 0; i < size; i++) {
-            if ((i != (size - 1)) && (size != 1)) {
-                orString += or.get(i)+ " OR " ;
-            }
-            else {
-                orString += or.get(i);
-            }
+    for (int i = 0; i < size; i++) {
+        if ((i != (size - 1)) && (size != 1)) {
+            orString += or.get(i)+ " OR " ;
         }
-        return "(" + orString + ")";         
+        else {
+            orString += or.get(i);
+        }
+    }
+    return "(" + orString + ")";
 }
 
 /**
@@ -2733,7 +2675,7 @@ throws Exception {
 		comment = rs.getString(4);
 	}
 	DMI.closeResultSet(rs);
-	return comment;	
+	return comment;
 }
 
 /**
@@ -2743,33 +2685,31 @@ Returns the comment for a column in a SQL Server database.
 @param columnName the name of the column for which to return the comment.  Must not be null.
 @return the comment for a column in a SQL Server database.
 */
-public static String getSQLServerColumnComment(DMI dmi, String tableName, String columnName) 
+public static String getSQLServerColumnComment(DMI dmi, String tableName, String columnName)
 throws Exception {
     boolean doMeta = false;
     String comment = "   ";
     if ( doMeta ) {
-        
     }
     else {
     	String SQL = "SELECT * FROM ::fn_listextendedproperty('MS_Description'"
     		+ ",'user','dbo', 'table','" + tableName + "','column'"	+ ",'" + columnName + "')";
     	ResultSet rs = dmi.dmiSelect(SQL);
-    
+
     	boolean more = rs.next();
-    
+
     	if (more) {
     		comment = rs.getString(4);
     	}
     	DMI.closeResultSet(rs);
     }
-	return comment;	
+	return comment;
 }
 
 /**
 Return a list of system table name patterns to remove.  These are internal tables that should not be visible to users.
 */
-public static String [] getSystemTablePatternsToRemove ( DMIDatabaseType databaseEngineType )
-{
+public static String [] getSystemTablePatternsToRemove ( DMIDatabaseType databaseEngineType ) {
     String [] systemTablePatternsToRemove = new String[0];
     if ( databaseEngineType == DMIDatabaseType.ACCESS ) {
         String [] systemTablePatternsToRemove0 = {
@@ -2784,8 +2724,8 @@ public static String [] getSystemTablePatternsToRemove ( DMIDatabaseType databas
     }
     else if ( databaseEngineType == DMIDatabaseType.SQLSERVER ) {
         String [] systemTablePatternsToRemove0 = {
-        // Older SQL Server (pre 2005 ?)...
-        // Use .* for regex when glob * is needed - the following deals with ignoring case
+        // Older SQL Server (pre 2005 ?).
+        // Use .* for regex when glob * is needed - the following deals with ignoring case.
         "syscolumns",
         "syscomments",
         "sysdepends",
@@ -2808,8 +2748,8 @@ public static String [] getSystemTablePatternsToRemove ( DMIDatabaseType databas
         "sysconstraints",
         "syssegments",
         "dtproperties",
-        // Newer SQL Server (2005+ ?)...
-        // Use .* for regex when glob * is needed - the following deals with ignoring case
+        // Newer SQL Server (2005+ ?).
+        // Use .* for regex when glob * is needed - the following deals with ignoring case.
         "all_columns",
         "all_objects",
         "all_parameters",
@@ -2922,28 +2862,28 @@ public static String [] getSystemTablePatternsToRemove ( DMIDatabaseType databas
         };
         systemTablePatternsToRemove = systemTablePatternsToRemove0;
     }
-    else {  
+    else {
         // TODO SAM 2012-01-31 Unsure what tables are specific to other database types, this needs to be checked.
     }
     return systemTablePatternsToRemove;
 }
 
 /**
-Create a list of where clauses give an InputFilter_JPanel.  The InputFilter
-instances that are managed by the InputFilter_JPanel must have been defined with
+Create a list of where clauses give an InputFilter_JPanel.
+The InputFilter instances that are managed by the InputFilter_JPanel must have been defined with
 the database table and field names in the internal (non-label) data.
 @return a list of where clauses, each of which can be added to a DMI statement.
 @param dmi The DMI instance being used, which may be checked for specific formatting.
 @param panel The InputFilter_JPanel instance to be converted.
 */
-public static List<String> getWhereClausesFromInputFilter (	DMI dmi, InputFilter_JPanel panel )
-{	// Loop through each filter group.  There will be one where clause per filter group.
+public static List<String> getWhereClausesFromInputFilter (	DMI dmi, InputFilter_JPanel panel ) {
+	// Loop through each filter group.  There will be one where clause per filter group.
 	int nfg = panel.getNumFilterGroups ();
 	InputFilter filter;
-	List<String> where_clauses = new ArrayList<String>();
+	List<String> where_clauses = new ArrayList<>();
 	String where_clause="";	// A where clause that is being formed.
 	for ( int ifg = 0; ifg < nfg; ifg++ ) {
-		filter = panel.getInputFilter ( ifg );	
+		filter = panel.getInputFilter ( ifg );
 		where_clause = getWhereClauseFromInputFilter(dmi, filter, panel.getOperator(ifg));
 		if (where_clause != null) {
 			where_clauses.add(where_clause);
@@ -2953,8 +2893,8 @@ public static List<String> getWhereClausesFromInputFilter (	DMI dmi, InputFilter
 }
 
 /**
-Create a single where clause given an InputFilter.  The InputFilter
-instances that are managed by the InputFilter_JPanel must have been defined with
+Create a single where clause given an InputFilter.
+The InputFilter instances that are managed by the InputFilter_JPanel must have been defined with
 the database table and field names in the internal (non-label) data.
 @return a list of where clauses, each of which can be added to a DMI statement.
 @param dmi The DMI instance being used, which may be checked for specific formatting.
@@ -2966,49 +2906,48 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
 }
 
 /**
-Create a single where clause given an InputFilter.  The InputFilter
-instances that are managed by the InputFilter_JPanel must have been defined with
+Create a single where clause given an InputFilter.
+The InputFilter instances that are managed by the InputFilter_JPanel must have been defined with
 the database table and field names in the internal (non-label) data.
 @return a list of where clauses, each of which can be added to a DMI statement.
 @param dmi The DMI instance being used, which may be checked for specific formatting
 @param panel The InputFilter_JPanel instance to be converted
 @param operator the operator to use in creating the where clause
 @param upperCase if true, then the where clause for strings will be converted to upper case using
-the SQL upper() function - this is necessary for databases where a global case-insensitive
-option is not available
+the SQL upper() function - this is necessary for databases where a global case-insensitive option is not available
 */
 public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, String operator, boolean upperCase ) {
 	String routine = DMIUtil.class.getSimpleName() + ".getWhereClauseFromInputFilter";
-	// Get the selected filter for the filter group...
+	// Get the selected filter for the filter group.
 	if ( filter.getWhereLabel().trim().equals("") ) {
-		// Blank indicates that the filter should be ignored...
+		// Blank indicates that the filter should be ignored.
 		return null;
 	}
-	// Get the input type...
+	// Get the input type.
 	int input_type = filter.getInputType();
 	if ( filter.getChoiceTokenType() > 0 ) {
 		input_type = filter.getChoiceTokenType();
 	}
-	// Get the internal where...
+	// Get the internal where.
 	String whereSubject = filter.getWhereInternal();
 	if ( (whereSubject == null) || whereSubject.equals("") ) {
 	    return null;
 	}
-	// Get the user input...
+	// Get the user input.
 	String input = filter.getInputInternal().trim();
     if ( upperCase ) {
         input = input.toUpperCase();
     }
 	Message.printStatus(2,routine,"Internal input is \"" + input + "\"");
-	// Now format the where clause...
-	
+	// Now format the where clause.
+
 	String where_clause = null;
-	
+
 	if ( operator.equalsIgnoreCase(InputFilterCriterionType.INPUT_BETWEEN.toString()) ) {
 		// TODO - need to enable in InputFilter_JPanel.
 	}
 	else if ( operator.equalsIgnoreCase( InputFilterCriterionType.INPUT_CONTAINS.toString()) ) {
-		// Only applies to strings...
+		// Only applies to strings.
 	    if ( upperCase ) {
 	        where_clause = "upper(" + whereSubject + ") like '%" + input + "%'";
 	    }
@@ -3017,7 +2956,7 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
 	    }
 	}
 	else if ( operator.equalsIgnoreCase( InputFilterCriterionType.INPUT_ENDS_WITH.toString()) ) {
-		// Only applies to strings...
+		// Only applies to strings.
         if ( upperCase ) {
             where_clause = "upper(" + whereSubject + ") like '%" + input + "'";
         }
@@ -3035,31 +2974,31 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
 	        }
 		}
 		else {
-			// Number...
+			// Number.
 			where_clause = whereSubject + "=" + input;
 		}
 	}
 	else if ( operator.equalsIgnoreCase( InputFilterCriterionType.INPUT_GREATER_THAN.toString()) ) {
-		// Only applies to numbers (?)...
+		// Only applies to numbers (?).
 		where_clause = whereSubject + ">" + input;
 	}
 	else if ( operator.equalsIgnoreCase(InputFilterCriterionType.INPUT_GREATER_THAN_OR_EQUAL_TO.toString()) ) {
-		// Only applies to numbers (?)...
+		// Only applies to numbers (?).
 		where_clause = whereSubject + ">=" + input;
 	}
     else if ( operator.equalsIgnoreCase(InputFilterCriterionType.INPUT_IS_EMPTY.toString())){
         where_clause = whereSubject + "='' or where is null";
     }
 	else if ( operator.equalsIgnoreCase( InputFilterCriterionType.INPUT_LESS_THAN.toString()) ) {
-		// Only applies to numbers (?)...
+		// Only applies to numbers (?).
 		where_clause = whereSubject + "<" + input;
 	}
 	else if ( operator.equalsIgnoreCase( InputFilterCriterionType.INPUT_LESS_THAN_OR_EQUAL_TO.toString()) ) {
-		// Only applies to numbers (?)...
+		// Only applies to numbers (?).
 		where_clause = whereSubject + "<=" + input;
 	}
 	else if ( operator.equalsIgnoreCase(InputFilterCriterionType.INPUT_MATCHES.toString())){
-	    // Only applies to strings
+	    // Only applies to strings.
 	    if ( upperCase ) {
 	        where_clause = "upper(" + whereSubject + ")='" + input + "'";
 	    }
@@ -3068,10 +3007,10 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
 	    }
 	}
 	else if ( operator.equalsIgnoreCase(InputFilterCriterionType.INPUT_ONE_OF.toString()) ){
-		// TODO - need to enable in InputFilter_JPanel
+		// TODO - need to enable in InputFilter_JPanel.
 	}
 	else if ( operator.equalsIgnoreCase( InputFilterCriterionType.INPUT_STARTS_WITH.toString()) ) {
-		// Only applies to strings...
+		// Only applies to strings.
 	    if ( upperCase ) {
 	        where_clause = "upper(" + whereSubject + ") like '" + input + "%'";
 	    }
@@ -3080,7 +3019,7 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
 	    }
 	}
 	else {
-		// Unrecognized where...
+		// Unrecognized where.
 	    String message = "Unrecognized operator \"" + operator + "\"";
 		Message.printWarning ( 2, routine, message );
 		throw new InvalidParameterException(message);
@@ -3088,7 +3027,7 @@ public static String getWhereClauseFromInputFilter(DMI dmi, InputFilter filter, 
 	// TODO - need to handle is null, negative (not), when enabled in InputFilter_JPanel.
 	// TODO - need a clean way to enforce upper case input but
 	// also perhaps allow a property in the filter to override
-	// because a database may have mixed case in only a few tables...
+	// because a database may have mixed case in only a few tables.
 	//if ( dmi.uppercaseStringsPreferred() ) {
 		//where_clause = where_clause.toUpperCase();
 	//}
@@ -3120,7 +3059,7 @@ public static boolean isMissing(Boolean value) {
 
 /**
 Determines whether a date value is missing.
-@param value the date to be checked 
+@param value the date to be checked
 @return true if the date is missing, false if not
 */
 public static boolean isMissing(Date value) {
@@ -3254,7 +3193,7 @@ private static boolean isMissingDouble(double value) {
 	if ( Double.isNaN(value) ) {
 		return true;
 	}
-	// TODO SAM 2015-08-06 Remove the following if NaN works for missing
+	// TODO SAM 2015-08-06 Remove the following if NaN works for missing.
 	//if ((value > MISSING_DOUBLE_FLOOR) && (value < MISSING_DOUBLE_CEILING)) {
 	//	return true;
 	//}
@@ -3269,7 +3208,7 @@ Determines whether an int is missing.
 private static boolean isMissingInt(int value) {
 	if (value == MISSING_INT) {
 		return true;
-	} 
+	}
 	return false;
 }
 
@@ -3286,7 +3225,7 @@ private static boolean isMissingLong(long value) {
 }
 
 /**
-Uses Message.printDebug(1, ...) to print out the results stored in a 
+Uses Message.printDebug(1, ...) to print out the results stored in a
 list of lists (which has been returned from a call to processResultSet)
 */
 public static void printResults(List<List<Object>> v) {
@@ -3294,7 +3233,7 @@ public static void printResults(List<List<Object>> v) {
 }
 
 /**
-Uses Message.printDebug(1, ...) to print out the results stored in a 
+Uses Message.printDebug(1, ...) to print out the results stored in a
 list of lists (which has been returned from a call to processResultSet)
 */
 public static void printResults(List<List<Object>> v, String delim) {
@@ -3317,8 +3256,8 @@ The SQLException message, state, and error code are printed for each level of th
 @param routine Name of the routine that should be included in the message (can be null).
 @param e the exception that was thrown
 */
-public static void printSQLException( int dl, String routine, SQLException e)
-{	if (Message.isDebugOn) {
+public static void printSQLException( int dl, String routine, SQLException e) {
+	if (Message.isDebugOn) {
 		Message.printDebug( dl, routine, "SQL Exception:");
 		while (e != null) {
 			Message.printDebug(1, "", "  Message:   " + e.getMessage ());
@@ -3331,22 +3270,22 @@ public static void printSQLException( int dl, String routine, SQLException e)
 	}
 }
 
-/** 
+/**
 Takes a result set returned from a <b><code>SELECT</b></code> statement
 and transforms it into a list so that it can be returned and operated on more easily.<p>
-strings are entered into the resulting list as strings, but numeric 
+strings are entered into the resulting list as strings, but numeric
 values are entered in as the Java Wrapper objects that correspond to the kind of primitive they are. <p>
 e.g., <code>int</code>s will be entered into the vector as <code>Integer</code>
 s.  <code>float</code>s will be entered into the vector as <code>Float
 </code>s, and so on.<p>
-<b>Note:</b> Not all of the SQL data types are accounted for yet in this
-method.  For instance, <code>java.sql.Types.DISTINCT</code> has no code
-in place to transform it into something we can work with in a vector. 
-This may cause some odd errors, but there's little that can be done right 
-now.  Fortunately, such occurrences should be very rare.
+<b>Note:</b> Not all of the SQL data types are accounted for yet in this method.
+For instance, <code>java.sql.Types.DISTINCT</code> has no code
+in place to transform it into something we can work with in a list.
+This may cause some odd errors, but there's little that can be done right now.
+Fortunately, such occurrences should be very rare.
 @param rs the resultSet whose values will be entered into vector format
 @return a list containing all the values from the resultset
-@throws SQLException thrown by ResultSet.getMetaData(), 
+@throws SQLException thrown by ResultSet.getMetaData(),
 ResultSetMetaData.getColumnCount(), or any of the ResultSet.get[DataType]() methods
 */
 public static List<List<Object>> processResultSet(ResultSet rs) throws SQLException {
@@ -3357,25 +3296,25 @@ public static List<List<Object>> processResultSet(ResultSet rs) throws SQLExcept
 		Message.printDebug(dl, routine, "[method called]");
 	}
 
-	// Used for storing the type of each column in the resultSet
+	// Used for storing the type of each column in the resultSet.
 	List<Integer> types = new ArrayList<Integer>();
 
-	// The list which will be built containing the rows from the resultSet
+	// The list which will be built containing the rows from the resultSet.
 	List<List<Object>> results = new ArrayList<List<Object>>();
 
-	// Set up the types list 
-	ResultSetMetaData rsmd = rs.getMetaData();	
+	// Set up the types list.
+	ResultSetMetaData rsmd = rs.getMetaData();
 	int columnCount = rsmd.getColumnCount();
 	for (int i = 0; i < columnCount; i++) {
 		types.add(Integer.valueOf(rsmd.getColumnType(i + 1)));
 	}
 
 	while(rs.next()) {
-		List<Object> row = new ArrayList<Object>(0);
+		List<Object> row = new ArrayList<>(0);
 		for (int i = 0; i < columnCount; i++) {
 			Integer I = types.get(i);
 			int val = I.intValue();
-	
+
 			switch(val) {
 				case java.sql.Types.BIGINT:
 					row.add(Integer.valueOf(rs.getInt(i + 1)));
@@ -3384,28 +3323,28 @@ public static List<List<Object>> processResultSet(ResultSet rs) throws SQLExcept
 					row.add("java.sql.Types.BIT");
 					break;
 				case java.sql.Types.CHAR:
-					row.add(rs.getString(i + 1)); 
+					row.add(rs.getString(i + 1));
 					break;
 				case java.sql.Types.DATE:
-					row.add(rs.getDate(i + 1));  
+					row.add(rs.getDate(i + 1));
 					break;
 				case java.sql.Types.DECIMAL:
 					row.add(Double.valueOf(rs.getDouble(i + 1)));
 					break;
-				case java.sql.Types.DOUBLE:			
+				case java.sql.Types.DOUBLE:
 					row.add(Double.valueOf(rs.getDouble(i + 1)));
 					break;
 				case java.sql.Types.FLOAT:
-					row.add(Float.valueOf(rs.getFloat(i + 1)));  
+					row.add(Float.valueOf(rs.getFloat(i + 1)));
 					break;
 				case java.sql.Types.INTEGER:
-					row.add(Integer.valueOf(rs.getInt(i + 1)));  
+					row.add(Integer.valueOf(rs.getInt(i + 1)));
 					break;
 				case java.sql.Types.LONGVARBINARY:
 					row.add(rs.getBinaryStream(i + 1));
 					break;
 				case java.sql.Types.LONGVARCHAR:
-					row.add(rs.getString(i + 1)); 
+					row.add(rs.getString(i + 1));
 					break;
 				case java.sql.Types.NULL:
 					row.add("java.sql.Types.NULL");
@@ -3414,50 +3353,50 @@ public static List<List<Object>> processResultSet(ResultSet rs) throws SQLExcept
 					row.add("java.sql.Types.NUMERIC");
 					break;
 				case java.sql.Types.NVARCHAR:
-					row.add(rs.getString(i + 1));  
+					row.add(rs.getString(i + 1));
 					break;
 				case java.sql.Types.OTHER:
-					row.add(rs.getObject(i + 1)); 
+					row.add(rs.getObject(i + 1));
 					break;
 				case java.sql.Types.REAL:
-					row.add(Float.valueOf(rs.getFloat(i + 1))); 
+					row.add(Float.valueOf(rs.getFloat(i + 1)));
 					break;
 				case java.sql.Types.SMALLINT:
-					row.add(Integer.valueOf(rs.getInt(i + 1)));  
+					row.add(Integer.valueOf(rs.getInt(i + 1)));
 					break;
 				case java.sql.Types.TIME:
-					row.add(rs.getTime(i + 1));  
+					row.add(rs.getTime(i + 1));
 					break;
 				case java.sql.Types.TIMESTAMP:
-					row.add(rs.getTimestamp(i + 1));  
+					row.add(rs.getTimestamp(i + 1));
 					break;
 				case java.sql.Types.TINYINT:
-					row.add(Integer.valueOf(rs.getInt(i + 1)));  
+					row.add(Integer.valueOf(rs.getInt(i + 1)));
 					break;
 				case java.sql.Types.VARBINARY:
 					row.add(rs.getBinaryStream(i + 1));
 					break;
 				case java.sql.Types.VARCHAR:
-					row.add(rs.getString(i + 1));  
+					row.add(rs.getString(i + 1));
 					break;
 				default:
 					Message.printWarning(3, routine, "Unhandled database data type " + val );
 					break;
-			} // end switch
-		} // end for on columns
+			} // end switch.
+		} // End for on columns.
 		results.add(row);
-	} // end while on records
+	} // End while on records.
 	return results;
 }
 
 /**
-Queries a resultset's meta data for the names of the columns returned into the result set.  
+Queries a resultset's meta data for the names of the columns returned into the result set.
 @param rs the ResultSet for which the column names are desired
 @return a vector containing the names of the columns in order from 1 to X
-@throws SQLException thrown by ResultSet.getMetaData, 
+@throws SQLException thrown by ResultSet.getMetaData,
 ResultSetMetaData.getColumnCount or ResultSetMetaData.getColumnName
 */
-public static List<String> processResultSetColumnNames(ResultSet rs) 
+public static List<String> processResultSetColumnNames(ResultSet rs)
 throws SQLException {
 	String routine = DMIUtil.class.getSimpleName() + ".processResultSetColumnNames";
 	int dl = 25;
@@ -3465,20 +3404,19 @@ throws SQLException {
 	if (Message.isDebugOn) {
 		Message.printDebug(dl, routine, "[method called]");
 	}
-	List<String> names = new ArrayList<String>();
-	
+	List<String> names = new ArrayList<>();
+
 	ResultSetMetaData rsmd = rs.getMetaData();
 	int count = rsmd.getColumnCount();
-	
+
 	///////////////////////////////////////////////////////////////////
 	// Important Developer Note
-	///////////////////////////////////////////////////////////////////	
-	// when querying the names of columns from ResultSetMetaData, columns 
-	// are numbered from 1 to X, not from 0 to X. 
-	// 
-	// Furthermore, calling rsmd.getColumnName(0) did not throw an 
-	// exception, nor did it crash the program.  The code just hung.  
-	// Something to watch out for.
+	///////////////////////////////////////////////////////////////////
+	// When querying the names of columns from ResultSetMetaData,
+	// columns are numbered from 1 to X, not from 0 to X.
+	//
+	// Furthermore, calling rsmd.getColumnName(0) did not throw an exception,
+	// nor did it crash the program.  The code just hung.  Something to watch out for.
 
 	for (int i = 1; i <= count; i++) {
 		names.add(rsmd.getColumnName(i));
@@ -3521,13 +3459,13 @@ public static String removeCommentsFromSql ( String sql ) {
         pos1 = s.indexOf("--",pos1);
         pos2 = s.indexOf("\n",pos2);
         if ( pos2 < 0 ) {
-            // Go to the end of the string (-1 because incremented below)
+            // Go to the end of the string (-1 because incremented below).
             pos2 = s.length() - 1;
         }
         if ( (pos1 < 0) || (pos2 < 0) ) {
             break;
         }
-        // The following should work even if \r\n is used for new lines
+        // The following should work even if \r\n is used for new lines.
         s.delete(pos1,(pos2 + 1));
         lenRemoved = pos2 - pos1 + 1;
         // Reset the search start.
@@ -3546,7 +3484,7 @@ Removes a table from a database if the user has the permission to.
 @param tableName the name of the table to remove.
 @throws Exception if an error occurs
 */
-public static void removeTable(DMI dmi, String tableName) 
+public static void removeTable(DMI dmi, String tableName)
 throws Exception {
 	String SQL = null;
 
@@ -3559,19 +3497,19 @@ throws Exception {
 	else {
 		throw new Exception ("Unsupported database type: " + databaseEngine + " in 'removeTable'");
 	}
-	
+
 	dmi.dmiExecute(SQL);
 }
 
 /**
 Checks to see whether a result set has a column with the given name.  The check is case-sensitive.
 @param resultSet the result set to check.
-@param columnName the name of the column to search for in the result set.  
+@param columnName the name of the column to search for in the result set.
 The column name is checked with case sensitivity.
 @return true if the result set has a column with the given name, false if not.
 @throws Exception if an error occurs checking for the name.
 */
-public static boolean resultSetHasColumn(ResultSet resultSet, String columnName) 
+public static boolean resultSetHasColumn(ResultSet resultSet, String columnName)
 throws Exception {
 	ResultSetMetaData rsmd = resultSet.getMetaData();
 	int num = rsmd.getColumnCount();
@@ -3596,15 +3534,15 @@ X positions of the ERDiagram Tables.  Must not be null.
 @param erdYField the name of the column in the tables table that contains the
 Y positions of the ERDIagram Tables.  Must not be null.
 */
-private static void setTableXY(DMI dmi, ERDiagram_Table table, 
+private static void setTableXY(DMI dmi, ERDiagram_Table table,
 String tablesTableName, String tableField, String erdXField, String erdYField) {
-	String sql = "SELECT " + erdXField + ", " + erdYField + " FROM " 
+	String sql = "SELECT " + erdXField + ", " + erdYField + " FROM "
 		+ tablesTableName + " WHERE " + tableField + " = '" + table.getName() + "'";
 	try {
 		ResultSet rs = dmi.dmiSelect(sql);
 
 		boolean more = rs.next();
-	
+
 		if (more) {
 			double x = rs.getDouble(1);
 			if (!rs.wasNull()) {
@@ -3613,8 +3551,8 @@ String tablesTableName, String tableField, String erdXField, String erdYField) {
 			double y = rs.getDouble(2);
 			if (!rs.wasNull()) {
 				table.setY(y);
-			}				
-		}	
+			}
+		}
 		DMI.closeResultSet(rs);
 	}
 	catch (Exception e) {
@@ -3622,7 +3560,7 @@ String tablesTableName, String tableField, String erdXField, String erdYField) {
 	}
 }
 
-// TODO (JTS - 2003-04-22) Proof of concept of getting user privileges out of a table
+// TODO (JTS - 2003-04-22) Proof of concept of getting user privileges out of a table.
 public static void testPrivileges(DMI dmi, String tableName) {
 	try {
 		DatabaseMetaData metadata = null;
@@ -3647,7 +3585,7 @@ public static void testPrivileges(DMI dmi, String tableName) {
 	}
 }
 
-// TODO (JTS - 2003-04-22) Proof of concept of getting key information out of a table
+// TODO (JTS - 2003-04-22) Proof of concept of getting key information out of a table.
 public static void testKeys(DatabaseMetaData metadata, String tableName) {
 	Message.printStatus(2, "", "" + tableName + " foreign key info:");
 	ResultSet keysRS = null;
@@ -3655,7 +3593,7 @@ public static void testKeys(DatabaseMetaData metadata, String tableName) {
 	int keysSize = 0;
 	try {
 		keysRS = metadata.getImportedKeys(null, null, tableName);
-		keysV = new ArrayList<String>();
+		keysV = new ArrayList<>();
 		while (keysRS.next()) {
 			keysV.add(testKeysString(keysRS));
 		}
@@ -3669,7 +3607,7 @@ public static void testKeys(DatabaseMetaData metadata, String tableName) {
 
 	try {
 		keysRS = metadata.getExportedKeys(null, null, tableName);
-		keysV = new ArrayList<String>();
+		keysV = new ArrayList<>();
 		while (keysRS.next()) {
 			keysV.add(testKeysString(keysRS));
 		}
@@ -3682,12 +3620,11 @@ public static void testKeys(DatabaseMetaData metadata, String tableName) {
 	}
 }
 
-// TODO (JTS - 2003-04-22) Proof of concept of getting key information out of a table
+// TODO (JTS - 2003-04-22) Proof of concept of getting key information out of a table.
 public static String testKeysString(ResultSet rs) {
 	String s = null;
 	try {
-		s = "[" + rs.getString(3) + "." + rs.getString(4) + "] -> ["
-			+ rs.getString(7) + "." + rs.getString(8) + "]";
+		s = "[" + rs.getString(3) + "." + rs.getString(4) + "] -> [" + rs.getString(7) + "." + rs.getString(8) + "]";
 	}
 	catch (Exception e) {
 		e.printStackTrace();
@@ -3704,9 +3641,9 @@ This is useful for converting a distinct string query to the list of strings.
 but may be empty.
 @throws SQLException if an error occurs
 */
-public static List<String> toStringList ( ResultSet rs ) 
+public static List<String> toStringList ( ResultSet rs )
 throws SQLException {
-    List<String> v = new ArrayList<String>();
+    List<String> v = new ArrayList<>();
     int index = 1;
     String s;
     while ( rs.next() ) {
@@ -3726,7 +3663,7 @@ Message.printStatus(2, "", "----------------------------------------------");
 		DatabaseMetaData metadata = null;
 		metadata = dmi.getConnection().getMetaData();
 		ResultSet rs = metadata.getProcedureColumns( dmi.getDatabaseName(), null, procedure, null);
-		printResults(processResultSet(rs));	
+		printResults(processResultSet(rs));
 		rs.close();
 	}
 	catch (Exception e) {
