@@ -832,6 +832,12 @@ Is the graph a reference graph?  This is set at construction by checking the dis
 private boolean _is_reference_graph = false;
 
 /**
+ * Whether a raster graph single layout is used, only used by raster graph.
+ * This is set in compuateDataLimits() and is then reused throughout.
+ */
+private boolean doRasterGraphSingleLayout = false;
+
+/**
 If a reference graph, the index for the time series is selected in the
 TSViewGraphFrame class and passed in (so that the reference time series can be
 consistent between the main and reference graph canvases.
@@ -1809,6 +1815,11 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod ) {
 				}
 			}
 		}
+		
+		// Determine if raster graph should use single time series layout.
+	    if ( this.__leftYAxisGraphType == TSGraphType.RASTER ) {
+	    	this.doRasterGraphSingleLayout = doRasterGraphSingleLayout();
+	    }
 
 		// Left y-axis.
 
@@ -2330,9 +2341,8 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod ) {
 				this._data_lefty_limits = new GRLimits ( this._start_date.toDouble(), minValue, this._end_date.toDouble(), maxValue);
 			}
 	        else if ( this.__leftYAxisGraphType == TSGraphType.RASTER ) {
-	        	if ( (this.__tslist.size() == 1)
-	        		&& ((this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() != TimeInterval.YEAR)) ) {
-	        		// Single time series:
+   	     		if ( this.doRasterGraphSingleLayout ) {
+	        		// Single time series layout:
 	        		// - for month and day interval:
 	        		//   - X limits are 0 to 367 if daily, 1 to 13 if monthly (right side is at edge of next interval)
 	        		//   - Y limits are based on the year of the period of the time series
@@ -2378,9 +2388,7 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod ) {
 	        				day2 + 1 );                                  // Last day (newest) + 1 to allow for full day pixel to be drawn.
 	        		}
 	        	}
-	        	else if ( (this.__tslist.size() > 1)
-	       			|| ((this.__tslist.size() == 1)
-	       				&& (this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() == TimeInterval.YEAR)) ) {
+	        	else if ( !this.doRasterGraphSingleLayout ) {
 	        		// Multiple time series (or single year interval time series):
 	        		// - X limits are date/time limits
 	        		// - Y limits are 0 (top) to number of time series (bottom)
@@ -2810,12 +2818,12 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
         boolean includeNulls = false;
         List<TS> tslist = getTSListForAxes ( includeLeftYAxis, includeRightYAxis, includeNulls );
         int nts = tslist.size();
+
         if ( nts == 0 ) {
         	// No time series to process.
             return;
         }
-        else if ( (nts == 1)
-       		&& ((this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() != TimeInterval.YEAR)) ) {
+        else if ( this.doRasterGraphSingleLayout ) {
         	// Single time series:
         	// - Y-axis is years
         	// - Y-labels are whole numbers integer years from data period.
@@ -2827,8 +2835,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
        		// Y axis is the year.
        		while ( minlabels >= 3 ) {
        			if ( this._data_lefty_limits == null ) {
-       				Message.printWarning(3,routine,
-       					"Null left y-axis limits computing labels for for raster graph - unsupported time series interval?");
+       				Message.printWarning(3,routine, "Null left y-axis limits computing labels for for raster graph - unsupported time series interval?");
        				break;
        			}
        			else {
@@ -2851,8 +2858,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
         		}
         	}
         }
-        else if ( (nts > 1)
-       		|| ((nts == 1) && (this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() == TimeInterval.YEAR)) ) {
+        else if ( !this.doRasterGraphSingleLayout ) {
         	// Multiple time series or single year interval time series:
         	// - Y-axis is similar to period of record graph
         	// - labels will be between ticks since raster is a rectangular pixel
@@ -2939,10 +2945,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
 				this._end_date.toDouble(), // Right: period end.
 				0.0); // Top:  zero to allow for whitespace
 		}
-		else if ( (this.__leftYAxisGraphType == TSGraphType.RASTER) &&
-			((this.__tslist.size() > 1)
-       		|| ((this.__tslist.size() == 1)
-       			&& (this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() == TimeInterval.YEAR))) ) {
+		else if ( (this.__leftYAxisGraphType == TSGraphType.RASTER) && !this.doRasterGraphSingleLayout ) {
 			// Raster graph for multiple time series or single year-interval time series:
 			// - reverse the y-axis
 			// - use range 0 (top y) to time series size +1 (bottom y) to allow raster pixel boxes to be drawn
@@ -3191,8 +3194,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
         	// No time series to process.
             return;
         }
-        else if ( (nts == 1)
-   			&& ((this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() != TimeInterval.YEAR)) ) {
+        else if ( this.doRasterGraphSingleLayout ) {
         	// Single time series but not year interval:
         	// - X-axis is short time period (e.g., year for day or month interval)
         	// - Y-axis is historical years
@@ -3262,8 +3264,7 @@ private void computeLabels ( TSLimits limitsLeftYAxis, TSLimits limitsRightYAxis
         	this._da_lefty_graph.setDataLimits ( this._data_lefty_limits );
         	return;
         }
-        else if ( (nts > 1)
-   			|| ((nts == 1) && (this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() == TimeInterval.YEAR)) ) {
+        else if ( ! this.doRasterGraphSingleLayout ) {
         	// Multiple time series or single year interval time series:
         	// - X-axis is limits of time series
         	// - Y-axis is ordinal position for time series (first at the top), similar to period of record
@@ -3564,7 +3565,7 @@ private void computeXAxisDateTimePrecision ( ) {
 	if ( this.__tslist == null ) {
 		return;
 	}
-	
+
 	// TODO smalers, 2025-12-24 the following could be simplified since DateTime precision and TimeInterval are consistent,
 	// but use verbose code for now.
 
@@ -3701,7 +3702,7 @@ private void computeXAxisDateTimePrecision ( ) {
 			Message.printDebug ( 1, routine, this._gtype + "X axis date precision is day." );
 		}
 	}
-	
+
 	// Additionally, process the tracker for finer intervals:
 	// - for now allow the most granular precision
 	// - for ALERT/ALERT2 real-time data milliseconds are probably the smallest interval
@@ -4203,6 +4204,45 @@ private void doAnalysisAreaStacked () {
 }
 
 /**
+ * Determine whether a raster graph should use a single time series layout (time on both axes).
+ * This will be the case if one of the following conditions exists
+ * <ul>
+ * <li> Single time series and RasterGraphLayout=Multiple is not specified.</li>
+ * <li> Single time series and the time series interval is not YEAR.</li>
+ * </ul>
+ */
+private boolean doRasterGraphSingleLayout () {
+   	// Check whether multiple time series format should be used, even if one time series:
+	// - TODO smalers 2026-03-03 the following check could use a class data member to avoid lookups but get working first
+	boolean doRasterMultiple = false;
+	String layout = this._tsproduct.getLayeredPropValue("RasterGraphLayout", this.subproduct, -1, false);
+	if ( (layout != null) && layout.equalsIgnoreCase("Multiple") ) {
+   		doRasterMultiple = true;
+	}
+
+	if ( doRasterMultiple ) {
+		// Configuration indicates that multiple time series layout should be used.
+		return false;
+	}
+	else if ( this.__tslist.size() > 1 ) {
+  		// Have a multiple time series.
+  		return false;
+  	}
+  	else {
+  		// Have a single time series.
+  		TS ts = this.__tslist.get(0);
+  		if ( (ts != null) && ts.getDataIntervalBase() == TimeInterval.YEAR ) {
+  			// Year interval are always treated a multiple time series layout.
+  			return false;
+  		}
+  		else {
+  			// Single time series.
+  			return true;
+  		}
+  	}
+}
+
+/**
 Draws any annotations on the graph.  This method can be called multiple times,
 once with false before drawing data and then with true after data have been drawn.
 @param tsproduct the time series product being processed
@@ -4544,7 +4584,7 @@ private void drawAxesFront ( TSProduct tsproduct,
 	if ( this._is_reference_graph ) {
 		return;
 	}
-	
+
 	// Used for debugging during development.
 	boolean debug = false;
 
@@ -4626,8 +4666,7 @@ private void drawAxesFront ( TSProduct tsproduct,
 					ylabelsLeftYAxis, datalimLeftYAxisLabel.getRightX(),
 					GRAxisDimensionType.Y, "%." + leftYAxisPrecision + "f", GRText.RIGHT|GRText.CENTER_Y);
 			}
-			else if ( (leftYAxisGraphType == TSGraphType.RASTER)
-				&& ((this.__tslist.size() > 1) || ((this.__tslist.size() == 1) && (dataInterval == TimeInterval.YEAR))) ) {
+			else if ( (leftYAxisGraphType == TSGraphType.RASTER) && !this.doRasterGraphSingleLayout ) {
 				// Raster graph for multiple time series.
 				// The legend labels were previously calculated at the edges of time series pixels,
 				// but draw the labels shifted to the middle of the time series y-axis range.
@@ -4640,8 +4679,7 @@ private void drawAxesFront ( TSProduct tsproduct,
 					ylabelsLeftYAxis2, datalimLeftYAxisLabel.getRightX(),
 					GRAxisDimensionType.Y, "%." + leftYAxisPrecision + "f", GRText.RIGHT|GRText.CENTER_Y);
 			}
-			else if ( (leftYAxisGraphType == TSGraphType.RASTER) && (this.__tslist.size() == 1) &&
-				( (dataInterval == TimeInterval.HOUR) || (dataInterval == TimeInterval.MINUTE)) ) {
+			else if ( (leftYAxisGraphType == TSGraphType.RASTER) && this.doRasterGraphSingleLayout ) {
 				// Single time series raster graph:
 				// - Y-axis positioning uses absolute day
 				// - convert to a formatted date
@@ -5337,8 +5375,7 @@ private void drawGraphRaster ( TSProduct tsproduct, List<TS> tslist ) {
 	if ( nts == 0 ) {
 		return;
 	}
-	else if ( (nts == 1)
-  		&& ((this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() != TimeInterval.YEAR)) ) {
+	else if ( doRasterGraphSingleLayout ) {
 		// Single time series (but not year interval) is being drawn:
 		// - currently only day and month interval are supported
 		// - pass the product override properties, which will include the image map properties
@@ -5373,7 +5410,9 @@ private void drawGraphRaster ( TSProduct tsproduct, List<TS> tslist ) {
         drawLegendRaster ( tsproduct );
     }
 	else {
-		// Multiple time series (or single year interval time series):
+		// Multiple time series layout:
+		// - can be a single year interval time series
+		// - use if "RasterGraphLayout = "Multiple"
 		// - each row is a time series
 		// - pass the product override properties, which will include the image map properties
 		PropList overrideProps = tsproduct.getOverridePropList();
@@ -7881,7 +7920,7 @@ private void drawTSRenderRasterGraphMultiple ( List<TS> tslist, PropList overrid
     // Default color for missing data.
 	GRColor nodataColor = GRColor.white;
 	GRSymbolTable symtable = this.rasterSymbolTable;
-	
+
 	if ( overrideProps == null ) {
 		// Create a non-null list to simplify error handling.
 		overrideProps = new PropList("temp");
@@ -7909,7 +7948,7 @@ private void drawTSRenderRasterGraphMultiple ( List<TS> tslist, PropList overrid
     double width = this._da_lefty_graph.getPlotLimits(GRCoordinateType.DATA).getWidth();
     double height = this._da_lefty_graph.getPlotLimits(GRCoordinateType.DATA).getHeight();
     GRDrawingAreaUtil.fillRectangle(this._da_lefty_graph, x0Full, y0Full, width, height);
-    
+
     // If creating an image map file, open the file.
     String ImageMapFile = overrideProps.getValue("ImageMapFile");
     String ImageMapUrl = overrideProps.getValue("ImageMapUrl");
@@ -8133,7 +8172,7 @@ private void drawTSRenderRasterGraphMultiple ( List<TS> tslist, PropList overrid
 
         	if ( doImageMap && doImageMapData && doImageMapAreaCell ) {
         		// TODO smalers 2025-08-01 this can be optimized so that some property formating is only done for a new time series.
-        		
+
     		   	// At least one part of the data area shape should be output:
     		   	// - create an image map file line for the data rectangle area of the image
     		   	// - the image size will have been set when the product was set up
@@ -8214,7 +8253,7 @@ private void drawTSRenderRasterGraphMultiple ( List<TS> tslist, PropList overrid
    				href = " href=\"" + imageMapDataHref + "\"";
    			}
    			this.imageMapWriter.println("  " + area + href + title + target + ">");
-   			
+
    			// The shapes for the legend and closing the file are handled elsewhere.
    		}
     }
@@ -8474,7 +8513,7 @@ private void drawTSRenderRasterGraphSingle ( TS ts, PropList overrideProps ) {
 
        	if ( doImageMap && doImageMapData && doImageMapAreaCell ) {
        		// TODO smalers 2025-08-01 this can be optimized so that some property formating is only done for a new time series.
-        		
+
    		   	// At least one part of the data area shape should be output:
    		   	// - create an image map file line for the data rectangle area of the image
    		   	// - the image size will have been set when the product was set up
@@ -8537,7 +8576,7 @@ private void drawTSRenderRasterGraphSingle ( TS ts, PropList overrideProps ) {
 
             if ( doImageMap && doImageMapData && doImageMapAreaCell ) {
        		    // TODO smalers 2025-08-01 this can be optimized so that some property formating is only done for a new time series.
-        		
+
    		   	    // At least one part of the data area shape should be output:
    		   	    // - create an image map file line for the data rectangle area of the image
    		   	    // - the image size will have been set when the product was set up
@@ -8620,7 +8659,7 @@ private void drawTSRenderRasterGraphSingle ( TS ts, PropList overrideProps ) {
 			href = " href=\"" + imageMapDataHref + "\"";
 		}
 		this.imageMapWriter.println("  " + area + href + title + target + ">");
-   			
+
 		// The shapes for the legend and closing the file are handled elsewhere.
 	}
 
@@ -8715,12 +8754,12 @@ private void drawXAxisDateLabels ( TSGraphType graphType, boolean drawGrid ) {
 	if ( (yaxisDir != null) && yaxisDir.equalsIgnoreCase("" + GRAxisDirectionType.REVERSE) ) {
 	    yaxisDirReverse = true;
 	}
-	GRDrawingAreaUtil.setFont ( this._da_bottomx_label, fontname, fontstyle,	StringUtil.atod(fontsize) );
+	GRDrawingAreaUtil.setFont ( this._da_bottomx_label, fontname, fontstyle, StringUtil.atod(fontsize) );
 
 	// Raster graph with multiple time series has count of time series for Y axis with 1 at the top:
 	// - need to reverse the y-values so ticks are drawn in the correct location
 	// - single year-interval time series is handled as multiple but reversing 1 time series won't matter
-    if ( (graphType == TSGraphType.RASTER) && (this.__tslist.size() > 1) ) {
+    if ( (graphType == TSGraphType.RASTER) && !this.doRasterGraphSingleLayout ) {
 	    yaxisDirReverse = true;
     }
 
@@ -8787,8 +8826,7 @@ private void drawXAxisDateLabels ( TSGraphType graphType, boolean drawGrid ) {
     }
 
     if ( graphType == TSGraphType.RASTER ) {
-    	if ( (this.__tslist.size() == 1)
-    		&& ((this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() != TimeInterval.YEAR)) ) {
+    	if ( this.doRasterGraphSingleLayout ) {
     		// Single time series:
     		// - if time is involved, the values are interval ending
     		// - if only date, the value applies to the entire date (day or month)
@@ -10022,8 +10060,8 @@ public String formatMouseTrackerDataPoint ( GRPoint devpt, GRPoint datapt ) {
    				ts = (TS)datapt.associated_object;
    			}
    		}
-    	if ( (this.__tslist.size() == 1)
-    		&& ((this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() != TimeInterval.YEAR)) ) {
+    	if ( this.doRasterGraphSingleLayout ) {
+    		// Single time series layout.
     		String xString = "";
     		String yString = "";
     		String valueString = "";
@@ -10666,9 +10704,8 @@ private String getLegendString ( TS ts, int its ) {
 		legend = (its + 1) + ") " + legend;
 	}
 	else if ( this.__leftYAxisGraphType == TSGraphType.RASTER ) {
-		if ( (this.__tslist.size() > 1)
-    		|| ((this.__tslist.size() == 1)
-    			&& (this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() == TimeInterval.YEAR)) ) {
+		if ( !this.doRasterGraphSingleLayout ) {
+			// Multiple time series layout.
 			legend = (its + 1) + ") " + legend;
 		}
 	}
@@ -11646,8 +11683,7 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph ) {
 				}
 				else if (this.__leftYAxisGraphType == TSGraphType.RASTER) {
 				    // Reset the y-axis values to the year - use Max because don't allow zoom.
-					if ( (this.__tslist.size() == 1)
-						&& ((this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() != TimeInterval.YEAR)) ) {
+					if ( this.doRasterGraphSingleLayout ) {
     					// Single time series.
 						this._tslimits_lefty.setMinValue(this._max_tslimits_lefty.getDate1().getYear());
 						this._tslimits_lefty.setMaxValue(this._max_tslimits_lefty.getDate2().getYear() + 1);
@@ -11728,8 +11764,7 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph ) {
 					this._tslimits_righty.setMinValue( tslistToRender.size() + 1);
 				}
 				else if (this.__rightYAxisGraphType == TSGraphType.RASTER) {
-					if ( (this.__tslist.size() == 1)
-						&& ((this.__tslist.get(0) != null) && (this.__tslist.get(0).getDataIntervalBase() != TimeInterval.YEAR)) ) {
+					if ( this.doRasterGraphSingleLayout ) {
 						// Single time series that is not year interval.
 						// Reset the y-axis values to the year - use Max because don't allow zoom.
 						this._tslimits_righty.setMinValue(this._max_tslimits_righty.getDate1().getYear());
