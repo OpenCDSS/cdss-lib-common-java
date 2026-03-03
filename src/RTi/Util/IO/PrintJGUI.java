@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2025 Colorado Department of Natural Resources
+Copyright (C) 1994-2026 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -80,23 +80,14 @@ private static int		_fontsize = _default_fontsize;
 private static int		_lines_per_page = _default_lines_per_page;
 						// Lines per page.
 
-/* support later... 
-
-private static boolean          _isApplet;	// true if running an Applet,
-						// false otherwise
-private static AppletContext    _appletContext; // current applet context
-private static URL              _documentBase;	// complete URL of the HTML
-						// file that loaded the applet.
-*/
-
 /**
 Print to the local printer given the calling Frame and a vector of String's to
 print.  The default 10-point font is used.
 @param parent JFrame from which printing occurs.
 @param export list of String's to print.
 */
-public static void print ( JFrame parent, List<String> export )
-{	print ( parent, export, null );
+public static void print ( JFrame parent, List<String> export ) {
+	print ( parent, export, null );
 }
 
 /**
@@ -178,11 +169,6 @@ public static void print ( JFrame parent, List<String> export, PropList proplist
 	if ( (export != null) && (export.size() == 1) ) {
 		_export = StringUtil.breakStringList ( (String)export.get(0), "\n", 0 );
 	}
-/* support later.
-	_isApplet 	= isApplet;               
-	_appletContext 	= appletContext;     
-	_documentBase 	= documentBase;  
-*/
 
 	//
 	// determine if data exist in the Vector, if not, issue a warning.
@@ -218,45 +204,14 @@ public static void print ( JFrame parent, List<String> export, PropList proplist
 		_fontsize = StringUtil.atoi( prop_value );
 	}
        
-	// We always try to print to the local machine.  If we are trusted, we
-	// do it.  Otherwise, we try to write to the server if an applet.
-	try {	printToLocalPrinter( parent );
+	// Always try to print to the local machine.  If we are trusted, we do it.
+	try {
+		printToLocalPrinter( parent );
 	}
 	catch ( IOException e ) {
-		//
-		// Try export to browser if running from an Applet.
-		//
-
-/* Later we might allow output to a browser...
-
-		if ( isApplet ) {
-			if ( Message.isDebugOn ) {
-				Message.printDebug( 10, routine,
-				"Going to exportToBrowser()" );
-			}
-			try {	exportToBrowser();
-			}
-			catch ( IOException e2 ) {
-				Message.printWarning ( 1, routine,
-				"Cannot export to web server");
-			}
-		}
-*/
-
 	}
 }
 
-//-----------------------------------------------------------------------------
-//  Notes:
-//  (1)This function accepts a  TextArea. 
-//  (2)calls getListContents( MultiList list ) to get a formatted export Vector
-//  (3)calls export( Frame parent, Vector export )
-//-----------------------------------------------------------------------------
-//  Variables:	I/O	Description
-//  (I)parent - parent Frame object from which this call was made.
-//  (I)satus_TextField - status TextField to display statis to. May be null
-//  (I)textArea - TextArea object
-//-----------------------------------------------------------------------------                        
 /**
 Print to the local printer given the calling JFrame, a JTextArea to
 print, and a status JTextField.
@@ -518,8 +473,8 @@ the page height by the number of lines.</b></td>
 
 @see RTi.Util.Help.URLHelp
 */
-public static void print ( JDialog parent, List<String> export, PropList proplist )
-{	String	routine="PrintJGUI.export";
+public static void print ( JDialog parent, List<String> export, PropList proplist ) {
+	String	routine="PrintJGUI.export";
 
 	_parentJDialog 	= parent;
 	_export 	= export;
@@ -528,11 +483,6 @@ public static void print ( JDialog parent, List<String> export, PropList proplis
 	if ( (export != null) && (export.size() == 1) ) {
 		_export = StringUtil.breakStringList ( (String)export.get(0), "\n", 0 );
 	}
-/* support later.
-	_isApplet 	= isApplet;               
-	_appletContext 	= appletContext;     
-	_documentBase 	= documentBase;  
-*/
 
 	//
 	// determine if data exist in the Vector, if not, issue a warning.
@@ -568,48 +518,16 @@ public static void print ( JDialog parent, List<String> export, PropList proplis
 		_fontsize = StringUtil.atoi( prop_value );
 	}
        
-	// We always try to print to the local machine.  If we are trusted, we
-	// do it.  Otherwise, we try to write to the server if an applet.
-	try {	printToLocalPrinter( parent );
+	// Always try to print to the local machine.  If trusted, do it.
+	try {
+		printToLocalPrinter( parent );
 	}
 	catch ( IOException e ) {
-		//
-		// Try export to browser if running from an Applet.
-		//
-
-/* Later we might allow output to a browser...
-
-		if ( isApplet ) {
-			if ( Message.isDebugOn ) {
-				Message.printDebug( 10, routine,
-				"Going to exportToBrowser()" );
-			}
-			try {	exportToBrowser();
-			}
-			catch ( IOException e2 ) {
-				Message.printWarning ( 1, routine,
-				"Cannot export to web server");
-			}
-		}
-*/
-
 	}
 }
 
-//-----------------------------------------------------------------------------
-//  Notes:
-//  (1)This function accepts a  TextArea. 
-//  (2)calls getListContents( MultiList list ) to get a formatted export Vector
-//  (3)calls export( Frame parent, Vector export )
-//-----------------------------------------------------------------------------
-//  Variables:	I/O	Description
-//  (I)parent - parent Frame object from which this call was made.
-//  (I)satus_TextField - status TextField to display statis to. May be null
-//  (I)textArea - TextArea object
-//-----------------------------------------------------------------------------                        
 /**
-Print to the local printer given the calling JDialog, a JTextArea to
-print, and a status JTextField.
+Print to the local printer given the calling JDialog, a JTextArea to print, and a status JTextField.
 @param parent JDialog from which printing occurs.
 @param status_TextField JTextField to receive status messages.
 @param textArea JTextArea to print.
@@ -795,292 +713,10 @@ private static void printToLocalPrinter ( JDialog parent ) throws IOException
 		t.printStackTrace ();
 	}
 
-	// Now get rid of the graphics and end the job...
+	// Now get rid of the graphics and end the job.
 
 	pg.dispose();
-        pjob.end();
+    pjob.end();
 }
 
-/* Make available later...
-
-//-----------------------------------------------------------------------------
-//  Notes:
-//  This function exports the _export Vector to a BROWSER page if running an 
-//  Applet.
-//-----------------------------------------------------------------------------
-//  Variables:	I/O	Description
-//-----------------------------------------------------------------------------                        
-private static void exportToBrowser() throws IOException
-{
-	Socket	s = null;
-	String	fileName="", response, routine="HBExport.exportToBrowser", 
-		//server="arkansas.riverside.com";
-		server=HBSource.getDBHost();
-
-	try {
-		s = new Socket( server, 5150 );
-	}catch ( IOException e ){
-		Message.printWarning( 1, routine,
-		"Unable to connect to server: " + server );
-		return;
-	}
-
-	if ( Message.isDebugOn ) {
-		Message.printDebug( 2, routine,
-		"Successfully established connection with: " + server );
-	}
-
-	try {
-		PrintStream out;
-		DataInputStream din;
-		out = new PrintStream(s.getOutputStream());
-		din = new DataInputStream(s.getInputStream());
-
-		//
-		// Send the Password across.
-		//
-		out.print("ex&or!\n");
-		//
-		// Wait for the response.
-		//
-		response = din.readLine();
-
-		if( !response.equals( "Password OK" ) ){
-			Message.printWarning( 1, routine,
-		"Invalid response \"" + response + "\" retured." );
-			throw( 
-			new IOException( "Password not accepted." ) );
-		}
-		//
-		// Build the file name out of the program name, 
-		// user name, and a time stamp.
-		//
-		String date = "{0,date,yyyy.MM.dd.HH.mm.ss}";
-		MessageFormat mf = new MessageFormat( date );
-		Object[] o = new Object [ 1 ];
-		o[0]	= new Date();
-
-		fileName = 	
-			HBGUIApp.getProgramName() + "." +
-			HBGUIApp.getLogin() + "." +
-			mf.format(o).toString() + ".txt";
-
-		if ( Message.isDebugOn ) {
-			Message.printDebug( 10, routine,
-			"Sending across file name \"" + fileName + "\"." );
-		}
-		//
-		// Send the file name.
-		//
-		out.print(  fileName + "\n" );
-		//
-		// Wait for the response
-		//
-		response = din.readLine();
-
-		if( !response.equals( "Filename OK" ) ){
-			Message.printStatus(1, routine,
-		"Invalid response \"" + response + "\" retured." );
-			throw( 
-			new IOException( "Filename not accepted." ) );
-		}
-		if ( Message.isDebugOn ) {
-			Message.printDebug( 10, routine,
-			"Printing contents of Vector to file." );
-		}
-
-		for( int i=0; i<_export.size(); i++ ){
-			out.print( _export.elementAt(i).toString() );
-		}
-
-	}catch( IOException e ){
-	}finally {
-		try {
-			s.close();
-		}
-		catch ( IOException ie ){
-		}
-	}
-
-	//
-	// Send new page to the parent window.
-	//
-	try {
-		String string = "http://" + server + "/tmp/" + fileName;
-		URL url = new URL( string );
-		if ( Message.isDebugOn ) {
-			Message.printDebug( 10, routine,
-			"Attempting to show document: " + string );
-		}
-
-		_appletContext.showDocument( url, "_blank" );
-	}
-	catch (MalformedURLException Excep) {
-		Message.printWarning( 1, routine,
-		"Problem showing exported page to browser!" );
-		Message.printWarning( 1, routine, Excep.toString() );
-		return;
-	}
 }
-*/
-
-/* Enable later.  This is specific to a Symantec multilist...
-//-----------------------------------------------------------------------------
-//  Notes:
-//  (1)This function accepts a  MultiList object. 
-//  (2)calls getListContents( MultiList list ) to get a formatted export Vector
-//  (3)calls export( Frame parent, Vector export )
-//-----------------------------------------------------------------------------
-//  Variables:	I/O	Description
-//  (I)parent - parent Frame object from which this call was made.
-//  (I)satus_TextField - status TextField to display statis to. May be null
-//  (I)list - MultiList object
-//-----------------------------------------------------------------------------                        
-public static void exportListObject (	Frame parent,
-					TextField status_TextField,
-					MultiList list )
-{	String 	statusString;		// contains status information
-        int 	numRows;		// number of list rows  	
-			
-	numRows = list.getNumberOfRows();
-
-	// display status
-	statusString = "Exporting query results...";		   
-	parent.setCursor( new Cursor(Cursor.WAIT_CURSOR) );
-	if ( status_TextField != null ) {
-		status_TextField.setText( statusString );
-	}
-	Message.printStatus( 1, "HBExportGUI.exportListObject()", statusString );        
-      
-	// get the formatted export Vector for the list object
-	Vector export_Vector = new Vector( numRows, 5);
-	getListContents( list, export_Vector );
-
-	// export to file/browser page     
-	export( parent, export_Vector );
-
-	// display status
-	statusString = "Finished exporting.";		   
-	parent.setCursor( new Cursor(Cursor.DEFAULT_CURSOR) );
-	if ( status_TextField != null ) {
-		status_TextField.setText( statusString );
-	}
-	Message.printStatus( 1, "HBExportGUI.exportListObject()", statusString );        
-}
-
-/* Maybe support this later - this is specific to a Symantec multilst.
-
-//-----------------------------------------------------------------------------
-//  Notes:
-//  (1)This function accepts two MultiList objects. 
-//  (2)calls getListContents( MultiList list ) to get a formatted export Vector
-//  (3)calls export( Frame parent, Vector export )
-//-----------------------------------------------------------------------------
-//  Variables:	I/O	Description
-//  (I)parent - parent Frame object from which this call was made.
-//  (I)satus_TextField - status TextField to display statis to. May be null
-//  (I)first_list - MultiList object
-//  (I)second_list - MultiList object
-//-----------------------------------------------------------------------------                        
-public static void exportListObject (	Frame parent,
-					TextField status_TextField,
-					MultiList first_list,
-					MultiList second_list )
-{	String 	statusString;		// contains status information
-        int 	totRows;		// total number of rows
-			
-	totRows = first_list.getNumberOfRows() + second_list.getNumberOfRows();
-
-	// display status
-	statusString = "Exporting query results...";		   
-	parent.setCursor( new Cursor(Cursor.WAIT_CURSOR) );
-	if ( status_TextField != null ) {
-		status_TextField.setText( statusString );
-	}
-	Message.printStatus( 1, "HBExportGUI.exportListObject()", statusString );        
-      
-	// get the formatted export Vector for each  list object
-	Vector export_Vector = new Vector( totRows, 5);
-	getListContents( first_list, export_Vector );
-	getListContents( second_list, export_Vector );
-
-	// export to file/browser page     
-	export( parent, export_Vector );
-
-	// display status
-	statusString = "Finished exporting.";		   
-	parent.setCursor( new Cursor(Cursor.DEFAULT_CURSOR) );
-	if ( status_TextField != null ) {
-		status_TextField.setText( statusString );
-	}
-	Message.printStatus( 1, "HBExportGUI.exportListObject()", statusString );        
-}
-*/
-
-/* maybe support this later
-//-----------------------------------------------------------------------------
-//  Notes:
-//  (1)This function accept a MultiList object and formats a Vector containing
-//  headings and list contents for exporting. 
-//  (2)columns are deliminated via the user preference deliminator.
-//-----------------------------------------------------------------------------
-//  Variables:	I/O	Description
-//  (I)list - MultiList object
-//  (O)returns the headings and contents of the MultiList object as formatted
-//  for exporting. Columns are deliminated via the user preferenece export deliminator		
-//-----------------------------------------------------------------------------                        
-private static void getListContents( MultiList list, Vector export_Vector ) {
-        String[] 	headings,		// list headings
-			listItems;              // list items. Columns are 
-						// deliminated via ';'
-	String 		formatString,		// formatted export String
-			delim;			// export deliminator
-        int 		numRows,		// number of list rows  	
-			curRow,			// row counter
-			curCol,			// column counter
-			size;			// Vector and String[] sizes
-	Vector 		row_Vector;		// contains columns for the cuRow as elements
-
-	// get the export deliminator
-	delim = HBGUIApp.getValue("RunTime.ExportDelimiter").trim();
-	if ( delim.equals("[TAB]") ) {
-		delim = "\t";
-	}
-
-	// add headings to Vector
-	// NOTE: headings are NOT deliminated when returned from the list object
-	// get the list headings, list items, and number of rows
-	headings = list.getHeadings();
-        listItems = list.getListItems();
-	numRows = list.getNumberOfRows();
-	size = headings.length;
-	formatString = "";
-	for ( curCol=0; curCol < size; curCol++ ) {
-		formatString = formatString 
-				+ headings[curCol].trim() 
-				+ delim;
-	}
-       	export_Vector.addElement( formatString + "\n" );         	
-
-        // add list items to Vector
-	// NOTE: list ARE deliminated when returned from the list object via ';'
-        for (curRow=0; curRow<numRows; curRow++) {
-
-		formatString = "";
-		// add an extra ';' to the end of the selectedRowContents
-		// String so that the breakStringList will be able to detect
-		// all the columns
-		row_Vector = StringUtil.breakStringList(
-			listItems[curRow] + ";", ";", 0);		
-		size = row_Vector.size();
-		for ( curCol=0 ; curCol < size; curCol++ ) {
-			formatString = formatString 
-				  	+ row_Vector.elementAt( curCol ).toString().trim()
-					+ delim;
-		}
-        	export_Vector.addElement( formatString + "\n" );         
-        }           
-}
-*/
-
-} // end PrintJGUI class definition

@@ -88,13 +88,12 @@ The GUI interface appears as follows:
 The browser path is that specified by URLHelp.getBrowser() and the index is
 that specified by URLHelp.getIndexURL() (RTi in the past used
 the <tt>-browser Browser</tt> and <tt>-helpindex URL</tt> command-line
-arguments or applet parameters which are interpreted in the main program,
+arguments, which are interpreted in the main program,
 resulting in calls to URLHelp.setBrowser() and URLHelp.setIndexURL().
 Newer code uses the URLHelp.initialize() method to set up the help system.)
 The help topics are those read from the index file by the URLHelp.readIndex() function.
 A help topic can be selected and when "Get Help for Selected Topic" is pressed,
-the URL will be displayed in a stand-alone browser (if running as a stand-alone application)
-or into a blank browser page if running as an applet.
+the URL will be displayed in a stand-alone browser (if running as a stand-alone application).
 <p>
 
 It is envisioned that the selection of the browser and index will be enhanced

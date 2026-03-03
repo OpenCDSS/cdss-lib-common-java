@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2026 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -45,7 +45,6 @@ import java.util.List;
 
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
-import javax.swing.JApplet;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -935,7 +934,7 @@ public static void setWaitCursor(Component component, boolean state) {
 }
 
 /**
-Activates the wait cursor for a top-level Swing container (JFrame, JDialog, JApplet).
+Activates the wait cursor for a top-level Swing container (JFrame, JDialog).
 @param component the top-level component for which to set the wait cursor
 @param state whether to set the wait cursor to on (true) or off (false)
 @param useGlassPaneToInterceptEvents whether to use the glass pane on the component
@@ -956,9 +955,6 @@ public static void setWaitCursor(Component component, boolean state, boolean use
 		}
 		else if ( component instanceof JDialog ) {
 			glassPane = ((JDialog)component).getGlassPane();
-		}
-		else if ( component instanceof JApplet ) {
-			glassPane = ((JApplet)component).getGlassPane();
 		}
 		if (state) {
 			// Setting state to wait.

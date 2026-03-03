@@ -23,9 +23,6 @@ NoticeEnd */
 
 package RTi.Util.IO;
 
-import java.applet.Applet;
-import java.applet.AppletContext;
-
 import java.awt.Desktop;
 import java.awt.Toolkit;
 
@@ -93,18 +90,11 @@ To make the best use of this class, initialize from the main() or init() functio
 <p>
 
 <pre>
-// Called if an applet...
 public static final String PROGNAME = "myprog";
 public static final String PROGVER = "1.2 (12 Mar 1998)";
 
-public void init ()
-{	IOUtil.setApplet ( this );
-    IOUtil.setProgramData ( PROGNAME, PROGVER, null );
-}
-
-// Called if stand-alone...
-public static void main ( String argv )
-{	// The default is not an applet.
+// Called if stand-alone application.
+public static void main ( String argv ) {	
     IOUtil.setProgramData ( PROGNAME, PROGVER, argv );
 }
 </pre>
@@ -136,24 +126,6 @@ protected static final String UNIVERSAL_COMMENT_STRING = "#";
 Command-line arguments, guaranteed to be non-null but may be empty.
 */
 private static String _argv[] = new String[0];
-
-/**
-Applet, null if not an applet.
-This is typically not used because applets hav been phased out due to security risk.
-*/
-private static Applet _applet = null;
-
-/**
-Applet context.  Call setAppletContext() from init() of an application that uses this class.
-This is typically not used because applets hav been phased out due to security risk.
-*/
-private static AppletContext _applet_context = null;
-
-/**
-Document base for the applet.
-This is typically not used because applets hav been phased out due to security risk.
-*/
-private static URL _document_base = null;
 
 /**
 Program command file.
@@ -205,11 +177,6 @@ Indicates whether global data are initialized.
 private static boolean _initialized = false;
 
 /**
-Indicate whether the program is running as an applet.
-*/
-private static boolean _is_applet = false;
-
-/**
 Indicates whether the program is running in batch (non-interactive) or interactive GUI/shell.
 */
 private static boolean _is_batch = false;
@@ -218,11 +185,6 @@ private static boolean _is_batch = false;
 A property list manager that can be used globally in the application.
 */
 private static PropListManager _prop_list_manager = null;
-
-/**
-TODO SAM 2009-05-06 Seems to be redundant with _is_applet.
-*/
-private static boolean __runningApplet = false;
 
 /**
 Home directory for the application, typically the installation location (e.g., C:\Program Files\Company\AppName).
@@ -494,49 +456,109 @@ public static String enforceFileExtension ( String filename, String extension ) 
 /**
 Expand a configuration string property value using environment and Java runtime environment variables.
 If the string is prefixed with "Env:" then the string will be replaced with the environment variable of the matching name.
+The newer syntax ${env:EnvVar} is also recognized.
 If the string is prefixed with "SysProp:" then the string will be replaced with
-the JRE runtime system property of the same name.
+The newer syntax ${java:SysProp} is also recognized.
+the JVM runtime system property of the same name.
 Comparisons are case-sensitive and if a match is not found the original string will be returned.
 @param propName name of the property, used for messaging
 @param propValue the string property value to expand
 @return expanded property value
 */
 public static String expandPropertyForEnvironment ( String propName, String propValue ) {
+	String routine = IOUtil.class.getSimpleName() + ".expandPropertyForEnvironment";
     if ( propValue == null ) {
         return null;
     }
-    int pos = StringUtil.indexOfIgnoreCase(propValue,"Env:",0);
-    if ( (pos == 0) && (propValue.length() > 4) ) {
-        String env = System.getenv(propValue.substring(4));
-        if ( env != null ) {
-            return env;
-        }
-        else {
-            return propValue;
-        }
-    }
-    pos = StringUtil.indexOfIgnoreCase(propValue,"SysProp:",0);
-    if ( (pos == 0) && (propValue.length() > 8) ) {
-        String sys = System.getProperty(propValue.substring(8));
-        if ( sys != null ) {
-            return sys;
-        }
-        else {
-            return propValue;
-        }
-    }
+
+    // Prompt for the variable value:
+    // - no further expansion will occur
     if ( propValue.equalsIgnoreCase("Prompt") ) {
-        // Prompt for the value.
         System.out.print("Enter value for \"" + propName + "\": " );
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
         try {
             propValue = in.readLine().trim();
         }
         catch ( IOException e ) {
+        	Message.printWarning(3,routine,"Exception prompting for \"" + propName + "\".");
             propValue = "";
         }
     }
-    // No special case so return the original value.
+    else {    
+	    // Loop until there are no changes attempting to expand the string.
+	    String propValuePrev = propValue;
+	    while ( true ) {
+	    	if ( Message.isDebugOn ) {
+	    		Message.printStatus(2, routine, "String before expanding \"" + propName + "\" value \"" + propValue + "\".");
+	    	}
+	    	// Check for syntax: ${env:PropertyName}
+		    int pos = StringUtil.indexOfIgnoreCase(propValue,"${env:",0);
+		    if ( pos >= 0 ) {
+		    	// Get the closing bracket.
+		    	int pos2 = propValue.indexOf("}", pos);
+		    	if ( pos2 > 0 ) {
+		    		// Have a fully-formed property:
+		    		// - get the property name and get the environment variable value
+		    		String envVarName = propValue.substring((pos+6),pos2).trim();
+		    		String envVarValue = System.getenv(envVarName);
+		    		// Update the original string by replacing with the environment variable.
+		    		String prefix = "";
+		    		if ( pos > 0 ) {
+		    			prefix = propValue.substring(0,pos);
+		    		}
+		    		String suffix = "";
+		    		if ( pos2 < (propValue.length() - 1) ) {
+		    			suffix = propValue.substring(pos2 + 1);
+		    		}
+		    		propValue = prefix + envVarValue + suffix;
+		    	}
+		    }
+	    	
+	    	// Check legacy syntax:
+		    // - example: Env:VariableName
+		    // - only allowed at the start of the string
+		    pos = StringUtil.indexOfIgnoreCase(propValue,"Env:",0);
+		    if ( (pos == 0) && (propValue.length() > 4) ) {
+		        String env = System.getenv(propValue.substring(4));
+		        if ( env != null ) {
+		            return env;
+		        }
+		        else {
+		            return propValue;
+		        }
+		    }
+	
+	    	// Check legacy syntax:
+		    // - example: SysProp:VariableName
+		    // - only allowed at the start of the string
+		    pos = StringUtil.indexOfIgnoreCase(propValue,"SysProp:",0);
+		    if ( (pos == 0) && (propValue.length() > 8) ) {
+		        String sys = System.getProperty(propValue.substring(8));
+		        if ( sys != null ) {
+		            return sys;
+		        }
+		        else {
+		            return propValue;
+		        }
+		    }
+
+	    	if ( Message.isDebugOn ) {
+	    		Message.printStatus(2, routine, "String after expanding \"" + propName + "\" value \"" + propValue + "\".");
+	    	}
+		    
+		    // Check whether the current iteration of 'propValue' is the same.
+		    if ( propValue.equals(propValuePrev) ) {
+		    	// No change so break out and return.
+		    	break;
+		    }
+		    else {
+		    	// Something has changed so set as previous and iterate again.
+		    	propValuePrev = propValue;
+		    }
+	    }
+    }
+
+    // Return the original value or a value that was updated but can't be further expanded.
     return propValue;
 }
 
@@ -909,24 +931,6 @@ public static List<String> formatCreatorHeader ( String commentLinePrefix, int m
 }
 
 /**
-Get the Applet.
-@return The Applet instance set with setApplet().
-@see #setApplet
-*/
-public static Applet getApplet ( ) {
-	return _applet;
-}
-
-/**
-Get the AppletContext.
-@return The AppletContext instance set with setAppletContext.
-@see #setAppletContext
-*/
-public static AppletContext getAppletContext ( ) {
-	return _applet_context;
-}
-
-/**
 Returns the application home directory.  This is the directory from which log files,
 configuration files, documentation etc, can be located.
 Normally it is the installation home (e.g., C:\Program Files\RTi\TSTool-Version).
@@ -942,15 +946,6 @@ public static String getApplicationHomeDir() {
  */
 public static List<String> getApplicationPluginClasspath () {
 	return IOUtil.applicationPluginClasspathList;
-}
-
-/**
-Get the document base.
-@return The DocumentBase instance set when setApplet() is called.
-@see #setApplet
-*/
-public static URL getDocumentBase ( ) {
-	return _document_base;
 }
 
 /**
@@ -2359,7 +2354,7 @@ public static int getUriContent ( String uri, String outputFile, StringBuilder o
 }
 
 /**
-Determines JVM through which the application/applet is currently running
+Determines JVM through which the application is currently running.
 @return the vendor as SUN, MICROSOFT, etc...
 */
 public static int getVendor() {
@@ -2377,7 +2372,6 @@ public static int getVendor() {
 
 /**
 Initialize the global data.
-The setApplet() method should be called first in an applet to allow some of the if statements below to be executed properly.
 */
 private static void initialize () {
 	String routine = IOUtil.class.getSimpleName() + ".initialize";
@@ -2387,49 +2381,21 @@ private static void initialize () {
 		Message.printDebug ( dl, routine, "Initializing IOUtil..." );
 	}
 	try {
-	    // Put this in just in case we have security problems.
-		if ( _is_applet ) {
-			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine, "An applet!");
-			}
-			_command_file = "";
-			_command_list = null;
-			// TODO (JTS - 2005-06-06) should do some testing to see what the effects are
-			// of doing a host set like in the non-applet code below.  Possibilities I foresee:
-			// 1) applets lack the permission to get the hostname
-			// 2) applets return the name of the computer the user is physically working on.
-			// 3) applets return the name of the server on which the applet code actually resides.
-			// I have no way of knowing right now which one would
-			// be the case, and moreover, no time to test this.
-			_host = "web server/client/URL unknown";
-			_progname = "program name unknown";
-			_progver = "version unknown";
-			_user = "user unknown (applet)";
-			_working_dir = "dir unknown (applet)";
-			__homeDir = "dir unknown (applet)";
-		}
-		else {
-		    // A stand-alone application.
-			if ( Message.isDebugOn ) {
-				Message.printDebug ( dl, routine, "Not an applet!" );
-			}
-			_command_file = "";
-			_command_list = null;
-			_host = InetAddress.getLocalHost().getHostName();
-			_progname = "program name unknown";
-			_progver = "version unknown";
-			_user = System.getProperty("user.name");
-			_working_dir = System.getProperty ("user.dir");
-			__homeDir = System.getProperty ("user.dir");
-		}
-	} catch ( Exception e ) {
+	    // Put this in just in case have security problems.
+	    // A stand-alone application.
+		_command_file = "";
+		_command_list = null;
+		_host = InetAddress.getLocalHost().getHostName();
+		_progname = "program name unknown";
+		_progver = "version unknown";
+		_user = System.getProperty("user.name");
+		_working_dir = System.getProperty ("user.dir");
+		__homeDir = System.getProperty ("user.dir");
+	}
+	catch ( Exception e ) {
 		// Don't do anything.  Just print a warning.
 		Message.printWarning ( 3, routine, "Caught an exception initializing IOUtil (" + e + ").  Continuing." );
 	}
-
-	// Initialize the applet context.
-
-	_applet_context = null;
 
 	// Initialize the property list manager to contain an unnamed list.
 
@@ -2439,37 +2405,6 @@ private static void initialize () {
 	// Set the flag to know that the class has been initialized.
 
 	_initialized = true;
-}
-
-/**
-Return true if the program is an applet (must have set with setApplet).
-@see #setApplet
-*/
-public static boolean isApplet () {
-	return _is_applet;
-}
-
-/**
-Set whether the program is an Applet (often called by other routines).
-DO NOT CALL INITIALIZE BEFORE SETTING.
-THIS FUNCTION IS EXPECTED TO BE CALLED FIRST THING IN THE init() FUNCTION OF AN APPLET CLASS.
-THEN, initialize() WILL KNOW TO TREAT AS AN APPLET!
-initialize() is called automatically from this method.
-@param is_applet true or false, indicatign whether an Applet.
-@deprecated Use setApplet()
-@see #setApplet
-*/
-@Deprecated
-public static void isApplet ( boolean is_applet ) {
-	int dl = 1;
-
-	_is_applet = is_applet;
-	if ( Message.isDebugOn ) {
-		Message.printDebug ( dl, "IOUtil.isApplet", "set _is_applet to " + _is_applet );
-	}
-	// Force the reinitialization.  Problems may have occurred when IO
-	// first loaded if it did not know that we are running an Applet so reinitialize now.
-	initialize ();
 }
 
 /**
@@ -2550,13 +2485,6 @@ public static boolean isPortOpen(int port) {
 	catch (Exception e) {
 		return false;
 	}
-}
-
-/**
-Returns whether the program is running as an applet (must be set with setRunningApplet).
-*/
-public static boolean isRunningApplet() {
-	return __runningApplet;
 }
 
 /**
@@ -3075,40 +3003,6 @@ throws IOException {
 }
 
 /**
-Set the applet for a program.
-This is generally called from the init() method of an application.
-This method then saves the AppletContext and DocumentBase for later use.
-After calling with a non-null Applet, isApplet() will return true.
-@param applet The Applet for the application.
-@see #isApplet
-@see #getApplet
-@see #getAppletContext
-@see #getDocumentBase
-*/
-public static void setApplet ( Applet applet ) {
-	if ( applet != null ) {
-		_applet = applet;
-		_applet_context = applet.getAppletContext();
-		_document_base = applet.getDocumentBase();
-		_is_applet = true;
-	}
-	// Do this after setting the applet so that the initialization can check.
-	if ( !_initialized ) {
-		initialize ();
-	}
-}
-
-/**
-Set the AppletContext.  This is generally only called from low-level code (normally just need to call setApplet()).
-@param applet_context The AppletContext for the current applet.
-@see #setApplet
-@see #getAppletContext
-*/
-public static void setAppletContext ( AppletContext applet_context ) {
-	_applet_context = applet_context;
-}
-
-/**
 Sets the application home directory.
 This is a base directory that should only be set once during an application run.
 It is the base from which log files, system files, etc, can be located.
@@ -3206,7 +3100,7 @@ This is generally called from the main() or init() function of an application (o
 @param progname The program name.
 @param progver The program version, used in Help About and other information,
 can be a semantic version, version with date, etc., but version should always be the first string.
-@param argv The program command-line arguments (ignored if an Applet).
+@param argv The program command-line arguments
 @see #getProgramName
 @see #getProgramVersion
 @see #getProgramArguments
@@ -3330,16 +3224,6 @@ public static void setProp ( String key, Object prop ) {
 	}
 	// Set in the first list.
 	_prop_list_manager.setValue ( "", key, prop );
-}
-
-/**
-Sets whether the program is running as an applet.
-*/
-public static void setRunningApplet(boolean applet) {
-	if (!_initialized) {
-		initialize();
-	}
-	__runningApplet = applet;
 }
 
 /**

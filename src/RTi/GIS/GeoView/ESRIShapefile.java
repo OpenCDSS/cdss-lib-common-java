@@ -310,26 +310,23 @@ public static boolean isESRIShapefile ( String filename )
 }
 
 /**
-Read the three shapefile files, as appropriate (only the .dbf header will be
-read if reading attributes is false, which is the default).
+Read the three shapefile files, as appropriate (only the .dbf header will be read if reading attributes is false, which is the default).
 @exception IOException if an error occurs.
 */
 private void read ()
-throws IOException
-{	// Read the DBF file (do it first, for now)...
+throws IOException {
+	// Read the DBF file (do it first, for now).
 
 	if ( Message.isDebugOn ) {
 		Message.printDebug ( 1, "ESRIShapefile.read", "Reading layer attributes." );
 	}
-	if ( !IOUtil.isApplet() ) {
-		readDBF ( _dbf_file, _read_attributes );
-	}
+	readDBF ( _dbf_file, _read_attributes );
 
-	// Read the SHP file...
+	// Read the SHP file.
 
 	readSHP();
 
-	// Read the SHX file...
+	// Read the SHX file.
 
 	try {
 		readSHX();
