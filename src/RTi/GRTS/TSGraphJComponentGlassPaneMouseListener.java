@@ -154,7 +154,7 @@ public class TSGraphJComponentGlassPaneMouseListener implements MouseListener, M
         component.dispatchEvent(new MouseEvent(component,
         		e.getID(),
                 e.getWhen(),
-                e.getModifiers(),
+                e.getModifiersEx(),
                 glassPanePoint.x,
                 glassPanePoint.y,
                 e.getClickCount(),

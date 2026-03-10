@@ -110,7 +110,7 @@ doing a search of "\build\test" (by default) for all classes ending in
 
 <li>
 When TestUtil is adding test classes to the TestSuite, it does so by 
-dynamically instantiating the classes using Class.forName().newInstance();
+dynamically instantiating the classes using Class.forName().getDeclaredConstructor().newInstance();
 (For more information on Class.forName(), see 
 <a href="http://mindprod.com/jgloss/classforname.html">
 http://mindprod.com/jgloss/classforname.html</a>).  
@@ -507,8 +507,8 @@ public static Test suite(String packageName) {
 		// Only add the test classes in the TestsToRun file to the Test Suite.
 		for (int i = 0; i < tests.size(); i++) {
 			try {
-				// Instantiate the class
-				o = Class.forName(packageName + "." + tests.elementAt(i)).newInstance();
+				// Instantiate the class>
+				o = Class.forName(packageName + "." + tests.elementAt(i)).getDeclaredConstructor().newInstance();
 				c = o.getClass();
 
 				// Try to get the suite() method from the class.  If there is no suite()
@@ -570,7 +570,7 @@ public static Test suite(String packageName) {
 			for (int i = 0; i < size; i++) {
 				try {
 					// Instantiate the class
-					o = Class.forName(packageName + "." + v.elementAt(i)).newInstance();
+					o = Class.forName(packageName + "." + v.elementAt(i)).getDeclaredConstructor().newInstance();
 					c = o.getClass();
 
 					// Try to get the suite() method from the class.  If there is no suite()

@@ -182,7 +182,7 @@ private static MessageImpl getImpl() {
     Exception ex = null;
     if (prop != null) {
         try {
-            impl = (MessageImpl) Class.forName(prop).newInstance();
+            impl = (MessageImpl) Class.forName(prop).getDeclaredConstructor().newInstance();
         } catch (Exception e) {
             ex = e;
         }

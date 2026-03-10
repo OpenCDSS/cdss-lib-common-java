@@ -407,8 +407,8 @@ public void mouseMoved ( MouseEvent event ) {
 Handle mouse pressed event.  Just save a flag indicating what keys were active.
 */
 public void mousePressed ( MouseEvent e ) {
-	if ( ((e.getModifiers()&MouseEvent.SHIFT_MASK) != 0) ||
-		((e.getModifiers()&MouseEvent.CTRL_MASK) != 0) ) {
+	if ( ((e.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0) ||
+		((e.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0) ) {
 		_ctrl_pressed = true;
 	}
 }
