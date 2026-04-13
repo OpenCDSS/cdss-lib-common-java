@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2019 Colorado Department of Natural Resources
+Copyright (C) 1994-2026 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -41,13 +41,11 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
-import javax.swing.SwingUtilities;
 
 import RTi.Util.GUI.JGUIUtil;
 
 /**
-A panel to hold a list of GeoViewAnnotationData, to allow interaction such as clearing the list
-of annotations.
+A panel to hold a list of GeoViewAnnotationData, to allow interaction such as clearing the list of annotations.
 */
 @SuppressWarnings("serial")
 public class GeoViewAnnotationDataListJPanel extends JPanel implements ActionListener
@@ -61,7 +59,7 @@ private JList<String> __annotationJList = null;
 /**
 Data for the list.
 */
-private DefaultListModel<String> __annotationJListModel = new DefaultListModel<String>();
+private DefaultListModel<String> __annotationJListModel = new DefaultListModel<>();
 
 /**
 Indicate whether the component should be set invisible when the list is empty.
@@ -74,8 +72,8 @@ The list of annotations maintained in the GeoView.
 private List<GeoViewAnnotationData> __annotationDataList = null;
 
 /**
-The component that actually renders the annotations - need this if the popup menu changes the
-list of displayed annotations (such as clearing the list).
+The component that actually renders the annotations.
+This is needed if the popup menu changes the list of displayed annotations (such as clearing the list).
 */
 private GeoViewJComponent __geoView = null;
 
@@ -86,15 +84,14 @@ private String __RemoveAllAnnotationsString = "Remove All Annotations";
 
 /**
 Constructor.
-@param annotationDataList list of annotation data, if available (can pass null and reset the list
-later by calling setAnnotationData()).
-@param hideIfEmpty if true, set the panel to not visible if the list is empty - this may be appropriate
-if UI real estate is in short supply and annotations should only be shown if used
+@param annotationDataList list of annotation data, if available (can pass null and reset the list later by calling setAnnotationData()).
+@param hideIfEmpty if true, set the panel to not visible if the list is empty,
+may be appropriate if UI real estate is in short supply and annotations should only be shown if used
 */
 public GeoViewAnnotationDataListJPanel ( List<GeoViewAnnotationData> annotationDataList,
-	GeoViewJComponent geoView, boolean hideIfEmpty )
-{	super();
-	// Set up the layout manager
+	GeoViewJComponent geoView, boolean hideIfEmpty ) {
+	super();
+	// Set up the layout manager.
 	this.setLayout(new GridBagLayout());
 	this.setBorder(BorderFactory.createTitledBorder("Annotations"));
 	int y = 0;
@@ -108,25 +105,21 @@ public GeoViewAnnotationDataListJPanel ( List<GeoViewAnnotationData> annotationD
 		insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.SOUTH );
 	__hideIfEmpty = hideIfEmpty;
 	__geoView = geoView;
-	
-	// Add popup for actions on annotations
-	
+
+	// Add popup for actions on annotations.
+
 	final JPopupMenu popupMenu = new JPopupMenu();
 	JMenuItem removeAllAnnotationsJMenuItem = new JMenuItem(__RemoveAllAnnotationsString);
 	removeAllAnnotationsJMenuItem.addActionListener(this);
 	popupMenu.add(removeAllAnnotationsJMenuItem);
-	__annotationJList.addMouseListener(new MouseAdapter() {
-	     public void mouseClicked(MouseEvent me) {
-	         // if right mouse button clicked (or me.isPopupTrigger())
-	         if ( SwingUtilities.isRightMouseButton(me)
-	             //&& !__annotationJList.isSelectionEmpty()
-	             //&& __annotationJList.locationToIndex(me.getPoint())
-	             //== __annotationJList.getSelectedIndex()
-	             	) {
+	__annotationJList.addMouseListener(
+		new MouseAdapter() {
+			public void mouseClicked(MouseEvent me) {
+				if ( JGUIUtil.isRightMouseEvent(me) ) {
 	                 popupMenu.show(__annotationJList, me.getX(), me.getY());
-	             }
-	         }
-	     }
+	            }
+	        }
+	    }
 	);
 
 	checkVisibility();
@@ -135,15 +128,14 @@ public GeoViewAnnotationDataListJPanel ( List<GeoViewAnnotationData> annotationD
 /**
 Handle action events.
 */
-public void actionPerformed ( ActionEvent event )
-{
+public void actionPerformed ( ActionEvent event ) {
 	String action = event.getActionCommand();
 	if ( action.equals(__RemoveAllAnnotationsString) ) {
-		// Remove from the list and the original data that was passed in
+		// Remove from the list and the original data that was passed in.
 		__annotationJListModel.clear();
 		if ( __annotationDataList != null ) {
 			if ( __geoView != null ) {
-				__geoView.clearAnnotations(); // This will modify __annotationDataList
+				__geoView.clearAnnotations(); // This will modify __annotationDataList.
 			}
 		}
 		checkVisibility();
@@ -153,9 +145,8 @@ public void actionPerformed ( ActionEvent event )
 /**
 Add an annotation to the list.
 */
-public void addAnnotation ( GeoViewAnnotationData annotationData )
-{
-	// For now just add at the end...
+public void addAnnotation ( GeoViewAnnotationData annotationData ) {
+	// For now just add at the end.
 	if ( annotationData != null ) {
 		__annotationJListModel.addElement ( annotationData.getLabel() );
 	}
@@ -163,11 +154,9 @@ public void addAnnotation ( GeoViewAnnotationData annotationData )
 }
 
 /**
-Check the annotation list visibility.  If hideIfEmpty=true, then set to not visible if the list is
-empty.
+Check the annotation list visibility.  If hideIfEmpty=true, then set to not visible if the list is empty.
 */
-private void checkVisibility ()
-{
+private void checkVisibility () {
 	if ( __hideIfEmpty && __annotationJListModel.size() == 0 ) {
 		setVisible(false);
 	}
@@ -179,14 +168,13 @@ private void checkVisibility ()
 /**
 Set the annotation data and repopulate the list.
 */
-public void setAnnotationData ( List<GeoViewAnnotationData> annotationDataList )
-{
+public void setAnnotationData ( List<GeoViewAnnotationData> annotationDataList ) {
 	__annotationDataList = annotationDataList;
 	List<String> annotationLabelList = new Vector<String>(annotationDataList.size());
 	for ( GeoViewAnnotationData annotationData : annotationDataList ) {
 		annotationLabelList.add(annotationData.getLabel());
 	}
-	// Sort the array before adding
+	// Sort the array before adding.
 	Collections.sort(annotationLabelList);
 	__annotationJListModel = new DefaultListModel<String>();
 	for ( String annotationLabel: annotationLabelList ) {
@@ -199,8 +187,7 @@ public void setAnnotationData ( List<GeoViewAnnotationData> annotationDataList )
 /**
 Set the GeoView that is rendering the map.
 */
-public void setGeoView ( GeoViewJComponent geoView )
-{
+public void setGeoView ( GeoViewJComponent geoView ) {
 	__geoView = geoView;
 }
 

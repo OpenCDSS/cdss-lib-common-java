@@ -1252,6 +1252,7 @@ public static List<File> getFiles ( File startingFolder, boolean listRecursive, 
 	List<File> matchingFiles = new ArrayList<>();
 	if ( startingFolder == null ) {
 		// Could not find a starting folder, should not happen.
+		Message.printWarning(3, routine, "Starting folder is not specified.  Cannot list files.");
 		return matchingFiles;
 	}
 	String startingFolderString = startingFolder.getAbsolutePath();
