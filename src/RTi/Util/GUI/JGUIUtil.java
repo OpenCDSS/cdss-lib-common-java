@@ -33,7 +33,9 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.io.File;
 import java.io.FileWriter;
@@ -369,6 +371,41 @@ public static int indexOf (	JList<String> list, String item, boolean selected_on
 		}
 	}
 	return -1;
+}
+
+/**
+ * Indicate whether a mouse event is for a right mouse click.
+ * This should be called from the appropriate MouseEvent method such as mousePressed() or mouseReleased() to handle the event.
+ * The behavior of the mousePressed, mouseReleased, mouseClicked events various and can be confusing
+ * because of changes from deprecated MouseEvent.getModifiers() (returns small integers (1, 2, 3, 4, ...)
+ * and new MouseEvent.getModifiersEx() (returns BUTTON3_DOWN_MASK, etc.).
+ * The InputEvent.META_MASK (256) value may also be returned, which does not match BUTTON3_MASK (4)
+ * or BUTTON3_DOWN_MASK (4096).
+ * The MouseEvent.isPopupTrigger() call may properly indicate a right-click,
+ * but apparently only returns the correct value for mouseReleased().
+ * This method checks different criteria.
+ * @param event MouseEvent to evaluate
+ * @return true if the MouseEvent is for a right button event.
+ */
+public static boolean isRightMouseEvent ( MouseEvent event ) {
+	if ( event.getButton() == MouseEvent.BUTTON3 ) {
+		// Mouse event sometimes returns BUTTON3 (3) but may return 0.
+		return true;
+	}
+	else if ((event.getModifiersEx() & InputEvent.BUTTON3_DOWN_MASK) != 0) {
+		// Replacement for getModifiers(), which is deprecated.
+        return true;
+    }
+	else if ( event.isPopupTrigger() ) {
+		// Should return true if right-click for a mouse release event but only seems to work for mouseReleased().
+		// Button mask may be 256, which is InputEvent.META_MASK, which is seen in some situations and seems to be handled by isPopupTrigger().
+        return true;
+	}
+	else {
+		// Fall through:
+		// - not a right-click (mouse button 3) event
+		return false;
+	}
 }
 
 /**

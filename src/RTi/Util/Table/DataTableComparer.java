@@ -645,12 +645,12 @@ throws Exception {
             try {
                 matchColumnNumbers1[i] = table1.getFieldIndex(this.__matchColumns1.get(i));
                 Message.printStatus(2,routine,"Match column [" + i + "] \"" + this.__matchColumns1.get(i) +
-                    "\" in matches table1 column [" + matchColumnNumbers1[i] + "].");
+                    "\" in table1 matches column [" + matchColumnNumbers1[i] + "].");
             }
             catch ( Exception e ) {
                 matchColumnNumbers1[i] = -1; // Column not matched.
                 Message.printStatus(2,routine,"Match column [" + i + "] \"" + this.__matchColumns1.get(i) +
-                    "\" does not match any table1 column.");
+                    "\" column does not match any table1 column.");
             }
         }
     }
@@ -663,7 +663,7 @@ throws Exception {
             	try {
                 	matchColumnNumbers2[i] = table2.getFieldIndex(this.__matchColumns2.get(i));
                 	Message.printStatus(2,routine,"Match column [" + i + "] \"" + this.__matchColumns2.get(i) +
-                    	"\" in matches table2 column [" + matchColumnNumbers2[i] + "].");
+                    	"\" in table2 matches column [" + matchColumnNumbers2[i] + "].");
             	}
             	catch ( Exception e ) {
                 	matchColumnNumbers2[i] = -1; // Column not matched.
@@ -947,8 +947,9 @@ throws Exception {
         	try {
             	// Get the value from the first table and format as a string for comparisons.
                	formattedValue1[icol] =
-               		formatInputTableValueString ( table1, inRow1, icol,
-               			compareColumnFieldFormats1[compareColumnNumbers1[icol]] );
+               		formatInputTableValueString ( table1, inRow1, compareColumnNumbers1[icol],
+               			compareColumnFieldFormats1[icol] );
+               			//compareColumnFieldFormats1[compareColumnNumbers1[icol]] );
 
             	// Get the value from the second table and format as a string for comparisons:
             	// - the rows in the second table must be in the same order
@@ -956,8 +957,9 @@ throws Exception {
       			if ( compareColumnNumbers2[icol] >= 0 ) {
       				// Have a value to format.
       				formattedValue2[icol] =
-      					formatInputTableValueString ( table2, inRow2, icol,
-      						compareColumnFieldFormats2[compareColumnNumbers2[icol]] );
+      					formatInputTableValueString ( table2, inRow2, compareColumnNumbers2[icol],
+      						compareColumnFieldFormats2[icol] );
+      						//compareColumnFieldFormats2[compareColumnNumbers2[icol]] );
       			}
       			else {
       				// Do not have a value to format:
@@ -1613,6 +1615,7 @@ throws Exception {
 
 /**
  * Format a single input table value as a string to allow comparison.
+ * Null input is formatted as an empty string.
  * @param table table containing the data
  * @param irow table row (0+)
  * @param icol table column (0+)
@@ -1636,6 +1639,7 @@ private String formatInputTableValueString ( DataTable table, int irow, int icol
 
 		// Format the value.
 		if ( value == null ) {
+			// Input value is null so format as an empty string.
 			formattedValue = "";
 		}
 		else {
@@ -1655,13 +1659,24 @@ private String formatInputTableValueString ( DataTable table, int irow, int icol
            	}
            	else if (((table.getFieldDataType(icol) == TableField.DATA_TYPE_DOUBLE) ||
                	(table.getFieldDataType(icol) == TableField.DATA_TYPE_FLOAT)) &&
-               	(value.getClass().getName() == "Integer" || ((Double) value == Double.POSITIVE_INFINITY) ||
+               	(value.getClass().getName().equals("Integer") || value.getClass().getName().equals("Long") || ((Double) value == Double.POSITIVE_INFINITY) ||
                	((Double) value - Math.round((Double) value)) == 0)) {
+               	// Table column is float or double but value is an integer or long:
+               	// - Integer object
+               	// - Long object
+               	// Format as a floating point number with no digits. 
+           		// TODO smalers 2026-03-26 why is this case handled like this?
                	formattedValue = StringUtil.formatString(value,"%.0f").trim();
            	}
            	else {
-           		// All other types.
+           		// All other types:
+           		// - format as a string
                	formattedValue = StringUtil.formatString(value,format).trim();
+           	}
+           	if ( formattedValue == null ) {
+           		String routine = getClass().getSimpleName() + ".formatInputTableValue";
+           		Message.printWarning(3,routine, "Formatted value for table " + table.getTableID() +
+           			" irow=" + irow + " icol=" + icol + " value=" + value + " class=" + value.getClass() + " is null");
            	}
 		}
     }

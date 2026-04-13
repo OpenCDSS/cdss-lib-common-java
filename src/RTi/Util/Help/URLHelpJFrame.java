@@ -31,7 +31,6 @@ import java.awt.Insets;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -299,10 +298,8 @@ public void mouseExited ( MouseEvent event ) {
 Handle mouse pressed event.
 */
 public void mousePressed ( MouseEvent event ) {
-	int mods = event.getModifiersEx();
 	Component c = event.getComponent();
-	if ( c.equals(__topicJList) && (__topicJList.getModel().getSize() > 0) &&
-		((mods & InputEvent.BUTTON3_DOWN_MASK) != 0) ) {//&&
+	if ( c.equals(__topicJList) && (__topicJList.getModel().getSize() > 0) && JGUIUtil.isRightMouseEvent(event) ) {
 		//event.isPopupTrigger() ) {
 		__helpJPopupMenu.show (
 		event.getComponent(), event.getX(), event.getY() );

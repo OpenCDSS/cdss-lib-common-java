@@ -2023,7 +2023,7 @@ Note that the String.format() method can be used instead of this function.
 @param format Format to use.
 */
 public static final String formatString ( Object o, String format ) {
-	List<Object> v = new ArrayList<Object>( 1 );
+	List<Object> v = new ArrayList<>( 1 );
 	v.add ( o );
 	return formatString ( v, format );
 }

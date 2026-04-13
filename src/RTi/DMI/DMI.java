@@ -2287,7 +2287,8 @@ throws SQLException, Exception {
 	propertyMap.put("ProcessId", "" + IOUtil.getProcessId());
 
 	// Whether the connection should be opened by passing the login and password:
-	// - this is usually the case but some things like Google Wallet may use authentication in the wallet
+	// - this is usually the case
+	// - some configurations like Google Wallet may use authentication in the wallet (not yet implemented)
 	boolean useLoginAndPassword = true;
 	
 	// Connection properties that are not set in the connection URL:
@@ -2663,8 +2664,13 @@ throws SQLException, Exception {
     if ( useLoginAndPassword ) {
     	// Login and password are used:
     	// - set in the connection properties
-    	connectionProps.setProperty("user", systemLogin );
-    	connectionProps.setProperty("password", systemPassword );
+    	// - may be null in some cases, such as with SQLite
+    	if ( systemLogin != null ) {
+    		connectionProps.setProperty("user", systemLogin );
+    	}
+    	if ( systemPassword != null ) {
+    		connectionProps.setProperty("password", systemPassword );
+    	}
     }
     
     // Open the connection:

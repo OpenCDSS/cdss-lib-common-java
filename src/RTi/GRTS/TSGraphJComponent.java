@@ -46,7 +46,6 @@ import java.util.Vector;
 
 import javax.swing.JFrame;
 import javax.swing.JPopupMenu;
-import javax.swing.SwingUtilities;
 
 import org.jfree.graphics2d.svg.SVGGraphics2D;
 import org.jfree.graphics2d.svg.SVGUtils;
@@ -2548,9 +2547,15 @@ public static String lookupTSSymbol(int index) {
 
 /**
 Handle mouse clicked event.
+This will be called if the click occurs within the operating system "double click" interval, typically ~500 ms.
 @param event MouseEvent.
 */
 public void mouseClicked ( MouseEvent event ) {
+	if ( Message.isDebugOn ) {
+		String routine = getClass().getSimpleName() + ".mouseClicked";
+		Message.printStatus(2, routine, "MouseEvent.getButton = " + event.getButton());
+		Message.printStatus(2, routine, "MouseEvent.getModifiersEx = " + event.getModifiersEx());
+	}
 	if ( getInteractionMode() != TSGraphInteractionType.EDIT ) {
 		// Not editing, return.
 		return;
@@ -2578,8 +2583,7 @@ public void mouseDragged ( MouseEvent event ) {
 		return;
 	}
 
-	int mods = event.getModifiersEx();
-	if ( (mods & InputEvent.BUTTON3_DOWN_MASK) != 0 ) {
+	if ( JGUIUtil.isRightMouseEvent(event) ) {
 		// Don't want rubber band box.
 		return;
 	}
@@ -2747,8 +2751,14 @@ public void mousePressed ( MouseEvent event ) {
 	requestFocus();
 	if ( Message.isDebugOn ) {
 		routine = this._gtype + "TSGraphJComponent.mousePressed";
-		Message.printDebug ( 1, routine,
-			"Mouse pressed at device coordinates " + event.getX() + "," + event.getY() );
+		Message.printDebug ( 1, routine, "Mouse pressed at device coordinates " + event.getX() + "," + event.getY() );
+		int mods = event.getModifiersEx();
+		Message.printDebug ( 1, routine, "Event is for the right mouse button: " + (mods & InputEvent.BUTTON3_DOWN_MASK) );
+		Message.printDebug ( 1, routine, "Event ID: " + event.getID() );
+		// Sometimes the button will be zero such (NO_BUTTON) even if right button is clicked?
+		Message.printDebug ( 1, routine, "MouseEvent.button: " + event.getButton() );
+		Message.printDebug ( 1, routine, "MouseEvent.getModifiersEx: " + mods );
+		Message.printDebug ( 1, routine, "MouseEvent.isPoppupTriggers: " + event.isPopupTrigger() );
 	}
 	// Initialize the coordinates.  If the click is outside any graph,
 	// these values will signal to mouseDragged() that a valid starting point for a box has not been given.
@@ -2791,7 +2801,7 @@ public void mousePressed ( MouseEvent event ) {
 	if ( tsgraphForGraph != null ) {
 		// Click was in a graph drawing area.
 		this._mouse_tsgraph1 = tsgraphForGraph;
-		if ( SwingUtilities.isRightMouseButton(event) ) {
+		if ( JGUIUtil.isRightMouseEvent(event) ) {
 			// Each graph provides its own right-click popup menu to edit properties and view analysis details.
 			Message.printStatus(2, routine, "Mouse press right-click detected - starting popup.");
 			JPopupMenu popup_menu = tsgraphForGraph.getJPopupMenu();
@@ -2810,7 +2820,12 @@ public void mousePressed ( MouseEvent event ) {
 			(this._interaction_mode == TSGraphInteractionType.ZOOM) ) {
 			// Save the point that was selected so that the drag and released events will work.
 			// Also save the initial graph so that we can make sure not to drag outside a valid graph.
-			Message.printStatus(2, routine, "Mouse (not right) press detected - starting select or zoom.");
+			if ( this._interaction_mode == TSGraphInteractionType.SELECT ) {
+				Message.printStatus(2, routine, "Mouse (not right) press detected - starting select.");
+			}
+			else {
+				Message.printStatus(2, routine, "Mouse (not right) press detected - starting zoom.");
+			}
 			this._mouse_x1 = event.getX();
 			this._mouse_y1 = event.getY();
 		}
@@ -2831,10 +2846,23 @@ Only return a region if the mouse has moved at least 5 pixels in one direction.
 public void mouseReleased ( MouseEvent event ) {
 	//event.consume();
 	String routine = ""; // For development and then comment messages.
+	if ( Message.isDebugOn ) {
+		// Use this to check right button (BUTTON3) events:
+		// - for some reason it seems to be ore complicated than before.
+		routine = getClass().getSimpleName() + ".mouseReleased";
+		// The following may have zero.
+		Message.printDebug(1, routine, "MouseEvent.button = " + event.getButton());
+		// The following may be 256, which is the old BUTTON3_MASK.
+		// The following may be 4096, which is the new BUTTON3_DOWN_MASK.
+		Message.printDebug(1, routine, "MouseEvent.getModifiersEx = " + event.getModifiersEx());
+		//Message.printDebug(1, routine, "MouseEvent.BUTTON3_MASK = " + MouseEvent.BUTTON3_MASK);
+		Message.printDebug(1, routine, "MouseEvent.BUTTON3_DOWN_MASK = " + MouseEvent.BUTTON3_DOWN_MASK);
+		Message.printDebug(1, routine, "MouseEvent.isPopupTrigger = " + event.isPopupTrigger());
+	}
 
 	// Figure out which graph the event occurred in.
 
-	TSGraph tsgraph = getEventTSGraph( new GRPoint ( event.getX(), event.getY() ) );
+	TSGraph tsgraph = getEventTSGraph ( new GRPoint ( event.getX(), event.getY() ) );
 	int x = 0;
 	int y = 0;
 	if ( tsgraph == null ) {
@@ -2849,7 +2877,7 @@ public void mouseReleased ( MouseEvent event ) {
 		y = this._mouse_yprev;
 	}
 	else {
-	    // use the valid point within the graph.
+	    // Use the valid point within the graph.
 		x = event.getX();
 		y = event.getY();
 	}
@@ -2861,14 +2889,19 @@ public void mouseReleased ( MouseEvent event ) {
 		// Currently do not allow zoom, etc.
 		return;
 	}
-	if ( SwingUtilities.isRightMouseButton(event) ) {
+	if ( JGUIUtil.isRightMouseEvent(event) ) {
 		// Right click so don't do anything.
-		Message.printStatus(2, routine, "Mouse release right-click detected - starting popup.");
+		Message.printStatus(2, routine, "Mouse release right-click detected - not zooming or selecting but do start the popup menu.");
 		return;
 	}
 	if ( (this._interaction_mode == TSGraphInteractionType.SELECT) || (this._interaction_mode == TSGraphInteractionType.ZOOM) ) {
 		// Only process if box is "delta" pixels or bigger.
-		Message.printStatus(2, routine, "Mouse release NOT right-click detected - initiating zoom or select.");
+		if ( this._interaction_mode == TSGraphInteractionType.SELECT ) {
+			Message.printStatus(2, routine, "Mouse release right-click NOT detected - initiating select.");
+		}
+		else {
+			Message.printStatus(2, routine, "Mouse release right-click NOT detected - initiating zoom.");
+		}
 		int deltax = x - this._mouse_x1;
 		int delta_min = 2;
 		if ( deltax < 0 ) {
@@ -2933,7 +2966,7 @@ public void mouseReleased ( MouseEvent event ) {
 		}
 
 		GRLimits mouseLimits = new GRLimits ( xmin, ymin, xmax, ymax );
-		// Reverse Y so we get the right values in GR.
+		// Reverse Y so get the right values in GR.
 		GRPoint pt1 = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY ( xmin, ymax, GRCoordinateType.DEVICE );
 		GRPoint pt2 = tsgraph.getLeftYAxisGraphDrawingArea().getDataXY ( xmax, ymin, GRCoordinateType.DEVICE );
 
@@ -2977,7 +3010,8 @@ public void mouseReleased ( MouseEvent event ) {
 				tsgraph.setDataLimitsForDrawing ( newDataLimits );
 				//_grda.setDataLimits ( this._data_limits );
 			}
-			// Call external listeners to let them know that a graph has been zoomed.
+			// Call external listeners to notify that a graph has been zoomed:
+			// - for example, this is used to let the reference graph know to draw the zoom limits
 			if ( this._listeners != null ) {
 				int size = this._listeners.length;
 				for ( int i = 0; i < size; i++ ) {
