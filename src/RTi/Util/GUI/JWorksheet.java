@@ -44,7 +44,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Vector;
 
 import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultListSelectionModel;
@@ -145,7 +144,7 @@ Here is some example code that sets up a JWorksheet (note that it uses a subclas
 	int[] widths = null;
 	try {
 		// custom table model
-		StateMod_Diversion_TableModel tmd = new StateMod_Diversion_TableModel(__diversionsVector, __readOnly);
+		StateMod_Diversion_TableModel tmd = new StateMod_Diversion_TableModel(__diversionsList, __readOnly);
 		// custom cell renderer
 		StateMod_Diversion_CellRenderer crd = new StateMod_Diversion_CellRenderer(tmd);
 
@@ -196,7 +195,7 @@ The following code will change every other cell in the 3rd column to have differ
 The JWorksheet offers support for using JComboBoxes for data entry.
 The following code demonstrates setting a JComboBox on all cells in a column:<p>
 <pre>
-	List<String> v = new Vector<String>();
+	List<String> v = new ArrayList<>();
 	v.add("Red");
 	v.add("Green");
 	v.add("Blue");
@@ -215,15 +214,15 @@ all the cells in which a combo box was NOT explicitly set will use the same text
 The following code demonstrates placing different combo boxes on cells within a column:<p><pre>
 	__worksheet.setCellSpecificJComboBoxColumn(3, true);
 
-	List<String> diversions = new ArrayList<String>();
+	List<String> diversions = new ArrayList<>();
 	diversions.add("Diversion 1");
 	diversions.add("Diversion 2");
 
-	List<String> reservoirs = new ArrayList<String>();
+	List<String> reservoirs = new ArrayList<>();
 	reservoirs.add("Reservoir 1");
 	reservoirs.add("Reservoir 2");
 
-	List<String> wells = new ArrayList<String>();
+	List<String> wells = new ArrayList<>();
 	wells.add("Well 1");
 	wells.add("Well 2");
 
@@ -823,7 +822,7 @@ A list of registered sort listeners.
 private List<JWorksheet_SortListener> __sortListeners = null;
 
 /**
-A Vector of registered JWorksheet_Listeners.
+A list of registered JWorksheet_Listeners.
 */
 private List<JWorksheet_Listener> __worksheetListeners = null;
 
@@ -1002,7 +1001,7 @@ JWorksheet_AbstractTableModel tableModel, PropList props) {
 	// Need to remove one but need to make sure that it doesn't break existing worksheets.
 	readPropList(props);
 	tableModel._worksheet = this;
-	__worksheetListeners = new Vector<JWorksheet_Listener>();
+	__worksheetListeners = new ArrayList<>();
 
 	// If one is not defined, do the following to avoid null checks.
 	__hourglassJFrame = new JFrame();
@@ -1082,7 +1081,7 @@ public JWorksheet(int rows, int cols, PropList props) {
 		__altText[i] = null;
 	}
 
-	__worksheetListeners = new Vector<JWorksheet_Listener>();
+	__worksheetListeners = new ArrayList<>();
 
 	__columnHeaderColor = null;
 	// TODO 2007-05-09 Evaluate whether used.
@@ -1270,7 +1269,7 @@ Adds a sort listener.
 */
 public void addSortListener(JWorksheet_SortListener listener) {
 	if (__sortListeners == null) {
-		__sortListeners = new Vector<JWorksheet_SortListener>();
+		__sortListeners = new ArrayList<>();
 	}
 	__sortListeners.add(listener);
 }
@@ -1380,7 +1379,7 @@ private void adjustListRowHeaderSize(int adjustment) {
 		__listRowHeader.removeAll();
 		int rows = getRowCount();
 		// Simple row header is just the number of the row.
-		List<String> v = new Vector<String>();
+		List<String> v = new ArrayList<>();
 		for (int i = 0; i < rows; i++) {
 			v.add("" + (i + 1));
 		}
@@ -1788,7 +1787,7 @@ private void calculateStatistics () throws Exception {
 		progressDialog.setVisible(true);
 
 		// Initialize the list of table fields that contains a leftmost column "Statistic".
-		List<TableField> tableFieldList = new Vector<TableField>();
+		List<TableField> tableFieldList = new ArrayList<>();
 		tableFieldList.add(new TableField(TableField.DATA_TYPE_STRING, "Statistic", -1, -1));
 		// Add columns for the selected columns.
 		boolean copyHeader = true;
@@ -2766,7 +2765,7 @@ private String determineNameHelper(String name, int maxWidth, Graphics g) {
 		sizes[i] = fh.stringWidth(strings[i]);
 	}
 
-	List<String> lines = new Vector<>();
+	List<String> lines = new ArrayList<>();
 	boolean done = false;
 	boolean invalid = false;
 	int curr = 0;
@@ -2835,7 +2834,7 @@ protected void enableRowHeader() {
 	if (p instanceof JViewport) {
 		Container gp = p.getParent();
 		if (gp instanceof JScrollPane) {
-			List<String> v = new Vector<String>();
+			List<String> v = new ArrayList<>();
 			JScrollPane jsp = (JScrollPane)gp;
 			int rows = getRowCount();
 			if (__incrementRowNumbers) {
@@ -3541,7 +3540,7 @@ public int getAbsoluteColumnCount() {
 }
 
 /**
-Returns all the data objects in the table as a single Vector.
+Returns all the data objects in the table as a single list.
 Use only if the table model for the worksheet stores each row as a separate data object.
 @return a list of all data objects in the table.
 */
@@ -3992,7 +3991,7 @@ public List<Object> getRowData(int row1, int row2) {
 	}
 	if (row1 == 0 && row2 == -1) {
 		// Special case - getAllData called on an empty worksheet.
-		return new Vector<Object>();
+		return new ArrayList<>();
 	}
 
 	if (row1 > row2) {
@@ -4008,7 +4007,7 @@ public List<Object> getRowData(int row1, int row2) {
 		return null;
 	}
 
-	List<Object> v = new Vector<Object>();
+	List<Object> v = new ArrayList<>();
 	for (int i = row1; i <= row2; i++) {
 		v.add(((JWorksheet_AbstractRowTableModel)getModel()).getRowData(i));
 	}
@@ -4021,7 +4020,7 @@ Returns the row data for the rows specified in the parameter array.
 Cannot be null.  Data will be returned in the order of the row numbers in this array.
 */
 public List<Object> getRowData(int[] rows) {
-	List<Object> v = new Vector<Object>();
+	List<Object> v = new ArrayList<>();
 	for (int i = 0; i < rows.length; i++) {
 		v.add(getRowData(rows[i]));
 	}
@@ -4045,8 +4044,8 @@ The arrays are guaranteed to be non-null.  The list will never be null.
 @return a list containing two integer arrays.
 */
 public List<int []> getSelectedCells() {
-	List<Integer> rows = new Vector<>();
-	List<Integer> cols = new Vector<>();
+	List<Integer> rows = new ArrayList<>();
+	List<Integer> cols = new ArrayList<>();
 
 	for (int i = 0; i < getRowCount(); i++) {
 		for (int j = 0; j < getColumnCount(); j++) {
@@ -4067,7 +4066,7 @@ public List<int []> getSelectedCells() {
 		colCells[i] = ((Integer)cols.get(i)).intValue();
 	}
 
-	List<int []> v = new Vector<int []>();
+	List<int []> v = new ArrayList<>();
 	v.add(rowCells);
 	v.add(colCells);
 	return v;
@@ -4940,7 +4939,7 @@ public Component prepareRenderer(TableCellRenderer tcr, int row, int column) {
 		// This happens very seldom but handle the exception.
 		String routine = getClass().getSimpleName() + ".prepareRenderer";
 		Message.printWarning(3, routine, "Error preparing cell for output.");
-		Message.printWarning(3, routine,e); 
+		Message.printWarning(3, routine,e);
 	}
 	if (__altTextCount > 0) {
 		if (cell instanceof JLabel) {
@@ -5544,7 +5543,7 @@ Saves the contents of the worksheet (in all visible columns) to a file.
 public void saveToFile(String filename, String delimiter) {
 	String routine = "saveToFile";
 
-	List<String> lines = new Vector<String>();
+	List<String> lines = new ArrayList<>();
 
 	int numRows = getRowCount();
 	int numCols = getColumnCount();
@@ -6499,7 +6498,7 @@ private void setupPopupMenu(JPopupMenu menu, boolean worksheetHandlePopup) {
 		__copyAllWithHeaderMenuItem = new JMenuItem(__MENU_COPY_ALL_WITH_HEADER);
 		__copyAllWithHeaderMenuItem.addActionListener(this);
 		menu.add(__copyAllWithHeaderMenuItem);
-		
+
 		//menu.addSeparator();
 
 		//__copyIncludeMissingMenuItem = new JMenuItem(__MENU_COPY_INCLUDE_MISSING);
@@ -6625,7 +6624,12 @@ private void sortColumn(int order) {
 		for (int i = 0; i < size; i++) {
 			try {
 				I = (Integer)getValueAt(i, __popupColumn);
-				unsorted[i] = I.intValue();
+				if ( I == null ) {
+					unsorted[i] = DMIUtil.MISSING_INT;
+				}
+				else {
+					unsorted[i] = I.intValue();
+				}
 			}
 			catch (Exception e) {
 				++exceptionCount;
@@ -6644,7 +6648,12 @@ private void sortColumn(int order) {
         for (int i = 0; i < size; i++) {
             try {
                 l = (Long)getValueAt(i, __popupColumn);
-                unsorted[i] = l.longValue();
+				if ( l == null ) {
+					unsorted[i] = DMIUtil.MISSING_LONG;
+				}
+				else {
+					unsorted[i] = l.longValue();
+				}
             }
             catch (Exception e) {
 				++exceptionCount;
@@ -6689,7 +6698,7 @@ private void sortColumn(int order) {
 	// Sort Dates by turning them into Strings first and sorting with StringUtil.sort().
 	else if (getColumnClass(absColumn) == Date.class) {
 	    // Since sorting by dates, handle the dates generically.  This allows Date and DateTime to be used.
-		List<String> v = new Vector<String>(size);
+		List<String> v = new ArrayList<>(size);
 		Object o = null;
 		for (int i = 0; i < size; i++) {
 			//d = (Date)
@@ -6732,7 +6741,7 @@ private void sortColumn(int order) {
 	}
 	// Sort Strings with StringUtil.sort().
 	else {
-		List<String> v = new ArrayList<String>(size);
+		List<String> v = new ArrayList<>(size);
 		Object o = null;
 		for (int i = 0; i < size; i++) {
 			o = getValueAt(i, __popupColumn);

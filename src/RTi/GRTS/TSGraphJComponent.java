@@ -2676,7 +2676,7 @@ public void mouseMoved ( MouseEvent event ) {
 	if ( this._listeners == null ) {
 		return;
 	}
-
+	
 	// Get the mouse position.
 
 	int x = event.getX();
@@ -2708,6 +2708,11 @@ public void mouseMoved ( MouseEvent event ) {
     	boolean includeRightYAxis = false;
     	boolean includeNulls = false;
 	    List<TS> tslist = tsgraph.getTSListForAxes ( includeLeftYAxis, includeRightYAxis, includeNulls );
+	    if ( tslist.size() == 0 ) {
+		    // No time series to display.
+		    return;
+	    }
+
 	    if ( tslist.size() == 1 ) {
 	    	// Single time series in the raster graph use the first time series.
 	        datapt.associated_object = tslist.get(0);
