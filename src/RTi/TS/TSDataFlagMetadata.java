@@ -32,56 +32,66 @@ The class is immutable.
 public class TSDataFlagMetadata
 {
 
-/**
-Data flag.  Although this is a string, flags are typically each one character.
-*/
-private String __dataFlag = "";
+	/**
+	Data flag.  Although this is a string, flags are typically each one character.
+	*/
+	private String dataFlag = "";
+	
+	/**
+	 * Display name, a short phrase, for example to use in a choice.
+	 */
+	private String displayName = "";
+	
+	/**
+	Description for the data flag.
+	*/
+	private String description = "";
+	
+	/**
+	Constructor for flag and display name, with no description.
+	@param dataFlag data flag (generally one character).
+	@param displayName a short display name, suitable for a choice
+	*/
+	public TSDataFlagMetadata ( String dataFlag, String displayName ) {
+	    this.dataFlag = dataFlag;
+	    this.displayName = displayName;
+	    this.description = "";
+	}
 
-/**
-Description for the data flag.
-*/
-private String __description = "";
+	/**
+	Constructor.
+	@param dataFlag data flag (generally one character).
+	@param displayName a short display name, suitable for a choice
+	@param description description of the data flag, about a sentence
+	*/
+	public TSDataFlagMetadata ( String dataFlag, String displayName, String description ) {
+	    this.dataFlag = dataFlag;
+	    this.displayName = displayName;
+	    this.description = description;
+	}
 
-/**
-Constructor.
-@param dataFlag data flag (generally one character).
-@param description description of the data flag.
-*/
-public TSDataFlagMetadata ( String dataFlag, String description ) {
-    setDataFlag ( dataFlag );
-    setDescription ( description );
-}
+	/**
+	Return the data flag.
+	@return the data flag
+	*/
+	public String getDataFlag () {
+	    return this.dataFlag;
+	}
 
-/**
-Return the data flag.
-@return the data flag
-*/
-public String getDataFlag () {
-    return __dataFlag;
-}
+	/**
+	Return the data flag description.
+	@return the data flag description
+	*/
+	public String getDescription () {
+	    return this.description;
+	}
 
-/**
-Return the data flag description.
-@return the data flag description
-*/
-public String getDescription () {
-    return __description;
-}
-
-/**
-Set the data flag.
-@param dataFlag the data flag
-*/
-private void setDataFlag ( String dataFlag ) {
-    __dataFlag = dataFlag;
-}
-
-/**
-Set the description for the data flag.
-@param description the data flag description
-*/
-private void setDescription ( String description ) {
-    __description = description;
-}
-
+	/**
+	Return the display name
+	@return the display name
+	*/
+	public String getDisplayName () {
+	    return this.displayName;
+	}
+	
 }
