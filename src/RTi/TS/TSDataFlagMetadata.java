@@ -49,20 +49,21 @@ public class TSDataFlagMetadata
 	
 	/**
 	Constructor for flag and display name, with no description.
+	This version of the method has traditionally been used.
 	@param dataFlag data flag (generally one character).
-	@param displayName a short display name, suitable for a choice
+	@param description description of the data flag, roughly a sentence
 	*/
-	public TSDataFlagMetadata ( String dataFlag, String displayName ) {
+	public TSDataFlagMetadata ( String dataFlag, String description ) {
 	    this.dataFlag = dataFlag;
-	    this.displayName = displayName;
-	    this.description = "";
+	    this.description = description;
 	}
 
 	/**
 	Constructor.
+	This version of the method is newer and reflects data sources that provide the display name.
 	@param dataFlag data flag (generally one character).
-	@param displayName a short display name, suitable for a choice
-	@param description description of the data flag, about a sentence
+	@param displayName a short display name, suitable for a UI choice
+	@param description description of the data flag, roughly a sentence
 	*/
 	public TSDataFlagMetadata ( String dataFlag, String displayName, String description ) {
 	    this.dataFlag = dataFlag;
