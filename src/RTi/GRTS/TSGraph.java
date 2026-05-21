@@ -64,6 +64,7 @@ import RTi.GR.GRSymbolPosition;
 import RTi.GR.GRSymbolShapeType;
 import RTi.GR.GRSymbolTable;
 import RTi.GR.GRSymbolTableRow;
+import RTi.GR.GRSymbolType;
 import RTi.GR.GRText;
 import RTi.GR.GRUnits;
 import RTi.TS.DayTS;
@@ -1815,7 +1816,7 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod ) {
 				}
 			}
 		}
-		
+
 		// Determine if raster graph should use single time series layout.
 	    if ( this.__leftYAxisGraphType == TSGraphType.RASTER ) {
 	    	this.doRasterGraphSingleLayout = doRasterGraphSingleLayout();
@@ -6252,6 +6253,10 @@ private void drawTS ( TSProduct tsproduct, int its, TS ts, TSGraphType tsGraphTy
 	    return;
 	}
 
+	// Get the time series for left and y axes, used for some graphs such as when comparing time series.
+    List<TS> tslistLeftYAxis = getTSListForLeftYAxis();
+    List<TS> tslistRightYAxis = getTSListForRightYAxis();
+
 	// Figure out if the graph is being drawn on the left or right axis.
 	boolean drawUsingLeftYAxis = true; // Simplify logic to know when drawing using left Y-axis.
 	boolean drawUsingRightYAxis = false; // Simplify logic to know when drawing using right Y-axis.
@@ -6279,7 +6284,8 @@ private void drawTS ( TSProduct tsproduct, int its, TS ts, TSGraphType tsGraphTy
 		return;
 	}
 
-	GRColor tscolor = drawTSHelperGetTimeSeriesColor ( its, overrideProps );
+	GRColor tscolor0 = drawTSHelperGetTimeSeriesColor ( its, overrideProps );
+	GRColor tscolor = tscolor0;
     daGraph.setColor(tscolor);
 
     // Start and end are the same regardless of whether left or right Y-axis because X-axis is shared.
@@ -6357,7 +6363,46 @@ private void drawTS ( TSProduct tsproduct, int its, TS ts, TSGraphType tsGraphTy
 	GRSymbolShapeType symbolWithFlag = drawTSHelperGetSymbolStyle ( its, overrideProps, true );
 	GRSymbolShapeType symbol = symbolNoFlag; // Default symbol to use for a specific data point, checked below.
 	//Message.printStatus ( 2, routine, this._gtype + "symbolNoFlag=" + symbolNoFlag + " symbolWithFlag=" + symbolWithFlag );
-	double symbol_size = drawTSHelperGetSymbolSize ( its, overrideProps );
+	// Get the default symbol size:
+	// - 'symbolSize' may be reset based on the data value
+	double symbolSize0 = drawTSHelperGetSymbolSize ( its, overrideProps );
+	double symbolSize = symbolSize0;
+
+	// Symbol information if a comparison is occurring:
+	// - currently this is limited to point graphs
+	// - the following symbol will be used if two time series being rendered both have the same date/time and value
+	// - the time series (data) must have properties:
+	//     CompareColor
+	//     CompareSymbolStyle
+	//     CompareSymbolSize
+	//     CompareTolerance
+	boolean doCompareSymbol = false;
+	GRSymbolShapeType compareSymbol = drawTSHelperGetCompareSymbolStyle ( its, overrideProps );
+	GRColor compareColor = drawTSHelperGetCompareColor ( its, overrideProps );
+	Double compareSymbolSize = drawTSHelperGetCompareSymbolSize ( its, overrideProps );
+	Double compareTolerance = drawTSHelperGetCompareTolerance ( its, overrideProps );
+	if ( compareSymbol != GRSymbolShapeType.NONE ) {
+		doCompareSymbol = true;
+		// Make sure that the properties are set.
+		if ( compareColor == null ) {
+			compareColor = GRColor.black;
+		}
+		if ( compareTolerance == null ) {
+			compareTolerance = Double.valueOf(".0001");
+		}
+		if ( compareSymbolSize == null ) {
+			// Use the default for the time series.
+			compareSymbolSize = symbolSize0;
+		}
+	}
+
+	// Hard code test data.
+	/*
+	doCompareSymbol = true;
+	compareSymbolSize = 5;
+	compareColor = GRColor.green;
+	compareSymbol = GRSymbolShapeType.CIRCLE_FILLED;
+	*/
 
 	// Data text label.
 
@@ -6625,6 +6670,11 @@ private void drawTS ( TSProduct tsproduct, int its, TS ts, TSGraphType tsGraphTy
 		int nalltsdata = alltsdata.size();
 		TSData tsdata = null;
 		DateTime date = null;
+
+		// Reset properties to the default before evaluating the data value below.
+		symbolSize = symbolSize0;
+		tscolor = tscolor0;
+
 		// Whether need to skip drawing a line over a gap for irregular interval time series.
 		boolean doGap = false;
 
@@ -6707,6 +6757,46 @@ private void drawTS ( TSProduct tsproduct, int its, TS ts, TSGraphType tsGraphTy
                     symbol = symbolWithFlag;
                 }
 
+                // Override with the "Compare*" properties:
+                // - these are used to check when a value is in one time series but not another
+                // - for example, check that two databases have the same real-time data
+                if ( doCompareSymbol ) {
+                	// Check whether the current point is also present in the other time series:
+                	// - should normally only have one other time series in the graph
+                	int tsMatched = 0;
+                	for ( TS compareTs : tslistLeftYAxis ) {
+                		// Don't include the current time series because want to compare with other time series.
+                		if ( (compareTs != null) && (compareTs != ts) ) {
+                			// Get the data value at the current date/time.
+                			double dataValue = tsdata.getDataValue();
+                			double compareValue = compareTs.getDataValue(date);
+                			//Message.printStatus(2, routine, "Comparing " + dataValue + " with " + compareValue );
+                			if ( !compareTs.isDataMissing(compareValue) && (Math.abs(compareValue - dataValue) < compareTolerance) ) {
+                				++tsMatched;
+                				//Message.printStatus(2, routine, "  The values are the same, tsMatched=" + tsMatched);
+                			}
+                			else {
+                				//Message.printStatus(2, routine, "  The values are not the same, tsMatched=" + tsMatched);
+                			}
+                		}
+                	}
+                	// If the number matched is the number of time series minus 1 (since the current time series was excluded),
+                	// use the "Compare*" symbol.
+                	if ( tsMatched == (tslistLeftYAxis.size() - 1) ) {
+                		symbol = compareSymbol;
+                		tscolor = compareColor;
+                		// Set here because it is not set below.
+                		daGraph.setColor(tscolor);
+           				//Message.printStatus(2, routine, "  Will use Compare* properties, symbol=" + symbol + " tscolor=" + tscolor.toHex());
+                	}
+                	else {
+                		// Set the color back to the previous:
+                		// - no need to set the symbol since it was set above
+                		tscolor = tscolor0;
+                		daGraph.setColor(tscolor);
+                	}
+                }
+
                 if ( lineConnectType == GRLineConnectType.STEP_USING_NEXT_VALUE ) {
                 	// Also need the next value.
                 	TSData tsdataNext = tsdata.getNext();
@@ -6739,7 +6829,7 @@ private void drawTS ( TSProduct tsproduct, int its, TS ts, TSGraphType tsGraphTy
         			if ( this._is_reference_graph ) {
         				// Don't draw symbols.
         			}
-        			else if (labelPointWithFlag && ((symbol == GRSymbolShapeType.NONE) || (symbol_size <= 0))) {
+        			else if (labelPointWithFlag && ((symbol == GRSymbolShapeType.NONE) || (symbolSize <= 0))) {
         				// Text only.
         				GRDrawingAreaUtil.drawText(daGraph,
         				    TSData.toString(label_format,label_value_format, date, y, 0.0,
@@ -6752,7 +6842,7 @@ private void drawTS ( TSProduct tsproduct, int its, TS ts, TSGraphType tsGraphTy
         				}
 
         				// Text and symbol.
-        				GRDrawingAreaUtil.drawSymbolText(daGraph, symbol, x, y, symbol_size,
+        				GRDrawingAreaUtil.drawSymbolText(daGraph, symbol, x, y, symbolSize,
         					TSData.toString(label_format,label_value_format, date, y, 0.0,
         					tsdata.getDataFlag().trim(), label_units),
         					0.0, label_position, GRUnits.DEVICE,
@@ -6769,7 +6859,7 @@ private void drawTS ( TSProduct tsproduct, int its, TS ts, TSGraphType tsGraphTy
         					GRDrawingAreaUtil.setDeviceAntiAlias( daGraph, true);
         				}
 
-        				GRDrawingAreaUtil.drawSymbol(daGraph, symbol, x, y, symbol_size,
+        				GRDrawingAreaUtil.drawSymbol(daGraph, symbol, x, y, symbolSize,
         				    GRUnits.DEVICE, GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y );
 
         				if (niceSymbols) {
@@ -6919,7 +7009,7 @@ private void drawTS ( TSProduct tsproduct, int its, TS ts, TSGraphType tsGraphTy
         				if ( this._is_reference_graph ) {
         					// No symbol or label to draw.
         				}
-        				else if (labelPointWithFlag && ((symbol == GRSymbolShapeType.NONE) || (symbol_size <= 0))) {
+        				else if (labelPointWithFlag && ((symbol == GRSymbolShapeType.NONE) || (symbolSize <= 0))) {
         					// Just text.
         					GRDrawingAreaUtil.drawText(daGraph,
         						TSData.toString(label_format, label_value_format, date, y, 0.0, tsdata.getDataFlag().trim(),
@@ -6931,7 +7021,7 @@ private void drawTS ( TSProduct tsproduct, int its, TS ts, TSGraphType tsGraphTy
         					}
 
         					// Symbol and label.
-        					GRDrawingAreaUtil.drawSymbolText( daGraph, symbol, x, y, symbol_size,
+        					GRDrawingAreaUtil.drawSymbolText( daGraph, symbol, x, y, symbolSize,
         					    TSData.toString(label_format,label_value_format,date, y, 0.0, tsdata.getDataFlag().trim(),
         						label_units), 0.0, label_position, GRUnits.DEVICE,
         					    GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y );
@@ -6945,7 +7035,7 @@ private void drawTS ( TSProduct tsproduct, int its, TS ts, TSGraphType tsGraphTy
         					if (niceSymbols) {
         						GRDrawingAreaUtil.setDeviceAntiAlias( daGraph, true);
         					}
-        					GRDrawingAreaUtil.drawSymbol(daGraph, symbol, x, y, symbol_size,
+        					GRDrawingAreaUtil.drawSymbol(daGraph, symbol, x, y, symbolSize,
         						GRUnits.DEVICE, GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y );
         					if (niceSymbols) {
         						// Turn off anti-aliasing so it doesn't affect anything else.
@@ -7156,7 +7246,7 @@ private void drawTS ( TSProduct tsproduct, int its, TS ts, TSGraphType tsGraphTy
 					// Don't label or draw symbol.
 				}
 				else if ( labelPointWithFlag ) {
-				    if ( (symbol == GRSymbolShapeType.NONE) || (symbol_size <= 0) ) {
+				    if ( (symbol == GRSymbolShapeType.NONE) || (symbolSize <= 0) ) {
     					// Just text.
     					GRDrawingAreaUtil.drawText(daGraph,
     						TSData.toString(label_format,
@@ -7168,7 +7258,7 @@ private void drawTS ( TSProduct tsproduct, int its, TS ts, TSGraphType tsGraphTy
     					if (niceSymbols) {
     						GRDrawingAreaUtil.setDeviceAntiAlias( daGraph, true);
     					}
-    					GRDrawingAreaUtil.drawSymbolText( daGraph, symbol, x, y, symbol_size,
+    					GRDrawingAreaUtil.drawSymbolText( daGraph, symbol, x, y, symbolSize,
     						TSData.toString ( label_format, label_value_format, date, y, 0.0, tsdata.getDataFlag().trim(),
     						label_units ), 0.0, label_position,
     						GRUnits.DEVICE, GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y );
@@ -7183,7 +7273,7 @@ private void drawTS ( TSProduct tsproduct, int its, TS ts, TSGraphType tsGraphTy
 					if (niceSymbols) {
 						GRDrawingAreaUtil.setDeviceAntiAlias(daGraph, true);
 					}
-					GRDrawingAreaUtil.drawSymbol(daGraph, symbol, x, y, symbol_size,
+					GRDrawingAreaUtil.drawSymbol(daGraph, symbol, x, y, symbolSize,
 						GRUnits.DEVICE, GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y );
 					if (niceSymbols) {
 						// Turn off anti-aliasing so nothing is anti-aliased that shouldn't be.
@@ -7294,7 +7384,7 @@ private void drawTS ( TSProduct tsproduct, int its, TS ts, TSGraphType tsGraphTy
 				if ( this._is_reference_graph ) {
 					// Don't draw labels or symbols.
 				}
-				else if (labelPointWithFlag && ((symbol == GRSymbolShapeType.NONE) || (symbol_size <= 0))) {
+				else if (labelPointWithFlag && ((symbol == GRSymbolShapeType.NONE) || (symbolSize <= 0))) {
 					// Text only.
 					GRDrawingAreaUtil.drawText(daGraph,
 						TSData.toString(label_format, label_value_format, date, y, 0.0, tsdata.getDataFlag().trim(),
@@ -7306,7 +7396,7 @@ private void drawTS ( TSProduct tsproduct, int its, TS ts, TSGraphType tsGraphTy
 						GRDrawingAreaUtil.setDeviceAntiAlias( daGraph, true);
 					}
 
-					GRDrawingAreaUtil.drawSymbolText( daGraph, symbol, x, y, symbol_size,
+					GRDrawingAreaUtil.drawSymbolText( daGraph, symbol, x, y, symbolSize,
 					        TSData.toString( label_format, label_value_format, date, y, 0.0, tsdata.getDataFlag().trim(),
 						label_units ), 0.0, label_position, GRUnits.DEVICE,
 						GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y );
@@ -7322,7 +7412,7 @@ private void drawTS ( TSProduct tsproduct, int its, TS ts, TSGraphType tsGraphTy
 						GRDrawingAreaUtil.setDeviceAntiAlias( daGraph, true);
 					}
 
-					GRDrawingAreaUtil.drawSymbol( daGraph, symbol, x, y, symbol_size, GRUnits.DEVICE,
+					GRDrawingAreaUtil.drawSymbol( daGraph, symbol, x, y, symbolSize, GRUnits.DEVICE,
 					        GRSymbolPosition.CENTER_X | GRSymbolPosition.CENTER_Y );
 
 					if (niceSymbols) {
@@ -7434,6 +7524,109 @@ private void drawTS ( TSProduct tsproduct, int its, TS ts, TSGraphType tsGraphTy
 	// Remove the clip around the graph.  This allows other things to be drawn outside the graph bounds.
 	GRDrawingAreaUtil.setClip(daGraph, (Shape)null);
 	GRDrawingAreaUtil.setClip(daGraph, clip);
+}
+
+/**
+Determine the "CompareColor" color used for drawing a time series.
+@param its the time series list position (0+, for retrieving properties and messaging)
+@param overrideProps run-time override properties to consider when getting graph properties
+@return the color from product properties
+*/
+private GRColor drawTSHelperGetCompareColor ( int its, PropList overrideProps ) {
+    GRColor color = null;
+    if ( this._is_reference_graph ) {
+        color = null;
+    }
+    else {
+        String propValue = null;
+        // Determine the color.
+        propValue = getLayeredPropValue("CompareColor", this.subproduct, its, false, overrideProps);
+        try {
+            color = GRColor.parseColor(propValue);
+        }
+        catch (Exception e) {
+            color = null;
+        }
+    }
+    return color;
+}
+
+/**
+Determine the "CompareSymobolSize" symbol size used for drawing a time series.
+@param its the time series list position (0+, for retrieving properties and messaging)
+@param overrideProps run-time override properties to consider when getting graph properties
+@return the symbol style from product properties
+*/
+private Double drawTSHelperGetCompareSymbolSize ( int its, PropList overrideProps ) {
+    Double symbolSize = null;
+    if ( this._is_reference_graph ) {
+        symbolSize = null;
+    }
+    else {
+        String propValue = null;
+        // Determine the symbol size.
+        propValue = getLayeredPropValue("CompareSymbolSize", this.subproduct, its, false, overrideProps);
+        try {
+            symbolSize = Double.valueOf(propValue);
+        }
+        catch (Exception e) {
+            symbolSize = null;
+        }
+    }
+    return symbolSize;
+}
+
+/**
+Determine the "CompareSymobolStyle" symbol shape type used for drawing a time series.
+@param its the time series list position (0+, for retrieving properties and messaging)
+@param overrideProps run-time override properties to consider when getting graph properties
+@return the symbol style from product properties
+*/
+private GRSymbolShapeType drawTSHelperGetCompareSymbolStyle ( int its, PropList overrideProps ) {
+    GRSymbolShapeType symbolStyle = GRSymbolShapeType.NONE;
+    if ( this._is_reference_graph ) {
+        symbolStyle = GRSymbolShapeType.NONE;
+    }
+    else {
+        String propValue = null;
+        // Determine the symbol style.
+        propValue = getLayeredPropValue("CompareSymbolStyle", this.subproduct, its, false, overrideProps);
+        try {
+            symbolStyle = GRSymbolShapeType.valueOfIgnoreCase(propValue);
+            if ( symbolStyle == null ) {
+            	symbolStyle = GRSymbolShapeType.NONE;
+            }
+        }
+        catch (Exception e) {
+            symbolStyle = GRSymbolShapeType.NONE;
+        }
+    }
+    return symbolStyle;
+}
+
+/**
+Determine the "CompareTolerance" used for drawing a time series.
+@param its the time series list position (0+, for retrieving properties and messaging)
+@param overrideProps run-time override properties to consider when getting graph properties
+@return the symbol style from product properties
+*/
+private Double drawTSHelperGetCompareTolerance ( int its, PropList overrideProps ) {
+    Double tolerance = null;
+    if ( this._is_reference_graph ) {
+        tolerance = null;
+    }
+    else {
+        String propValue = null;
+        // Determine the tolerance.
+        propValue = getLayeredPropValue("CompareTolerance", this.subproduct, its, false, overrideProps);
+        try {
+            tolerance = Double.valueOf(propValue);
+        }
+        catch (Exception e) {
+            tolerance = null;
+        }
+    }
+    return tolerance;
 }
 
 /**
