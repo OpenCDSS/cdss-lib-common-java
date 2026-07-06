@@ -64,7 +64,6 @@ import RTi.GR.GRSymbolPosition;
 import RTi.GR.GRSymbolShapeType;
 import RTi.GR.GRSymbolTable;
 import RTi.GR.GRSymbolTableRow;
-import RTi.GR.GRSymbolType;
 import RTi.GR.GRText;
 import RTi.GR.GRUnits;
 import RTi.TS.DayTS;
@@ -2599,6 +2598,7 @@ protected void computeDataLimits ( boolean computeFromMaxPeriod ) {
 /**
  * Check the data limits using properties.
  * Check each time series in the list for properties DataValueDisplayMin and DataValueDisplayMax.
+ * These properties may be provided by the data source such as a data store if time series plot limits are configurable.
  * If the existing limits, which will have been computed from data, are outside of the limits,
  * reset the computed limits to those bounded by the properties.
  * Any errors in processing will result in the properties not being used.
@@ -11804,17 +11804,37 @@ An exception, for example is a scatter plot,
 where the y-axis limits are the data limits from the first time series and the x-axis limits are the data limits from the second time series.
 @param datalim_lefty_graph Data limits for the left y-axis graph.
 The data limits are either the initial values or the values from a zoom.
+@param visibleStart visible period start, used when TSTool provides a visible period
+@param visibleEnd visible period end, used when TSTool provides a visible period
 */
 public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph ) {
+	// Default behavior uses data for the full period.
+	DateTime visibleStart = null;
+	DateTime visibleEnd = null;
+	setDataLimitsForDrawing ( datalim_lefty_graph, visibleStart, visibleEnd );
+}
+
+/**
+This method is called from user interface code to trigger redraws, typically from zooming and scrolling.
+Redraws of the canvas trigger a call to paint().
+Reset the data limits prior to redrawing.  For example call when a zoom event occurs and tsViewZoom() is called.
+If a reference graph, the overall limits will remain the same but the box for the zoom location will move to the specified limits.
+For typical time series plots, the x-axis limits are the floating point year and the y-axis are data values.
+An exception, for example is a scatter plot,
+where the y-axis limits are the data limits from the first time series and the x-axis limits are the data limits from the second time series.
+@param datalim_lefty_graph Data limits for the left y-axis graph.
+The data limits are either the initial values or the values from a zoom.
+@param visibleStart visible period start, used when TSTool provides a visible period
+@param visibleEnd visible period end, used when TSTool provides a visible period
+*/
+public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph, DateTime visibleStart, DateTime visibleEnd ) {
 	String routine = getClass().getSimpleName() + ".setDataLimitsForDrawing";
     if ( datalim_lefty_graph == null ) {
 		return;
 	}
-	// FIXME JTS exceptions thrown when trying to zoom.
 	if ( (this._end_date == null) && (this._start_date == null) ) {
 		return;
 	}
-	// FIXME JTS.
 	if ( Message.isDebugOn ) {
 		Message.printDebug(1, routine,
 			this._gtype + "Setting [" + this.subproduct + "] this._data_lefty_limits to " + datalim_lefty_graph.toString());
@@ -11852,7 +11872,9 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph ) {
 			Message.printDebug ( 1, routine,
 			this._gtype + "Set _start_date to " + this._start_date + " _end_date to " + this._end_date );
 		}
+
 		// Left y-axis time series only.
+
 		boolean includeLeftYAxis = true;
 		boolean includeRightYAxis = false;
 		try {
@@ -11863,10 +11885,28 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph ) {
 				return;
 			}
 			else {
-				//_tslimits = TSUtil.getDataLimits( getEnabledTSList(), this._start_date, this._end_date, "", false, this._ignore_units);
-			    this._tslimits_lefty = TSUtil.getDataLimits( tslistToRender, this._start_date, this._end_date, "", false, this._ignoreLeftAxisUnits);
+				TSLimits visibleLimits = null;
+				if ( (visibleStart != null) && (visibleEnd != null) ) {
+					// Compute the initial limits, based on the visible period.
+					visibleLimits = TSUtil.getDataLimits( tslistToRender, visibleStart, visibleEnd, "", false, this._ignoreLeftAxisUnits);
+					this._tslimits_lefty = visibleLimits;
+					Message.printStatus(2, routine, "Setting left y-axis limits for requested visible period (" + visibleStart + " to " + visibleEnd + "):"
+						+ this._tslimits_lefty);
+				}
+				else {
+					// Compute the initial limits, based on the full period.
+					//_tslimits = TSUtil.getDataLimits( getEnabledTSList(), this._start_date, this._end_date, "", false, this._ignore_units);
+					this._tslimits_lefty = TSUtil.getDataLimits( tslistToRender, this._start_date, this._end_date, "", false, this._ignoreLeftAxisUnits);
+					Message.printStatus(2, routine, "Setting left y-axis limits for full period (" + this._start_date + " to " + this._end_date + "): "
+						+ this._tslimits_lefty);
+				}
+			    
+			    // Check whether time series display limits have been set:
+			    // - time series property 'DataValueDisplayMin' and 'DataValueDisplayMax'
+			    // - this is used when source data provide plotting limits
 			    computeDataLimits_CheckDisplayLimitProperties(tslistToRender, this._tslimits_lefty);
-				if (this.__leftYAxisGraphType == TSGraphType.PERIOD){
+
+				if (this.__leftYAxisGraphType == TSGraphType.PERIOD) {
 					// Set the minimum value to 0 and the maximum value to one more than the number of time series.
 					// Reverse the limits to number the same as the legend.
 					this._tslimits_lefty.setMaxValue(0.0);
@@ -11894,12 +11934,20 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph ) {
 				}
 				else {
 					// All other graphs.
-					if (!_zoomKeepFullPeriodYLimits) {
+					if ( ! this._zoomKeepFullPeriodYLimits ) {
+						// This seems to never be true?
 						// False so allow user-specified y-axis limits to be used if specified.
 						// Default to values set in the property.
-						this._tslimits_lefty.setMinValue ( this._max_tslimits_lefty.getMinValue() );
-						this._tslimits_lefty.setMaxValue ( this._max_tslimits_lefty.getMaxValue() );
+						if ( visibleLimits != null ) {
+							// Limits were set above.
+						}
+						else {
+							this._tslimits_lefty.setMinValue ( this._max_tslimits_lefty.getMinValue() );
+							this._tslimits_lefty.setMaxValue ( this._max_tslimits_lefty.getMaxValue() );
+						}
+
 						// If user has indicated overriding axis limits, use specified values.
+
 						String leftYAxisViewMinY = getLeftYAxisViewMinY();
 						if ( StringUtil.isDouble(leftYAxisViewMinY) ) {
 							this._tslimits_lefty.setMinValue(Double.parseDouble(leftYAxisViewMinY));
@@ -11910,7 +11958,9 @@ public void setDataLimitsForDrawing ( GRLimits datalim_lefty_graph ) {
 							this._tslimits_lefty.setMaxValue(Double.parseDouble(leftYAxisViewMaxY));
 							Message.printStatus(2, routine, "Setting max time series value to user maximum " + leftYAxisViewMaxY);
 						}
+
 						// Also check whether the value should have been taken from a data view.
+
 						if ( leftYAxisViewMinY.equalsIgnoreCase(YAXIS_LIMITS_AUTOFILL_AND_KEEP) ) {
 							if ( !Double.isNaN(this.leftYAxisViewMinYFromData) ) {
 								this._tslimits_lefty.setMinValue(this.leftYAxisViewMinYFromData);

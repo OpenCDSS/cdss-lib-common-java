@@ -654,6 +654,7 @@ public boolean canUseZoom() {
 /**
 Check to make sure that the display properties are set.
 This checks the display properties and sets internal variables that are commonly used.
+@param tsproduct the time series product to modify
 @param displayProps display properties to provide additional runtime information above and beyond the time series product properties
 */
 private void checkDisplayProperties ( TSProduct tsproduct, PropList displayProps ) {
@@ -4818,12 +4819,16 @@ public void zoomToVisiblePeriod ( DateTime visibleStart, DateTime visibleEnd, bo
                 continue;
             }
             tsgraph = this._tsgraphs.get(isub);
-            if (tsgraph.getNumTS() > 0) {
+            if ( tsgraph.getNumTS() > 0 ) {
+               	// Get the full period limits:
+            	// - TODO smalers 2026-05-28 need a way to get the Y limits based on the visible period.
                 GRLimits limits = tsgraph.getDataLimits();
-                // Set the period.
+                // Set the period to the requested visible period.
                 limits.setLeftX(visibleStart.toDouble());
                 limits.setRightX(visibleEnd.toDouble());
-                tsgraph.setDataLimitsForDrawing(limits);
+                // Set the data limits for drawing:
+                // - this is for the left Y-axis
+                tsgraph.setDataLimitsForDrawing ( limits, visibleStart, visibleEnd );
             }
         }
     }
