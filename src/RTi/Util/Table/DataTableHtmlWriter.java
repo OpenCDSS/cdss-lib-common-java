@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2024 Colorado Department of Natural Resources
+Copyright (C) 1994-2026 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@ import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import RTi.Util.IO.HTMLWriter;
 import RTi.Util.IO.PropList;
@@ -46,7 +47,7 @@ public class DataTableHtmlWriter
 /**
 The first table to be compared.
 */
-private DataTable __table = null;
+private DataTable table = null;
 
 /**
 Create the instance and check for initialization problems.
@@ -67,7 +68,7 @@ Return the table being written.
 @return the table being written
 */
 private DataTable getTable () {
-    return this.__table;
+    return this.table;
 }
 
 /**
@@ -75,7 +76,7 @@ Set the table being written.
 @param table table being written
 */
 private void setTable ( DataTable table ) {
-    this.__table = table;
+    this.table = table;
 }
 
 /**
@@ -91,23 +92,46 @@ which would be the style name used in "customStyleText" text passed in (e.g, ".b
 @param stylesMap a map of styles to use with 'styleMaskArray', as described above
 @param customStyleText is text to be inserted in the "<style>" section of the HTML.
 It should consist of lines as illustrated above.
+@param propertyMap the map of properties to control table output (see writeToHtml() for possible values).
 @throws Exception if an error occurs.
 */
-private String toHtml( boolean writeHeader, String htmlTitle, List<String> comments, int [][] styleMaskArray,
-    HashMap<Integer,String> stylesMap, String customStyleText )
+private String toHtml ( boolean writeHeader, String htmlTitle, List<String> comments, int [][] styleMaskArray,
+    HashMap<Integer,String> stylesMap, String customStyleText, Map<String,Object> propertyMap )
     throws Exception {
     String routine = getClass().getSimpleName() + ".toHtml";
     DataTable table = getTable();
-    // Create an HTML writer.
-    HTMLWriter html = new HTMLWriter( null, htmlTitle, false );
+    
+    // Get output properties.
+    if ( propertyMap == null ) {
+    	// Create a map to simplify logic below.
+    	propertyMap = new HashMap<>();
+    }
+    boolean includeDocument = true;
+    Object o = propertyMap.get("IncludeDocument");
+    if ( (o != null) && (o instanceof Boolean) ) {
+    	if ( ! (Boolean)o ) {
+    		// Don't include the surrounding document for the table.
+    		includeDocument = false;
+    	}
+    }
+
+    // Create an HTML writer:
+    // - specify the filename as null to create the output in memory
+    // - don't write the header because it is handled below
+    String filename = null;
+    boolean createHead = false;
+    HTMLWriter html = new HTMLWriter ( filename, htmlTitle, createHead );
     // Start the file and write the head section.
-    html.htmlStart();
+    html.htmlStart ( includeDocument );
     if ( (htmlTitle == null) || htmlTitle.isEmpty() ) {
         htmlTitle = "Data Table";
     }
-    writeHtmlHead(html, htmlTitle, customStyleText);
-    // Start the body section.
-    html.bodyStart();
+    
+    if ( includeDocument ) {
+    	writeHtmlHead(html, htmlTitle, customStyleText);
+    	// Start the body section.
+    	html.bodyStart();
+    }
     // Put the standard header at the top of the file.
     //IOUtil.printCreatorHeader ( out, "#", 80, 0 );
     // If any comments have been passed in, print them at the top of the file.
@@ -163,7 +187,7 @@ private String toHtml( boolean writeHeader, String htmlTitle, List<String> comme
         int precision;
         PropList maskProps = new PropList(""); // Reused below to stylize cells.
         Object cellObject;
-        
+
         int nTableRows = table.getNumberOfRecords();
         int nMaskRows = 0;
         int nMaskCols = 0;
@@ -235,8 +259,10 @@ private String toHtml( boolean writeHeader, String htmlTitle, List<String> comme
         }
         html.tableEnd();
     }
-    html.bodyEnd();
-    html.htmlEnd();
+    if ( includeDocument ) {
+    	html.bodyEnd();
+    	html.htmlEnd();
+    }
     html.closeFile();
     return html.getHTML();
 }
@@ -270,8 +296,9 @@ public void writeHtmlFile(String filename, boolean writeHeader, List<String> com
 
 /**
 Writes a table to an HTML file.
+No HTML file title is written.
 @param filename the file to write to.
-@param writeHeader If true, the field names will be read from the fields and written as a one-line header of field names.
+@param writeTableHeader If true, the field names will be read from the fields and written as a one-line header of field names.
 If all headers are missing, then the header line will not be written.
 @param comments a list of Strings to put at the top of the file as comments.
 @param styleMaskArray an array with integer values for each cell in the table.
@@ -283,18 +310,42 @@ which would be the style name used in "customStyleText" text passed in (e.g, ".b
 It should consist of lines as illustrated above.
 @throws Exception if an error occurs.
 */
-public void writeHtmlFile ( String filename, boolean writeHeader, List<String> comments, int [][] styleMaskArray,
+public void writeHtmlFile ( String filename, boolean writeTableHeader, List<String> comments, int [][] styleMaskArray,
     HashMap<Integer,String> stylesMap, String customStyleText )
 throws IOException, Exception {
 	String title = "";
-	writeHtmlFile(filename, title, writeHeader, comments, styleMaskArray, stylesMap, customStyleText );
+	Map<String,Object> propertyMap = null;
+	writeHtmlFile ( filename, title, writeTableHeader, comments, styleMaskArray, stylesMap, customStyleText, propertyMap );
+}
+
+/**
+Writes a table to an HTML file.
+No HTML file title is written.
+@param filename the file to write to.
+@param writeTableHeader If true, the field names will be read from the fields and written as a one-line header of field names.
+If all headers are missing, then the header line will not be written.
+@param comments a list of Strings to put at the top of the file as comments.
+@param styleMaskArray an array with integer values for each cell in the table.
+These values will be used to look up styles from the "stylesMap" hash map.
+For example a styleMaskArray value of "1" would match the style in stylesMap.get(1),
+which would be the style name used in "customStyleText" text passed in (e.g, ".bad { background-color:yellow; }\n".
+@param stylesMap a map of styles to use with 'styleMaskArray', as described above
+@param customStyleText is text to be inserted in the "<style>" section of the HTML.
+It should consist of lines as illustrated above.
+@throws Exception if an error occurs.
+*/
+public void writeHtmlFile ( String filename, boolean writeTableHeader, List<String> comments, int [][] styleMaskArray,
+    HashMap<Integer,String> stylesMap, String customStyleText, Map<String,Object> propertyMap )
+throws IOException, Exception {
+	String title = "";
+	writeHtmlFile ( filename, title, writeTableHeader, comments, styleMaskArray, stylesMap, customStyleText, propertyMap );
 }
 
 /**
 Writes a table to an HTML file.
 @param filename the file to write to.
 @param title title for the HTML, will be shown in browser tab.
-@param writeHeader If true, the field names will be read from the fields and written as a one-line header of field names.
+@param writeTableHeader If true, the field names will be read from the fields and written as a one-line table header of field names.
 If all headers are missing, then the header line will not be written.
 @param comments a list of Strings to put at the top of the file as comments.
 @param styleMaskArray an array with integer values for each cell in the table.
@@ -306,8 +357,54 @@ which would be the style name used in "customStyleText" text passed in (e.g, ".b
 It should consist of lines as illustrated above.
 @throws Exception if an error occurs.
 */
-public void writeHtmlFile ( String filename, String title, boolean writeHeader, List<String> comments, int [][] styleMaskArray,
-    HashMap<Integer,String> stylesMap, String customStyleText )
+public void writeHtmlFile (
+	String filename,
+	String title,
+	boolean writeTableHeader,
+	List<String> comments,
+	int [][] styleMaskArray, HashMap<Integer,String> stylesMap,
+	String customStyleText )
+throws IOException, Exception {
+	Map<String,Object> propertyMap = null;
+	writeHtmlFile (
+	filename,
+	title,
+	writeTableHeader,
+	comments,
+	styleMaskArray, stylesMap,
+	customStyleText,
+	propertyMap );
+}
+
+/**
+Writes a table to an HTML file.
+@param filename the file to write to.
+@param title title for the HTML, will be shown in browser tab.
+@param writeTableHeader If true, the field names will be read from the fields and written as a one-line table header of field names.
+If all headers are missing, then the header line will not be written.
+@param comments a list of Strings to put at the top of the file as comments.
+@param styleMaskArray an array with integer values for each cell in the table.
+These values will be used to look up styles from the "stylesMap" hash map.
+For example a styleMaskArray value of "1" would match the style in stylesMap.get(1),
+which would be the style name used in "customStyleText" text passed in (e.g, ".bad { background-color:yellow; }\n".
+@param stylesMap a map of styles to use with 'styleMaskArray', as described above
+@param customStyleText is text to be inserted in the "<style>" section of the HTML.
+It should consist of lines as illustrated above.
+@param propertyMap property map to control output, containing:
+<ul>
+<li> `IncludeDocument` - if a Boolean 'True' (default), do include the document wrapper.
+If 'False', only include the <code><table></code> and enclosed elements.
+</ul>
+@throws Exception if an error occurs.
+*/
+public void writeHtmlFile (
+	String filename,
+	String title,
+	boolean writeTableHeader,
+	List<String> comments,
+	int [][] styleMaskArray, HashMap<Integer,String> stylesMap,
+	String customStyleText,
+	Map<String,Object> propertyMap )
 throws IOException, Exception {
     String routine = getClass().getSimpleName() + ".writeHtmlFile";
 
@@ -319,7 +416,7 @@ throws IOException, Exception {
     PrintWriter out = null;
     try {
         out = new PrintWriter( new BufferedWriter(new FileWriter(filename)));
-        out.print( toHtml(writeHeader, title, comments, styleMaskArray, stylesMap, customStyleText ) );
+        out.print ( toHtml(writeTableHeader, title, comments, styleMaskArray, stylesMap, customStyleText, propertyMap ) );
     }
     finally {
         if ( out != null ) {

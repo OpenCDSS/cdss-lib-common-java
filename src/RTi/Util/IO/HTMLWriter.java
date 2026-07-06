@@ -1943,18 +1943,31 @@ throws Exception {
 }
 
 /**
+Starts an HTML declaration, but do not write the document elements.
+Use this to create an HTML segment, such as a table to insert into a larger document.
+*/
+public void htmlStart ()
+throws Exception {
+	htmlStart ( true );
+}
+
+/**
 Starts an HTML declaration.  Also add a DTD line for strict:
 <pre>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 </pre>
+@param writehtml if true, write the DOCTYPE and html elements at the top of the file,
+if false do not write anything (suitable for embedded HTML content)
 @see <a href="http://www.willcam.com/cmat/html/toplevel.html#HTML">&lt;HTML&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
-public void htmlStart()
+public void htmlStart ( boolean writeHtml )
 throws Exception {
 	__htmlL++;
-	write("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">");
-	write("<html>\n");
+	if ( writeHtml ) {
+		write("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">");
+		write("<html>\n");
+	}
 }
 
 /**
@@ -1963,7 +1976,7 @@ Inserts an image tag with the given parameters.
 @see <a href="http://www.willcam.com/cmat/html/other.html#Inline%20Image">&lt;IMG&gt; tag.</a>
 @throws Exception if an error occurs writing HTML text to a file.
 */
-public void image(PropList p)
+public void image ( PropList p )
 throws Exception {
 	image(propListToString(p));
 }
