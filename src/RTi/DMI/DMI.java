@@ -185,12 +185,12 @@ public static final int INSERT = 10;
 /**
 Indicate whether database changes are automatically committed once they are done.
 */
-private boolean __autoCommit;
+private boolean __autoCommit = false;
 
 /**
 Indicate whether the SQL should be capitalized before being sent to the database.
 */
-private boolean __capitalize;
+private boolean __capitalize = false;
 
 /**
 If true, then when an SQL statement is executed and an error occurs,
@@ -210,12 +210,12 @@ private boolean __dumpSQLOnExecution = false;
 Indicate whether an JDBC connection is automatically set up (true) or
 whether the ODBC is defined on the machine (false).
 */
-private boolean isJdbc;
+private boolean isJdbc = false;
 
 /**
-Whether the program is currently connected to the database or not.
+Whether this DMI is currently connected to the database or not.
 */
-private boolean __connected;
+private boolean __connected = false;
 
 /**
 Whether operations are currently being done in a transaction.
@@ -232,7 +232,7 @@ private boolean __printStatus = false;
 /**
 Connection that is used for the database interaction.
 */
-private Connection __connection;
+private Connection __connection = null;
 
 /**
  * Additional connection properties provided in the constructor:
@@ -244,12 +244,12 @@ private Map<String,Object> connectionPropertiesMap = new HashMap<>();
 /**
 Name of the database in the server if __jdbc_odbc is true.
 */
-private String __database_name;
+private String __database_name = null;
 
 /**
 ODBC Data Source Name if __jdbc_odbc is false.
 */
-private String __odbc_name;
+private String __odbc_name = null;
 
 /**
 Additional connection properties, which will be added at the end of the connection URL.
@@ -279,7 +279,7 @@ Valid types are:<br>
 <li>SQLServer</ul>
 </ul>
 */
-private String __database_engine_String;
+private String __database_engine_String = null;
 
 /**
 The left-side escape string to wrap fields so that they are not mistaken for reserved words.
@@ -307,7 +307,7 @@ private String __statementEnd = "";
 /**
 Database engine as enumeration.
 */
-protected DMIDatabaseType _database_engine;
+protected DMIDatabaseType _database_engine = null;
 
 /**
 Database version.  This should be set by calling determineDatabaseVersion(),
@@ -315,7 +315,7 @@ which is an abstract method to be defined in derived DMI classes.
 The standard for the version number is XXXXXXDDDDDDDD where XXXXXXX is typically a database version
 (e.g., RiverTrak 020601) and DDDDDDDD is usually the build date (e.g., 20020625).
 */
-private long __database_version;
+private long __database_version = 0;
 
 /**
 True if any writes have been done to the database (uncommitted).
@@ -326,27 +326,27 @@ private boolean __dirty = false;
 Whether the DMI should treat the database as being in read-only mode
 (false, all calls to DMI.delete() or DMI.write() are ignored) or not.
 */
-private boolean __editable;
+private boolean __editable = false;
 
 /**
 Host name or IP address of the database server (or "Local" if the local host is used).
 */
-private String __database_server;
+private String __database_server = null;
 
 /**
 The last SELECT query SQL string that was executed.
 */
-private DMISelectStatement __lastQuery;
+private DMISelectStatement __lastQuery = null;
 
 /**
 The last SQL statement that was executed.
 */
-private DMIStatement __lastSQL;
+private DMIStatement __lastSQL = null;
 
 /**
 The type of the last SQL executed.
 */
-private int __lastSQLType;
+private int __lastSQLType = DMI.NONE;
 
 /**
 The login timeout to use when establishing the database connection.
@@ -356,7 +356,7 @@ private int __loginTimeout = -1;
 /**
 Port number of the database to connect, used by client-server databases.
 */
-private int __port;
+private int __port = 0;
 
 /**
 Sets whether in toString and getDatabaseProperties to print out information that may be secure
@@ -367,7 +367,7 @@ private boolean __secure = false;
 /**
 ID string to identify the DMI connection.
 */
-private String __id;
+private String __id = null;
 
 /**
 Name string to identify the DMI connection.
@@ -377,30 +377,30 @@ private String __inputName = "";
 /**
 Login name to connect to the database (often used in database connection URL).
 */
-private String __system_login;
+private String __system_login = null;
 
 /**
 Password to connect to the database (often used in the database connection URL).
 */
-private String __system_password;
+private String __system_password = null;
 
 /**
 User login name to restrict access to the database.
 This is typically more restrictive than the system login but may be the same.
 */
-private String __user_login;
+private String __user_login = null;
 
 /**
 User password to restrict access to the database.
 This is typically more restrictive than the system password but may be the same.
 */
-private String __user_password;
+private String __user_password = null;
 
 /**
 List for holding all the statements that were created during a transaction,
 so they can be closed when the transaction is committed or rolled back.
 */
-private List<Statement> __statementsVector;
+private List<Statement> __statementsList = null;
 
 /**
 An empty constructor.
@@ -722,7 +722,7 @@ public void initialize (
 	    }
 	}
 
-	this.__statementsVector = new Vector<>();
+	this.__statementsList = new Vector<>();
 }
 
 /**
@@ -796,70 +796,126 @@ public void close() throws SQLException {
 
 /**
 Closes a result set and frees the resources associated with it.
-@param rs the ResultSet to close.
+Also close the statement associated with the result set.
+@param rs the ResultSet to close (if null, nothing will occur).
 */
-public static void closeResultSet(ResultSet rs) {
-    try {
-        if (rs != null) {
-        	// Get the statement so that it can be closed after closing the ResultSet.
-    		Statement s = rs.getStatement();
-    		// Close the ResultSet.
-    		rs.close();
-    		rs = null;
-    		// Close the Statement.
-    		if (s != null) {
-    			s.close();
-    			s = null;
-    		}
-    	}
-    }
-    catch ( SQLException e ) {
-        // Swallow the exception since this is a utility method that is called to clean-up.
-    }
+public static void closeResultSet ( ResultSet rs ) {
+	Statement s = null;
+	if ( rs == null ) {
+		// Nothing to do.
+		return;
+	}
+
+	try {
+		if ( rs.isClosed() ) {
+			// Nothing to do:
+			// - may return an exception so handle below
+			// - if an exception (unlikely?) keep trying below
+			return;
+		}
+	}
+	catch ( SQLException e ) {
+	}
+
+	String routine = DMI.class.getSimpleName() + ".closeResultSet";
+
+	// Get the statement so that it can be closed after closing the ResultSet.
+	try {
+		s = rs.getStatement();
+	}
+	catch ( Exception e ) {
+		Message.printWarning(3, routine, "Exception getting statement from result set (" + e + ").");
+		Message.printWarning(3, routine, e);
+	}
+	// Close the ResultSet.
+	try {
+		if ( !rs.isClosed() ) {
+			rs.close();
+		}
+	}
+	catch ( SQLException e ) {
+		Message.printWarning(3, routine, "Exception closing result set (" + e + ").");
+		Message.printWarning(3, routine, e);
+	}
+	if ( s != null ) {
+		// Close the Statement.
+		try {
+			if ( !s.isClosed() ) {
+				s.close();
+			}
+		}
+		catch ( Exception e ) {
+			Message.printWarning(3, routine, "Exception closing statement (" + e + ").");
+			Message.printWarning(3, routine, e);
+		}
+	}
 }
 
 /**
-Closes a result set from a stored procedure and frees the resources associated with it.
+Closes a result set from a stored procedure and frees the resources associated with it,
+including the statement and callable statement if used.
 @param rs the ResultSet to close.
 @param select the select statement that was set up to execute the stored procedure.
 */
-public static void closeResultSet(ResultSet rs, DMIStatement select)
+public static void closeResultSet ( ResultSet rs, DMIStatement select )
 throws SQLException {
-	if (rs != null) {
+	if ( rs != null ) {
        	// Get the statement so that it can be closed after closing the ResultSet.
 		Statement s = rs.getStatement();
+
+		String routine = DMI.class.getSimpleName() + ".closeResultSet";
+
    		// Close the ResultSet.
-		rs.close();
-		rs = null;
+		if ( !rs.isClosed() ) {
+			try {
+				rs.close();
+			}
+			catch ( SQLException e ) {
+				Message.printWarning(3, routine, "Exception closing result set (" + e + ").");
+				Message.printWarning(3, routine, e);
+			}
+		}
+
    		// Close the Statement.
-		if (s != null) {
-			s.close();
-			s = null;
+		if ( s != null ) {
+			try {
+				if ( ! s.isClosed() ) {
+					s.close();
+				}
+			}
+			catch ( Exception e ) {
+				Message.printWarning(3, routine, "Exception closing statement (" + e + ").");
+				Message.printWarning(3, routine, e);
+			}
 		}
 	}
 
-	// Also call the associated callable statement.
-	if (select.getCallableStatement() != null) {
+	// Also call the associated callable select statement.
+	if ( select.getCallableStatement() != null ) {
 		select.getCallableStatement().close();
 	}
 }
 
 /**
-Closes an statements that were opened during a transaction.
+Closes all statements that were opened during a transaction.
 Called automatically by commit() and rollback().
 */
 private void closeStatements() {
-	String routine = "DMI.closeStatements()";
-	int size = this.__statementsVector.size();
-	Statement s = null;
-	for (int i = 0; i < size; i++) {
-		s = this.__statementsVector.get(i);
-		try {
-			s.close();
-		}
-		catch (Exception e) {
-			Message.printWarning(3, routine, "Error closing statement:");
-			Message.printWarning(3, routine, e);
+	String routine = DMI.class.getSimpleName() + ".closeStatements";
+	if ( this.__statementsList != null ) {
+		int size = this.__statementsList.size();
+		Statement s = null;
+		for ( int i = 0; i < size; i++ ) {
+			s = this.__statementsList.get(i);
+			try {
+				if ( !s.isClosed() ) {
+					s.close();
+				}
+			}
+			catch (Exception e) {
+				Message.printWarning(3, routine, "Error closing statement:");
+				Message.printWarning(3, routine, e);
+			}
 		}
 	}
 }
@@ -980,8 +1036,8 @@ public int dmiCount(String sql) throws SQLException{
 	int count = rs.getInt(1);
 
 	closeResultSet(rs);
-	if (this.__inTransaction) {
-		this.__statementsVector.add(s);
+	if ( this.__inTransaction ) {
+		this.__statementsList.add(s);
 	}
 	else {
 		s.close();
@@ -1097,8 +1153,8 @@ public int dmiDelete(String sql) throws SQLException {
 		throw ex;
 	}
 
-	if (this.__inTransaction) {
-		this.__statementsVector.add(s);
+	if ( this.__inTransaction ) {
+		this.__statementsList.add(s);
 	}
 	else {
 		s.close();
@@ -1142,7 +1198,7 @@ public int dmiExecute(String sql) throws SQLException {
 	int result = s.executeUpdate(sql);
 
 	if (this.__inTransaction) {
-		this.__statementsVector.add(s);
+		this.__statementsList.add(s);
 	}
 	else {
 		s.close();
@@ -1263,7 +1319,7 @@ public ResultSet dmiSelect(String sql) throws SQLException {
 /**
 Execute an SQL select statement from a DMISelectStatement object.
 The SQL statement is built from the DMISelectStatement object and the resulting string passed to dmiSelect(String).
-The ResultSet must be closed by the calling code.
+The ResultSet must be closed by the calling code, for example call 'closeResultSet' to close the resultset and related statement.
 @param select an DMISelectStatement instance specifying the query.
 @return the ResultSet from the select.
 @throws SQLException thrown if there are problems with a
@@ -1348,7 +1404,7 @@ public int dmiWrite(String sql) throws SQLException {
 	}
 
 	if (this.__inTransaction) {
-		this.__statementsVector.add(s);
+		this.__statementsList.add(s);
 	}
 	else {
 		s.close();
@@ -1591,8 +1647,8 @@ throws SQLException, Exception {
 			throw new Exception ("Unspecified WRITE type in DMI.dmiWrite:" + writeFlag);
 	}
 
-	if (this.__inTransaction) {
-		this.__statementsVector.add(stmt);
+	if ( this.__inTransaction ) {
+		this.__statementsList.add(stmt);
 	}
 	else {
 		stmt.close();
@@ -2290,13 +2346,13 @@ throws SQLException, Exception {
 	// - this is usually the case
 	// - some configurations like Google Wallet may use authentication in the wallet (not yet implemented)
 	boolean useLoginAndPassword = true;
-	
+
 	// Connection properties that are not set in the connection URL:
 	// - these are Java system properties, not to be confused with this.connectionPropertiesMap
 	// - for example, this is used with Google wallet to set the wallet folder location
 	// - the list can be empty
 	Properties connectionProps = new Properties();
-	
+
 	if ( this.isJdbc ) {
 		printStatusOrDebug(dl, routine, "Using JDBC connection.");
 		// The URL is formed using several pieces of information.
@@ -2352,7 +2408,7 @@ throws SQLException, Exception {
             else {
                 throw new SQLException ( "For Derby currenty only support in-memory databases." );
             }
-            Message.printStatus(2, routine, "Opening ODBC connection for Derby JDBC/ODBC and \"" + connUrl + "\"");
+            Message.printStatus(2, routine, "Opening database connection for Derby JDBC/ODBC and \"" + connUrl + "\"");
         }
 		else if (this._database_engine == DMIDatabaseType.INFORMIX ) {
 			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.INFORMIX'");
@@ -2372,7 +2428,7 @@ throws SQLException, Exception {
 		    }
 			// Login and password specified below.
 			// +";user=" + login + ";password=" + password;
-			Message.printStatus(2, routine, "Opening ODBC connection for Informix using (login not shown): " + connUrl);
+			Message.printStatus(2, routine, "Opening database connection for Informix using (login not shown): " + connUrl);
 		}
 		else if ( this._database_engine == DMIDatabaseType.MYSQL ) {
 			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.MYSQL'");
@@ -2383,7 +2439,7 @@ throws SQLException, Exception {
 		    if ( (this.__additionalConnectionProperties != null) && !this.__additionalConnectionProperties.isEmpty() ) {
 			    connUrl = connUrl + StringUtil.expandForProperties(this.__additionalConnectionProperties, propertyMap);
 		    }
-			Message.printStatus(2, routine, "Opening ODBC connection for MySQL using \"" + connUrl + "\"" );
+			Message.printStatus(2, routine, "Opening database connection for MySQL using \"" + connUrl + "\"" );
 		}
 		else if ( this._database_engine == DMIDatabaseType.POSTGRESQL ) {
 			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.POSTGRESQL'");
@@ -2393,7 +2449,7 @@ throws SQLException, Exception {
 		    if ( (this.__additionalConnectionProperties != null) && !this.__additionalConnectionProperties.isEmpty() ) {
 			    connUrl = connUrl + StringUtil.expandForProperties(this.__additionalConnectionProperties, propertyMap);
 		    }
-			Message.printStatus ( 2, routine, "Opening ODBC connection for PostgreSQL using (login not shown): " + connUrl );
+			Message.printStatus ( 2, routine, "Opening database connection for PostgreSQL using (login not shown): " + connUrl );
 		}
 		else if ( this._database_engine == DMIDatabaseType.SQLITE ) {
 			// Database is a file, not via port connection:
@@ -2414,7 +2470,7 @@ throws SQLException, Exception {
 			    	connUrl = connUrl + StringUtil.expandForProperties(this.__additionalConnectionProperties, propertyMap);
 		    	}
 			}
-			Message.printStatus ( 2, routine, "Opening ODBC connection for SQLite using (login not shown): " + connUrl );
+			Message.printStatus ( 2, routine, "Opening database connection for SQLite using (login not shown): " + connUrl );
 		}
 		// All the SQL Server connections are now concentrated into one code block since using the SQL Server
 		// 2008 JDBC (jdbc4) driver.
@@ -2433,7 +2489,7 @@ throws SQLException, Exception {
                 connUrl += ":" + this.__port;
             }
             connUrl += ";databaseName=" + this.__database_name;
-			Message.printStatus ( 2, routine, "Opening ODBC connection for SQLServer using (login not shown): " + connUrl );
+			Message.printStatus ( 2, routine, "Opening database connection for SQLServer using (login not shown): " + connUrl );
 		}
         else if ( this._database_engine == DMIDatabaseType.H2 ) {
 			printStatusOrDebug(dl, routine, "Database engine is type 'DMIDatabaseType.H2'");
@@ -2473,7 +2529,7 @@ throws SQLException, Exception {
             String delim1 = "?";
             String delim2 = "&";
             int paramCount = 0;
-			
+
 			// Determine whether the thin driver is being used.
 			boolean doThinDriver = true;
 			String OracleDriverType = getConnectionPropertyAsString("OracleDriverType");
@@ -2487,10 +2543,10 @@ throws SQLException, Exception {
 			String ConnectionUrl = getConnectionPropertyAsString("ConnectionUrl");
 			if ( (ConnectionUrl != null) && !ConnectionUrl.isEmpty() ) {
 				// The full connection URL is specified so just use it without forming from the parts.
-				doBuildUrl = false; 
+				doBuildUrl = false;
 				connUrlBuilder.append ( ConnectionUrl );
 			}
-			
+
 			// Do a basic check to see if Google Wallet is being used:
 			// - if either OracleNetworkFolder or OracleWalletFolder is specified, then wallet is being used
 			boolean doOracleWallet = false;
@@ -2501,9 +2557,9 @@ throws SQLException, Exception {
 				// Oracle wallet is being used.
 				doOracleWallet = true;
 			}
-			
+
 			// Set the initial part of the connection string.
-			
+
 			if ( doBuildUrl && doThinDriver ) {
 				connUrlBuilder.append("jdbc:oracle:thin:");
 			}
@@ -2532,7 +2588,7 @@ throws SQLException, Exception {
             	//     cwallet.sso - binary, standard name, auto-login, does not contain a password, contains TLS certificate
             	//     cwallet.sso.lck - standard name, empty file, lock file, why is it here?
             	//     testdb.cer - standard name, CA certificate
-            	
+
             	// First specify the TNS_ADMIN in the connection URL:
             	// - this can only be done with a datastore 'OracleNetworkFolder' property
        			// - some experimentation shows that forward slashes may work better than backslashes
@@ -2559,7 +2615,7 @@ throws SQLException, Exception {
             			Message.printWarning(3,routine,"Oracle network file tnsnames.ora does not exist: \"" + f.getAbsolutePath() + "\"");
             		}
             	}
-            	
+
             	// Set the Oracle wallet folder:
             	// - this uses the 'OracleWalletFolder' datastore property
             	// - this is not added to the URL so do regardless of the value of 'doBuildUrl'
@@ -2609,10 +2665,10 @@ throws SQLException, Exception {
 		    		StringUtil.expandForProperties(additions, propertyMap) );
 		     	}
             }
-		    
+
 		    // Convert the StringBuilder to a String.
 		    connUrl = connUrlBuilder.toString();
-			Message.printStatus ( 2, routine, "Opening ODBC connection for Oracle using (login not shown): " + connUrl );
+			Message.printStatus ( 2, routine, "Opening database connection for Oracle using (login not shown): " + connUrl );
         }
 		else {
 			// The database engine is not understood.
@@ -2633,7 +2689,7 @@ throws SQLException, Exception {
 				connUrl = connUrl + StringUtil.expandForProperties(this.__additionalConnectionProperties, propertyMap);
 			}
 			Message.printStatus(2, routine,
-				"Java version is <= 7. Opening ODBC connection for Microsoft Access built-in JDBC/ODBC driver and \"" + connUrl + "\"");
+				"Java version is <= 7. Opening database connection for Microsoft Access built-in JDBC/ODBC driver and \"" + connUrl + "\"");
 		}
 		else {
 			// Must use a third party Access driver:
@@ -2645,7 +2701,7 @@ throws SQLException, Exception {
 		    	connUrl = connUrl + StringUtil.expandForProperties(this.__additionalConnectionProperties, propertyMap);
 		   	}
 			Message.printStatus(2, routine,
-				"Java version is not <= 7.  Opening ODBC connection for Microsoft Access using UCanAccess driver and \"" + connUrl + "\"");
+				"Java version is not <= 7.  Opening database connection for Microsoft Access using UCanAccess driver and \"" + connUrl + "\"");
 		}
 	}
     if ( this.__secure ) {
@@ -2672,7 +2728,7 @@ throws SQLException, Exception {
     		connectionProps.setProperty("password", systemPassword );
     	}
     }
-    
+
     // Open the connection:
     // - properties may contain the user and password from above
     // - properties may also contain other properties that cannot be passed in the connection URL
