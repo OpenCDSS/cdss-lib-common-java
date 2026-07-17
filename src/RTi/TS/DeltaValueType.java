@@ -1,10 +1,10 @@
-// ResetType - enumeration to store values for how time series accumulation resets
+// DeltaValueType - enumeration to store values for what value is computed as a delta between time series values
 
 /* NoticeStart
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2026 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,32 +24,38 @@ NoticeEnd */
 package RTi.TS;
 
 /**
-This enumeration stores values for how a time series accumulation resets.
-For example, cumulative precipitation may reset when it reaches the limit of a tipping bucket counter.
+This enumeration stores values indicating the delta value between time series values.
 */
-public enum ResetType {
+public enum DeltaValueType {
     /**
-     * Automatically detect reset, typically when the accumulation value goes the other direction from expected.
-     * Requires that the trend direction is specified.
+     * Delta is the difference between the time series values.
      */
-    AUTO("Auto"),
+    DATA_VALUE("DataValue"),
 
     /**
-     * The data are not expected to reset (will continue increasing indefinitely, or decreasing indefinitely).
+     * Delta is the difference between the time series time stamps, in seconds.
      */
-    NONE("None"),
+    TIME_SECONDS("TimeSeconds"),
 
-	/**
-	 * The reset occurs at a value, such as roll-over of a maximum sensor value.
-	 */
-	ROLLOVER("Rollover"),
+    /**
+     * Delta is the difference between the time series time stamps, in minutes.
+     */
+    TIME_MINUTES("TimeMinutes"),
 
-	/**
-	 * Unknown reset type.
-	 */
-	UNKNOWN("Unknown");
+    /**
+     * Delta is the difference between the time series time stamps, in hours.
+     */
+    TIME_HOURS("TimeHours"),
 
-	// TODO smalers 2023-03-31 RestTime, ResetDate, ResetDateTime to reset at a point in time such as day of the year.
+    /**
+     * Delta is the difference between the time series time stamps, in days.
+     */
+    TIME_DAYS("TimeDays"),
+
+    /**
+     * Delta is the difference between the time series time stamps, in months.
+     */
+    TIME_MONTHS("TimeMonths");
 
     /**
      * The name that should be displayed when the best fit type is used in UIs and reports.
@@ -60,7 +66,7 @@ public enum ResetType {
      * Construct an enumeration value.
      * @param displayName name that should be displayed in choices, etc.
      */
-    private ResetType(String displayName) {
+    private DeltaValueType ( String displayName ) {
         this.displayName = displayName;
     }
 
@@ -78,19 +84,18 @@ public enum ResetType {
      * Return the enumeration value given a string name (case-independent).
      * @return the enumeration value given a string name (case-independent), or null if not matched.
      */
-    public static ResetType valueOfIgnoreCase(String name) {
+    public static DeltaValueType valueOfIgnoreCase(String name) {
     	if ( name == null ) {
     		return null;
     	}
-
-    	ResetType [] values = values();
-    	// Currently supported values.
-    	for ( ResetType t : values ) {
-        	if ( name.equalsIgnoreCase(t.toString()) ) {
-            	return t;
-        	}
-    	}
-    	return null;
-	}
+        DeltaValueType [] values = values();
+        // Currently supported values.
+        for ( DeltaValueType t : values ) {
+            if ( name.equalsIgnoreCase(t.toString()) ) {
+                return t;
+            }
+        }
+        return null;
+    }
 
 }

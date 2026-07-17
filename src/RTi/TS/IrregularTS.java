@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2026 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -539,7 +539,7 @@ This can be used when the entire header is formatted elsewhere.
 </table>
 @exception RTi.TS.TSException Throws if there is a problem formatting the output.
 */
-public List<String> formatOutput( PropList proplist )
+public List<String> formatOutput ( PropList proplist )
 throws TSException {
 	String message = "";
 	String routine = getClass().getSimpleName() + ".formatOutput";
@@ -852,7 +852,10 @@ throws TSException {
 
 /**
 Return the data list.
-@return The reference to the data array.  Use caution when manipulating.
+Use caution when manipulating the list.
+It is OK to process in read-only approach, but manipulating the list may cause issues in the source time series,
+such as with pointers that are used to optimize access.
+@return The reference to the data array.
 */
 public List<TSData> getData() {
 	return __tsDataList;
@@ -998,7 +1001,7 @@ but might need to be in the future to increase performance.
 @return The data value in the data array given a date, or the missing data value if the date cannot be found in the data.
 @param date Date of interest.
 */
-public double getDataValue( DateTime date ) {
+public double getDataValue ( DateTime date ) {
 	String routine = null;
 	if ( Message.isDebugOn ) {
 		routine = getClass().getSimpleName() + ".getDataValue";
@@ -1480,7 +1483,7 @@ This calls the overloaded method with a "" flag and duration of 0.
 @param value Data value corresponding to the date.
 @param return the number of values set, 0 or 1, useful to know when a value is outside the allocated period
 */
-public int setDataValue( DateTime date, double value ) {
+public int setDataValue ( DateTime date, double value ) {
 	return setDataValue ( date, value, "", 0 );
 }
 
