@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2026 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -188,6 +188,7 @@ private DataTable createPropertyTable ( TS ts ) {
     //valueLength = -1;
     int typeLength = -1;
     //valueLength = 80;
+    // The output will be shown as a string.
     tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Property Name",nameLength) );
     tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Property Type",typeLength) );
     tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Property Value",valueLength) );
@@ -242,11 +243,11 @@ private void openGUI ( boolean mode ) {
 	addWindowListener ( this );
 	GridBagLayout gbl = new GridBagLayout();
 	Insets insetsTLBR = new Insets ( 2, 2, 2, 2 );	// Space around text area.
-	
+
 	// Font for reports (fixed width).
 
 	Font report_Font = new Font ( "Courier", Font.PLAIN, 11 );
-	
+
 	// Add a panel to hold the main components.
 
 	JPanel display_JPanel = new JPanel ();
@@ -501,7 +502,7 @@ private void openGUI ( boolean mode ) {
 			1, ++y, 1, 1, 1.0, 0.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 	isdirty_JCheckBox = null;
-	
+
     // Properties tab.
 
     JPanel properties_JPanel = new JPanel();
