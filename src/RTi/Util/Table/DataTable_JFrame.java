@@ -42,32 +42,32 @@ public class DataTable_JFrame extends JFrame
 /**
 The data table that was passed in.
 */
-private DataTable __table = null;
+private DataTable table = null;
 
 /**
 The panel containing the worksheet that will be displayed in the frame.
 */
-private DataTable_JPanel __dataTablePanel = null;
+private DataTable_JPanel dataTablePanel = null;
 
 /**
  * Parent JFrame, used to center the table window.
  */
-private JFrame __parent = null;
+private JFrame parent = null;
 
 /**
 Message text fields.
 */
-private JTextField __messageJTextField = null;
+private JTextField messageJTextField = null;
 
 /**
  * Status text field.
  */
-private JTextField __statusJTextField = null;
+private JTextField statusJTextField = null;
 
 /**
 The name of the file from which to read data.
 */
-private String __filename = null;
+private String filename = null;
 
 /**
 Constructor.
@@ -106,8 +106,8 @@ throws Exception {
             setTitle( JGUIUtil.getAppNameForWindows() +	" - " + title );
 		}
 	}
-	this.__parent = parent;
-	this.__table = table;
+	this.parent = parent;
+	this.table = table;
 
 	setupGUI();
 }
@@ -137,8 +137,8 @@ throws Exception {
             setTitle( JGUIUtil.getAppNameForWindows() +	" - " + title );
 		}
 	}
-	this.__parent = parent;
-	this.__filename = filename;
+	this.parent = parent;
+	this.filename = filename;
 
 	setupGUI();
 }
@@ -150,10 +150,10 @@ Sets the status bar's message and status text fields.
 */
 public void setMessageStatus(String message, String status) {
 	if (message != null) {
-		__messageJTextField.setText(message);
+		this.messageJTextField.setText(message);
 	}
 	if (status != null) {
-		__statusJTextField.setText(status);
+		this.statusJTextField.setText(status);
 	}
 }
 
@@ -162,47 +162,47 @@ Sets up the GUI.
 */
 private void setupGUI()
 throws Exception {
-	if (__table == null) {
-		__dataTablePanel = new DataTable_JPanel(this, __filename);
+	if ( this.table == null ) {
+		this.dataTablePanel = new DataTable_JPanel(this, this.filename);
 	}
 	else {
-		__dataTablePanel = new DataTable_JPanel(this, __table);
+		this.dataTablePanel = new DataTable_JPanel(this, this.table);
 	}
 
-	getContentPane().add("Center", __dataTablePanel);
+	getContentPane().add("Center", this.dataTablePanel);
 
 	JPanel statusBar = new JPanel();
 	statusBar.setLayout(new GridBagLayout());
 
-	__messageJTextField = new JTextField(20);
-	__messageJTextField.setEditable(false);
-	__statusJTextField = new JTextField(10);
-	__statusJTextField.setEditable(false);
+	this.messageJTextField = new JTextField(20);
+	this.messageJTextField.setEditable(false);
+	this.statusJTextField = new JTextField(10);
+	this.statusJTextField.setEditable(false);
 
-	JGUIUtil.addComponent(statusBar, __messageJTextField,
+	JGUIUtil.addComponent(statusBar, this.messageJTextField,
 		0, 0, 1, 1, 1, 1,
 		GridBagConstraints.BOTH, GridBagConstraints.WEST);
-	JGUIUtil.addComponent(statusBar, __statusJTextField,
+	JGUIUtil.addComponent(statusBar, this.statusJTextField,
 		1, 0, 1, 1, 0, 0,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	getContentPane().add("South", statusBar);
 
 	setSize(600, 400);
-	if ( this.__parent == null ) {
+	if ( this.parent == null ) {
 		JGUIUtil.center(this);
 	}
 	else {
-		JGUIUtil.center(this, this.__parent);
+		JGUIUtil.center(this, this.parent);
 	}
 
-	int count = __dataTablePanel.getWorksheetRowCount();
+	int count = this.dataTablePanel.getWorksheetRowCount();
 	String plural = "s";
 	if (count == 1) {
 		plural = "";
 	}
-	int count_col = __dataTablePanel.getWorksheetColumnCount();
+	int count_col = this.dataTablePanel.getWorksheetColumnCount();
 	String plural_col = "s";
-    if (count_col == 1) {
+    if ( count_col == 1 ) {
         plural_col = "";
     }
 
@@ -210,7 +210,7 @@ throws Exception {
 
 	setVisible(true);
 
-	__dataTablePanel.setWorksheetColumnWidths();
+	this.dataTablePanel.setWorksheetColumnWidths();
 }
 
 }

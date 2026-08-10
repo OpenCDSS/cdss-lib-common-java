@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2026 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -91,8 +91,7 @@ import RTi.Util.Time.TimeInterval;
 
 /**
 This class is the base class for all time series classes.
-General functionality is implemented in this class and specific functionality such as data set/get must be
-implemented in derived classes.
+General functionality is implemented in this class and specific functionality such as data set/get must be implemented in derived classes.
 */
 @SuppressWarnings("serial")
 public class TS implements Cloneable, Serializable, Transferable
@@ -205,8 +204,9 @@ protected String _version;
 // FIXME SAM 2007-12-13 Need to evaluate renaming to avoid confusion with TSIdent input name.
 // Implementing a DataSource concept for input/output may help (but also have data source in TSIdent!).
 /**
-Input source information.  Filename if read from file or perhaps a database
-name and table (e.g., HydroBase.daily_flow).  This is the actual location read,
+Input source information.
+Filename if read from file or perhaps a database name and table (e.g., HydroBase.daily_flow).
+This is the actual location read,
 which should not be confused with the TSIdent storage name (which may not be fully expanded).
 */
 protected String _input_name;
@@ -216,6 +216,17 @@ Time series identifier, which provides a unique and absolute handle on the time 
 An alias is provided within the TSIdent class.
 */
 protected TSIdent _id;
+
+/**
+ * Value temporal reference, which indicates the time position corresponding to the data value.
+ * This is not used for date time series.
+ */
+protected ValueTemporalReferenceType valueTemporalReferenceType = ValueTemporalReferenceType.UNKNOWN;
+
+/**
+ * Value interval closure, which indicates how input sample values that align with the end points for duration or interval are handled.
+ */
+protected ValueIntervalClosureType valueIntervalClosureType = ValueIntervalClosureType.UNKNOWN;
 
 /**
 Indicates whether the time series data have been modified by calling setDataValue().
@@ -251,7 +262,7 @@ private List<TSDataFlagMetadata> __dataFlagMetadataList = new ArrayList<>();
 /**
 History of time series.
 This is not the same as the comments but instead chronicles how the time series is manipulated in memory.
-For example the first genesis note may be about how the time series was read.
+For example the first history note may be about how the time series was read.
 The second may indicate how it was filled.  Many TSUtil methods add to the genesis.
 */
 protected List<String> _genesis;
@@ -327,7 +338,7 @@ Derived classes should set the _data_interval_base.
 */
 public TS () {
 	if ( Message.isDebugOn ) {
-		Message.printDebug( 50, "TS.TS", "Constructing" );
+		Message.printDebug( 50, "TS.TS", "Constructing." );
 	}
 	init();
 }
@@ -353,11 +364,11 @@ public void addDataFlagMetadata ( TSDataFlagMetadata dataFlagMetadata ) {
 	}
 	if ( foundIndex >= 0 ) {
 		// Replace the flag description.
-		__dataFlagMetadataList.set(foundIndex, dataFlagMetadata);
+		this.__dataFlagMetadataList.set(foundIndex, dataFlagMetadata);
 	}
 	else {
 		// Append the description.
-		__dataFlagMetadataList.add(dataFlagMetadata);
+		this.__dataFlagMetadataList.add(dataFlagMetadata);
 	}
 }
 
@@ -367,7 +378,7 @@ Add a String to the comments associated with the time series (e.g., station rema
 */
 public void addToComments( String comment ) {
 	if ( comment != null ) {
-		_comments.add ( comment );
+		this._comments.add ( comment );
 	}
 }
 
@@ -381,7 +392,7 @@ public void addToComments( List<String> comments ) {
 	}
 	for ( String comment : comments ) {
 		if ( comment != null ) {
-			_comments.add ( comment );
+			this._comments.add ( comment );
 		}
 	}
 }
@@ -394,7 +405,7 @@ Genesis information should be added by methods that, for example, fill data and 
 */
 public void addToGenesis ( String genesis ) {
 	if ( genesis != null ) {
-		_genesis.add ( genesis );
+		this._genesis.add ( genesis );
 	}
 }
 
@@ -412,7 +423,8 @@ but previous data values will be retained.  If false, the array will be realloca
 */
 public void allocateDataFlagSpace (	String initialValue, boolean retainPreviousValues )
 throws Exception {
-	Message.printWarning ( 1, "TS.allocateDataFlagSpace", "TS.allocateDataFlagSpace() is virtual, define in derived classes." );
+	String routine = getClass().getSimpleName() + ".allocateDataFlagSpace";
+	Message.printWarning ( 1, routine, "TS.allocateDataFlagSpace() is virtual, define in derived classes." );
 }
 
 /**
@@ -424,7 +436,8 @@ that are optimized for data storage for different intervals.
 @return 0 if successful allocating memory, non-zero if failure.
 */
 public int allocateDataSpace ( ) {
-	Message.printWarning ( 1, "TS.allocateDataSpace", "TS.allocateDataSpace() is virtual, define in derived classes." );
+	String routine = getClass().getSimpleName() + ".allocateDataSpace";
+	Message.printWarning ( 1, routine, "TS.allocateDataSpace() is virtual, define in derived classes." );
 	return 1;
 }
 
@@ -437,6 +450,7 @@ This requires that the data interval base and multiplier are set correctly in th
 @return 1 if there is an error allocating the data space, 0 if success.
 */
 public int allocateDataSpace ( DateTime date1, DateTime date2 ) {
+	String routine = getClass().getSimpleName() + ".allocateDataSpace";
 	// Set data.
     setDate1 ( date1 );
     setDate1Original ( date1 );
@@ -445,8 +459,7 @@ public int allocateDataSpace ( DateTime date1, DateTime date2 ) {
 
     // Allocate memory for the new data space.
 	if ( allocateDataSpace() != 0 ) {
-		Message.printWarning ( 3, "TS.allocateDataSpace(DateTime,DateTime)",
-		"Error allocating data space for " + date1 + " to " + date2 );
+		Message.printWarning ( 3, routine, "Error allocating data space for " + date1 + " to " + date2 );
 		return 1;
 	}
 	return 0;
@@ -462,7 +475,8 @@ This method is meant to be overridden in derived classes (in which case the inte
 @return the number of data points in a period, given the interval multiplier.
 */
 public static int calculateDataSize ( DateTime date1, DateTime date2, int multiplier ) {
-	Message.printWarning ( 1, "TS.calculateDataSize", "TS.calculateDataSize() is virtual, define in derived classes." );
+	String routine = TS.class.getSimpleName() + ".calculateDataSize";
+	Message.printWarning ( 1, routine, "TS.calculateDataSize() is virtual, define in derived classes." );
 	return 0;
 }
 
@@ -476,7 +490,7 @@ This method should be implemented in a derived class and should handle resizing 
 */
 public void changePeriodOfRecord ( DateTime date1, DateTime date2 )
 throws TSException {
-	String routine = "TS.changePeriodOfRecord";
+	String routine = getClass().getSimpleName() + ".changePeriodOfRecord";
 
 	Message.printWarning ( 1, routine, "TS.changePeriodOfRecord is a virtual function, redefine in derived classes" );
 
@@ -492,44 +506,44 @@ public Object clone () {
         // Clone the base class.
 		TS ts = (TS)super.clone();
 		// Clone mutable objects.
-		if ( _date1 != null ) {
-			ts._date1 = (DateTime)_date1.clone();
+		if ( this._date1 != null ) {
+			ts._date1 = (DateTime)this._date1.clone();
 		}
-		if ( _date2 != null ) {
-			ts._date2 = (DateTime)_date2.clone();
+		if ( this._date2 != null ) {
+			ts._date2 = (DateTime)this._date2.clone();
 		}
-		if ( _date1_original != null ) {
-			ts._date1_original = (DateTime)_date1_original.clone();
+		if ( this._date1_original != null ) {
+			ts._date1_original = (DateTime)this._date1_original.clone();
 		}
-		if ( _date2_original != null ) {
-			ts._date2_original = (DateTime)_date2_original.clone();
+		if ( this._date2_original != null ) {
+			ts._date2_original = (DateTime)this._date2_original.clone();
 		}
-		if ( _id != null ) {
-			ts._id = (TSIdent)_id.clone();
+		if ( this._id != null ) {
+			ts._id = (TSIdent)this._id.clone();
 		}
 		int size = 0;
 		int i = 0;
-		if ( _comments != null ) {
-			ts._comments = new ArrayList<>(_comments.size());
-			size = _comments.size();
+		if ( this._comments != null ) {
+			ts._comments = new ArrayList<>(this._comments.size());
+			size = this._comments.size();
 			for ( i = 0; i < size; i++ ) {
-				ts._comments.add( new String(_comments.get(i)));
+				ts._comments.add( this._comments.get(i) );
 			}
 		}
-		if ( _genesis != null ) {
-			ts._genesis = new ArrayList<>(_genesis.size());
-			size = _genesis.size();
+		if ( this._genesis != null ) {
+			ts._genesis = new ArrayList<>(this._genesis.size());
+			size = this._genesis.size();
 			for ( i = 0; i < size; i++ ) {
-				ts._genesis.add(new String(_genesis.get(i)));
+				ts._genesis.add( this._genesis.get(i) );
 			}
 			ts.addToGenesis ("Made a copy of TSID=\"" + getIdentifier() +
 			    "\" Alias=\"" + getAlias() + "\" (previous history information is for original)" );
 		}
-		if ( _data_limits != null ) {
-			ts._data_limits = (TSLimits)_data_limits.clone();
+		if ( this._data_limits != null ) {
+			ts._data_limits = (TSLimits)this._data_limits.clone();
 		}
-		if ( _data_limits_original != null ) {
-			ts._data_limits_original = (TSLimits)_data_limits_original.clone();
+		if ( this._data_limits_original != null ) {
+			ts._data_limits_original = (TSLimits)this._data_limits_original.clone();
 		}
 		return ts;
 	}
@@ -544,28 +558,28 @@ Copy the data array from one time series to another.  This method should be defi
 @param ts The time series to copy the data from.
 @param start_date The time to start copying the data (if null, use the first date from this instance).
 @param end_date The time to end copying the data (if null, use the last date from this instance).
-@param copy_missing If true, copy missing data (including out-of-period missing data).
-If false, ignore missing data.
+@param copy_missing If true, copy missing data (including out-of-period missing data). If false, ignore missing data.
 @exception TSException if an error occurs.
 */
 public void copyData ( TS ts, DateTime start_date, DateTime end_date, boolean copy_missing )
 throws TSException {
+	String routine = getClass().getSimpleName() + ".copyData";
 	String message = "This method needs to be implemented in a derived class (e.g., MonthTS)";
-	Message.printWarning ( 3, "TS.copyData", message );
+	Message.printWarning ( 3, routine, message );
 	throw new TSException ( message );
 }
 
 /**
 Copy the data array from one time series to another.  This method should be defined in a derived class.
 @param ts The time series to copy the data from.
-@param copy_missing If true, copy missing data (including out-of-period missing
-data).  If false, ignore missing data.
+@param copy_missing If true, copy missing data (including out-of-period missing data).  If false, ignore missing data.
 @exception TSException if an error occurs.
 */
 public void copyData ( TS ts, boolean copy_missing )
 throws TSException {
+	String routine = getClass().getSimpleName() + ".copyData";
 	String message = "This method needs to be implemented in a derived class (e.g., MonthTS)";
-	Message.printWarning ( 3, "TS.copyData", message );
+	Message.printWarning ( 3, routine, message );
 	throw new TSException ( message );
 }
 
@@ -718,24 +732,24 @@ public void copyHeader ( TS ts ) {
 
 	// TODO smalers 2022-03-04 can the following be removed?
 	//_data_limits = new TSLimits ( ts.getDataLimits() );
-	_date1 = new DateTime ( ts.getDate1() );
-	_date2 = new DateTime ( ts.getDate2() );
-	_date1_original = new DateTime ( ts.getDate1Original() );
-	_date2_original = new DateTime ( ts.getDate2Original() );
+	this._date1 = new DateTime ( ts.getDate1() );
+	this._date2 = new DateTime ( ts.getDate2() );
+	this._date1_original = new DateTime ( ts.getDate1Original() );
+	this._date2_original = new DateTime ( ts.getDate2Original() );
 
     setDataType( ts.getDataType() );
 
-	_data_interval_base = ts.getDataIntervalBase();
-	_data_interval_mult = ts.getDataIntervalMult();
-	_data_interval_base_original = ts.getDataIntervalBaseOriginal ();
-	_data_interval_mult_original = ts.getDataIntervalMultOriginal ();
+	this._data_interval_base = ts.getDataIntervalBase();
+	this._data_interval_mult = ts.getDataIntervalMult();
+	this._data_interval_base_original = ts.getDataIntervalBaseOriginal ();
+	this._data_interval_mult_original = ts.getDataIntervalMultOriginal ();
 
 	setDescription( ts.getDescription() );
 
-	_comments = new ArrayList<>();
-	_comments = StringUtil.addListToStringList ( _comments, ts.getComments() );
-	_genesis = new ArrayList<>();
-	_genesis = StringUtil.addListToStringList ( _genesis, ts.getGenesis() );
+	this._comments = new ArrayList<>();
+	this._comments = StringUtil.addListToStringList ( this._comments, ts.getComments() );
+	this._genesis = new ArrayList<>();
+	this._genesis = StringUtil.addListToStringList ( this._genesis, ts.getGenesis() );
 
 	setDataUnits( ts.getDataUnits() );
 	setDataUnitsOriginal( ts.getDataUnitsOriginal() );
@@ -749,12 +763,12 @@ public void copyHeader ( TS ts ) {
 	//_dirty = true; // Need to recompute limits when we get the chance.
 
 	// Copy legend information.
-	_legend = ts.getLegend();
-	_extended_legend = ts.getExtendedLegend();
+	this._legend = ts.getLegend();
+	this._extended_legend = ts.getExtendedLegend();
 
 	// Data flags.
 
-	_has_data_flags = ts._has_data_flags;
+	this._has_data_flags = ts._has_data_flags;
 }
 
 /**
@@ -827,9 +841,9 @@ public List<String> formatHeader () {
 	header.add ( "Data source             = " + getIdentifier().getSource() );
 	header.add ( "Data type               = " + getIdentifier().getType() );
 	header.add ( "Data interval           = " + getIdentifier().getInterval() );
-	header.add ( "Data units              = " + _data_units );
-	if ( (_date1 != null) && (_date2 != null) ) {
-		header.add ( "Period                  = " + _date1 + " to " + _date2 );
+	header.add ( "Data units              = " + this._data_units );
+	if ( (this._date1 != null) && (this._date2 != null) ) {
+		header.add ( "Period                  = " + this._date1 + " to " + this._date2 );
 		//StringUtil.formatString(_date1.getYear(), "%04d") + "-" +
 		//StringUtil.formatString(_date1.getMonth(), "%02d") + " to " +
 		//StringUtil.formatString(_date2.getYear(), "%04d") + "-" +
@@ -838,8 +852,8 @@ public List<String> formatHeader () {
 	else {
 	    header.add ( "Period                  = N/A" );
 	}
-	if ( (_date1_original != null) && (_date2_original != null)) {
-		header.add ( "Orig./Avail. period     = " + _date1_original + " to " + _date2_original );
+	if ( (this._date1_original != null) && (this._date2_original != null)) {
+		header.add ( "Orig./Avail. period     = " + this._date1_original + " to " + this._date2_original );
 		//StringUtil.formatString(
 		//_date1_original.getYear(), "%04d") + "-" +
 		//StringUtil.formatString(
@@ -1003,79 +1017,79 @@ public String formatLegend ( String format, boolean update_ts ) {
 			}
 			else if ( c == 'D' ) {
 				// Description.
-				buffer.append ( _description );
+				buffer.append ( this._description );
 			}
 			else if ( c == 'F' ) {
 				// Full identifier.
 				//buffer.append ( _id.getIdentifier() );
-				buffer.append ( _id.toString() );
+				buffer.append ( this._id.toString() );
 			}
 			else if ( c == 'I' ) {
 				// Full interval.
-				buffer.append ( _id.getInterval() );
+				buffer.append ( this._id.getInterval() );
 			}
 	        else if ( c == 'i' ) {
 	            // Input name.
-	            buffer.append ( _id.getInputName() );
+	            buffer.append ( this._id.getInputName() );
 	        }
 	        else if ( c == 'k' ) {
                 // Sub source.
-                buffer.append ( _id.getSubSource() );
+                buffer.append ( this._id.getSubSource() );
             }
 			else if ( c == 'L' ) {
 				// Full location.
-				buffer.append ( _id.getLocation() );
+				buffer.append ( this._id.getLocation() );
 			}
 			else if ( c == 'l' ) {
 				// Main location.
-				buffer.append ( _id.getMainLocation() );
+				buffer.append ( this._id.getMainLocation() );
 			}
 			else if ( c == 'm' ) {
 				// Data interval multiplier.
-				buffer.append ( _id.getIntervalMult() );
+				buffer.append ( this._id.getIntervalMult() );
 			}
 			else if ( c == 'p' ) {
 				// Period.
-				buffer.append ( "" + _date1 + " - " + _date2 );
+				buffer.append ( "" + this._date1 + " - " + this._date2 );
 			}
 			else if ( c == 'S' ) {
 				// Full source.
-				buffer.append ( _id.getSource() );
+				buffer.append ( this._id.getSource() );
 			}
 			else if ( c == 's' ) {
 				// Main source.
-				buffer.append ( _id.getMainSource() );
+				buffer.append ( this._id.getMainSource() );
 			}
 			else if ( c == 'U' ) {
 				// Units.
-				buffer.append ( _data_units );
+				buffer.append ( this._data_units );
 			}
 			else if ( c == 'T' ) {
 				// Data type.
-				buffer.append ( _id.getType() );
+				buffer.append ( this._id.getType() );
 			}
 			else if ( c == 't' ) {
 				// Data main type (reserved for future use - for now return the total).
-				buffer.append ( _id.getType() );
+				buffer.append ( this._id.getType() );
 			}
 			else if ( c == 'y' ) {
 				// Data sub type (reserved for future use).
 			}
 			else if ( c == 'w' ) {
 				// Sub-location.
-				buffer.append ( _id.getSubLocation() );
+				buffer.append ( this._id.getSubLocation() );
 			}
 			else if ( c == 'x' ) {
 				// Sub source.
-				buffer.append ( _id.getSubSource() );
+				buffer.append ( this._id.getSubSource() );
 			}
 			else if ( c == 'Z' ) {
 				// Scenario.
-				buffer.append ( _id.getScenario() );
+				buffer.append ( this._id.getScenario() );
 			}
 			else if ( c == 'z' ) {
 				// Sequence ID (old sequence number).
-				buffer.append ( _id.getSequenceID() );
+				buffer.append ( this._id.getSequenceID() );
 			}
 			else {
 			    // No match.  Add the % and the character.
@@ -1153,7 +1167,8 @@ Specific formats should be implemented as classes with static readTimeSeries()/w
 */
 public List<String> formatOutput ( PropList props )
 throws TSException {
-	Message.printWarning( 3, "TS.formatOutput", "TS.formatOutput(PropList) is virtual, redefine in derived classes." );
+	String routine = getClass().getSimpleName() + ".formatOutput";
+	Message.printWarning( 3, routine, "TS.formatOutput(PropList) is virtual, redefine in derived classes." );
 	return null;
 }
 
@@ -1167,8 +1182,8 @@ This method should be overridden in the derived class.
 */
 public List<String> formatOutput ( PrintWriter out, PropList props )
 throws TSException {
-	Message.printWarning( 3, "TS.formatOutput", "TS.formatOutput(" +
-	"PrintWriter,PropList) is virtual, redefine in derived classes" );
+	String routine = getClass().getSimpleName() + ".formatOutput";
+	Message.printWarning( 3, routine, "TS.formatOutput(PrintWriter,PropList) is virtual, redefine in derived classes" );
 	return null;
 }
 
@@ -1182,9 +1197,8 @@ This method should be overridden in the derived class.
 */
 public List<String> formatOutput ( String out, PropList props )
 throws TSException {
-	String routine="TS.formatOutput(string,int,long)";
-	Message.printWarning( 1, routine, "TS.formatOutput(String,PropList)" +
-	" function is virtual, redefine in derived classes" );
+	String routine = getClass().getSimpleName() + ".formatOutput";
+	Message.printWarning( 1, routine, "TS.formatOutput(String,PropList) function is virtual, redefine in derived classes" );
 	return null;
 }
 
@@ -1193,7 +1207,7 @@ Return the time series alias from the TSIdent.
 @return The alias part of the time series identifier.
 */
 public String getAlias( ) {
-	return _id.getAlias();
+	return this._id.getAlias();
 }
 
 /**
@@ -1211,7 +1225,7 @@ Return the time series comments.
 @return The comments list.
 */
 public List<String> getComments () {
-	return _comments;
+	return this._comments;
 }
 
 /**
@@ -1219,7 +1233,7 @@ Return the time series data flag meta-data list.
 @return The data flag meta-data list.
 */
 public List<TSDataFlagMetadata> getDataFlagMetadataList () {
-    return __dataFlagMetadataList;
+    return this.__dataFlagMetadataList;
 }
 
 /**
@@ -1227,7 +1241,7 @@ Return the data interval base.
 @return The data interval base (see TimeInterval.*).
 */
 public int getDataIntervalBase() {
-	return _data_interval_base;
+	return this._data_interval_base;
 }
 
 /**
@@ -1235,7 +1249,7 @@ Return the original data interval base.
 @return The data interval base of the original data.
 */
 public int getDataIntervalBaseOriginal() {
-	return _data_interval_base_original;
+	return this._data_interval_base_original;
 }
 
 /**
@@ -1243,7 +1257,7 @@ Return the data interval multiplier.
 @return The data interval multiplier.
 */
 public int getDataIntervalMult() {
-	return _data_interval_mult;
+	return this._data_interval_mult;
 }
 
 /**
@@ -1251,7 +1265,7 @@ Return the original data interval multiplier.
 @return The data interval multiplier of the original data.
 */
 public int getDataIntervalMultOriginal() {
-	return _data_interval_mult_original;
+	return this._data_interval_mult_original;
 }
 
 /**
@@ -1263,12 +1277,12 @@ If necessary, the limits are refreshed.  The refresh() method should be defined 
 public TSLimits getDataLimits () {
 	// Make sure that the limits have been set.
 	refresh();
-	if ( _data_limits == null ) {
+	if ( this._data_limits == null ) {
 		return null;
 	}
 	else {
 		// Create a new copy to protect.
-	    return( new TSLimits(_data_limits) );
+	    return( new TSLimits(this._data_limits) );
 	}
 }
 
@@ -1279,11 +1293,11 @@ The reference to the original data is returned so that MonthTSLimits or others c
 @see TSLimits
 */
 public TSLimits getDataLimitsOriginal () {
-	if ( _data_limits_original == null ) {
+	if ( this._data_limits_original == null ) {
 		return null;
 	}
 	else {
-	    return ( _data_limits_original );
+	    return ( this._data_limits_original );
 	}
 }
 
@@ -1299,7 +1313,8 @@ If non-null, the provided instance will be used
 @return a TSData for the specified date/time.
 */
 public TSData getDataPoint ( DateTime date, TSData tsdata ) {
-	Message.printWarning( 3, "TS.getDataPoint", "This is a virtual function, redefine in child classes" );
+	String routine = getClass().getSimpleName() + ".getDataPoint";
+	Message.printWarning( 3, routine, "This is a virtual function, redefine in child classes" );
 	// Empty point.
 	TSData data = new TSData();
 	return data;
@@ -1355,7 +1370,7 @@ whereas irregular time series overloads this method and returns the size of the 
 @return The number of data points included in the period.
 */
 public int getDataSize ( ) {
-	return _data_size;
+	return this._data_size;
 }
 
 /**
@@ -1363,11 +1378,11 @@ Return the data type from the TSIdent or an empty string if no TSIdent has been 
 @return The data type abbreviation.
 */
 public String getDataType( ) {
-	if ( _id == null ) {
+	if ( this._id == null ) {
 		return "";
 	}
 	else {
-	    return _id.getType();
+	    return this._id.getType();
 	}
 }
 
@@ -1377,7 +1392,7 @@ Return the data units.
 @see RTi.Util.IO.DataUnits
 */
 public String getDataUnits( ) {
-	return _data_units;
+	return this._data_units;
 }
 
 /**
@@ -1386,7 +1401,7 @@ Return the original data units.
 @see RTi.Util.IO.DataUnits
 */
 public String getDataUnitsOriginal( ) {
-	return _data_units_original;
+	return this._data_units_original;
 }
 
 /**
@@ -1396,8 +1411,9 @@ This should be overridden in derived classes (always returns the missing data va
 @param date Date corresponding to the data value.
 */
 public double getDataValue( DateTime date ) {
-	Message.printWarning( 3, "TS.getDataValue", "TS.getDataValue is a virtual function, redefine in derived classes" );
-	return _missing;
+	String routine = getClass().getSimpleName() + ".getDataValue";
+	Message.printWarning( 3, routine, "TS.getDataValue is a virtual function, redefine in derived classes" );
+	return this._missing;
 }
 
 /**
@@ -1405,10 +1421,10 @@ Return the first date in the period of record (returns a copy).
 @return The first date in the period of record, or null if the date is null.
 */
 public DateTime getDate1() {
-	if ( _date1 == null ) {
+	if ( this._date1 == null ) {
 		return null;
 	}
-	return new DateTime ( _date1 );
+	return new DateTime ( this._date1 );
 }
 
 /**
@@ -1417,21 +1433,21 @@ Return the first date in the original period of record (returns a copy).
 (generally equal to or earlier than the time series that is actually read), or null if the date is null.
 */
 public DateTime getDate1Original() {
-	if ( _date1_original == null ) {
+	if ( this._date1_original == null ) {
 		return null;
 	}
-	return new DateTime ( _date1_original);
+	return new DateTime ( this._date1_original );
 }
 
 /**
 Return the last date in the period of record (returns a copy).
 @return The last date in the period of record, or null if the date is null.
 */
-public DateTime getDate2()
-{	if ( _date2 == null ) {
+public DateTime getDate2() {
+	if ( this._date2 == null ) {
 		return null;
 	}
-	return new DateTime ( _date2 );
+	return new DateTime ( this._date2 );
 }
 
 /**
@@ -1440,10 +1456,10 @@ Return the last date in the original period of record (returns a copy).
 later than the time series that is actually read), or null if the date is null.
 */
 public DateTime getDate2Original() {
-	if ( _date2_original == null ) {
+	if ( this._date2_original == null ) {
 		return null;
 	}
-	return new DateTime ( _date2_original );
+	return new DateTime ( this._date2_original );
 }
 
 /**
@@ -1451,7 +1467,7 @@ Return the time series description.
 @return The time series description.
 */
 public String getDescription( ) {
-	return _description;
+	return this._description;
 }
 
 /**
@@ -1459,7 +1475,7 @@ Return value of flag indicating whether time series is enabled.
 @return true if the time series is enabled, false if disabled.
 */
 public boolean getEnabled() {
-	return _enabled;
+	return this._enabled;
 }
 
 /**
@@ -1467,7 +1483,7 @@ Return the extended time series legend.
 @return Time series extended legend.
 */
 public String getExtendedLegend() {
-	return _extended_legend;
+	return this._extended_legend;
 }
 
 /**
@@ -1475,7 +1491,7 @@ Return the genesis information.
 @return The genesis comments.
 */
 public List<String> getGenesis () {
-	return _genesis;
+	return this._genesis;
 }
 
 /**
@@ -1484,7 +1500,7 @@ Return the time series identifier as a TSIdent.
 @see TSIdent
 */
 public TSIdent getIdentifier() {
-	return _id;
+	return this._id;
 }
 
 /**
@@ -1493,7 +1509,7 @@ Return the time series identifier as a String.  This returns TSIdent.getIdentifi
 @see TSIdent
 */
 public String getIdentifierString() {
-	return _id.getIdentifier();
+	return this._id.getIdentifier();
 }
 
 /**
@@ -1501,7 +1517,7 @@ Return the input name (file or database table) for the time series.
 @return the input name.
 */
 public String getInputName () {
-	return _input_name;
+	return this._input_name;
 }
 
 /**
@@ -1509,7 +1525,7 @@ Return whether data flag strings use String.intern().
 @return True if data flag strings use String.intern(), false otherwise.
 */
 public boolean getInternDataFlagStrings() {
-    return _internDataFlagStrings;
+    return this._internDataFlagStrings;
 }
 
 /**
@@ -1517,7 +1533,7 @@ Return the time series legend.
 @return Time series legend.
 */
 public String getLegend() {
-	return _legend;
+	return this._legend;
 }
 
 /**
@@ -1525,7 +1541,7 @@ Return the location part of the time series identifier.  Does not include locati
 @return The location part of the time series identifier (from TSIdent).
 */
 public String getLocation() {
-	return _id.getLocation();
+	return this._id.getLocation();
 }
 
 /**
@@ -1533,7 +1549,7 @@ Return the missing data value used for the time series (single value).
 @return The value used for missing data.
 */
 public double getMissing () {
-	return _missing;
+	return this._missing;
 }
 
 /**
@@ -1543,8 +1559,8 @@ The first value is the lowest value, the second the highest.  A new array instan
 */
 public double[] getMissingRange () {
 	double [] missing_range = new double[2];
-	missing_range[0] = _missingl;
-	missing_range[1] = _missingu;
+	missing_range[0] = this._missingl;
+	missing_range[1] = this._missingu;
 	return missing_range;
 }
 
@@ -1553,7 +1569,7 @@ Return the date for the first non-missing data value.
 @return The first date where non-missing data occurs (a copy is returned).
 */
 public DateTime getNonMissingDataDate1( ) {
-	return new DateTime (_data_limits.getNonMissingDataDate1());
+	return new DateTime (this._data_limits.getNonMissingDataDate1());
 }
 
 /**
@@ -1561,7 +1577,7 @@ Return the date for the last non-missing data value.
 @return The last date where non-missing data occurs (a copy is returned).
 */
 public DateTime getNonMissingDataDate2( ) {
-	return new DateTime (_data_limits.getNonMissingDataDate2());
+	return new DateTime (this._data_limits.getNonMissingDataDate2());
 }
 
 /**
@@ -1570,10 +1586,10 @@ Only dynamic (not built-in) properties are returned.
 @return the hashtable of properties, for example to allow display, guaranteed to not be null.
 */
 public HashMap<String,Object> getProperties() {
-    if ( __property_HashMap == null ) {
-        __property_HashMap = new LinkedHashMap<String,Object>(); // Initialize to non-null for further use
+    if ( this.__property_HashMap == null ) {
+        this.__property_HashMap = new LinkedHashMap<String,Object>(); // Initialize to non-null for further use
     }
-    return __property_HashMap;
+    return this.__property_HashMap;
 }
 
 /**
@@ -1647,7 +1663,7 @@ This is meant to be used when an array of time series traces is maintained.
 @return time series trace ID.
 */
 public String getSequenceID () {
-    return _id.getSequenceID();
+    return this._id.getSequenceID();
 }
 
 /**
@@ -1656,7 +1672,7 @@ Return the time series status.
 @see #setStatus
 */
 public String getStatus ( ) {
-	return _status;
+	return this._status;
 }
 
 // TODO SAM 2013-09-21 Need to move this out of this class to separate concerns.
@@ -1675,7 +1691,7 @@ public Object getTransferData(DataFlavor flavor) {
 		return this;
 	}
 	else if (flavor.equals(TSIdent.tsIdentFlavor)) {
-		return _id;
+		return this._id;
 	}
 	else {
 		return null;
@@ -1699,11 +1715,27 @@ public DataFlavor[] getTransferDataFlavors() {
 }
 
 /**
+ * Return the ValueTemporalReferenceType.
+ * @return the ValueTemporalReferenceType
+ */
+public ValueTemporalReferenceType getValueTemporalReferenceType () {
+	return this.valueTemporalReferenceType;
+}
+
+/**
+ * Return the ValueIntervalClosureType.
+ * @return the ValueIntervalClosureType
+ */
+public ValueIntervalClosureType getValueIntervalClosureType () {
+	return this.valueIntervalClosureType;
+}
+
+/**
 Return the time series input format version.
 @return The time series version, to be used to indicate input file formats.
 */
 public String getVersion () {
-	return _version;
+	return this._version;
 }
 
 /**
@@ -1714,7 +1746,8 @@ This method should be defined in derived classes with specific data storage sche
 @return true if the time series has data, false if not.
 */
 public boolean hasData () {
-	Message.printWarning( 1, "TS.getDataValue", "TS.hasData() is a virtual function, redefine in derived classes" );
+	String routine = getClass().getSimpleName() + ".hasData";
+	Message.printWarning( 1, routine, "TS.hasData() is a virtual function, redefine in derived classes" );
 	return false;
 }
 
@@ -1723,7 +1756,7 @@ Indicate whether the time series has data flags.
 @return true if data flags are enabled for the time series.
 */
 public boolean hasDataFlags () {
-	return _has_data_flags;
+	return this._has_data_flags;
 }
 
 // FIXME SAM 2010-08-20 Evaluate phasing this out.  setDataValue() now automatically turns on
@@ -1740,42 +1773,42 @@ However, if unique string values are used, then false can be specified so as to 
 @return true if data flags are enabled for the time series, after the set.
 */
 public boolean hasDataFlags ( boolean hasDataFlags, boolean internDataFlagStrings ) {
-	_has_data_flags = hasDataFlags;
-    _internDataFlagStrings = internDataFlagStrings;
-	return _has_data_flags;
+	this._has_data_flags = hasDataFlags;
+    this._internDataFlagStrings = internDataFlagStrings;
+	return this._has_data_flags;
 }
 
 /**
 Initialize data members.
 */
 private void init( ) {
-	_version = "";
+	this._version = "";
 
-	_input_name = "";
+	this._input_name = "";
 
 	// Need to initialize an empty TSIdent.
 
-	_id = new TSIdent ();
-	_legend = "";
-	_extended_legend = "";
-	_data_size = 0;
+	this._id = new TSIdent ();
+	this._legend = "";
+	this._extended_legend = "";
+	this._data_size = 0;
 	// DateTime need to be initialized somehow.
     setDataType( "" );
-	_data_interval_base = 0;
-	_data_interval_mult = 1;
-	_data_interval_base_original = 1;
-	_data_interval_mult_original = 0;
+	this._data_interval_base = 0;
+	this._data_interval_mult = 1;
+	this._data_interval_base_original = 1;
+	this._data_interval_mult_original = 0;
 	setDescription( "" );
-	_comments = new ArrayList<>(2);
-	_genesis = new ArrayList<>(2);
+	this._comments = new ArrayList<>(2);
+	this._genesis = new ArrayList<>(2);
 	setDataUnits( "" );
 	setDataUnitsOriginal( "" );
 	setMissing ( -999.0 );
-	_data_limits = new TSLimits();
-	_dirty = true;	// Need to recompute limits when we get the chance.
-	_enabled = true;
-	_selected = false;	// Let other code select, e.g., as query result.
-	_editable = false;
+	this._data_limits = new TSLimits();
+	this._dirty = true;	// Need to recompute limits when get the chance.
+	this._enabled = true;
+	this._selected = false;	// Let other code select, e.g., as query result.
+	this._editable = false;
 }
 
 /**
@@ -1816,7 +1849,7 @@ public boolean isDataMissing ( double value ) {
 	if ( Double.isNaN(value) ) {
 		return true;
 	}
-	if ( (value >= _missingl) && (value <= _missingu) ) {
+	if ( (value >= this._missingl) && (value <= this._missingu) ) {
 		return true;
 	}
 	return false;
@@ -1827,7 +1860,7 @@ Indicate whether the time series is dirty (data have been modified).
 @return true if the time series is dirty, false if not.
 */
 public boolean isDirty () {
-	return _dirty;
+	return this._dirty;
 }
 
 /**
@@ -1835,7 +1868,7 @@ Indicate whether the time series is editable.
 @return true if the time series is editable, false if not.
 */
 public boolean isEditable () {
-	return _editable;
+	return this._editable;
 }
 
 /**
@@ -1862,7 +1895,7 @@ Indicate whether the time series is selected.
 @return true if the time series is selected, false if not.
 */
 public boolean isSelected() {
-	return _selected;
+	return this._selected;
 }
 
 /**
@@ -1893,7 +1926,8 @@ throws Exception {
 Refresh the secondary data (e.g., data limits).  This should be overruled in the derived class.
 */
 public void refresh () {
-	Message.printWarning ( 3, "TS.refresh", "TS.refresh is virtual.  Define in the derived class!" );
+	String routine = getClass().getSimpleName() + ".refresh";
+	Message.printWarning ( 3, routine, "TS.refresh is virtual.  Define in the derived class!" );
 }
 
 /**
@@ -1902,7 +1936,7 @@ Set the time series identifier alias.
 */
 public void setAlias ( String alias ) {
 	if ( alias != null ) {
-		_id.setAlias( alias );
+		this._id.setAlias( alias );
 	}
 }
 
@@ -1921,7 +1955,7 @@ Set the comments string list.
 */
 public void setComments ( List<String> comments ) {
 	if ( comments != null ) {
-		_comments = comments;
+		this._comments = comments;
 	}
 }
 
@@ -1931,8 +1965,8 @@ Set the data interval.
 @param mult Base interval multiplier.
 */
 public void setDataInterval ( int base, int mult ) {
-	_data_interval_base = base;
-	_data_interval_mult = mult;
+	this._data_interval_base = base;
+	this._data_interval_mult = mult;
 }
 
 /**
@@ -1941,8 +1975,8 @@ Set the data interval for the original data.
 @param mult Base interval multiplier.
 */
 public void setDataIntervalOriginal ( int base, int mult ) {
-	_data_interval_base_original = base;
-	_data_interval_mult_original = mult;
+	this._data_interval_base_original = base;
+	this._data_interval_mult_original = mult;
 }
 
 /**
@@ -1952,7 +1986,7 @@ This is generally only called by internal routines.  A copy is saved.
 @see TSLimits
 */
 public void setDataLimits( TSLimits limits ) {
-	_data_limits = new TSLimits ( limits );
+	this._data_limits = new TSLimits ( limits );
 }
 
 /**
@@ -1965,9 +1999,9 @@ Make a copy of the data if it needs to be protected.
 */
 public void setDataLimitsOriginal ( TSLimits limits ) {
 	if ( limits == null ) {
-		_data_limits_original = null;
+		this._data_limits_original = null;
 	}
-	_data_limits_original = limits;
+	this._data_limits_original = limits;
 }
 
 /**
@@ -1984,7 +2018,7 @@ Set the number of data points including the full period.  This should be called 
 @param data_size Number of data points in the time series.
 */
 protected void setDataSize ( int data_size ) {
-	_data_size = data_size;
+	this._data_size = data_size;
 }
 
 /**
@@ -1992,8 +2026,8 @@ Set the data type.
 @param data_type Data type abbreviation.
 */
 public void setDataType( String data_type ) {
-	if ( (data_type != null) && (_id != null) ) {
-		_id.setType ( data_type );
+	if ( (data_type != null) && (this._id != null) ) {
+		this._id.setType ( data_type );
 	}
 }
 
@@ -2004,7 +2038,7 @@ Set the data units.
 */
 public void setDataUnits( String data_units ) {
 	if ( data_units != null ) {
-		_data_units = data_units;
+		this._data_units = data_units;
 	}
 }
 
@@ -2015,7 +2049,7 @@ Set the data units for the original data.
 */
 public void setDataUnitsOriginal( String units ) {
 	if ( units != null ) {
-		_data_units_original = units;
+		this._data_units_original = units;
 	}
 }
 
@@ -2027,7 +2061,8 @@ Set a data value for the specified date.
 @param return the number of values set, 0 or 1, useful to know when a value is outside the allocated period
 */
 public int setDataValue ( DateTime date, double val ) {
-	Message.printWarning ( 1, "TS.setDataValue", "TS.setDataValue is virtual and should be redefined in derived classes" );
+	String routine = getClass().getSimpleName() + ".setDataValue";
+	Message.printWarning ( 1, routine, "TS.setDataValue is virtual and should be redefined in derived classes" );
 	return 0;
 }
 
@@ -2043,7 +2078,8 @@ should be defined in derived classes.
 @param return the number of values set, 0 or 1, useful to know when a value is outside the allocated period
 */
 public int setDataValue ( DateTime date, double val, String data_flag,	int duration ) {
-	Message.printWarning ( 3, "TS.setDataValue", "TS.setDataValue is virtual and should be implemented in derived classes" );
+	String routine = getClass().getSimpleName() + ".setDataValue";
+	Message.printWarning ( 3, routine, "TS.setDataValue is virtual and should be implemented in derived classes" );
 	return 0;
 }
 
@@ -2055,10 +2091,10 @@ The date precision is set to the precision appropriate for the time series.
 */
 public void setDate1 ( DateTime t ) {
 	if ( t != null ) {
-		_date1 = new DateTime ( t );
-		if ( _data_interval_base != TimeInterval.IRREGULAR ) {
+		this._date1 = new DateTime ( t );
+		if ( this._data_interval_base != TimeInterval.IRREGULAR ) {
 		    // For irregular, rely on the DateTime precision.
-		    _date1.setPrecision ( _data_interval_base );
+		    this._date1.setPrecision ( this._data_interval_base );
 		}
 	}
 }
@@ -2071,10 +2107,10 @@ The date precision is set to the precision appropriate for the time series.
 */
 public void setDate1Original( DateTime t ) {
 	if ( t != null ) {
-		_date1_original = new DateTime ( t );
-		if ( _data_interval_base != TimeInterval.IRREGULAR ) {
+		this._date1_original = new DateTime ( t );
+		if ( this._data_interval_base != TimeInterval.IRREGULAR ) {
             // For irregular, rely on the DateTime precision.
-		    _date1_original.setPrecision ( _data_interval_base );
+		    this._date1_original.setPrecision ( this._data_interval_base );
 		}
 	}
 }
@@ -2087,10 +2123,10 @@ The date precision is set to the precision appropriate for the time series.
 */
 public void setDate2 ( DateTime t ) {
 	if ( t != null ) {
-		_date2 = new DateTime ( t );
-		if ( _data_interval_base != TimeInterval.IRREGULAR ) {
+		this._date2 = new DateTime ( t );
+		if ( this._data_interval_base != TimeInterval.IRREGULAR ) {
             // For irregular, rely on the DateTime precision.
-		    _date2.setPrecision ( _data_interval_base );
+		    this._date2.setPrecision ( this._data_interval_base );
 		}
 	}
 }
@@ -2103,10 +2139,10 @@ The date precision is set to the precision appropriate for the time series.
 */
 public void setDate2Original( DateTime t ) {
 	if ( t != null ) {
-		_date2_original = new DateTime ( t );
-		if ( _data_interval_base != TimeInterval.IRREGULAR ) {
+		this._date2_original = new DateTime ( t );
+		if ( this._data_interval_base != TimeInterval.IRREGULAR ) {
             // For irregular, rely on the DateTime precision.
-		    _date2_original.setPrecision ( _data_interval_base );
+		    this._date2_original.setPrecision ( this._data_interval_base );
 		}
 	}
 }
@@ -2117,7 +2153,7 @@ Set the description.
 */
 public void setDescription( String description ) {
 	if ( description != null ) {
-		_description = description;
+		this._description = description;
 	}
 }
 
@@ -2126,7 +2162,7 @@ Set whether the time series is dirty (data have been modified).
 @param dirty true if the time series is dirty/edited, false if not.
 */
 public void setDirty ( boolean dirty ) {
-	_dirty = dirty;
+	this._dirty = dirty;
 }
 
 /**
@@ -2134,7 +2170,7 @@ Set whether the time series is editable.
 @param editable true if the time series is editable.
 */
 public void setEditable ( boolean editable ) {
-	_editable = editable;
+	this._editable = editable;
 }
 
 /**
@@ -2143,7 +2179,7 @@ This is being phased in and is currently only used by graphics code.
 @param enabled true if the time series is enabled or false if disabled.
 */
 public void setEnabled ( boolean enabled ) {
-	_enabled = enabled;
+	this._enabled = enabled;
 }
 
 /**
@@ -2155,7 +2191,7 @@ Currently, this data item is being used to set the legend for the table time ser
 */
 public void setExtendedLegend ( String extended_legend ) {
 	if ( extended_legend != null ) {
-		_extended_legend = extended_legend.trim();
+		this._extended_legend = extended_legend.trim();
 	}
 }
 
@@ -2176,9 +2212,9 @@ public void setGenesis ( List<String> genesis, boolean append ) {
 	if ( !append ) {
 		// Don't call removeAllElements() because the genesis may have
 		// been retrieved and then reset using the same list.
-		_genesis = new ArrayList<>();
+		this._genesis = new ArrayList<>();
 	}
-	_genesis = StringUtil.addListToStringList ( _genesis, genesis );
+	this._genesis = StringUtil.addListToStringList ( this._genesis, genesis );
 }
 
 /**
@@ -2191,7 +2227,7 @@ Note that this only sets the identifier but does not set the separate data field
 public void setIdentifier ( TSIdent id )
 throws Exception {
 	if ( id != null ) {
-		_id = new TSIdent ( id );
+		this._id = new TSIdent ( id );
 	}
 }
 
@@ -2204,7 +2240,7 @@ Note that this only sets the identifier but does not set the separate data field
 public void setIdentifier( String identifier )
 throws Exception {
 	if ( identifier != null ) {
-		_id.setIdentifier( identifier );
+		this._id.setIdentifier( identifier );
 	}
 }
 
@@ -2219,11 +2255,11 @@ Set the time series identifier using a individual string parts.
 */
 public void setIdentifier( String location, String source, String type, String interval, String scenario )
 throws Exception {
-	_id.setLocation( location );
-	_id.setSource( source );
-	_id.setType( type );
-	_id.setInterval( interval );
-	_id.setScenario( scenario );
+	this._id.setLocation( location );
+	this._id.setSource( source );
+	this._id.setType( type );
+	this._id.setInterval( interval );
+	this._id.setScenario( scenario );
 }
 
 /**
@@ -2231,7 +2267,7 @@ Set the input name (file or database table).
 */
 public void setInputName ( String input_name ) {
 	if ( input_name != null ) {
-		_input_name = input_name;
+		this._input_name = input_name;
 	}
 }
 
@@ -2242,7 +2278,7 @@ Set the time series legend.
 */
 public void setLegend ( String legend ) {
 	if ( legend != null ) {
-		_legend = legend.trim();
+		this._legend = legend.trim();
 	}
 }
 
@@ -2252,7 +2288,7 @@ Set the time series identifier location.
 */
 public void setLocation ( String location ) {
 	if ( location != null ) {
-		_id.setLocation( location );
+		this._id.setLocation( location );
 	}
 }
 
@@ -2263,21 +2299,21 @@ The value is constrained to Double.MAX and Double.Min.
 @param missing Missing data value for time series.
 */
 public void setMissing ( double missing ) {
-	_missing = missing;
+	this._missing = missing;
 	if ( Double.isNaN(missing) ) {
 		// Set the bounding limits also just to make sure that values like -999 are not treated as missing.
-	    _missingl = Double.NaN;
-	    _missingu = Double.NaN;
+	    this._missingl = Double.NaN;
+	    this._missingu = Double.NaN;
 		return;
 	}
 	if ( missing == Double.MAX_VALUE ) {
-	    _missingl = missing - .001;
-        _missingu = missing;
+	    this._missingl = missing - .001;
+        this._missingu = missing;
 	}
 	else {
 	    // Set a range on the missing value check that is slightly on each side of the value.
-        _missingl = missing - .001;
-        _missingu = missing + .001;
+        this._missingl = missing - .001;
+        this._missingu = missing + .001;
 	}
 }
 
@@ -2294,14 +2330,14 @@ public void setMissingRange ( double [] missing ) {
 	if ( missing.length != 2 ) {
 		return;
 	}
-	_missing = (missing[0] + missing[1])/2.0;
+	this._missing = (missing[0] + missing[1])/2.0;
 	if ( missing[0] < missing[1] ) {
-		_missingl = missing[0];
-		_missingu = missing[1];
+		this._missingl = missing[0];
+		this._missingu = missing[1];
 	}
 	else {
-	    _missingl = missing[1];
-		_missingu = missing[0];
+	    this._missingl = missing[1];
+		this._missingu = missing[0];
 	}
 }
 
@@ -2312,7 +2348,7 @@ Set the date for the first non-missing data value.
 */
 public void setNonMissingDataDate1( DateTime t ) {
 	if ( t != null ) {
-		_data_limits.setNonMissingDataDate1 ( t );
+		this._data_limits.setNonMissingDataDate1 ( t );
 	}
 }
 
@@ -2323,7 +2359,7 @@ Set the date for the last non-missing data value.
 */
 public void setNonMissingDataDate2( DateTime t ) {
 	if ( t != null ) {
-		_data_limits.setNonMissingDataDate2( t );
+		this._data_limits.setNonMissingDataDate2( t );
 	}
 }
 
@@ -2333,10 +2369,10 @@ Set a time series property's contents (case-specific).
 @param property property object corresponding to the property name.
 */
 public void setProperty ( String propertyName, Object property ) {
-    if ( __property_HashMap == null ) {
-        __property_HashMap = new LinkedHashMap<String, Object>();
+    if ( this.__property_HashMap == null ) {
+        this.__property_HashMap = new LinkedHashMap<String, Object>();
     }
-    __property_HashMap.put ( propertyName, property );
+    this.__property_HashMap.put ( propertyName, property );
 }
 
 /**
@@ -2344,7 +2380,7 @@ Indicate whether the time series is selected.
 This is used by applications that are working on a list of time series.
 */
 public void setSelected ( boolean selected ) {
-	_selected = selected;
+	this._selected = selected;
 }
 
 /**
@@ -2352,7 +2388,7 @@ Set the sequence identifier (old sequence number), used with ensembles.
 @param sequenceID sequence identifier for the time series.
 */
 public void setSequenceID ( String sequenceID ) {
-	_id.setSequenceID ( sequenceID );
+	this._id.setSequenceID ( sequenceID );
 }
 
 /**
@@ -2361,7 +2397,7 @@ Set the time series identifier source.
 */
 public void setSource ( String source ) {
 	if ( source != null ) {
-		_id.setSource ( source );
+		this._id.setSource ( source );
 	}
 }
 
@@ -2377,7 +2413,27 @@ This feature may be phased out in the future.
 */
 public void setStatus ( String status ) {
 	if ( status != null ) {
-		_status = status;
+		this._status = status;
+	}
+}
+
+/**
+Set the ValueIntervalClosureType.
+@param valueIntervalClosureType the ValueTemporalReferenceType.
+*/
+public void setValueIntervalClosureType ( ValueIntervalClosureType valueIntervalClosureType ) {
+	if ( valueIntervalClosureType != null ) {
+		this.valueIntervalClosureType = valueIntervalClosureType;
+	}
+}
+
+/**
+Set the ValueTemporalReferenceType.
+@param valueTemporalReferenceType the ValueTemporalReferenceType.
+*/
+public void setValueTemporalReference ( ValueTemporalReferenceType valueTemporalReference ) {
+	if ( valueTemporalReference != null ) {
+		this.valueTemporalReferenceType = valueTemporalReference;
 	}
 }
 
@@ -2385,9 +2441,9 @@ public void setStatus ( String status ) {
 Set the time series version, to be used with input file formats.
 @param version Version number for time series file.
 */
-public void setVersion( String version ) {
+public void setVersion ( String version ) {
 	if ( version != null ) {
-		_version = version;
+		this._version = version;
 	}
 }
 
