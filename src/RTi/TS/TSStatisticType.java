@@ -648,14 +648,13 @@ public enum TSStatisticType {
 
     /**
      * Return the enumeration value given a string name (case-independent).
-     * @param array of TSStatisticType to compare.
+     * @param statistics array of TSStatisticType to compare.
      * @return the enumeration value given a string name (case-independent), or null if not matched.
      */
     public static TSStatisticType valueOfIgnoreCase ( TSStatisticType [] statistics, String name ) {
     	if ( name == null ) {
         	return null;
     	}
-    	TSStatisticType [] values = values();
     	// Legacy conversions.
     	if ( name.equalsIgnoreCase("COUNT_GE") ) {
         	return GE_COUNT;
@@ -669,8 +668,7 @@ public enum TSStatisticType {
     	else if ( name.equalsIgnoreCase("COUNT_LT") ) {
         	return LT_COUNT;
     	}
-    	// Currently supported values.
-    	for ( TSStatisticType t : values ) {
+    	for ( TSStatisticType t : statistics ) {
         	if ( name.equalsIgnoreCase(t.toString()) ) {
             	return t;
         	}

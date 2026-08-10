@@ -41,25 +41,25 @@ it could be used independently.
 public class TableModel_JPanel extends JPanel
 {
 
-private JWorksheet_AbstractRowTableModel __tm = null; // Table model to display.
-private JWorksheet_DefaultTableCellRenderer __cr = null; // Cell renderer for table model.
+private JWorksheet_AbstractRowTableModel tm = null; // Table model to display.
+private JWorksheet_DefaultTableCellRenderer cr = null; // Cell renderer for table model.
 
-private TableModel_JFrame __parent = null; // Parent JFrame.
+private TableModel_JFrame parent = null; // Parent JFrame.
 
 /**
 Column widths for the worksheet's fields.
 */
-private int[] __widths;
+private int[] widths;
 
 /**
 The worksheet to display the data.
 */
-private JWorksheet __worksheet = null;
+private JWorksheet worksheet = null;
 
 /**
 Properties for how the worksheet should display.
 */
-private PropList __props;
+private PropList props;
 
 /**
 Constructor.  This sets up the worksheet with a default set of properties:<br>
@@ -77,21 +77,20 @@ To display with other properties, use the other constructor.
 public TableModel_JPanel ( TableModel_JFrame parent,
 				JWorksheet_AbstractRowTableModel tm,
 				JWorksheet_DefaultTableCellRenderer cr )
-throws Exception
-{
-	if (parent == null || tm == null || cr == null ) {
+throws Exception {
+	if ( (parent == null) || (tm == null) || (cr == null) ) {
 		throw new NullPointerException();
 	}
 
-	__parent = parent;
-	__tm = tm;
-	__cr = cr;
+	this.parent = parent;
+	this.tm = tm;
+	this.cr = cr;
 
-	__props = new PropList ( "" );
-	__props = new PropList("TableModel_JPanel.JWorksheet");
-	__props.add("JWorksheet.ShowPopupMenu=true");
-	__props.add("JWorksheet.SelectionMode=ExcelSelection");
-	__props.add("JWorksheet.AllowCopy=true");
+	this.props = new PropList ( "" );
+	this.props = new PropList("TableModel_JPanel.JWorksheet");
+	this.props.add("JWorksheet.ShowPopupMenu=true");
+	this.props.add("JWorksheet.SelectionMode=ExcelSelection");
+	this.props.add("JWorksheet.AllowCopy=true");
 
 	setupGUI();
 }
@@ -108,19 +107,19 @@ public TableModel_JPanel ( TableModel_JFrame parent,
 				JWorksheet_AbstractRowTableModel tm,
 				JWorksheet_DefaultTableCellRenderer cr,
 				PropList props )
-throws Exception
-{	if (parent == null || tm == null || cr == null ) {
+throws Exception {
+	if ( (parent == null) || (tm == null) || (cr == null) ) {
 		throw new NullPointerException();
 	}
 
-	__parent = parent;
-	__tm = tm;
-	__cr = cr;
+	this.parent = parent;
+	this.tm = tm;
+	this.cr = cr;
 	if ( props == null ) {
-		__props = new PropList ( "" );
+		this.props = new PropList ( "" );
 	}
 	else {
-		__props = props;
+		this.props = props;
 	}
 
 	setupGUI();
@@ -131,10 +130,10 @@ Returns the number of rows in the worksheet.
 @return the number of rows in the worksheet.
 */
 public int getWorksheetRowCount() {
-	if (__worksheet == null) {
+	if ( this.worksheet == null ) {
 		return 0;
 	}
-	return __worksheet.getRowCount();
+	return this.worksheet.getRowCount();
 }
 
 /**
@@ -142,24 +141,24 @@ Sets up the GUI.
 */
 private void setupGUI()
 throws Exception {
+	String routine = getClass().getSimpleName() + ".setupGUI";
 	setLayout(new GridBagLayout());
-	String routine = "TableModel_JPanel.setupGUI";
 
 	JScrollWorksheet jsw = null;
 	try {
-		jsw = new JScrollWorksheet(__cr, __tm, __props);
-		__worksheet = jsw.getJWorksheet();
-		__widths = __cr.getColumnWidths();
+		jsw = new JScrollWorksheet(this.cr, this.tm, this.props);
+		this.worksheet = jsw.getJWorksheet();
+		this.widths = this.cr.getColumnWidths();
 	}
 	catch (Exception e) {
 		Message.printWarning(2, routine, e);
-		jsw = new JScrollWorksheet(0, 0, __props);
-		__worksheet = jsw.getJWorksheet();
+		jsw = new JScrollWorksheet(0, 0, this.props);
+		this.worksheet = jsw.getJWorksheet();
 	}
-	__worksheet.setPreferredScrollableViewportSize(null);
-	__worksheet.setHourglassJFrame(__parent);
-	//__worksheet.addMouseListener(this);
-	//__worksheet.addKeyListener(this);
+	this.worksheet.setPreferredScrollableViewportSize(null);
+	this.worksheet.setHourglassJFrame(this.parent);
+	//this.worksheet.addMouseListener(this);
+	//this.worksheet.addKeyListener(this);
 
 	JGUIUtil.addComponent(this, jsw,
 		0, 0, 1, 1, 1, 1,
@@ -167,12 +166,12 @@ throws Exception {
 }
 
 /**
-Sets the worksheet's column widths.  This should be called after the frame
-in which the panel is found has called setVisible(true).
+Sets the worksheet's column widths.
+This should be called after the frame in which the panel is found has called setVisible(true).
 */
 public void setWorksheetColumnWidths() {
-	if (__worksheet != null && __widths != null) {
-		__worksheet.setColumnWidths(__widths);
+	if ( (this.worksheet != null) && (this.widths != null) ) {
+		this.worksheet.setColumnWidths(this.widths);
 	}
 }
 

@@ -44,15 +44,20 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
 import RTi.TS.MonthTS;
 import RTi.TS.MonthTSLimits;
 import RTi.TS.TS;
+import RTi.TS.TSDataFlagMetadata;
 import RTi.TS.TSUtil;
 import RTi.Util.GUI.JGUIUtil;
+import RTi.Util.GUI.JScrollWorksheet;
+import RTi.Util.GUI.JWorksheet;
 import RTi.Util.GUI.SimpleJButton;
 import RTi.Util.IO.DataUnits;
 import RTi.Util.IO.PrintJGUI;
@@ -60,7 +65,9 @@ import RTi.Util.IO.PropList;
 import RTi.Util.Message.Message;
 import RTi.Util.String.StringUtil;
 import RTi.Util.Table.DataTable;
+import RTi.Util.Table.DataTable_CellRenderer;
 import RTi.Util.Table.DataTable_JPanel;
+import RTi.Util.Table.DataTable_TableModel;
 import RTi.Util.Table.TableField;
 import RTi.Util.Table.TableRecord;
 import RTi.Util.Time.TimeInterval;
@@ -78,42 +85,42 @@ implements ActionListener, ChangeListener, WindowListener
 /**
 Time series to display.
 */
-private TS __ts;
+private TS ts;
 
 /**
 Properties to control output.
 */
-private PropList __props;
+private PropList props;
 
 /**
 Print button to be enabled only with the History tab.
 */
-private SimpleJButton __print_JButton;
+private SimpleJButton print_JButton;
 
 /**
 Tabbed pane to manage panels with properties.
 */
-private JTabbedPane __props_JTabbedPane;
+private JTabbedPane props_JTabbedPane;
 
 /**
 JTextArea for history tab.
 */
-private JTextArea __history_JTextArea;
+private JTextArea history_JTextArea;
 
 /**
 JTextArea for comments tab.
 */
-private JTextArea __comments_JTextArea;
+private JTextArea comments_JTextArea;
 
 /**
 Panel for time series history.
 */
-private JPanel __history_JPanel;
+private JPanel history_JPanel;
 
 /**
 Panel for time series comments.
 */
-private JPanel __comments_JPanel;
+private JPanel comments_JPanel;
 
 /**
 Construct a TSPropertiesJFrame.
@@ -124,11 +131,11 @@ Construct a TSPropertiesJFrame.
 public TSPropertiesJFrame ( JFrame gui, TS ts, PropList props )
 throws Exception {
 	super ( "Time Series Properties" );
-	__ts = ts;
+	this.ts = ts;
 	if ( props == null ) {
 		props = new PropList("");
 	}
-	__props = props;
+	this.props = props;
 	JGUIUtil.setIcon ( this, JGUIUtil.getIconImage() );
 	openGUI ( true );
 }
@@ -144,12 +151,12 @@ public void actionPerformed ( ActionEvent e ) {
 	}
 	else if ( command.equals("Print") ) {
 		try {
-		    //PrintJGUI.print ( this, JGUIUtil.toVector(__history_JTextArea), null, 8 );
-			if ( __props_JTabbedPane.getSelectedComponent() == __comments_JPanel ) {
-				PrintJGUI.printJTextAreaObject(this, null, __comments_JTextArea);
+		    //PrintJGUI.print ( this, JGUIUtil.toVector(this.history_JTextArea), null, 8 );
+			if ( this.props_JTabbedPane.getSelectedComponent() == this.comments_JPanel ) {
+				PrintJGUI.printJTextAreaObject(this, null, this.comments_JTextArea);
 			}
-			else if ( __props_JTabbedPane.getSelectedComponent() == __history_JPanel ) {
-				PrintJGUI.printJTextAreaObject(this, null, __history_JTextArea);
+			else if ( this.props_JTabbedPane.getSelectedComponent() == this.history_JPanel ) {
+				PrintJGUI.printJTextAreaObject(this, null, this.history_JTextArea);
 			}
 		}
 		catch ( Exception ex ) {
@@ -160,9 +167,60 @@ public void actionPerformed ( ActionEvent e ) {
 }
 
 /**
+Create a data table that contains time series data flags and descriptions.
+@param ts time series from which to generate a data flags table.
+@return the table containing time series data flags
+*/
+private DataTable createDataFlagsTable ( TS ts ) {
+	List<TSDataFlagMetadata> dataFlagMetadataList = ts.getDataFlagMetadataList();
+    // Get the length of the flag and description to set the table column width.
+    int nameLength = 25;
+    int displayNameLength = 25;
+    int descriptionLength = 25;
+    for ( TSDataFlagMetadata meta : dataFlagMetadataList ) {
+    	// Name.
+        nameLength = Math.max(nameLength, meta.getDataFlag().length());
+        // Display name.
+        String displayName = meta.getDisplayName();
+        if ( displayName == null ) {
+            displayName = "";
+        }
+        displayNameLength = Math.max(displayNameLength, displayName.length());
+        // Description.
+        String description = meta.getDescription();
+        if ( description == null ) {
+            description = "";
+        }
+        descriptionLength = Math.max(descriptionLength, description.length());
+    }
+    List<TableField> tableFields = new ArrayList<>();
+    // The above computed lengths may be very long so use auto widths or set in the table model that uses the table.
+    // The output will be shown as a string.
+    tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Data Flag",nameLength) );
+    tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Display Name",displayNameLength) );
+    tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Description",descriptionLength) );
+    DataTable table = new DataTable ( tableFields );
+    table.setTableID("DataFlags");
+    TableRecord rec;
+    for ( TSDataFlagMetadata meta : dataFlagMetadataList ) {
+        rec = new TableRecord();
+        rec.addFieldValue(meta.getDataFlag());
+        rec.addFieldValue(meta.getDisplayName());
+        rec.addFieldValue(meta.getDescription());
+        try {
+            table.addRecord(rec);
+        }
+        catch ( Exception e2 ) {
+            // Should not happen.
+        }
+    }
+    return table;
+}
+
+/**
 Create a data table that contains time series properties string values.
 @param ts time series from which to generate a property table.
-@return a property table
+@return the table containing time series properties
 */
 private DataTable createPropertyTable ( TS ts ) {
     HashMap<String,Object> properties = ts.getProperties();
@@ -170,7 +228,6 @@ private DataTable createPropertyTable ( TS ts ) {
     // Don't sort because order of properties often has some meaning.  Users can sort displayed table.
     //Collections.sort(keyList);
     // Get the length of the name and values to set the table width.
-    // TODO SAM 2011-04-25 Sure would be nice to not have to do this.
     int nameLength = 25;
     int valueLength = 25;
     for ( String key : keyList ) {
@@ -182,17 +239,13 @@ private DataTable createPropertyTable ( TS ts ) {
         valueLength = Math.max(valueLength, value.toString().length());
     }
     List<TableField> tableFields = new ArrayList<>();
-    // The above computed lengths may be very long so use auto widths or set in the table model that uses the table.
-    //nameLength = -1;
-    //int typeLength = -1;
-    //valueLength = -1;
     int typeLength = -1;
-    //valueLength = 80;
     // The output will be shown as a string.
     tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Property Name",nameLength) );
     tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Property Type",typeLength) );
     tableFields.add ( new TableField(TableField.DATA_TYPE_STRING,"Property Value",valueLength) );
     DataTable table = new DataTable ( tableFields );
+    table.setTableID("Properties");
     TableRecord rec;
     for ( String key : keyList ) {
         rec = new TableRecord();
@@ -254,194 +307,246 @@ private void openGUI ( boolean mode ) {
 	display_JPanel.setLayout ( gbl );
 	getContentPane().add ( display_JPanel );
 
-	__props_JTabbedPane = new JTabbedPane ();
-	__props_JTabbedPane.addChangeListener ( this );
-	JGUIUtil.addComponent ( display_JPanel, __props_JTabbedPane,
+	this.props_JTabbedPane = new JTabbedPane ();
+	this.props_JTabbedPane.addChangeListener ( this );
+	JGUIUtil.addComponent ( display_JPanel, this.props_JTabbedPane,
 			0, 0, 10, 1, 1.0, 1.0,
 			insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER );
 
 	//
-	// General Tab.
+	// Identifier tab.
 	//
 
-	JPanel general_JPanel = new JPanel();
-	general_JPanel.setLayout ( gbl );
-	__props_JTabbedPane.addTab ( "General", null, general_JPanel, "General (built-in) properties" );
+	JPanel id_JPanel = new JPanel();
+	GridBagLayout id_gbl = new GridBagLayout();
+	id_JPanel.setLayout ( id_gbl );
+	this.props_JTabbedPane.addTab ( "Identifier", null, id_JPanel, "Identifier properties" );
 
-	int y = -1;
-	JGUIUtil.addComponent ( general_JPanel, new JLabel("Identifier:"),
-			0, ++y, 1, 1, 0.0, 0.0,
+	int yId = -1;
+	JGUIUtil.addComponent ( id_JPanel, new JLabel("The time series identifier (TSID) uniquely identifies the time series."),
+		0, ++yId, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( id_JPanel, new JLabel("A standard TSID adheres to the following naming convention (brackets indicate optional data):"),
+		0, ++yId, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( id_JPanel, new JLabel("  [LocType:]LocationID.DataSource.DataType.Interval[.Scenario][SequenceID]"),
+		0, ++yId, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( id_JPanel, new JLabel("Including the datastore allows TSTool to read a time series from a datastore in a TSID command or time series product:"),
+		0, ++yId, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( id_JPanel, new JLabel("  [LocType:]LocationID.DataSource.DataType.Interval[.Scenario][SequenceID]~DataStore"),
+		0, ++yId, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( id_JPanel, new JLabel("An alias can also be used to identify the time series, for example when the TSID is complex."),
+		0, ++yId, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( id_JPanel, new JLabel("The TSID or alias are used in commands to match time series for processing."),
+		0, ++yId, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( id_JPanel, new JLabel("Multiple time series may be included in an ensemble, which uses the sequence ID to uniquely identify the trace."),
+		0, ++yId, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+    JGUIUtil.addComponent(id_JPanel, new JSeparator(SwingConstants.HORIZONTAL),
+        0, ++yId, 8, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+
+	JGUIUtil.addComponent ( id_JPanel, new JLabel("TSID:"),
+			0, ++yId, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	JTextField identifier_JTextField = new JTextField(__ts.getIdentifierString(), 50);
+	JTextField identifier_JTextField = new JTextField(this.ts.getIdentifierString(), 50);
 	identifier_JTextField.setToolTipText ( "Period-delimited time series identifier (TSID), to uniquely identify the time series." );
 	identifier_JTextField.setEditable ( false );
-	JGUIUtil.addComponent ( general_JPanel, identifier_JTextField,
-			1, y, 6, 1, 0.0, 0.0,
+	JGUIUtil.addComponent ( id_JPanel, identifier_JTextField,
+			1, yId, 6, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
-	identifier_JTextField = null;
 
-	JGUIUtil.addComponent ( general_JPanel, new JLabel( "Identifier (with input):"),
-			0, ++y, 1, 1, 0.0, 0.0,
+	JGUIUtil.addComponent ( id_JPanel, new JLabel( "TSID (with datastore or input type):"),
+			0, ++yId, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	// Limit the length of this field.
-	JTextField input_JTextField = new JTextField( __ts.getIdentifier().toString(true), 50 );
+	JTextField input_JTextField = new JTextField( this.ts.getIdentifier().toString(true), 50 );
 	input_JTextField.setToolTipText (
 		"Period-delimited time series identifier, with ~InputName if the time series was read from a datastore or other input." );
 	input_JTextField.setEditable ( false );
-	JGUIUtil.addComponent ( general_JPanel, input_JTextField,
-			1, y, 6, 1, 1.0, 0.0,
+	JGUIUtil.addComponent ( id_JPanel, input_JTextField,
+			1, yId, 6, 1, 1.0, 0.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
-	JGUIUtil.addComponent ( general_JPanel, new JLabel( "Identifier part (location type):"),
-			0, ++y, 1, 1, 0.0, 0.0,
+	JGUIUtil.addComponent ( id_JPanel, new JLabel( "Location type:"),
+			0, ++yId, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	// Limit the length of this field.
-	JTextField locType_JTextField = new JTextField( __ts.getIdentifier().getLocationType(), 50 );
+	JTextField locType_JTextField = new JTextField( this.ts.getIdentifier().getLocationType(), 50 );
 	locType_JTextField.setToolTipText ( "Location type, use when interpreting the location ID is ambiguous." );
 	locType_JTextField.setEditable ( false );
-	JGUIUtil.addComponent ( general_JPanel, locType_JTextField,
-			1, y, 6, 1, 1.0, 0.0,
+	JGUIUtil.addComponent ( id_JPanel, locType_JTextField,
+			1, yId, 6, 1, 1.0, 0.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
-	JGUIUtil.addComponent ( general_JPanel, new JLabel( "Identifier part (location ID):"),
-			0, ++y, 1, 1, 0.0, 0.0,
+	JGUIUtil.addComponent ( id_JPanel, new JLabel( "Location ID:"),
+			0, ++yId, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	// Limit the length of this field.
-	JTextField locid_JTextField = new JTextField( __ts.getIdentifier().getLocation(), 50 );
+	JTextField locid_JTextField = new JTextField( this.ts.getIdentifier().getLocation(), 50 );
 	locid_JTextField.setToolTipText ( "Location identifier (e.g., station or site identifier)." );
 	locid_JTextField.setEditable ( false );
-	JGUIUtil.addComponent ( general_JPanel, locid_JTextField,
-			1, y, 6, 1, 1.0, 0.0,
+	JGUIUtil.addComponent ( id_JPanel, locid_JTextField,
+			1, yId, 6, 1, 1.0, 0.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
-	JGUIUtil.addComponent ( general_JPanel, new JLabel( "Identifier part (data source):"),
-			0, ++y, 1, 1, 0.0, 0.0,
+	JGUIUtil.addComponent ( id_JPanel, new JLabel( "Data source:"),
+			0, ++yId, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	// Limit the length of this field.
-	JTextField dataSource_JTextField = new JTextField( __ts.getIdentifier().getSource(), 50 );
+	JTextField dataSource_JTextField = new JTextField( this.ts.getIdentifier().getSource(), 50 );
 	dataSource_JTextField.setToolTipText ( "Data source, typically an organiation abbreviation or software application/system name." );
 	dataSource_JTextField.setEditable ( false );
-	JGUIUtil.addComponent ( general_JPanel, dataSource_JTextField,
-			1, y, 6, 1, 1.0, 0.0,
+	JGUIUtil.addComponent ( id_JPanel, dataSource_JTextField,
+			1, yId, 6, 1, 1.0, 0.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
-	JGUIUtil.addComponent ( general_JPanel, new JLabel( "Identifier part (data type):"),
-			0, ++y, 1, 1, 0.0, 0.0,
+	JGUIUtil.addComponent ( id_JPanel, new JLabel( "Data type:"),
+			0, ++yId, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	// Limit the length of this field.
-	JTextField dataType_JTextField = new JTextField( __ts.getIdentifier().getType(), 50 );
+	JTextField dataType_JTextField = new JTextField( this.ts.getIdentifier().getType(), 50 );
 	dataType_JTextField.setToolTipText ( "Data type, typically an abbreviation or short name." );
 	dataType_JTextField.setEditable ( false );
-	JGUIUtil.addComponent ( general_JPanel, dataType_JTextField,
-			1, y, 6, 1, 1.0, 0.0,
+	JGUIUtil.addComponent ( id_JPanel, dataType_JTextField,
+			1, yId, 6, 1, 1.0, 0.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
-	JGUIUtil.addComponent ( general_JPanel, new JLabel( "Identifier part (interval):"),
-			0, ++y, 1, 1, 0.0, 0.0,
+	JGUIUtil.addComponent ( id_JPanel, new JLabel( "Data interval:"),
+			0, ++yId, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	// Limit the length of this field.
-	JTextField interval_JTextField = new JTextField( __ts.getIdentifier().getInterval(), 50 );
+	JTextField interval_JTextField = new JTextField( this.ts.getIdentifier().getInterval(), 50 );
 	interval_JTextField.setToolTipText ( "Data interval, can be regular or irregular spacing." );
 	interval_JTextField.setEditable ( false );
-	JGUIUtil.addComponent ( general_JPanel, interval_JTextField,
-			1, y, 6, 1, 1.0, 0.0,
+	JGUIUtil.addComponent ( id_JPanel, interval_JTextField,
+			1, yId, 6, 1, 1.0, 0.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
 	// Limit the length of this field.
 	JLabel interval_JLabel = null;
-	if ( TimeInterval.isRegularInterval(__ts.getIdentifier().getIntervalBase()) ) {
+	if ( TimeInterval.isRegularInterval(this.ts.getIdentifier().getIntervalBase()) ) {
 		interval_JLabel = new JLabel( "Time series has regular interval spacing." );
 	}
 	else {
 		String label = "Time series has irregular interval spacing.";
-		if ( this.__ts.getDate1() != null ) {
-			label += "  Date/time precision from period start = " + TimeInterval.getName(this.__ts.getDate1().getPrecision(), 0);
+		if ( this.ts.getDate1() != null ) {
+			label += "  Date/time precision from period start = " + TimeInterval.getName(this.ts.getDate1().getPrecision(), 0);
 		}
 		interval_JLabel = new JLabel( label );
 	}
-	JGUIUtil.addComponent ( general_JPanel, interval_JLabel,
-			1, ++y, 6, 1, 1.0, 0.0,
+	JGUIUtil.addComponent ( id_JPanel, interval_JLabel,
+			1, ++yId, 6, 1, 1.0, 0.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
-	JGUIUtil.addComponent ( general_JPanel, new JLabel( "Identifier part (scenario):"),
-			0, ++y, 1, 1, 0.0, 0.0,
+	JGUIUtil.addComponent ( id_JPanel, new JLabel( "Scenario:"),
+			0, ++yId, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	// Limit the length of this field.
-	JTextField scenario_JTextField = new JTextField( __ts.getIdentifier().getScenario(), 50 );
+	JTextField scenario_JTextField = new JTextField( this.ts.getIdentifier().getScenario(), 50 );
 	scenario_JTextField.setToolTipText ( "Scenario identifier, typically used with modeling or analysis." );
 	scenario_JTextField.setEditable ( false );
-	JGUIUtil.addComponent ( general_JPanel, scenario_JTextField,
-			1, y, 6, 1, 1.0, 0.0,
+	JGUIUtil.addComponent ( id_JPanel, scenario_JTextField,
+			1, yId, 6, 1, 1.0, 0.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
-	JGUIUtil.addComponent ( general_JPanel, new JLabel( "Identifier part (sequence ID):"),
-			0, ++y, 1, 1, 0.0, 0.0,
+	JGUIUtil.addComponent ( id_JPanel, new JLabel( "Sequence ID:"),
+			0, ++yId, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	// Limit the length of this field.
-	JTextField seqID_JTextField = new JTextField( __ts.getIdentifier().getSequenceID(), 50 );
+	JTextField seqID_JTextField = new JTextField( this.ts.getIdentifier().getSequenceID(), 50 );
 	seqID_JTextField.setToolTipText ( "Sequence (trace) identifier, used time series is part of an ensemble." );
 	seqID_JTextField.setEditable ( false );
-	JGUIUtil.addComponent ( general_JPanel, seqID_JTextField,
-			1, y, 6, 1, 1.0, 0.0,
+	JGUIUtil.addComponent ( id_JPanel, seqID_JTextField,
+			1, yId, 6, 1, 1.0, 0.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
-	JGUIUtil.addComponent ( general_JPanel, new JLabel("Alias:"),
-			0, ++y, 1, 1, 0.0, 0.0,
+	JGUIUtil.addComponent ( id_JPanel, new JLabel("Sequence (ensemble trace) ID:"),
+			0, ++yId, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	JTextField alias_JTextField = new JTextField( __ts.getAlias(), 50 );
-	alias_JTextField.setToolTipText ( "Alternative to the time series identifier." );
-	alias_JTextField.setEditable ( false );
-	JGUIUtil.addComponent ( general_JPanel, alias_JTextField,
-			1, y, 2, 1, 0.0, 0.0,
-			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
-	alias_JTextField = null;
-
-	JGUIUtil.addComponent ( general_JPanel, new JLabel("Sequence (ensemble trace) ID:"),
-			0, ++y, 1, 1, 0.0, 0.0,
-			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	JTextField seqnum_JTextField = new JTextField("" + __ts.getSequenceID(), 5);
+	JTextField seqnum_JTextField = new JTextField("" + this.ts.getSequenceID(), 5);
 	seqnum_JTextField.setToolTipText ( "Identifier for the trace in an ensemble, for example the historical year." );
 	seqnum_JTextField.setEditable ( false );
-	JGUIUtil.addComponent ( general_JPanel, seqnum_JTextField,
-			1, y, 2, 1, 0.0, 0.0,
+	JGUIUtil.addComponent ( id_JPanel, seqnum_JTextField,
+			1, yId, 2, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
-	alias_JTextField = null;
+
+	JGUIUtil.addComponent ( id_JPanel, new JLabel("Alias:"),
+			0, ++yId, 1, 1, 0.0, 0.0,
+			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
+	JTextField alias_JTextField = new JTextField( this.ts.getAlias(), 50 );
+	alias_JTextField.setToolTipText ( "Alternative to the time series identifier." );
+	alias_JTextField.setEditable ( false );
+	JGUIUtil.addComponent ( id_JPanel, alias_JTextField,
+			1, yId, 2, 1, 0.0, 0.0,
+			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
+
+	//
+	// General tab:
+	// - some information is described in tool tips but tool tips are not shown for disabled text fields
+	//
+
+	JPanel general_JPanel = new JPanel();
+	GridBagLayout general_gbl = new GridBagLayout();
+	general_JPanel.setLayout ( general_gbl );
+	this.props_JTabbedPane.addTab ( "General", null, general_JPanel, "General properties" );
+
+	int yGen = -1;
+
+	JGUIUtil.addComponent ( general_JPanel, new JLabel("General properties include basic metadata."),
+		0, ++yGen, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( general_JPanel, new JLabel("The description typically includes location and data type information."),
+		0, ++yGen, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( general_JPanel, new JLabel("The value 'temporal reference' and 'interval closure' indicate how input values are used to compute interval (or duration) data"),
+		0, ++yGen, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( general_JPanel, new JLabel("(requires clear documentation from a data source to set accurately if data are read)."),
+		0, ++yGen, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( general_JPanel, new JLabel("Hover over fields to display information about a data item."),
+		0, ++yGen, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+    JGUIUtil.addComponent(general_JPanel, new JSeparator(SwingConstants.HORIZONTAL),
+        0, ++yGen, 8, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
 
 	JGUIUtil.addComponent ( general_JPanel, new JLabel("Description:"),
-			0, ++y, 1, 1, 0.0, 0.0,
+			0, ++yGen, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	// Set a maximum size so this does not get outrageously big.
-	JTextField description_JTextField=new JTextField(__ts.getDescription(),50);
+	JTextField description_JTextField=new JTextField(this.ts.getDescription(),50);
 	description_JTextField.setToolTipText ( "A short description, typically including the location and data type." );
 	description_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( general_JPanel, description_JTextField,
-			1, y, 6, 1, 1.0, 0.0,
+			1, yGen, 6, 1, 1.0, 0.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
-	description_JTextField = null;
 
 	JGUIUtil.addComponent ( general_JPanel, new JLabel("Units (current):"),
-			0, ++y, 1, 1, 0.0, 0.0,
+			0, ++yGen, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	JTextField units_JTextField = new JTextField( __ts.getDataUnits(), 10);
-	units_JTextField.setToolTipText ( "Data units." );
+	JTextField units_JTextField = new JTextField( this.ts.getDataUnits(), 10);
+	units_JTextField.setToolTipText ( "Data units (reflects original data and processing)." );
 	units_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( general_JPanel, units_JTextField,
-			1, y, 1, 1, 0.0, 0.0,
+			1, yGen, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
-	units_JTextField = null;
 
 	JGUIUtil.addComponent ( general_JPanel, new JLabel("Units (original):"),
-			0, ++y, 1, 1, 0.0, 0.0,
+			0, ++yGen, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	JTextField unitsorig_JTextField = new JTextField( __ts.getDataUnitsOriginal(), 10);
+	JTextField unitsorig_JTextField = new JTextField( this.ts.getDataUnitsOriginal(), 10);
 	unitsorig_JTextField.setToolTipText ( "Data units, from the time series when created or read." );
 	unitsorig_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( general_JPanel, unitsorig_JTextField,
-			1, y, 1, 1, 0.0, 0.0,
+			1, yGen, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
-	unitsorig_JTextField = null;
 
-	String tsUnits = __ts.getDataUnits();
+	String tsUnits = this.ts.getDataUnits();
 	String precisionFromUnits = "";
 	if ( (tsUnits != null) && !tsUnits.isEmpty() ) {
 		try {
@@ -453,149 +558,249 @@ private void openGUI ( boolean mode ) {
 		}
 	}
 	JGUIUtil.addComponent ( general_JPanel, new JLabel("Output precision (from units):"),
-			0, ++y, 1, 1, 0.0, 0.0,
+			0, ++yGen, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	JTextField precisionFromUnits_JTextField = new JTextField(precisionFromUnits, 10);
 	precisionFromUnits_JTextField.setToolTipText ( "Data precision (digits after decimal point) for output, determined from data units." );
 	precisionFromUnits_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( general_JPanel, precisionFromUnits_JTextField,
-			1, y, 1, 1, 0.0, 0.0,
+			1, yGen, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
-	unitsorig_JTextField = null;
 
 	String precisionSpecified = "";
-	if ( __ts.getDataPrecision() >= 0 ) {
-		precisionSpecified = "" + __ts.getDataPrecision();
+	if ( this.ts.getDataPrecision() >= 0 ) {
+		precisionSpecified = "" + this.ts.getDataPrecision();
 	}
 	JGUIUtil.addComponent ( general_JPanel, new JLabel("Output precision (specified):"),
-			0, ++y, 1, 1, 0.0, 0.0,
+			0, ++yGen, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
 	JTextField precisionSpecified_JTextField = new JTextField(precisionSpecified, 10);
 	precisionSpecified_JTextField.setToolTipText (
 		"Data precision (digits after decimal point) for output specified directly, overrides precision from units." );
 	precisionSpecified_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( general_JPanel, precisionSpecified_JTextField,
-			1, y, 1, 1, 0.0, 0.0,
+			1, yGen, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
-	unitsorig_JTextField = null;
 
-	JCheckBox isselected_JCheckBox = new JCheckBox ( "Is selected?", __ts.isSelected() );
+	String valueTemporalReference = "";
+	if ( this.ts.getValueTemporalReferenceType() != null ) {
+		valueTemporalReference = "" + this.ts.getValueTemporalReferenceType();
+	}
+	JGUIUtil.addComponent ( general_JPanel, new JLabel("Value temporal reference:"),
+			0, ++yGen, 1, 1, 0.0, 0.0,
+			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
+	JTextField valueTemporalReference_JTextField = new JTextField(valueTemporalReference, 10);
+	valueTemporalReference_JTextField.setToolTipText (
+		"Indicates the value time alignment (not used for date-precision time series)." );
+	valueTemporalReference_JTextField.setEditable ( false );
+	JGUIUtil.addComponent ( general_JPanel, valueTemporalReference_JTextField,
+			1, yGen, 1, 1, 0.0, 0.0,
+			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
+
+	String valueIntervalClosure = "";
+	if ( this.ts.getValueIntervalClosureType() != null ) {
+		valueIntervalClosure = "" + this.ts.getValueIntervalClosureType();
+	}
+	JGUIUtil.addComponent ( general_JPanel, new JLabel("Value interval closure:"),
+			0, ++yGen, 1, 1, 0.0, 0.0,
+			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
+	JTextField valueIntervalClosure_JTextField = new JTextField(valueIntervalClosure, 10);
+	valueIntervalClosure_JTextField.setToolTipText (
+		"Indicates how input sample values are handled when aligned with regular interval time series or duration boundaries." );
+	valueIntervalClosure_JTextField.setEditable ( false );
+	JGUIUtil.addComponent ( general_JPanel, valueIntervalClosure_JTextField,
+			1, yGen, 1, 1, 0.0, 0.0,
+			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
+
+	JCheckBox isselected_JCheckBox = new JCheckBox ( "Is selected?", this.ts.isSelected() );
 	isselected_JCheckBox.setEnabled ( false );
 	isselected_JCheckBox.setToolTipText ( "Is the time series selected?" );
 	JGUIUtil.addComponent ( general_JPanel, isselected_JCheckBox,
-			1, ++y, 1, 1, 1.0, 0.0,
+			1, ++yGen, 1, 1, 1.0, 0.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
-	isselected_JCheckBox = null;
 
-    JCheckBox iseditable_JCheckBox = new JCheckBox ( "Is editable?", __ts.isEditable() );
+    JCheckBox iseditable_JCheckBox = new JCheckBox ( "Is editable?", this.ts.isEditable() );
     iseditable_JCheckBox.setEnabled ( false );
 	iseditable_JCheckBox.setToolTipText ( "Is the time series editable when viewed?" );
     JGUIUtil.addComponent ( general_JPanel, iseditable_JCheckBox,
-            1, ++y, 1, 1, 1.0, 0.0,
+            1, ++yGen, 1, 1, 1.0, 0.0,
             insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
-    iseditable_JCheckBox = null;
 
-	JCheckBox isdirty_JCheckBox = new JCheckBox ( "Is dirty (data edited without recomputing limits)?", __ts.isDirty() );
+	JCheckBox isdirty_JCheckBox = new JCheckBox ( "Is dirty (data read/edited/modified without recomputing limits)?", this.ts.isDirty() );
 	isdirty_JCheckBox.setEnabled ( false );
 	isdirty_JCheckBox.setToolTipText ( "Is the time series dirty?  Data have been modified but limits have not been recomputed." );
 	JGUIUtil.addComponent ( general_JPanel, isdirty_JCheckBox,
-			1, ++y, 1, 1, 1.0, 0.0,
+			1, ++yGen, 1, 1, 1.0, 0.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
-	isdirty_JCheckBox = null;
 
     // Properties tab.
 
     JPanel properties_JPanel = new JPanel();
-    properties_JPanel.setLayout ( gbl );
-    __props_JTabbedPane.addTab ( "Properties", null, properties_JPanel, "Time series properties set during processing." );
-    DataTable_JPanel panel = new DataTable_JPanel(this, createPropertyTable(__ts));
-    // TODO smalers 2022-04-22 the following does not work - set the widths on the DataTable,
-    // but that does not seem to work either.
-    //int [] columnWidths = {
-    //	30,
-    //	30,
-    //	80
-    //};
-    //panel.setWorksheetColumnWidths(columnWidths);
-    JGUIUtil.addComponent ( properties_JPanel,
-            new JScrollPane (panel),
-            0, y, 6, 1, 1.0, 1.0,
+	GridBagLayout properties_gbl = new GridBagLayout();
+    properties_JPanel.setLayout ( properties_gbl );
+    this.props_JTabbedPane.addTab ( "Properties", null, properties_JPanel, "Time series properties set during processing." );
+    int yProp = -1;
+
+	JGUIUtil.addComponent ( properties_JPanel, new JLabel("The following properties are from the original data source and processing commands."),
+		0, ++yProp, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( properties_JPanel, new JLabel("Refer to datastore and API documentation for more information."),
+		0, ++yProp, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( properties_JPanel, new JLabel("Time series properties can be used to control processing of a specific time series."),
+		0, ++yProp, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+    JGUIUtil.addComponent(properties_JPanel, new JSeparator(SwingConstants.HORIZONTAL),
+        0, ++yProp, 8, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+
+    boolean doOldProperties = false;
+    int [] propertiesWorksheetColumnWidths = null;
+   	JWorksheet propertiesWorksheet = null;
+    if ( doOldProperties ) {
+    	// Old code:
+    	// - the column widths do not dynamically size correctly
+    	DataTable_JPanel props_JPanel = new DataTable_JPanel(this, createPropertyTable(this.ts));
+    	// TODO smalers 2022-04-22 the following does not work - set the widths on the DataTable,
+    	// but that does not seem to work either.
+    	//int [] columnWidths = {
+    	//	30,
+    	//	30,
+    	//	80
+    	//};
+    	//panel.setWorksheetColumnWidths(columnWidths);
+    	JGUIUtil.addComponent ( properties_JPanel,
+            new JScrollPane ( props_JPanel ),
+            0, ++yProp, 8, 1, 1.0, 1.0,
             insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER );
+    }
+    else {
+    	// New code:
+    	// - the column widths resize dynamically similar to TSTool main UI table view and time series table view.
+    	JScrollWorksheet propertiesScrollWorksheet = null;
+   		PropList jswProps = new PropList ( "" );
+   		jswProps = new PropList("TableModel_JPanel.JWorksheet");
+   		jswProps.add("JWorksheet.ShowPopupMenu=true");
+   		jswProps.add("JWorksheet.SelectionMode=ExcelSelection");
+   		jswProps.add("JWorksheet.AllowCopy=true");
+	   	try {
+	   		DataTable_TableModel tm = new DataTable_TableModel(createPropertyTable(this.ts));
+	   		DataTable_CellRenderer cr = new DataTable_CellRenderer(tm);
+		   	propertiesScrollWorksheet = new JScrollWorksheet ( cr, tm, jswProps );
+		   	propertiesWorksheet = propertiesScrollWorksheet.getJWorksheet();
+		   	propertiesWorksheetColumnWidths = cr.getColumnWidths();
+	   	}
+	   	catch (Exception e) {
+		   	Message.printWarning(2, routine, e);
+		   	propertiesScrollWorksheet = new JScrollWorksheet(0, 0, jswProps);
+		   	propertiesWorksheet = propertiesScrollWorksheet.getJWorksheet();
+	   	}
+	   	propertiesWorksheet.setPreferredScrollableViewportSize(null);
+	   	//propertiesWorksheet.setHourglassJFrame(this.parent);
 
-	// Comments Tab.
+    	JGUIUtil.addComponent ( properties_JPanel,
+    		propertiesScrollWorksheet,
+            0, ++yProp, 8, 1, 1.0, 1.0,
+            insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER );
+    }
 
-	__comments_JPanel = new JPanel();
-	__comments_JPanel.setLayout ( gbl );
-	__props_JTabbedPane.addTab ( "Comments", null, __comments_JPanel, "Comments" );
+	// Comments tab.
 
-	y = 0;
-	__comments_JTextArea = new JTextArea(StringUtil.toString( __ts.getComments(),
+	this.comments_JPanel = new JPanel();
+	GridBagLayout comments_gbl = new GridBagLayout();
+	this.comments_JPanel.setLayout ( comments_gbl );
+	this.props_JTabbedPane.addTab ( "Comments", null, this.comments_JPanel, "Comments" );
+	int yComment = -1;
+
+	JGUIUtil.addComponent ( this.comments_JPanel, new JLabel("Comments are used with some output formats."),
+		0, ++yComment, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+    JGUIUtil.addComponent(this.comments_JPanel, new JSeparator(SwingConstants.HORIZONTAL),
+        0, ++yComment, 8, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+
+	this.comments_JTextArea = new JTextArea(StringUtil.toString( this.ts.getComments(),
 			System.getProperty("line.separator")),5,80);
-	__comments_JTextArea.setFont ( report_Font );
-	__comments_JTextArea.setEditable ( false );
-	JGUIUtil.addComponent ( __comments_JPanel,
-			new JScrollPane (__comments_JTextArea),
-			0, y, 6, 1, 1.0, 1.0,
+	this.comments_JTextArea.setFont ( report_Font );
+	this.comments_JTextArea.setEditable ( false );
+	JGUIUtil.addComponent ( this.comments_JPanel,
+			new JScrollPane (this.comments_JTextArea),
+			0, ++yComment, 6, 1, 1.0, 1.0,
 			insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER );
 
 	//
-	// Period Tab.
+	// Period tab.
 	//
 
 	JPanel period_JPanel = new JPanel();
-	period_JPanel.setLayout ( gbl );
-	__props_JTabbedPane.addTab ( "Period", null, period_JPanel, "Period" );
+	GridBagLayout period_gbl = new GridBagLayout();
+	period_JPanel.setLayout ( period_gbl );
+	this.props_JTabbedPane.addTab ( "Period", null, period_JPanel, "Period" );
+	int yPeriod = -1;
 
-	y = 0;
+	JGUIUtil.addComponent ( period_JPanel, new JLabel("The current time series period reflects the original data that were read and subsequent processing."),
+		0, ++yPeriod, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( period_JPanel, new JLabel("The original time series period is from reading the data or may reflect the available period from the data source."),
+		0, ++yPeriod, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+    JGUIUtil.addComponent(period_JPanel, new JSeparator(SwingConstants.HORIZONTAL),
+        0, ++yPeriod, 8, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+
 	JGUIUtil.addComponent ( period_JPanel, new JLabel("Current (reflects processing):"),
-			0, y, 1, 1, 0.0, 0.0,
+			0, ++yPeriod, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	JTextField period_JTextField = new JTextField( " " + __ts.getDate1() + " to "+ __ts.getDate2(), 50 );
+	JTextField period_JTextField = new JTextField( " " + this.ts.getDate1() + " to "+ this.ts.getDate2(), 50 );
 	period_JTextField.setToolTipText ( "Data period (may contain missing values at ends)." );
 	period_JTextField.setEditable(false);
 	JGUIUtil.addComponent ( period_JPanel, period_JTextField,
-		1, y, 2, 1, 0.0, 0.0,
+		1, yPeriod, 2, 1, 0.0, 0.0,
 		insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
-	period_JTextField = null;
 
 	JGUIUtil.addComponent ( period_JPanel, new JLabel(
-		"Original (from input):"), 0, ++y, 1, 1, 0.0, 0.0,
+		"Original (from input):"), 0, ++yPeriod, 1, 1, 0.0, 0.0,
 		insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	JTextField origperiod_JTextField = new JTextField( " " + __ts.getDate1Original() + " to " + __ts.getDate2Original(), 50 );
+	JTextField origperiod_JTextField = new JTextField( " " + this.ts.getDate1Original() + " to " + this.ts.getDate2Original(), 50 );
 	origperiod_JTextField.setToolTipText ( "Original data period, from input source (may contain missing values at ends)." );
 	origperiod_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( period_JPanel, origperiod_JTextField,
-		1, y, 2, 1, 0.0, 0.0,
+		1, yPeriod, 2, 1, 0.0, 0.0,
 		insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
-	origperiod_JTextField = null;
 
-	JGUIUtil.addComponent ( period_JPanel, new JLabel("Total Points:"),
-			0, ++y, 1, 1, 0, 0,
+	JGUIUtil.addComponent ( period_JPanel, new JLabel("Total points:"),
+			0, ++yPeriod, 1, 1, 0, 0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	JTextField points_JTextField = new JTextField( " " + __ts.getDataSize());
+	JTextField points_JTextField = new JTextField( " " + this.ts.getDataSize());
 	points_JTextField.setToolTipText ( "Number of data points (points may be missing values)." );
 	points_JTextField.setEditable ( false );
 	JGUIUtil.addComponent ( period_JPanel, points_JTextField,
-			1, y, 1, 1, 0.0, 0.0,
+			1, yPeriod, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
-	points_JTextField = null;
 
 	//
-	// Limits Tab.
+	// Limits tab.
 	//
 
 	JPanel limits_JPanel = new JPanel();
-	limits_JPanel.setLayout ( gbl );
-	__props_JTabbedPane.addTab ( "Limits", null, limits_JPanel, "Limits" );
+	GridBagLayout limits_gbl = new GridBagLayout();
+	limits_JPanel.setLayout ( limits_gbl );
+	this.props_JTabbedPane.addTab ( "Limits", null, limits_JPanel, "Limits" );
+	int yLimits = -1;
 
-	y = 0;
+	JGUIUtil.addComponent ( limits_JPanel, new JLabel("Data limits are useful for general context and are used by some commands to fill missing data."),
+		0, ++yLimits, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( limits_JPanel, new JLabel("Original data limits are computed after reading/creating a time series."),
+		0, ++yLimits, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+    JGUIUtil.addComponent(limits_JPanel, new JSeparator(SwingConstants.HORIZONTAL),
+        0, ++yLimits, 8, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+
 	JGUIUtil.addComponent ( limits_JPanel, new JLabel("Current (reflects manipulation):"),
-			0, y, 6, 1, 0.0, 0.0,
+			0, ++yLimits, 6, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	JTextArea limits_JTextArea = null;
-	if ( __ts.getDataIntervalBase() == TimeInterval.MONTH ) {
+	if ( this.ts.getDataIntervalBase() == TimeInterval.MONTH ) {
 		try {
-		    limits_JTextArea = new JTextArea(new MonthTSLimits((MonthTS)__ts).toString(),12,80);
+		    limits_JTextArea = new JTextArea(new MonthTSLimits((MonthTS)this.ts).toString(),12,80);
 		}
 		catch ( Exception e ) {
 			limits_JTextArea = new JTextArea("No Limits Available",5,80);
@@ -603,8 +808,8 @@ private void openGUI ( boolean mode ) {
 	}
 	else {
 	    try {
-	        limits_JTextArea = new JTextArea((TSUtil.getDataLimits(__ts, __ts.getDate1(),
-				__ts.getDate2())).toString(),15,80 );
+	        limits_JTextArea = new JTextArea((TSUtil.getDataLimits(this.ts, this.ts.getDate1(),
+				this.ts.getDate2())).toString(),15,80 );
 		}
 		catch ( Exception e ) {
 			limits_JTextArea = new JTextArea("No limits available",5,80);
@@ -615,21 +820,20 @@ private void openGUI ( boolean mode ) {
 	limits_JTextArea.setFont ( report_Font );
 	JGUIUtil.addComponent ( limits_JPanel,
 			new JScrollPane ( limits_JTextArea ),
-			0, ++y, 6, 1, 1.0, 1.0,
+			0, ++yLimits, 6, 1, 1.0, 1.0,
 			insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER );
-	limits_JTextArea = null;
 
-	++y;
+	++yLimits;
 	JGUIUtil.addComponent(limits_JPanel,
 			new JLabel("Original (from input):"),
-			0, ++y, 6, 1, 0.0, 0.0,
+			0, ++yLimits, 6, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
 	JTextArea origlim_JTextArea = null;
-	if ( __ts.getDataLimitsOriginal() == null ) {
+	if ( this.ts.getDataLimitsOriginal() == null ) {
 		origlim_JTextArea = new JTextArea( "No limits available");
 	}
 	else {
-	    origlim_JTextArea = new JTextArea(__ts.getDataLimitsOriginal().toString(),10,80);
+	    origlim_JTextArea = new JTextArea(this.ts.getDataLimitsOriginal().toString(),10,80);
 		origlim_JTextArea.setFont ( report_Font );
 		origlim_JTextArea.setEditable ( false );
 	}
@@ -637,64 +841,149 @@ private void openGUI ( boolean mode ) {
 	origlim_JTextArea.setEditable(false);
 	JGUIUtil.addComponent ( limits_JPanel,
 			new JScrollPane ( origlim_JTextArea ),
-			0, ++y, 6, 1, 1.0, 1.0,
+			0, ++yLimits, 6, 1, 1.0, 1.0,
 			insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER );
 
 	//
-	// History Tab.
+	// History tab.
 	//
 
-	__history_JPanel = new JPanel();
-	__history_JPanel.setLayout ( gbl );
-	__props_JTabbedPane.addTab("History", null, __history_JPanel,"History");
-	y = 0;
-	__history_JTextArea = new JTextArea( StringUtil.toString(__ts.getGenesis(),System.getProperty("line.separator")),5,80);
-	__history_JTextArea.setFont ( report_Font );
-    __history_JTextArea.setToolTipText ( "History of how time series has been processed." );
-	__history_JTextArea.setEditable ( false );
-	JGUIUtil.addComponent ( __history_JPanel,
-			new JScrollPane (__history_JTextArea),
-			0, y, 7, 1, 1.0, 1.0,
+	this.history_JPanel = new JPanel();
+	GridBagLayout history_gbl = new GridBagLayout();
+	this.history_JPanel.setLayout ( history_gbl );
+	this.props_JTabbedPane.addTab("History", null, this.history_JPanel,"History");
+	int yHist = -1;
+
+	JGUIUtil.addComponent ( this.history_JPanel, new JLabel("The history is a sequence of notes indicating how the time series was read/created and modified by commands."),
+		0, ++yHist, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( this.history_JPanel, new JLabel("The history may include data that are not stored in other time series properties."),
+		0, ++yHist, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+    JGUIUtil.addComponent(this.history_JPanel, new JSeparator(SwingConstants.HORIZONTAL),
+        0, ++yHist, 8, 1, 0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+
+	this.history_JTextArea = new JTextArea( StringUtil.toString(this.ts.getGenesis(),System.getProperty("line.separator")),5,80);
+	this.history_JTextArea.setFont ( report_Font );
+    this.history_JTextArea.setToolTipText ( "History of how time series has been processed." );
+	this.history_JTextArea.setEditable ( false );
+	JGUIUtil.addComponent ( this.history_JPanel,
+			new JScrollPane (this.history_JTextArea),
+			0, ++yHist, 7, 1, 1.0, 1.0,
 			insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER );
 
-	JGUIUtil.addComponent ( __history_JPanel, new JLabel("Read From:"),
-			0, ++y, 1, 1, 0.0, 0.0,
+	JGUIUtil.addComponent ( this.history_JPanel, new JLabel("Read from:"),
+			0, ++yHist, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
-	JTextField inputname_JTextField = new JTextField( __ts.getInputName());
+	JTextField inputname_JTextField = new JTextField( this.ts.getInputName());
     inputname_JTextField.setToolTipText ( "Original data source (file, database, web service, etc.)." );
 	inputname_JTextField.setEditable ( false );
-	JGUIUtil.addComponent ( __history_JPanel, inputname_JTextField,
-			1, y, 6, 1, 1.0, 0.0,
+	JGUIUtil.addComponent ( this.history_JPanel, inputname_JTextField,
+			1, yHist, 6, 1, 1.0, 0.0,
 			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.CENTER );
-	inputname_JTextField = null;
 
 	//
-	// Data Flags Tab.
+	// Data Flags tab.
 	//
 
 	JPanel dataflags_JPanel = new JPanel();
-	dataflags_JPanel.setLayout ( gbl );
-	__props_JTabbedPane.addTab ( "Data Flags", dataflags_JPanel );
+	GridBagLayout dataflags_gbl = new GridBagLayout();
+	dataflags_JPanel.setLayout ( dataflags_gbl );
+	this.props_JTabbedPane.addTab ( "Data Flags", dataflags_JPanel );
+	int yDataflags = 0;
 
-	y = 0;
+	JGUIUtil.addComponent ( dataflags_JPanel, new JLabel("A time series has a numerical value that indicates missing data."),
+		0, ++yDataflags, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( dataflags_JPanel, new JLabel("The default value is -999 for historical reasons but new commands typically use NaN (not a number)."),
+		0, ++yDataflags, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( dataflags_JPanel, new JLabel("Regular interval time series that have gaps will use the missing value."),
+		0, ++yDataflags, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( dataflags_JPanel, new JLabel("Irregular interval time series may also store missing values."),
+		0, ++yDataflags, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( dataflags_JPanel, new JLabel("Each data value can also have a string (text) flag of zero or more characters."),
+		0, ++yDataflags, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+	JGUIUtil.addComponent ( dataflags_JPanel, new JLabel("Data flags (and flag description) are added by some commands and are used in output."),
+		0, ++yDataflags, 8, 1, 0.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.EAST );
+    JGUIUtil.addComponent(dataflags_JPanel, new JSeparator(SwingConstants.HORIZONTAL),
+        0, ++yDataflags, 8, 1, 0.0, 0, insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST);
+
 	JGUIUtil.addComponent ( dataflags_JPanel, new JLabel(
-			"Missing Data Value:"), 0, y, 1, 1, 0.0, 0.0,
+			"Missing data value:"), 0, ++yDataflags, 1, 1, 0.0, 0.0,
 			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.EAST );
-	JTextField missing_JTextField = new JTextField( StringUtil.formatString( __ts.getMissing(),"%.4f"), 15);
+	JTextField missing_JTextField = null;
+	if ( Double.isNaN(this.ts.getMissing()) ) {
+		missing_JTextField = new JTextField( "NaN", 15);
+	}
+	else {
+		missing_JTextField = new JTextField( StringUtil.formatString( this.ts.getMissing(),"%.4f"), 15);
+	}
     missing_JTextField.setToolTipText ( "Value that indicates missing data." );
 	missing_JTextField.setEditable(false);
+	// Can't get the layout to work without using HORIZONTAL expansion but spent time trying to figure it out and could not.
 	JGUIUtil.addComponent ( dataflags_JPanel, missing_JTextField,
-			1, y, 1, 1, 0.0, 0.0,
-			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
-	missing_JTextField = null;
+		1, yDataflags, 1, 1, 1.0, 0.0,
+		insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
 
-	JCheckBox hasdataflags_JCheckBox = new JCheckBox ( "Has data flags?", __ts.hasDataFlags() );
+	JCheckBox hasdataflags_JCheckBox = new JCheckBox ( "Has data flags?", this.ts.hasDataFlags() );
 	hasdataflags_JCheckBox.setEnabled ( false );
     hasdataflags_JCheckBox.setToolTipText ( "Indicates whether data flags are used for values." );
 	JGUIUtil.addComponent ( dataflags_JPanel, hasdataflags_JCheckBox,
-			0, ++y, 2, 1, 1.0, 0.0,
-			insetsTLBR, GridBagConstraints.HORIZONTAL, GridBagConstraints.WEST );
-	hasdataflags_JCheckBox = null;
+			0, ++yDataflags, 2, 1, 0.0, 0.0,
+			insetsTLBR, GridBagConstraints.NONE, GridBagConstraints.WEST );
+
+	boolean doOldDataflags = false;
+    int [] dataFlagsWorksheetColumnWidths = null;
+   	JWorksheet dataFlagsWorksheet = null;
+	if ( doOldDataflags ) {
+		DataTable_JPanel dataflagsTable_JPanel = new DataTable_JPanel(this, createDataFlagsTable(this.ts));
+		// TODO smalers 2022-04-22 the following does not work - set the widths on the DataTable,
+		// but that does not seem to work either.
+		//int [] columnWidths = {
+		//	30,
+		//	30,
+		//	80
+		//};
+		//panel.setWorksheetColumnWidths(columnWidths);
+		JGUIUtil.addComponent ( dataflags_JPanel,
+            new JScrollPane ( dataflagsTable_JPanel ),
+            0, ++yDataflags, 8, 10, 1.0, 1.0,
+            insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER );
+	}
+    else {
+    	// New code:
+    	// - the column widths resize dynamically similar to TSTool main UI table view and time series table view.
+    	JScrollWorksheet dataFlagsScrollWorksheet = null;
+   		PropList jswProps = new PropList ( "" );
+   		jswProps = new PropList("TableModel_JPanel.JWorksheet");
+   		jswProps.add("JWorksheet.ShowPopupMenu=true");
+   		jswProps.add("JWorksheet.SelectionMode=ExcelSelection");
+   		jswProps.add("JWorksheet.AllowCopy=true");
+	   	try {
+	   		DataTable_TableModel tm = new DataTable_TableModel(createDataFlagsTable(this.ts));
+	   		DataTable_CellRenderer cr = new DataTable_CellRenderer(tm);
+		   	dataFlagsScrollWorksheet = new JScrollWorksheet ( cr, tm, jswProps );
+		   	dataFlagsWorksheet = dataFlagsScrollWorksheet.getJWorksheet();
+		   	dataFlagsWorksheetColumnWidths = cr.getColumnWidths();
+	   	}
+	   	catch (Exception e) {
+		   	Message.printWarning(2, routine, e);
+		   	dataFlagsScrollWorksheet = new JScrollWorksheet(0, 0, jswProps);
+		   	dataFlagsWorksheet = dataFlagsScrollWorksheet.getJWorksheet();
+	   	}
+	   	propertiesWorksheet.setPreferredScrollableViewportSize(null);
+	   	//propertiesWorksheet.setHourglassJFrame(this.parent);
+
+    	JGUIUtil.addComponent ( dataflags_JPanel,
+    		dataFlagsScrollWorksheet,
+            0, ++yDataflags, 8, 10, 1.0, 1.0,
+            insetsTLBR, GridBagConstraints.BOTH, GridBagConstraints.CENTER );
+    }
 
 	// Put the buttons on the bottom of the window.
 
@@ -702,23 +991,23 @@ private void openGUI ( boolean mode ) {
 	button_JPanel.setLayout ( new FlowLayout(FlowLayout.CENTER) );
 
 	button_JPanel.add ( new SimpleJButton("Close", "Close",this) );
-	__print_JButton = new SimpleJButton("Print", "Print", this );
-	__print_JButton.setEnabled ( false );
-	button_JPanel.add ( __print_JButton );
+	this.print_JButton = new SimpleJButton("Print", "Print", this );
+	this.print_JButton.setEnabled ( false );
+	button_JPanel.add ( this.print_JButton );
 
 	getContentPane().add ( "South", button_JPanel );
 	button_JPanel = null;
 
 	if ( (JGUIUtil.getAppNameForWindows() == null) || JGUIUtil.getAppNameForWindows().equals("") ) {
-		setTitle ( __ts.getIdentifier().toString() + " - Properties" );
+		setTitle ( this.ts.getIdentifier().toString() + " - Properties" );
 	}
 	else {
-	    setTitle( JGUIUtil.getAppNameForWindows() + " - " + __ts.getIdentifier().toString() + " - Properties" );
+	    setTitle( JGUIUtil.getAppNameForWindows() + " - " + this.ts.getIdentifier().toString() + " - Properties" );
 	}
 
 	pack ();
 	// Get the UI component to determine screen to display on - needed for multiple monitors.
-	Object uiComponentO = __props.getContents( "TSViewParentUIComponent" );
+	Object uiComponentO = this.props.getContents( "TSViewParentUIComponent" );
 	Component parentUIComponent = null;
 	if ( (uiComponentO != null) && (uiComponentO instanceof Component) ) {
 		parentUIComponent = (Component)uiComponentO;
@@ -726,6 +1015,12 @@ private void openGUI ( boolean mode ) {
 	JGUIUtil.center ( this, parentUIComponent );
 	setResizable ( false );
 	setVisible ( mode );
+
+	// Set worksheet column widths, used with JScrollableWorksheet.
+
+	propertiesWorksheet.setColumnWidths ( propertiesWorksheetColumnWidths );
+	dataFlagsWorksheet.setColumnWidths ( dataFlagsWorksheetColumnWidths );
+
 	} // End of try.
 	catch ( Exception e ) {
 		Message.printWarning ( 2, routine, e );
@@ -738,12 +1033,12 @@ React to tab selections.  Currently all that is done is the Print button is enab
 */
 public void stateChanged ( ChangeEvent e ) {
 	// Check for null because events are sometimes generated at startup.
-	if ( (__props_JTabbedPane.getSelectedComponent()==__history_JPanel)||
-		(__props_JTabbedPane.getSelectedComponent() == __comments_JPanel)){
-		JGUIUtil.setEnabled ( __print_JButton, true );
+	if ( (this.props_JTabbedPane.getSelectedComponent() == this.history_JPanel) ||
+		(this.props_JTabbedPane.getSelectedComponent() == this.comments_JPanel) ) {
+		JGUIUtil.setEnabled ( this.print_JButton, true );
 	}
 	else {
-	    JGUIUtil.setEnabled ( __print_JButton, false );
+	    JGUIUtil.setEnabled ( this.print_JButton, false );
 	}
 }
 

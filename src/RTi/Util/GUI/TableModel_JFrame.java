@@ -4,7 +4,7 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2025 Colorado Department of Natural Resources
+Copyright (C) 1994-2026 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,22 +33,21 @@ import javax.swing.JTextField;
 import RTi.Util.IO.PropList;
 
 /**
-This class manages and displays data given a TableModel and CellRenderer by
-using a TableModel_JPanel.  The JFrame is suitable for general displays where
-a table model and renderer are available.
+This class manages and displays data given a TableModel and CellRenderer by using a TableModel_JPanel.
+The JFrame is suitable for general displays where a table model and renderer are available.
 */
 @SuppressWarnings("serial")
 public class TableModel_JFrame extends JFrame
 {
 
-private JWorksheet_AbstractRowTableModel __tm = null;	// Table model to display.
-private JWorksheet_DefaultTableCellRenderer __cr = null;// Cell renderer for the table model.
-private TableModel_JPanel __tm_JPanel = null;		// The panel to hold the worksheet.
-private PropList __worksheet_props = null;		// Properties to control the worksheet.
+private JWorksheet_AbstractRowTableModel tm = null;	// Table model to display.
+private JWorksheet_DefaultTableCellRenderer cr = null;// Cell renderer for the table model.
+private TableModel_JPanel tm_JPanel = null;		// The panel to hold the worksheet.
+private PropList worksheet_props = null;		// Properties to control the worksheet.
 
 private JTextField					// Message and status
-	__message_JTextField,				// bars.
-	__status_JTextField;
+	message_JTextField,				// bars.
+	status_JTextField;
 
 /**
 Constructor.
@@ -84,10 +83,10 @@ throws Exception
 			setTitle( JGUIUtil.getAppNameForWindows() + " - " + title );
 		}
 	}
-	__tm = tm;
-	__cr = cr;
-	// Can be null...
-	__worksheet_props = worksheet_props;
+	this.tm = tm;
+	this.cr = cr;
+	// Can be null.
+	this.worksheet_props = worksheet_props;
 
 	setupGUI();
 }
@@ -99,10 +98,10 @@ Sets the status bar's message and status text fields.
 */
 public void setMessageStatus(String message, String status) {
 	if (message != null) {
-		__message_JTextField.setText(message);
+		this.message_JTextField.setText(message);
 	}
 	if (status != null) {
-		__status_JTextField.setText(status);
+		this.status_JTextField.setText(status);
 	}
 }
 
@@ -111,28 +110,28 @@ Sets up the GUI.
 */
 private void setupGUI()
 throws Exception {
-	if ( __worksheet_props != null ) {
-		__tm_JPanel = new TableModel_JPanel ( this, __tm, __cr, __worksheet_props );
+	if ( this.worksheet_props != null ) {
+		this.tm_JPanel = new TableModel_JPanel ( this, this.tm, this.cr, this.worksheet_props );
 	}
 	else {
 		// Use defaults.
-		__tm_JPanel = new TableModel_JPanel ( this, __tm, __cr );
+		this.tm_JPanel = new TableModel_JPanel ( this, this.tm, this.cr );
 	}
 
-	getContentPane().add("Center", __tm_JPanel);
+	getContentPane().add("Center", this.tm_JPanel);
 
 	JPanel statusBar = new JPanel();
 	statusBar.setLayout(new GridBagLayout());
 
-	__message_JTextField = new JTextField(20);
-	__message_JTextField.setEditable(false);
-	__status_JTextField = new JTextField(10);
-	__status_JTextField.setEditable(false);
+	this.message_JTextField = new JTextField(20);
+	this.message_JTextField.setEditable(false);
+	this.status_JTextField = new JTextField(10);
+	this.status_JTextField.setEditable(false);
 
-	JGUIUtil.addComponent(statusBar, __message_JTextField,
+	JGUIUtil.addComponent(statusBar, this.message_JTextField,
 		0, 0, 1, 1, 1, 1,
 		GridBagConstraints.BOTH, GridBagConstraints.WEST);
-	JGUIUtil.addComponent(statusBar, __status_JTextField,
+	JGUIUtil.addComponent(statusBar, this.status_JTextField,
 		1, 0, 1, 1, 0, 0,
 		GridBagConstraints.NONE, GridBagConstraints.WEST);
 	getContentPane().add("South", statusBar);
@@ -140,7 +139,7 @@ throws Exception {
 	setSize(600, 400);
 	JGUIUtil.center(this);
 
-	int count = __tm_JPanel.getWorksheetRowCount();
+	int count = this.tm_JPanel.getWorksheetRowCount();
 	String plural = "s";
 	if (count == 1) {
 		plural = "";
@@ -151,7 +150,7 @@ throws Exception {
 	setVisible(true);
 	toFront(); // Needed because sometimes gets hidden.
 
-	__tm_JPanel.setWorksheetColumnWidths();
+	this.tm_JPanel.setWorksheetColumnWidths();
 }
 
 }
