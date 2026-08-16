@@ -297,24 +297,25 @@ If multiple delimiters are at the front and skip blanks is specified,
 all the delimiters will be skipped.  Escaped single characters are passed through as is.
 Therefore \" (two characters) will be two characters in the output.
 Other code needs to interpret the two characters as the actual special character.
-@return A list of Strings, guaranteed to be non-null
 @param string The string to break.
 @param delim A String containing characters to treat as delimiters.
-Each character in the string is checked (the complete string is not used as a
-multi-character delimiter).  Cannot be null.
+Each character in the string is checked (the complete string is not used as a multi-character delimiter).
+Cannot be null.
 @param flag Bitmask indicating how to break the string.
 Specify DELIM_SKIP_BLANKS to skip blank fields (delimiters that are next to each other
 are treated as one delimiter - delimiters at the front are ignored).
-Specify DELIM_ALLOW_STRINGS to allow quoted strings (which may contain delimiters).
-The quoting character can be single or double quote.
-Specify DELIM_ALLOW_STRINGS_RETAIN_QUOTES to retain the quotes in the return strings when DELIM_ALLOW_QUOTES is used.
+Specify DELIM_ALLOW_STRINGS to allow quoted strings (which may contain delimiters),
+and the quoting character can be single or double quote.
+Specify DELIM_ALLOW_STRINGS_RETAIN_QUOTES to retain the quotes in the return strings when
+DELIM_ALLOW_QUOTES or DELIM_ALLOW_DOUBLE_QUOTE_STRINGS is used.
 Specify DELIM_TRIM_STRINGS to trim the strings before returning.
 Specify 0 (zero) to do simple tokenizing where repeated delimiters are not
 merged and quoted strings are not handled as one token.
 Note that when allowing quoted strings the string "xxxx"yy is returned as xxxxyy because no intervening delimiter is present.
+@return A list of Strings, guaranteed to be non-null
 */
 public static List<String> breakStringList( String string, String delim, int flag ) {
-	String routine = "StringUtil.breakStringList";
+	String routine = StringUtil.class.getSimpleName() + ".breakStringList";
 	List<String> list = new ArrayList<>();
 
 	if ( string == null ) {
@@ -325,6 +326,7 @@ public static List<String> breakStringList( String string, String delim, int fla
 	}
 	//if ( Message.isDebugOn ) {
 	//	Message.printDebug ( 50, routine,
+	
 	//	Message.printStatus ( 1, routine,
 	//	"SAMX Breaking \"" + string + "\" using \"" + delim + "\"" );
 	//}
@@ -374,7 +376,7 @@ public static List<String> breakStringList( String string, String delim, int fla
 			//Message.printStatus ( 2, routine, "SAMX Processing character " + cstring );
 			if ( allow_strings ) {
 				// Allowing quoted strings so do check for the start and end of quotes.
-				if ( !instring && ((cstring == '"')||(cstring == '\'')) ){
+				if ( !instring && ((cstring == '"') || (cstring == '\'')) ) {
 					// The start of a quoted string.
 					instring = true;
 					at_start = false;
