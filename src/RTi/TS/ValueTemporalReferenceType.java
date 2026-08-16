@@ -55,9 +55,9 @@ public enum ValueTemporalReferenceType {
     INTERVAL_START("IntervalStart"),
 
     /**
-     * Not applicable, for example when day, month, or year interval.
+     * Similar to INSTANT, but for a date.
      */
-    NA("NA"),
+    DATE("Date"),
 
     /**
      * Temporal reference is unknown. Typically will be INSTANT for irregular data and INTERVAL_END for interval data.

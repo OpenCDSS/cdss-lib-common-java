@@ -4,19 +4,19 @@
 
 CDSS Common Java Library
 CDSS Common Java Library is a part of Colorado's Decision Support Systems (CDSS)
-Copyright (C) 1994-2023 Colorado Department of Natural Resources
+Copyright (C) 1994-2026 Colorado Department of Natural Resources
 
 CDSS Common Java Library is free software:  you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
 
-    CDSS Common Java Library is distributed in the hope that it will be useful,
+CDSS Common Java Library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+You should have received a copy of the GNU General Public License
     along with CDSS Common Java Library.  If not, see <https://www.gnu.org/licenses/>.
 
 NoticeEnd */
@@ -25,10 +25,10 @@ package RTi.GR;
 
 import RTi.Util.Message.Message;
 
+import com.ezylang.evalex.Expression;
+
 /**
  * Single row for a color table, consistent with TSTool raster change and web development.
- * @author sam
- *
  */
 public class GRSymbolTableRow {
 
@@ -40,6 +40,17 @@ public class GRSymbolTableRow {
 	public static final int LT = 2;
 	public static final int GE = 3;
 	public static final int GT = 4;
+
+	/*
+	 * Expression to evaluate, using ${tsdata:value} and similar strings:
+	 * - the expression will be expanded and evaluated with EvalEx
+	 */
+	private String expressionFullString = "";
+	
+	/**
+	 * Legend to display for the row.
+	 */
+	private String legend = "";
 
 	/*
 	 * Minimum value as a string, one of: -Infinity, Infinity, <Value, <=Value, >Value, >=Value.
@@ -105,6 +116,11 @@ public class GRSymbolTableRow {
 	 * Weight for drawing vector features.
 	 */
 	private double weight = 1.0;
+	
+	/**
+	 * The EvalEx expression, which will be evaluated for each value.
+	 */
+	private Expression evalExExpression = null;
 
 	/**
 	 * Whether a NoData row.
@@ -112,7 +128,7 @@ public class GRSymbolTableRow {
 	private boolean isNoDataRow = false;
 
 	/**
-	 * Constructor
+	 * Constructor for minimum and maximum value condition.
 	 * @param minValueString minimum value string as in <N, <=N, >N, >=N, -Infinity, Infinity
 	 * @param maxValueString minimum value string as in <N, <=N, >N, >=N, -Infinity, Infinity
 	 * @param color color string in format #123456
@@ -121,16 +137,44 @@ public class GRSymbolTableRow {
 	 * @param fillOpacity opacity 0.0 to 1.0
 	 */
 	public GRSymbolTableRow (
+		String valueMinFullString,
+		String valueMaxFullString,
+		String color,
+		double opacity,
+		String fillColor,
+		double fillOpacity ) {
+		this ( null, null, valueMinFullString, valueMaxFullString, color, opacity, fillColor, fillOpacity );
+	}
+
+	/**
+	 * Constructor
+	 * @param expression an EvalEx expression that evaluates to a boolean and can contain embedded properties to expand
+	 * @param minValueString minimum value string as in <N, <=N, >N, >=N, -Infinity, Infinity
+	 * @param maxValueString minimum value string as in <N, <=N, >N, >=N, -Infinity, Infinity
+	 * @param color color string in format #123456
+	 * @param opacity opacity 0.0 to 1.0
+	 * @param fillColor color string in format #123456
+	 * @param fillOpacity opacity 0.0 to 1.0
+	 */
+	public GRSymbolTableRow (
+		String expressionFullString,
+		String legend,
 		String minValueFullString,
 		String maxValueFullString,
 		String color,
 		double opacity,
 		String fillColor,
 		double fillOpacity ) {
+		this.expressionFullString = expressionFullString;
+		this.legend = legend;
 		this.valueMinFullString = minValueFullString;
-		parseLimit(minValueFullString, -1);
+		if ( (valueMinFullString != null) && !valueMinFullString.isEmpty() ) {
+			parseLimit(minValueFullString, -1);
+		}
 		this.valueMaxFullString = maxValueFullString;
-		parseLimit(maxValueFullString, 1);
+		if ( (valueMaxFullString != null) && !valueMaxFullString.isEmpty() ) {
+			parseLimit(maxValueFullString, 1);
+		}
 		if ( (color != null) && !color.isEmpty() ) {
 			this.color = GRColor.parseColor(color);
 			if ( Message.isDebugOn ) {
@@ -148,49 +192,80 @@ public class GRSymbolTableRow {
 	}
 
 	/**
-	 * Get the color.
+	 * Return the boundary color.
+	 * @return the boundary color.
 	 */
 	public GRColor getColor () {
 		return this.color;
 	}
 
 	/**
-	 * Get the fill color.
+	 * Return the EvalEx expression for the row.
+	 * Return the EvalEx expression, or null if not initialized
+	 */
+	public Expression getEvalExExpression () {
+		return this.evalExExpression;
+	}
+
+	/**
+	 * Return the expression full string, which can be expanded in the calling code.
+	 * Return the expression full string
+	 */
+	public String getExpressionFullString () {
+		return this.expressionFullString;
+	}
+
+	/**
+	 * Return the fill color.
+	 * @return the fill color
 	 */
 	public GRColor getFillColor () {
 		return this.fillColor;
 	}
 
 	/**
-	 * Get the fill opacity.
+	 * Return the fill opacity.
+	 * @return the fill opacity
 	 */
 	public double getFillOpacity () {
 		return this.fillOpacity;
 	}
 
 	/**
-	 * Get the fill opacity.
+	 * Return the legend text.
+	 * Return the legend text
+	 */
+	public String getLegend () {
+		return this.legend;
+	}
+
+	/**
+	 * Return the fill opacity.
+	 * @return the fill opacity
 	 */
 	public double getOpacity () {
 		return this.opacity;
 	}
 
 	/**
-	 * Get the value max full string, useful for legends.
+	 * Return the value max full string, useful for legends.
+	 * @return the value max full string, useful for legends
 	 */
 	public String getValueMaxFullString () {
 		return this.valueMaxFullString;
 	}
 
 	/**
-	 * Get the value min full string, useful for legends.
+	 * Return the value min full string, useful for legends.
+	 * @return the value min full string, useful for legends
 	 */
 	public String getValueMinFullString () {
 		return this.valueMinFullString;
 	}
 
 	/**
-	 * Get the weight.
+	 * Return the weight.
+	 * @return the weight.
 	 */
 	public double getWeight () {
 		return this.weight;
@@ -280,9 +355,17 @@ public class GRSymbolTableRow {
 			throw e;
 		}
 	}
+	
+	/**
+	 * Set the EvalEx expression.
+	 * @param evalExExpression the EvalEx expression to use
+	 */
+	public void setEvalExExpression ( Expression evalExExpression ) {
+		this.evalExExpression = evalExExpression;
+	}
 
 	/**
-	 * Evaluate whether a double value is in the range for the row.
+	 * Evaluate whether a double value is in the range for the row, used with 'valueMin' and 'valueMax'.
 	 * @return true if the value is in the range for the row
 	 */
 	public boolean valueInRange ( double value ) {
